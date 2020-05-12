@@ -14,6 +14,60 @@ create table systemSettings (
   primary key (settingName)
 ) engine=InnoDB;
 
+
+--
+--
+-- Roles
+--
+CREATE TABLE roles (
+	id int not null auto_increment,
+	xid varchar(100) not null,
+	name varchar(255) not null,
+  	primary key (id)
+) engine=InnoDB;
+ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
+
+--
+-- Role Inheritance Mappings
+-- 
+CREATE TABLE roleInheritance (
+	roleId INT NOT NULL,
+	inheritedRoleId INT NOT NULL
+);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
+
+CREATE TABLE minterms (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE mintermsRoles (
+  mintermId int(11) NOT NULL,
+  roleId int(11) NOT NULL,
+  UNIQUE KEY mintermsRolesIdx1 (mintermId, roleId),
+  KEY mintermsRolesFk1Idx (mintermId),
+  KEY mintermsRolesFk2Idx (roleId),
+  CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB;
+
+CREATE TABLE permissions (
+  id int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE permissionsMinterms (
+  permissionId int(11) NOT NULL,
+  mintermId int(11) NOT NULL,
+  UNIQUE KEY permissionsMintermsIdx1 (permissionId, mintermId),
+  KEY permissionsMintermsFk1Idx (permissionId),
+  KEY permissionsMintermsFk2Idx (mintermId),
+  CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB;
+
 --
 -- Users
 create table users (
@@ -47,6 +101,19 @@ create table users (
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
 ALTER TABLE users ADD CONSTRAINT email_unique UNIQUE(email);
 
+--
+--
+-- User Role Mappings
+--
+CREATE TABLE userRoleMappings (
+	roleId int not null,
+	userId int not null
+) engine=InnoDB;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
+
+
 create table userComments (
   id int not null auto_increment,
   xid varchar(100) not null,
@@ -60,71 +127,6 @@ create table userComments (
 alter table userComments add constraint userCommentsFk1 foreign key (userId) references users(id);
 alter table userComments add constraint userCommentsUn1 unique (xid);
 ALTER TABLE userComments ADD INDEX userComments_performance1 (`commentType` ASC, `typeKey` ASC);
-
---
---
--- Roles
---
-CREATE TABLE roles (
-	id int not null auto_increment,
-	xid varchar(100) not null,
-	name varchar(255) not null,
-  	primary key (id)
-) engine=InnoDB;
-ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
-
---
--- Role Inheritance Mappings
--- 
-CREATE TABLE roleInheritance (
-	roleId INT NOT NULL,
-	inheritedRoleId INT NOT NULL
-);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
-
---
---
--- User Role Mappings
---
-CREATE TABLE userRoleMappings (
-	roleId int not null,
-	userId int not null
-) engine=InnoDB;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
-
-CREATE TABLE `minterms` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
-
-CREATE TABLE `minterms_roles` (
-  `minterm_id` int(11) NOT NULL,
-  `role_id` int(11) NOT NULL,
-  UNIQUE KEY `minterms_roles_idx1` (`minterm_id`,`role_id`),
-  KEY `minterms_roles_fk1_idx` (`minterm_id`),
-  KEY `minterms_roles_fk2_idx` (`role_id`),
-  CONSTRAINT `minterms_roles_fk1` FOREIGN KEY (`minterm_id`) REFERENCES `minterms` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `minterms_roles_fk2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB;
-
-CREATE TABLE `permissions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
-
-CREATE TABLE `permissions_minterms` (
-  `permission_id` int(11) NOT NULL,
-  `minterm_id` int(11) NOT NULL,
-  UNIQUE KEY `permissions_minterms_idx1` (`permission_id`,`minterm_id`),
-  KEY `permissions_minterms_fk1_idx` (`permission_id`),
-  KEY `permissions_minterms_fk2_idx` (`minterm_id`),
-  CONSTRAINT `permissions_minterms_fk1` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `permissions_minterms_fk2` FOREIGN KEY (`minterm_id`) REFERENCES `minterms` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB;
 
 --
 -- Mailing lists
@@ -165,13 +167,13 @@ create table dataSources (
   data longblob not null,
   jsonData JSON,
   rtdata longblob,
-  read_permission int default null,
-  edit_permission int default null,
+  readPermission int default null,
+  editPermission int default null,
   primary key (id)
 ) engine=InnoDB;
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
-ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (read_permission) REFERENCES permissions(id) ON DELETE SET NULL;
-ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (edit_permission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermission) REFERENCES permissions(id) ON DELETE SET NULL;
 ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
 
 --
@@ -202,14 +204,14 @@ CREATE TABLE dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData JSON,
-  read_permission int default null,
-  set_permission int default null,
+  readPermission int default null,
+  setPermission int default null,
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (read_permission) REFERENCES permissions(id) ON DELETE SET NULL;
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (set_permission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermission) REFERENCES permissions(id) ON DELETE SET NULL;
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);

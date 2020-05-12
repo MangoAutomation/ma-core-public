@@ -13,11 +13,11 @@ public class MintermMappingTable extends CustomTable<MintermMappingRecord> {
 
     public static final MintermMappingTable MINTERMS_MAPPING = new MintermMappingTable();
 
-    public final TableField<MintermMappingRecord, Integer> mintermId = createField(DSL.name("minterm_id"), SQLDataType.INTEGER.nullable(false));
-    public final TableField<MintermMappingRecord, Integer> roleId = createField(DSL.name("role_id"), SQLDataType.INTEGER.nullable(false));
+    public final TableField<MintermMappingRecord, Integer> mintermId = createField(DSL.name("mintermId"), SQLDataType.INTEGER.nullable(false));
+    public final TableField<MintermMappingRecord, Integer> roleId = createField(DSL.name("roleId"), SQLDataType.INTEGER.nullable(false));
 
     protected MintermMappingTable() {
-        super(DSL.name("minterms_roles"));
+        super(DSL.name("mintermsRoles"));
     }
 
     @Override

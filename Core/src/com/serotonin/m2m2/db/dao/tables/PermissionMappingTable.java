@@ -13,11 +13,11 @@ public class PermissionMappingTable extends CustomTable<PermissionMappingRecord>
 
     public static final PermissionMappingTable PERMISSIONS_MAPPING = new PermissionMappingTable();
 
-    public final TableField<PermissionMappingRecord, Integer> permissionId = createField(DSL.name("permission_id"), SQLDataType.INTEGER.nullable(false));
-    public final TableField<PermissionMappingRecord, Integer> mintermId = createField(DSL.name("minterm_id"), SQLDataType.INTEGER.nullable(false));
+    public final TableField<PermissionMappingRecord, Integer> permissionId = createField(DSL.name("permissionId"), SQLDataType.INTEGER.nullable(false));
+    public final TableField<PermissionMappingRecord, Integer> mintermId = createField(DSL.name("mintermId"), SQLDataType.INTEGER.nullable(false));
 
     protected PermissionMappingTable() {
-        super(DSL.name("permissions_minterms"));
+        super(DSL.name("permissionsMinterms"));
     }
 
     @Override

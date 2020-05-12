@@ -13,6 +13,80 @@ CREATE TABLE systemSettings (
 );
 
 --
+--
+-- Roles
+--
+CREATE TABLE roles (
+	id int not null auto_increment,
+	xid varchar(100) not null,
+	name varchar(255) not null,
+  	primary key (id)
+);
+ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
+
+--
+-- Role Inheritance Mappings
+-- 
+CREATE TABLE roleInheritance (
+	roleId INT NOT NULL,
+	inheritedRoleId INT NOT NULL
+);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
+
+--
+--
+-- Role Mappings
+--
+CREATE TABLE roleMappings (
+	roleId int not null,
+	voId int,
+	voType varchar(255),
+	permissionType varchar(255) not NULL,
+	mask BIGINT NOT NULL
+);
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
+CREATE INDEX roleMappingsPermissionTypeIndex ON roleMappings (permissionType ASC);
+CREATE INDEX roleMappingsVoTypeIndex ON roleMappings (voType ASC);
+CREATE INDEX roleMappingsVoIdIndex ON roleMappings (voId ASC);
+CREATE INDEX roleMappingsRoleIdIndex ON roleMappings (roleId ASC);
+CREATE INDEX roleMappingsVoTypeVoIdPermissionTypeIndex ON roleMappings (voType ASC, voId ASC, permissionType ASC);
+
+--
+-- Permissions
+CREATE TABLE minterms (
+	id int(11) NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE mintermsRoles (
+	mintermId int(11) NOT NULL,
+	roleId int(11) NOT NULL
+);
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx KEY (mintermId);
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx KEY (roleId);
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;
+
+CREATE TABLE permissions (
+	id int(11) NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY (id)
+);
+
+CREATE TABLE permissionsMinterms (
+	permissionId int(11) NOT NULL,
+	mintermId int(11) NOT NULL
+);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE KEY (permissionId, mintermId);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx KEY (permissionId);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx KEY(mintermId);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
+
+--
 -- Users
 CREATE TABLE users (
   id int NOT NULL auto_increment,
@@ -44,6 +118,19 @@ CREATE TABLE users (
 );
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
 ALTER TABLE users ADD CONSTRAINT email_unique UNIQUE(email);
+
+--
+--
+-- User Role Mappings
+--
+CREATE TABLE userRoleMappings (
+	roleId int not null,
+	userId int not null
+);
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
+
 
 CREATE TABLE userComments (
   id int NOT NULL auto_increment,
@@ -97,10 +184,14 @@ CREATE TABLE dataSources (
   data longblob NOT NULL,
   jsonData longtext,
   rtdata longblob,
+  readPermission int default null,
+  editPermission int default null,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
 CREATE INDEX nameIndex ON dataSources (name ASC);
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermission) REFERENCES permissions(id) ON DELETE SET NULL;
 
 --
 -- Data Points
@@ -127,10 +218,14 @@ CREATE TABLE dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData longtext,
+  readPermission int default null,
+  setPermission int default null,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermission) REFERENCES permissions(id) ON DELETE SET NULL;
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
@@ -308,60 +403,6 @@ CREATE TABLE fileStores (
 	PRIMARY KEY (id)
 );
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
-
---
---
--- Roles
---
-CREATE TABLE roles (
-	id int not null auto_increment,
-	xid varchar(100) not null,
-	name varchar(255) not null,
-  	primary key (id)
-);
-ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
-
---
--- Role Inheritance Mappings
--- 
-CREATE TABLE roleInheritance (
-	roleId INT NOT NULL,
-	inheritedRoleId INT NOT NULL
-);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
-
---
---
--- Role Mappings
---
-CREATE TABLE roleMappings (
-	roleId int not null,
-	voId int,
-	voType varchar(255),
-	permissionType varchar(255) not NULL,
-	mask BIGINT NOT NULL
-);
-ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
-CREATE INDEX roleMappingsPermissionTypeIndex ON roleMappings (permissionType ASC);
-CREATE INDEX roleMappingsVoTypeIndex ON roleMappings (voType ASC);
-CREATE INDEX roleMappingsVoIdIndex ON roleMappings (voId ASC);
-CREATE INDEX roleMappingsRoleIdIndex ON roleMappings (roleId ASC);
-CREATE INDEX roleMappingsVoTypeVoIdPermissionTypeIndex ON roleMappings (voType ASC, voId ASC, permissionType ASC);
-
---
---
--- User Role Mappings
---
-CREATE TABLE userRoleMappings (
-	roleId int not null,
-	userId int not null
-);
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
 
 --
 --
