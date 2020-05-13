@@ -309,6 +309,16 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
             //delete the points in bulk
             create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
+
+            for(DataPointVO vo : points) {
+                roleDao.deleteRolesForVoPermission(vo, PermissionService.READ);
+                roleDao.deleteRolesForVoPermission(vo, PermissionService.SET);
+                DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+                if(def != null) {
+                    def.deleteRelationalData(vo);
+                }
+            }
+
         }
         return points;
     }
