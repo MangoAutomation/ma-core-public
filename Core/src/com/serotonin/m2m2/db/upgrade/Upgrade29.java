@@ -6,33 +6,28 @@ package com.serotonin.m2m2.db.upgrade;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.jooq.DSLContext;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.permission.MangoPermission.MangoPermissionEncoded;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.util.Functions;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -59,7 +54,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public class Upgrade29 extends DBUpgrade {
+public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
     private final Log LOG = LogFactory.getLog(Upgrade29.class);
 
@@ -113,8 +108,9 @@ public class Upgrade29 extends DBUpgrade {
             convertJsonData(roles, out);
             convertMailingLists(roles, out);
             convertFileStores(roles, out);
-            convertEmailEventHandlers(out);
-            convertSetPointEventHandlers(out);
+            //TODO Mango 4.0 Fix up
+            //convertEmailEventHandlers(out);
+            //convertSetPointEventHandlers(out);
             dropTemplates(out);
             dropPointHierarchy(out);
             dropUserEvents(out);
@@ -250,6 +246,14 @@ public class Upgrade29 extends DBUpgrade {
     }
 
     private void convertDataPoints(Map<String, Role> roles, OutputStream out) throws Exception {
+        //Create permission columns
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointPermissionMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointPermissionH2SQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointPermissionMSSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointPermissionMySQL);
+        runScript(scripts, out);
+
         //Move current permissions to roles
         ejt.query("SELECT id, readPermission, setPermission FROM dataPoints", new RowCallbackHandler() {
             @Override
@@ -257,14 +261,15 @@ public class Upgrade29 extends DBUpgrade {
                 int voId = rs.getInt(1);
                 //Add role/mapping
                 Set<String> readPermissions = explodePermissionGroups(rs.getString(2));
-                insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.READ, readPermissions, roles);
+                Integer read = insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.READ, readPermissions, roles);
                 Set<String> setPermissions = explodePermissionGroups(rs.getString(3));
-                insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.SET, setPermissions, roles);
+                Integer set = insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.SET, setPermissions, roles);
+                ejt.update("UPDATE dataPoints SET readPermissionId=?,setPermissionId=? WHERE id=?", new Object[] {read, set, voId});
             }
         });
 
 
-        Map<String, String[]> scripts = new HashMap<>();
+        scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsMySQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsH2SQL);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsMSSQL);
@@ -273,6 +278,13 @@ public class Upgrade29 extends DBUpgrade {
     }
 
     private void convertDataSources(Map<String, Role> roles, OutputStream out) throws Exception {
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcePermissionMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcePermissionH2SQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcePermissionMSSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcePermissionMySQL);
+        runScript(scripts, out);
+
         //Move current permissions to roles
         ejt.query("SELECT id, editPermission FROM dataSources", new RowCallbackHandler() {
             @Override
@@ -280,12 +292,13 @@ public class Upgrade29 extends DBUpgrade {
                 int voId = rs.getInt(1);
                 //Add role/mapping
                 Set<String> editPermissions = explodePermissionGroups(rs.getString(2));
-                insertMapping(voId, DataSourceVO.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
+                Integer edit = insertMapping(voId, DataSourceVO.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
+                ejt.update("UPDATE dataSources SET editPermissionId=? WHERE id=?", new Object[] {edit, voId});
             }
         });
 
 
-        Map<String, String[]> scripts = new HashMap<>();
+        scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcesMySQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcesH2SQL);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcesMSSQL);
@@ -384,7 +397,7 @@ public class Upgrade29 extends DBUpgrade {
      */
     private void convertSetPointEventHandlers(OutputStream out) {
         //Read and save all persistent data sources to bump their serialization version
-        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
+        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {SetPointEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 int id = rs.getInt(1);
@@ -451,6 +464,24 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;",
+
+            "CREATE TABLE minterms (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+
+            "CREATE TABLE mintermsRoles (mintermId int(11) NOT NULL, roleId int(11) NOT NULL);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx KEY (mintermId);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx KEY (roleId);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+
+            "CREATE TABLE permissions (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+
+            "CREATE TABLE permissionsMinterms (permissionId int(11) NOT NULL, mintermId int(11) NOT NULL);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE KEY (permissionId, mintermId);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx KEY (permissionId);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx KEY(mintermId);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;"
     };
     private String[] createRolesMySQL = new String[] {
             "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id)) engine=InnoDB;",
@@ -474,6 +505,35 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;",
+
+            "CREATE TABLE minterms (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB;",
+
+            "CREATE TABLE mintermsRoles (",
+            "mintermId int(11) NOT NULL,",
+            "roleId int(11) NOT NULL,",
+            "UNIQUE KEY mintermsRolesIdx1 (mintermId, roleId),",
+            "KEY mintermsRolesFk1Idx (mintermId),",
+            "KEY mintermsRolesFk2Idx (roleId),",
+            "CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION,",
+            "CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION",
+            ") ENGINE=InnoDB;",
+
+            "CREATE TABLE permissions (",
+            "id int(11) NOT NULL AUTO_INCREMENT,",
+            "PRIMARY KEY (id)",
+            ") ENGINE=InnoDB;",
+
+
+            "CREATE TABLE permissionsMinterms (",
+            "permissionId int(11) NOT NULL,",
+            "mintermId int(11) NOT NULL,",
+            "UNIQUE KEY permissionsMintermsIdx1 (permissionId, mintermId),",
+            "KEY permissionsMintermsFk1Idx (permissionId),",
+            "KEY permissionsMintermsFk2Idx (mintermId),",
+            "CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION,",
+            "CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION",
+            ") ENGINE=InnoDB;"
+
     };
     private String[] createRolesMSSQL = new String[] {
             "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));",
@@ -497,6 +557,25 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;",
+
+            "CREATE TABLE minterms (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+
+            "CREATE TABLE mintermsRoles (mintermId int(11) NOT NULL, roleId int(11) NOT NULL);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx KEY (mintermId);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx KEY (roleId);",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+
+            "CREATE TABLE permissions (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+
+            "CREATE TABLE permissionsMinterms (permissionId int(11) NOT NULL, mintermId int(11) NOT NULL);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE KEY (permissionId, mintermId);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx KEY (permissionId);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx KEY(mintermId);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;"
+
     };
 
     //Default role data
@@ -526,8 +605,14 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
-            "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "ALTER TABLE dataPoints DROP COLUMN templateId;",
+    };
+    private String[] dataPointPermissionH2SQL = new String[] {
+            "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
+            "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
     };
 
     private String[] dataPointsMySQL = new String[] {
@@ -535,8 +620,14 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
+            "ALTER TABLE dataPoints DROP COLUMN templateId;",
+    };
+    private String[] dataPointPermissionMySQL = new String[] {
             "ALTER TABLE dataPoints DROP FOREIGN KEY dataPointsFk2;",
-            "ALTER TABLE dataPoints DROP COLUMN templateId;"
+            "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
     };
 
     private String[] dataPointsMSSQL = new String[] {
@@ -544,23 +635,49 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
+            "ALTER TABLE dataPoints DROP COLUMN templateId;",
+    };
+    private String[] dataPointPermissionMSSQL = new String[] {
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
-            "ALTER TABLE dataPoints DROP COLUMN templateId;"
+            "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+
     };
 
     private String[] dataSourcesH2SQL = new String[] {
             "DROP INDEX dataSourcesPermissionIndex;",
             "ALTER TABLE dataSources DROP COLUMN editPermission;",
     };
+    private String[] dataSourcePermissionH2SQL = new String[] {
+            "ALTER TABLE dataSources ADD COLUMN readPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataSources ADD COLUMN editPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+    };
 
     private String[] dataSourcesMySQL = new String[] {
             "ALTER TABLE dataPoints DROP INDEX dataSourcesPermissionIndex;",
             "ALTER TABLE dataSources DROP COLUMN editPermission;",
     };
+    private String[] dataSourcePermissionMySQL = new String[] {
+            "ALTER TABLE dataSources ADD COLUMN readPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataSources ADD COLUMN editPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+    };
 
     private String[] dataSourcesMSSQL = new String[] {
             "DROP INDEX dataSources.dataSourcesPermissionIndex;",
-            "ALTER TABLE dataSources DROP COLUMN editPermission;"
+            "ALTER TABLE dataSources DROP COLUMN editPermission;",
+    };
+
+    private String[] dataSourcePermissionMSSQL = new String[] {
+            "ALTER TABLE dataSources ADD COLUMN readPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataSources ADD COLUMN editPermissionId INT DEFAULT NULL;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
     };
 
     //Mailing lists
@@ -597,100 +714,23 @@ public class Upgrade29 extends DBUpgrade {
             "CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);"
     };
 
-
-    /**
-     * Get all existing roles so we can ensure we don't create duplicate roles only new mappings
-     * @return
-     */
-    protected Map<String, Role> getExistingRoles() {
-        return ejt.query("SELECT id,xid FROM roles", new ResultSetExtractor<Map<String, Role>>() {
-
-            @Override
-            public Map<String, Role> extractData(ResultSet rs) throws SQLException, DataAccessException {
-                Map<String, Role> mappings = new HashMap<>();
-                while(rs.next()) {
-                    int id = rs.getInt(1);
-                    String xid = rs.getString(2);
-                    mappings.put(xid, new Role(id, xid));
-                }
-                return mappings;
-            }
-        });
-    }
-
-    /**
-     * Ensure role exists and insert OR mappings for this permission
-     *  this is protected for use in modules for this upgrade
-     * @param voId
-     * @param voType
-     * @param permissionType
-     * @param existingPermission
-     * @param roles
-     */
-    protected void insertMapping(Integer voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, Role> roles) {
-        //Ensure each role is only used 1x for this permission
-        Set<Set<Role>> permissionOrSet = new HashSet<>();
-        for(String permission : existingPermissions) {
-            //ensure all roles are lower case and don't have spaces on the ends
-            permission = permission.trim();
-            String role = permission.toLowerCase();
-            roles.compute(role, (k,r) -> {
-                if(r == null) {
-                    r = new Role(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}), role);
-                }
-                //Add an or mapping
-                permissionOrSet.add(Collections.singleton(r));
-                return r;
-            });
-        }
-        MangoPermission mangoPermission = new MangoPermission(permissionOrSet);
-        List<MangoPermissionEncoded> encoded = mangoPermission.encode();
-        ejt.batchUpdate("INSERT INTO roleMappings (roleId, voId, voType, permissionType, mask) VALUES (?,?,?,?,?)", new BatchPreparedStatementSetter() {
-            @Override
-            public int getBatchSize() {
-                return encoded.size();
-            }
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                MangoPermissionEncoded r = encoded.get(i);
-                ps.setInt(1, r.getRole().getId());
-                if(voId == null) {
-                    ps.setNull(2, java.sql.Types.INTEGER);
-                }else {
-                    ps.setInt(2, voId);
-                }
-                ps.setString(3, voType);
-                ps.setString(4, permissionType);
-                ps.setLong(5, r.getMask());
-            }
-        });
-    }
-
-
-    /**
-     * For use by modules in this upgrade
-     * @param groups
-     * @return
-     */
-    protected Set<String> explodePermissionGroups(String groups) {
-        if (groups == null || groups.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        Set<String> set = new HashSet<>();
-        for (String s : groups.split(",")) {
-            s = s.replaceAll(Functions.WHITESPACE_REGEX, "");
-            if (!s.isEmpty()) {
-                set.add(s);
-            }
-        }
-        return Collections.unmodifiableSet(set);
-    }
-
     @Override
     protected String getNewSchemaVersion() {
         return "30";
     }
 
+    @Override
+    public ExtendedJdbcTemplate getEjt() {
+        return ejt;
+    }
+
+    @Override
+    public DSLContext getCreate() {
+        return create;
+    }
+
+    @Override
+    public TransactionTemplate getTransactionTemplate() {
+        return super.getTransactionTemplate();
+    }
 }
