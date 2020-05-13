@@ -202,6 +202,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         while(tries > 0) {
             try {
                 doInTransaction(status -> {
+                    savePreRelationalData(vo, true);
                     int id = -1;
                     InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
                     String sql = insert.getSQL();
@@ -227,6 +228,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
+    public void savePreRelationalData(T vo, boolean insert) { }
+
+    @Override
     public void saveRelationalData(T vo, boolean insert) { }
 
     @Override
@@ -240,6 +244,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         while(tries > 0) {
             try {
                 doInTransaction(status -> {
+                    savePreRelationalData(vo, false);
                     List<Object> list = new ArrayList<>();
                     list.addAll(Arrays.asList(voToObjectArray(vo)));
                     Map<Field<?>, Object> values = new LinkedHashMap<>();
@@ -785,7 +790,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public QueryBuilder<T> buildQuery(PermissionHolder user) {
-        return new QueryBuilder<T>(table.getFieldMap(), valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
+        return new QueryBuilder<T>(table.getAliasMap(), valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
     }
 
 }
