@@ -23,9 +23,15 @@ import com.serotonin.m2m2.vo.role.Role;
  */
 public class MangoPermission {
 
+    protected Integer id;
+
     @JsonProperty
     protected final Set<Set<Role>> roles;
 
+    public MangoPermission(Integer id) {
+        this(Collections.emptySet());
+        this.id = id;
+    }
     public MangoPermission() {
         this(Collections.emptySet());
     }
@@ -37,6 +43,14 @@ public class MangoPermission {
 
     public Set<Set<Role>> getRoles() {
         return roles;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     /**
@@ -117,6 +131,21 @@ public class MangoPermission {
     }
 
     public static MangoPermission createAndSet(Role...roles) {
+        Set<Set<Role>> roleSet = new HashSet<>();
+        Set<Role> andSet = new HashSet<>();
+        roleSet.add(andSet);
+        for(Role role : roles) {
+            andSet.add(role);
+        }
+        return new MangoPermission(roleSet);
+    }
+
+
+    /**
+     * @param readRoles
+     * @return
+     */
+    public static MangoPermission createAndSet(Set<Role> roles) {
         Set<Set<Role>> roleSet = new HashSet<>();
         Set<Role> andSet = new HashSet<>();
         roleSet.add(andSet);
