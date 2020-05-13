@@ -7,15 +7,20 @@ package com.infiniteautomation.mango.permission;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
+import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.QueryBuilder;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -231,6 +236,57 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         });
     }
 
-    //TODO Delete a data point and make sure the role mappings go away
+    /**
+     * Test to ensure an un-used permission is deleted
+     */
+    @Test
+    public void testDeleteDataPoint() {
+        //Insert some data points
+        Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
+        List<IDataPoint> points = this.createMockDataPoints(1, false, MangoPermission.createOrSet(readRoles), new MangoPermission());
 
+        DataPointService service = Common.getBean(DataPointService.class);
+        service.getPermissionService().runAs(new PermissionHolder() {
+
+            @Override
+            public String getPermissionHolderName() {
+                return "Test";
+            }
+
+            @Override
+            public boolean isPermissionHolderDisabled() {
+                return false;
+            }
+
+            @Override
+            public Set<Role> getAllInheritedRoles() {
+                return readRoles;
+            }
+
+        }, () -> {
+            List<Integer> ids = points.stream().map(dp -> dp.getId()).collect(Collectors.toList());
+
+            QueryBuilder<DataPointVO> query = service.buildQuery().in("id", ids.toArray());
+            List<DataPointVO> vos = query.query();
+            assertEquals(points.size(), vos.size());
+            for(DataPointVO vo : vos) {
+                assertTrue(points.contains(vo));
+            }
+
+            //Delete a point
+            DataPointDao.getInstance().delete(vos.get(0));
+
+            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+            ejt.setDataSource(Common.databaseProxy.getDataSource());
+            List<Integer> permissions = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
+
+                @Override
+                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    return rs.getInt(1);
+                }
+
+            });
+            assertEquals(0, permissions.size());
+        });
+    }
 }
