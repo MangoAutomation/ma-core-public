@@ -35,6 +35,39 @@ import com.serotonin.m2m2.vo.role.Role;
 public class DataPointQueryPermissionTest extends MangoTestBase {
 
     @Test
+    public void testEmptyPermission() {
+        //Insert some data points
+
+        Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
+        List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
+        DataPointService service = Common.getBean(DataPointService.class);
+        service.getPermissionService().runAs(new PermissionHolder() {
+
+            @Override
+            public String getPermissionHolderName() {
+                return "Test";
+            }
+
+            @Override
+            public boolean isPermissionHolderDisabled() {
+                return false;
+            }
+
+            @Override
+            public Set<Role> getAllInheritedRoles() {
+                return readRoles;
+            }
+
+        }, () -> {
+            List<Integer> ids = unreadable.stream().map(dp -> dp.getId()).collect(Collectors.toList());
+
+            QueryBuilder<DataPointVO> query = service.buildQuery().in("id", ids.toArray());
+            List<DataPointVO> vos = query.query();
+            assertEquals(0, vos.size());
+        });
+    }
+
+    @Test
     public void testOrPermission() {
         //Insert some data points
 
