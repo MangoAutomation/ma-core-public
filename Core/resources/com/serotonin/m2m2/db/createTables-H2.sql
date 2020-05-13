@@ -184,14 +184,14 @@ CREATE TABLE dataSources (
   data longblob NOT NULL,
   jsonData longtext,
   rtdata longblob,
-  readPermission int default null,
-  editPermission int default null,
+  readPermissionId int default null,
+  editPermissionId int default null,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
 CREATE INDEX nameIndex ON dataSources (name ASC);
-ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermission) REFERENCES permissions(id) ON DELETE SET NULL;
-ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;
 
 --
 -- Data Points
@@ -218,14 +218,14 @@ CREATE TABLE dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData longtext,
-  readPermission int default null,
-  setPermission int default null,
+  readPermissionId int default null,
+  setPermissionId int default null,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermission) REFERENCES permissions(id) ON DELETE SET NULL;
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
