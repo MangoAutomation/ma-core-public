@@ -611,8 +611,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT DEFAULT NULL;",
             "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT DEFAULT NULL;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     private String[] dataPointsMySQL = new String[] {
@@ -626,8 +626,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "ALTER TABLE dataPoints DROP FOREIGN KEY dataPointsFk2;",
             "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT DEFAULT NULL;",
             "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT DEFAULT NULL;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     private String[] dataPointsMSSQL = new String[] {
@@ -641,8 +641,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT DEFAULT NULL;",
             "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT DEFAULT NULL;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
 
     };
 
@@ -653,8 +653,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     private String[] dataSourcePermissionH2SQL = new String[] {
             "ALTER TABLE dataSources ADD COLUMN readPermissionId INT DEFAULT NULL;",
             "ALTER TABLE dataSources ADD COLUMN editPermissionId INT DEFAULT NULL;",
-            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
-            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     private String[] dataSourcesMySQL = new String[] {
@@ -664,8 +664,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     private String[] dataSourcePermissionMySQL = new String[] {
             "ALTER TABLE dataSources ADD COLUMN readPermissionId INT DEFAULT NULL;",
             "ALTER TABLE dataSources ADD COLUMN editPermissionId INT DEFAULT NULL;",
-            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
-            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     private String[] dataSourcesMSSQL = new String[] {
@@ -676,8 +676,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     private String[] dataSourcePermissionMSSQL = new String[] {
             "ALTER TABLE dataSources ADD COLUMN readPermissionId INT DEFAULT NULL;",
             "ALTER TABLE dataSources ADD COLUMN editPermissionId INT DEFAULT NULL;",
-            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;",
-            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE SET NULL;"
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     //Mailing lists
