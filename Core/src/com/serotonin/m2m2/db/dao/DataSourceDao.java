@@ -60,7 +60,7 @@ import com.serotonin.util.SerializationHelper;
 @Repository()
 public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefinition> {
 
-    //TODO Clean up/remove
+    //TODO Mango 4.0 Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
     public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(SchemaDefinition.DATASOURCES_TABLE)).as(DATA_SOURCES_ALIAS);
     public static final Field<Integer> ID = DSL.field(DATA_SOURCES_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
@@ -298,8 +298,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
 
     @Override
     public void savePreRelationalData(DataSourceVO vo, boolean insert) {
-        vo.getReadPermission().setId(permissionDao.permissionId(vo.getReadPermission()));
-        vo.getEditPermission().setId(permissionDao.permissionId(vo.getEditPermission()));
+        vo.getReadPermission().setId(permissionDao.permissionId(vo.getReadPermission(), insert));
+        vo.getEditPermission().setId(permissionDao.permissionId(vo.getEditPermission(), insert));
     }
 
     @Override

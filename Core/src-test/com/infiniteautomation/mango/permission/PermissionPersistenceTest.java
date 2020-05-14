@@ -33,7 +33,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         //Create some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        Integer permissionId = dao.permissionId(MangoPermission.createAndSet(roles));
+        Integer permissionId = dao.permissionId(MangoPermission.createAndSet(roles), true);
         MangoPermission read = dao.get(permissionId);
 
         assertEquals(1, read.getRoles().size());
@@ -49,7 +49,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         //Create some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        Integer permissionId = dao.permissionId(MangoPermission.createOrSet(roles));
+        Integer permissionId = dao.permissionId(MangoPermission.createOrSet(roles), true);
         MangoPermission read = dao.get(permissionId);
 
         assertEquals(2, read.getRoles().size());
@@ -75,7 +75,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         permission.add(minterm2);
         permission.add(minterm3);
 
-        Integer permissionId = dao.permissionId(new MangoPermission(permission));
+        Integer permissionId = dao.permissionId(new MangoPermission(permission), true);
         MangoPermission read = dao.get(permissionId);
 
         assertEquals(3, read.getRoles().size());
@@ -123,5 +123,25 @@ public class PermissionPersistenceTest extends MangoTestBase {
     //Test when removing/modifying a permission ensure
     // change permissionId mappings from ON DELETE CASCADE to ON DELETE RESTRICT
     // then if deleted then check for any orphaned minterms (not mapped to permission)
+    @Test
+    public void testModifyPermission() {
+
+        PermissionDao dao = Common.getBean(PermissionDao.class);
+
+        //Create some roles
+        Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
+        //insert the permission
+        Integer permissionId = dao.permissionId(MangoPermission.createOrSet(roles), true);
+        MangoPermission read = dao.get(permissionId);
+
+        assertEquals(2, read.getRoles().size());
+        Iterator<Set<Role>> it = read.getRoles().iterator();
+        Role toKeep = it.next().iterator().next();
+
+        permissionId = dao.permissionId(MangoPermission.createOrSet(toKeep), false);
+        read = dao.get(permissionId);
+        assertEquals(1, read.getRoles().size());
+
+    }
 
 }

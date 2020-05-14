@@ -322,4 +322,62 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             assertEquals(0, permissions.size());
         });
     }
+
+    @Test
+    public void testDeleteDataPoints() {
+        //Insert some data points
+        Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
+        List<IDataPoint> points = this.createMockDataPoints(2, false, MangoPermission.createOrSet(readRoles), new MangoPermission());
+
+        DataPointService service = Common.getBean(DataPointService.class);
+        service.getPermissionService().runAs(new PermissionHolder() {
+
+            @Override
+            public String getPermissionHolderName() {
+                return "Test";
+            }
+
+            @Override
+            public boolean isPermissionHolderDisabled() {
+                return false;
+            }
+
+            @Override
+            public Set<Role> getAllInheritedRoles() {
+                return readRoles;
+            }
+
+        }, () -> {
+            List<Integer> ids = points.stream().map(dp -> dp.getId()).collect(Collectors.toList());
+
+            QueryBuilder<DataPointVO> query = service.buildQuery().in("id", ids.toArray());
+            List<DataPointVO> vos = query.query();
+            assertEquals(points.size(), vos.size());
+            for(DataPointVO vo : vos) {
+                assertTrue(points.contains(vo));
+            }
+
+            //Delete a point
+            DataPointDao.getInstance().delete(vos.get(0));
+
+            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+            ejt.setDataSource(Common.databaseProxy.getDataSource());
+            List<Integer> permissions = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
+
+                @Override
+                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    return rs.getInt(1);
+                }
+
+            });
+            assertEquals(1, permissions.size());
+
+            //ensure all minterms ect still exist for the un-deleted point
+            vos = query.query();
+            assertEquals(1, vos.size());
+            for(DataPointVO vo : vos) {
+                assertTrue(points.contains(vo));
+            }
+        });
+    }
 }

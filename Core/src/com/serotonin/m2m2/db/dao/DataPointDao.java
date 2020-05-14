@@ -93,7 +93,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     private final UserCommentTableDefinition userCommentTable;
     private final PermissionService permissionService;
     private final PermissionDao permissionDao;
-    private final RoleDao roleDao;
+    private final DataPointTagsDao dataPointTagsDao;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -108,7 +108,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionDao permissionDao,
-            RoleDao roleDao) {
+            DataPointTagsDao dataPointTagsDao) {
         super(EventType.EventTypeNames.DATA_POINT, table,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
@@ -117,7 +117,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         this.userCommentTable = userCommentTable;
         this.permissionService = permissionService;
         this.permissionDao = permissionDao;
-        this.roleDao = roleDao;
+        this.dataPointTagsDao = dataPointTagsDao;
     }
 
     /**
@@ -307,16 +307,19 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             //delete event detectors
             create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").in(ids)).execute();
 
-            //delete the points in bulk
-            create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
-
             for(DataPointVO vo : points) {
-                roleDao.deleteRolesForVoPermission(vo, PermissionService.READ);
-                roleDao.deleteRolesForVoPermission(vo, PermissionService.SET);
                 DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
                 if(def != null) {
                     def.deleteRelationalData(vo);
                 }
+            }
+
+            //delete the points in bulk
+            create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
+
+            //Clean permissions
+            for(DataPointVO vo : points) {
+                permissionDao.permissionDeleted(vo.getReadPermission(), vo.getSetPermission());
             }
 
         }
@@ -333,30 +336,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp));
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
             this.countMonitor.decrement();
-        }
-    }
-
-    @Override
-    public void deleteRelationalData(DataPointVO vo) {
-
-        //delete event handler mappings
-        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
-        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
-                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
-
-        //delete user comments
-        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
-                userCommentTable.getField("typeKey").eq(vo.getId())).execute();
-
-        //delete event detectors
-        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").eq(vo.getId())).execute();
-
-        roleDao.deleteRolesForVoPermission(vo, PermissionService.READ);
-        roleDao.deleteRolesForVoPermission(vo, PermissionService.SET);
-
-        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
-        if(def != null) {
-            def.deleteRelationalData(vo);
         }
     }
 
@@ -380,7 +359,9 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 this.table.getXidAlias(),
                 this.table.getNameAlias(),
                 this.table.getAlias("dataSourceId"),
-                this.table.getAlias("deviceName"))
+                this.table.getAlias("deviceName"),
+                this.table.getAlias("readPermissionId"),
+                this.table.getAlias("setPermissionId"))
                 .from(this.table.getTableAsAlias()), null).where(this.table.getXidAlias().eq(xid)).limit(1);
 
         String sql = query.getSQL();
@@ -394,15 +375,13 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                         summary.setName(rs.getString(3));
                         summary.setDataSourceId(rs.getInt(4));
                         summary.setDeviceName(rs.getString(5));
+                        summary.setReadPermission(permissionDao.get(rs.getInt(6)));
+                        summary.setSetPermission(permissionDao.get(rs.getInt(7)));
                         return summary;
                     }else {
                         return null;
                     }
                 });
-        if (item != null) {
-            item.setReadPermission(roleDao.getPermission(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.READ));
-            item.setSetPermission(roleDao.getPermission(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.SET));
-        }
         return item;
     }
 
@@ -599,7 +578,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
-
             dp.ensureUnitsCorrect();
             return dp;
         }
@@ -613,12 +591,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     @Override
     public void loadRelationalData(DataPointVO vo) {
         //TODO Mango 4.0 loading tags always is much slower
-        vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
+        vo.setTags(dataPointTagsDao.getTagsForDataPointId(vo.getId()));
 
         //Populate permissions
-        vo.setReadPermission(roleDao.getPermission(vo, PermissionService.READ));
-        vo.setSetPermission(roleDao.getPermission(vo, PermissionService.SET));
-        vo.setDataSourceEditPermission(roleDao.getPermission(vo.getDataSourceId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
+        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
+        vo.setSetPermission(permissionDao.get(vo.getSetPermission().getId()));
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
@@ -628,8 +605,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
     @Override
     public void savePreRelationalData(DataPointVO vo, boolean insert) {
-        vo.getReadPermission().setId(permissionDao.permissionId(vo.getReadPermission()));
-        vo.getSetPermission().setId(permissionDao.permissionId(vo.getSetPermission()));
+        vo.getReadPermission().setId(permissionDao.permissionId(vo.getReadPermission(), insert));
+        vo.getSetPermission().setId(permissionDao.permissionId(vo.getSetPermission(), insert));
     }
 
     @Override
@@ -638,24 +615,47 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         if (tags == null) {
             if (!insert) {
                 // only delete the name and device tags, leave existing tags intact
-                DataPointTagsDao.getInstance().deleteNameAndDeviceTagsForDataPointId(vo.getId());
+                dataPointTagsDao.deleteNameAndDeviceTagsForDataPointId(vo.getId());
             }
             tags = Collections.emptyMap();
         } else if (!insert) {
             // we only need to delete tags when doing an update
-            DataPointTagsDao.getInstance().deleteTagsForDataPointId(vo.getId());
+            dataPointTagsDao.deleteTagsForDataPointId(vo.getId());
         }
 
-        DataPointTagsDao.getInstance().insertTagsForDataPoint(vo, tags);
-
-        //Replace the role mappings
-        roleDao.replaceRolesOnVoPermission(vo.getReadPermission(), vo, PermissionService.READ, insert);
-        roleDao.replaceRolesOnVoPermission(vo.getSetPermission(), vo, PermissionService.SET, insert);
+        dataPointTagsDao.insertTagsForDataPoint(vo, tags);
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
             def.saveRelationalData(vo, insert);
         }
+    }
+
+    @Override
+    public void deleteRelationalData(DataPointVO vo) {
+
+        //delete event handler mappings
+        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
+        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
+                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
+
+        //delete user comments
+        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
+                userCommentTable.getField("typeKey").eq(vo.getId())).execute();
+
+        //delete event detectors
+        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").eq(vo.getId())).execute();
+
+        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+        if(def != null) {
+            def.deleteRelationalData(vo);
+        }
+    }
+
+    @Override
+    public void deletePostRelationalData(DataPointVO vo) {
+        //Clean permissions
+        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getSetPermission());
     }
 
     @Override
@@ -676,7 +676,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+                Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
                 return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getIdAlias()));
             }
         }

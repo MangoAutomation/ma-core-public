@@ -46,7 +46,7 @@ public class PermissionDao extends BaseDao {
     /**
      * Get a MangoPermission by id
      * @param id
-     * @return
+     * @return permission if found if not an empty permission (will not return null)
      */
     public MangoPermission get(Integer id) {
         List<Field<?>> fields = new ArrayList<>();
@@ -96,24 +96,32 @@ public class PermissionDao extends BaseDao {
                     permission.setId(id);
                     return permission;
                 }else {
-                    return null;
+                    return new MangoPermission();
                 }
             }
 
         });
     }
 
-    public Integer permissionId(MangoPermission permission) {
+    /**
+     * Find the id of a permission or create one that matches,
+     *  null input returns null
+     *
+     * @param permission
+     * @param insert if this permission was created on an insert it won't have replaced an old one so don't unlink permissions
+     * @return
+     */
+    public Integer permissionId(MangoPermission permission, boolean insert) {
         if (permission.getRoles().isEmpty()) {
             return null;
         }
 
         return getTransactionTemplate().execute(txStatus -> {
-            return getOrInsertPermission(permission);
+            return getOrInsertPermission(permission, insert);
         });
     }
 
-    private Integer getOrInsertPermission(MangoPermission permission) {
+    private Integer getOrInsertPermission(MangoPermission permission, boolean insert) {
         Set<Integer> mintermIds = permission.getRoles().stream()
                 .map(this::getOrInsertMinterm)
                 .collect(Collectors.toSet());
@@ -121,7 +129,8 @@ public class PermissionDao extends BaseDao {
         Integer permissionId = create.select(PERMISSIONS_MAPPING.permissionId)
                 .from(PERMISSIONS_MAPPING)
                 .groupBy(PERMISSIONS_MAPPING.permissionId)
-                .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()))
+                .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
+                        count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
                 .limit(1)
                 .fetchOne(0, Integer.class);
 
@@ -142,6 +151,10 @@ public class PermissionDao extends BaseDao {
             .execute();
         }
 
+        if(!insert) {
+            permissionUnlinked();
+        }
+
         return permissionId;
     }
 
@@ -153,7 +166,8 @@ public class PermissionDao extends BaseDao {
         Integer mintermId = create.select(MINTERMS_MAPPING.mintermId)
                 .from(MINTERMS_MAPPING)
                 .groupBy(MINTERMS_MAPPING.mintermId)
-                .having(count(when(MINTERMS_MAPPING.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()))
+                .having(count(when(MINTERMS_MAPPING.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()),
+                        count(MINTERMS_MAPPING.roleId).equal(roleIds.size()))
                 .limit(1)
                 .fetchOne(0, Integer.class);
 
@@ -177,4 +191,75 @@ public class PermissionDao extends BaseDao {
         return mintermId;
     }
 
+    public void roleUnlinked() {
+        //Clean up minterms that are orphaned (i.e. belong to no role)
+        create.deleteFrom(MINTERMS).where(
+                MINTERMS.id.in(
+                        create.select(MINTERMS.id).from(MINTERMS)
+                        .leftJoin(MINTERMS_MAPPING).on(MINTERMS_MAPPING.mintermId.eq(MINTERMS.id))
+                        .where(MINTERMS_MAPPING.mintermId.isNull()))).execute();
+
+    }
+
+    /**
+     * Clean up references from an unlinked permission
+     */
+    public void permissionUnlinked() {
+        //Clean up minterms that are orphaned (i.e. belong to no permission)
+        create.deleteFrom(MINTERMS).where(
+                MINTERMS.id.in(
+                        create.select(MINTERMS.id).from(MINTERMS)
+                        .leftJoin(PERMISSIONS_MAPPING).on(PERMISSIONS_MAPPING.mintermId.eq(MINTERMS.id))
+                        .where(PERMISSIONS_MAPPING.permissionId.isNull()))).execute();
+    }
+
+    /**
+     * A vo with a permission was deleted, attempt to delete it and clean up
+     *  if other VOs reference this permission it will not be deleted
+     * @param permissions
+     */
+    public void permissionDeleted(MangoPermission... permissions) {
+        int deleted = 0;
+        for(MangoPermission permission : permissions) {
+            try{
+                Integer permissionId = permissionId(permission);
+                deleted += create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(permissionId)).execute();
+            }catch(Exception e) {
+                //permission still in use
+            }
+        }
+        if(deleted > 0) {
+            permissionUnlinked();
+        }
+
+
+    }
+
+    private Integer permissionId(MangoPermission permission) {
+        Set<Integer> mintermIds = permission.getRoles().stream()
+                .map(this::getMinterm)
+                .collect(Collectors.toSet());
+
+        return create.select(PERMISSIONS_MAPPING.permissionId)
+                .from(PERMISSIONS_MAPPING)
+                .groupBy(PERMISSIONS_MAPPING.permissionId)
+                .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
+                        count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
+                .limit(1)
+                .fetchOne(0, Integer.class);
+    }
+
+    private int getMinterm(Set<Role> minterm) {
+        Set<Integer> roleIds = minterm.stream()
+                .map(Role::getId)
+                .collect(Collectors.toSet());
+
+        return create.select(MINTERMS_MAPPING.mintermId)
+                .from(MINTERMS_MAPPING)
+                .groupBy(MINTERMS_MAPPING.mintermId)
+                .having(count(when(MINTERMS_MAPPING.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()),
+                        count(MINTERMS_MAPPING.roleId).equal(roleIds.size()))
+                .limit(1)
+                .fetchOne(0, Integer.class);
+    }
 }
