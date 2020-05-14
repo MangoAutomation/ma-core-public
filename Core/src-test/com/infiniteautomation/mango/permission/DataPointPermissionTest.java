@@ -63,6 +63,7 @@ public class DataPointPermissionTest extends MangoTestBase {
 
         });
         assertEquals(0, permissionIds.size());
+
         //Check for orphaned minterm mappings
         List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permissionId, new RowMapper<Integer>() {
 

@@ -49,14 +49,18 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
         return Common.getRuntimeContext().getBean(RoleDao.class);
     });
 
+    private final PermissionDao permissionDao;
+
     @Autowired
     private RoleDao(RoleTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+            ApplicationEventPublisher publisher,
+            PermissionDao permissionDao) {
         super(AuditEventType.TYPE_ROLE,
                 table,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
+        this.permissionDao = permissionDao;
     }
 
     private final String SELECT_ROLE_MAPPING = "SELECT r.id,r.xid,rm.mask FROM roles AS r JOIN roleMappings rm ON rm.roleId=r.id ";
@@ -101,6 +105,11 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
         }else {
             return false;
         }
+    }
+
+    @Override
+    public void deletePostRelationalData(RoleVO vo) {
+        permissionDao.roleUnlinked();
     }
 
     @Override

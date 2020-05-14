@@ -28,6 +28,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -36,11 +37,11 @@ import com.serotonin.m2m2.vo.role.Role;
 @Repository
 public class PermissionDao extends BaseDao {
 
-    private final RoleDao roleDao;
+    private final RoleTableDefinition roleTable;
 
     @Autowired
-    PermissionDao(RoleDao roleDao) {
-        this.roleDao = roleDao;
+    PermissionDao(RoleTableDefinition roleTable) {
+        this.roleTable = roleTable;
     }
 
     /**
@@ -50,13 +51,13 @@ public class PermissionDao extends BaseDao {
      */
     public MangoPermission get(Integer id) {
         List<Field<?>> fields = new ArrayList<>();
-        fields.add(roleDao.getTable().getAlias("id"));
-        fields.add(roleDao.getTable().getAlias("xid"));
+        fields.add(roleTable.getAlias("id"));
+        fields.add(roleTable.getAlias("xid"));
         fields.add(PERMISSIONS_MAPPING.mintermId);
 
         SelectSeekStep2<Record, Integer, Integer> select = create.select(fields).from(PERMISSIONS_MAPPING)
                 .join(MINTERMS_MAPPING).on(PERMISSIONS_MAPPING.mintermId.eq(MINTERMS_MAPPING.mintermId))
-                .join(roleDao.getTable().getTableAsAlias()).on(roleDao.getTable().getAlias("id").eq(MINTERMS_MAPPING.roleId))
+                .join(roleTable.getTableAsAlias()).on(roleTable.getAlias("id").eq(MINTERMS_MAPPING.roleId))
                 .where(PERMISSIONS_MAPPING.permissionId.eq(id))
                 .orderBy(PERMISSIONS_MAPPING.permissionId.asc(), PERMISSIONS_MAPPING.mintermId.asc());
 
