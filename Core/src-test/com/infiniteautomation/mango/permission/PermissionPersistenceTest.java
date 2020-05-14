@@ -7,16 +7,22 @@ package com.infiniteautomation.mango.permission;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
+import org.springframework.jdbc.core.RowMapper;
 
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.PermissionDao;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -111,24 +117,15 @@ public class PermissionPersistenceTest extends MangoTestBase {
         }
     }
 
-    @Test
-    public void testOrphanedPermission() {
-        //Create permission with a single role
-        //Delete all roles in minterm
-    }
-
-    //Test when removing a role we also delete any orphaned permission (has no roles in minterms)
-    // Delete role then check each used minterms to see if empty
-
-    //Test when removing/modifying a permission ensure
-    // change permissionId mappings from ON DELETE CASCADE to ON DELETE RESTRICT
-    // then if deleted then check for any orphaned minterms (not mapped to permission)
+    /**
+     * Modify a permission and ensure that it is retrieved correctly from the database after
+     */
     @Test
     public void testModifyPermission() {
 
         PermissionDao dao = Common.getBean(PermissionDao.class);
 
-        //Create some roles
+        //insert some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
         Integer permissionId = dao.permissionId(MangoPermission.createOrSet(roles), true);
@@ -142,6 +139,50 @@ public class PermissionPersistenceTest extends MangoTestBase {
         read = dao.get(permissionId);
         assertEquals(1, read.getRoles().size());
 
+    }
+
+    /**
+     *  TODO we cannot remove permissions with empty minterms as of the FK RESTRICT on VOs
+     *  Test when removing a role we also delete any orphaned permission (has no roles in minterms)
+     *  Delete role then check each used minterms to see if empty
+     */
+    @Test
+    public void testOrphanedPermission() {
+        PermissionDao dao = Common.getBean(PermissionDao.class);
+
+        //insert some roles
+        Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
+
+        //insert the permission
+        Integer permissionId = dao.permissionId(MangoPermission.createOrSet(roles), true);
+        MangoPermission read = dao.get(permissionId);
+        assertEquals(2, read.getRoles().size());
+
+        //Delete all roles in minterm
+        Iterator<Set<Role>> it = read.getRoles().iterator();
+        Set<Role> term1 = it.next();
+        Iterator<Role> term1It = term1.iterator();
+        Set<Role> term2 = it.next();
+        Iterator<Role> term2It = term2.iterator();
+        RoleDao.getInstance().delete(term1It.next().getId());
+        RoleDao.getInstance().delete(term2It.next().getId());
+
+        //Confirm that the permission has no roles
+        read = dao.get(permissionId);
+        assertEquals(0, read.getRoles().size());
+
+        //Check for orphaned minterm mappings
+        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(Common.databaseProxy.getDataSource());
+        List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permissionId, new RowMapper<Integer>() {
+
+            @Override
+            public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return rs.getInt(1);
+            }
+
+        });
+        assertEquals(0, mintermIds.size());
     }
 
 }
