@@ -163,13 +163,17 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public boolean delete(T vo) {
         if (vo != null) {
-            Integer deleted = 0;
+            int deleted = 0;
             int tries = transactionRetries;
             while(tries > 0) {
                 try {
                     deleted = withLockedRow(vo.getId(), (txStatus) -> {
                         deleteRelationalData(vo);
-                        return this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                        int result = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                        if(result > 0) {
+                            deletePostRelationalData(vo);
+                        }
+                        return result;
                     });
                     break;
                 }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
@@ -195,6 +199,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void deleteRelationalData(T vo) { }
+
+    @Override
+    public void deletePostRelationalData(T vo) { }
 
     @Override
     public void insert(T vo) {

@@ -128,6 +128,12 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public void deleteRelationalData(T vo);
 
     /**
+     * Optionally perform any logic after the VO is deleted
+     * @param vo
+     */
+    public void deletePostRelationalData(T vo);
+
+    /**
      * Count all from table
      *
      * @return
