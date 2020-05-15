@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,6 +72,7 @@ public class EmportService {
      * @param root
      * @return
      */
+    // TODO Mango 4.0 what is this here for? Why is a user passed through? Add ensureAdminRole() inside here?
     public ImportTask getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations, PermissionHolder user) {
         return new ImportTask(root,
                 translations,
@@ -97,7 +97,15 @@ public class EmportService {
      * @throws PermissionException
      */
     public String createExportData(int prettyIndent, String[] exportElements) throws PermissionException {
+        permissionService.ensureAdminRole(Common.getUser());
+
         Map<String, Object> data = ConfigurationExportData.createExportDataMap(exportElements);
+        StringWriter stringWriter = new StringWriter();
+        export(data, stringWriter, prettyIndent);
+        return stringWriter.toString();
+    }
+
+    public String export(Map<String, Object> data, int prettyIndent) {
         StringWriter stringWriter = new StringWriter();
         export(data, stringWriter, prettyIndent);
         return stringWriter.toString();
@@ -111,14 +119,12 @@ public class EmportService {
      * @throws PermissionException
      */
     public void export(Map<String, Object> data, Writer writer, int prettyIndent) throws PermissionException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        permissionService.ensureAdminRole(Common.getUser());
 
-        permissionService.ensureAdminRole(user);
         JsonTypeWriter typeWriter = new JsonTypeWriter(Common.JSON_CONTEXT);
         JsonWriter jsonWriter = new JsonWriter(Common.JSON_CONTEXT, writer);
         jsonWriter.setPrettyIndent(prettyIndent);
-        jsonWriter.setPrettyOutput(true);
+        jsonWriter.setPrettyOutput(prettyIndent > 0);
 
         try {
             JsonValue export = typeWriter.writeObject(data);
