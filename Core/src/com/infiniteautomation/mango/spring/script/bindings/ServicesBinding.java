@@ -9,11 +9,11 @@ import javax.script.Bindings;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.permissions.ServicesBindingPermission;
-import com.infiniteautomation.mango.spring.service.AbstractVOService;
 import com.serotonin.m2m2.module.ScriptBindingsDefinition;
 
 /**
@@ -29,8 +29,7 @@ public class ServicesBinding extends ScriptBindingsDefinition {
 
     @Override
     public void addBindings(MangoScript script, Bindings engineBindings, ScriptNativeConverter converter) {
-        @SuppressWarnings("rawtypes")
-        Map<String, AbstractVOService> services = context.getBeansOfType(AbstractVOService.class);
+        Map<String, Object> services = context.getBeansWithAnnotation(Service.class);
         engineBindings.put("services", converter.convert(services));
     }
 
