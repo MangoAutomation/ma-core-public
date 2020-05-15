@@ -105,35 +105,38 @@ public class PermissionDao extends BaseDao {
     }
 
     /**
-     * Find the id of a permission or create one that matches,
-     *  null input returns null
+     * Find the id of a permission or create one that matches
      *
      * @param permission
      * @param insert if this permission was created on an insert it won't have replaced an old one so don't unlink permissions
      * @return
      */
     public Integer permissionId(MangoPermission permission, boolean insert) {
-        if (permission.getRoles().isEmpty()) {
-            return null;
-        }
-
         return getTransactionTemplate().execute(txStatus -> {
             return getOrInsertPermission(permission, insert);
         });
     }
 
     private Integer getOrInsertPermission(MangoPermission permission, boolean insert) {
+        //TODO Optimize this whole method
         Set<Integer> mintermIds = permission.getRoles().stream()
                 .map(this::getOrInsertMinterm)
                 .collect(Collectors.toSet());
 
-        Integer permissionId = create.select(PERMISSIONS_MAPPING.permissionId)
-                .from(PERMISSIONS_MAPPING)
-                .groupBy(PERMISSIONS_MAPPING.permissionId)
-                .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
-                        count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
-                .limit(1)
-                .fetchOne(0, Integer.class);
+        Integer permissionId;
+        if(permission.getRoles().isEmpty()) {
+            permissionId = create.select(PERMISSIONS.id).from(PERMISSIONS)
+                    .leftJoin(PERMISSIONS_MAPPING).on(PERMISSIONS.id.eq(PERMISSIONS_MAPPING.permissionId))
+                    .where(PERMISSIONS_MAPPING.permissionId.isNull()).limit(1).fetchOne(0, Integer.class);
+        }else {
+            permissionId = create.select(PERMISSIONS_MAPPING.permissionId)
+                    .from(PERMISSIONS_MAPPING)
+                    .groupBy(PERMISSIONS_MAPPING.permissionId)
+                    .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
+                            count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
+                    .limit(1)
+                    .fetchOne(0, Integer.class);
+        }
 
         // no matching permission exists already, insert a new one
         if (permissionId == null) {
@@ -240,14 +243,19 @@ public class PermissionDao extends BaseDao {
         Set<Integer> mintermIds = permission.getRoles().stream()
                 .map(this::getMinterm)
                 .collect(Collectors.toSet());
-
-        return create.select(PERMISSIONS_MAPPING.permissionId)
-                .from(PERMISSIONS_MAPPING)
-                .groupBy(PERMISSIONS_MAPPING.permissionId)
-                .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
-                        count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
-                .limit(1)
-                .fetchOne(0, Integer.class);
+        if(permission.getRoles().isEmpty()) {
+            return create.select(PERMISSIONS.id).from(PERMISSIONS)
+                    .leftJoin(PERMISSIONS_MAPPING).on(PERMISSIONS.id.eq(PERMISSIONS_MAPPING.permissionId))
+                    .where(PERMISSIONS_MAPPING.permissionId.isNull()).limit(1).fetchOne(0, Integer.class);
+        }else {
+            return create.select(PERMISSIONS_MAPPING.permissionId)
+                    .from(PERMISSIONS_MAPPING)
+                    .groupBy(PERMISSIONS_MAPPING.permissionId)
+                    .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
+                            count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
+                    .limit(1)
+                    .fetchOne(0, Integer.class);
+        }
     }
 
     private int getMinterm(Set<Role> minterm) {

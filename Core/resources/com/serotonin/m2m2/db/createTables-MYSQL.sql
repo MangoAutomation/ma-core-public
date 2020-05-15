@@ -167,8 +167,8 @@ create table dataSources (
   data longblob not null,
   jsonData JSON,
   rtdata longblob,
-  readPermissionId int default null,
-  editPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   primary key (id)
 ) engine=InnoDB;
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
@@ -204,8 +204,8 @@ CREATE TABLE dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData JSON,
-  readPermissionId int default null,
-  setPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  setPermissionId INT NOT NULL,
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);

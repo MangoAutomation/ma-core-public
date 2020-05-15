@@ -186,8 +186,8 @@ create table dataSources (
   data image not null,
   jsonData ntext,
   rtdata image,
-  readPermissionId int default null,
-  editPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   primary key (id)
 );
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
@@ -222,8 +222,8 @@ create table dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData ntext,
-  readPermissionId int default null,
-  setPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  setPermissionId INT NOT NULL,
   primary key (id)
 );
 alter table dataPoints add constraint dataPointsUn1 unique (xid);

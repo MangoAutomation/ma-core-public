@@ -21,6 +21,7 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.QueryBuilder;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
@@ -51,7 +52,7 @@ public class DataPointPermissionTest extends MangoTestBase {
         point.setReadPermission(MangoPermission.createOrSet(readRoles.iterator().next()));
         dao.update(point.getId(), point);
 
-        //Check for orphaned permissions (there should be none)
+        //Check for the recently orphaned permission (it should not be there)
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(Common.databaseProxy.getDataSource());
         List<Integer> permissionIds = ejt.query("SELECT id from permissions WHERE id=" + permissionId, new RowMapper<Integer>() {
@@ -113,8 +114,8 @@ public class DataPointPermissionTest extends MangoTestBase {
                 assertTrue(points.contains(vo));
             }
 
-            //Delete a point
-            DataPointDao.getInstance().delete(vos.get(0));
+            //Delete the source and point
+            DataSourceDao.getInstance().delete(vos.get(0).getDataSourceId());
 
             ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
             ejt.setDataSource(Common.databaseProxy.getDataSource());
@@ -126,6 +127,7 @@ public class DataPointPermissionTest extends MangoTestBase {
                 }
 
             });
+
             assertEquals(0, permissions.size());
         });
     }
@@ -177,7 +179,9 @@ public class DataPointPermissionTest extends MangoTestBase {
                 }
 
             });
-            assertEquals(1, permissions.size());
+
+            //The set and read permission for point 2 still exist
+            assertEquals(2, permissions.size());
 
             //ensure all minterms ect still exist for the un-deleted point
             vos = query.query();

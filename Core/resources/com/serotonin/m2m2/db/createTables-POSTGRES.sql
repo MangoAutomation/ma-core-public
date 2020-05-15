@@ -162,8 +162,8 @@ CREATE TABLE dataSources (
   data bytea NOT NULL,
   jsonData json,
   rtdata bytea,
-  readPermissionId int default null,
-  editPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
@@ -199,8 +199,8 @@ CREATE TABLE dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData json,
-  readPermissionId int default null,
-  setPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  setPermissionId INT NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);

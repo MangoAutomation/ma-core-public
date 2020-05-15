@@ -123,6 +123,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
                         result.points = DataPointDao.getInstance().deleteDataPoints(vo.getId());
                         deleteRelationalData(vo);
                         result.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                        deletePostRelationalData(vo);
                     });
                     break;
                 }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
@@ -319,6 +320,12 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         roleDao.deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
         roleDao.deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ);
         vo.getDefinition().deleteRelationalData(vo);
+    }
+
+    @Override
+    public void deletePostRelationalData(DataSourceVO vo) {
+        //Clean permissions
+        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
     }
 
     @Override

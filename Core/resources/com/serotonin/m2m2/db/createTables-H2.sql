@@ -184,8 +184,8 @@ CREATE TABLE dataSources (
   data longblob NOT NULL,
   jsonData longtext,
   rtdata longblob,
-  readPermissionId int default null,
-  editPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
@@ -218,8 +218,8 @@ CREATE TABLE dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData longtext,
-  readPermissionId int default null,
-  setPermissionId int default null,
+  readPermissionId INT NOT NULL,
+  setPermissionId INT NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
