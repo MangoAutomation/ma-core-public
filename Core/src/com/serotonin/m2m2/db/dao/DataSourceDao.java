@@ -291,8 +291,9 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
 
     @Override
     public void loadRelationalData(DataSourceVO vo) {
-        vo.setEditPermission(roleDao.getPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
-        vo.setReadPermission(roleDao.getPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ));
+        //Populate permissions
+        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
         vo.getDefinition().loadRelationalData(vo);
     }
 
@@ -305,8 +306,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
 
     @Override
     public void saveRelationalData(DataSourceVO vo, boolean insert) {
-        roleDao.replaceRolesOnVoPermission(vo.getEditPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
-        roleDao.replaceRolesOnVoPermission(vo.getReadPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ, insert);
         vo.getDefinition().saveRelationalData(vo, insert);
     }
 

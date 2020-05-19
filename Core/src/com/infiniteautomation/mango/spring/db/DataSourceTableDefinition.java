@@ -40,7 +40,6 @@ public class DataSourceTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("jsonData"), SQLDataType.CLOB));
         fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(true)));
         fields.add(DSL.field(DSL.name("editPermissionId"), SQLDataType.INTEGER.nullable(true)));
-
     }
 
 }
