@@ -11,7 +11,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
@@ -33,13 +35,15 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class SystemSettingsImporter extends Importer {
 
     private final PermissionHolder user;
+    private final SystemPermissionService permissionService;
 
     /**
      * @param json
      */
-    public SystemSettingsImporter(JsonObject json, PermissionHolder user) {
+    public SystemSettingsImporter(JsonObject json, PermissionHolder user, SystemPermissionService permissionService) {
         super(json);
         this.user = user;
+        this.permissionService = permissionService;
     }
 
     @Override
@@ -71,7 +75,7 @@ public class SystemSettingsImporter extends Importer {
                                         roles.add(Collections.singleton(new Role(Common.NEW_ID, xid)));
                                     }
                                 }
-                                def.update(roles);
+                                permissionService.update(new MangoPermission(roles), def);
                                 addSuccessMessage(false, "emport.permission.prefix", key);
                             }catch(ValidationException e) {
                                 setValidationMessages(e.getValidationResult(), "emport.permission.prefix", key);

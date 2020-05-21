@@ -43,6 +43,7 @@ public class EmportService {
     private final JsonDataService jsonDataService;
     private final PermissionService permissionService;
     private final EventDetectorsService eventDetectorService;
+    private final SystemPermissionService systemPermissionService;
 
     @Autowired
     public EmportService(RoleService roleService,
@@ -54,7 +55,8 @@ public class EmportService {
             EventHandlerService eventHandlerService,
             JsonDataService jsonDataService,
             PermissionService permissionService,
-            EventDetectorsService eventDetectorService) {
+            EventDetectorsService eventDetectorService,
+            SystemPermissionService systemPermissionService) {
         this.roleService = roleService;
         this.usersService = usersService;
         this.mailingListService = mailingListService;
@@ -65,6 +67,7 @@ public class EmportService {
         this.jsonDataService = jsonDataService;
         this.permissionService = permissionService;
         this.eventDetectorService = eventDetectorService;
+        this.systemPermissionService = systemPermissionService;
     }
 
     /**
@@ -86,6 +89,7 @@ public class EmportService {
                 eventHandlerService,
                 jsonDataService,
                 eventDetectorService,
+                systemPermissionService,
                 listener, schedule);
     }
 

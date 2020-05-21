@@ -73,10 +73,11 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
 
     /**
      * Save any relational data for this publisher i.e. script roles
+     *
+     * @param existing - null on insert
      * @param vo
-     * @param insert
      */
-    public void saveRelationalData(PUB vo, boolean insert) {
+    public void saveRelationalData(PUB existing, PUB vo) {
 
     }
 

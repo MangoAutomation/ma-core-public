@@ -223,8 +223,8 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
     }
 
     @Override
-    public void saveRelationalData(PublisherVO<?> vo, boolean insert) {
-        vo.getDefinition().saveRelationalData(vo, insert);
+    public void saveRelationalData(PublisherVO<?> existing, PublisherVO<?> vo) {
+        vo.getDefinition().saveRelationalData(existing, vo);
     }
 
     @Override

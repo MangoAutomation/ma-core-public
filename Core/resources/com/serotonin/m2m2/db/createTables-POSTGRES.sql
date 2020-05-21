@@ -65,6 +65,18 @@ CREATE TABLE permissionsMinterms (
 );
 
 --
+-- System wide permissions
+-- 
+CREATE TABLE systemPermissions (
+	id int(11) NOT NULL AUTO_INCREMENT,
+	permissionType VARCHAR(255),
+	permissionId INT NOT NULL,
+	PRIMARY KEY (id)
+);
+ALTER TABLE systemPermissions ADD CONSTRAINT systemPermissionsFk1 FOREIGN KEY (permissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE systemPermissions ADD CONSTRAINT permissionTypeUn1 UNIQUE(permissionType);
+
+--
 -- Users
 CREATE TABLE users (
   id SERIAL,
@@ -130,9 +142,13 @@ CREATE TABLE mailingLists (
   xid varchar(100) NOT NULL,
   name varchar(40) NOT NULL,
   receiveAlarmEmails INT NOT NULL,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE mailingLists ADD CONSTRAINT mailingListsUn1 UNIQUE (xid);
+ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 
 CREATE TABLE mailingListInactive (
   mailingListId integer NOT NULL,
@@ -259,10 +275,14 @@ CREATE TABLE eventDetectors (
   dataPointId int NOT NULL,
   data longtext NOT NULL,
   jsonData JSON,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
 ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 
 --
 --
@@ -351,9 +371,13 @@ CREATE TABLE jsonData (
 	xid varchar(100) not null,
 	name varchar(255) not null,
   	data clob,
+  	readPermissionId INT NOT NULL,
+    editPermissionId INT NOT NULL,
     primary key (id)
 );
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
+ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 
 --
 --
@@ -372,52 +396,13 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 CREATE TABLE fileStores (
 	id int not null auto_increment, 
 	storeName varchar(100) not null, 
+	readPermissionId INT NOT NULL,
+    writePermissionId INT NOT NULL,
 	PRIMARY KEY (id)
 );
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
-
---
---
--- Roles
---
-CREATE TABLE roles (
-	id int not null auto_increment,
-	xid varchar(100) not null,
-	name varchar(255) not null,
-  	primary key (id)
-);
-ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
-
---
---
--- Role Mappings
---
-CREATE TABLE roleMappings (
-	roleId int not null,
-	voId int,
-	voType varchar(255),
-	permissionType varchar(255) not NULL,
-	mask BIGINT NOT NULL
-);
-ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
-CREATE INDEX roleMappingsPermissionTypeIndex ON roleMappings (permissionType ASC);
-CREATE INDEX roleMappingsVoTypeIndex ON roleMappings (voType ASC);
-CREATE INDEX roleMappingsVoIdIndex ON roleMappings (voId ASC);
-CREATE INDEX roleMappingsRoleIdIndex ON roleMappings (roleId ASC);
-CREATE INDEX roleMappingsVoTypeVoIdPermissionTypeIndex ON roleMappings (voType ASC, voId ASC, permissionType ASC);
-
---
--- Role Inheritance Mappings
--- 
-CREATE TABLE roleInheritance (
-	roleId INT NOT NULL,
-	inheritedRoleId INT NOT NULL
-);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
-
+ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 
 --
 --

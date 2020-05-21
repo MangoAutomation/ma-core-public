@@ -12,26 +12,23 @@ import static org.jooq.impl.DSL.count;
 import static org.jooq.impl.DSL.default_;
 import static org.jooq.impl.DSL.when;
 
-import java.sql.PreparedStatement;
+import java.io.OutputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jooq.DSLContext;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.permission.MangoPermission.MangoPermissionEncoded;
 import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.vo.role.Role;
@@ -51,6 +48,8 @@ public interface PermissionMigration {
     public PlatformTransactionManager getTransactionManager();
 
     public DSLContext getCreate();
+
+    void runScript(Map<String, String[]> scripts, OutputStream out);
 
     public default TransactionTemplate getTransactionTemplate() {
         return new TransactionTemplate(getTransactionManager());
@@ -79,13 +78,12 @@ public interface PermissionMigration {
     /**
      * Ensure role exists and insert OR mappings for this permission
      *  this is protected for use in modules for this upgrade
-     * @param voId
-     * @param voType
-     * @param permissionType
-     * @param existingPermission
+     *
+     * @param existingPermissions
      * @param roles
+     * @return
      */
-    default Integer insertMapping(Integer voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, Role> roles) {
+    default Integer insertMapping(Set<String> existingPermissions, Map<String, Role> roles) {
         //Ensure each role is only used 1x for this permission
         Set<Set<Role>> permissionOrSet = new HashSet<>();
         for(String permission : existingPermissions) {
@@ -102,27 +100,6 @@ public interface PermissionMigration {
             });
         }
         MangoPermission mangoPermission = new MangoPermission(permissionOrSet);
-        List<MangoPermissionEncoded> encoded = mangoPermission.encode();
-        getEjt().batchUpdate("INSERT INTO roleMappings (roleId, voId, voType, permissionType, mask) VALUES (?,?,?,?,?)", new BatchPreparedStatementSetter() {
-            @Override
-            public int getBatchSize() {
-                return encoded.size();
-            }
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                MangoPermissionEncoded r = encoded.get(i);
-                ps.setInt(1, r.getRole().getId());
-                if(voId == null) {
-                    ps.setNull(2, java.sql.Types.INTEGER);
-                }else {
-                    ps.setInt(2, voId);
-                }
-                ps.setString(3, voType);
-                ps.setString(4, permissionType);
-                ps.setLong(5, r.getMask());
-            }
-        });
         return permissionId(mangoPermission);
     }
 
@@ -220,5 +197,4 @@ public interface PermissionMigration {
 
         return mintermId;
     }
-
 }

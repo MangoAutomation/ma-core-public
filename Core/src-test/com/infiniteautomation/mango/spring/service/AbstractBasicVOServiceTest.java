@@ -5,13 +5,12 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +21,6 @@ import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.permission.MangoPermission.MangoPermissionEncoded;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -191,33 +189,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
     }
 
     void assertPermission(MangoPermission expected, MangoPermission actual) {
-        List<MangoPermissionEncoded> expectedEncoded = expected.encode();
-        List<MangoPermissionEncoded> actualEncoded = actual.encode();
-
-        assertEquals(expectedEncoded.size(), actualEncoded.size());
-
-        Set<MangoPermissionEncoded> missing = new HashSet<>();
-        for(MangoPermissionEncoded ee : expectedEncoded) {
-            boolean found = false;
-            for(MangoPermissionEncoded ae : actualEncoded) {
-                if(StringUtils.equals(ee.getRole().getXid(), ae.getRole().getXid())) {
-                    found = true;
-                    assertEquals(ee.getMask(), ae.getMask());
-                    break;
-                }
-            }
-            if(!found) {
-                missing.add(ee);
-            }
-        }
-
-        if(missing.size() > 0) {
-            String missingRoles = "";
-            for(MangoPermissionEncoded m : missing) {
-                missingRoles += "< " + m.getRole().getId() + " - " + m.getRole().getXid() + " mask( " + m.getMask() + ")> ";
-            }
-            fail("Not all roles matched, missing: " + missingRoles);
-        }
+        assertTrue(expected.equals(actual));
     }
 
     void setupRoles() {

@@ -17,6 +17,7 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -360,10 +361,6 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
 
-                //Ensure the mappings are gone
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.READ).getUniqueRoles().size());
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.EDIT).getUniqueRoles().size());
-
                 service.get(vo.getId());
             });
         });
@@ -514,7 +511,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 for(Set<Role> roles : roleSet) {
                     newRoles.add(new HashSet<>(roles));
                 }
-                def.update(newRoles);
+                Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
             });
         }
     }

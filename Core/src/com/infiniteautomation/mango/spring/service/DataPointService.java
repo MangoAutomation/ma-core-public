@@ -79,11 +79,13 @@ import com.serotonin.validation.StringValidation;
 public class DataPointService extends AbstractVOService<DataPointVO, DataPointTableDefinition, DataPointDao> {
 
     private final EventDetectorDao eventDetectorDao;
+    private final DataSourceDao dataSourceDao;
 
     @Autowired
-    public DataPointService(DataPointDao dao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
+    public DataPointService(DataPointDao dao, DataSourceDao dataSourceDao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
         super(dao, permissionService);
         this.eventDetectorDao = eventDetectorDao;
+        this.dataSourceDao = dataSourceDao;
     }
 
     @Override

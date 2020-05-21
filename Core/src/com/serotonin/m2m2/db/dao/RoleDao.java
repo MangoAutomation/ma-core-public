@@ -3,7 +3,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,14 +18,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.permission.MangoPermission.MangoPermissionEncoded;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
@@ -34,7 +30,6 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
@@ -63,39 +58,6 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
         this.permissionDao = permissionDao;
     }
 
-    private final String SELECT_ROLE_MAPPING = "SELECT r.id,r.xid,rm.mask FROM roles AS r JOIN roleMappings rm ON rm.roleId=r.id ";
-
-    /**
-     * Get the MangoPermission regardless of the VOs if any
-     *  that are linked to it.
-     * @param permissionType
-     * @return
-     */
-    public MangoPermission getPermission(String permissionType) {
-        List<MangoPermissionEncoded> encoded = query(SELECT_ROLE_MAPPING + "WHERE rm.permissionType=?",
-                new Object[] {permissionType},
-                new MangoPermissionEncodedRowMapper());
-        return MangoPermission.decode(encoded);
-    }
-
-    public MangoPermission getPermission(AbstractBasicVO vo, String permissionType) {
-        return getPermission(vo.getId(), vo.getClass().getSimpleName(), permissionType);
-    }
-
-    /**
-     * Get the Permission for a given vo based on the provided information
-     * @param voId
-     * @param voClassSimpleName
-     * @param permissionType
-     * @return
-     */
-    public MangoPermission getPermission(int voId, String voClassSimpleName, String permissionType) {
-        List<MangoPermissionEncoded> encoded = query(SELECT_ROLE_MAPPING + "WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
-                new Object[] {voId, voClassSimpleName, permissionType},
-                new MangoPermissionEncodedRowMapper());
-        return MangoPermission.decode(encoded);
-    }
-
     @Override
     public boolean delete(RoleVO vo) {
         //First get all mappings so we can publish them in the event
@@ -118,8 +80,8 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
     }
 
     @Override
-    public void saveRelationalData(RoleVO vo, boolean insert) {
-        if(!insert) {
+    public void saveRelationalData(RoleVO existing, RoleVO vo) {
+        if(existing != null) {
             //Drop the mappings
             this.create.deleteFrom(RoleTableDefinition.roleInheritanceTable).where(RoleTableDefinition.roleIdField.eq(vo.getId())).execute();
         }
@@ -133,115 +95,6 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
             }
             create.batch(inserts).execute();
         }
-    }
-
-    private static final String INSERT_VO_ROLE_MAPPING = "INSERT INTO roleMappings (roleId, voId, voType, permissionType, mask) VALUES (?,?,?,?,?)";
-
-    /**
-     * Delete all existing and create all new mappings
-     * @param roles
-     * @param permissionType
-     */
-    public MangoPermission replaceRolesOnPermission(Set<Set<Role>> roles, String permissionType) {
-        MangoPermission newPermission = new MangoPermission(roles);
-        doInTransaction((status) -> {
-            ejt.update("DELETE FROM roleMappings WHERE voId IS null AND voType IS null AND permissionType=?",
-                    new Object[]{permissionType});
-
-            List<MangoPermissionEncoded> encoded = newPermission.encode();
-            ejt.batchUpdate(INSERT_VO_ROLE_MAPPING, new BatchPreparedStatementSetter() {
-                @Override
-                public int getBatchSize() {
-                    return encoded.size();
-                }
-
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    MangoPermissionEncoded r = encoded.get(i);
-                    ps.setInt(1, r.getRole().getId());
-                    ps.setNull(2, java.sql.Types.INTEGER);
-                    ps.setString(3, null);
-                    ps.setString(4, permissionType);
-                    ps.setLong(5, r.getMask());
-                }
-            });
-        });
-        return newPermission;
-    }
-
-    /**
-     * Replace all roles for a vo's given permission type.
-     *   NOTE this should be used in a transaction and the RoleVO ids are not set
-     * @param permission
-     * @param vo
-     * @param permissionType
-     * @param newVO - is this a new VO
-     */
-    public void replaceRolesOnVoPermission(MangoPermission permission, AbstractBasicVO vo, String permissionType, boolean newVO) {
-        replaceRolesOnVoPermission(permission, vo.getId(), vo.getClass().getSimpleName(), permissionType, newVO);
-    }
-
-    /**
-     * Replace all roles for a vo's given permission type.
-     *   NOTE this should be used in a transaction and the RoleVO ids are not set
-     * @param permission
-     * @param voId
-     * @param classSimpleName
-     * @param permissionType
-     * @param newVO - is this a new VO
-     */
-    public void replaceRolesOnVoPermission(MangoPermission permission, int voId, String classSimpleName, String permissionType, boolean newVO) {
-        //Delete em all
-        if(!newVO) {
-            ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?",
-                    new Object[]{
-                            voId,
-                            classSimpleName,
-                            permissionType,
-            });
-        }
-        //Push the new ones in
-        List<MangoPermissionEncoded> encoded = permission.encode();
-        ejt.batchUpdate(INSERT_VO_ROLE_MAPPING, new BatchPreparedStatementSetter() {
-            @Override
-            public int getBatchSize() {
-                return encoded.size();
-            }
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                MangoPermissionEncoded e = encoded.get(i);
-                ps.setInt(1, e.getRole().getId());
-                ps.setInt(2, voId);
-                ps.setString(3, classSimpleName);
-                ps.setString(4, permissionType);
-                ps.setLong(5, e.getMask());
-            }
-        });
-    }
-
-    /**
-     * Delete role mappings for a vo permission
-     * @param vo
-     * @param permissionType
-     */
-    public void deleteRolesForVoPermission(AbstractBasicVO vo, String permissionType) {
-        deleteRolesForVoPermission(vo.getId(), vo.getClass().getSimpleName(), permissionType);
-    }
-
-    /**
-     * Delete role mappings for a vo permission
-     * @param voId
-     * @param classSimpleName
-     * @param permissionType
-     */
-    public void deleteRolesForVoPermission(int voId, String classSimpleName, String permissionType) {
-        ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?",
-                new Object[]{
-                        voId,
-                        classSimpleName,
-                        permissionType,
-        });
     }
 
     /**
@@ -338,13 +191,6 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
         @Override
         public Role mapRow(ResultSet rs, int rowNum) throws SQLException {
             return new Role(rs.getInt(1), rs.getString(2));
-        }
-    }
-
-    class MangoPermissionEncodedRowMapper implements RowMapper<MangoPermissionEncoded> {
-        @Override
-        public MangoPermissionEncoded mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new MangoPermissionEncoded(new Role(rs.getInt(1), rs.getString(2)), rs.getLong(3));
         }
     }
 

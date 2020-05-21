@@ -24,6 +24,7 @@ import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
+import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
@@ -223,6 +224,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
                     Common.getBean(EventHandlerService.class),
                     Common.getBean(JsonDataService.class),
                     Common.getBean(EventDetectorsService.class),
+                    Common.getBean(SystemPermissionService.class),
                     null, false);
         }
 

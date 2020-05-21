@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -80,6 +81,9 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
         vo.setId(rs.getInt(this.firstColumn));
         vo.setXid(rs.getString(this.firstColumn + 1));
         vo.setData(this.extractJson.extract(rs.getClob(this.firstColumn + 4)));
+        vo.setReadPermission(new MangoPermission(rs.getInt(this.firstColumn + 5)));
+        vo.setEditPermission(new MangoPermission(rs.getInt(this.firstColumn + 6)));
+
         vo.setDefinition(definition);
         vo.setSourceId(sourceId);
 

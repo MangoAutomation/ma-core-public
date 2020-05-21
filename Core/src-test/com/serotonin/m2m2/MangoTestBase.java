@@ -43,6 +43,7 @@ import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
+import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
@@ -256,6 +257,7 @@ public class MangoTestBase {
                 Common.getBean(EventHandlerService.class),
                 Common.getBean(JsonDataService.class),
                 Common.getBean(EventDetectorsService.class),
+                Common.getBean(SystemPermissionService.class),
                 null, false);
         task.run(Common.timer.currentTimeMillis());
         if(task.getResponse().getHasMessages()){

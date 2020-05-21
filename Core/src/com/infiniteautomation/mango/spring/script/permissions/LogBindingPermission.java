@@ -4,12 +4,11 @@
 package com.infiniteautomation.mango.spring.script.permissions;
 
 import java.util.Collections;
-import java.util.Set;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Allows access to a log file logger
@@ -31,7 +30,7 @@ public class LogBindingPermission extends PermissionDefinition {
     }
 
     @Override
-    protected Set<Set<Role>> getDefaultRoles() {
-        return Collections.singleton(Collections.singleton(PermissionHolder.USER_ROLE));
+    protected MangoPermission getDefaultPermission() {
+        return new MangoPermission(Collections.singleton(Collections.singleton(PermissionHolder.USER_ROLE)));
     }
 }

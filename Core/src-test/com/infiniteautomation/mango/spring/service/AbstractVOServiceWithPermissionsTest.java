@@ -17,6 +17,7 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -348,6 +349,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 VO updated = service.get(fromDb.getId());
                 setReadPermission(MangoPermission.createOrSet(Collections.emptySet()), fromDb);
                 setEditPermission(MangoPermission.createOrSet(Collections.emptySet()), fromDb);
+                service.update(fromDb.getId(), fromDb);
                 assertVoEqual(fromDb, updated);
             });
         });
@@ -365,10 +367,6 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
-
-                //Ensure the mappings are gone
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.READ).getUniqueRoles().size());
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.EDIT).getUniqueRoles().size());
 
                 service.get(vo.getId());
             });
@@ -521,7 +519,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 for(Set<Role> roles : roleSet) {
                     newRoles.add(new HashSet<>(roles));
                 }
-                def.update(newRoles);
+                Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
             });
         }
     }
@@ -532,7 +530,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             getService().permissionService.runAsSystemAdmin(() -> {
                 PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getCreatePermissionType());
                 MangoPermission permission = def.getPermission();
-                def.update(permission.removeRole(vo).getRoles());
+                Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.removeRole(vo).getRoles()), def);
             });
         }
     }

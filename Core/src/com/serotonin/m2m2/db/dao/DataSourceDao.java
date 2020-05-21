@@ -74,7 +74,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
 
     private final PermissionService permissionService;
     private final PermissionDao permissionDao;
-    private final RoleDao roleDao;
 
     @Autowired
     private DataSourceDao(
@@ -82,14 +81,12 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
-            PermissionDao permissionDao,
-            RoleDao roleDao) {
+            PermissionDao permissionDao) {
         super(AuditEventType.TYPE_DATA_SOURCE, table,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
         this.permissionDao = permissionDao;
-        this.roleDao = roleDao;
     }
 
     /**
@@ -297,16 +294,24 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         vo.getDefinition().loadRelationalData(vo);
     }
 
-
     @Override
-    public void savePreRelationalData(DataSourceVO vo, boolean insert) {
-        vo.getReadPermission().setId(permissionDao.permissionId(vo.getReadPermission(), insert));
-        vo.getEditPermission().setId(permissionDao.permissionId(vo.getEditPermission(), insert));
+    public void savePreRelationalData(DataSourceVO existing, DataSourceVO vo) {
+        permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getEditPermission());
+        vo.getDefinition().savePreRelationalData(existing, vo);
     }
 
     @Override
-    public void saveRelationalData(DataSourceVO vo, boolean insert) {
-        vo.getDefinition().saveRelationalData(vo, insert);
+    public void saveRelationalData(DataSourceVO existing, DataSourceVO vo) {
+        vo.getDefinition().saveRelationalData(existing, vo);
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+                permissionDao.permissionDeleted(existing.getReadPermission());
+            }
+            if(!existing.getEditPermission().equals(vo.getEditPermission())) {
+                permissionDao.permissionDeleted(existing.getEditPermission());
+            }
+        }
     }
 
 
@@ -316,8 +321,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_SOURCE),
                 EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
 
-        roleDao.deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
-        roleDao.deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ);
         vo.getDefinition().deleteRelationalData(vo);
     }
 
@@ -325,6 +328,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     public void deletePostRelationalData(DataSourceVO vo) {
         //Clean permissions
         permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        vo.getDefinition().deletePostRelationalData(vo);
     }
 
     @Override

@@ -5,6 +5,7 @@
 package com.infiniteautomation.mango.emport;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
@@ -18,8 +19,11 @@ import com.serotonin.m2m2.module.PermissionDefinition;
  */
 public class PermissionImporter extends Importer {
 
-    public PermissionImporter(JsonObject json) {
+    private final SystemPermissionService service;
+
+    public PermissionImporter(JsonObject json, SystemPermissionService service) {
         super(json);
+        this.service = service;
     }
 
     @Override
@@ -32,7 +36,7 @@ public class PermissionImporter extends Importer {
                 JsonValue v = json.get("roles");
                 if(v != null) {
                     MangoPermission permission = ctx.getReader().read(MangoPermission.class, v);
-                    def.update(permission.getRoles());
+                    service.update(permission, def);
                 }
                 addSuccessMessage(false, "emport.permission.prefix", permissionType);
             }catch(ValidationException e) {

@@ -114,11 +114,22 @@ public class DataPointPermissionTest extends MangoTestBase {
                 assertTrue(points.contains(vo));
             }
 
-            //Delete the source and point
-            DataSourceDao.getInstance().delete(vos.get(0).getDataSourceId());
 
             ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
             ejt.setDataSource(Common.databaseProxy.getDataSource());
+            List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
+
+                @Override
+                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    return rs.getInt(1);
+                }
+
+            });
+
+            //Delete the source and point
+            DataSourceDao.getInstance().delete(vos.get(0).getDataSourceId());
+
+
             List<Integer> permissions = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
 
                 @Override
@@ -128,7 +139,8 @@ public class DataPointPermissionTest extends MangoTestBase {
 
             });
 
-            assertEquals(0, permissions.size());
+            //We should have removed 1 permission
+            assertEquals(existing.size() - 1, permissions.size());
         });
     }
 
@@ -166,11 +178,20 @@ public class DataPointPermissionTest extends MangoTestBase {
                 assertTrue(points.contains(vo));
             }
 
+            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+            ejt.setDataSource(Common.databaseProxy.getDataSource());
+            List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
+
+                @Override
+                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    return rs.getInt(1);
+                }
+
+            });
+
             //Delete a point
             DataPointDao.getInstance().delete(vos.get(0));
 
-            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-            ejt.setDataSource(Common.databaseProxy.getDataSource());
             List<Integer> permissions = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
 
                 @Override
@@ -181,7 +202,7 @@ public class DataPointPermissionTest extends MangoTestBase {
             });
 
             //The set and read permission for point 2 still exist
-            assertEquals(2, permissions.size());
+            assertEquals(existing.size(), permissions.size());
 
             //ensure all minterms ect still exist for the un-deleted point
             vos = query.query();

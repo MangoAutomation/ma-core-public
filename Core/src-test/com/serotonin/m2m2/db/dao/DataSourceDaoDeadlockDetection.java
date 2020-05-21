@@ -38,7 +38,6 @@ import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
@@ -431,9 +430,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                     ejt.update("DELETE FROM dataSources WHERE id=?", new Object[] {ds.getId()});
                                     ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {EventType.EventTypeNames.DATA_SOURCE, ds.getId()});
 
-                                    RoleDao.getInstance().deleteRolesForVoPermission(ds.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
-
-
                                     return null;
                                 });
                                 successes.getAndIncrement();
@@ -485,9 +481,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
                                 new TransactionTemplate(transactionManager).execute((status) -> {
                                     ejt.update("UPDATE dataSources SET xid=? WHERE id=?", new Object[] {ds.getXid() + "1", ds.getId()});
-
-                                    RoleDao.getInstance().replaceRolesOnVoPermission(ds.getEditPermission(), ds.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, false);
-
                                     return null;
                                 });
                                 successes.getAndIncrement();

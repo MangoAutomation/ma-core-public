@@ -26,6 +26,7 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PermissionDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -34,7 +35,6 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -51,25 +51,19 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 @Service
 public class PermissionService {
 
-    //Permission Types
-    public static final String READ = "READ";
-    public static final String EDIT = "EDIT";
-    public static final String DELETE = "DELETE";
-    public static final String SET = "SET";
-    public static final String WRITE = "WRITE";
-    public static final String SCRIPT = "SCRIPT";
-
+    private final PermissionDao permissionDao;
     private final RoleDao roleDao;
     private final DataSourcePermissionDefinition dataSourcePermission;
     private final PermissionHolder systemSuperadmin;
     private final EventsViewPermissionDefinition eventsViewPermission;
 
     @Autowired
-    public PermissionService(RoleDao roleDao,
+    public PermissionService(PermissionDao permissionDao, RoleDao roleDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     PermissionHolder systemSuperadmin,
     DataSourcePermissionDefinition dataSourcePermission,
     EventsViewPermissionDefinition eventsView) {
+        this.permissionDao = permissionDao;
         this.roleDao = roleDao;
         this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
@@ -233,26 +227,12 @@ public class PermissionService {
         Set<String> grantedPermissions = new HashSet<>();
         if(isValidPermissionHolder(holder)) {
             for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-                if(hasAdminRole(holder) || def.getValue().hasPermission(holder)) {
+                if(hasAdminRole(holder) || hasPermission(holder, def.getValue().getPermission())) {
                     grantedPermissions.add(def.getValue().getPermissionTypeName());
                 }
             }
         }
         return grantedPermissions;
-    }
-
-    /**
-     * Does this permission holder have any role for the permission
-     *  type on this vo?
-     *
-     * @param holder
-     * @param vo
-     * @param permissionType
-     * @return
-     */
-    public boolean hasPermission(PermissionHolder holder, AbstractVO vo, String permissionType) {
-        MangoPermission permission = roleDao.getPermission(vo, permissionType);
-        return hasPermission(holder, permission);
     }
 
     /**
@@ -280,20 +260,6 @@ public class PermissionService {
     }
 
     /**
-     * Ensure the user can edit this data source.
-     *  This method is more performant if you only have the data source ID as it
-     *  won't need to lookup the entire data source to get the permission.
-     * @param user
-     * @param dataSourceId
-     * @throws PermissionException
-     */
-    public void ensureDataSourceEditPermission(PermissionHolder user, int dataSourceId) throws PermissionException {
-        if (!hasDataSourceEditPermission(user, dataSourceId)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
-        }
-    }
-
-    /**
      * Ensure the user can edit this data source
      * @param user
      * @param ds
@@ -305,41 +271,38 @@ public class PermissionService {
     }
 
     /**
+     * Ensure the user can edit this data source
+     * @param user
+     * @param ds
+     * @throws PermissionException
+     */
+    public void ensureDataSourceEditPermission(PermissionHolder user, int dsId) throws PermissionException {
+        if (!hasDataSourceEditPermission(user, dsId))
+            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
+    }
+
+    /**
      * Does this permission holder have any of the edit roles on the data source?
      * @param user
      * @param ds
      * @return
-     * @throws PermissionException
      */
-    public boolean hasDataSourceEditPermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
+    public boolean hasDataSourceEditPermission(PermissionHolder user, DataSourceVO ds) {
         return hasPermission(user, ds.getEditPermission());
     }
 
     /**
-     * Does this permission holder have any of the edit roles on the data source?
-     *  This method is more performant if you only have the data source ID as it
-     *  won't need to lookup the entire data source to get the permission.
+     * Does this permission holder have access to this data source
      * @param user
      * @param dsId
      * @return
-     * @throws PermissionException
      */
-    public boolean hasDataSourceEditPermission(PermissionHolder user, int dsId) throws PermissionException {
-        MangoPermission permission = roleDao.getPermission(dsId, DataSourceVO.class.getSimpleName(), EDIT);
-        return hasPermission(user, permission);
-    }
-
-    /**
-     * Ensure the user can read this data source.
-     *  This method is more performant if you only have the data source ID as it
-     *  won't need to lookup the entire data source to get the permission.
-     * @param user
-     * @param dataSourceId
-     * @throws PermissionException
-     */
-    public void ensureDataSourceReadPermission(PermissionHolder user, int dataSourceId) throws PermissionException {
-        if (!hasDataSourceReadPermission(user, dataSourceId)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.readDataSource", user.getPermissionHolderName()), user);
+    public boolean hasDataSourceEditPermission(PermissionHolder user, int dsId) {
+        MangoPermission edit = permissionDao.getDataSourceEditPermission(dsId);
+        if(edit != null && hasPermission(user, edit)) {
+            return true;
+        }else {
+            return false;
         }
     }
 
@@ -359,24 +322,9 @@ public class PermissionService {
      * @param user
      * @param ds
      * @return
-     * @throws PermissionException
      */
-    public boolean hasDataSourceReadPermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
+    public boolean hasDataSourceReadPermission(PermissionHolder user, DataSourceVO ds) {
         return hasPermission(user, ds.getReadPermission());
-    }
-
-    /**
-     * Does this permission holder have any of the read roles on the data source?
-     *  This method is more performant if you only have the data source ID as it
-     *  won't need to lookup the entire data source to get the permission.
-     * @param user
-     * @param dsId
-     * @return
-     * @throws PermissionException
-     */
-    public boolean hasDataSourceReadPermission(PermissionHolder user, int dsId) throws PermissionException {
-        MangoPermission permission = roleDao.getPermission(dsId, DataSourceVO.class.getSimpleName(), READ);
-        return hasPermission(user, permission);
     }
 
     //
@@ -405,10 +353,16 @@ public class PermissionService {
     public boolean hasDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
         if (hasPermission(user, point.getReadPermission())) {
             return true;
-        }else if(hasDataSourceReadPermission(user, point.getDataSourceId())) {
+        }else if(hasDataPointSetPermission(user, point)) {
             return true;
         }else {
-            return hasDataPointSetPermission(user, point);
+            //TODO Mango 4.0 check edit permission too
+            MangoPermission read = permissionDao.getDataSourceReadPermission(point.getDataSourceId());
+            if(read != null && hasPermission(user, read)) {
+                return true;
+            }else {
+                return false;
+            }
         }
     }
 
@@ -434,7 +388,17 @@ public class PermissionService {
         if (hasPermission(user, point.getSetPermission())) {
             return true;
         }
-        return hasDataSourceEditPermission(user, point.getDataSourceId());
+        MangoPermission edit = permissionDao.getDataSourceEditPermission(point.getDataSourceId());
+        if(edit != null && hasPermission(user, edit)) {
+            return true;
+        }
+
+        MangoPermission read = permissionDao.getDataSourceReadPermission(point.getDataSourceId());
+        if(read != null && hasPermission(user, read)) {
+            return true;
+        }else {
+            return false;
+        }
     }
 
     /**

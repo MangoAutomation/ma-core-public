@@ -49,16 +49,33 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
     abstract protected T createEventHandlerVO();
 
     /**
-     * Save any relational data to other tables
+     * Save any relational data for prior
+     * to the VO being saved
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
      * @param vo
-     * @param insert (new VO or updating)
      */
-    public void saveRelationalData(T vo, boolean insert) {
+    public void savePreRelationalData(T existing, T vo) {
 
     }
 
     /**
-     * Load the relational data
+     * Save any relational data
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
+     * @param vo
+     */
+    public void saveRelationalData(T existing, T vo) {
+
+    }
+
+    /**
+     * Load in relational data
+     *
      * @param vo
      */
     public void loadRelationalData(T vo) {
@@ -66,10 +83,22 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
     }
 
     /**
-     * Delete any relational data that is no ON DELETE CASCADE
+     * Delete any relational data
+     *
+     * NOTE: this logic will be executed in a database transaction.
      * @param vo
      */
     public void deleteRelationalData(T vo) {
+
+    }
+
+    /**
+     * Delete any relational data
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     * @param vo
+     */
+    public void deletePostRelationalData(T vo) {
 
     }
 

@@ -142,10 +142,6 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
                 SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO) service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
-
-                //Ensure the mappings are gone
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.SCRIPT).getUniqueRoles().size());
-
                 service.get(vo.getId());
             });
         });
@@ -202,7 +198,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             for(Set<Role> roles : roleSet) {
                 newRoles.add(new HashSet<>(roles));
             }
-            def.update(newRoles);
+            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
         });
     }
 

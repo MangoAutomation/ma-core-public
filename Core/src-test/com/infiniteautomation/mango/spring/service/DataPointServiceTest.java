@@ -145,10 +145,6 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
 
-                //Ensure the mappings are gone
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.READ).getUniqueRoles().size());
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.SET).getUniqueRoles().size());
-
                 service.get(vo.getId());
             });
         });

@@ -28,6 +28,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -38,10 +39,12 @@ import com.serotonin.m2m2.vo.role.Role;
 public class PermissionDao extends BaseDao {
 
     private final RoleTableDefinition roleTable;
+    private final DataSourceTableDefinition dataSourceTable;
 
     @Autowired
-    PermissionDao(RoleTableDefinition roleTable) {
+    PermissionDao(RoleTableDefinition roleTable, DataSourceTableDefinition dataSourceTable) {
         this.roleTable = roleTable;
+        this.dataSourceTable = dataSourceTable;
     }
 
     /**
@@ -50,6 +53,13 @@ public class PermissionDao extends BaseDao {
      * @return permission if found if not an empty permission (will not return null)
      */
     public MangoPermission get(Integer id) {
+        //TODO Mango 4.0 improve performance
+        //Fist check to see if it exists as it may have no minterms
+        Integer foundId = create.select(PERMISSIONS.id).from(PERMISSIONS).where(PERMISSIONS.id.equal(id)).fetchOneInto(Integer.class);
+        if(foundId == null) {
+            return new MangoPermission();
+        }
+
         List<Field<?>> fields = new ArrayList<>();
         fields.add(roleTable.getAlias("id"));
         fields.add(roleTable.getAlias("xid"));
@@ -97,7 +107,7 @@ public class PermissionDao extends BaseDao {
                     permission.setId(id);
                     return permission;
                 }else {
-                    return new MangoPermission();
+                    return new MangoPermission(foundId);
                 }
             }
 
@@ -111,13 +121,13 @@ public class PermissionDao extends BaseDao {
      * @param insert if this permission was created on an insert it won't have replaced an old one so don't unlink permissions
      * @return
      */
-    public Integer permissionId(MangoPermission permission, boolean insert) {
+    public Integer permissionId(MangoPermission permission) {
         return getTransactionTemplate().execute(txStatus -> {
-            return getOrInsertPermission(permission, insert);
+            return getOrInsertPermission(permission);
         });
     }
 
-    private Integer getOrInsertPermission(MangoPermission permission, boolean insert) {
+    private Integer getOrInsertPermission(MangoPermission permission) {
         //TODO Optimize this whole method
         Set<Integer> mintermIds = permission.getRoles().stream()
                 .map(this::getOrInsertMinterm)
@@ -155,10 +165,7 @@ public class PermissionDao extends BaseDao {
             .execute();
         }
 
-        if(!insert) {
-            permissionUnlinked();
-        }
-
+        permission.setId(permissionId);
         return permissionId;
     }
 
@@ -226,8 +233,7 @@ public class PermissionDao extends BaseDao {
         int deleted = 0;
         for(MangoPermission permission : permissions) {
             try{
-                Integer permissionId = permissionId(permission);
-                deleted += create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(permissionId)).execute();
+                deleted += create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(permission.getId())).execute();
             }catch(Exception e) {
                 //permission still in use
             }
@@ -235,40 +241,28 @@ public class PermissionDao extends BaseDao {
         if(deleted > 0) {
             permissionUnlinked();
         }
+    }
 
+    /**
+     * @param dsId
+     * @return
+     */
+    public MangoPermission getDataSourceEditPermission(int dsId) {
+        //TODO Mango 4.0 use join
+        return get(this.create.select(dataSourceTable.getAlias("editPermissionId"))
+                .from(dataSourceTable.getTableAsAlias())
+                .where(dataSourceTable.getAlias("id").equal(dsId)).fetchOneInto(Integer.class));
 
     }
 
-    private Integer permissionId(MangoPermission permission) {
-        Set<Integer> mintermIds = permission.getRoles().stream()
-                .map(this::getMinterm)
-                .collect(Collectors.toSet());
-        if(permission.getRoles().isEmpty()) {
-            return create.select(PERMISSIONS.id).from(PERMISSIONS)
-                    .leftJoin(PERMISSIONS_MAPPING).on(PERMISSIONS.id.eq(PERMISSIONS_MAPPING.permissionId))
-                    .where(PERMISSIONS_MAPPING.permissionId.isNull()).limit(1).fetchOne(0, Integer.class);
-        }else {
-            return create.select(PERMISSIONS_MAPPING.permissionId)
-                    .from(PERMISSIONS_MAPPING)
-                    .groupBy(PERMISSIONS_MAPPING.permissionId)
-                    .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
-                            count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
-                    .limit(1)
-                    .fetchOne(0, Integer.class);
-        }
-    }
-
-    private int getMinterm(Set<Role> minterm) {
-        Set<Integer> roleIds = minterm.stream()
-                .map(Role::getId)
-                .collect(Collectors.toSet());
-
-        return create.select(MINTERMS_MAPPING.mintermId)
-                .from(MINTERMS_MAPPING)
-                .groupBy(MINTERMS_MAPPING.mintermId)
-                .having(count(when(MINTERMS_MAPPING.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()),
-                        count(MINTERMS_MAPPING.roleId).equal(roleIds.size()))
-                .limit(1)
-                .fetchOne(0, Integer.class);
+    /**
+     * @param dsId
+     * @return
+     */
+    public MangoPermission getDataSourceReadPermission(int dsId) {
+        //TODO Mango 4.0 use join
+        return get(this.create.select(dataSourceTable.getAlias("readPermissionId"))
+                .from(dataSourceTable.getTableAsAlias())
+                .where(dataSourceTable.getAlias("id").equal(dsId)).fetchOneInto(Integer.class));
     }
 }

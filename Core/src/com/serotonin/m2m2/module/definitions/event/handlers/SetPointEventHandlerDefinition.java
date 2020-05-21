@@ -12,11 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.script.ScriptError;
@@ -54,20 +52,18 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     }
 
     @Override
-    public void saveRelationalData(SetPointEventHandlerVO eh, boolean insert) {
-        if(eh.getScriptRoles() != null) {
-            RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getPermission(), eh, PermissionService.SCRIPT, insert);
-        }
+    public void savePreRelationalData(SetPointEventHandlerVO existing, SetPointEventHandlerVO vo) {
+        //TODO Mango 4.0 Script Permissions
     }
 
     @Override
     public void loadRelationalData(SetPointEventHandlerVO eh) {
-        eh.setScriptRoles(new ScriptPermissions(RoleDao.getInstance().getPermission(eh, PermissionService.SCRIPT)));
+        //TODO Mango 4.0 Script Permissions
     }
 
     @Override
     public void deleteRelationalData(SetPointEventHandlerVO eh) {
-        RoleDao.getInstance().deleteRolesForVoPermission(eh, PermissionService.SCRIPT);
+        //TODO Mango 4.0 Script Permissions
     }
 
     @Override

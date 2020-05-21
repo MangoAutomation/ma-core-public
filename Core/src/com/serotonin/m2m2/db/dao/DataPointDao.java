@@ -583,6 +583,43 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         }
     }
 
+    @Override
+    public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
+        permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getSetPermission());
+    }
+
+    @Override
+    public void saveRelationalData(DataPointVO existing, DataPointVO vo) {
+        Map<String, String> tags = vo.getTags();
+        if (tags == null) {
+            if (existing != null) {
+                // only delete the name and device tags, leave existing tags intact
+                dataPointTagsDao.deleteNameAndDeviceTagsForDataPointId(vo.getId());
+            }
+            tags = Collections.emptyMap();
+        } else if (existing != null) {
+            // we only need to delete tags when doing an update
+            dataPointTagsDao.deleteTagsForDataPointId(vo.getId());
+        }
+
+        dataPointTagsDao.insertTagsForDataPoint(vo, tags);
+
+        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+        if(def != null) {
+            def.saveRelationalData(existing, vo);
+        }
+
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+                permissionDao.permissionDeleted(existing.getReadPermission());
+            }
+            if(!existing.getSetPermission().equals(vo.getSetPermission())) {
+                permissionDao.permissionDeleted(existing.getSetPermission());
+            }
+        }
+    }
+
     /**
      * Loads the event detectors, point comments, tags data source and template name
      * Used by getFull()
@@ -600,34 +637,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
             def.loadRelationalData(vo);
-        }
-    }
-
-    @Override
-    public void savePreRelationalData(DataPointVO vo, boolean insert) {
-        vo.getReadPermission().setId(permissionDao.permissionId(vo.getReadPermission(), insert));
-        vo.getSetPermission().setId(permissionDao.permissionId(vo.getSetPermission(), insert));
-    }
-
-    @Override
-    public void saveRelationalData(DataPointVO vo, boolean insert) {
-        Map<String, String> tags = vo.getTags();
-        if (tags == null) {
-            if (!insert) {
-                // only delete the name and device tags, leave existing tags intact
-                dataPointTagsDao.deleteNameAndDeviceTagsForDataPointId(vo.getId());
-            }
-            tags = Collections.emptyMap();
-        } else if (!insert) {
-            // we only need to delete tags when doing an update
-            dataPointTagsDao.deleteTagsForDataPointId(vo.getId());
-        }
-
-        dataPointTagsDao.insertTagsForDataPoint(vo, tags);
-
-        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
-        if(def != null) {
-            def.saveRelationalData(vo, insert);
         }
     }
 

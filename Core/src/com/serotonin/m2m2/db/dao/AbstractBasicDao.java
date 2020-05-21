@@ -209,14 +209,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         while(tries > 0) {
             try {
                 doInTransaction(status -> {
-                    savePreRelationalData(vo, true);
+                    savePreRelationalData(null, vo);
                     int id = -1;
                     InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
                     String sql = insert.getSQL();
                     List<Object> args = insert.getBindValues();
                     id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
                     vo.setId(id);
-                    saveRelationalData(vo, true);
+                    saveRelationalData(null, vo);
                     return null;
                 });
                 break;
@@ -235,10 +235,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public void savePreRelationalData(T vo, boolean insert) { }
+    public void savePreRelationalData(T existing, T vo) { }
 
     @Override
-    public void saveRelationalData(T vo, boolean insert) { }
+    public void saveRelationalData(T existing, T vo) { }
 
     @Override
     public void update(int id, T vo) {
@@ -251,7 +251,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         while(tries > 0) {
             try {
                 doInTransaction(status -> {
-                    savePreRelationalData(vo, false);
+                    savePreRelationalData(existing, vo);
                     List<Object> list = new ArrayList<>();
                     list.addAll(Arrays.asList(voToObjectArray(vo)));
                     Map<Field<?>, Object> values = new LinkedHashMap<>();
@@ -264,7 +264,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
                     String sql = update.getSQL();
                     List<Object> args = update.getBindValues();
                     ejt.update(sql, args.toArray(new Object[args.size()]));
-                    saveRelationalData(vo, false);
+                    saveRelationalData(existing, vo);
                     return null;
                 });
                 break;
