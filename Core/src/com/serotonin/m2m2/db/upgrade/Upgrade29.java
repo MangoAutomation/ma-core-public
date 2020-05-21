@@ -95,6 +95,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             roles.put(PermissionHolder.USER_ROLE_XID, PermissionHolder.USER_ROLE);
 
             createRolesTables(roles, out);
+            createSystemPermissions(out);
             convertUsers(roles, out);
             convertSystemSettingsPermissions(roles, out);
             convertDataPoints(roles, out);
@@ -129,6 +130,14 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         }
     }
 
+    private void createSystemPermissions(OutputStream out) throws Exception {
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), createSystemPermissionsMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), createSystemPermissionsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), createSystemPermissionsMSSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), createSystemPermissionsSQL);
+        runScript(scripts, out);
+    }
     private void dropTemplates(OutputStream out) throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropTemplatesSQL);
@@ -461,6 +470,26 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             }
         });
     }
+
+    //
+    //System Permissions
+    //
+    private String[] createSystemPermissionsSQL = new String[] {
+            "CREATE TABLE systemPermissions (permissionType VARCHAR(255), permissionId INT NOT NULL);",
+            "ALTER TABLE systemPermissions ADD CONSTRAINT systemPermissionsFk1 FOREIGN KEY (permissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE systemPermissions ADD CONSTRAINT permissionTypeUn1 UNIQUE(permissionType);"
+    };
+    private String[] createSystemPermissionsMySQL = new String[] {
+            "CREATE TABLE systemPermissions (permissionType VARCHAR(255), permissionId INT NOT NULL)engine=InnoDB;",
+            "ALTER TABLE systemPermissions ADD CONSTRAINT systemPermissionsFk1 FOREIGN KEY (permissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE systemPermissions ADD CONSTRAINT permissionTypeUn1 UNIQUE(permissionType);"
+    };
+    private String[] createSystemPermissionsMSSQL = new String[] {
+            "CREATE TABLE systemPermissions (permissionType NVARCHAR(255), permissionId INT NOT NULL);",
+            "ALTER TABLE systemPermissions ADD CONSTRAINT systemPermissionsFk1 FOREIGN KEY (permissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE systemPermissions ADD CONSTRAINT permissionTypeUn1 UNIQUE(permissionType);"
+
+    };
 
     //
     // Adding json data columns
@@ -814,36 +843,36 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     //
     private String[] fileStoresDropPermissionsSQL = new String[] {
             "ALTER TABLE fileStores DROP COLUMN readPermission;",
-            "ALTER TABLE fileStores DROP COLUMN editPermission;"
+            "ALTER TABLE fileStores DROP COLUMN writePermission;"
     };
     private String[]  fileStoresPermissionH2 = new String[] {
             "ALTER TABLE  fileStores ADD COLUMN readPermissionId INT;",
-            "ALTER TABLE  fileStores ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE  fileStores ADD COLUMN writePermissionId INT;",
             "ALTER TABLE  fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
-            "ALTER TABLE  fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+            "ALTER TABLE  fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
     private String[] fileStoresPermissionMySQL = new String[] {
             "ALTER TABLE fileStores ADD COLUMN readPermissionId INT;",
-            "ALTER TABLE fileStores ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE fileStores ADD COLUMN writePermissionId INT;",
             "ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
-            "ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+            "ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     private String [] fileStoresPermissionNotNullMySQL = new String[] {
             "ALTER TABLE fileStores MODIFY COLUMN readPermissionId INT NOT NULL;",
-            "ALTER TABLE fileStores MODIFY COLUMN editPermissionId INT NOT NULL;"
+            "ALTER TABLE fileStores MODIFY COLUMN writePermissionId INT NOT NULL;"
     };
 
     private String [] fileStoresPermissionNotNull = new String[] {
             "ALTER TABLE fileStores ALTER COLUMN readPermissionId INT NOT NULL;",
-            "ALTER TABLE fileStores ALTER COLUMN editPermissionId INT NOT NULL;"
+            "ALTER TABLE fileStores ALTER COLUMN writePermissionId INT NOT NULL;"
     };
 
     private String[] fileStoresPermissionMSSQL = new String[] {
             "ALTER TABLE fileStores ADD COLUMN readPermissionId INT;",
-            "ALTER TABLE fileStores ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE fileStores ADD COLUMN writePermissionId INT;",
             "ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
-            "ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+            "ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     //

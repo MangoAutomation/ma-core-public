@@ -84,16 +84,16 @@ public class MangoPermission {
             }else {
                 //check to see if they have the same terms
                 for(Set<Role> roleSet : roles) {
+                    int found = 0;
                     for(Set<Role> otherRoleSet : other.roles) {
-                        int found = 0;
                         for(Role role : roleSet) {
                             if(otherRoleSet.contains(role)) {
                                 found++;
                             }
                         }
-                        if(found != roleSet.size()) {
-                            return false;
-                        }
+                    }
+                    if(found != roleSet.size()) {
+                        return false;
                     }
                 }
             }
