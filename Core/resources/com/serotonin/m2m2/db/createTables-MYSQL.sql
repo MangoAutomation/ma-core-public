@@ -385,9 +385,13 @@ CREATE TABLE jsonData (
 	name varchar(255) not null,
   	publicData char(1),
   	data longtext,
+  	readPermissionId INT NOT NULL,
+    editPermissionId INT NOT NULL,
     primary key (id)
 ) engine=InnoDB;
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
+ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 
 --
 --
