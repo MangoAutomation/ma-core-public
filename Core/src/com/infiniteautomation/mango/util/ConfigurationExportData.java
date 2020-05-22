@@ -127,7 +127,7 @@ public class ConfigurationExportData {
         if (ArrayUtils.contains(exportElements, MAILING_LISTS))
             data.put(MAILING_LISTS, MailingListDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
-            data.put(PUBLISHERS, PublisherDao.getInstance().getPublishers());
+            data.put(PUBLISHERS, PublisherDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
             data.put(EVENT_HANDLERS, EventHandlerDao.getInstance().getEventHandlers());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))

@@ -294,8 +294,13 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public void savePublisher(PublisherVO<? extends PublishedPointVO> vo) {
-        if(useDatabase)
-            PublisherDao.getInstance().savePublisher(vo);
+        if(useDatabase) {
+            if(vo.getId() == Common.NEW_ID) {
+                PublisherDao.getInstance().insert(vo);
+            }else {
+                PublisherDao.getInstance().update(vo.getId(), vo);
+            }
+        }
     }
 
     @Override

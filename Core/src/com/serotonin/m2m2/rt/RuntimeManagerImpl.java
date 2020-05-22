@@ -172,14 +172,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Start the publishers that are enabled
         long pubStart = Common.timer.currentTimeMillis();
-        List<PublisherVO<? extends PublishedPointVO>> publishers = PublisherDao.getInstance().getPublishers();
+        List<PublisherVO<? extends PublishedPointVO>> publishers = PublisherDao.getInstance().getAll();
         LOG.info("Starting " + publishers.size() + " Publishers...");
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
             LOG.info("Starting publisher: " + vo.getName());
             if (vo.isEnabled()) {
                 if (safe) {
                     vo.setEnabled(false);
-                    PublisherDao.getInstance().savePublisher(vo);
+                    PublisherDao.getInstance().update(vo.getId(), vo);
                 }
                 else
                     startPublisher(vo);
@@ -839,7 +839,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public void deletePublisher(int publisherId) {
         stopPublisher(publisherId);
-        PublisherDao.getInstance().deletePublisher(publisherId);
+        PublisherDao.getInstance().delete(publisherId);
         Common.eventManager.cancelEventsForPublisher(publisherId);
     }
 
@@ -849,7 +849,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
         stopPublisher(vo.getId());
 
         // In case this is a new publisher, we need to save to the database first so that it has a proper id.
-        PublisherDao.getInstance().savePublisher(vo);
+        if(vo.getId() == Common.NEW_ID) {
+            PublisherDao.getInstance().insert(vo);
+        }else {
+            PublisherDao.getInstance().update(vo.getId(), vo);
+        }
 
         // If the publisher is enabled, start it.
         if (vo.isEnabled())

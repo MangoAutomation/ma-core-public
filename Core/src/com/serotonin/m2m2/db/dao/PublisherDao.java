@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -24,20 +23,16 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
-import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -78,16 +73,6 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
     }
 
     private static final String PUBLISHER_SELECT = "select id, xid, publisherType, data from publishers ";
-
-    public List<PublisherVO<? extends PublishedPointVO>> getPublishers() {
-        return query(PUBLISHER_SELECT, new PublisherExtractor());
-    }
-
-    public List<PublisherVO<? extends PublishedPointVO>> getPublishers(Comparator<PublisherVO<?>> comparator) {
-        List<PublisherVO<? extends PublishedPointVO>> result = getPublishers();
-        Collections.sort(result, comparator);
-        return result;
-    }
 
     public static class PublisherNameComparator implements Comparator<PublisherVO<?>> {
         @Override
@@ -139,49 +124,15 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
         }
     }
 
-    public void savePublisher(final PublisherVO<? extends PublishedPointVO> vo) {
-        // Decide whether to insert or update.
-        if (vo.getId() == Common.NEW_ID){
-            vo.setId(ejt.doInsert(
-                    "insert into publishers (xid, publisherType, data) values (?,?,?)",
-                    new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
-                            SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                                    Types.BINARY}));
-            this.publishEvent(createDaoEvent(DaoEventType.CREATE, vo, null));
-            AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
-            this.countMonitor.increment();
-        }else{
-            PublisherVO<? extends PublishedPointVO> old = get(vo.getId());
-            ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
-                    SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
-                            Types.INTEGER });
-            this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, old));
-            AuditEventType.raiseChangedEvent(AuditEventType.TYPE_PUBLISHER, old, vo);
-        }
-
-    }
-
-    public void deletePublisher(final int publisherId) {
-        PublisherVO<? extends PublishedPointVO> vo = get(publisherId);
-        final ExtendedJdbcTemplate ejt2 = ejt;
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                ejt2.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", new Object[] {
-                        EventType.EventTypeNames.PUBLISHER, publisherId });
-                ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
-            }
-        });
-        publishEvent(createDaoEvent(DaoEventType.DELETE, vo, vo));
-        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
-        countMonitor.decrement();
-    }
-
+    /**
+     * Delete all publishers of a given type
+     * @param publisherType
+     */
     public void deletePublisherType(final String publisherType) {
         List<Integer> pubIds = queryForList("SELECT id FROM publishers WHERE publisherType=?",
                 new Object[] { publisherType }, Integer.class);
         for (Integer pubId : pubIds)
-            deletePublisher(pubId);
+            delete(pubId);
     }
 
     public Object getPersistentData(int id) {
@@ -279,6 +230,8 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
 
     @Override
     public void deleteRelationalData(PublisherVO<?> vo) {
+        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", new Object[] {
+                EventType.EventTypeNames.PUBLISHER, vo.getId()});
         vo.getDefinition().deleteRelationalData(vo);
     }
 
