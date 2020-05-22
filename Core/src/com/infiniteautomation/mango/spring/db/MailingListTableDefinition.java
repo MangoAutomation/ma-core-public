@@ -36,8 +36,8 @@ public class MailingListTableDefinition extends AbstractTableDefinition {
     protected void addFields(List<Field<?>> fields) {
         super.addFields(fields);
         fields.add(DSL.field(DSL.name("receiveAlarmEmails"), SQLDataType.INTEGER.nullable(false)));
-        fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(false)));
-        fields.add(DSL.field(DSL.name("editPermissionId"), SQLDataType.INTEGER.nullable(false)));
+        fields.add(READ_PERMISSION);
+        fields.add(EDIT_PERMISSION);
     }
 
 }
