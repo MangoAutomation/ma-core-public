@@ -314,7 +314,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         }
     }
 
-
     @Override
     public void deleteRelationalData(DataSourceVO vo) {
         create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)

@@ -217,21 +217,6 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
         return count;
     }
 
-    @Override
-    public void loadRelationalData(PublisherVO<?> vo) {
-        vo.getDefinition().loadRelationalData(vo);
-    }
-
-    @Override
-    public void saveRelationalData(PublisherVO<?> existing, PublisherVO<?> vo) {
-        vo.getDefinition().saveRelationalData(existing, vo);
-    }
-
-    @Override
-    public void deleteRelationalData(PublisherVO<?> vo) {
-        vo.getDefinition().deleteRelationalData(vo);
-    }
-
     /**
      * Get the count of data sources per type
      * @return
@@ -276,4 +261,30 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
     public RowMapper<PublisherVO<? extends PublishedPointVO>> getRowMapper() {
         return new PublisherRowMapper();
     }
+
+    @Override
+    public void savePreRelationalData(PublisherVO<?> existing, PublisherVO<?> vo) {
+        vo.getDefinition().savePreRelationalData(existing, vo);
+    }
+
+    @Override
+    public void saveRelationalData(PublisherVO<?> existing, PublisherVO<?> vo) {
+        vo.getDefinition().saveRelationalData(existing, vo);
+    }
+
+    @Override
+    public void loadRelationalData(PublisherVO<?> vo) {
+        vo.getDefinition().loadRelationalData(vo);
+    }
+
+    @Override
+    public void deleteRelationalData(PublisherVO<?> vo) {
+        vo.getDefinition().deleteRelationalData(vo);
+    }
+
+    @Override
+    public void deletePostRelationalData(PublisherVO<?> vo) {
+        vo.getDefinition().deletePostRelationalData(vo);
+    }
+
 }
