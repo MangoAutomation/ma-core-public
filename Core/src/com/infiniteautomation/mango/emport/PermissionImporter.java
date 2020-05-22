@@ -4,6 +4,8 @@
 
 package com.infiniteautomation.mango.emport;
 
+import java.util.Iterator;
+
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -28,21 +30,24 @@ public class PermissionImporter extends Importer {
 
     @Override
     protected void importImpl() {
-        String permissionType = json.getString("permissionType");
-        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(permissionType);
+        Iterator<String> it = json.keySet().iterator();
+        if(it.hasNext()) {
+            String permissionType = it.next();
+            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(permissionType);
 
-        if(def != null) {
-            try {
-                JsonValue v = json.get("roles");
-                if(v != null) {
-                    MangoPermission permission = ctx.getReader().read(MangoPermission.class, v);
-                    service.update(permission, def);
+            if(def != null) {
+                try {
+                    JsonValue v = json.get(permissionType);
+                    if(v != null) {
+                        MangoPermission permission = ctx.getReader().read(MangoPermission.class, v);
+                        service.update(permission, def);
+                    }
+                    addSuccessMessage(false, "emport.permission.prefix", permissionType);
+                }catch(ValidationException e) {
+                    setValidationMessages(e.getValidationResult(), "emport.permission.prefix", permissionType);
+                } catch (JsonException e) {
+                    addFailureMessage("emport.permission.prefix", permissionType, getJsonExceptionMessage(e));
                 }
-                addSuccessMessage(false, "emport.permission.prefix", permissionType);
-            }catch(ValidationException e) {
-                setValidationMessages(e.getValidationResult(), "emport.permission.prefix", permissionType);
-            } catch (JsonException e) {
-                addFailureMessage("emport.permission.prefix", permissionType, getJsonExceptionMessage(e));
             }
         }
 

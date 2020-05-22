@@ -5,6 +5,7 @@
 package com.infiniteautomation.mango.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -139,13 +140,15 @@ public class ConfigurationExportData {
             data.put(ROLES, RoleDao.getInstance().getAll());
 
         if (ArrayUtils.contains(exportElements, PERMISSIONS)) {
-            List<MangoPermission> permissions = new ArrayList<>();
+            List<Map<String, MangoPermission>> permissions = new ArrayList<>();
             for(PermissionDefinition def : ModuleRegistry.getPermissionDefinitions().values()) {
                 //Don't export superadmin as we can't change it anyway.
                 if(def instanceof SuperadminPermissionDefinition) {
                     continue;
                 }
-                permissions.add(def.getPermission());
+                Map<String, MangoPermission> toExport = new HashMap<>();
+                toExport.put(def.getPermissionTypeName(), def.getPermission());
+                permissions.add(toExport);
             }
             data.put(PERMISSIONS, permissions);
         }
