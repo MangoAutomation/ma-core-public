@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -96,9 +97,6 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
 
-                //Ensure the mappings are gone
-                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.SCRIPT).getUniqueRoles().size());
-
                 service.get(vo.getId());
             });
         });
@@ -149,7 +147,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             for(Set<Role> roles : roleSet) {
                 newRoles.add(new HashSet<>(roles));
             }
-            def.update(newRoles);
+            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
         });
     }
 }

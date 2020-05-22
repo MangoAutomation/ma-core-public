@@ -34,11 +34,11 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition.GrantedAccess;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -46,6 +46,8 @@ import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.tables.MintermMappingTable;
+import com.serotonin.m2m2.db.dao.tables.PermissionMappingTable;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -58,7 +60,7 @@ import com.serotonin.util.SerializationHelper;
 @Repository()
 public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefinition> {
 
-    //TODO Clean up/remove
+    //TODO Mango 4.0 Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
     public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(SchemaDefinition.DATASOURCES_TABLE)).as(DATA_SOURCES_ALIAS);
     public static final Field<Integer> ID = DSL.field(DATA_SOURCES_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
@@ -71,17 +73,20 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     });
 
     private final PermissionService permissionService;
+    private final PermissionDao permissionDao;
 
     @Autowired
     private DataSourceDao(
             DataSourceTableDefinition table,
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+            ApplicationEventPublisher publisher,
+            PermissionDao permissionDao) {
         super(AuditEventType.TYPE_DATA_SOURCE, table,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
+        this.permissionDao = permissionDao;
     }
 
     /**
@@ -115,6 +120,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
                         result.points = DataPointDao.getInstance().deleteDataPoints(vo.getId());
                         deleteRelationalData(vo);
                         result.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                        deletePostRelationalData(vo);
                     });
                     break;
                 }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
@@ -215,6 +221,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
             ds.setName(rs.getString(3));
             ds.setDefinition(ModuleRegistry.getDataSourceDefinition(rs.getString(4)));
             ds.setData(extractData(rs.getClob(6)));
+            ds.setReadPermission(new MangoPermission(rs.getInt(7)));
+            ds.setEditPermission(new MangoPermission(rs.getInt(8)));
             return ds;
         }
     }
@@ -268,7 +276,9 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
                 vo.getName(),
                 vo.getDefinition().getDataSourceTypeName(),
                 SerializationHelper.writeObjectToArray(vo),
-                convertData(vo.getData())};
+                convertData(vo.getData()),
+                vo.getReadPermission().getId(),
+                vo.getEditPermission().getId()};
     }
 
     @Override
@@ -278,16 +288,30 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
 
     @Override
     public void loadRelationalData(DataSourceVO vo) {
-        vo.setEditPermission(RoleDao.getInstance().getPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
-        vo.setReadPermission(RoleDao.getInstance().getPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ));
+        //Populate permissions
+        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
         vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override
-    public void saveRelationalData(DataSourceVO vo, boolean insert) {
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ, insert);
-        vo.getDefinition().saveRelationalData(vo, insert);
+    public void savePreRelationalData(DataSourceVO existing, DataSourceVO vo) {
+        permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getEditPermission());
+        vo.getDefinition().savePreRelationalData(existing, vo);
+    }
+
+    @Override
+    public void saveRelationalData(DataSourceVO existing, DataSourceVO vo) {
+        vo.getDefinition().saveRelationalData(existing, vo);
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+                permissionDao.permissionDeleted(existing.getReadPermission());
+            }
+            if(!existing.getEditPermission().equals(vo.getEditPermission())) {
+                permissionDao.permissionDeleted(existing.getEditPermission());
+            }
+        }
     }
 
     @Override
@@ -296,9 +320,14 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_SOURCE),
                 EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
 
-        RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
-        RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ);
         vo.getDefinition().deleteRelationalData(vo);
+    }
+
+    @Override
+    public void deletePostRelationalData(DataSourceVO vo) {
+        //Clean permissions
+        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        vo.getDefinition().deletePostRelationalData(vo);
     }
 
     @Override
@@ -308,35 +337,23 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
             List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
-            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            Table<?> dataSourceReadSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("dataSourceRead");
+            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .from(MintermMappingTable.MINTERMS_MAPPING)
+                    .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .having(DSL.count().eq(DSL.count(
+                            DSL.case_().when(roleIdsIn, DSL.inline(1))
+                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
 
-            select = select.leftJoin(dataSourceReadSubselect).on(this.table.getIdAlias().eq(dataSourceReadSubselect.field(RoleTableDefinition.voIdField)));
+            Table<?> permissionsGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+                    .asTable("permissionsGranted");
 
-            Table<?> dataSourceEditSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("dataSourceEdit");
+            select = select.join(permissionsGranted).on(
+                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            DataSourceTableDefinition.READ_PERMISSION_ALIAS, DataSourceTableDefinition.EDIT_PERMISSION_ALIAS));
 
-            select = select.leftJoin(dataSourceEditSubselect).on(this.table.getIdAlias().eq(dataSourceEditSubselect.field(RoleTableDefinition.voIdField)));
-
-            conditions.addCondition(DSL.or(
-                    dataSourceReadSubselect.field("granted").isTrue(),
-                    dataSourceEditSubselect.field("granted").isTrue()));
         }
         return select;
     }

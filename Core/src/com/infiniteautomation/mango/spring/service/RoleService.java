@@ -3,25 +3,19 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -106,45 +100,6 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         }
         return result;
     }
-
-    /**
-     *
-     * @param roles
-     * @param permissionType
-     */
-    public MangoPermission replaceAllRolesOnPermission(Set<Set<Role>> roles, PermissionDefinition def) throws ValidationException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-        Objects.requireNonNull(def, "Permission definition cannot be null");
-
-        permissionService.ensureAdminRole(user);
-
-        ProcessResult validation = new ProcessResult();
-        if(roles == null) {
-            validation.addContextualMessage("roles", "validate.required");
-            throw new ValidationException(validation);
-        }
-
-        Set<Role> unique = new HashSet<>();
-        for(Set<Role> roleSet : roles) {
-            unique.addAll(roleSet);
-        }
-
-        for(Role role : unique) {
-            try {
-                get(role.getXid());
-            }catch(NotFoundException e) {
-                validation.addGenericMessage("validate.role.notFound", role.getXid());
-            }
-        }
-
-        if(validation.getHasMessages()) {
-            throw new ValidationException(validation);
-        }
-
-        return dao.replaceRolesOnPermission(roles, def.getPermissionTypeName());
-    }
-
     /**
      * Get the superadmin role
      * @return

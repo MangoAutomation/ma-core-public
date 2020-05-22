@@ -211,7 +211,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     //
     private String dataSourceTypeName;
     private String dataSourceName;
-    private MangoPermission dataSourceEditPermission = new MangoPermission();
 
     //
     //
@@ -636,20 +635,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         this.data = data;
     }
 
-    /**
-     * Roles joined from database (not saved into point)
-     * @return the dataSourceEditRoles
-     */
-    public MangoPermission getDataSourceEditRoles() {
-        return dataSourceEditPermission;
-    }
-    /**
-     * Roles joined from database (not saved into point)
-     * @param dataSourceEditRoles the dataSourceEditRoles to set
-     */
-    public void setDataSourceEditPermission(MangoPermission dataSourceEditPermission) {
-        this.dataSourceEditPermission = dataSourceEditPermission;
-    }
     /* ############################## */
 
     @Override
@@ -664,7 +649,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             copy.setDataSourceName(dataSourceName);
             copy.setDataSourceTypeName(dataSourceTypeName);
             copy.setDataSourceXid(dataSourceXid);
-            copy.setDataSourceEditPermission(dataSourceEditPermission);
             copy.setDefaultCacheSize(defaultCacheSize);
             copy.setDeviceName(deviceName);
             copy.setDiscardExtremeValues(discardExtremeValues);

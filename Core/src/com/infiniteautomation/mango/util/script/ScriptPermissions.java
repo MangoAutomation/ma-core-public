@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -92,6 +94,7 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
+        out.writeObject(roles);
     }
 
     @SuppressWarnings("unchecked")
@@ -101,8 +104,16 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
             PermissionService service = Common.getBean(PermissionService.class);
             MangoPermission permission = service.upgradePermissions((Set<String>) in.readObject());
             roles = permission.getUniqueRoles();
-        }else if(ver == 2) {
-            //Nada
+        }else if(ver == 2){
+            roles = (Set<Role>)in.readObject();
+            RoleDao dao = RoleDao.getInstance();
+            Iterator<Role> it = roles.iterator();
+            while(it.hasNext()) {
+                Role r = it.next();
+                if(dao.getIdByXid(r.getXid()) == null) {
+                    it.remove();
+                }
+            }
         }
     }
 }

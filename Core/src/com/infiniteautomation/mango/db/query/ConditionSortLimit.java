@@ -40,6 +40,14 @@ public class ConditionSortLimit {
         }
     }
 
+    public void orCondition(Condition c) {
+        if (condition == null) {
+            condition = c;
+        } else {
+            condition = DSL.or(condition, c);
+        }
+    }
+
     public List<SortField<Object>> getSort() {
         return sort;
     }

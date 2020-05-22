@@ -141,7 +141,7 @@ abstract public class DBUpgrade extends BaseDao {
         }
     }
 
-    protected void runScript(Map<String, String[]> scripts, OutputStream out) {
+    public void runScript(Map<String, String[]> scripts, OutputStream out) {
         String[] script = scripts.get(Common.databaseProxy.getType().name());
         if (script == null)
             script = scripts.get(DEFAULT_DATABASE_TYPE);

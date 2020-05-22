@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,13 @@ import org.springframework.stereotype.Component;
 public class DataPointTableDefinition extends AbstractTableDefinition {
 
     public static final String TABLE_NAME = "dataPoints";
+    public static final Table<Record> TABLE = DSL.table(TABLE_NAME);
+    public static final Field<Integer> ID = DSL.field(TABLE.getQualifiedName().append("id"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> READ_PERMISSION = DSL.field(TABLE.getQualifiedName().append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> SET_PERMISSION = DSL.field(TABLE.getQualifiedName().append("setPermissionId"), SQLDataType.INTEGER.nullable(false));
+
+    public static final Field<Integer> READ_PERMISSION_ALIAS = DSL.field( DSL.name("dp").append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> SET_PERMISSION_ALIAS = DSL.field( DSL.name("dp").append("setPermissionId"), SQLDataType.INTEGER.nullable(false));
 
     public DataPointTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("dp"));
@@ -47,6 +56,8 @@ public class DataPointTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("dataTypeId"), SQLDataType.INTEGER));
         fields.add(DSL.field(DSL.name("settable"), SQLDataType.CHAR(1)));
         fields.add(DSL.field(DSL.name("jsonData"), SQLDataType.CLOB));
+        fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(false)));
+        fields.add(DSL.field(DSL.name("setPermissionId"), SQLDataType.INTEGER.nullable(false)));
     }
 
     @Override

@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -70,7 +71,7 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
         //Extract the source id
         int sourceIdColumnIndex;
         if(this.sourceIdColumnOffset < 0)
-            sourceIdColumnIndex= this.firstColumn + 6 + EventDetectorDao.getInstance().getSourceIdIndex(definition.getSourceTypeName());
+            sourceIdColumnIndex= this.firstColumn + 8 + EventDetectorDao.getInstance().getSourceIdIndex(definition.getSourceTypeName());
         else
             sourceIdColumnIndex = this.firstColumn + this.sourceIdColumnOffset;
         int sourceId = rs.getInt(sourceIdColumnIndex);
@@ -80,6 +81,7 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
         vo.setId(rs.getInt(this.firstColumn));
         vo.setXid(rs.getString(this.firstColumn + 1));
         vo.setData(this.extractJson.extract(rs.getClob(this.firstColumn + 4)));
+
         vo.setDefinition(definition);
         vo.setSourceId(sourceId);
 
@@ -95,6 +97,8 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
         catch (ClassCastException | IOException | JsonException e) {
             LOG.error(e.getMessage(), e);
         }
+        vo.setReadPermission(new MangoPermission(rs.getInt(this.firstColumn + 6)));
+        vo.setEditPermission(new MangoPermission(rs.getInt(this.firstColumn + 7)));
 
         return vo;
     }

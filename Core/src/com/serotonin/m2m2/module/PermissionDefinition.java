@@ -13,14 +13,10 @@ import org.springframework.context.event.EventListener;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.service.RoleService;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
-import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.db.dao.SystemPermissionDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -35,11 +31,7 @@ import com.serotonin.m2m2.vo.role.Role;
 abstract public class PermissionDefinition extends ModuleElementDefinition {
 
     @Autowired
-    protected UserDao userDao;
-
-    private final LazyInitSupplier<RoleService> roleService = new LazyInitSupplier<>(() -> {
-        return Common.getBean(RoleService.class);
-    });
+    protected SystemPermissionDao systemPermissionDao;
 
     //TODO Mango 4.0 is this the ideal data structure or should be be using sync blocks?
     protected MangoPermission permission;
@@ -68,8 +60,8 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * or installed.  The roles must already exist in the roles table
      * @return - Set of roles to assign to permission
      */
-    protected Set<Set<Role>> getDefaultRoles(){
-        return Collections.emptySet();
+    protected MangoPermission getDefaultPermission(){
+        return new MangoPermission();
     }
 
     /**
@@ -83,33 +75,20 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     @Override
     public void postDatabase(Version previousVersion, Version current) {
         //Install our default roles if there are none in the database
-        this.permission = roleService.get().getDao().getPermission(getPermissionTypeName());
-        if(previousVersion == null) {
-            if(permission.getRoles().isEmpty()) {
-                this.permission = roleService.get().getDao().replaceRolesOnPermission(getDefaultRoles(), getPermissionTypeName());
-            }
+        this.permission = systemPermissionDao.get(getPermissionTypeName());
+        if(this.permission == null) {
+            this.permission =  getDefaultPermission();
+            systemPermissionDao.insert(getPermissionTypeName(), this.permission);
         }
     }
 
     /**
-     * Does this holder have any roles assigned to this permission?
-     * @param holder
-     * @return
-     */
-    public boolean hasPermission(PermissionHolder holder) {
-        return this.roleService.get().getPermissionService().hasPermission(holder, permission);
-    }
-
-    /**
-     * Replace the roles on this permission.  Throws validation exeption if xids DNE
+     * Replace the roles on this permission.
      *
      * @param scriptRoles
      */
-    public void update(Set<Set<Role>> permission) throws ValidationException {
-        //TODO Mango 4.0 Transaction rollback etc?
-        this.permission = this.roleService.get().replaceAllRolesOnPermission(permission, this);
-        //notify user cache
-        this.userDao.permissionChanged();
+    public void update(MangoPermission permission) throws ValidationException {
+        this.permission = permission;
     }
 
     @EventListener

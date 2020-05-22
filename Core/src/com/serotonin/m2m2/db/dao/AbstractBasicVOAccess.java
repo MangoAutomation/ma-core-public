@@ -46,12 +46,19 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public void insert(T vo);
 
     /**
+     * Save any data and set FKs that are required prior to saving this VO
+     * @param existing (null on inserts)
+     * @param vo
+     */
+    public void savePreRelationalData(T existing, T vo);
+
+    /**
      * Save relational data for a vo to a different table,
      *  this is called within a transaction during insert/update.
+     * @param existing (null on inserts)
      * @param vo
-     * @param insert (true for insert, false for update)
      */
-    public void saveRelationalData(T vo, boolean insert);
+    public void saveRelationalData(T existing, T vo);
 
     /**
      * Update a vo and save its relational data in a transaction.
@@ -119,6 +126,12 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param vo
      */
     public void deleteRelationalData(T vo);
+
+    /**
+     * Optionally perform any logic after the VO is deleted
+     * @param vo
+     */
+    public void deletePostRelationalData(T vo);
 
     /**
      * Count all from table

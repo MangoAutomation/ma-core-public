@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
+import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -78,6 +79,7 @@ public class ImportTask extends ProgressiveTask {
             EventHandlerService eventHandlerService,
             JsonDataService jsonDataService,
             EventDetectorsService eventDetectorService,
+            SystemPermissionService permissionService,
             ProgressiveTaskListener listener, boolean schedule) {
         super("JSON import task", "JsonImport", 10, listener);
         this.user = user;
@@ -90,7 +92,7 @@ public class ImportTask extends ProgressiveTask {
             addImporter(new RoleImporter(jv.toJsonObject(), roleService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PERMISSIONS))
-            addImporter(new PermissionImporter(jv.toJsonObject()));
+            addImporter(new PermissionImporter(jv.toJsonObject(), permissionService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
             addImporter(new UserImporter(jv.toJsonObject(), usersService, user));
@@ -112,7 +114,7 @@ public class ImportTask extends ProgressiveTask {
 
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
-            addImporter(new SystemSettingsImporter(obj, user));
+            addImporter(new SystemSettingsImporter(obj, user, permissionService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject()));

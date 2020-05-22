@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.jooq.Condition;
-import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
 import org.jooq.Table;
@@ -26,14 +25,16 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition.GrantedAccess;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.tables.MintermMappingTable;
+import com.serotonin.m2m2.db.dao.tables.PermissionMappingTable;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -57,10 +58,12 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
     });
 
     private final PermissionService permissionService;
+    private final PermissionDao permissionDao;
 
     @Autowired
     private MailingListDao(MailingListTableDefinition table,
             PermissionService permissionService,
+            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST,
@@ -68,6 +71,7 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
+        this.permissionDao = permissionDao;
     }
 
     public static MailingListDao getInstance() {
@@ -78,10 +82,16 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
     private static final String MAILING_LIST_ENTRY_INSERT = "insert into mailingListMembers (mailingListId, typeId, userId, address) values (?,?,?,?)";
 
     @Override
-    public void saveRelationalData(MailingList ml, boolean insert) {
+    public void savePreRelationalData(MailingList existing, MailingList vo) {
+        permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getEditPermission());
+    }
+
+    @Override
+    public void saveRelationalData(MailingList existing, MailingList ml) {
 
         // Save the inactive intervals.
-        if(!insert)
+        if(existing != null)
             ejt.update("delete from mailingListInactive where mailingListId=?", new Object[] { ml.getId() });
 
         // Save what is in the mailing list object.
@@ -100,7 +110,7 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
         });
 
         // Delete existing entries
-        if(!insert)
+        if(existing != null)
             ejt.update("delete from mailingListMembers where mailingListId=?", new Object[] { ml.getId() });
 
         // Save what is in the mailing list object.
@@ -121,10 +131,14 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
             }
         });
 
-        //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getReadPermission(), ml, PermissionService.READ, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getEditPermission(), ml, PermissionService.EDIT, insert);
-
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(ml.getReadPermission())) {
+                permissionDao.permissionDeleted(existing.getReadPermission());
+            }
+            if(!existing.getEditPermission().equals(ml.getEditPermission())) {
+                permissionDao.permissionDeleted(existing.getEditPermission());
+            }
+        }
     }
 
     private static final String MAILING_LIST_INACTIVE_SELECT = "select inactiveInterval from mailingListInactive where mailingListId=?";
@@ -139,53 +153,40 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
         ml.setEntries(query(MAILING_LIST_ENTRIES_SELECT, new Object[] { ml.getId() }, new EmailRecipientRowMapper()));
 
         //Populate permissions
-        ml.setReadPermission(RoleDao.getInstance().getPermission(ml, PermissionService.READ));
-        ml.setEditPermission(RoleDao.getInstance().getPermission(ml, PermissionService.EDIT));
+        ml.setReadPermission(permissionDao.get(ml.getReadPermission().getId()));
+        ml.setEditPermission(permissionDao.get(ml.getEditPermission().getId()));
     }
 
     @Override
-    public void deleteRelationalData(MailingList vo) {
-        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
-        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.EDIT);
+    public void deletePostRelationalData(MailingList vo) {
+        //Clean permissions
+        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
     }
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
-        //Join on permissions
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
-            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            Table<?> mailingListReadSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(MailingList.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("mailingListRead");
+            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .from(MintermMappingTable.MINTERMS_MAPPING)
+                    .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .having(DSL.count().eq(DSL.count(
+                            DSL.case_().when(roleIdsIn, DSL.inline(1))
+                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
 
-            select = select.leftJoin(mailingListReadSubselect).on(this.table.getIdAlias().eq(mailingListReadSubselect.field(RoleTableDefinition.voIdField)));
+            Table<?> permissionsGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+                    .asTable("permissionsGranted");
 
-            Table<?> mailingListEditSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(MailingList.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("mailingListEdit");
+            select = select.join(permissionsGranted).on(
+                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            MailingListTableDefinition.READ_PERMISSION_ALIAS, MailingListTableDefinition.EDIT_PERMISSION_ALIAS));
 
-            select = select.leftJoin(mailingListEditSubselect).on(this.table.getIdAlias().eq(mailingListEditSubselect.field(RoleTableDefinition.voIdField)));
-
-            conditions.addCondition(DSL.or(
-                    mailingListReadSubselect.field("granted").isTrue(),
-                    mailingListEditSubselect.field("granted").isTrue()));
         }
         return select;
     }
@@ -200,7 +201,9 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
         return new Object[] {
                 vo.getXid(),
                 vo.getName(),
-                vo.getReceiveAlarmEmails().value()
+                vo.getReceiveAlarmEmails().value(),
+                vo.getReadPermission().getId(),
+                vo.getEditPermission().getId()
         };
     }
 
@@ -218,6 +221,8 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
             ml.setXid(rs.getString(++i));
             ml.setName(rs.getString(++i));
             ml.setReceiveAlarmEmails(AlarmLevels.fromValue(rs.getInt(++i)));
+            ml.setReadPermission(new MangoPermission(rs.getInt(++i)));
+            ml.setEditPermission(new MangoPermission(rs.getInt(++i)));
             return ml;
         }
     }

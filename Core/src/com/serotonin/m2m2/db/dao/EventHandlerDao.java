@@ -175,8 +175,13 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO, EventHa
     }
 
     @Override
-    public void saveRelationalData(AbstractEventHandlerVO vo, boolean insert) {
-        if (insert) {
+    public void savePreRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
+        vo.getDefinition().savePreRelationalData(existing, vo);
+    }
+
+    @Override
+    public void saveRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
+        if (existing == null) {
             if(vo.getEventTypes() != null) {
                 for (EventType type : vo.getEventTypes()) {
                     ejt.doInsert(
@@ -187,7 +192,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO, EventHa
                                     Types.INTEGER});
                 }
             }
-            vo.getDefinition().saveRelationalData(vo, insert);
+            vo.getDefinition().saveRelationalData(existing, vo);
         } else {
             // Replace all mappings
             deleteEventHandlerMappings(vo.getId());
@@ -202,7 +207,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO, EventHa
 
                 }
             }
-            vo.getDefinition().saveRelationalData(vo, insert);
+            vo.getDefinition().saveRelationalData(existing, vo);
         }
     }
 
@@ -215,6 +220,11 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO, EventHa
     public void deleteRelationalData(AbstractEventHandlerVO vo) {
         deleteEventHandlerMappings(vo.getId());
         vo.getDefinition().deleteRelationalData(vo);
+    }
+
+    @Override
+    public void deletePostRelationalData(AbstractEventHandlerVO vo) {
+        vo.getDefinition().deletePostRelationalData(vo);
     }
 
     public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {

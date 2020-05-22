@@ -155,8 +155,8 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> {
     }
 
     @Override
-    public void saveRelationalData(User vo, boolean insert) {
-        if(!insert) {
+    public void saveRelationalData(User existing, User vo) {
+        if(existing != null) {
             //delete role mappings
             ejt.update(USER_ROLES_DELETE, new Object[] {vo.getId()});
         }

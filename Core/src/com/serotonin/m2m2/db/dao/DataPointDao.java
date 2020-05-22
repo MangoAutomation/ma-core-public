@@ -41,13 +41,13 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition.GrantedAccess;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -61,6 +61,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
+import com.serotonin.m2m2.db.dao.tables.MintermMappingTable;
+import com.serotonin.m2m2.db.dao.tables.PermissionMappingTable;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -90,6 +92,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     private final EventDetectorTableDefinition eventDetectorTable;
     private final UserCommentTableDefinition userCommentTable;
     private final PermissionService permissionService;
+    private final PermissionDao permissionDao;
+    private final DataPointTagsDao dataPointTagsDao;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -102,7 +106,9 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             UserCommentTableDefinition userCommentTable,
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+            ApplicationEventPublisher publisher,
+            PermissionDao permissionDao,
+            DataPointTagsDao dataPointTagsDao) {
         super(EventType.EventTypeNames.DATA_POINT, table,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
@@ -110,6 +116,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         this.eventDetectorTable = eventDetectorTable;
         this.userCommentTable = userCommentTable;
         this.permissionService = permissionService;
+        this.permissionDao = permissionDao;
+        this.dataPointTagsDao = dataPointTagsDao;
     }
 
     /**
@@ -299,8 +307,21 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             //delete event detectors
             create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").in(ids)).execute();
 
+            for(DataPointVO vo : points) {
+                DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+                if(def != null) {
+                    def.deleteRelationalData(vo);
+                }
+            }
+
             //delete the points in bulk
             create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
+
+            //Clean permissions
+            for(DataPointVO vo : points) {
+                permissionDao.permissionDeleted(vo.getReadPermission(), vo.getSetPermission());
+            }
+
         }
         return points;
     }
@@ -315,30 +336,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp));
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
             this.countMonitor.decrement();
-        }
-    }
-
-    @Override
-    public void deleteRelationalData(DataPointVO vo) {
-
-        //delete event handler mappings
-        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
-        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
-                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
-
-        //delete user comments
-        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
-                userCommentTable.getField("typeKey").eq(vo.getId())).execute();
-
-        //delete event detectors
-        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").eq(vo.getId())).execute();
-
-        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
-        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SET);
-
-        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
-        if(def != null) {
-            def.deleteRelationalData(vo);
         }
     }
 
@@ -362,7 +359,9 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 this.table.getXidAlias(),
                 this.table.getNameAlias(),
                 this.table.getAlias("dataSourceId"),
-                this.table.getAlias("deviceName"))
+                this.table.getAlias("deviceName"),
+                this.table.getAlias("readPermissionId"),
+                this.table.getAlias("setPermissionId"))
                 .from(this.table.getTableAsAlias()), null).where(this.table.getXidAlias().eq(xid)).limit(1);
 
         String sql = query.getSQL();
@@ -376,15 +375,13 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                         summary.setName(rs.getString(3));
                         summary.setDataSourceId(rs.getInt(4));
                         summary.setDeviceName(rs.getString(5));
+                        summary.setReadPermission(permissionDao.get(rs.getInt(6)));
+                        summary.setSetPermission(permissionDao.get(rs.getInt(7)));
                         return summary;
                     }else {
                         return null;
                     }
                 });
-        if (item != null) {
-            item.setReadPermission(RoleDao.getInstance().getPermission(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.READ));
-            item.setSetPermission(RoleDao.getInstance().getPermission(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.SET));
-        }
         return item;
     }
 
@@ -529,7 +526,9 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 vo.getRollup(),
                 vo.getPointLocator().getDataTypeId(),
                 boolToChar(vo.getPointLocator().isSettable()),
-                convertData(vo.getData())
+                convertData(vo.getData()),
+                vo.getReadPermission().getId(),
+                vo.getSetPermission().getId()
         };
     }
 
@@ -573,14 +572,51 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             rs.getString(++i);
 
             dp.setData(extractData(rs.getClob(++i)));
-
+            dp.setReadPermission(new MangoPermission(rs.getInt(++i)));
+            dp.setSetPermission(new MangoPermission(rs.getInt(++i)));
             // Data source information from join
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
-
             dp.ensureUnitsCorrect();
             return dp;
+        }
+    }
+
+    @Override
+    public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
+        permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getSetPermission());
+    }
+
+    @Override
+    public void saveRelationalData(DataPointVO existing, DataPointVO vo) {
+        Map<String, String> tags = vo.getTags();
+        if (tags == null) {
+            if (existing != null) {
+                // only delete the name and device tags, leave existing tags intact
+                dataPointTagsDao.deleteNameAndDeviceTagsForDataPointId(vo.getId());
+            }
+            tags = Collections.emptyMap();
+        } else if (existing != null) {
+            // we only need to delete tags when doing an update
+            dataPointTagsDao.deleteTagsForDataPointId(vo.getId());
+        }
+
+        dataPointTagsDao.insertTagsForDataPoint(vo, tags);
+
+        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+        if(def != null) {
+            def.saveRelationalData(existing, vo);
+        }
+
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+                permissionDao.permissionDeleted(existing.getReadPermission());
+            }
+            if(!existing.getSetPermission().equals(vo.getSetPermission())) {
+                permissionDao.permissionDeleted(existing.getSetPermission());
+            }
         }
     }
 
@@ -592,12 +628,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     @Override
     public void loadRelationalData(DataPointVO vo) {
         //TODO Mango 4.0 loading tags always is much slower
-        vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
+        vo.setTags(dataPointTagsDao.getTagsForDataPointId(vo.getId()));
 
         //Populate permissions
-        vo.setReadPermission(RoleDao.getInstance().getPermission(vo, PermissionService.READ));
-        vo.setSetPermission(RoleDao.getInstance().getPermission(vo, PermissionService.SET));
-        vo.setDataSourceEditPermission(RoleDao.getInstance().getPermission(vo.getDataSourceId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
+        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
+        vo.setSetPermission(permissionDao.get(vo.getSetPermission().getId()));
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
@@ -606,28 +641,30 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
-    public void saveRelationalData(DataPointVO vo, boolean insert) {
-        Map<String, String> tags = vo.getTags();
-        if (tags == null) {
-            if (!insert) {
-                // only delete the name and device tags, leave existing tags intact
-                DataPointTagsDao.getInstance().deleteNameAndDeviceTagsForDataPointId(vo.getId());
-            }
-            tags = Collections.emptyMap();
-        } else if (!insert) {
-            // we only need to delete tags when doing an update
-            DataPointTagsDao.getInstance().deleteTagsForDataPointId(vo.getId());
-        }
+    public void deleteRelationalData(DataPointVO vo) {
 
-        DataPointTagsDao.getInstance().insertTagsForDataPoint(vo, tags);
-        //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo, PermissionService.READ, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getSetPermission(), vo, PermissionService.SET, insert);
+        //delete event handler mappings
+        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
+        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
+                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
+
+        //delete user comments
+        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
+                userCommentTable.getField("typeKey").eq(vo.getId())).execute();
+
+        //delete event detectors
+        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").eq(vo.getId())).execute();
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
-            def.saveRelationalData(vo, insert);
+            def.deleteRelationalData(vo);
         }
+    }
+
+    @Override
+    public void deletePostRelationalData(DataPointVO vo) {
+        //Clean permissions
+        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getSetPermission());
     }
 
     @Override
@@ -648,7 +685,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+                Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
                 return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getIdAlias()));
             }
         }
@@ -658,66 +695,29 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
-        //Join on permissions
+
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
-            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            Table<?> dataPointReadSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(DataPointVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("dataPointRead");
+            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .from(MintermMappingTable.MINTERMS_MAPPING)
+                    .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .having(DSL.count().eq(DSL.count(
+                            DSL.case_().when(roleIdsIn, DSL.inline(1))
+                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
 
-            select = select.leftJoin(dataPointReadSubselect).on(this.table.getIdAlias().eq(dataPointReadSubselect.field(RoleTableDefinition.voIdField)));
+            Table<?> permissionsGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+                    .asTable("permissionsGranted");
 
-            Table<?> dataPointEditSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(DataPointVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.SET))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("dataPointEdit");
+            select = select.join(permissionsGranted).on(
+                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            DataPointTableDefinition.READ_PERMISSION_ALIAS, DataPointTableDefinition.SET_PERMISSION_ALIAS,
+                            DataSourceTableDefinition.READ_PERMISSION_ALIAS, DataSourceTableDefinition.EDIT_PERMISSION_ALIAS));
 
-            select = select.leftJoin(dataPointEditSubselect).on(this.table.getIdAlias().eq(dataPointEditSubselect.field(RoleTableDefinition.voIdField)));
-
-            Table<?> dataSourceReadSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("dataSourceRead");
-
-            select = select.leftJoin(dataSourceReadSubselect).on(this.table.getAlias("dataSourceId").eq(dataSourceReadSubselect.field(RoleTableDefinition.voIdField)));
-
-            Table<?> dataSourceEditSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("dataSourceEdit");
-
-            select = select.leftJoin(dataSourceEditSubselect).on(this.table.getAlias("dataSourceId").eq(dataSourceEditSubselect.field(RoleTableDefinition.voIdField)));
-
-            conditions.addCondition(DSL.or(
-                    dataPointReadSubselect.field("granted").isTrue(),
-                    dataPointEditSubselect.field("granted").isTrue(),
-                    dataSourceReadSubselect.field("granted").isTrue(),
-                    dataSourceEditSubselect.field("granted").isTrue()));
         }
         return select;
     }
@@ -743,26 +743,27 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
     public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
-        //Join on permissions
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
-            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            Table<?> dataSourceEditSubselect = this.create.select(
-                    RoleTableDefinition.voIdField,
-                    DSL.inline(1).as("granted"))
-                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
-                    .groupBy(RoleTableDefinition.voIdField)
-                    .having(granted)
-                    .asTable("dataSourceEdit");
+            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .from(MintermMappingTable.MINTERMS_MAPPING)
+                    .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .having(DSL.count().eq(DSL.count(
+                            DSL.case_().when(roleIdsIn, DSL.inline(1))
+                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
 
-            select = select.leftJoin(dataSourceEditSubselect).on(this.table.getAlias("dataSourceId").eq(dataSourceEditSubselect.field(RoleTableDefinition.voIdField)));
+            Table<?> permissionsGranted = this.create.select(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+                    .asTable("permissionsGranted");
 
-            conditions.addCondition(dataSourceEditSubselect.field("granted").isTrue());
+            select = select.join(permissionsGranted).on(
+                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            DataSourceTableDefinition.EDIT_PERMISSION_ALIAS));
+
         }
         return select;
     }

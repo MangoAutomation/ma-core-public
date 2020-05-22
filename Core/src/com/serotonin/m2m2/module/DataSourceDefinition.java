@@ -137,13 +137,27 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
     }
 
     /**
+     * Save any relational data for this data source i.e. script roles prior
+     * to the VO being saved
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
+     * @param vo
+     */
+    public void savePreRelationalData(T existing, T vo) {
+
+    }
+
+    /**
      * Save any relational data for this data source i.e. script roles
      *
      * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
      * @param vo
-     * @param insert
      */
-    public void saveRelationalData(T vo, boolean insert) {
+    public void saveRelationalData(T existing, T vo) {
 
     }
 
@@ -154,6 +168,16 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * @param vo
      */
     public void deleteRelationalData(T vo) {
+
+    }
+
+    /**
+     * Delete any relational data for the data source.
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     * @param vo
+     */
+    public void deletePostRelationalData(T vo) {
 
     }
 
@@ -187,12 +211,14 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
     public void validate(ProcessResult response, DataPointVO existing, DataPointVO dpvo, DataSourceVO dsvo, PermissionHolder user) {
         validate(response, dpvo, dsvo, user);
     }
+
     /**
      * Save any relational data for this point locator i.e. script roles
+     *
+     * @param existing - null on inserts
      * @param vo
-     * @param insert
      */
-    public void saveRelationalData(DataPointVO vo, boolean insert) {
+    public void saveRelationalData(DataPointVO existing, DataPointVO vo) {
 
     }
 

@@ -72,31 +72,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
     abstract protected PUB createPublisherVO();
 
     /**
-     * Save any relational data for this publisher i.e. script roles
-     * @param vo
-     * @param insert
-     */
-    public void saveRelationalData(PUB vo, boolean insert) {
-
-    }
-
-    /**
-     * Delete any relational data for the publisher
-     * @param vo
-     */
-    public void deleteRelationalData(PUB vo) {
-
-    }
-
-    /**
-     * Load in relational data for the publisher
-     * @param vo
-     */
-    public void loadRelationalData(PUB vo) {
-
-    }
-
-    /**
      * Validate a new publisher
      * @param response
      * @param pub
@@ -124,6 +99,60 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
     public void postRuntimeManagerTerminate(boolean uninstall) {
         if(uninstall)
             PublisherDao.getInstance().deletePublisherType(getPublisherTypeName());
+    }
+
+    /**
+     * Save any relational data for this publisher i.e. script roles prior
+     * to the VO being saved
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
+     * @param vo
+     */
+    public void savePreRelationalData(PUB existing, PUB vo) {
+
+    }
+
+    /**
+     * Save any relational data for this publisher i.e. script roles
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
+     * @param vo
+     */
+    public void saveRelationalData(PUB existing, PUB vo) {
+
+    }
+
+    /**
+     * Delete any relational data for the publisher.
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     * @param vo
+     */
+    public void deleteRelationalData(PUB vo) {
+
+    }
+
+    /**
+     * Delete any relational data for the publisher.
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     * @param vo
+     */
+    public void deletePostRelationalData(PUB vo) {
+
+    }
+
+    /**
+     * Load in relational data for the publisher
+     *
+     * @param vo
+     */
+    public void loadRelationalData(PUB vo) {
+
     }
 
 }

@@ -298,7 +298,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
                     }
                     newRoles.add(roles);
                 }
-                def.update(newRoles);
+                Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
             });
 
             User vo = newVO(readUser);
@@ -326,7 +326,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             for(Set<Role> roles : roleSet) {
                 newRoles.add(new HashSet<>(roles));
             }
-            def.update(newRoles);
+            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
         });
 
         //Ensure they can edit self
@@ -354,7 +354,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             for(Set<Role> roles : roleSet) {
                 newRoles.add(new HashSet<>(roles));
             }
-            def.update(newRoles);
+            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
         });
     }
 
@@ -362,7 +362,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         getService().permissionService.runAsSystemAdmin(() -> {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
             MangoPermission permission = def.getPermission();
-            def.update(permission.removeRole(vo).getRoles());
+            Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.removeRole(vo).getRoles()), def);
         });
     }
 

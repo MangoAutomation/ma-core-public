@@ -173,7 +173,7 @@ public class QueryBuilder<T> {
     public QueryBuilder<T> in(String fieldName, Object... values) {
         return applyFn(fieldName, (f, c) -> {
             Object[] v = Arrays.stream(values).map(c).toArray(Object[]::new);
-            return f.in(c.apply(v));
+            return f.in(v);
         });
     }
 

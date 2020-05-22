@@ -12,10 +12,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
+import org.jooq.SelectJoinStep;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,10 +30,12 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -38,6 +44,8 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.tables.MintermMappingTable;
+import com.serotonin.m2m2.db.dao.tables.PermissionMappingTable;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -48,6 +56,7 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -65,10 +74,15 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
     private final DataPointTableDefinition dataPointTable;
     private final DataSourceTableDefinition dataSourceTable;
 
+    private final PermissionService permissionService;
+    private final PermissionDao permissionDao;
+
     @Autowired
     private EventDetectorDao(EventDetectorTableDefinition table,
             DataPointTableDefinition dataPointTable,
             DataSourceTableDefinition dataSourceTable,
+            PermissionService permissionService,
+            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_EVENT_DETECTOR,
@@ -77,7 +91,8 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
                 mapper, publisher);
         this.dataPointTable = dataPointTable;
         this.dataSourceTable = dataSourceTable;
-
+        this.permissionService = permissionService;
+        this.permissionDao = permissionDao;
         //Build our ordered column set from the Module Registry
         List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
         this.sourceTypeToColumnNameMap = new LinkedHashMap<>(defs.size());
@@ -106,13 +121,15 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
         //Find the index of our sourceIdColumn
         int sourceIdIndex = getSourceIdIndex(vo.getDefinition().getSourceTypeName());
 
-        Object[] o = new Object[5 + this.sourceTypeToColumnNameMap.size()];
+        Object[] o = new Object[7 + this.sourceTypeToColumnNameMap.size()];
         o[0] = vo.getXid();
         o[1] = vo.getDetectorSourceType();
         o[2] = vo.getDetectorType();
         o[3] = convertData(vo.getData());
         o[4] = data;
-        o[5 + sourceIdIndex] = vo.getSourceId();
+        o[5] = vo.getReadPermission().getId();
+        o[6] = vo.getEditPermission().getId();
+        o[7 + sourceIdIndex] = vo.getSourceId();
         return o;
     }
 
@@ -141,7 +158,14 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
     }
 
     @Override
-    public void saveRelationalData(AbstractEventDetectorVO vo, boolean insert) {
+    public void savePreRelationalData(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo) {
+        permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getEditPermission());
+        vo.getDefinition().savePreRelationalData(existing, vo);
+    }
+
+    @Override
+    public void saveRelationalData(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo) {
         EventTypeVO et = vo.getEventType();
         if(vo.getAddedEventHandlers() != null) {
             for(AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers())
@@ -153,17 +177,23 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
                 EventHandlerDao.getInstance().saveEventHandlerMapping(xid, et.getEventType());
             }
         }
-        //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditPermission(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT, insert);
-
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+                permissionDao.permissionDeleted(existing.getReadPermission());
+            }
+            if(!existing.getEditPermission().equals(vo.getEditPermission())) {
+                permissionDao.permissionDeleted(existing.getEditPermission());
+            }
+        }
     }
 
     @Override
     public void loadRelationalData(AbstractEventDetectorVO vo) {
         vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
-        vo.setReadPermission(RoleDao.getInstance().getPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ));
-        vo.setEditPermission(RoleDao.getInstance().getPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT));
+        //Populate permissions
+        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
+        vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override
@@ -171,10 +201,42 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
         //Also update the Event Handlers
         ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
                 new Object[] { vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId() });
-        RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ);
-        RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT);
     }
 
+    @Override
+    public void deletePostRelationalData(AbstractEventDetectorVO vo) {
+        //Clean permissions
+        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        vo.getDefinition().deletePostRelationalData(vo);
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
+            ConditionSortLimit conditions, PermissionHolder user) {
+        if(!permissionService.hasAdminRole(user)) {
+            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+
+            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+
+            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .from(MintermMappingTable.MINTERMS_MAPPING)
+                    .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .having(DSL.count().eq(DSL.count(
+                            DSL.case_().when(roleIdsIn, DSL.inline(1))
+                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
+
+            Table<?> permissionsGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+                    .asTable("permissionsGranted");
+
+            select = select.join(permissionsGranted).on(
+                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            EventDetectorTableDefinition.READ_PERMISSION_ALIAS, EventDetectorTableDefinition.EDIT_PERMISSION_ALIAS));
+
+        }
+        return select;
+    }
     /**
      * Get all data point event detectors with the corresponding sourceId AND the point loaded into it
      * Ordered by detector id.

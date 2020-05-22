@@ -117,4 +117,58 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
         return detector;
     }
 
+    /**
+     * Save any relational data prior
+     * to the VO being saved
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
+     * @param vo
+     */
+    public void savePreRelationalData(T existing, T vo) {
+
+    }
+
+    /**
+     * Save any relational data
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     *
+     * @param existing - null on insert
+     * @param vo
+     */
+    public void saveRelationalData(T existing, T vo) {
+
+    }
+
+    /**
+     * Delete any relational data
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     * @param vo
+     */
+    public void deleteRelationalData(T vo) {
+
+    }
+
+    /**
+     * Delete any relational data
+     *
+     * NOTE: this logic will be executed in a database transaction.
+     * @param vo
+     */
+    public void deletePostRelationalData(T vo) {
+
+    }
+
+    /**
+     * Load in relational data for the data source
+     *
+     * @param vo
+     */
+    public void loadRelationalData(T vo) {
+
+    }
+
 }
