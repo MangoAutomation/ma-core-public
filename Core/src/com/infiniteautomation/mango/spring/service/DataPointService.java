@@ -256,34 +256,47 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
     /**
      * Set the state helper method
-     * @param vo
-     * @param enabled
-     * @param restart
+     * @param vo - The point to restart
+     * @param enabled - Enable or disable the data point
+     * @param restart - Restart the data point, enabled must equal true (will start a stopped point)
      * @return - true if the state changed
      */
     protected boolean setDataPointState(DataPointVO vo, boolean enabled, boolean restart) {
         vo.setEnabled(enabled);
-        boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
         boolean dataSourceRunning = Common.runtimeManager.isDataSourceRunning(vo.getDataSourceId());
-        if (running && !enabled && dataSourceRunning) {
-            //Running, so stop it
-            Common.runtimeManager.stopDataPoint(vo.getId());
-            DataPointDao.getInstance().saveEnabledColumn(vo);
-            return true;
-        } else if (!running && enabled && dataSourceRunning) {
-            //Not running, so start it
-            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
-            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
-            Common.runtimeManager.startDataPoint(dp);
-            DataPointDao.getInstance().saveEnabledColumn(vo);
-            return true;
-        }else if(running && enabled && dataSourceRunning) {
-            //Running, so restart it
-            Common.runtimeManager.stopDataPoint(vo.getId());
-            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
-            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
-            Common.runtimeManager.startDataPoint(dp);
-            return false;
+
+        if(!dataSourceRunning) {
+            //We must check its state in the DB
+            boolean enabledInDB = dao.isEnabled(vo.getId());
+            if(enabledInDB && !enabled){
+                dao.saveEnabledColumn(vo);
+                return true;
+            }else if(!enabledInDB && enabled) {
+                DataPointDao.getInstance().saveEnabledColumn(vo);
+                return true;
+            }
+        }else {
+            boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
+            if (running && !enabled) {
+                //Running, so stop it
+                Common.runtimeManager.stopDataPoint(vo.getId());
+                dao.saveEnabledColumn(vo);
+                return true;
+            } else if (!running && enabled) {
+                //Not running, so start it
+                List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+                DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
+                Common.runtimeManager.startDataPoint(dp);
+                dao.saveEnabledColumn(vo);
+                return true;
+            }else if(enabled && restart) {
+                //May be running or not, will either start or restart it (stopping a non running point will do nothing which is ok)
+                Common.runtimeManager.stopDataPoint(vo.getId());
+                List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+                DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
+                Common.runtimeManager.startDataPoint(dp);
+                return false;
+            }
         }
         return false;
     }
