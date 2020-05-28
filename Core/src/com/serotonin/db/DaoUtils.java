@@ -63,7 +63,6 @@ public class DaoUtils implements TransactionCapable {
 
         Configuration configuration = new DefaultConfiguration();
         configuration.set(new SpringConnectionProvider(dataSource));
-        configuration.set(new SpringTransactionProvider(getTransactionManager()));
 
         configuration.settings().setExecuteLogging(this.useMetrics);
         if (this.useMetrics) {
