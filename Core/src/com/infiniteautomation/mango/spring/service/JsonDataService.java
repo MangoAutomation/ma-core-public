@@ -100,6 +100,21 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
         return result;
     }
 
+    /**
+     * Update a store without touching its data.
+     * TODO Mango 4.0 change to generate update statement just for other fields
+     *
+     * @param xid
+     * @param item
+     */
+    public JsonDataVO updateStore(String xid, JsonDataVO item) {
+        return dao.withLockedRow(xid, (txStatus) -> {
+            JsonDataVO existing = this.get(xid);
+            item.setJsonData(existing.getJsonData());
+            return update(existing, item);
+        });
+    }
+
     private static final Pattern UNESCAPE_JSON_PTR_SLASH = Pattern.compile("~1");
     private static final Pattern UNESCAPE_JSON_PTR_TILDE = Pattern.compile("~0");
 

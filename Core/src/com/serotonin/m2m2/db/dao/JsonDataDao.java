@@ -174,6 +174,7 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
         permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
     }
 
+    // TODO Mango 4.0 Why does this have custom permission logic?
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
