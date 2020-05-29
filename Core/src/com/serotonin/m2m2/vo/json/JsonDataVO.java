@@ -1,11 +1,11 @@
 /**
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.vo.json;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -13,7 +13,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -23,13 +22,10 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializable {
+public class JsonDataVO extends AbstractVO {
 
     public static final String XID_PREFIX = "JSON_";
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
 
     private JsonNode jsonData;
@@ -38,12 +34,11 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
     private MangoPermission editPermission = new MangoPermission();
     @JsonProperty
     private MangoPermission readPermission = new MangoPermission();
-    @JsonProperty
-    private boolean publicData;
 
     public JsonNode getJsonData() {
         return jsonData;
     }
+
     public void setJsonData(JsonNode data) {
         this.jsonData = data;
     }
@@ -64,13 +59,6 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
         this.readPermission = readPermission;
     }
 
-    public boolean isPublicData() {
-        return publicData;
-    }
-    public void setPublicData(boolean publicData){
-        this.publicData = publicData;
-    }
-
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
@@ -81,9 +69,9 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
         String json = jsonObject.getString("jsonData");
-        try{
+        try {
             jsonData = JsonDataDao.getInstance().readValueFromString(json);
-        }catch(Exception e){
+        } catch (Exception e) {
             throw new TranslatableJsonException("emport.error.parseError", "jsonData");
         }
     }

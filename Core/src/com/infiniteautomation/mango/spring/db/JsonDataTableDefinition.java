@@ -35,7 +35,6 @@ public class JsonDataTableDefinition extends AbstractTableDefinition {
     @Override
     protected void addFields(List<Field<?>> fields) {
         super.addFields(fields);
-        fields.add(DSL.field(DSL.name("publicData"), SQLDataType.CHAR(1)));
         fields.add(DSL.field(DSL.name("data"), SQLDataType.CLOB));
         fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(false)));
         fields.add(DSL.field(DSL.name("editPermissionId"), SQLDataType.INTEGER.nullable(false)));

@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.db.dao;
@@ -48,7 +49,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Repository()
-public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition>{
+public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition> {
 
     private static final LazyInitSupplier<JsonDataDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(JsonDataDao.class);
@@ -62,21 +63,16 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
      * @param typeName
      */
     @Autowired
-    private JsonDataDao(JsonDataTableDefinition table,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher,
-            PermissionService permissionService,
-            PermissionDao permissionDao) {
-        super(AuditEventType.TYPE_JSON_DATA,
-                table,
-                new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"),
-                mapper, publisher);
+    private JsonDataDao(JsonDataTableDefinition table, @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+            ApplicationEventPublisher publisher, PermissionService permissionService, PermissionDao permissionDao) {
+        super(AuditEventType.TYPE_JSON_DATA, table, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher);
         this.permissionService = permissionService;
         this.permissionDao = permissionDao;
     }
 
     /**
      * Get cached instance from Spring Context
+     *
      * @return
      */
     public static JsonDataDao getInstance() {
@@ -91,23 +87,16 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
     @Override
     protected Object[] voToObjectArray(JsonDataVO vo) {
         String jsonData = null;
-        try{
+        try {
             JsonNode data = vo.getJsonData();
             if (data != null) {
                 jsonData = writeValueAsString(data);
             }
-        }catch(JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             LOG.error(e.getMessage(), e);
         }
 
-        return new Object[]{
-                vo.getXid(),
-                vo.getName(),
-                boolToChar(vo.isPublicData()),
-                jsonData,
-                vo.getReadPermission().getId(),
-                vo.getEditPermission().getId()
-        };
+        return new Object[] {vo.getXid(), vo.getName(), jsonData, vo.getReadPermission().getId(), vo.getEditPermission().getId()};
     }
 
     @Override
@@ -115,25 +104,23 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
         return new JsonDataRowMapper();
     }
 
-    class JsonDataRowMapper implements RowMapper<JsonDataVO>{
+    class JsonDataRowMapper implements RowMapper<JsonDataVO> {
 
         @Override
-        public JsonDataVO mapRow(ResultSet rs, int rowNum)
-                throws SQLException {
-            int i=0;
+        public JsonDataVO mapRow(ResultSet rs, int rowNum) throws SQLException {
+            int i = 0;
             JsonDataVO vo = new JsonDataVO();
             vo.setId(rs.getInt(++i));
             vo.setXid(rs.getString(++i));
             vo.setName(rs.getString(++i));
-            vo.setPublicData(charToBool(rs.getString(++i)));
 
-            //Read the data
-            try{
+            // Read the data
+            try {
                 Clob clob = rs.getClob(++i);
                 if (clob != null) {
                     vo.setJsonData(getObjectReader(JsonNode.class).readTree(clob.getCharacterStream()));
                 }
-            }catch(Exception e){
+            } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
             }
             vo.setReadPermission(new MangoPermission(rs.getInt(++i)));
@@ -151,11 +138,11 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
 
     @Override
     public void saveRelationalData(JsonDataVO existing, JsonDataVO vo) {
-        if(existing != null) {
-            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+        if (existing != null) {
+            if (!existing.getReadPermission().equals(vo.getReadPermission())) {
                 permissionDao.permissionDeleted(existing.getReadPermission());
             }
-            if(!existing.getEditPermission().equals(vo.getEditPermission())) {
+            if (!existing.getEditPermission().equals(vo.getEditPermission())) {
                 permissionDao.permissionDeleted(existing.getEditPermission());
             }
         }
@@ -163,41 +150,36 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
 
     @Override
     public void loadRelationalData(JsonDataVO vo) {
-        //Populate permissions
+        // Populate permissions
         vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
         vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
     }
 
     @Override
     public void deletePostRelationalData(JsonDataVO vo) {
-        //Clean permissions
+        // Clean permissions
         permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
     }
 
     // TODO Mango 4.0 Why does this have custom permission logic?
     @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
-            PermissionHolder user) {
-        if(!permissionService.hasAdminRole(user)) {
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user) {
+        if (!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 
-            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
-                    .from(MintermMappingTable.MINTERMS_MAPPING)
+            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId).from(MintermMappingTable.MINTERMS_MAPPING)
                     .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
-                    .having(DSL.count().eq(DSL.count(
-                            DSL.case_().when(roleIdsIn, DSL.inline(1))
-                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
+                    .having(DSL.count().eq(DSL.count(DSL.case_().when(roleIdsIn, DSL.inline(1)).else_(DSL.inline((Integer) null))))).asTable("mintermsGranted");
 
             Table<?> permissionsGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
-                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+                    .from(PermissionMappingTable.PERMISSIONS_MAPPING).join(mintermsGranted)
+                    .on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
                     .asTable("permissionsGranted");
 
-            select = select.join(permissionsGranted).on(
-                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            JsonDataTableDefinition.READ_PERMISSION_ALIAS, JsonDataTableDefinition.EDIT_PERMISSION_ALIAS));
+            select = select.join(permissionsGranted).on(permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+                    .in(JsonDataTableDefinition.READ_PERMISSION_ALIAS, JsonDataTableDefinition.EDIT_PERMISSION_ALIAS));
 
         }
         return select;
@@ -211,11 +193,11 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
      * @throws JsonMappingException
      * @throws IOException
      */
-    public JsonNode readValueFromString(String json) throws JsonParseException, JsonMappingException, IOException{
+    public JsonNode readValueFromString(String json) throws JsonParseException, JsonMappingException, IOException {
         return getObjectReader(JsonNode.class).readTree(json);
     }
 
-    public String writeValueAsString(JsonNode value) throws JsonProcessingException{
+    public String writeValueAsString(JsonNode value) throws JsonProcessingException {
         return getObjectWriter(JsonNode.class).writeValueAsString(value);
     }
 

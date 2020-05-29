@@ -21,6 +21,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -54,19 +55,17 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
     }
 
     /**
-     * Get data and ensure it is public,
+     * Gets JSON data for the public REST end point, does not expose if an item exists but is not accessible.
+     *
      * @param xid
      * @return
      * @throws NotFoundException if it doesn't exist or if it exists and is not public
      */
     public JsonDataVO getPublicData(String xid) throws NotFoundException {
-        JsonDataVO vo = this.getPermissionService().runAsSystemAdmin(() -> {
-            return super.get(xid);
-        });
-        if(!vo.isPublicData()) {
+        try {
+            return get(xid);
+        } catch (PermissionException e) {
             throw new NotFoundException();
-        }else {
-            return vo;
         }
     }
 
