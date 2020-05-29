@@ -43,25 +43,7 @@ public interface PermissionHolder {
      * Note: When working in a Spring service or controller prefer injecting
      * @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder
      */
-    public static final PermissionHolder SYSTEM_SUPERADMIN = new PermissionHolder() {
-
-        final Set<Role> roles = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SUPERADMIN_ROLE, USER_ROLE)));
-
-        @Override
-        public String getPermissionHolderName() {
-            return "SYSTEM_SUPERADMIN";
-        }
-
-        @Override
-        public boolean isPermissionHolderDisabled() {
-            return false;
-        }
-
-        @Override
-        public Set<Role> getAllInheritedRoles() {
-            return roles;
-        }
-    };
+    public static final PermissionHolder SYSTEM_SUPERADMIN = new SystemSuperadmin();
 
     /**
      * Represents any un-authenticated permission holder and is a member of the anonymous role. This PermissionHolder should only be used in scenarios
@@ -71,25 +53,7 @@ public interface PermissionHolder {
      * Note: When working in a Spring service or controller prefer injecting
      * @Qualifier(ANONYMOUS_PERMISSION_HOLDER) PermissionHolder
      */
-    public static final PermissionHolder ANONYMOUS = new PermissionHolder() {
-
-        final Set<Role> roles = Collections.singleton(ANONYMOUS_ROLE);
-
-        @Override
-        public String getPermissionHolderName() {
-            return "ANONYMOUS";
-        }
-
-        @Override
-        public boolean isPermissionHolderDisabled() {
-            return false;
-        }
-
-        @Override
-        public Set<Role> getAllInheritedRoles() {
-            return roles;
-        }
-    };
+    public static final PermissionHolder ANONYMOUS = new Anonymous();
 
     /**
      * @return a name for the permission holder, typically the username
@@ -107,4 +71,53 @@ public interface PermissionHolder {
      */
     Set<Role> getAllInheritedRoles();
 
+    /**
+     * @author Jared Wiltshire
+     */
+    public static final class Anonymous implements PermissionHolder {
+        private final Set<Role> roles = Collections.unmodifiableSet(Collections.singleton(ANONYMOUS_ROLE));
+
+        private Anonymous() {
+        }
+
+        @Override
+        public String getPermissionHolderName() {
+            return "ANONYMOUS";
+        }
+
+        @Override
+        public boolean isPermissionHolderDisabled() {
+            return false;
+        }
+
+        @Override
+        public Set<Role> getAllInheritedRoles() {
+            return roles;
+        }
+    }
+
+    /**
+     * @author Jared Wiltshire
+     */
+    public static final class SystemSuperadmin implements PermissionHolder {
+        private final Set<Role> roles = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SUPERADMIN_ROLE, USER_ROLE)));
+
+        private SystemSuperadmin() {
+        }
+
+        @Override
+        public String getPermissionHolderName() {
+            return "SYSTEM_SUPERADMIN";
+        }
+
+        @Override
+        public boolean isPermissionHolderDisabled() {
+            return false;
+        }
+
+        @Override
+        public Set<Role> getAllInheritedRoles() {
+            return roles;
+        }
+    }
 }
