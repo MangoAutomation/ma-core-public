@@ -28,7 +28,6 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 
 /**
  * Common repo for export data
@@ -142,10 +141,6 @@ public class ConfigurationExportData {
         if (ArrayUtils.contains(exportElements, PERMISSIONS)) {
             List<Map<String, MangoPermission>> permissions = new ArrayList<>();
             for(PermissionDefinition def : ModuleRegistry.getPermissionDefinitions().values()) {
-                //Don't export superadmin as we can't change it anyway.
-                if(def instanceof SuperadminPermissionDefinition) {
-                    continue;
-                }
                 Map<String, MangoPermission> toExport = new HashMap<>();
                 toExport.put(def.getPermissionTypeName(), def.getPermission());
                 permissions.add(toExport);
