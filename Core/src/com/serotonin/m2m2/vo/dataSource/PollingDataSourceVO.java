@@ -43,7 +43,7 @@ public abstract class PollingDataSourceVO extends DataSourceVO {
         return quantize;
     }
 
-    public void setQuantize(Boolean quantize) {
+    public void setQuantize(boolean quantize) {
         this.quantize = quantize;
     }
 

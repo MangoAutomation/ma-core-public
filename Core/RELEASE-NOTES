@@ -34,6 +34,7 @@
 * Upgrade Spring security to 5.3.1
 * Persist HTTP sessions across reboots so Users are not logged out
 * Delete Mango work directory on upgrade as it is only used for the legacy UI
+* Fix bug where the quantize setting on a data source was not being imported in a JSON import
 
 *Version 3.7.4*
 * Improve work item failure logging
