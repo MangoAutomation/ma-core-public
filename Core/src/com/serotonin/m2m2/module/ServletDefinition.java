@@ -13,11 +13,11 @@ import javax.servlet.http.HttpServlet;
  * A servlet definition provides the necessary information to register a servlet into the MA instance. Servlets do not
  * use JSP or HTML pages to render their responses, and so can be used for tasks such as image generation, export files,
  * etc.
- * 
+ *
  * Servlets can also be used to listen for incoming information, such as with the HTTP receiver data source.
- * 
+ *
  * All methods in this definition are analogous to servlet and servlet-mapping elements of the web.xml file.
- * 
+ *
  * @author Matthew Lohbihler
  */
 abstract public class ServletDefinition extends ModuleElementDefinition {
@@ -53,5 +53,13 @@ abstract public class ServletDefinition extends ModuleElementDefinition {
      */
     public Map<String, String> getInitParameters() {
         return Collections.emptyMap();
+    }
+
+    /**
+     * Does this servlet support Asynchronous behavior
+     * @return
+     */
+    public boolean isAsync() {
+        return false;
     }
 }

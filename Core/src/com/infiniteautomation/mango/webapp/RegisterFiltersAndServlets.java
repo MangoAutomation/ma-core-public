@@ -164,6 +164,7 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
             registration.setInitParameters(def.getInitParameters());
             registration.setLoadOnStartup(def.getInitOrder());
             registration.addMapping(def.getUriPatterns());
+            registration.setAsyncSupported(def.isAsync());
         }
     }
 }
