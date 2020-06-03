@@ -78,8 +78,6 @@ import net.jazdw.rql.parser.ASTNode;
 public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition> extends BaseDao implements AbstractBasicVOAccess<T, TABLE> {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
-    public static final int DEFAULT_LIMIT = 100;
-
     //Retry transactions that deadlock
     //TODO Mango 4.0 make this an env property?
     //TODO Mango 4.0 make the retry criteria more accurate
