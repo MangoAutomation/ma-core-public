@@ -47,7 +47,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
 import freemarker.template.TemplateException;
@@ -283,43 +282,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                 details.add(deets);
         }
         return details;
-    }
-
-    /**
-     * Get all roles that a user can 'see'
-     * @return
-     */
-    public Set<Role> getUserRoles() {
-        return getUserRoles(Collections.emptySet());
-    }
-
-    /**
-     * Get All roles that a user can 'see', exclude any roles listed
-     * @param exclude cannot be null
-     * @return
-     */
-    public Set<Role> getUserRoles(Collection<String> exclude) {
-        PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        Set<Role> groups = new HashSet<>();
-        groups.addAll(user.getAllInheritedRoles());
-
-        if (permissionService.hasAdminRole(user)) {
-            for (RoleVO role : this.roleDao.getAll())
-                groups.add(role.getRole());
-        }
-        for (String part : exclude) {
-            groups.removeIf((r) -> {
-                if(StringUtils.equals(part, r.getXid())) {
-                    return true;
-                }else {
-                    return false;
-                }
-            });
-        }
-
-        return groups;
     }
 
     @Override

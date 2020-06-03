@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +42,14 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     @Override
     public boolean hasReadPermission(PermissionHolder user, RoleVO vo) {
         return permissionService.isValidPermissionHolder(user);
+    }
+
+    public Set<RoleVO> getInheritedRoles(String xid) {
+        return dao.getInherited(get(xid).getId());
+    }
+
+    public Set<RoleVO> getRootRoles() {
+        return dao.getRootRoles();
     }
 
     @Override
