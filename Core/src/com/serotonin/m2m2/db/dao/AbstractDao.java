@@ -92,9 +92,13 @@ public abstract class AbstractDao<T extends AbstractVO, TABLE extends AbstractTa
 
     @Override
     public T getByXid(String xid) {
-        if (xid == null || this.table.getField("xid") == null) {
-            return null;
+        if (this.table.getField("xid") == null) {
+            throw new UnsupportedOperationException("This table does not have an XID column");
         }
+        if (xid == null) {
+            throw new IllegalArgumentException();
+        }
+
         Select<Record> query = this.getJoinedSelectQuery()
                 .where(table.getXidAlias().eq(xid))
                 .limit(1);
@@ -109,9 +113,13 @@ public abstract class AbstractDao<T extends AbstractVO, TABLE extends AbstractTa
 
     @Override
     public List<T> getByName(String name) {
-        if (name == null || this.table.getField("name") == null) {
-            return null;
+        if (this.table.getField("name") == null) {
+            throw new UnsupportedOperationException("This table does not have a name column");
         }
+        if (name == null) {
+            throw new IllegalArgumentException();
+        }
+
         Select<Record> query = this.getJoinedSelectQuery()
                 .where(this.table.getField("name").eq(name));
         String sql = query.getSQL();

@@ -173,7 +173,8 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
      * @return
      */
     public Set<Role> getInherited(int roleId) {
-        Select<?> select = this.getSelectQuery(getSelectFields())
+        Select<?> select = this.create.select(getSelectFields())
+                .from(this.table.getTableAsAlias())
                 .join(RoleTableDefinition.roleInheritanceTableAsAlias)
                 .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias))
                 .where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
