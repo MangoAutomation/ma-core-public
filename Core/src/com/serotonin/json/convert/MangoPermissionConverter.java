@@ -61,13 +61,14 @@ public class MangoPermissionConverter extends ImmutableClassConverter {
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
         Set<Set<Role>> roles = new HashSet<>();
+        RoleDao roleDao = Common.getBean(RoleDao.class);
         if(jsonValue instanceof JsonArray) {
             for(JsonValue val : (JsonArray)jsonValue) {
                 if(val instanceof JsonArray) {
                     Set<Role> inner = new HashSet<>();
                     roles.add(inner);
                     for(JsonValue v : (JsonArray)val) {
-                        RoleVO r = RoleDao.getInstance().getByXid(v.toString());
+                        RoleVO r = roleDao.getByXid(v.toString());
                         if(r != null) {
                             inner.add(r.getRole());
                         }else {
@@ -76,7 +77,7 @@ public class MangoPermissionConverter extends ImmutableClassConverter {
                     }
                 }else {
                     //Just a single string
-                    RoleVO r = RoleDao.getInstance().getByXid(val.toString());
+                    RoleVO r = roleDao.getByXid(val.toString());
                     if(r != null) {
                         roles.add(Collections.singleton(r.getRole()));
                     }else {
@@ -86,7 +87,7 @@ public class MangoPermissionConverter extends ImmutableClassConverter {
             }
         }else {
             for(String role : PermissionService.explodeLegacyPermissionGroups(jsonValue.toString())) {
-                RoleVO r = RoleDao.getInstance().getByXid(role);
+                RoleVO r = roleDao.getByXid(role);
                 if(r != null) {
                     roles.add(Collections.singleton(r.getRole()));
                 }else {

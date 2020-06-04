@@ -887,7 +887,7 @@ public class PermissionService {
             }else {
                 RoleVO r = new RoleVO(Common.NEW_ID, permission, permission);
                 try {
-                    RoleDao.getInstance().insert(r);
+                    roleDao.insert(r);
                     roles.add(r.getRole());
                 }catch(Exception e) {
                     //Someone maybe inserted this role while we were doing this.

@@ -4,8 +4,7 @@
 
 package com.infiniteautomation.mango.permission;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.List;
 import java.util.Set;
@@ -144,8 +143,9 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.createAndSet(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
 
+        RoleDao roleDao = Common.getBean(RoleDao.class);
         for(Role role : readRoles) {
-            RoleDao.getInstance().delete(role.getId());
+            roleDao.delete(role.getId());
         }
         DataPointService service = Common.getBean(DataPointService.class);
         service.getPermissionService().runAs(new PermissionHolder() {
@@ -187,7 +187,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
 
         Role role = readRoles.iterator().next();
-        RoleDao.getInstance().delete(role.getId());
+        Common.getBean(RoleDao.class).delete(role.getId());
         readRoles.remove(role);
 
         DataPointService service = Common.getBean(DataPointService.class);
@@ -230,7 +230,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
 
         Role role = readRoles.iterator().next();
-        RoleDao.getInstance().delete(role.getId());
+        Common.getBean(RoleDao.class).delete(role.getId());
         readRoles.remove(role);
 
         DataPointService service = Common.getBean(DataPointService.class);

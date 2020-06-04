@@ -3,8 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,7 +132,7 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
 
     @Override
     RoleDao getDao() {
-        return RoleDao.getInstance();
+        return Common.getBean(RoleDao.class);
     }
 
     @Override

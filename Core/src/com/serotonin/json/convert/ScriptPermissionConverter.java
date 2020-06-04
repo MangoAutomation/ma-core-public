@@ -58,10 +58,11 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
         Set<Role> roles = new HashSet<>();
+        RoleDao roleDao = Common.getBean(RoleDao.class);
         if(jsonValue instanceof JsonArray) {
             for(JsonValue val : (JsonArray)jsonValue) {
                 //Just a single string
-                RoleVO r = RoleDao.getInstance().getByXid(val.toString());
+                RoleVO r = roleDao.getByXid(val.toString());
                 if(r != null) {
                     roles.add(r.getRole());
                 }else {
@@ -78,7 +79,7 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
             permissions.addAll(PermissionService.explodeLegacyPermissionGroups(o.getString(DATA_POINT_READ)));
             permissions.addAll(PermissionService.explodeLegacyPermissionGroups(o.getString(CUSTOM)));
             for(String role : permissions) {
-                RoleVO r = RoleDao.getInstance().getByXid(role);
+                RoleVO r = roleDao.getByXid(role);
                 if(r != null) {
                     roles.add(r.getRole());
                 }else {

@@ -114,7 +114,7 @@ public class ImportTask extends ProgressiveTask {
 
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
-            addImporter(new SystemSettingsImporter(obj, user, permissionService));
+            addImporter(new SystemSettingsImporter(obj, user, permissionService, roleService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject()));

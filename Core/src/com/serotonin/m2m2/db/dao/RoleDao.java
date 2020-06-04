@@ -27,8 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.role.Role;
@@ -40,10 +38,6 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 @Repository
 public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
-
-    private static final LazyInitSupplier<RoleDao> springInstance = new LazyInitSupplier<>(() -> {
-        return Common.getRuntimeContext().getBean(RoleDao.class);
-    });
 
     private final PermissionDao permissionDao;
 
@@ -97,14 +91,6 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
             }
             create.batch(inserts).execute();
         }
-    }
-
-    /**
-     * Get cached instance from Spring Context
-     * @return
-     */
-    public static RoleDao getInstance() {
-        return springInstance.get();
     }
 
     @Override

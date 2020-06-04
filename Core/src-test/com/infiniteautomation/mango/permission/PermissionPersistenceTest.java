@@ -4,8 +4,7 @@
 
 package com.infiniteautomation.mango.permission;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -164,8 +163,8 @@ public class PermissionPersistenceTest extends MangoTestBase {
         Iterator<Role> term1It = term1.iterator();
         Set<Role> term2 = it.next();
         Iterator<Role> term2It = term2.iterator();
-        RoleDao.getInstance().delete(term1It.next().getId());
-        RoleDao.getInstance().delete(term2It.next().getId());
+        Common.getBean(RoleDao.class).delete(term1It.next().getId());
+        Common.getBean(RoleDao.class).delete(term2It.next().getId());
 
         //Confirm that the permission has no roles
         read = dao.get(permissionId);

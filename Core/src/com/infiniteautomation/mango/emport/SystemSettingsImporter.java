@@ -13,12 +13,12 @@ import java.util.Set;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -36,14 +36,16 @@ public class SystemSettingsImporter extends Importer {
 
     private final PermissionHolder user;
     private final SystemPermissionService permissionService;
+    private final RoleService roleService;
 
     /**
      * @param json
      */
-    public SystemSettingsImporter(JsonObject json, PermissionHolder user, SystemPermissionService permissionService) {
+    public SystemSettingsImporter(JsonObject json, PermissionHolder user, SystemPermissionService permissionService, RoleService roleService) {
         super(json);
         this.user = user;
         this.permissionService = permissionService;
+        this.roleService = roleService;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class SystemSettingsImporter extends Importer {
                                 Set<String> xids = PermissionService.explodeLegacyPermissionGroups((String)o);
                                 Set<Set<Role>> roles = new HashSet<>();
                                 for(String xid : xids) {
-                                    RoleVO role = RoleDao.getInstance().getByXid(xid);
+                                    RoleVO role = roleService.get(xid);
                                     if(role != null) {
                                         roles.add(Collections.singleton(role.getRole()));
                                     }else {

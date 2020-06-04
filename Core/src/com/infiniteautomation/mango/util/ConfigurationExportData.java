@@ -15,6 +15,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.db.pair.StringStringPair;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
@@ -136,7 +137,7 @@ public class ConfigurationExportData {
         if (ArrayUtils.contains(exportElements, JSON_DATA))
             data.put(JSON_DATA, JsonDataDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, ROLES))
-            data.put(ROLES, RoleDao.getInstance().getAll());
+            data.put(ROLES, Common.getBean(RoleDao.class).getAll());
 
         if (ArrayUtils.contains(exportElements, PERMISSIONS)) {
             List<Map<String, MangoPermission>> permissions = new ArrayList<>();

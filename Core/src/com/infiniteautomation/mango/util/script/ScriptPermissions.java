@@ -106,7 +106,7 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
             roles = permission.getUniqueRoles();
         }else if(ver == 2){
             roles = (Set<Role>)in.readObject();
-            RoleDao dao = RoleDao.getInstance();
+            RoleDao dao = Common.getBean(RoleDao.class);
             Iterator<Role> it = roles.iterator();
             while(it.hasNext()) {
                 Role r = it.next();

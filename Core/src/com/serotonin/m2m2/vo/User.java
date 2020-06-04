@@ -681,7 +681,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     @Override
     public Set<Role> getAllInheritedRoles() {
         return this.allInheritedRoles.get(() -> {
-            RoleDao dao = RoleDao.getInstance();
+            RoleDao dao = Common.getBean(RoleDao.class);
             Set<Role> allRoles = new HashSet<>();
             for(Role role : roles) {
                 allRoles.add(role);
@@ -714,6 +714,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     Set<Role> readLegacyPermissions(String permissionName, Set<Role> existing, JsonObject jsonObject) throws TranslatableJsonException {
         //Legacy permissions support
+        RoleDao roleDao = Common.getBean(RoleDao.class);
         if(jsonObject.containsKey(permissionName)) {
             Set<Role> roles;
             if(existing != null) {
@@ -725,7 +726,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
             try {
                 String groups = jsonObject.getString(permissionName);
                 for(String permission : PermissionService.explodeLegacyPermissionGroups(groups)) {
-                    RoleVO role = RoleDao.getInstance().getByXid(permission);
+                    RoleVO role = roleDao.getByXid(permission);
                     if(role != null) {
                         roles.add(role.getRole());
                     } else {
@@ -739,7 +740,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
                 try {
                     JsonArray permissions = jsonObject.getJsonArray(permissionName);
                     for(JsonValue jv : permissions) {
-                        RoleVO role = RoleDao.getInstance().getByXid(jv.toString());
+                        RoleVO role = roleDao.getByXid(jv.toString());
                         if(role != null) {
                             roles.add(role.getRole());
                         } else {

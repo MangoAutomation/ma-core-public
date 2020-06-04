@@ -37,7 +37,7 @@ public class RoleConverter extends ImmutableClassConverter {
     //TODO Mango 4.0 improve performance as role dao is not available at construct time
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
-        RoleVO role = RoleDao.getInstance().getByXid(jsonValue.toString());
+        RoleVO role = Common.getBean(RoleDao.class).getByXid(jsonValue.toString());
         if(role != null) {
             return role.getRole();
         }else {
