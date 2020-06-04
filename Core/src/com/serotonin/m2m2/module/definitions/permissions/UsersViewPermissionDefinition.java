@@ -10,6 +10,8 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
+ * TODO Mango 4.0 no longer used? Should we use this in the UI to hide/show the users menu item?
+ *
  * Permission to view the users page
  *
  * @author Terry Packer
