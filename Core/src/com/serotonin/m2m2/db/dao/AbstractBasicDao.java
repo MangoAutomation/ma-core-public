@@ -511,21 +511,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
-
-        Map<String, Function<Object, Object>> fullMap = new HashMap<>(this.valueConverterMap);
-        if (valueConverters != null) {
-            fullMap.putAll(valueConverters);
-        }
-
-        Map<String, Field<?>> fullFields = this.table.getAliasMap();
-        if (fieldMap != null) {
-            fullFields.putAll(fieldMap);
-        }
-
-        RQLToCondition rqlToCondition = createRqlToCondition(fullFields, fullMap);
+        RQLToCondition rqlToCondition = createRqlToCondition(combine(this.table.getAliasMap(), fieldMap), combine(this.valueConverterMap, valueConverters));
         ConditionSortLimit conditions = rqlToCondition.visit(rql);
-
         return conditions;
+    }
+
+    protected <X, Y> Map<X,Y> combine(Map<X,Y> a, Map<X,Y> b) {
+        if (b == null || b.isEmpty()) {
+            return Collections.unmodifiableMap(a);
+        }
+        HashMap<X,Y> result = new HashMap<>(a);
+        result.putAll(b);
+        return Collections.unmodifiableMap(result);
     }
 
     /**
