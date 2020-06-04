@@ -450,13 +450,11 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             response.addMessage("receiveAlarmEmails", new TranslatableMessage("validate.required"));
         }
 
-        if(vo.getLocale() == null) {
-            response.addMessage("locale", new TranslatableMessage("validate.required"));
-        }else if (StringValidation.isLengthGreaterThan(vo.getLocale(), 50)) {
+        if (vo.getLocale() != null && StringValidation.isLengthGreaterThan(vo.getLocale(), 50)) {
             response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
         }
 
-        if (StringValidation.isLengthGreaterThan(vo.getTimezone(), 50)) {
+        if (vo.getTimezone() != null && StringValidation.isLengthGreaterThan(vo.getTimezone(), 50)) {
             response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
         }
 
