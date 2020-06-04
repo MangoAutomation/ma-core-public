@@ -7,13 +7,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
+import org.jooq.Field;
 import org.jooq.Query;
+import org.jooq.Record;
 import org.jooq.Select;
+import org.jooq.SelectJoinStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
@@ -24,6 +29,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
@@ -71,7 +77,7 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
 
     @Override
     public void loadRelationalData(RoleVO vo) {
-        Set<Role> inherited = Collections.unmodifiableSet(getInherited(vo.getId()).stream().map(r -> r.getRole()).collect(Collectors.toSet()));
+        Set<Role> inherited = getInherited(vo.getId());
         vo.setInherited(inherited);
     }
 
@@ -111,6 +117,31 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
         return new RoleVORowMapper();
     }
 
+    @Override
+    protected Map<String, Function<Object, Object>> createValueConverterMap() {
+        Map<String, Function<Object, Object>> map = new HashMap<>(super.createValueConverterMap());
+        map.put("roleId", value -> {
+            if (value instanceof String) {
+                return getByXid((String) value).getId();
+            }
+            return value;
+        });
+        return map;
+    }
+
+    @Override
+    public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
+        // use select distinct as the join below results in multiple rows per role
+        return this.create.selectDistinct(fields)
+                .from(this.table.getTableAsAlias());
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        return select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
+                .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias));
+    }
+
     /**
      * Recursively get a set of all inherited roles of this role
      * @param vo
@@ -128,7 +159,7 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
      * @param all
      */
     private void addInheritance(Role role, Set<Role> all) {
-        Set<Role> inherited = Collections.unmodifiableSet(getInherited(role.getId()).stream().map(r -> r.getRole()).collect(Collectors.toSet()));
+        Set<Role> inherited = getInherited(role.getId());
         for(Role inheritedRole : inherited) {
             all.add(inheritedRole);
             addInheritance(inheritedRole, all);
@@ -141,22 +172,13 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
      * @param vo
      * @return
      */
-    public Set<RoleVO> getInherited(Integer roleId) {
+    public Set<Role> getInherited(int roleId) {
         Select<?> select = this.getSelectQuery(getSelectFields())
                 .join(RoleTableDefinition.roleInheritanceTableAsAlias)
                 .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias))
                 .where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
         List<Object> args = select.getBindValues();
-        return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleVoSetResultSetExtractor());
-    }
-
-    public Set<RoleVO> getRootRoles() {
-        Select<?> select = this.getSelectQuery(getSelectFields())
-                .leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
-                .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias))
-                .where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.isNull());
-        List<Object> args = select.getBindValues();
-        return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleVoSetResultSetExtractor());
+        return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
     }
 
     /**
@@ -174,6 +196,7 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
     public RoleSetResultSetExtractor getRoleSetResultSetExtractor() {
         return new RoleSetResultSetExtractor();
     }
+
 
     private static class RoleVORowMapper implements RowMapper<RoleVO> {
         @Override
@@ -257,7 +280,5 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
         public RoleVO getRole() {
             return role;
         }
-
-
     }
 }
