@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.db.query;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -59,7 +60,7 @@ public class RQLToCondition {
     }
 
     protected Condition visitNode(ASTNode node) {
-        RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase());
+        RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase(Locale.ROOT));
 
         switch (operation) {
             case AND: {
@@ -96,7 +97,7 @@ public class RQLToCondition {
         Function<Object, Object> valueConverter = getValueConverter(field);
         Object firstArg = valueConverter.apply(arguments.get(1));
 
-        RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase());
+        RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase(Locale.ROOT));
 
         switch (operation) {
             case EQUAL_TO:
