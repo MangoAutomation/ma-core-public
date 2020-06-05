@@ -244,7 +244,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     public void update(DataPointVO existing, DataPointVO vo) {
         //If have a new data type we will wipe our history
         if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId())
-            Common.databaseProxy.newPointValueDao().deletePointValues(vo.getId());
+            Common.databaseProxy.newPointValueDao().deletePointValues(vo);
 
         super.update(existing, vo);
     }
@@ -423,7 +423,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         List<PointHistoryCount> counts = new ArrayList<>();
         for (DataPointVO point : points) {
             PointHistoryCount phc = new PointHistoryCount();
-            long count = dao.dateRangeCount(point.getId(), 0L, Long.MAX_VALUE);
+            long count = dao.dateRangeCount(point, 0L, Long.MAX_VALUE);
             phc.setCount((int) count);
             phc.setPointId(point.getId());
             phc.setPointName(point.getName());

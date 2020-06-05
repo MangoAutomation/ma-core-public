@@ -370,7 +370,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
                         point = new EmailPointWrapper(dpvo);
                         pointValues = Common.databaseProxy.newPointValueDao()
-                                .getLatestPointValues(pair.getKey(), pointValueCount);
+                                .getLatestPointValues(dpvo, pointValueCount);
                         renderedPointValues = new ArrayList<RenderedPointValueTime>();
                         for(PointValueTime pvt : pointValues) {
                             RenderedPointValueTime rpvt = new RenderedPointValueTime();

@@ -72,7 +72,7 @@ public class DataPointRTTest extends MangoTestBase {
         //Test no changes
         timer.fastForwardTo(5001);
 
-        PointValueTime value = dao.getLatestPointValue(dpVo.getId());
+        PointValueTime value = dao.getLatestPointValue(dpVo);
 
         //Ensure database has interval logged value
         assertEquals(1.0, value.getDoubleValue(), 0.0001);
@@ -87,7 +87,7 @@ public class DataPointRTTest extends MangoTestBase {
         rt.setPointValue(new PointValueTime(2.0, 6000), null);
 
         //Check Log On Change
-        value = dao.getLatestPointValue(dpVo.getId());
+        value = dao.getLatestPointValue(dpVo);
         assertEquals(2.0, value.getDoubleValue(), 0.0001);
         assertEquals(6000, value.getTime());
 
@@ -97,7 +97,7 @@ public class DataPointRTTest extends MangoTestBase {
         //Interval is reset for 5000ms from now
         timer.fastForwardTo(11001);
         //Check Interval Log
-        value = dao.getLatestPointValue(dpVo.getId());
+        value = dao.getLatestPointValue(dpVo);
         assertEquals(2.0, value.getDoubleValue(), 0.0001);
         assertEquals(11000, value.getTime());
 
@@ -109,7 +109,7 @@ public class DataPointRTTest extends MangoTestBase {
         rt.setPointValue(new PointValueTime(2.20, 12000), null);
 
         //Check Log On Change
-        value = dao.getLatestPointValue(dpVo.getId());
+        value = dao.getLatestPointValue(dpVo);
         assertEquals(2.0, value.getDoubleValue(), 0.0001);
         assertEquals(11000, value.getTime());
 
@@ -162,20 +162,13 @@ public class DataPointRTTest extends MangoTestBase {
 
     class MockPointValueDao extends PointValueDaoSQL {
 
-
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.db.dao.PointValueDaoSQL#getLatestPointValue(int)
-         */
         @Override
-        public PointValueTime getLatestPointValue(int dataPointId) {
+        public PointValueTime getLatestPointValue(DataPointVO vo) {
             return values.get(values.size() - 1);
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.db.dao.PointValueDaoSQL#savePointValueAsync(int, com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
-         */
         @Override
-        public void savePointValueAsync(int pointId, PointValueTime pointValue,
+        public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue,
                 SetPointSource source) {
             values.add(pointValue);
         }

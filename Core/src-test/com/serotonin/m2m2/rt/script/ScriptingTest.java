@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -26,16 +27,25 @@ import java.util.regex.Pattern;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.MockMangoLifecycle;
+import com.serotonin.m2m2.MockRuntimeManager;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
+import com.serotonin.m2m2.vo.IDataPoint;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -51,19 +61,16 @@ public class ScriptingTest extends MangoTestBase {
         String script = "var a = p1.past(MINUTE,50);";
         script += "return a.average;";
 
-        ScriptContextVariable p1 = new ScriptContextVariable();
-        p1.setContextUpdate(true);
-        p1.setDataPointId(1);
-        p1.setVariableName("p1");
-
         try {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
+            List<IDataPoint> vos = createMockDataPoints(1, true , new MangoPermission(), new MangoPermission());
+            ScriptContextVariable p1 = new ScriptContextVariable();
+            p1.setContextUpdate(true);
+            p1.setDataPointId(vos.get(0).getId());
+            p1.setVariableName("p1");
 
-            DataPointVO vo = new DataPointVO();
-            vo.setId(p1.getDataPointId());
-            vo.setPointLocator(new MockPointLocatorVO());
-            ScriptingTestPointValueRT p1Rt = new ScriptingTestPointValueRT(vo);
+            ScriptingTestPointValueRT p1Rt = new ScriptingTestPointValueRT((DataPointVO)vos.get(0));
 
             context.put(p1.getVariableName(), p1Rt);
 
@@ -424,6 +431,31 @@ public class ScriptingTest extends MangoTestBase {
     static String readFile(Path path) throws IOException {
         byte[] encoded = Files.readAllBytes(path);
         return new String(encoded, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    protected MockMangoLifecycle getLifecycle() {
+        return new MockMangoLifecycle(modules, enableH2Web, h2WebPort) {
+            @Override
+            protected RuntimeManager getRuntimeManager() {
+                return new ScriptTestRuntimeManager();
+            }
+        };
+    }
+
+    class ScriptTestRuntimeManager extends MockRuntimeManager {
+
+        public ScriptTestRuntimeManager() {
+            super(true);
+        }
+
+        @Override
+        public DataPointRT getDataPoint(int dataPointId) {
+            DataPointVO vo = DataPointDao.getInstance().get(dataPointId);
+            DataSourceVO ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
+            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, new ArrayList<>());
+            return new DataPointRT(dp, vo.getPointLocator().createRuntime(), ds, new ArrayList<>());
+        }
     }
 
 }

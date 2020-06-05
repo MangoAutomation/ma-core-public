@@ -13,7 +13,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.timer.SimulationTimer;
 
 public class HistoricalDataPoint implements IDataPointValueSource {
-    
+
     private final DataPointVO vo;
     private final PointValueDao pointValueDao;
     private final SimulationTimer timer;
@@ -30,7 +30,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public List<PointValueTime> getLatestPointValues(int limit) {
-        return pointValueDao.getLatestPointValues(vo.getId(), limit, timer.currentTimeMillis());
+        return pointValueDao.getLatestPointValues(vo, limit, timer.currentTimeMillis());
     }
 
     @Override
@@ -48,34 +48,34 @@ public class HistoricalDataPoint implements IDataPointValueSource {
         //throw new NotImplementedException();
         DataPointRT dprt = Common.runtimeManager.getDataPoint(vo.getId());
         if(dprt == null) //point isn't running, we can save the value through the DAO
-            pointValueDao.savePointValueAsync(vo.getId(), newValue, source);
+            pointValueDao.savePointValueAsync(vo, newValue, source);
         else //Give the point a chance to cache the new value
             dprt.savePointValueDirectToCache(newValue, source, true, true, FireEvents.NEVER);
     }
 
     @Override
     public PointValueTime getPointValue() {
-        return pointValueDao.getPointValueBefore(vo.getId(), timer.currentTimeMillis() + 1);
+        return pointValueDao.getPointValueBefore(vo, timer.currentTimeMillis() + 1);
     }
 
     @Override
     public PointValueTime getPointValueBefore(long time) {
-        return pointValueDao.getPointValueBefore(vo.getId(), time);
+        return pointValueDao.getPointValueBefore(vo, time);
     }
 
     @Override
     public PointValueTime getPointValueAfter(long time) {
-        return pointValueDao.getPointValueAfter(vo.getId(), time);
+        return pointValueDao.getPointValueAfter(vo, time);
     }
 
     @Override
     public List<PointValueTime> getPointValues(long since) {
-        return pointValueDao.getPointValuesBetween(vo.getId(), since, timer.currentTimeMillis());
+        return pointValueDao.getPointValuesBetween(vo, since, timer.currentTimeMillis());
     }
 
     @Override
     public List<PointValueTime> getPointValuesBetween(long from, long to) {
-        return pointValueDao.getPointValuesBetween(vo.getId(), from, to);
+        return pointValueDao.getPointValuesBetween(vo, from, to);
     }
 
     @Override
@@ -85,16 +85,16 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public PointValueTime getPointValueAt(long time) {
-        return Common.databaseProxy.newPointValueDao().getPointValueAt(vo.getId(), time);
+        return Common.databaseProxy.newPointValueDao().getPointValueAt(vo, time);
     }
 
-	@Override
-	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
-		return new DataPointWrapper(DataPointDao.getInstance().get(vo.getId()), rtWrapper);
-	}
+    @Override
+    public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
+        return new DataPointWrapper(DataPointDao.getInstance().get(vo.getId()), rtWrapper);
+    }
 
-	@Override
-	public DataPointVO getVO() {
-	    return vo;
-	}
+    @Override
+    public DataPointVO getVO() {
+        return vo;
+    }
 }

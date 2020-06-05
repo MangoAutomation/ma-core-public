@@ -15,6 +15,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -147,14 +148,14 @@ public interface RuntimeManager extends ILifecycle {
 
     void purgeDataPointValuesWithoutCount();
 
-    long purgeDataPointValues(int dataPointId, int periodType, int periodCount);
+    long purgeDataPointValues(DataPointVO vo, int periodType, int periodCount);
 
-    long purgeDataPointValues(int dataPointId);
+    long purgeDataPointValues(DataPointVO vo);
 
     /**
      * @param id
      */
-    boolean purgeDataPointValuesWithoutCount(int dataPointId);
+    boolean purgeDataPointValuesWithoutCount(DataPointVO vo);
 
     /**
      * Purge a value at a given time
@@ -163,11 +164,11 @@ public interface RuntimeManager extends ILifecycle {
      * @param dao to aid in performance of high frequency calls
      * @return
      */
-    long purgeDataPointValue(int dataPointId, long ts, PointValueDao dao);
+    long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao);
 
-    long purgeDataPointValues(int dataPointId, long before);
+    long purgeDataPointValues(DataPointVO vo, long before);
 
-    long purgeDataPointValuesBetween(int dataPointId, long startTime, long endTime);
+    long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime);
 
     /**
      * Purge values before a given time
@@ -175,7 +176,7 @@ public interface RuntimeManager extends ILifecycle {
      * @param before
      * @return true if any data was deleted
      */
-    boolean purgeDataPointValuesWithoutCount(int dataPointId, long before);
+    boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before);
 
     //
     //

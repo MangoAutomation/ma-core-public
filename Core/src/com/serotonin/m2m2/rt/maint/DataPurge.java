@@ -113,9 +113,9 @@ public class DataPurge {
             log.info("Purging all data for data point with id " + dataPoint.getId() + " because it is set to logging type NONE.");
             if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
                 if(countPointValues)
-                    deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId());
+                    deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint);
                 else{
-                    if(Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId()))
+                    if(Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint))
                         anyDeletedSamples = true;
                 }
             }
@@ -152,10 +152,10 @@ public class DataPurge {
                 for(PurgeFilter pf : purgeFilters)
                     millis = pf.adjustPurgeTime(dataPoint, millis);
                 if (countPointValues)
-                    deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId(),
+                    deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint,
                             cutoff.getMillis());
                 else {
-                    if (Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId(),
+                    if (Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint,
                             cutoff.getMillis()))
                         anyDeletedSamples = true;
                 }
@@ -163,7 +163,7 @@ public class DataPurge {
 
             // If this is an image data type, get the point value ids.
             if (dataPoint.getPointLocator().getDataTypeId() == DataTypes.IMAGE)
-                fileIds.addAll(pointValueDao.getFiledataIds(dataPoint.getId()));
+                fileIds.addAll(pointValueDao.getFiledataIds(dataPoint));
         }
     }
 

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import com.infiniteautomation.mango.quantize.StartsAndRuntimeListQuantizer;
 import com.infiniteautomation.mango.quantize.StatisticsGeneratorQuantizerCallback;
 import com.infiniteautomation.mango.quantize.TimePeriodBucketCalculator;
 import com.infiniteautomation.mango.quantize.ValueChangeCounterQuantizer;
+import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
@@ -34,9 +36,6 @@ import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -51,36 +50,103 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
     private static final Log LOG = LogFactory.getLog(PointValueTimeStreamScriptUtility.class);
     public static final String CONTEXT_KEY = "PointValueQuery";
 
+    private final DataPointService dataPointService;
+
     @Autowired
-    public PointValueTimeStreamScriptUtility(MangoJavaScriptService service, PermissionService permissionService) {
+    public PointValueTimeStreamScriptUtility(MangoJavaScriptService service, PermissionService permissionService, DataPointService dataPointService) {
         super(service, permissionService);
+        this.dataPointService = dataPointService;
     }
 
     @Override
     public String getContextKey() {
         return CONTEXT_KEY;
     }
-    
+
+    /**
+     * Query and lookup points by id
+     * @param ids
+     * @param from
+     * @param to
+     * @param bookend
+     * @param callback
+     */
     public void query(List<Integer> ids, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
-        PointValueTimeStream pvts = new PointValueTimeStream(ids, from, to, bookend, callback);
+        List<DataPointVO> vos = new ArrayList<>(ids.size());
+        for(Integer id : ids) {
+            if(id == null) {
+                continue;
+            }else {
+                vos.add(dataPointService.get(id));
+            }
+        }
+        queryUsingPoints(vos, from, to, bookend, callback);
+    }
+
+    /**
+     * Query using points directly
+     * @param vos
+     * @param from
+     * @param to
+     * @param bookend
+     * @param callback
+     */
+    public void queryUsingPoints(List<DataPointVO> vos, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
+        PointValueTimeStream pvts = new PointValueTimeStream(vos, from, to, bookend, callback);
         pvts.execute();
     }
 
+    /**
+     * Rollup query using point ids to lookup data points
+     * @param ids
+     * @param from
+     * @param to
+     * @param callback
+     * @param rollupType
+     * @param rollupPeriods
+     * @param rollupPeriodType
+     * @throws IOException
+     * @throws ScriptPermissionsException
+     */
     public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException, ScriptPermissionsException {
-        RollupsStream rs = new RollupsStream(ids, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
+        List<DataPointVO> vos = new ArrayList<>(ids.size());
+        for(Integer id : ids) {
+            if(id == null) {
+                continue;
+            }else {
+                vos.add(dataPointService.get(id));
+            }
+        }
+        rollupQueryUsingPoints(vos, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
+    }
+
+    /**
+     * Use data points for rollups
+     * @param vos
+     * @param from
+     * @param to
+     * @param callback
+     * @param rollupType
+     * @param rollupPeriods
+     * @param rollupPeriodType
+     * @throws IOException
+     * @throws ScriptPermissionsException
+     */
+    public void rollupQueryUsingPoints(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException, ScriptPermissionsException {
+        RollupsStream rs = new RollupsStream(vos, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
         rs.execute();
     }
 
     class PointValueTimeStream {
-        final List<Integer> ids;
+        final List<DataPointVO> vos;
         final long from;
         final long to;
         final boolean bookend;
         final ScriptPointValueTimeCallback callback;
         Integer limit = null;
 
-        public PointValueTimeStream(List<Integer> ids, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
-            this.ids = ids;
+        public PointValueTimeStream(List<DataPointVO> vos, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
+            this.vos = vos;
             this.from = from;
             this.to = to;
             this.bookend = bookend;
@@ -89,14 +155,14 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
         public void execute() {
             if(bookend)
-                Common.databaseProxy.newPointValueDao().wideBookendQuery(ids, from, to, false, limit, callback);
+                Common.databaseProxy.newPointValueDao().wideBookendQuery(vos, from, to, false, limit, callback);
             else
-                Common.databaseProxy.newPointValueDao().getPointValuesBetween(ids, from, to, false, limit, callback);
+                Common.databaseProxy.newPointValueDao().getPointValuesBetween(vos, from, to, false, limit, callback);
         }
     }
 
     class RollupsStream implements BookendQueryCallback<IdPointValueTime> {
-        final List<Integer> ids;
+        final List<DataPointVO> vos;
         Integer limit = null;
         final ScriptPointValueRollupCallback callback;
         final ZonedDateTime from;
@@ -107,8 +173,8 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         final Map<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>> quantizerMap;
         boolean warned = false;
 
-        public RollupsStream(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollup, int rollupPeriod, int rollupPeriodType) {
-            this.ids = ids;
+        public RollupsStream(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollup, int rollupPeriod, int rollupPeriodType) {
+            this.vos = vos;
             Instant instantFrom = Instant.ofEpochMilli(from);
             Instant instantTo = Instant.ofEpochMilli(to);
             ZoneId zid = ZoneId.of(TimeZone.getDefault().getID());
@@ -123,7 +189,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
         public void execute() throws IOException, ScriptPermissionsException {
             createQuantizerMap();
-            Common.databaseProxy.newPointValueDao().wideBookendQuery(ids, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
+            Common.databaseProxy.newPointValueDao().wideBookendQuery(vos, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
             //Fast forward to end to fill any gaps at the end
             for(DataPointStatisticsQuantizer<?> quant : this.quantizerMap.values())
                 if(!quant.isDone())
@@ -259,16 +325,10 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         private void createQuantizerMap() throws ScriptPermissionsException {
-            for(Integer id : ids) {
-                if(id == null)
-                    continue;
-                DataPointVO vo = DataPointDao.getInstance().get(id);
+            for(DataPointVO vo : vos) {
                 if(vo == null)
-                    throw new RuntimeException("Data point with id " + id + " does not exist."); //TODO better error'ing
-                if(!permissionService.hasDataPointReadPermission(permissions, vo) &&
-                        !permissionService.hasDataPointSetPermission(permissions, vo) &&
-                        !permissionService.hasDataSourceEditPermission(permissions, DataSourceDao.getInstance().get(vo.getDataSourceId())))
-                    throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", vo.getXid()));
+                    continue;
+
                 DataPointStatisticsQuantizer<?> quantizer;
                 switch(vo.getPointLocator().getDataTypeId()) {
                     case DataTypes.ALPHANUMERIC:
@@ -286,7 +346,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
                         throw new RuntimeException("Unknown Data Type: " + vo.getPointLocator().getDataTypeId());
                 }
 
-                this.quantizerMap.put(id, quantizer);
+                this.quantizerMap.put(vo.getId(), quantizer);
             }
         }
 

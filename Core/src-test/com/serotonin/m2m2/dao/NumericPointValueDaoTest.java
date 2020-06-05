@@ -4,32 +4,39 @@
  */
 package com.serotonin.m2m2.dao;
 
+import java.util.List;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.IDataPoint;
 
 /**
  *
  * @author Terry Packer
  */
-public class NumericPointValueDaoTest extends MangoTestBase{
-    
+public class NumericPointValueDaoTest extends MangoTestBase {
+
     private NumericPointValueDaoTestHelper helper;
 
+    @Override
     @Before
     public void before() {
         super.before();
-        this.helper = new NumericPointValueDaoTestHelper(Common.databaseProxy.newPointValueDao());
+        List<IDataPoint> vos = createMockDataPoints(3);
+        this.helper = new NumericPointValueDaoTestHelper((DataPointVO)vos.get(0), (DataPointVO)vos.get(1), (DataPointVO)vos.get(2), Common.databaseProxy.newPointValueDao());
         this.helper.before();
     }
+    @Override
     @After
     public void after() {
         this.helper.after();
     }
-    
+
 
     //Latest Queries
     @Test
@@ -122,25 +129,25 @@ public class NumericPointValueDaoTest extends MangoTestBase{
     public void testRangeMultiplePointValuesOrderByIdLimitOffsetSeries() {
         this.helper.testRangeMultiplePointValuesOrderByIdLimitOffsetSeries();
     }
- 
+
     //Wide
     @Test
     public void testWideQueryNoData() {
         this.helper.testWideQueryNoData();
     }
-    
+
     @Test public void testWideQueryNoBefore() {
         this.helper.testWideQueryNoBefore();
     }
- 
+
     @Test public void testWideQuery() {
         this.helper.testWideQuery();
     }
-    
+
     @Test public void testWideQueryNoAfter() {
         this.helper.testWideQueryNoAfter();
     }
-    
+
     //Bookend
     @Test
     public void testBookendExceptionInFirstValueCallback() {
@@ -198,7 +205,7 @@ public class NumericPointValueDaoTest extends MangoTestBase{
     public void testBookendMultiplePointValuesOrderByIdLimitOffsetSeries() {
         this.helper.testBookendMultiplePointValuesOrderByIdLimitOffsetSeries();
     }
-    
+
     @Test
     public void testNoStartBookendOrderByIdLimit(){
         this.helper.testNoStartBookendOrderByIdLimit();
@@ -208,12 +215,12 @@ public class NumericPointValueDaoTest extends MangoTestBase{
     public void testSeries1NoDataSeries2OneSampleOrderById() {
         this.helper.testSeries1NoDataSeries2OneSampleOrderById();
     }
-    
+
     @Test
     public void testSeries1NoDataSeries2OneSample(){
         this.helper.testSeries1NoDataSeries2OneSample();
     }
-    
+
     @Test
     public void testNoStartBookendLimit() {
         this.helper.testNoStartBookendLimit();

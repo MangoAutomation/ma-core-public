@@ -224,43 +224,43 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
+    public long purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
 
         return 0;
     }
 
     @Override
-    public long purgeDataPointValues(int dataPointId) {
+    public long purgeDataPointValues(DataPointVO vo) {
 
         return 0;
     }
 
     @Override
-    public boolean purgeDataPointValuesWithoutCount(int dataPointId) {
+    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo) {
 
         return false;
     }
 
     @Override
-    public long purgeDataPointValue(int dataPointId, long ts, PointValueDao dao) {
+    public long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao) {
 
         return 0;
     }
 
     @Override
-    public long purgeDataPointValues(int dataPointId, long before) {
+    public long purgeDataPointValues(DataPointVO vo, long before) {
 
         return 0;
     }
 
     @Override
-    public long purgeDataPointValuesBetween(int dataPointId, long startTime, long endTime) {
+    public long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime) {
 
         return 0;
     }
 
     @Override
-    public boolean purgeDataPointValuesWithoutCount(int dataPointId, long before) {
+    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before) {
 
         return false;
     }

@@ -11,10 +11,12 @@ import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 
 
@@ -73,7 +75,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         PointValueDao pvd = Common.databaseProxy.newPointValueDao();
         long now = Common.timer.currentTimeMillis();
         periodValues = new ArrayList<>();
-        PointValueTime periodStartValue = pvd.getPointValueBefore(vo.getSourceId(), now - durationMillis + 1);
+        DataPointVO dpvo = Common.getBean(DataPointDao.class).get(vo.getSourceId());
+        PointValueTime periodStartValue = pvd.getPointValueBefore(dpvo, now - durationMillis + 1);
         if(periodStartValue != null) {
             periodValues.add(periodStartValue);
             latestTime = periodStartValue.getTime();
@@ -84,7 +87,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         if(durationMillis == 0 && valueEventType == AnalogChangeDetectorVO.UpdateEventType.LOGGED_ONLY)
             instantValue = periodStartValue;
 
-        periodValues.addAll(pvd.getPointValues(vo.getSourceId(), now - durationMillis + 1));
+        periodValues.addAll(pvd.getPointValues(dpvo, now - durationMillis + 1));
 
         Iterator<PointValueTime> iter = periodValues.iterator();
         while(iter.hasNext()) {

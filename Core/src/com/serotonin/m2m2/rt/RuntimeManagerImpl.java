@@ -738,56 +738,56 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
+    public long purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
         long before = DateUtils.minus(Common.timer.currentTimeMillis(), periodType, periodCount);
-        return purgeDataPointValues(dataPointId, before);
+        return purgeDataPointValues(vo, before);
     }
 
     @Override
-    public long purgeDataPointValues(int dataPointId) {
-        long count = Common.databaseProxy.newPointValueDao().deletePointValues(dataPointId);
-        updateDataPointValuesRT(dataPointId, Long.MAX_VALUE);
+    public long purgeDataPointValues(DataPointVO vo) {
+        long count = Common.databaseProxy.newPointValueDao().deletePointValues(vo);
+        updateDataPointValuesRT(vo.getId(), Long.MAX_VALUE);
         return count;
     }
 
     @Override
-    public boolean purgeDataPointValuesWithoutCount(int dataPointId) {
-        if(Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(dataPointId)){
-            updateDataPointValuesRT(dataPointId, Long.MAX_VALUE);
+    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo) {
+        if(Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(vo)){
+            updateDataPointValuesRT(vo.getId(), Long.MAX_VALUE);
             return true;
         }else
             return false;
     }
 
     @Override
-    public long purgeDataPointValue(int dataPointId, long ts, PointValueDao dao){
-        long count = dao.deletePointValue(dataPointId, ts);
+    public long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao){
+        long count = dao.deletePointValue(vo, ts);
         if(count > 0)
-            updateDataPointValuesRT(dataPointId);
+            updateDataPointValuesRT(vo.getId());
         return count;
 
     }
 
     @Override
-    public long purgeDataPointValues(int dataPointId, long before) {
-        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
+    public long purgeDataPointValues(DataPointVO vo, long before) {
+        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(vo, before);
         if (count > 0)
-            updateDataPointValuesRT(dataPointId, before);
+            updateDataPointValuesRT(vo.getId(), before);
         return count;
     }
 
     @Override
-    public long purgeDataPointValuesBetween(int dataPointId, long startTime, long endTime) {
-        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBetween(dataPointId, startTime, endTime);
+    public long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime) {
+        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBetween(vo, startTime, endTime);
         if(count > 0)
-            updateDataPointValuesRT(dataPointId, endTime);
+            updateDataPointValuesRT(vo.getId(), endTime);
         return count;
     }
 
     @Override
-    public boolean purgeDataPointValuesWithoutCount(int dataPointId, long before) {
-        if(Common.databaseProxy.newPointValueDao().deletePointValuesBeforeWithoutCount(dataPointId, before)){
-            updateDataPointValuesRT(dataPointId, before);
+    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before) {
+        if(Common.databaseProxy.newPointValueDao().deletePointValuesBeforeWithoutCount(vo, before)){
+            updateDataPointValuesRT(vo.getId(), before);
             return true;
         }else
             return false;

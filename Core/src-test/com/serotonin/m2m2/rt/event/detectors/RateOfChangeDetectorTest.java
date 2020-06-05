@@ -174,8 +174,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.001, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.0003, 100), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.001, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.0003, 100), null);
         timer.fastForwardTo(timer.currentTimeMillis() + 200);
 
         dp.getDataPoint().setEnabled(true);
@@ -197,8 +197,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN_OR_EQUALS, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.1, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(1.101, 100), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.1, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(1.101, 100), null);
         timer.fastForwardTo(200);
 
         dp.getDataPoint().setEnabled(true);
@@ -227,8 +227,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, 0.9, TimePeriods.SECONDS, false,  CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.0, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(1.1, 100), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.0, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(1.1, 100), null);
         timer.fastForwardTo(1000);
 
         dp.getDataPoint().setEnabled(true);
@@ -278,8 +278,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, 1.1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.0, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.5, 500), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.0, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.5, 500), null);
         timer.fastForwardTo(1000);
 
         dp.getDataPoint().setEnabled(true);
@@ -393,8 +393,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.001, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.0003, 100), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.001, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.0003, 100), null);
         timer.fastForwardTo(timer.currentTimeMillis() + 200);
 
         dp.getDataPoint().setEnabled(true);
@@ -438,8 +438,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.1, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(1.101, 100), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.1, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(1.101, 100), null);
         timer.fastForwardTo(1000);
 
         dp.getDataPoint().setEnabled(true);
@@ -467,8 +467,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.1, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(1.101, 100), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.1, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(1.101, 100), null);
         timer.fastForwardTo(1000);
 
         dp.getDataPoint().setEnabled(true);
@@ -502,8 +502,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, 0.9, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.0, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(1.1, 100), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.0, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(1.1, 100), null);
         timer.fastForwardTo(1000);
 
         dp.getDataPoint().setEnabled(true);
@@ -533,8 +533,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, 1.1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.0, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.5, 500), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.0, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.5, 500), null);
         timer.fastForwardTo(1000);
 
         dp.getDataPoint().setEnabled(true);
@@ -565,10 +565,10 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointWithEventDetectors dp = createDisabledPoint(1.0, 0.5, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 10, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.0, 0), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.1, 1000), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.2, 2000), null);
-        dao.savePointValueSync(dp.getDataPoint().getId(), new PointValueTime(0.3, 3000), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.0, 0), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.1, 1000), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.2, 2000), null);
+        dao.savePointValueSync(dp.getDataPoint(), new PointValueTime(0.3, 3000), null);
 
         timer.fastForwardTo(10000);
 

@@ -99,7 +99,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         if (enhanced) {
             valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache);
         } else {
-            valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);
+            valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache);
         }
         if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
             averagingValues = new ArrayList<IValueTime>();
@@ -129,7 +129,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 return pvt;
         }
 
-        return Common.databaseProxy.newPointValueDao().getPointValueBefore(vo.getId(), time);
+        return Common.databaseProxy.newPointValueDao().getPointValueBefore(vo, time);
     }
 
     @Override
@@ -139,14 +139,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 return pvt;
         }
 
-        return Common.databaseProxy.newPointValueDao().getPointValueAt(vo.getId(), time);
+        return Common.databaseProxy.newPointValueDao().getPointValueAt(vo, time);
     }
 
     @Override
     public PointValueTime getPointValueAfter(long time) {
 
         //Get the value stored in the db
-        PointValueTime after = Common.databaseProxy.newPointValueDao().getPointValueAfter(vo.getId(), time);
+        PointValueTime after = Common.databaseProxy.newPointValueDao().getPointValueAfter(vo, time);
 
         //Check it with the cache
         if(after != null){
@@ -181,7 +181,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     @Override
     public List<PointValueTime> getPointValues(long since) {
-        List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValues(vo.getId(), since);
+        List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValues(vo, since);
 
         for (PointValueTime pvt : valueCache.getCacheContents()) {
             if (pvt.getTime() >= since) {
@@ -196,7 +196,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     @Override
     public List<PointValueTime> getPointValuesBetween(long from, long to) {
-        List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValuesBetween(vo.getId(), from, to);
+        List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValuesBetween(vo, from, to);
 
         for (PointValueTime pvt : valueCache.getCacheContents()) {
             if (pvt.getTime() >= from && pvt.getTime() < to) {

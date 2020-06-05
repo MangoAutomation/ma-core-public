@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
@@ -63,6 +64,7 @@ import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.pair.LongPair;
 import com.serotonin.metrics.EventHistogram;
 import com.serotonin.timer.RejectedTaskReason;
@@ -86,8 +88,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
     @Override
-    public PointValueTime savePointValueSync(int pointId, PointValueTime pointValue, SetPointSource source) {
-        long id = savePointValueImpl(pointId, pointValue, source, false);
+    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+        long id = savePointValueImpl(vo, pointValue, source, false);
 
         PointValueTime savedPointValue;
         int retries = 5;
@@ -110,11 +112,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
     @Override
-    public void savePointValueAsync(int pointId, PointValueTime pointValue, SetPointSource source) {
-        savePointValueImpl(pointId, pointValue, source, true);
+    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+        savePointValueImpl(vo, pointValue, source, true);
     }
 
-    long savePointValueImpl(final int pointId, final PointValueTime pointValue, final SetPointSource source,
+    long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, final SetPointSource source,
             boolean async) {
         DataValue value = pointValue.getValue();
         final int dataType = DataTypes.getDataType(value);
@@ -137,12 +139,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         try {
             if (svalue != null || source != null || dataType == DataTypes.IMAGE)
                 async = false;
-            id = savePointValue(pointId, dataType, dvalue, pointValue.getTime(), svalue, source, async);
+            id = savePointValue(vo, dataType, dvalue, pointValue.getTime(), svalue, source, async);
         }
         catch (ConcurrencyFailureException e) {
             // Still failed to insert after all of the retries. Store the data
             synchronized (UNSAVED_POINT_VALUES) {
-                UNSAVED_POINT_VALUES.add(new UnsavedPointValue(pointId, pointValue, source));
+                UNSAVED_POINT_VALUES.add(new UnsavedPointValue(vo, pointValue, source));
             }
             return -1;
         }
@@ -177,26 +179,26 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             synchronized (UNSAVED_POINT_VALUES) {
                 while (!UNSAVED_POINT_VALUES.isEmpty()) {
                     UnsavedPointValue data = UNSAVED_POINT_VALUES.remove(0);
-                    savePointValueImpl(data.getPointId(), data.getPointValue(), data.getSource(), false);
+                    savePointValueImpl(data.getVO(), data.getPointValue(), data.getSource(), false);
                 }
             }
         }
     }
 
-    long savePointValue(final int pointId, final int dataType, double dvalue, final long time, final String svalue,
+    long savePointValue(final DataPointVO vo, final int dataType, double dvalue, final long time, final String svalue,
             final SetPointSource source, boolean async) {
         // Apply database specific bounds on double values.
         dvalue = Common.databaseProxy.applyBounds(dvalue);
 
         if (async) {
-            BatchWriteBehind.add(new BatchWriteBehindEntry(pointId, dataType, dvalue, time), ejt);
+            BatchWriteBehind.add(new BatchWriteBehindEntry(vo, dataType, dvalue, time), ejt);
             return -1;
         }
 
         int retries = 5;
         while (true) {
             try {
-                return savePointValueImpl(pointId, dataType, dvalue, time, svalue, source);
+                return savePointValueImpl(vo, dataType, dvalue, time, svalue, source);
             }
             catch (ConcurrencyFailureException e) {
                 if (retries <= 0)
@@ -209,9 +211,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
     }
 
-    private long savePointValueImpl(int pointId, int dataType, double dvalue, long time, String svalue,
+    private long savePointValueImpl(DataPointVO vo, int dataType, double dvalue, long time, String svalue,
             SetPointSource source) {
-        long id = doInsertLong(POINT_VALUE_INSERT, new Object[] { pointId, dataType, dvalue, time });
+        long id = doInsertLong(POINT_VALUE_INSERT, new Object[] { vo.getId(), dataType, dvalue, time });
 
         if (svalue == null && dataType == DataTypes.IMAGE)
             svalue = Long.toString(id);
@@ -250,8 +252,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
     @Override
-    public PointValueTime updatePointValueSync(int dataPointId, PointValueTime pvt, SetPointSource source) {
-        long id = updatePointValueImpl(dataPointId, pvt, source, false);
+    public PointValueTime updatePointValueSync(DataPointVO vo, PointValueTime pvt, SetPointSource source) {
+        long id = updatePointValueImpl(vo, pvt, source, false);
 
         PointValueTime savedPointValue;
         int retries = 5;
@@ -274,11 +276,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
     @Override
-    public void updatePointValueAsync(int pointId, PointValueTime pointValue, SetPointSource source) {
-        updatePointValueImpl(pointId, pointValue, source, true);
+    public void updatePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+        updatePointValueImpl(vo, pointValue, source, true);
     }
 
-    long updatePointValueImpl(final int pointId, final PointValueTime pvt, final SetPointSource source, boolean async) {
+    long updatePointValueImpl(final DataPointVO vo, final PointValueTime pvt, final SetPointSource source, boolean async) {
         DataValue value = pvt.getValue();
         final int dataType = DataTypes.getDataType(value);
         double dvalue = 0;
@@ -300,12 +302,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         try {
             if (svalue != null || source != null || dataType == DataTypes.IMAGE)
                 async = false;
-            id = updatePointValue(pointId, dataType, dvalue, pvt.getTime(), svalue, source, async);
+            id = updatePointValue(vo, dataType, dvalue, pvt.getTime(), svalue, source, async);
         }
         catch (ConcurrencyFailureException e) {
             // Still failed to insert after all of the retries. Store the data
             synchronized (UNSAVED_POINT_UPDATES) {
-                UNSAVED_POINT_UPDATES.add(new UnsavedPointUpdate(pointId, pvt, source));
+                UNSAVED_POINT_UPDATES.add(new UnsavedPointUpdate(vo, pvt, source));
             }
             return -1;
         }
@@ -339,26 +341,26 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             synchronized (UNSAVED_POINT_UPDATES) {
                 while (!UNSAVED_POINT_UPDATES.isEmpty()) {
                     UnsavedPointUpdate data = UNSAVED_POINT_UPDATES.remove(0);
-                    updatePointValueImpl(data.getPointId(), data.getPointValue(), data.getSource(), false);
+                    updatePointValueImpl(data.getVO(), data.getPointValue(), data.getSource(), false);
                 }
             }
         }
     }
 
-    long updatePointValue(final int dataPointId, final int dataType, double dvalue, final long time,
+    long updatePointValue(final DataPointVO vo, final int dataType, double dvalue, final long time,
             final String svalue, final SetPointSource source, boolean async) {
         // Apply database specific bounds on double values.
         dvalue = Common.databaseProxy.applyBounds(dvalue);
 
         if (async) {
-            BatchUpdateBehind.add(new BatchUpdateBehindEntry(dataPointId, dataType, dvalue, time, svalue, source), ejt);
+            BatchUpdateBehind.add(new BatchUpdateBehindEntry(vo.getId(), dataType, dvalue, time, svalue, source), ejt);
             return -1;
         }
 
         int retries = 5;
         while (true) {
             try {
-                return updatePointValueImpl(dataPointId, dataType, dvalue, time, svalue, source);
+                return updatePointValueImpl(vo.getId(), dataType, dvalue, time, svalue, source);
             }
             catch (ConcurrencyFailureException e) {
                 if (retries <= 0)
@@ -422,13 +424,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     // Single point
     //
     @Override
-    public PointValueTime getLatestPointValue(int dataPointId) {
+    public PointValueTime getLatestPointValue(DataPointVO vo) {
 
         long maxTs = ejt.queryForLong("select max(ts) from pointValues where dataPointId=?",
-                new Object[] { dataPointId }, 0);
+                new Object[] { vo.getId() }, 0);
         if (maxTs == 0)
             return null;
-        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { dataPointId,
+        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { vo.getId(),
                 maxTs });
     }
 
@@ -437,27 +439,27 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public PointValueTime getPointValueBefore(int dataPointId, long time) {
+    public PointValueTime getPointValueBefore(DataPointVO vo, long time) {
         Long valueTime = queryForObject("select max(ts) from pointValues where dataPointId=? and ts<?", new Object[] {
-                dataPointId, time }, Long.class, null);
+                vo.getId(), time }, Long.class, null);
         if (valueTime == null)
             return null;
-        return getPointValueAt(dataPointId, valueTime);
+        return getPointValueAt(vo, valueTime);
     }
 
     @Override
-    public PointValueTime getPointValueAt(int dataPointId, long time) {
-        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { dataPointId,
+    public PointValueTime getPointValueAt(DataPointVO vo, long time) {
+        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { vo.getId(),
                 time });
     }
 
     @Override
-    public PointValueTime getPointValueAfter(int dataPointId, long time) {
+    public PointValueTime getPointValueAfter(DataPointVO vo, long time) {
         Long valueTime = queryForObject("select min(ts) from pointValues where dataPointId=? and ts>=?", new Object[] {
-                dataPointId, time }, Long.class, null);
+                vo.getId(), time }, Long.class, null);
         if (valueTime == null)
             return null;
-        return getPointValueAt(dataPointId, valueTime);
+        return getPointValueAt(vo, valueTime);
     }
 
     private PointValueTime pointValueQuery(String sql, Object[] params) {
@@ -472,42 +474,42 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     // Values lists
     //
     @Override
-    public List<PointValueTime> getPointValues(int dataPointId, long since) {
+    public List<PointValueTime> getPointValues(DataPointVO vo, long since) {
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? order by ts",
-                new Object[] { dataPointId, since }, 0);
+                new Object[] { vo.getId(), since }, 0);
     }
 
     @Override
-    public List<PointValueTime> getPointValuesBetween(int dataPointId, long from, long to) {
+    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
-                new Object[] { dataPointId, from, to }, 0);
+                new Object[] { vo.getId(), from, to }, 0);
     }
 
     @Override
-    public List<PointValueTime> getPointValuesBetween(int dataPointId, long from, long to, int limit) {
+    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, int limit) {
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
-                new Object[] { dataPointId, from, to }, limit);
+                new Object[] { vo.getId(), from, to }, limit);
     }
 
     @Override
-    public List<PointValueTime> getLatestPointValues(int dataPointId, int limit) {
+    public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
         if (limit == 0)
             return Collections.emptyList();
         if (limit == 1) {
-            PointValueTime pvt = getLatestPointValue(dataPointId);
+            PointValueTime pvt = getLatestPointValue(vo);
             if(pvt != null)
                 return CollectionUtils.toList(pvt);
             else
                 return new ArrayList<PointValueTime>();
         }
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? order by pv.ts desc",
-                new Object[] { dataPointId }, limit);
+                new Object[] { vo.getId() }, limit);
     }
 
     @Override
-    public List<PointValueTime> getLatestPointValues(int dataPointId, int limit, long before) {
+    public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit, long before) {
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts<? order by pv.ts desc",
-                new Object[] { dataPointId, before }, limit);
+                new Object[] { vo.getId(), before }, limit);
     }
 
     private List<PointValueTime> pointValuesQuery(String sql, Object[] params, int limit) {
@@ -523,23 +525,23 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
         final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
 
-        final List<Integer> ids;
+        final List<DataPointVO> vos;
         final long before;
         final Integer limit;
         final PVTQueryCallback<IdPointValueTime> callback;
         final MutableInt counter;
 
-        public LatestSinglePointValuesPreparedStatementCreator(Integer id, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, MutableInt counter) {
-            this.ids = new ArrayList<Integer>();
-            this.ids.add(id);
+        public LatestSinglePointValuesPreparedStatementCreator(DataPointVO vo, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, MutableInt counter) {
+            this.vos = new ArrayList<>();
+            this.vos.add(vo);
             this.before = before;
             this.limit = limit;
             this.callback = callback;
             this.counter = counter;
         }
 
-        public LatestSinglePointValuesPreparedStatementCreator(List<Integer> ids, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, MutableInt counter) {
-            this.ids = ids;
+        public LatestSinglePointValuesPreparedStatementCreator(List<DataPointVO> vos, long before, Integer limit, PVTQueryCallback<IdPointValueTime> callback, MutableInt counter) {
+            this.vos = vos;
             this.before = before;
             this.limit = limit;
             this.callback = callback;
@@ -549,12 +551,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         @Override
         public PreparedStatement createPreparedStatement(Connection con)
                 throws SQLException {
-            if(ids.size() != 1)
+            if(vos.size() != 1)
                 throw new RuntimeException("Wrong base query.");
 
             List<Object> args = new ArrayList<>();
             String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts < ? order by pv.ts desc";
-            args.add(ids.get(0));
+            args.add(vos.get(0).getId());
             args.add(before);
 
             if(limit != null) {
@@ -600,19 +602,20 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
         final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
 
-        public LatestMultiplePointsValuesPreparedStatementCreator(List<Integer> ids, long before,
+        public LatestMultiplePointsValuesPreparedStatementCreator(List<DataPointVO> vos, long before,
                 Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
-            super(ids, before, limit, callback, new MutableInt(0));
+            super(vos, before, limit, callback, new MutableInt(0));
         }
 
         @Override
         public PreparedStatement createPreparedStatement(Connection con)
                 throws SQLException {
 
-            if(ids.size() == 1)
+            if(vos.size() == 1)
                 return super.createPreparedStatement(con);
 
             List<Object> args = new ArrayList<>();
+            List<Integer> ids = vos.stream().map(vo -> vo.getId()).collect(Collectors.toList());
             String dataPointIds = createDelimitedList(ids, ",", null);
             String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") and pv.ts < ? order by pv.ts desc";
             args.add(before);
@@ -629,25 +632,21 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.PointValueDao#getLatestPointValues(java.util.List, long, boolean, java.lang.Integer, com.infiniteautomation.mango.db.query.PVTQueryCallback)
-     */
     @Override
-    public void getLatestPointValues(List<Integer> ids, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback){
-        if(ids.size() == 0)
+    public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback){
+        if(vos.size() == 0)
             return;
         if(orderById) {
             //Limit results of each data point to size limit, i.e. loop over all points and query with limit
             MutableInt counter = new MutableInt(0);
-            for(Integer id: ids) {
+            for(DataPointVO vo: vos) {
                 LatestSinglePointValuesPreparedStatementCreator c = new LatestSinglePointValuesPreparedStatementCreator(
-                        id, before, limit, callback, counter);
+                        vo, before, limit, callback, counter);
                 ejt.execute(c,c);
             }
         }else {
             //Limit total results to limit
-            LatestMultiplePointsValuesPreparedStatementCreator lmpvpsc = new LatestMultiplePointsValuesPreparedStatementCreator(ids, before, limit, callback);
+            LatestMultiplePointsValuesPreparedStatementCreator lmpvpsc = new LatestMultiplePointsValuesPreparedStatementCreator(vos, before, limit, callback);
             ejt.execute(lmpvpsc, lmpvpsc);
         }
     }
@@ -657,9 +656,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     // Query with callback
     //
     @Override
-    public void getPointValuesBetween(int dataPointId, long from, long to, MappedRowCallback<PointValueTime> callback) {
+    public void getPointValuesBetween(DataPointVO vo, long from, long to, MappedRowCallback<PointValueTime> callback) {
         query(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts", new Object[] {
-                dataPointId, from, to }, new PointValueRowMapper(), callback);
+                vo.getId(), from, to }, new PointValueRowMapper(), callback);
     }
 
     /**
@@ -671,16 +670,16 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
         final AnnotatedIdPointValueRowMapper mapper = new AnnotatedIdPointValueRowMapper();
 
-        final List<Integer> ids;
+        final List<DataPointVO> vos;
         final long from;
         final long to;
         final Integer limit;
         final T callback;
         MutableInt counter;
 
-        public TimeRangeSinglePointValuesPreparedStatementCreator(Integer id, long from, long to, Integer limit, T callback, MutableInt counter) {
-            this.ids = new ArrayList<>();
-            this.ids.add(id);
+        public TimeRangeSinglePointValuesPreparedStatementCreator(DataPointVO vo, long from, long to, Integer limit, T callback, MutableInt counter) {
+            this.vos = new ArrayList<>();
+            this.vos.add(vo);
             this.from = from;
             this.to = to;
             this.limit = limit;
@@ -688,8 +687,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             this.counter = counter;
         }
 
-        public TimeRangeSinglePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to, Integer limit, T callback, MutableInt counter) {
-            this.ids = ids;
+        public TimeRangeSinglePointValuesPreparedStatementCreator(List<DataPointVO> vos, long from, long to, Integer limit, T callback, MutableInt counter) {
+            this.vos = vos;
             this.from = from;
             this.to = to;
             this.limit = limit;
@@ -700,12 +699,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         @Override
         public PreparedStatement createPreparedStatement(Connection con)
                 throws SQLException {
-            if(ids.size() != 1)
+            if(vos.size() != 1)
                 throw new RuntimeException("Wrong base query.");
 
             List<Object> args = new ArrayList<>();
             String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts >= ? and pv.ts<? order by pv.ts asc";
-            args.add(ids.get(0));
+            args.add(vos.get(0).getId());
             args.add(from);
             args.add(to);
             if(limit != null) {
@@ -748,19 +747,20 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      */
     class TimeRangeMultiplePointsValuesPreparedStatementCreator<T extends PVTQueryCallback<IdPointValueTime>> extends TimeRangeSinglePointValuesPreparedStatementCreator<T> {
 
-        public TimeRangeMultiplePointsValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
+        public TimeRangeMultiplePointsValuesPreparedStatementCreator(List<DataPointVO> vos, long from, long to,
                 Integer limit, T callback) {
-            super(ids, from, to, limit, callback, new MutableInt(0));
+            super(vos, from, to, limit, callback, new MutableInt(0));
         }
 
         @Override
         public PreparedStatement createPreparedStatement(Connection con)
                 throws SQLException {
 
-            if(ids.size() == 1)
+            if(vos.size() == 1)
                 return super.createPreparedStatement(con);
 
             List<Object> args = new ArrayList<>();
+            List<Integer> ids = vos.stream().map(vo -> vo.getId()).collect(Collectors.toList());
             String dataPointIds = createDelimitedList(ids, ",", null);
             String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " WHERE pv.dataPointId in (" + dataPointIds + ") AND pv.ts >= ? AND pv.ts<? ORDER BY pv.ts ASC";
             args.add(from);
@@ -779,41 +779,38 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(List<Integer> ids, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
-        if(ids.size() == 0)
+    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
+        if(vos.size() == 0)
             return;
         if(orderById) {
             //Limit results of each data point to size limit, i.e. loop over all points and query with limit
             MutableInt counter = new MutableInt(0);
-            for(Integer id: ids) {
+            for(DataPointVO vo: vos) {
                 TimeRangeSinglePointValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>> c =
-                        new TimeRangeSinglePointValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>>(id, from, to, limit, callback, counter);
+                        new TimeRangeSinglePointValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>>(vo, from, to, limit, callback, counter);
                 ejt.execute(c,c);
             }
         }else {
             //Limit total results to limit
             TimeRangeMultiplePointsValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>> c =
-                    new TimeRangeMultiplePointsValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>>(ids, from, to, limit, callback);
+                    new TimeRangeMultiplePointsValuesPreparedStatementCreator<PVTQueryCallback<IdPointValueTime>>(vos, from, to, limit, callback);
             ejt.execute(c, c);
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.PointValueDao#wideQuery(int, long, long, com.serotonin.db.WideQueryCallback)
-     */
     @Override
-    public void wideQuery(int pointId, long from, long to, WideQueryCallback<PointValueTime> callback) {
+    public void wideQuery(DataPointVO vo, long from, long to, WideQueryCallback<PointValueTime> callback) {
         // TODO Improve performance by using one statement and using the exceptions to cancel the results
-        PointValueTime pvt = this.getPointValueBefore(pointId, from);
+        PointValueTime pvt = this.getPointValueBefore(vo, from);
         if(pvt != null)
             callback.preQuery(pvt);
-        this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>() {
+        this.getPointValuesBetween(vo, from, to, new MappedRowCallback<PointValueTime>() {
             @Override
             public void row(PointValueTime value, int index) {
                 callback.row(value, index);
             }
         });
-        pvt = this.getPointValueAfter(pointId, to);
+        pvt = this.getPointValueAfter(vo, to);
         if(pvt != null)
             callback.postQuery(pvt);
     }
@@ -837,27 +834,27 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         //Create a statement specifically for fetching the first values.
         protected PreparedStatement firstValuesSelect;
 
-        public BookendSinglePointValuesPreparedStatementCreator(Integer id, long from, long to,
+        public BookendSinglePointValuesPreparedStatementCreator(DataPointVO vo, long from, long to,
                 Integer limit, BookendQueryCallback<IdPointValueTime> callback, MutableInt counter) {
-            super(id, from, to, limit, callback, counter);
+            super(vo, from, to, limit, callback, counter);
             this.values = new HashMap<>(1);
         }
 
-        public BookendSinglePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
+        public BookendSinglePointValuesPreparedStatementCreator(List<DataPointVO> vos, long from, long to,
                 Integer limit, BookendQueryCallback<IdPointValueTime> callback, MutableInt counter) {
-            super(ids, from, to, limit, callback, counter);
-            this.values = new HashMap<>(ids.size());
+            super(vos, from, to, limit, callback, counter);
+            this.values = new HashMap<>(vos.size());
         }
 
         @Override
         public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-            if(ids.size() != 1)
+            if(vos.size() != 1)
                 throw new RuntimeException("Wrong base query.");
 
             String startValueSql = "";
             List<Object> startValueArgs = new ArrayList<>(2);
             startValueSql = startValueSql + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1 ";
-            startValueArgs.add(ids.get(0));
+            startValueArgs.add(vos.get(0).getId());
             startValueArgs.add(from);
 
             firstValuesSelect = con.prepareStatement(startValueSql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -866,7 +863,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
             List<Object> args = new ArrayList<>(3); //pv.ts > ? because firstValueSelect is special
             String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId = ? and pv.ts > ? and pv.ts<? order by pv.ts asc";
-            args.add(ids.get(0));
+            args.add(vos.get(0).getId());
             args.add(from);
             args.add(to);
             if(limit != null) {
@@ -905,9 +902,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     values.put(current.getId(), current);
                 }
 
-                for(Integer id : ids)
-                    if(!values.containsKey(id))
-                        callback.firstValue(new IdPointValueTime(id, null, from), counter.getAndIncrement(), true);
+                for(DataPointVO vo : vos)
+                    if(!values.containsKey(vo.getId()))
+                        callback.firstValue(new IdPointValueTime(vo.getId(), null, from), counter.getAndIncrement(), true);
             } catch(IOException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 firstValuesSelect.cancel();
@@ -939,9 +936,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     callback.lastValue(fakeValue, counter.getAndIncrement(), true);
                 }
 
-                for(Integer id : ids) {
-                    if(!values.containsKey(id))
-                        callback.lastValue(new IdPointValueTime(id, null, to), counter.getAndIncrement(), true);
+                for(DataPointVO vo : vos) {
+                    if(!values.containsKey(vo.getId()))
+                        callback.lastValue(new IdPointValueTime(vo.getId(), null, to), counter.getAndIncrement(), true);
                 }
             }catch(IOException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
@@ -961,28 +958,28 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     class BookendMultiplePointValuesPreparedStatementCreator extends BookendSinglePointValuesPreparedStatementCreator {
 
 
-        public BookendMultiplePointValuesPreparedStatementCreator(List<Integer> ids, long from, long to,
+        public BookendMultiplePointValuesPreparedStatementCreator(List<DataPointVO> vos, long from, long to,
                 Integer limit, BookendQueryCallback<IdPointValueTime> callback) {
-            super(ids, from, to, limit, callback, new MutableInt(0));
+            super(vos, from, to, limit, callback, new MutableInt(0));
         }
 
         @Override
         public PreparedStatement createPreparedStatement(Connection con)
                 throws SQLException {
 
-            if(ids.size() == 1)
+            if(vos.size() == 1)
                 return super.createPreparedStatement(con);
 
             boolean first = true;
             String startValueSql = "";
-            List<Object> startValueArgs = new ArrayList<>(ids.size()*2);
-            for(Integer seriesId : ids) {
+            List<Object> startValueArgs = new ArrayList<>(vos.size()*2);
+            for(DataPointVO vo : vos) {
                 if(first)
                     first = false;
                 else
                     startValueSql += " UNION ";
                 startValueSql = startValueSql + "(" + ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId=? AND pv.ts <= ? ORDER BY ts DESC LIMIT 1) ";
-                startValueArgs.add(seriesId);
+                startValueArgs.add(vo.getId());
                 startValueArgs.add(from);
             }
 
@@ -990,7 +987,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(startValueArgs.toArray(new Object[startValueArgs.size()]));
             setter.setValues(firstValuesSelect);
 
-            List<Object> args = new ArrayList<>(ids.size()*2);
+            List<Object> args = new ArrayList<>(vos.size()*2);
+            List<Integer> ids = vos.stream().map(vo -> vo.getId()).collect(Collectors.toList());
             String dataPointIds = createDelimitedList(ids, ",", null);
             String sql = ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + dataPointIds + ") AND pv.ts >= ? AND pv.ts<? ORDER BY pv.ts ASC";
             args.add(from+1); //handle from in the startValueSql
@@ -1010,21 +1008,21 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
 
     @Override
-    public void wideBookendQuery(List<Integer> ids, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<IdPointValueTime> callback){
-        if(ids.size() == 0)
+    public void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<IdPointValueTime> callback){
+        if(vos.size() == 0)
             return;
         if(orderById) {
             //Limit results of each data point to size limit, i.e. loop over all points and query with limit
             MutableInt counter = new MutableInt(0);
-            for(Integer id: ids) {
+            for(DataPointVO vo: vos) {
                 BookendSinglePointValuesPreparedStatementCreator c =
-                        new BookendSinglePointValuesPreparedStatementCreator(id, from, to, limit, callback, counter);
+                        new BookendSinglePointValuesPreparedStatementCreator(vo, from, to, limit, callback, counter);
                 ejt.execute(c,c);
             }
         }else {
             //Limit total results to limit
             BookendMultiplePointValuesPreparedStatementCreator c =
-                    new BookendMultiplePointValuesPreparedStatementCreator(ids, from, to, limit, callback);
+                    new BookendMultiplePointValuesPreparedStatementCreator(vos, from, to, limit, callback);
             ejt.execute(c, c);
         }
     }
@@ -1078,8 +1076,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     // Multiple-point callback for point history replays
     //
     @Override
-    public void getPointValuesBetween(List<Integer> dataPointIds, long from, long to,
+    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
             MappedRowCallback<IdPointValueTime> callback) {
+        List<Integer> dataPointIds = vos.stream().map(vo -> vo.getId()).collect(Collectors.toList());
         String ids = createDelimitedList(dataPointIds, ",", null);
         query(ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + ids + ") and pv.ts >= ? and pv.ts<? order by ts",
                 new Object[] { from, to }, new AnnotatedIdPointValueRowMapper(), callback);
@@ -1114,40 +1113,36 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long deletePointValue(int dataPointId, long ts) {
+    public long deletePointValue(DataPointVO vo, long ts) {
         return deletePointValues("delete from pointValues where dataPointId = ? AND ts = ?", new Object[] {
-                dataPointId, ts }, 0, 0);
+                vo.getId(), ts }, 0, 0);
     }
 
     @Override
-    public long deletePointValuesBefore(int dataPointId, long time) {
-        return deletePointValues("delete from pointValues where dataPointId=? and ts<?", new Object[] { dataPointId,
+    public long deletePointValuesBefore(DataPointVO vo, long time) {
+        return deletePointValues("delete from pointValues where dataPointId=? and ts<?", new Object[] { vo.getId(),
                 time }, 0, 0);
     }
 
     @Override
-    public long deletePointValuesBetween(int dataPointId, long startTime, long endTime) {
-        return deletePointValues("delete from pointValues where dataPointId=? and ts>=? and ts<?", new Object[] { dataPointId,
+    public long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime) {
+        return deletePointValues("delete from pointValues where dataPointId=? and ts>=? and ts<?", new Object[] { vo.getId(),
                 startTime, endTime }, 0, 0);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.PointValueDao#deletePointValuesBeforeWithoutCount(int, long)
-     */
     @Override
-    public boolean deletePointValuesBeforeWithoutCount(int dataPointId, long time){
-        return deletePointValuesBefore(dataPointId, time) > 0;
+    public boolean deletePointValuesBeforeWithoutCount(DataPointVO vo, long time){
+        return deletePointValuesBefore(vo, time) > 0;
     }
 
     @Override
-    public long deletePointValues(int dataPointId) {
-        return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { dataPointId }, 0, 0);
+    public long deletePointValues(DataPointVO vo) {
+        return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { vo.getId() }, 0, 0);
     }
 
     @Override
-    public boolean deletePointValuesWithoutCount(int dataPointId) {
-        return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { dataPointId }, 0, 0) > 0;
+    public boolean deletePointValuesWithoutCount(DataPointVO vo) {
+        return deletePointValues("delete from pointValues where dataPointId=?", new Object[] { vo.getId() }, 0, 0) > 0;
     }
 
     @Override
@@ -1155,10 +1150,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         return deletePointValues("delete from pointValues", null, 0, 0);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.PointValueDao#deleteAllPointDataWithoutCount()
-     */
     @Override
     public void deleteAllPointDataWithoutCount() {
         deletePointValues("delete from pointValues", null, 0, 0);
@@ -1219,40 +1210,43 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      *
      */
     @Override
-    public long dateRangeCount(int dataPointId, long from, long to) {
+    public long dateRangeCount(DataPointVO vo, long from, long to) {
         return ejt.queryForLong("select count(*) from pointValues where dataPointId=? and ts>=? and ts<?",
-                new Object[] { dataPointId, from, to }, 0l);
+                new Object[] { vo.getId(), from, to }, 0l);
     }
 
     @Override
-    public long getInceptionDate(int dataPointId) {
+    public long getInceptionDate(DataPointVO vo) {
         return ejt
-                .queryForLong("select min(ts) from pointValues where dataPointId=?", new Object[] { dataPointId }, -1);
+                .queryForLong("select min(ts) from pointValues where dataPointId=?", new Object[] { vo.getId() }, -1);
     }
 
     @Override
-    public long getStartTime(List<Integer> dataPointIds) {
-        if (dataPointIds.isEmpty())
+    public long getStartTime(List<DataPointVO> vos) {
+        if (vos.isEmpty())
             return -1;
+        List<Integer> ids = vos.stream().map(vo -> vo.getId()).collect(Collectors.toList());
         return ejt.queryForLong("select min(ts) from pointValues where dataPointId in ("
-                + createDelimitedList(dataPointIds, ",", null) + ")", null, 0l);
+                + createDelimitedList(ids, ",", null) + ")", null, 0l);
     }
 
     @Override
-    public long getEndTime(List<Integer> dataPointIds) {
-        if (dataPointIds.isEmpty())
+    public long getEndTime(List<DataPointVO> vos) {
+        if (vos.isEmpty())
             return -1;
+        List<Integer> ids = vos.stream().map(vo -> vo.getId()).collect(Collectors.toList());
         return ejt.queryForLong("select max(ts) from pointValues where dataPointId in ("
-                + createDelimitedList(dataPointIds, ",", null) + ")", null, -1l);
+                + createDelimitedList(ids, ",", null) + ")", null, -1l);
     }
 
     @Override
-    public LongPair getStartAndEndTime(List<Integer> dataPointIds) {
-        if (dataPointIds.isEmpty())
+    public LongPair getStartAndEndTime(List<DataPointVO> vos) {
+        if (vos.isEmpty())
             return null;
+        List<Integer> ids = vos.stream().map(vo -> vo.getId()).collect(Collectors.toList());
         return queryForObject(
                 "select min(ts),max(ts) from pointValues where dataPointId in ("
-                        + createDelimitedList(dataPointIds, ",", null) + ")", null, new RowMapper<LongPair>() {
+                        + createDelimitedList(ids, ",", null) + ")", null, new RowMapper<LongPair>() {
                             @Override
                             public LongPair mapRow(ResultSet rs, int index) throws SQLException {
                                 long l = rs.getLong(1);
@@ -1264,9 +1258,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public List<Long> getFiledataIds(int dataPointId) {
+    public List<Long> getFiledataIds(DataPointVO vo) {
         return queryForList("select id from pointValues where dataPointId=? and dataType=? ", new Object[] {
-                dataPointId, DataTypes.IMAGE }, Long.class);
+                vo.getId(), DataTypes.IMAGE }, Long.class);
     }
 
     /**
@@ -1275,18 +1269,18 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      * @author Matthew Lohbihler
      */
     class UnsavedPointValue {
-        private final int pointId;
+        private final DataPointVO vo;
         private final PointValueTime pointValue;
         private final SetPointSource source;
 
-        public UnsavedPointValue(int pointId, PointValueTime pointValue, SetPointSource source) {
-            this.pointId = pointId;
+        public UnsavedPointValue(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+            this.vo = vo;
             this.pointValue = pointValue;
             this.source = source;
         }
 
-        public int getPointId() {
-            return pointId;
+        public DataPointVO getVO() {
+            return vo;
         }
 
         public PointValueTime getPointValue() {
@@ -1304,18 +1298,18 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
      * @author Matthew Lohbihler
      */
     class UnsavedPointUpdate {
-        private final int pointId;
+        private final DataPointVO vo;
         private final PointValueTime pointValue;
         private final SetPointSource source;
 
-        public UnsavedPointUpdate(int pointId, PointValueTime pointValue, SetPointSource source) {
-            this.pointId = pointId;
+        public UnsavedPointUpdate(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+            this.vo = vo;
             this.pointValue = pointValue;
             this.source = source;
         }
 
-        public int getPointId() {
-            return pointId;
+        public DataPointVO getVO() {
+            return vo;
         }
 
         public PointValueTime getPointValue() {
@@ -1328,13 +1322,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     class BatchWriteBehindEntry {
-        private final int pointId;
+        private final DataPointVO vo;
         private final int dataType;
         private final double dvalue;
         private final long time;
 
-        public BatchWriteBehindEntry(int pointId, int dataType, double dvalue, long time) {
-            this.pointId = pointId;
+        public BatchWriteBehindEntry(DataPointVO vo, int dataType, double dvalue, long time) {
+            this.vo = vo;
             this.dataType = dataType;
             this.dvalue = dvalue;
             this.time = time;
@@ -1342,7 +1336,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
         public void writeInto(Object[] params, int index) {
             index *= POINT_VALUE_INSERT_VALUES_COUNT;
-            params[index++] = pointId;
+            params[index++] = vo.getId();
             params[index++] = dataType;
             params[index++] = dvalue;
             params[index++] = time;

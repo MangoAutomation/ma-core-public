@@ -13,30 +13,29 @@ import java.util.ListIterator;
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Matthew Lohbihler
  */
 public class PointValueFacade {
-    private final int dataPointId;
+
     private final DataPointRT point;
     private final PointValueDao pointValueDao;
     private boolean useCache;
-    
-    public PointValueFacade(int dataPointId, boolean useCache) {
-        this.dataPointId = dataPointId;
-        point = Common.runtimeManager.getDataPoint(dataPointId);
+
+    public PointValueFacade(DataPointRT rt, boolean useCache) {
+        point = rt;
         pointValueDao = Common.databaseProxy.newPointValueDao();
         this.useCache = useCache;
     }
 
     public PointValueFacade(int dataPointId) {
-        this.dataPointId = dataPointId;
         point = Common.runtimeManager.getDataPoint(dataPointId);
         pointValueDao = Common.databaseProxy.newPointValueDao();
         this.useCache = true;
     }
-    
+
     //
     //
     // Single point value
@@ -44,25 +43,25 @@ public class PointValueFacade {
     public PointValueTime getPointValueBefore(long time) {
         if ((point != null)&&(useCache))
             return point.getPointValueBefore(time);
-        return pointValueDao.getPointValueBefore(dataPointId, time);
+        return pointValueDao.getPointValueBefore(point.getVO(), time);
     }
 
     public PointValueTime getPointValueAt(long time) {
-    	if ((point != null)&&(useCache))
+        if ((point != null)&&(useCache))
             return point.getPointValueAt(time);
-        return pointValueDao.getPointValueAt(dataPointId, time);
+        return pointValueDao.getPointValueAt(point.getVO(), time);
     }
 
     public PointValueTime getPointValueAfter(long time) {
-    	if ((point != null)&&(useCache))
+        if ((point != null)&&(useCache))
             return point.getPointValueAfter(time);
-        return pointValueDao.getPointValueAfter(dataPointId, time);
+        return pointValueDao.getPointValueAfter(point.getVO(), time);
     }
 
     public PointValueTime getPointValue() {
-    	if ((point != null)&&(useCache))
+        if ((point != null)&&(useCache))
             return point.getPointValue();
-        return pointValueDao.getLatestPointValue(dataPointId);
+        return pointValueDao.getLatestPointValue(point.getVO());
     }
 
     //
@@ -70,9 +69,9 @@ public class PointValueFacade {
     // Point values lists
     //
     public List<PointValueTime> getPointValues(long since) {
-    	if ((point != null)&&(useCache))
+        if ((point != null)&&(useCache))
             return point.getPointValues(since);
-        return pointValueDao.getPointValues(dataPointId, since);
+        return pointValueDao.getPointValues(point.getVO(), since);
     }
 
     /**
@@ -81,7 +80,7 @@ public class PointValueFacade {
      * @param since
      * 			epoch time in ms
      * @param insertInitial
-     * 			fetch the previous point value before 'since', and insert it at time 'since' 
+     * 			fetch the previous point value before 'since', and insert it at time 'since'
      * @param insertFinal
      * 			take the last point value from the list and insert it at the current time
      * @return
@@ -109,14 +108,14 @@ public class PointValueFacade {
                 list.add(new PointValueTime(finalValue.getValue(), endTime));
             }
         }
-        
+
         return list;
     }
-    
+
     public List<PointValueTime> getPointValuesBetween(long from, long to) {
         if ((point != null) && (useCache))
             return point.getPointValuesBetween(from, to);
-        return pointValueDao.getPointValuesBetween(dataPointId, from, to);
+        return pointValueDao.getPointValuesBetween(point.getVO(), from, to);
     }
 
     /**
@@ -127,25 +126,25 @@ public class PointValueFacade {
      * @param to
      * 			epoch time in ms
      * @param insertInitial
-     * 			fetch the previous point value before 'from', and insert it at time 'from' 
+     * 			fetch the previous point value before 'from', and insert it at time 'from'
      * @param insertFinal
      * 			take the last point value from the list and insert it at time 'to'
      * @return
      */
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> values = new ArrayList<>();
-        List<Integer> ids = new ArrayList<>();
-        ids.add(dataPointId);
+        List<DataPointVO> vos = new ArrayList<>();
+        vos.add(point.getVO());
         List<PointValueTime> cache = buildCacheView(from, to);
-        
-        pointValueDao.wideBookendQuery(ids, from, to, false, null, new BookendQueryCallback<IdPointValueTime>() {
+
+        pointValueDao.wideBookendQuery(vos, from, to, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             @Override
             public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
                 //If there is no value before from the bookend value.value will be null with a value.timestamp == from
                 if(insertInitial) {
                     if(cache != null) {
-                        processRow((PointValueTime)value, index, bookend, false, cache, values);
+                        processRow(value, index, bookend, false, cache, values);
                     }else {
                         values.add(value);
                     }
@@ -155,7 +154,7 @@ public class PointValueFacade {
             @Override
             public void row(IdPointValueTime value, int index) throws IOException {
                 if(cache != null) {
-                    processRow((PointValueTime)value, index, false, false, cache, values);
+                    processRow(value, index, false, false, cache, values);
                 }else {
                     values.add(value);
                 }
@@ -165,7 +164,7 @@ public class PointValueFacade {
             public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
                 if(insertFinal) {
                     if(cache != null) {
-                        processRow((PointValueTime)value, index, bookend, false, cache, values);
+                        processRow(value, index, bookend, false, cache, values);
                     }else {
                         values.add(value);
                     }
@@ -176,13 +175,13 @@ public class PointValueFacade {
     }
 
     /**
-     * Write out any cached values that would be equal to or between the time of the incomming 
+     * Write out any cached values that would be equal to or between the time of the incomming
      *   point value and the next one to be returned by the query.
      *   this should be called before processing this value
      * @param value
      * @param bookend
      * @return true to continue to process the incoming value, false if it was a bookend that was replaced via the cache
-     * @throws IOException 
+     * @throws IOException
      */
     protected boolean processValueThroughCache(PointValueTime value, int index, boolean bookend, List<PointValueTime> pointCache, List<PointValueTime> values) throws IOException {
         if(pointCache != null && pointCache.size() > 0) {
@@ -204,7 +203,7 @@ public class PointValueFacade {
         }
         return true;
     }
-    
+
     /**
      * Common row processing logic
      * @param value
@@ -216,19 +215,19 @@ public class PointValueFacade {
         if(pointCache != null && !cached)
             if(!processValueThroughCache(value, index, bookend, pointCache, values))
                 return;
-        
+
         //Add this value
         values.add(value);
     }
-    
+
     public List<PointValueTime> getLatestPointValues(int limit) {
-        	if ((point != null)&&(useCache))
-        	    return point.getLatestPointValues(limit);
-        return pointValueDao.getLatestPointValues(dataPointId, limit);
+        if ((point != null)&&(useCache))
+            return point.getLatestPointValues(limit);
+        return pointValueDao.getLatestPointValues(point.getVO(), limit);
     }
-    
+
     /**
-     * Return a view of the cache if there are points within the range, if the facade is not to use cache return null 
+     * Return a view of the cache if there are points within the range, if the facade is not to use cache return null
      * @param from
      * @param to
      * @return cacheView or null if not allowed to use cache
