@@ -771,12 +771,13 @@ public class PermissionService {
         }
         Set<Role> roles = new HashSet<>(permissions.size());
         for(String permission : permissions) {
-            RoleVO vo = roleDao.getByXid(permission);
+            RoleVO vo = permission != null ? roleDao.getByXid(permission) : null;
             if(vo != null) {
                 roles.add(vo.getRole());
             }else {
                 roles.add(new Role(Common.NEW_ID, permission));
             }
+
         }
         return roles;
     }
