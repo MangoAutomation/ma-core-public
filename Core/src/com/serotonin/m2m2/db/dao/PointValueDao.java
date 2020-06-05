@@ -313,25 +313,6 @@ public interface PointValueDao {
      */
     public List<Long> getFiledataIds(DataPointVO vo);
 
-
-    /**
-     * Update a given point value at some time by queueing up a work item
-     *
-     * @param id
-     * @param pvt
-     * @param object
-     */
-    public void updatePointValueAsync(DataPointVO vo, PointValueTime pvt, SetPointSource source);
-
-    /**
-     * Update a given point value at some time directly
-     * @param dataPointId
-     * @param pvt
-     * @param source
-     * @return
-     */
-    public PointValueTime updatePointValueSync(DataPointVO vo, PointValueTime pvt, SetPointSource source);
-
     /**
      * Delete all data point values at a time
      * @param dataPointId

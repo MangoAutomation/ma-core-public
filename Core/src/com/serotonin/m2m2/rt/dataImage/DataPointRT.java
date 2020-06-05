@@ -909,23 +909,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         pointValue = valueCache.getLatestPointValue();
     }
 
-
-    /**
-     * Update the value in the cache with the option to log to DB.
-     *
-     * This only updates an existing value
-     *
-     * Caution, this bypasses the Logging Settings
-     *
-     * @param newValue
-     * @param source
-     * @param logValue
-     * @param async
-     */
-    public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
-        valueCache.updatePointValue(newValue, source, logValue, async);
-    }
-
     /**
      * Get a copy of the current cache
      * @return

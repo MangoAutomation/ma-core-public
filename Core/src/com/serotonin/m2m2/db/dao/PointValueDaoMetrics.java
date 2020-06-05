@@ -324,21 +324,6 @@ public class PointValueDaoMetrics implements PointValueDao{
     }
 
     @Override
-    public void updatePointValueAsync(DataPointVO vo, PointValueTime pvt, SetPointSource source) {
-        LogStopWatch LogStopWatch = new LogStopWatch();
-        dao.updatePointValueAsync(vo, pvt, source);
-        LogStopWatch.stop("updatePointValueAsync(vo, ts, source) (" + vo + ", pvt)", this.metricsThreshold);
-    }
-
-    @Override
-    public PointValueTime updatePointValueSync(DataPointVO vo, PointValueTime pvt, SetPointSource source) {
-        LogStopWatch LogStopWatch = new LogStopWatch();
-        PointValueTime value = dao.updatePointValueSync(vo, pvt, source);
-        LogStopWatch.stop("updatePointValuesSync(vo, ts, source) (" + vo + ", pvt, source)" , this.metricsThreshold);
-        return value;
-    }
-
-    @Override
     public long deletePointValue(DataPointVO vo, long ts) {
         LogStopWatch LogStopWatch = new LogStopWatch();
         long value = dao.deletePointValue(vo, ts);

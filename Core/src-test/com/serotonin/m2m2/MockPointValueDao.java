@@ -297,19 +297,6 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void updatePointValueAsync(DataPointVO vo, PointValueTime pvt, SetPointSource source) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public PointValueTime updatePointValueSync(DataPointVO vo, PointValueTime pvt,
-            SetPointSource source) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public long deletePointValue(DataPointVO vo, long ts) {
         // TODO Auto-generated method stub
         return 0;

@@ -7,7 +7,6 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -65,56 +64,6 @@ public class PointValueCache {
 
     PointValueTime savePointValueSync(PointValueTime pvt, SetPointSource source) {
         return dao.savePointValueSync(vo, pvt, source);
-    }
-
-    void updatePointValueAsync(PointValueTime pvt, SetPointSource source) {
-        dao.updatePointValueAsync(vo, pvt, source);
-    }
-
-    PointValueTime updatePointValueSync(PointValueTime pvt, SetPointSource source) {
-        return dao.updatePointValueSync(vo, pvt, source);
-    }
-
-    /**
-     * Update a value in the system
-     * @param pvt
-     * @param source
-     * @param logValue - Store in DB and Cache or Just Cache
-     * @param async
-     * @return true if point value existed and was updated, false if value DNE in cache
-     *
-     */
-    public void updatePointValue(PointValueTime pvt, SetPointSource source, boolean logValue, boolean async){
-
-        if (logValue) {
-            if (async)
-                updatePointValueAsync(pvt, source);
-            else
-                pvt = updatePointValueSync(pvt, source);
-        }
-
-
-        //Update our point in the cache if it exists
-        List<PointValueTime> c = cache;
-        List<PointValueTime> newCache = new ArrayList<PointValueTime>(c.size() + 1);
-        newCache.addAll(c);
-
-        // Insert the value in the cache.
-        if (newCache.size() == 0)
-            return; //Empty anyway
-        else {
-            ListIterator<PointValueTime> it = newCache.listIterator();
-            while (it.hasNext()) {
-                PointValueTime cachedValue = it.next();
-                if(cachedValue.getTime() == pvt.getTime()){
-                    it.set(pvt); //Replace it and break out
-                    break;
-                }
-            }
-        }
-
-        cache = newCache;
-        return;
     }
 
     public void savePointValue(PointValueTime pvt, SetPointSource source, boolean logValue, boolean async) {
