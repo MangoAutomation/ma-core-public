@@ -17,7 +17,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -40,7 +40,7 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
         dataSource.setUrl(getUrl(propertyPrefix));
         dataSource.setUsername(Common.envProps.getString(propertyPrefix + "db.username"));
         dataSource.setPassword(getDatabasePassword(propertyPrefix));
-        dataSource.setMaxActive(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 10));
+        dataSource.setMaxTotal(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 10));
         dataSource.setMaxIdle(Common.envProps.getInt(propertyPrefix + "db.pool.maxIdle", 10));
         dataSource.setValidationQuery("SELECT 1");
         dataSource.setTestOnBorrow(true);
