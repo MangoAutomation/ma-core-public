@@ -1,6 +1,5 @@
 /**
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
- * @author Terry Packer
  */
 package com.serotonin.m2m2.vo;
 

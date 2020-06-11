@@ -1,8 +1,6 @@
-/*
- * Copyright (C) 2013 Deltamation Software. All rights reserved.
- * @author Jared Wiltshire
+/**
+ * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  */
-
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
@@ -19,9 +17,9 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 
 /**
- * Copyright (C) 2013 Deltamation Software. All rights reserved.
  *
  * @author Jared Wiltshire
+ * @author Terry Packer
  */
 public abstract class AbstractVO extends AbstractBasicVO implements Serializable,
 JsonSerializable, Cloneable {

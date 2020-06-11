@@ -55,7 +55,7 @@ import net.jazdw.rql.parser.ASTNode;
  *
  */
 @Repository()
-public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstanceTableDefinition> {
+public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstanceTableDefinition> {
 
     private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(EventInstanceDao.class);

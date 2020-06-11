@@ -1,6 +1,5 @@
-/*
-    Copyright (C) 2013 Deltamation Software All rights reserved.
-    @author Terry Packer
+/**
+ * Copyright (C) 2013 Infinite Automation Software. All rights reserved.
  */
 package com.serotonin.m2m2.vo;
 
@@ -14,17 +13,16 @@ import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
 
 /**
- * 
- * Class that needs an Enable/Disable Member
- * 
- * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
+ *
+ * Class that has an Enable/Disable Member
+ *
  * @author Terry Packer
  *
  */
 public abstract class AbstractActionVO extends AbstractVO implements JsonSerializable {
     private static final long serialVersionUID = -1;
     public static final String ENABLED_KEY = "enabled";
-    
+
     protected boolean enabled = false;
 
     public boolean isEnabled() {
@@ -34,19 +32,19 @@ public abstract class AbstractActionVO extends AbstractVO implements JsonSeriali
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	super.jsonRead(reader, jsonObject);
-    	JsonBoolean enabled = jsonObject.getJsonBoolean(ENABLED_KEY);
-    	if(enabled != null)
-    	    this.enabled = enabled.toBoolean();
+        super.jsonRead(reader, jsonObject);
+        JsonBoolean enabled = jsonObject.getJsonBoolean(ENABLED_KEY);
+        if(enabled != null)
+            this.enabled = enabled.toBoolean();
     }
-    
+
     @Override
-	public void jsonWrite(ObjectWriter writer) throws IOException,
-			JsonException {
-		super.jsonWrite(writer);
-		writer.writeEntry(ENABLED_KEY, enabled);
+    public void jsonWrite(ObjectWriter writer) throws IOException,
+    JsonException {
+        super.jsonWrite(writer);
+        writer.writeEntry(ENABLED_KEY, enabled);
     }
 }

@@ -36,7 +36,7 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 @Repository()
-public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO, EventHandlerTableDefinition>{
+public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, EventHandlerTableDefinition>{
 
     private static final LazyInitSupplier<EventHandlerDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(EventHandlerDao.class);

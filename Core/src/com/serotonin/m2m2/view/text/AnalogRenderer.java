@@ -26,11 +26,11 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
-import com.serotonin.m2m2.util.UnitUtil;
+import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
-public class AnalogRenderer extends ConvertingRenderer {
+public class AnalogRenderer extends ConvertingUnitRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererAnalog", "ANALOG",
             "textRenderer.analog", new int[] { DataTypes.NUMERIC });
 
@@ -90,7 +90,7 @@ public class AnalogRenderer extends ConvertingRenderer {
     @Override
     public String getMetaText() {
         if (useUnitAsSuffix)
-            return UnitUtil.formatLocal(renderedUnit);
+            return JUnitUtil.formatLocal(renderedUnit);
         return suffix;
     }
 
@@ -107,7 +107,7 @@ public class AnalogRenderer extends ConvertingRenderer {
             value = unit.getConverterTo(renderedUnit).convert(value);
         String suffix = this.suffix;
         if (useUnitAsSuffix)
-            suffix = " " + UnitUtil.formatLocal(renderedUnit);
+            suffix = " " + JUnitUtil.formatLocal(renderedUnit);
 
         String raw;
         if(format != null && (format.startsWith("0x") || (format.startsWith("0X")))){

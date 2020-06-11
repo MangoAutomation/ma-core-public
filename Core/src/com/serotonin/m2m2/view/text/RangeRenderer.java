@@ -19,11 +19,11 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
-import com.serotonin.m2m2.util.UnitUtil;
+import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
-public class RangeRenderer extends ConvertingRenderer {
+public class RangeRenderer extends ConvertingUnitRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererRange", "RANGE", "textRenderer.range",
             new int[] { DataTypes.NUMERIC });
 
@@ -103,11 +103,11 @@ public class RangeRenderer extends ConvertingRenderer {
         String numberString = new DecimalFormat(format).format(value);
 
         if ((hint & HINT_RAW) != 0 || (hint & HINT_SPECIFIC) != 0)
-            return numberString + " " + UnitUtil.formatLocal(renderedUnit);
+            return numberString + " " + JUnitUtil.formatLocal(renderedUnit);
 
         RangeValue range = getRangeValue(value);
         if (range == null)
-            return numberString + " " + UnitUtil.formatLocal(renderedUnit);
+            return numberString + " " + JUnitUtil.formatLocal(renderedUnit);
 
         return range.formatText(numberString);
     }

@@ -49,7 +49,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Repository()
-public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition> {
+public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefinition> {
 
     private static final LazyInitSupplier<JsonDataDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(JsonDataDao.class);

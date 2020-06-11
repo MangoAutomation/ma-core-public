@@ -85,7 +85,7 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 @Repository()
-public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinition> {
+public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefinition> {
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
     private final DataSourceTableDefinition dataSourceTable;

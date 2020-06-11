@@ -20,11 +20,11 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
-import com.serotonin.m2m2.util.UnitUtil;
+import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
-public class PlainRenderer extends ConvertingRenderer {
+public class PlainRenderer extends ConvertingUnitRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererPlain", "PLAIN", "textRenderer.plain",
             new int[] { DataTypes.BINARY, DataTypes.ALPHANUMERIC, DataTypes.MULTISTATE, DataTypes.NUMERIC });
 
@@ -76,7 +76,7 @@ public class PlainRenderer extends ConvertingRenderer {
     @Override
     public String getMetaText() {
         if (useUnitAsSuffix)
-            return UnitUtil.formatLocal(renderedUnit);
+            return JUnitUtil.formatLocal(renderedUnit);
         return suffix;
     }
 
@@ -97,7 +97,7 @@ public class PlainRenderer extends ConvertingRenderer {
                 dblValue = unit.getConverterTo(renderedUnit).convert(dblValue);
             raw = Double.toString(dblValue);
             if (useUnitAsSuffix)
-                suffix = " " + UnitUtil.formatLocal(renderedUnit);
+                suffix = " " + JUnitUtil.formatLocal(renderedUnit);
         }
         else {
             raw = value.toString();
@@ -117,7 +117,7 @@ public class PlainRenderer extends ConvertingRenderer {
         String suffix = this.suffix;
         
         if (useUnitAsSuffix)
-            suffix = " " + UnitUtil.formatLocal(renderedUnit);
+            suffix = " " + JUnitUtil.formatLocal(renderedUnit);
         
         String raw = Double.toString(value);
         if ((hint & HINT_RAW) != 0 || suffix == null)
@@ -183,12 +183,12 @@ public class PlainRenderer extends ConvertingRenderer {
         	suffix = SerializationHelper.readSafeUTF(in);
             useUnitAsSuffix = in.readBoolean();
             try{
-            	unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	unit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
             	unit = Unit.ONE;
             }
             try{
-            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+            	renderedUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
             	renderedUnit = Unit.ONE;
             }

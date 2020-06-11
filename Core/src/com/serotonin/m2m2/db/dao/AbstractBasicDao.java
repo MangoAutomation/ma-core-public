@@ -1,6 +1,5 @@
-/*
- *  Copyright (C) 2013 Deltamation Software. All rights reserved.
- *  @author Jared Wiltshire
+/**
+ * Copyright (C) 2016  Infinite Automation Software. All rights reserved.
  */
 package com.serotonin.m2m2.db.dao;
 
@@ -71,9 +70,8 @@ import net.jazdw.rql.parser.ASTNode;
  * Provides an API to retrieve, update and save VO objects from and to the
  * database.
  *
- * Copyright (C) 2013 Deltamation Software. All Rights Reserved.
- *
  * @author Jared Wiltshire
+ * @author Terry Packer
  */
 public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition> extends BaseDao implements AbstractBasicVOAccess<T, TABLE> {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);

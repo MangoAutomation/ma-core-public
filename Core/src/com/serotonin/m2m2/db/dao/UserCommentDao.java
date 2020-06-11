@@ -37,7 +37,7 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
  *
  */
 @Repository()
-public class UserCommentDao  extends AbstractDao<UserCommentVO, UserCommentTableDefinition>{
+public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentTableDefinition>{
 
     private static final LazyInitSupplier<UserCommentDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(UserCommentDao.class);

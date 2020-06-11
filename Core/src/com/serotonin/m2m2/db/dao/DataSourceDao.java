@@ -58,7 +58,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.SerializationHelper;
 
 @Repository()
-public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefinition> {
+public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDefinition> {
 
     //TODO Mango 4.0 Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");

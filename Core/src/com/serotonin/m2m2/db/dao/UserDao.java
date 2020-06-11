@@ -57,7 +57,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
  *
  */
 @Repository
-public class UserDao extends AbstractDao<User, UserTableDefinition> {
+public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {

@@ -320,17 +320,17 @@ public class EngineeringUnits {
         conversionMap.put(wattHours, SI.WATT.times(NonSI.HOUR));
         conversionMap.put(kilowattHours, SI.KILO(SI.WATT).times(NonSI.HOUR));
         conversionMap.put(megawattHours, SI.MEGA(SI.WATT).times(NonSI.HOUR));
-        conversionMap.put(btus, UnitUtil.BTU);
-        conversionMap.put(kiloBtus, SI.KILO(UnitUtil.BTU));
-        conversionMap.put(megaBtus, SI.MEGA(UnitUtil.BTU));
-        conversionMap.put(therms, UnitUtil.THERM);
+        conversionMap.put(btus, JUnitUtil.BTU);
+        conversionMap.put(kiloBtus, SI.KILO(JUnitUtil.BTU));
+        conversionMap.put(megaBtus, SI.MEGA(JUnitUtil.BTU));
+        conversionMap.put(therms, JUnitUtil.THERM);
         conversionMap.put(tonHours, NonSI.TON_US.times(NonSI.HOUR));
         // Enthalpy
         conversionMap.put(joulesPerKilogramDryAir, SI.JOULE.divide(SI.KILOGRAM));
         conversionMap.put(kilojoulesPerKilogramDryAir, SI.KILO(SI.JOULE).divide(SI.KILOGRAM));
         conversionMap.put(megajoulesPerKilogramDryAir, SI.MEGA(SI.JOULE).divide(SI.KILOGRAM));
-        conversionMap.put(btusPerPoundDryAir, UnitUtil.BTU.divide(NonSI.POUND));
-        conversionMap.put(btusPerPound, UnitUtil.BTU.divide(NonSI.POUND));
+        conversionMap.put(btusPerPoundDryAir, JUnitUtil.BTU.divide(NonSI.POUND));
+        conversionMap.put(btusPerPound, JUnitUtil.BTU.divide(NonSI.POUND));
         // Entropy
         conversionMap.put(joulesPerDegreeKelvin, SI.JOULE.divide(SI.KELVIN));
         conversionMap.put(kilojoulesPerDegreeKelvin, SI.KILO(SI.JOULE).divide(SI.KELVIN));
@@ -387,8 +387,8 @@ public class EngineeringUnits {
         conversionMap.put(watts, SI.WATT);
         conversionMap.put(kilowatts, SI.KILO(SI.WATT));
         conversionMap.put(megawatts, SI.MEGA(SI.WATT));
-        conversionMap.put(btusPerHour, UnitUtil.BTU.divide(NonSI.HOUR));
-        conversionMap.put(kiloBtusPerHour, SI.KILO(UnitUtil.BTU).divide(NonSI.HOUR));
+        conversionMap.put(btusPerHour, JUnitUtil.BTU.divide(NonSI.HOUR));
+        conversionMap.put(kiloBtusPerHour, SI.KILO(JUnitUtil.BTU).divide(NonSI.HOUR));
         conversionMap.put(horsepower, NonSI.HORSEPOWER);
         conversionMap.put(tonsRefrigeration, NonSI.TON_US);
         // Pressure
@@ -397,7 +397,7 @@ public class EngineeringUnits {
         conversionMap.put(kilopascals, SI.KILO(SI.PASCAL));
         conversionMap.put(millibars, SI.MILLI(NonSI.BAR));
         conversionMap.put(bars, NonSI.BAR);
-        conversionMap.put(poundsForcePerSquareInch, UnitUtil.PSI);
+        conversionMap.put(poundsForcePerSquareInch, JUnitUtil.PSI);
         conversionMap.put(centimetersOfWater, SI.PASCAL.times(98.0665));
         conversionMap.put(inchesOfWater, SI.PASCAL.times(248.84));
         conversionMap.put(millimetersOfMercury, NonSI.MILLIMETER_OF_MERCURY);
@@ -476,7 +476,7 @@ public class EngineeringUnits {
         conversionMap.put(percentPerSecond, NonSI.PERCENT.divide(SI.SECOND));
         conversionMap.put(perMinute, Unit.ONE.divide(NonSI.MINUTE));
         conversionMap.put(perSecond, Unit.ONE.divide(SI.SECOND));
-        conversionMap.put(psiPerDegreeFahrenheit, UnitUtil.PSI.divide(NonSI.FAHRENHEIT));
+        conversionMap.put(psiPerDegreeFahrenheit, JUnitUtil.PSI.divide(NonSI.FAHRENHEIT));
         conversionMap.put(radians, SI.RADIAN);
         conversionMap.put(radiansPerSecond, SI.RADIAN.divide(SI.SECOND));
         conversionMap.put(revolutionsPerMinute, NonSI.REVOLUTION.divide(NonSI.MINUTE));

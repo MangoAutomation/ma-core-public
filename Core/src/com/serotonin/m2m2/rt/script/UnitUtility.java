@@ -6,7 +6,7 @@ package com.serotonin.m2m2.rt.script;
 
 import javax.measure.unit.Unit;
 
-import com.serotonin.m2m2.util.UnitUtil;
+import com.serotonin.m2m2.util.JUnitUtil;
 
 /**
  * @author Terry Packer
@@ -34,7 +34,7 @@ public class UnitUtility {
 	 * @return
 	 */
 	public double convertUnitSymbol(String baseSymbol, String convertSymbol, double value){
-		return this.convertUnit(UnitUtil.parseLocal(baseSymbol), UnitUtil.parseLocal(convertSymbol), value);
+		return this.convertUnit(JUnitUtil.parseLocal(baseSymbol), JUnitUtil.parseLocal(convertSymbol), value);
 	}
 	
 	

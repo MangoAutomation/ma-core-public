@@ -46,7 +46,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Matthew Lohbihler
  */
 @Repository()
-public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPointVO>, PublisherTableDefinition> {
+public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedPointVO>, PublisherTableDefinition> {
 
     private static final LazyInitSupplier<PublisherDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(PublisherDao.class);

@@ -18,7 +18,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.AbstractRT;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -40,7 +39,7 @@ import com.serotonin.util.ILifecycle;
  *
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<VO> implements ILifecycle {
+abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycle {
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
 
     /**
@@ -72,13 +71,17 @@ abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<V
     /* Thread safe set of active event types */
     private ConcurrentHashMap<Integer, Boolean> activeRtnEventTypes;
 
-    public DataSourceRT(VO vo) {
-        super(vo);
+    protected final VO vo;
 
-        eventTypes = new ArrayList<DataSourceEventType>();
-        for (EventTypeVO etvo : vo.getEventTypes())
-            eventTypes.add((DataSourceEventType) etvo.getEventType());
-        activeRtnEventTypes = new ConcurrentHashMap<>();
+
+
+    public DataSourceRT(VO vo) {
+        this.vo = vo;
+        this.eventTypes = new ArrayList<DataSourceEventType>();
+        for (EventTypeVO etvo : vo.getEventTypes()) {
+            this.eventTypes.add((DataSourceEventType) etvo.getEventType());
+        }
+        this.activeRtnEventTypes = new ConcurrentHashMap<>();
     }
 
     public int getId() {
@@ -87,6 +90,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<V
 
     public String getName() {
         return vo.getName();
+    }
+
+    public VO getVo() {
+        return vo;
     }
 
     /**
@@ -239,7 +246,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<V
             initialize();
     }
 
-    @Override
+    /**
+     * Initialize this data source
+     */
     public void initialize(){
         // no op
     }
@@ -270,11 +279,11 @@ abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<V
      * @param event
      */
     public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        if(getVo().getEditPermission().containsRole(event.getRole().getRole())) {
-            getVo().setEditPermission(getVo().getEditPermission().removeRole(event.getRole().getRole()));
+        if(vo.getEditPermission().containsRole(event.getRole().getRole())) {
+            vo.setEditPermission(vo.getEditPermission().removeRole(event.getRole().getRole()));
         }
-        if(getVo().getReadPermission().containsRole(event.getRole().getRole())) {
-            getVo().setReadPermission(getVo().getReadPermission().removeRole(event.getRole().getRole()));
+        if(vo.getReadPermission().containsRole(event.getRole().getRole())) {
+            vo.setReadPermission(vo.getReadPermission().removeRole(event.getRole().getRole()));
         }
     }
 }

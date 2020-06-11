@@ -63,7 +63,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Repository()
-public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, EventDetectorTableDefinition> {
+public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, EventDetectorTableDefinition> {
 
     private static final LazyInitSupplier<EventDetectorDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(EventDetectorDao.class);

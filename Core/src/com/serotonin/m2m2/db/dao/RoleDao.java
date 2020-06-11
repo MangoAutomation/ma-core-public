@@ -43,7 +43,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Repository
-public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
+public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
 
     private final PermissionDao permissionDao;
 

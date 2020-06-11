@@ -31,9 +31,9 @@ import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
-import com.serotonin.m2m2.util.UnitUtil;
+import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.text.AnalogRenderer;
-import com.serotonin.m2m2.view.text.ConvertingRenderer;
+import com.serotonin.m2m2.view.text.ConvertingUnitRenderer;
 import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -763,7 +763,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     //
     // Serialization
     //
-    private static final int version = 14; //Skipped 7,8 to catch up with Deltamation
+    private static final int version = 14; //Skipped 7,8
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         ensureUnitsCorrect();
@@ -774,9 +774,9 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         out.writeDouble(discardHighLimit);
         SerializationHelper.writeSafeUTF(out, chartColour);
         out.writeInt(plotType);
-        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(unit));
-        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(integralUnit));
-        SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
+        SerializationHelper.writeSafeUTF(out, JUnitUtil.formatDefault(unit));
+        SerializationHelper.writeSafeUTF(out, JUnitUtil.formatDefault(integralUnit));
+        SerializationHelper.writeSafeUTF(out, JUnitUtil.formatDefault(renderedUnit));
         out.writeBoolean(useIntegralUnit);
         out.writeBoolean(useRenderedUnit);
         out.writeBoolean(overrideIntervalLoggingSamples);
@@ -1032,18 +1032,18 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             plotType = in.readInt();
 
             try{
-                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 unit = defaultUnit();
             }
             try{
-                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 integralUnit = defaultUnit();
             }
 
             try{
-                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 renderedUnit = defaultUnit();
             }
@@ -1069,18 +1069,18 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             plotType = in.readInt();
 
             try{
-                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 unit = defaultUnit();
             }
             try{
-                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 integralUnit = defaultUnit();
             }
 
             try{
-                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 renderedUnit = defaultUnit();
             }
@@ -1105,18 +1105,18 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             plotType = in.readInt();
 
             try{
-                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 unit = defaultUnit();
             }
             try{
-                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 integralUnit = defaultUnit();
             }
 
             try{
-                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 renderedUnit = defaultUnit();
             }
@@ -1141,18 +1141,18 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             plotType = in.readInt();
 
             try{
-                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 unit = defaultUnit();
             }
             try{
-                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 integralUnit = defaultUnit();
             }
 
             try{
-                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 renderedUnit = defaultUnit();
             }
@@ -1177,18 +1177,18 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             plotType = in.readInt();
 
             try{
-                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 unit = defaultUnit();
             }
             try{
-                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 integralUnit = defaultUnit();
             }
 
             try{
-                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 renderedUnit = defaultUnit();
             }
@@ -1212,18 +1212,18 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             plotType = in.readInt();
 
             try{
-                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 unit = defaultUnit();
             }
             try{
-                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 integralUnit = defaultUnit();
             }
 
             try{
-                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnit = JUnitUtil.parseDefault(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
                 renderedUnit = defaultUnit();
             }
@@ -1250,8 +1250,8 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     }
 
     private void setUnitsOnTextRenderer() {
-        if (textRenderer instanceof ConvertingRenderer) {
-            ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+        if (textRenderer instanceof ConvertingUnitRenderer) {
+            ConvertingUnitRenderer cr = (ConvertingUnitRenderer) textRenderer;
             cr.setUnit(unit);
             if (useRenderedUnit) {
                 cr.setRenderedUnit(renderedUnit);
@@ -1264,7 +1264,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     public void ensureUnitsCorrect() {
         if (unit == null) {
-            unit = UnitUtil.convertToUnit(engineeringUnits);
+            unit = JUnitUtil.convertToUnit(engineeringUnits);
         }
 
         if (integralUnit == null || !validateIntegralUnit()) {
@@ -1289,12 +1289,12 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         writer.writeEntry("eventDetectors", EventDetectorDao.getInstance().getWithSource(id, this));
         writer.writeEntry("plotType", PLOT_TYPE_CODES.getCode(plotType));
         writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
-        writer.writeEntry("unit", UnitUtil.formatUcum(unit));
+        writer.writeEntry("unit", JUnitUtil.formatDefault(unit));
 
         if (useIntegralUnit)
-            writer.writeEntry("integralUnit", UnitUtil.formatUcum(integralUnit));
+            writer.writeEntry("integralUnit", JUnitUtil.formatDefault(integralUnit));
         if (useRenderedUnit)
-            writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
+            writer.writeEntry("renderedUnit", JUnitUtil.formatDefault(renderedUnit));
 
         writer.writeEntry("simplifyType", SIMPLIFY_TYPE_CODES.getCode(simplifyType));
         if(simplifyType == SimplifyTypes.TARGET)
@@ -1402,7 +1402,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     private Unit<?> parseUnitString(String string, String item) throws TranslatableJsonException {
         try {
-            return UnitUtil.parseUcum(string);
+            return JUnitUtil.parseDefault(string);
         }
         catch (Exception e) {
             throw new TranslatableJsonException("emport.error.parseError", item);

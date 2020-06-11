@@ -51,7 +51,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Matthew Lohbihler
  */
 @Repository
-public class MailingListDao extends AbstractDao<MailingList, MailingListTableDefinition> {
+public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableDefinition> {
 
     private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(MailingListDao.class);
