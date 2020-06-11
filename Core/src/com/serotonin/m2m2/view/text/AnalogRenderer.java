@@ -30,7 +30,7 @@ import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
-public class AnalogRenderer extends ConvertingUnitRenderer {
+public class AnalogRenderer extends ConvertingRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererAnalog", "ANALOG",
             "textRenderer.analog", new int[] { DataTypes.NUMERIC });
 

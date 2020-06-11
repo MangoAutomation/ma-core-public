@@ -24,7 +24,7 @@ import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
-public class PlainRenderer extends ConvertingUnitRenderer {
+public class PlainRenderer extends ConvertingRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererPlain", "PLAIN", "textRenderer.plain",
             new int[] { DataTypes.BINARY, DataTypes.ALPHANUMERIC, DataTypes.MULTISTATE, DataTypes.NUMERIC });
 

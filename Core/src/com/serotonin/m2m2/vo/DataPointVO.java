@@ -33,7 +33,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.text.AnalogRenderer;
-import com.serotonin.m2m2.view.text.ConvertingUnitRenderer;
+import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -1250,8 +1250,8 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     }
 
     private void setUnitsOnTextRenderer() {
-        if (textRenderer instanceof ConvertingUnitRenderer) {
-            ConvertingUnitRenderer cr = (ConvertingUnitRenderer) textRenderer;
+        if (textRenderer instanceof ConvertingRenderer) {
+            ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
             cr.setUnit(unit);
             if (useRenderedUnit) {
                 cr.setRenderedUnit(renderedUnit);

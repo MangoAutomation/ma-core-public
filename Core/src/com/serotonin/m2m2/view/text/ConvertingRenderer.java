@@ -22,13 +22,13 @@ import com.serotonin.util.SerializationHelper;
  * @author Jared Wiltshire
  * @author Terry Packer
  */
-public abstract class ConvertingUnitRenderer extends BaseTextRenderer {
+public abstract class ConvertingRenderer extends BaseTextRenderer {
 
     protected boolean useUnitAsSuffix;
     protected Unit<?> unit;
     protected Unit<?> renderedUnit;
 
-    public ConvertingUnitRenderer() {
+    public ConvertingRenderer() {
         setDefaults();
     }
 

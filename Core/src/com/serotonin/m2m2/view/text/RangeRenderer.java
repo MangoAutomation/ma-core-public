@@ -23,7 +23,7 @@ import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
-public class RangeRenderer extends ConvertingUnitRenderer {
+public class RangeRenderer extends ConvertingRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererRange", "RANGE", "textRenderer.range",
             new int[] { DataTypes.NUMERIC });
 

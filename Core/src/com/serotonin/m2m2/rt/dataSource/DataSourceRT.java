@@ -73,8 +73,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     protected final VO vo;
 
-
-
     public DataSourceRT(VO vo) {
         this.vo = vo;
         this.eventTypes = new ArrayList<DataSourceEventType>();
@@ -234,7 +232,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     //
     // Lifecycle
     //
-    /*
+    /* TODO Mango 4.0
      * For future use if we want to allow some data sources to startup in safe mode
      *  will require RuntimeManagerChanges
      * (non-Javadoc)
