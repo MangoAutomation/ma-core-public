@@ -16,7 +16,7 @@ import com.serotonin.m2m2.vo.MangoSessionDataVO;
 public class NullMangoSessionDataStore extends NullSessionDataStore implements MangoSessionDataStore {
 
     public NullMangoSessionDataStore() {
-        System.out.println("Test");
+
     }
 
     @Override
