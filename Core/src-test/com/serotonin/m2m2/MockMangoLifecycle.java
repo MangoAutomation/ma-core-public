@@ -537,4 +537,8 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         return null;
     }
 
+    public MangoProperties getProperties() {
+        return properties;
+    }
+
 }

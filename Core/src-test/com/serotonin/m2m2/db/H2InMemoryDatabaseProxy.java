@@ -157,8 +157,9 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         DBUpgrade.checkUpgrade();
 
         // Check if we are using NoSQL
-        if (NoSQLProxyFactory.instance.getProxy() != null) {
-            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+        NoSQLProxy proxy = ModuleRegistry.getDefinition(NoSQLProxy.class);
+        if (proxy != null) {
+            noSQLProxy = proxy;
             noSQLProxy.initialize();
         }
 
@@ -181,8 +182,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             }
         }
         // Check if we are using NoSQL
-        if ((terminateNoSql)&&(NoSQLProxyFactory.instance.getProxy() != null)) {
-            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+        if ((terminateNoSql)&&(noSQLProxy != null)) {
             noSQLProxy.shutdown();
         }
     }
@@ -421,9 +421,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
 
         //Clean the noSQL database
-        // Check if we are using NoSQL
-        if (NoSQLProxyFactory.instance.getProxy() != null) {
-            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+        if (noSQLProxy != null) {
             noSQLProxy.createPointValueDao().deleteAllPointDataWithoutCount();
         }
     }

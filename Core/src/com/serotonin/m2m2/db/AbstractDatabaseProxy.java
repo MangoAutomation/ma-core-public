@@ -136,8 +136,9 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 DBUpgrade.checkUpgrade();
 
             // Check if we are using NoSQL
-            if (NoSQLProxyFactory.instance.getProxy() != null) {
-                noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+            NoSQLProxy proxy = ModuleRegistry.getDefinition(NoSQLProxy.class);
+            if (proxy != null) {
+                noSQLProxy = proxy;
                 noSQLProxy.initialize();
             }
 
@@ -191,8 +192,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     public void terminate(boolean terminateNoSql) {
         terminateImpl();
         // Check if we are using NoSQL
-        if ((terminateNoSql)&&(NoSQLProxyFactory.instance.getProxy() != null)) {
-            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+        if ((terminateNoSql)&&(noSQLProxy != null)) {
             noSQLProxy.shutdown();
         }
     }

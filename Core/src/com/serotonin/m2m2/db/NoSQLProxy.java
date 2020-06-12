@@ -11,6 +11,7 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
+import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.util.DirectoryUtils;
 
 /**
@@ -18,7 +19,7 @@ import com.serotonin.util.DirectoryUtils;
  *
  * @author Terry Packer
  */
-abstract public class NoSQLProxy {
+abstract public class NoSQLProxy extends ModuleElementDefinition {
     public abstract void initialize();
     public abstract void shutdown();
 
