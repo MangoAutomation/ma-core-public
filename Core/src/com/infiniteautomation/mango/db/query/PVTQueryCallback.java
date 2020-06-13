@@ -4,8 +4,6 @@
  */
 package com.infiniteautomation.mango.db.query;
 
-import java.io.IOException;
-
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 
 /**
@@ -17,12 +15,12 @@ public interface PVTQueryCallback<T extends PointValueTime> {
 
     /**
      * Values within the query
-     * 
+     *
      * If an exception is thrown the query should be aborted
-     * 
+     *
      * @param value
      * @param index
-     * @throws IOException to abort query
+     * @throws QueryCancelledException to abort query
      */
-    void row(T value, int index) throws IOException;
+    void row(T value, int index) throws QueryCancelledException;
 }

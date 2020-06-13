@@ -40,6 +40,7 @@ import org.springframework.jdbc.support.JdbcUtils;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
+import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -411,9 +412,10 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     callback.row(value, counter.getValue());
                     counter.increment();
                 }
-            }catch(IOException e) {
+            }catch(QueryCancelledException e) {
                 LOG.warn("Cancelling Latest Point Value Query.", e);
                 ps.cancel();
+                throw e;
             }finally {
                 JdbcUtils.closeResultSet(rs);
             }
@@ -559,9 +561,10 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     callback.row(value, counter.getValue());
                     counter.increment();
                 }
-            }catch(IOException e) {
+            }catch(QueryCancelledException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 ps.cancel();
+                throw e;
             }finally {
                 JdbcUtils.closeResultSet(rs);
             }
@@ -734,11 +737,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 for(DataPointVO vo : vos)
                     if(!values.containsKey(vo.getId()))
                         callback.firstValue(new IdPointValueTime(vo.getId(), null, from), counter.getAndIncrement(), true);
-            } catch(IOException e) {
+            } catch(QueryCancelledException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 firstValuesSelect.cancel();
                 ps.cancel();
-                return counter.getValue();
+                throw e;
             } finally {
                 JdbcUtils.closeResultSet(rs);
             }
@@ -769,9 +772,10 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     if(!values.containsKey(vo.getId()))
                         callback.lastValue(new IdPointValueTime(vo.getId(), null, to), counter.getAndIncrement(), true);
                 }
-            }catch(IOException e) {
+            }catch(QueryCancelledException e) {
                 LOG.warn("Cancelling Time Range Point Value Query.", e);
                 ps.cancel();
+                throw e;
             }finally {
                 JdbcUtils.closeResultSet(rs);
             }

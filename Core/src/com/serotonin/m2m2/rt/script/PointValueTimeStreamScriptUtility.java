@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
 import com.infiniteautomation.mango.quantize.AnalogStatisticsQuantizer;
 import com.infiniteautomation.mango.quantize.BucketCalculator;
@@ -108,7 +109,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
      * @throws IOException
      * @throws ScriptPermissionsException
      */
-    public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException, ScriptPermissionsException {
+    public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws QueryCancelledException, ScriptPermissionsException {
         List<DataPointVO> vos = new ArrayList<>(ids.size());
         for(Integer id : ids) {
             if(id == null) {
@@ -132,7 +133,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
      * @throws IOException
      * @throws ScriptPermissionsException
      */
-    public void rollupQueryUsingPoints(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException, ScriptPermissionsException {
+    public void rollupQueryUsingPoints(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws QueryCancelledException, ScriptPermissionsException {
         RollupsStream rs = new RollupsStream(vos, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
         rs.execute();
     }
@@ -187,7 +188,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
             quantizerMap = new HashMap<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>>();
         }
 
-        public void execute() throws IOException, ScriptPermissionsException {
+        public void execute() throws QueryCancelledException, ScriptPermissionsException {
             createQuantizerMap();
             Common.databaseProxy.newPointValueDao().wideBookendQuery(vos, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
             //Fast forward to end to fill any gaps at the end
@@ -197,20 +198,20 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+        public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
             DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());
             quantizer.firstValue(value, index, bookend);
         }
 
         @Override
-        public void row(IdPointValueTime value, int index) throws IOException {
+        public void row(IdPointValueTime value, int index) throws QueryCancelledException {
             DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());
             quantizer.row(value, index);
 
         }
 
         @Override
-        public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+        public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
             DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());
             quantizer.lastValue(value, index, bookend);
         }
@@ -370,31 +371,19 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
             this.done = false;
         }
 
-        /*
-         * (non-Javadoc)
-         * @see com.infiniteautomation.mango.db.query.BookendQueryCallback#firstValue(com.serotonin.m2m2.rt.dataImage.PointValueTime, int, boolean)
-         */
         @Override
-        public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+        public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
             quantizer.firstValue(value, index, bookend);
             open = true;
         }
 
-        /*
-         * (non-Javadoc)
-         * @see com.infiniteautomation.mango.db.query.PVTQueryCallback#row(com.serotonin.m2m2.rt.dataImage.PointValueTime, int)
-         */
         @Override
-        public void row(IdPointValueTime value, int index) throws IOException {
+        public void row(IdPointValueTime value, int index) throws QueryCancelledException {
             quantizer.row(value, index);
         }
 
-        /*
-         * (non-Javadoc)
-         * @see com.infiniteautomation.mango.db.query.BookendQueryCallback#lastValue(com.serotonin.m2m2.rt.dataImage.PointValueTime, int)
-         */
         @Override
-        public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+        public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
             quantizer.lastValue(value, index, bookend);
             quantizer.done();
             this.done = true;
@@ -404,7 +393,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
             return done;
         }
 
-        public void done() throws IOException {
+        public void done() throws QueryCancelledException {
             quantizer.done();
             done = true;
         }
@@ -417,7 +406,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
+        public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws QueryCancelledException {
             this.callback.quantizedStatistics(statisticsGenerator);
         }
     }
@@ -429,7 +418,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+        public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
             this.callback.quantizedStatistics(statisticsGenerator);
         }
     }
@@ -441,7 +430,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+        public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
             this.callback.quantizedStatistics(statisticsGenerator);
         }
     }

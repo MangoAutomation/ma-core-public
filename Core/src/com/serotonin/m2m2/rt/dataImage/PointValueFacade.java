@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -140,7 +141,7 @@ public class PointValueFacade {
         pointValueDao.wideBookendQuery(vos, from, to, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             @Override
-            public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+            public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
                 //If there is no value before from the bookend value.value will be null with a value.timestamp == from
                 if(insertInitial) {
                     if(cache != null) {
@@ -152,7 +153,7 @@ public class PointValueFacade {
             }
 
             @Override
-            public void row(IdPointValueTime value, int index) throws IOException {
+            public void row(IdPointValueTime value, int index) throws QueryCancelledException {
                 if(cache != null) {
                     processRow(value, index, false, false, cache, values);
                 }else {
@@ -161,7 +162,7 @@ public class PointValueFacade {
             }
 
             @Override
-            public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+            public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
                 if(insertFinal) {
                     if(cache != null) {
                         processRow(value, index, bookend, false, cache, values);
@@ -183,7 +184,7 @@ public class PointValueFacade {
      * @return true to continue to process the incoming value, false if it was a bookend that was replaced via the cache
      * @throws IOException
      */
-    protected boolean processValueThroughCache(PointValueTime value, int index, boolean bookend, List<PointValueTime> pointCache, List<PointValueTime> values) throws IOException {
+    protected boolean processValueThroughCache(PointValueTime value, int index, boolean bookend, List<PointValueTime> pointCache, List<PointValueTime> values) throws QueryCancelledException {
         if(pointCache != null && pointCache.size() > 0) {
             ListIterator<PointValueTime> it = pointCache.listIterator();
             while(it.hasNext()) {
@@ -211,7 +212,7 @@ public class PointValueFacade {
      * @param bookend
      * @throws IOException
      */
-    protected void processRow(PointValueTime value, int index, boolean bookend, boolean cached, List<PointValueTime> pointCache, List<PointValueTime> values) throws IOException {
+    protected void processRow(PointValueTime value, int index, boolean bookend, boolean cached, List<PointValueTime> pointCache, List<PointValueTime> values) throws QueryCancelledException {
         if(pointCache != null && !cached)
             if(!processValueThroughCache(value, index, bookend, pointCache, values))
                 return;

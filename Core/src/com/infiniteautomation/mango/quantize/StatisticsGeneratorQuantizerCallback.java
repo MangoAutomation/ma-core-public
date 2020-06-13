@@ -4,8 +4,7 @@
  */
 package com.infiniteautomation.mango.quantize;
 
-import java.io.IOException;
-
+import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 public interface StatisticsGeneratorQuantizerCallback<T extends StatisticsGenerator> {
@@ -13,5 +12,5 @@ public interface StatisticsGeneratorQuantizerCallback<T extends StatisticsGenera
      * @param statisticsGenerator
      *            the statistics generated for the time period.
      */
-    void quantizedStatistics(T statisticsGenerator) throws IOException;
+    void quantizedStatistics(T statisticsGenerator) throws QueryCancelledException;
 }

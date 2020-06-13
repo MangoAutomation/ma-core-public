@@ -14,6 +14,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.statistics.StartsAndRuntime;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
@@ -29,7 +30,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
 
 
     @Test
-    public void testNoData() throws IOException {
+    public void testNoData() throws QueryCancelledException {
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
 
@@ -38,7 +39,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart
@@ -66,7 +67,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testNoStartValueOneValuePerPeriod() throws IOException {
+    public void testNoStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
@@ -84,7 +85,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart
@@ -133,7 +134,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueNoPeriodValues() throws IOException {
+    public void testStartValueNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
 
@@ -144,7 +145,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart
@@ -181,7 +182,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueAtPeriodStartNoPeriodValues() throws IOException {
+    public void testStartValueAtPeriodStartNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
 
@@ -192,7 +193,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart
@@ -250,7 +251,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueOneValuePerPeriod() throws IOException {
+    public void testStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
@@ -268,7 +269,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart
@@ -310,7 +311,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testNoStartValueManyValuesPerPeriod() throws IOException {
+    public void testNoStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
@@ -336,7 +337,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart
@@ -429,7 +430,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueManyValuesPerPeriod() throws IOException {
+    public void testStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
@@ -455,7 +456,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart
@@ -553,7 +554,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueAtStartManyValuesPerPeriod() throws IOException {
+    public void testStartValueAtStartManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
@@ -579,7 +580,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
-            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
+            public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 StartsAndRuntimeList stats = statisticsGenerator;
                 //Test periodStart

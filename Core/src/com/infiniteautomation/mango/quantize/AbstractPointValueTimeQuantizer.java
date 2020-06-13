@@ -8,17 +8,18 @@ import java.io.IOException;
 import java.time.Instant;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 /**
  * Combine a statistics callback with a generator to pass into a point value query.
- * 
+ *
  * The statistics are generated based on the bucket calculator's times bc.startTime <= stats < bc.endTime
- * 
+ *
  * The general use would be:
- * 
+ *
  * 1. quantizer.firstValue() *optional
  * 2. quantizer.row()... *optional
  * 3. quantizer.lastValue() *optional
@@ -27,7 +28,7 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  * @author Terry Packer
  */
 abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenerator> implements BookendQueryCallback<IdPointValueTime>{
-    
+
     private final BucketCalculator bucketCalculator;
     private final StatisticsGeneratorQuantizerCallback<T> callback;
     private final long startTime;
@@ -42,20 +43,16 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     public AbstractPointValueTimeQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<T> callback) {
         this.bucketCalculator = bucketCalculator;
         this.callback = callback;
-        
+
         periodFrom = bucketCalculator.getStartTime().toInstant();
         periodTo = bucketCalculator.getNextPeriodTo().toInstant();
         periodToMillis = periodTo.toEpochMilli();
         startTime = periodFrom.toEpochMilli();
         endTime =  bucketCalculator.getEndTime().toInstant().toEpochMilli();
     }
-    
-    /*
-     * (non-Javadoc)
-     * @see com.infiniteautomation.mango.db.query.PVTQueryCallback#row(com.serotonin.m2m2.rt.dataImage.PointValueTime, int)
-     */
+
     @Override
-    public void row(IdPointValueTime vt, int index) throws IOException{
+    public void row(IdPointValueTime vt, int index) throws QueryCancelledException{
         long time = vt.getTime();
         if (time < startTime)
             throw new IllegalArgumentException("Data is before start time");
@@ -70,37 +67,29 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
 
         lastValue = vt;
     }
-    
-    /*
-     * (non-Javadoc)
-     * @see com.infiniteautomation.mango.db.query.BookendQueryCallback#firstValue(com.serotonin.m2m2.rt.dataImage.PointValueTime, int, boolean)
-     */
+
     @Override
-    public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException{
+    public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException{
         openPeriod(periodFrom, periodTo, value);
         if(!bookend)
             row(value, index);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.infiniteautomation.mango.db.query.BookendQueryCallback#lastValue(com.serotonin.m2m2.rt.dataImage.PointValueTime, int)
-     */
     @Override
-    public void lastValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
+    public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
         if(!bookend)
             row(value, index);
     }
-    
+
     /**
      * Called when no further data will be added to the Quantizer
-     * @throws IOException 
+     * @throws IOException
      */
-    public void done() throws IOException {
+    public void done() throws QueryCancelledException {
         //Special case where there is no data
         if(lastValue == null && periodFrom.equals(bucketCalculator.getStartTime().toInstant()))
             openPeriod(periodFrom, periodTo, lastValue);
-        
+
         Instant endInstant = bucketCalculator.getEndTime().toInstant();
         while (periodTo.isBefore(endInstant))
             nextPeriod(lastValue, periodTo.toEpochMilli());
@@ -110,11 +99,11 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     /**
      * @param endValue
      *            the value that occurs next after the end of this period.
-     * @param time 
-     * 			  the time that the endValue occurred        
-     * @throws IOException 
+     * @param time
+     * 			  the time that the endValue occurred
+     * @throws IOException
      */
-    private void nextPeriod(IValueTime endValue, long time) throws IOException {
+    private void nextPeriod(IValueTime endValue, long time) throws QueryCancelledException {
         closePeriod();
         periodFrom = periodTo;
         periodTo = bucketCalculator.getNextPeriodTo().toInstant();
@@ -125,13 +114,13 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     /**
      * Fast forward in time to cover any gaps in data with the last value known
      * @param time
-     * @throws IOException 
+     * @throws IOException
      */
-    public void fastForward(long time) throws IOException {
+    public void fastForward(long time) throws QueryCancelledException {
         while (periodToMillis <= time)
             nextPeriod(lastValue, periodTo.toEpochMilli());
     }
-    
+
     /**
      * Create a new statistics generator for the period with the start value
      * @param startValue
@@ -142,14 +131,14 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      *            the start time (inclusive) of the period
      * @param end
      *            the end time (exclusive) of the period
-     *            
+     *
      * @return new statistics object for a period
      */
     abstract protected T createStatistics(Instant start, Instant end, IValueTime startValue);
-    
+
     /**
      * Tells the quantizer to open the period.
-     * 
+     *
      * @param startValue
      *            the value that was current at the start of the period, i.e. the latest value that occurred
      *            before the period started. Can be null if the inception of the point occurred after or during this
@@ -166,7 +155,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
 
     /**
      * A value that occurred in the period. Data will be provided to this method in chronological order.
-     * 
+     *
      * @param value
      * @param time
      */
@@ -176,12 +165,12 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
 
     /**
      * Tells the quantizer that there is no more data for the period.
-     * 
+     *
      * @param done
      *            indicates that there will never be any more data in this period
-     * @throws IOException 
+     * @throws QueryCancelledException
      */
-    protected void closePeriod() throws IOException {
+    protected void closePeriod() throws QueryCancelledException {
         if (statistics != null) {
             statistics.done();
             callback.quantizedStatistics(statistics);

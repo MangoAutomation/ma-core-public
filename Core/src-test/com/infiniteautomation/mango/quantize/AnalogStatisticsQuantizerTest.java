@@ -4,7 +4,6 @@
  */
 package com.infiniteautomation.mango.quantize;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +12,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.m2m2.Common.TimePeriods;
@@ -29,7 +29,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
 
 
     @Test
-    public void testNoData() throws IOException {
+    public void testNoData() throws QueryCancelledException {
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
 
@@ -38,7 +38,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
@@ -79,7 +79,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testNoStartValueOneValuePerPeriod() throws IOException {
+    public void testNoStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
@@ -97,7 +97,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
 
@@ -164,7 +164,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueNoPeriodValues() throws IOException {
+    public void testStartValueNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
 
@@ -175,7 +175,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
@@ -220,7 +220,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueAtPeriodStartNoPeriodValues() throws IOException {
+    public void testStartValueAtPeriodStartNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
 
@@ -231,7 +231,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
@@ -307,7 +307,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
 
     //Test with Start Value and Values
     @Test
-    public void testStartValueOneValuePerPeriod() throws IOException {
+    public void testStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
@@ -325,7 +325,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
@@ -382,7 +382,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
     //
 
     @Test
-    public void testNoStartValueManyValuesPerPeriod() throws IOException {
+    public void testNoStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
@@ -408,7 +408,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
@@ -488,7 +488,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueManyValuesPerPeriod() throws IOException {
+    public void testStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
@@ -514,7 +514,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
@@ -593,7 +593,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
     }
 
     @Test
-    public void testStartValueAtStartManyValuesPerPeriod() throws IOException {
+    public void testStartValueAtStartManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
@@ -619,7 +619,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
 
             @Override
-            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
+            public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws QueryCancelledException {
                 counter.increment();
                 AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
