@@ -5,11 +5,15 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IllformedLocaleException;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -450,12 +454,30 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             response.addMessage("receiveAlarmEmails", new TranslatableMessage("validate.required"));
         }
 
-        if (vo.getLocale() != null && StringValidation.isLengthGreaterThan(vo.getLocale(), 50)) {
-            response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
+        String locale = vo.getLocale();
+        if (locale != null) {
+            if (StringValidation.isLengthGreaterThan(locale, 50)) {
+                response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
+            }
+
+            try {
+                new Locale.Builder().setLanguageTag(locale).build();
+            } catch (IllformedLocaleException e) {
+                response.addMessage("locale", new TranslatableMessage("validate.invalidValue"));
+            }
         }
 
-        if (vo.getTimezone() != null && StringValidation.isLengthGreaterThan(vo.getTimezone(), 50)) {
-            response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
+        String timezone = vo.getTimezone();
+        if (timezone != null) {
+            if (StringValidation.isLengthGreaterThan(vo.getTimezone(), 50)) {
+                response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
+            }
+
+            try {
+                ZoneId.of(timezone);
+            } catch (DateTimeException  e) {
+                response.addMessage("timezone", new TranslatableMessage("validate.invalidValue"));
+            }
         }
 
         //Can't set email verified

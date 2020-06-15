@@ -25,7 +25,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -46,7 +45,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
@@ -445,18 +443,6 @@ public class Common {
             }
         }
         throw new PermissionException(new TranslatableMessage("permission.exception.noAuthenticationSet"), null);
-    }
-
-    public static TimeZone getUserTimeZone(User user) {
-        if (user != null)
-            return user.getTimeZoneInstance();
-        return TimeZone.getDefault();
-    }
-
-    public static DateTimeZone getUserDateTimeZone(User user) {
-        if (user != null)
-            return user.getDateTimeZoneInstance();
-        return DateTimeZone.forID(TimeZone.getDefault().getID());
     }
 
     public static Path getFiledataPath() {

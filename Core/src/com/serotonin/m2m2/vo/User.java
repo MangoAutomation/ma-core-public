@@ -16,11 +16,9 @@ import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTimeZone;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -115,8 +113,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
     //
-    private transient LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
-    private transient LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
+    private transient volatile LazyInitializer<ZoneId> _tz = new LazyInitializer<>();
     private transient LazyInitializer<Locale> localeObject = new LazyInitializer<>();
 
     //System permissions that we have one or more roles in
@@ -338,28 +335,16 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     public void setTimezone(String timezone) {
         this.timezone = timezone;
         this._tz.reset();
-        this._dtz.reset();
     }
 
-    public TimeZone getTimeZoneInstance() {
+    public ZoneId getZoneId() {
         return this._tz.get(() -> {
-            TimeZone tz = null;
+            ZoneId tz = null;
             if (!StringUtils.isEmpty(timezone))
-                tz = TimeZone.getTimeZone(timezone);
+                tz = ZoneId.of(timezone);
             if (tz == null)
-                tz = TimeZone.getDefault();
+                tz = ZoneId.systemDefault();
             return tz;
-        });
-    }
-
-    public DateTimeZone getDateTimeZoneInstance() {
-        return this._dtz.get(() -> {
-            DateTimeZone dtz = null;
-            if (!StringUtils.isEmpty(timezone))
-                dtz = DateTimeZone.forID(timezone);
-            if (dtz == null)
-                dtz = DateTimeZone.getDefault();
-            return dtz;
         });
     }
 
@@ -451,7 +436,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
             int resetPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE);
             int resetPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
             NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(resetPeriodType, resetPeriods);
-            ZoneId zoneId = this.getTimeZoneInstance().toZoneId();
+            ZoneId zoneId = this.getZoneId();
             ZonedDateTime lastChange = ZonedDateTime.ofInstant(Instant.ofEpochMilli(this.passwordChangeTimestamp), zoneId);
             ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Common.timer.currentTimeMillis()), zoneId);
             ZonedDateTime nextChange = (ZonedDateTime) adjuster.adjustInto(lastChange);
@@ -705,7 +690,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         in.defaultReadObject();
 
         _tz = new LazyInitializer<>();
-        _dtz = new LazyInitializer<>();
         localeObject = new LazyInitializer<>();
         grantedPermissions = new LazyInitializer<>();
         authorities = new LazyInitializer<>();
