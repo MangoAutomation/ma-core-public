@@ -455,7 +455,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         String locale = vo.getLocale();
-        if (locale != null) {
+        if (StringUtils.isNotEmpty(locale)) {
             if (StringValidation.isLengthGreaterThan(locale, 50)) {
                 response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
             }
@@ -468,7 +468,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         String timezone = vo.getTimezone();
-        if (timezone != null) {
+        if (StringUtils.isNotEmpty(vo.getTimezone())) {
             if (StringValidation.isLengthGreaterThan(vo.getTimezone(), 50)) {
                 response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
             }
