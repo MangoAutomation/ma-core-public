@@ -444,8 +444,8 @@ CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contex
 -- Mango Default Data
 --
 -- Insert admin user
-INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, locale, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES 
-	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', '', 1, 1, UNIX_TIMESTAMP(NOW()) * 1000, 'N', UNIX_TIMESTAMP(NOW()) * 1000);      
+INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES 
+	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', 1, 1, UNIX_TIMESTAMP(NOW()) * 1000, 'N', UNIX_TIMESTAMP(NOW()) * 1000);      
 -- Insert default roles
 INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmin role');
 INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'User role');
