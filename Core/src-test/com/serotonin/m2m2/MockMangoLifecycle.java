@@ -9,8 +9,12 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,6 +124,15 @@ public class MockMangoLifecycle implements IMangoLifecycle {
      * @throws IOException
      */
     public void initialize() throws InterruptedException, ExecutionException {
+
+        //See if we have any translations to load
+        try {
+            ClassLoader prevCl = Thread.currentThread().getContextClassLoader();
+            ClassLoader urlCl = URLClassLoader.newInstance(new URL[]{Paths.get("classes").toUri().toURL()}, prevCl);
+            Thread.currentThread().setContextClassLoader(urlCl);
+        } catch (MalformedURLException e) {
+            fail(e.getMessage());
+        }
 
         // create temporary paths for data
         try {
