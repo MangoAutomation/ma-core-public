@@ -35,6 +35,7 @@ import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
@@ -84,6 +85,24 @@ abstract public class DataSourceVO extends AbstractActionVO {
 
     public <T extends DataSourceVO> void setDefinition(DataSourceDefinition<T> definition) {
         this.definition = definition;
+    }
+
+    /**
+     * Create a data point with necessary settings about this data source
+     *  set along with its point locator
+     * @return
+     */
+    public DataPointVO createDataPointVO() {
+        DataPointVO vo = new DataPointVO();
+        vo.setDataSourceId(id);
+        vo.setDataSourceXid(xid);
+        vo.setDeviceName(name);
+        vo.setDataSourceName(name);
+        vo.setDataSourceTypeName(getDefinition().getDataSourceTypeName());
+        vo.setPointLocator(createPointLocator());
+        vo.defaultTextRenderer();
+
+        return vo;
     }
 
     @Override
