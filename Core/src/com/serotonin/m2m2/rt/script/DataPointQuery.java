@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.RQLUtils;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
@@ -63,7 +64,7 @@ public class DataPointQuery extends ScriptUtility {
      * @return
      */
     public List<DataPointWrapper> query(String query){
-        ASTNode root = parser.parse(query);
+        ASTNode root = RQLUtils.parseRQLtoAST(query);
         List<DataPointVO> dataPoints = new ArrayList<>();
         ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null);
         DataPointDao.getInstance().customizedQuery(conditions, permissions, new MappedRowCallback<DataPointVO>() {
