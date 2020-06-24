@@ -150,7 +150,7 @@ public class JsonPropertyConverter extends AbstractClassConverter {
                 JsonValue propJsonValue = jsonObject.get(name);
                 if (propJsonValue == null) {
                     //Try the aliases
-                    if(prop.getReadAliases().length > 0 ) {
+                    if(prop.getReadAliases() != null && prop.getReadAliases().length > 0 ) {
                         for(String readAlias : prop.getReadAliases()) {
                             propJsonValue = jsonObject.get(readAlias);
                             if(propJsonValue != null) {
