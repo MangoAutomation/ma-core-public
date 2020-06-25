@@ -21,13 +21,13 @@ public class PointEventDetectorRowMapper extends EventDetectorRowMapper<Abstract
 
     private final DataPointVO dp;
 
-    public PointEventDetectorRowMapper(DataPointVO dp, ExtractJson<Clob, JsonNode> extractJson) {
-        super(extractJson);
+    public PointEventDetectorRowMapper(DataPointVO dp, ExtractJson<Clob, JsonNode> extractJson, EventDetectorDao dao) {
+        super(extractJson, dao);
         this.dp = dp;
     }
 
-    public PointEventDetectorRowMapper(int firstColumn, int sourceIdColumnOffset, ExtractJson<Clob, JsonNode> extractJson, DataPointVO dp){
-        super(firstColumn, sourceIdColumnOffset, extractJson);
+    public PointEventDetectorRowMapper(int firstColumn, ExtractJson<Clob, JsonNode> extractJson, DataPointVO dp, EventDetectorDao dao){
+        super(firstColumn, extractJson, dao);
         this.dp = dp;
     }
 

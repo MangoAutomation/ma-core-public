@@ -135,7 +135,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     @Override
     public RowMapper<AbstractEventDetectorVO> getRowMapper() {
-        return new EventDetectorRowMapper<AbstractEventDetectorVO>((c) -> this.extractData(c));
+        return new EventDetectorRowMapper<AbstractEventDetectorVO>((c) -> this.extractData(c), this);
     }
 
     public JsonObject readValueFromString(String json) throws JsonException, IOException {
@@ -249,7 +249,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         Select<Record> query = getJoinedSelectQuery().where(sourceIdColumnName.eq(sourceId)).orderBy(this.table.getIdAlias());
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        return query(sql, args.toArray(new Object[args.size()]), new PointEventDetectorRowMapper(dp, (c) -> this.extractData(c)));
+        return query(sql, args.toArray(new Object[args.size()]), new PointEventDetectorRowMapper(dp, (c) -> this.extractData(c), this));
     }
 
     /**
@@ -293,13 +293,20 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     class EventDetectorWithDataPointResultSetExtractor implements ResultSetExtractor<List<AbstractPointEventDetectorVO>> {
 
+        private final int firstEventDetectorColumn;
+
+        public EventDetectorWithDataPointResultSetExtractor(int firstEventDetectorColumn){
+            this.firstEventDetectorColumn = firstEventDetectorColumn;
+        }
+
+
         @Override
         public List<AbstractPointEventDetectorVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
             List<AbstractPointEventDetectorVO> results = new ArrayList<>();
             RowMapper<DataPointVO> pointRowMapper = DataPointDao.getInstance().getRowMapper();
             while(rs.next()) {
                 DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-                PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(dataPointTable.getSelectFields().size() + 3 + 1, 5, (c) -> EventDetectorDao.this.extractData(c), dpvo);
+                PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(firstEventDetectorColumn, (c) -> EventDetectorDao.this.extractData(c), dpvo, EventDetectorDao.this);
                 AbstractPointEventDetectorVO ped = mapper.mapRow(rs, rs.getRow());
                 results.add(ped);
             }
@@ -321,6 +328,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
                 fields.add(dataSourceTable.getAlias("xid"));
                 fields.add(dataSourceTable.getAlias("dataSourceType"));
 
+                int firstEventDetectorColumn = fields.size() + 1; //next field is the start of our columns
                 fields.addAll(getSelectFields());
 
                 Select<Record> select = this.joinTables(this.getSelectQuery(fields), null)
@@ -330,9 +338,9 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
                         .on(DSL.field(dataSourceTable.getAlias("id"))
                                 .eq(this.table.getAlias("dataSourceId")))
                         .where(this.table.getAlias("sourceTypeName").eq(sourceType));
-                customizedQuery(select, new EventDetectorWithDataPointResultSetExtractor());
+                customizedQuery(select, new EventDetectorWithDataPointResultSetExtractor(firstEventDetectorColumn));
             default:
-                return query(getJoinedSelectQuery().getSQL() + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>((c) -> this.extractData(c)));
+                return query(getJoinedSelectQuery().getSQL() + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>((c) -> this.extractData(c), this));
         }
     }
 }

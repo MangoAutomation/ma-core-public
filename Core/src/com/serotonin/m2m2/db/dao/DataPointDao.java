@@ -94,6 +94,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     private final PermissionService permissionService;
     private final PermissionDao permissionDao;
     private final DataPointTagsDao dataPointTagsDao;
+    private final EventDetectorDao eventDetectorDao;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -108,7 +109,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionDao permissionDao,
-            DataPointTagsDao dataPointTagsDao) {
+            DataPointTagsDao dataPointTagsDao,
+            EventDetectorDao eventDetectorDao) {
         super(EventType.EventTypeNames.DATA_POINT, table,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
@@ -118,6 +120,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         this.permissionService = permissionService;
         this.permissionDao = permissionDao;
         this.dataPointTagsDao = dataPointTagsDao;
+        this.eventDetectorDao = eventDetectorDao;
     }
 
     /**
@@ -170,11 +173,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointWithEventDetectors>> {
 
         private final int firstEventDetectorColumn;
-        private final EventDetectorRowMapper<AbstractEventDetectorVO> eventRowMapper;
 
         public DataPointStartupResultSetExtractor() {
             this.firstEventDetectorColumn = getSelectFields().size() + 1;
-            this.eventRowMapper = new EventDetectorRowMapper<AbstractEventDetectorVO>(this.firstEventDetectorColumn, 6, (c) -> DataPointDao.this.extractData(c));
         }
 
         @Override
@@ -207,7 +208,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         private void addEventDetector(DataPointWithEventDetectors dp, ResultSet rs) throws SQLException {
             if(rs.getObject(firstEventDetectorColumn) == null)
                 return;
-            AbstractEventDetectorVO edvo = eventRowMapper.mapRow(rs, rs.getRow());
+            PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(this.firstEventDetectorColumn, (c) -> DataPointDao.this.extractData(c), dp.getDataPoint(), eventDetectorDao);
+            AbstractEventDetectorVO edvo = mapper.mapRow(rs, rs.getRow());
             AbstractPointEventDetectorVO ped = (AbstractPointEventDetectorVO) edvo;
             dp.getEventDetectors().add(ped);
         }

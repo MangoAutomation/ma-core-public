@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.dataPoint;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -56,5 +57,10 @@ public class DataPointWithEventDetectors {
         eventDetectors.add(dped);
     }
 
+    @Override
+    public String toString() {
+        String detectorNames = eventDetectors.stream().map(detector -> detector.getName()).collect(Collectors.joining(","));
+        return dataPoint.getName() + "[" + detectorNames + "]";
+    }
 
 }

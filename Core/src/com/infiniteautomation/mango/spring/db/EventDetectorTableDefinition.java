@@ -34,6 +34,13 @@ public class EventDetectorTableDefinition extends AbstractTableDefinition {
     public static final Field<Integer> READ_PERMISSION_ALIAS = DSL.field( DSL.name("ed").append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<Integer> EDIT_PERMISSION_ALIAS = DSL.field( DSL.name("ed").append("editPermissionId"), SQLDataType.INTEGER.nullable(false));
 
+    public static final String SOURCE_TYPE_NAME_NAME = "sourceTypeName";
+    public static final String TYPE_NAME_NAME = "typeName";
+    public static final String JSON_DATA_NAME = "jsonData";
+    public static final String DATA_NAME = "data";
+    public static final String READ_PERMISSION_NAME = "readPermissionId";
+    public static final String EDIT_PERMISSION_NAME = "editPermissionId";
+
     public EventDetectorTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("edt"));
     }
@@ -46,12 +53,12 @@ public class EventDetectorTableDefinition extends AbstractTableDefinition {
     @Override
     protected void addFields(List<Field<?>> fields) {
         super.addFields(fields);
-        fields.add(DSL.field(DSL.name("sourceTypeName"), SQLDataType.VARCHAR(32)));
-        fields.add(DSL.field(DSL.name("typeName"), SQLDataType.VARCHAR(32)));
-        fields.add(DSL.field(DSL.name("jsonData"), SQLDataType.CLOB));
-        fields.add(DSL.field(DSL.name("data"), SQLDataType.CLOB));
-        fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(false)));
-        fields.add(DSL.field(DSL.name("editPermissionId"), SQLDataType.INTEGER.nullable(false)));
+        fields.add(DSL.field(DSL.name(SOURCE_TYPE_NAME_NAME), SQLDataType.VARCHAR(32)));
+        fields.add(DSL.field(DSL.name(TYPE_NAME_NAME), SQLDataType.VARCHAR(32)));
+        fields.add(DSL.field(DSL.name(JSON_DATA_NAME), SQLDataType.CLOB));
+        fields.add(DSL.field(DSL.name(DATA_NAME), SQLDataType.CLOB));
+        fields.add(DSL.field(DSL.name(READ_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false)));
+        fields.add(DSL.field(DSL.name(EDIT_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false)));
 
         Map<String, Field<?>> definitionFields = new LinkedHashMap<>();
         //Build our ordered column set from the Module Registry
