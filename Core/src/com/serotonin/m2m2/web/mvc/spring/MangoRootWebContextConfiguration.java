@@ -30,8 +30,8 @@ public class MangoRootWebContextConfiguration {
     public static final String CONTEXT_ID = "rootWebContext";
 
     @Bean(name="localeResolver")
-    public SessionLocaleResolver getSessionLocaleResolver(){
-        return new SessionLocaleResolver();
+    public MangoLocaleResolver getSessionLocaleResolver() {
+        return new MangoLocaleResolver();
     }
 
     @Bean(name="messageSource")
