@@ -3,10 +3,7 @@
  */
 package com.infiniteautomation.mango.db.query.pojo;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -16,16 +13,19 @@ import java.util.stream.Stream;
 import com.infiniteautomation.mango.db.query.RQLMatchToken;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 
+import com.serotonin.m2m2.i18n.Translations;
 import net.jazdw.rql.parser.ASTNode;
 
 public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
     private final Predicate<T> filter;
+    private final ObjectComparator defaultComparator;
     private Long limit;
     private Long offset;
     private Comparator<T> sort;
 
-    public RQLFilter(ASTNode node) {
+    public RQLFilter(ASTNode node, Translations translations) {
+        this.defaultComparator = new ObjectComparator(translations);
         this.filter = node == null ? null : this.visit(node);
     }
 
@@ -182,7 +182,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     }
 
     protected Comparator<Object> getComparator(String propertyName) {
-        return ObjectComparator.INSTANCE;
+        return this.defaultComparator;
     }
 
     protected Comparator<T> getSortComparator(String property) {

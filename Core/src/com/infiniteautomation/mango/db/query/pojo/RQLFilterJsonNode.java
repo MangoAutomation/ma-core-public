@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.serotonin.m2m2.i18n.Translations;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
@@ -22,7 +23,7 @@ public class RQLFilterJsonNode extends RQLFilter<JsonNode> {
      * @param node
      */
     public RQLFilterJsonNode(ASTNode node) {
-        super(node);
+        super(node, null);
     }
 
     @Override

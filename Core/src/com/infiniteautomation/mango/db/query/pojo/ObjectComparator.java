@@ -3,6 +3,9 @@
  */
 package com.infiniteautomation.mango.db.query.pojo;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
+
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -12,9 +15,11 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ObjectComparator implements Comparator<Object> {
 
-    public static final Comparator<Object> INSTANCE = new ObjectComparator();
+    private final Translations translations;
 
-    private ObjectComparator() {}
+    public ObjectComparator(Translations translations) {
+        this.translations = translations;
+    }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
@@ -36,7 +41,14 @@ public class ObjectComparator implements Comparator<Object> {
             return Double.valueOf(((Number) a).doubleValue()).compareTo(((Number) b).doubleValue());
         }
 
-        return a.toString().compareTo(b.toString());
+        return toString(a).compareTo(toString(b));
+    }
+
+    private String toString(Object arg) {
+        if (this.translations != null && arg instanceof TranslatableMessage) {
+            return ((TranslatableMessage) arg).translate(this.translations);
+        }
+        return arg.toString();
     }
 
     private static boolean isInteger(Object o) {

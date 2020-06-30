@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.db.query.pojo;
 import java.lang.reflect.InvocationTargetException;
 import java.util.regex.Pattern;
 
+import com.serotonin.m2m2.i18n.Translations;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -22,8 +23,8 @@ public class RQLFilterJavaBean<T> extends RQLFilter<T> {
     /**
      * @param node
      */
-    public RQLFilterJavaBean(ASTNode node) {
-        super(node);
+    public RQLFilterJavaBean(ASTNode node, Translations translations) {
+        super(node, translations);
     }
 
     @Override
