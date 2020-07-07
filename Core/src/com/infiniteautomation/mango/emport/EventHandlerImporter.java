@@ -58,9 +58,6 @@ public class EventHandlerImporter extends Importer {
                     handler.setXid(xid);
                 }
             }
-        }else {
-            //We want to only add event types via import so load existing in first
-            handler.setEventTypes(service.getDao().getEventTypesForHandler(handler.getId()));
         }
 
         JsonObject et = json.getJsonObject("eventType");

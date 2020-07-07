@@ -16,7 +16,6 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
@@ -129,7 +128,7 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
-        writer.writeEntry("eventTypes", EventHandlerDao.getInstance().getEventTypesForHandler(id));
+        writer.writeEntry("eventTypes", this.eventTypes);
     }
 
     @Override
