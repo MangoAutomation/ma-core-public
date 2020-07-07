@@ -22,6 +22,7 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
+import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.User;
@@ -270,4 +271,19 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         return response;
     }
 
+    /**
+     * Force the poll of a data source
+     * @param id
+     * @throws NotFoundException
+     * @throws PermissionException - if calling permission holder does not have edit permission
+     * @throws RTException - if source is disabled
+     */
+    public void forceDataSourcePoll(int id) throws NotFoundException, PermissionException, RTException {
+        DataSourceVO vo = get(id);
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        permissionService.ensureDataSourceEditPermission(user, vo);
+        Common.runtimeManager.forceDataSourcePoll(vo.getId());
+    }
 }
