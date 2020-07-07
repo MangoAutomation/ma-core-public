@@ -53,7 +53,11 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.SetPointSource;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -79,13 +83,11 @@ import com.serotonin.validation.StringValidation;
 public class DataPointService extends AbstractVOService<DataPointVO, DataPointTableDefinition, DataPointDao> {
 
     private final EventDetectorDao eventDetectorDao;
-    private final DataSourceDao dataSourceDao;
 
     @Autowired
-    public DataPointService(DataPointDao dao, DataSourceDao dataSourceDao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
+    public DataPointService(DataPointDao dao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
         super(dao, permissionService);
         this.eventDetectorDao = eventDetectorDao;
-        this.dataSourceDao = dataSourceDao;
     }
 
     @Override
@@ -313,7 +315,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
             DataPointVO dataPointCopy = dataPoint.copy();
             dataPointCopy.setId(Common.NEW_ID);
-            dataPointCopy.setXid(getDao().generateUniqueXid());
+            dataPointCopy.setXid(dao.generateUniqueXid());
             dataPointCopy.setName(dataPoint.getName());
             dataPointCopy.setDeviceName(newDeviceName);
             dataPointCopy.setDataSourceId(newDataSourceId);
@@ -692,5 +694,60 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         DataPointVO vo = get(xid);
         List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
         return new DataPointWithEventDetectors(vo, detectors);
+    }
+
+    /**
+     * Set the value of a data point
+     * @param id
+     * @param valueTime
+     * @param source
+     * @throws NotFoundException
+     * @throws PermissionException - if the setting permission holder does not have set permission
+     * @throws RTException - if the point is not enabled and settable
+     */
+    public void setValue(int id, PointValueTime valueTime, SetPointSource source) throws NotFoundException, PermissionException, RTException {
+        DataPointVO vo = get(id);
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        permissionService.ensureDataPointSetPermission(user, vo);
+        Common.runtimeManager.setDataPointValue(vo.getId(), valueTime, source);
+    }
+
+    /**
+     * Set the value, let Mango use now as the time of the value
+     * @param id
+     * @param value
+     * @param source
+     * @throws NotFoundException
+     * @throws PermissionException - if the setting permission holder does not have set permission
+     * @throws RTException - if the point is not enabled and settable
+     */
+    public void setValue(int id, DataValue value, SetPointSource source) throws NotFoundException, PermissionException, RTException {
+        setValue(id, new PointValueTime(value, Common.timer.currentTimeMillis()), source);
+    }
+
+    /**
+     * Force the point to read it's value (if supported by data source)
+     * @param id
+     * @throws NotFoundException
+     * @throws PermissionException - if calling permission holder does not have read permission
+     * @throws RTException - if point or source is disabled
+     */
+    public void forcePointRead(int id) throws NotFoundException, PermissionException, RTException {
+        DataPointVO vo = get(id);
+        Common.runtimeManager.forcePointRead(vo.getId());
+    }
+
+    /**
+     * Relinquish the value of a BACnet data point
+     * @param id
+     * @throws NotFoundException
+     * @throws PermissionException - if calling permission holder does not have read permission
+     * @throws RTException - if point or source is disabled
+     */
+    public void reliquish(int id) throws NotFoundException, PermissionException, RTException {
+        DataPointVO vo = get(id);
+        Common.runtimeManager.relinquish(vo.getId());
     }
 }
