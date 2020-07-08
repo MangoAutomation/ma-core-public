@@ -69,7 +69,7 @@ public class QueryBuilder<T> {
         if (!stack.isEmpty()) {
             throw new TranslatableRuntimeException(new TranslatableMessage("dao.query.closeGroups"));
         }
-        return countFn.apply(new ConditionSortLimit(group.toCondition(), null, null, null));
+        return countFn.apply(createConditionSortLimit(group.toCondition(), null, null, null));
     }
 
     public void query(Consumer<T> consumer) {
@@ -80,7 +80,7 @@ public class QueryBuilder<T> {
         if (!stack.isEmpty()) {
             throw new TranslatableRuntimeException(new TranslatableMessage("dao.query.closeGroups"));
         }
-        queryFn.accept(new ConditionSortLimit(group.toCondition(), sort, limit, offset), consumer);
+        queryFn.accept(createConditionSortLimit(group.toCondition(), sort, limit, offset), consumer);
     }
 
     public List<T> query() {
@@ -192,5 +192,9 @@ public class QueryBuilder<T> {
     @Override
     public String toString() {
         return group.toCondition().toString();
+    }
+
+    protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
+        return new ConditionSortLimit(condition, sort, limit, offset);
     }
 }

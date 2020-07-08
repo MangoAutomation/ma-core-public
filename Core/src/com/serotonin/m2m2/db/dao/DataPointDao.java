@@ -15,18 +15,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jooq.Condition;
-import org.jooq.Field;
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Select;
-import org.jooq.SelectJoinStep;
-import org.jooq.Table;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -820,4 +816,45 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         });
     }
 
+    @Override
+    public QueryBuilder<DataPointVO> buildQuery(PermissionHolder user) {
+        return new DataPointQueryBuilder(table.getAliasMap(), valueConverterMap,
+                csl -> customizedCount(csl, user),
+                (csl, consumer) -> customizedQuery(csl, user, consumer));
+    }
+
+    private static class DataPointQueryBuilder extends QueryBuilder<DataPointVO> {
+
+        int tagIndex = 0;
+        final Map<String, Name> tagKeyToColumn = new HashMap<>();
+
+        protected DataPointQueryBuilder(Map<String, Field<?>> fields,
+                                        Map<String, Function<Object, Object>> valueConverter,
+                                        Function<ConditionSortLimit, Integer> countFn,
+                                        BiConsumer<ConditionSortLimit, Consumer<DataPointVO>> queryFn) {
+            super(fields, valueConverter, countFn, queryFn);
+        }
+
+        @Override
+        protected Field<Object> getField(String fieldName) {
+            String tagKey;
+
+            if (fieldName.startsWith("tags.")) {
+                tagKey = fieldName.substring("tags.".length());
+            } else {
+                return super.getField(fieldName);
+            }
+
+            Name columnName = columnNameForTagKey(tagKey);
+            return DSL.field(DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS.append(columnName));
+        }
+
+        private Name columnNameForTagKey(String tagKey) {
+            return tagKeyToColumn.computeIfAbsent(tagKey, k -> DSL.name("key" + tagIndex++));
+        }
+
+        protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
+            return new ConditionSortLimitWithTagKeys(condition, sort, limit, offset, tagKeyToColumn);
+        }
+    }
 }
