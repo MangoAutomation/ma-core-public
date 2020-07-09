@@ -311,7 +311,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
-        return this.create.select(fields)
+        return this.create.selectDistinct(fields)
                 .from(this.table.getTableAsAlias());
     }
 
