@@ -45,7 +45,6 @@ import org.springframework.security.web.access.intercept.FilterSecurityIntercept
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -202,7 +201,6 @@ public class MangoSecurityConfiguration {
     @Autowired Optional<CorsConfigurationSource> corsConfigurationSource;
     @Autowired AuthenticationSuccessHandler authenticationSuccessHandler;
     @Autowired AuthenticationFailureHandler authenticationFailureHandler;
-    @Autowired LogoutHandler logoutHandler;
     @Autowired LogoutSuccessHandler logoutSuccessHandler;
     @Autowired RequestCache requestCache;
     @Autowired CsrfTokenRepository csrfTokenRepository;
@@ -505,7 +503,6 @@ public class MangoSecurityConfiguration {
 
             http.logout()
             .logoutRequestMatcher(new OrRequestMatcher(new AntPathRequestMatcher("/rest/*/logout", "POST"), new AntPathRequestMatcher("/logout", "POST")))
-            .addLogoutHandler(logoutHandler)
             .invalidateHttpSession(true)
             // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
             // but why not for the sake of cleanliness
