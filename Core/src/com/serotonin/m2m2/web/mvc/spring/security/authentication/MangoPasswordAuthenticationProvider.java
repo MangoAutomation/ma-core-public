@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -36,6 +37,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.RateLimiter;
  *
  */
 @Component
+@Order(1)
 public class MangoPasswordAuthenticationProvider implements AuthenticationProvider {
 
     private final UserDetailsService userDetailsService;

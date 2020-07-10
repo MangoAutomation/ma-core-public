@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.spring.security.authentication;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
@@ -33,6 +34,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
  * @author Jared Wiltshire
  */
 @Component
+@Order(2)
 @ConditionalOnProperty(value = {"${authentication.token.enabled:true}"})
 public class MangoTokenAuthenticationProvider implements AuthenticationProvider {
     private final TokenAuthenticationService tokenAuthenticationService;
