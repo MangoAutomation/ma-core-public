@@ -49,7 +49,6 @@ public class MangoSecurityEventListener {
     @EventListener
     private void handleAuthenticationSuccessEvent(AuthenticationSuccessEvent event) {
         Authentication authentication = event.getAuthentication();
-        User user = (User) authentication.getPrincipal();
 
         String remoteAddress = "";
         Object details = authentication.getDetails();
@@ -59,6 +58,8 @@ public class MangoSecurityEventListener {
         }
 
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            User user = (User) authentication.getPrincipal();
+
             // Update the last login time.
             userDao.recordLogin(user);
 

@@ -20,10 +20,8 @@ import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition.LoginUriInfo;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -74,10 +72,6 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
             if (session != null) {
                 session.setMaxInactiveInterval((int)(Common.getMillis(Common.TIME_PERIOD_CODES.getId(user.getSessionExpirationPeriodType()), user.getSessionExpirationPeriods())/1000L));
             }
-        }
-
-        for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
-            def.authenticationSuccess(authentication, user);
         }
 
         if (browserHtmlRequestMatcher.matches(request)) {

@@ -15,6 +15,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.infiniteautomation.mango.spring.components.TokenAuthenticationService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.vo.User;
@@ -32,6 +33,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
  * @author Jared Wiltshire
  */
 @Component
+@ConditionalOnProperty(value = {"${authentication.token.enabled:true}"})
 public class MangoTokenAuthenticationProvider implements AuthenticationProvider {
     private final TokenAuthenticationService tokenAuthenticationService;
     private final UserDetailsChecker userDetailsChecker;

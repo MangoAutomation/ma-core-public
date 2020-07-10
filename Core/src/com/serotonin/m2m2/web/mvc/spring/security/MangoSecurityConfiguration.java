@@ -68,11 +68,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.AuthenticationDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoMethodSecurityExpressionHandler;
 import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEvaluator;
@@ -93,29 +89,20 @@ public class MangoSecurityConfiguration {
         return expressionHandler;
     }
 
+    //TODO Inject a list of Auth providers
+    //TODO annotated the MangoTokenAuthenticationProvider to enable/disable creation
     @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
             MangoUserDetailsService userDetails,
-            MangoPasswordAuthenticationProvider passwordAuthenticationProvider,
-            MangoTokenAuthenticationProvider tokenAuthProvider,
-            @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled,
+            List<AuthenticationProvider> authProviders,
             AuthenticationEventPublisher authenticationEventPublisher
             ) throws Exception {
 
         // causes DaoAuthenticationProvider to be added which we don't want
         //auth.userDetailsService(userDetails);
 
-        for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
-            AuthenticationProvider provider = def.authenticationProvider();
-            if (provider != null) {
-                auth.authenticationProvider(provider);
-            }
-        }
-
-        auth.authenticationProvider(passwordAuthenticationProvider);
-
-        if (tokenAuthEnabled) {
-            auth.authenticationProvider(tokenAuthProvider);
+        for(AuthenticationProvider provider : authProviders) {
+            auth.authenticationProvider(provider);
         }
 
         auth.authenticationEventPublisher(authenticationEventPublisher);
