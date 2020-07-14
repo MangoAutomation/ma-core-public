@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import com.infiniteautomation.mango.db.query.RQLMatchToken;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import net.jazdw.rql.parser.ASTNode;
 
@@ -20,11 +21,13 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
     private final Predicate<T> filter;
     private final ObjectComparator defaultComparator;
+    private final Translations translations;
     private Long limit;
     private Long offset;
     private Comparator<T> sort;
 
     public RQLFilter(ASTNode node, Translations translations) {
+        this.translations = translations;
         this.defaultComparator = new ObjectComparator(translations);
         this.filter = node == null ? null : this.visit(node);
     }
@@ -150,8 +153,19 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 Pattern target = Pattern.compile(regex, caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
 
                 return (item) -> {
-                    String value = (String) getProperty(item, property);
-                    return target.matcher(value).matches();
+                    Object value = getProperty(item, property);
+                    if (value == null) {
+                        return false;
+                    }
+
+                    String stringValue;
+                    if (value instanceof TranslatableMessage) {
+                        stringValue = ((TranslatableMessage) value).translate(this.translations);
+                    } else {
+                        stringValue = value.toString();
+                    }
+
+                    return target.matcher(stringValue).matches();
                 };
             }
             case CONTAINS: {
