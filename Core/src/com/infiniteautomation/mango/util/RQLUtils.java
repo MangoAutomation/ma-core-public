@@ -18,7 +18,6 @@ import net.jazdw.rql.parser.RQLParserException;
  */
 public class RQLUtils {
 
-    private static final ASTNode DEFAULT_NODE = new ASTNode("and");
     private static final Pattern FORMAT_PARAMETER_PATTERN = Pattern.compile("(?:^|&)format=[\\w-]+?(?:$|&)");
 
     public static ASTNode parseRQLtoAST(String queryString) throws InvalidRQLException {
@@ -29,14 +28,16 @@ public class RQLUtils {
      * Create an AST Node from the RQL query in the request
      * @param queryString
      * @return ASTNode
-     * @throws InvalidRQLRestException
+     * @throws InvalidRQLException
      */
     public static ASTNode parseRQLtoAST(String queryString, Converter converter) throws InvalidRQLException {
-        if (queryString == null || queryString.isEmpty()) return DEFAULT_NODE;
-
-        // remove format=x e.g. format=csv parameter
-        queryString = FORMAT_PARAMETER_PATTERN.matcher(queryString).replaceFirst("");
-        if (queryString.isEmpty()) return DEFAULT_NODE;
+        if (queryString != null) {
+            // remove format=x e.g. format=csv parameter
+            queryString = FORMAT_PARAMETER_PATTERN.matcher(queryString).replaceFirst("");
+        }
+        if (queryString == null || queryString.isEmpty()) {
+            return new ASTNode("and");
+        }
 
         RQLParser parser = new RQLParser(converter);
         try {
