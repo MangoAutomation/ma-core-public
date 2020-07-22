@@ -7,18 +7,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.StringMangoScript;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.json.JsonException;
-import com.serotonin.json.JsonReader;
-import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
@@ -35,7 +30,7 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
     String engineName;
     @JsonProperty
     String script;
-
+    @JsonProperty
     Set<Role> scriptRoles = Collections.emptySet();
 
     @Override
@@ -66,22 +61,6 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
             Set<String> roleXids = (Set<String>) in.readObject();
             setScriptRoleXids(roleXids);
         }
-    }
-
-    @Override
-    public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        super.jsonWrite(writer);
-        writer.writeEntry("scriptRoles", getScriptRoleXids());
-    }
-
-
-    @Override
-    public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        super.jsonRead(reader, jsonObject);
-
-        Set<String> roleXids = new HashSet<>();
-        reader.readInto(roleXids, jsonObject.get("scriptRoles"));
-        setScriptRoleXids(roleXids);
     }
 
     public MangoScript toMangoScript() {
