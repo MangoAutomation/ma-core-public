@@ -126,8 +126,9 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 Comparator<Object> comparator = getComparator(property);
 
                 return item -> {
+                    Object propertyValue = getProperty(item, property);
                     return convertedArgs.stream().anyMatch(arg -> {
-                        return comparator.compare(getProperty(item, property), arg) == 0;
+                        return comparator.compare(propertyValue, arg) == 0;
                     });
                 };
             }
@@ -225,17 +226,13 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     private void applySort(List<Object> arguments) {
         this.sort = null;
         for (Object arg : arguments) {
-            boolean descending;
-
+            boolean descending = false;
             String property = (String) arg;
             if (property.startsWith("-")) {
                 descending = true;
                 property = property.substring(1);
             } else if (property.startsWith("+")) {
                 property = property.substring(1);
-                descending = false;
-            } else {
-                descending = false;
             }
 
             Comparator<T> comparator = getSortComparator(mapPropertyName(property));
