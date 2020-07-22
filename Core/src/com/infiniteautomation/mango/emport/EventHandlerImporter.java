@@ -88,8 +88,10 @@ public class EventHandlerImporter extends Importer {
                 boolean isnew = handler.getId() == Common.NEW_ID;
                 if(isnew) {
                     service.insert(handler);
+                    addSuccessMessage(true, "emport.eventHandler.prefix", xid);
                 }else {
                     service.update(handler.getId(), handler);
+                    addSuccessMessage(false, "emport.eventHandler.prefix", xid);
                 }
 
             }catch(ValidationException e) {
