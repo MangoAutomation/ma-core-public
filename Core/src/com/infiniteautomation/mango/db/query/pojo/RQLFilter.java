@@ -227,13 +227,23 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
         this.sort = null;
         for (Object arg : arguments) {
             boolean descending = false;
-            String property = (String) arg;
-            if (property != null) {
-                if (property.startsWith("-")) {
+            String property = null;
+
+            if (arg instanceof List) {
+                List<Object> sortArgs = (List) arg;
+                property = (String) sortArgs.get(0);
+                if (sortArgs.size() > 1) {
+                    descending = (boolean) sortArgs.get(1);
+                }
+            } else if (arg != null) {
+                String argStr = (String) arg;
+                if (argStr.startsWith("-")) {
                     descending = true;
-                    property = property.substring(1);
-                } else if (property.startsWith("+")) {
-                    property = property.substring(1);
+                    property = argStr.substring(1);
+                } else if (argStr.startsWith("+")) {
+                    property = argStr.substring(1);
+                } else {
+                    property = argStr;
                 }
             }
 

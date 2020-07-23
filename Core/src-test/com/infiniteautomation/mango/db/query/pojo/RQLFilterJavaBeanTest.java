@@ -27,6 +27,17 @@ public class RQLFilterJavaBeanTest {
     }
 
     @Test
+    public void sortStringsReverse() {
+        ASTNode node = RQLUtils.parseRQLtoAST("sort((null,true))");
+        RQLFilter<String> filter = new RQLFilterJavaBean<>(node, null);
+
+        String[] filtered = filter.apply(Stream.of("aaa", "zzz")).toArray(String[]::new);
+        assertEquals(2, filtered.length);
+        assertEquals("zzz", filtered[0]);
+        assertEquals("aaa", filtered[1]);
+    }
+
+    @Test
     public void compareNumbers() {
         ASTNode node = RQLUtils.parseRQLtoAST("gt(null,1)");
         RQLFilter<Integer> filter = new RQLFilterJavaBean<>(node, null);
