@@ -228,11 +228,13 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
         for (Object arg : arguments) {
             boolean descending = false;
             String property = (String) arg;
-            if (property.startsWith("-")) {
-                descending = true;
-                property = property.substring(1);
-            } else if (property.startsWith("+")) {
-                property = property.substring(1);
+            if (property != null) {
+                if (property.startsWith("-")) {
+                    descending = true;
+                    property = property.substring(1);
+                } else if (property.startsWith("+")) {
+                    property = property.substring(1);
+                }
             }
 
             Comparator<T> comparator = getSortComparator(mapPropertyName(property));

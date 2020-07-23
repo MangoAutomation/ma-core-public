@@ -29,6 +29,9 @@ public class RQLFilterJavaBean<T> extends RQLFilter<T> {
 
     @Override
     protected Object getProperty(Object item, String property) {
+        if (property == null) {
+            return item;
+        }
         String[] propertyNames = PROPERTY_SEPARATOR.split(property);
         for (String subProperty : propertyNames) {
             item = getItemProperty(item, subProperty);

@@ -28,6 +28,9 @@ public class RQLFilterJsonNode extends RQLFilter<JsonNode> {
 
     @Override
     protected Object getProperty(JsonNode item, String property) {
+        if (property == null) {
+            return item;
+        }
         String[] propertyNames = RQLFilterJavaBean.PROPERTY_SEPARATOR.split(property);
         for (String subProperty : propertyNames) {
             item = item.get(subProperty);
