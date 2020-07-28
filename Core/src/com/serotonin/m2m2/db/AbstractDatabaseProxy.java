@@ -135,6 +135,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 // The database exists, so let's make its schema version matches the application version.
                 DBUpgrade.checkUpgrade();
 
+            //Ensure the modules are upgraded/installed after the core schema is updated
+            for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
+                def.newInstallationCheck(ejt);
+
             // Check if we are using NoSQL
             NoSQLProxy proxy = ModuleRegistry.getDefinition(NoSQLProxy.class);
             if (proxy != null) {
@@ -159,7 +163,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         postInitialize(ejt, "", newDatabase);
     }
 
-    //TODO Mango 4.0 it seems possible that if a core is installed, new modules can be installed and THEN the core and modules will be upgraded.
     private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
         boolean coreIsNew = false;
 
@@ -181,9 +184,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             }
             coreIsNew = true;
         }
-
-        for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
-            def.newInstallationCheck(ejt);
 
         return coreIsNew;
     }
