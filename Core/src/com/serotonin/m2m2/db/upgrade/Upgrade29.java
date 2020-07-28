@@ -87,11 +87,14 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointIndexes);
             runScript(scripts, out);
 
+            //Setup roles
+            createRolesTables(out);
+
             Map<String, Role> roles = new HashMap<>();
             roles.put(PermissionHolder.SUPERADMIN_ROLE_XID, PermissionHolder.SUPERADMIN_ROLE);
             roles.put(PermissionHolder.USER_ROLE_XID, PermissionHolder.USER_ROLE);
+            roles.put(PermissionHolder.ANONYMOUS_ROLE_XID, PermissionHolder.ANONYMOUS_ROLE);
 
-            createRolesTables(roles, out);
             createSystemPermissions(out);
             convertUsers(roles, out);
             convertSystemSettingsPermissions(roles, out);
@@ -161,7 +164,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         runScript(scripts, out);
     }
 
-    private void createRolesTables(Map<String, Role> roles, OutputStream out) throws Exception {
+    private void createRolesTables(OutputStream out) throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), createRolesMySQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), createRolesSQL);
@@ -331,18 +334,31 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         runScript(scripts, out);
 
         //Move current permissions to roles
-        ejt.query("SELECT id, readPermission, editPermission FROM jsonData", new RowCallbackHandler() {
+        ejt.query("SELECT id, readPermission, editPermission, publicData FROM jsonData", new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 int voId = rs.getInt(1);
                 //Add role/mapping
                 Set<String> readPermissions = explodePermissionGroups(rs.getString(2));
+                if(charToBool(rs.getString(4))) {
+                    //Is public so add anonymous role
+                    readPermissions = new HashSet<>(readPermissions);
+                    readPermissions.add(PermissionHolder.ANONYMOUS_ROLE_XID);
+                }
                 Integer readId = insertMapping(readPermissions, roles);
                 Set<String> editPermissions = explodePermissionGroups(rs.getString(3));
                 Integer editId = insertMapping(editPermissions, roles);
                 ejt.update("UPDATE jsonData SET readPermissionId=?, editPermissionId=? WHERE id=?", new Object[] {readId, editId, voId});
             }
         });
+
+        //DROP publicData column
+        scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataDropPublicDataSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataDropPublicDataSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataDropPublicDataSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataDropPublicDataSQL);
+        runScript(scripts, out);
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
@@ -850,6 +866,10 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "ALTER TABLE jsonData ADD COLUMN editPermissionId INT;",
             "ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
             "ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+    };
+
+    private String[] jsonDataDropPublicDataSQL = new String[] {
+            "ALTER TABLE jsonData DROP COLUMN publicData;",
     };
 
     //
