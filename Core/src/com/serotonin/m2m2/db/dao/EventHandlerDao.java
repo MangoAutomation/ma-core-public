@@ -118,7 +118,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         return new EventHandlerRowMapper();
     }
 
-    private static final String EVENT_HANDLER_SELECT = "SELECT id, xid, alias, eventHandlerType, data readPermissionId, editPermissionId FROM eventHandlers ";
+    private static final String EVENT_HANDLER_SELECT = "SELECT id, xid, alias, eventHandlerType, data, readPermissionId, editPermissionId FROM eventHandlers ";
     /**
      * Note: eventHandlers.eventTypeRef[1,2] match on both the given ref and 0. This is to allow a single set of event
      * handlers to be defined for user login events, rather than have to individually define them for each user.
@@ -126,7 +126,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     private static final String EVENT_HANDLER_SELECT_BY_TYPE_SUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, " +
             "eh.data, eh.readPermissionId, eh.editPermissionId FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE ehm.eventTypeName=? AND " +
             "ehm.eventSubtypeName=? AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? or ehm.eventTypeRef2=0)";
-    private static final String EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, eh.data , eh.readPermissionId, eh.editPermissionId " +
+    private static final String EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, eh.data, eh.readPermissionId, eh.editPermissionId " +
             "FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE ehm.eventTypeName=? AND " +
             "ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
 
