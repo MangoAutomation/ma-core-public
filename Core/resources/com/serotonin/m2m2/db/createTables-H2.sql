@@ -317,10 +317,15 @@ CREATE TABLE eventHandlers (
   xid varchar(100) NOT NULL,
   alias varchar(255) NOT NULL,
   eventHandlerType varchar(40) NOT NULL,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   data longblob NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersUn1 UNIQUE (xid);
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+
 
 CREATE TABLE eventHandlersMapping (
   eventHandlerId int not null,

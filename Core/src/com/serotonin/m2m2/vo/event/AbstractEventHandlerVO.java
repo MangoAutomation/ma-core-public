@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -27,6 +28,11 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
 
     @JsonProperty
     private boolean disabled;
+
+    @JsonProperty
+    private MangoPermission editPermission = new MangoPermission();
+    @JsonProperty
+    private MangoPermission readPermission = new MangoPermission();
 
     private EventHandlerDefinition<? extends AbstractEventHandlerVO> definition;
 
@@ -101,6 +107,22 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
      */
     public void setEventTypes(List<EventType> eventTypes) {
         this.eventTypes = eventTypes;
+    }
+
+    public MangoPermission getEditPermission() {
+        return editPermission;
+    }
+
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission = editPermission;
+    }
+
+    public MangoPermission getReadPermission() {
+        return readPermission;
+    }
+
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
 
     //

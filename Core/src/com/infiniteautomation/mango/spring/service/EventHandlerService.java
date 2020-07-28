@@ -45,12 +45,12 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, AbstractEventHandlerVO vo) {
-        return permissionService.hasAdminRole(user);
+        return permissionService.hasPermission(user, vo.getEditPermission());
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, AbstractEventHandlerVO vo) {
-        return permissionService.hasAdminRole(user);
+        return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     @Override
@@ -66,6 +66,9 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     public ProcessResult validate(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, vo, user);
+        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
+        permissionService.validateVoRoles(result, "editPermission", user, false, null, vo.getEditPermission());
+
         return result;
     }
 
@@ -73,6 +76,8 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, existing, vo, user);
+        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validateVoRoles(result, "editPermission", user, false, existing.getEditPermission(), vo.getEditPermission());
         return result;
     }
 

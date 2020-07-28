@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,12 +26,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.util.SerializationHelper;
 
 /**
  * Fix MySQL data source table to have a name column length of 255
@@ -103,9 +100,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             convertJsonData(roles, out);
             convertMailingLists(roles, out);
             convertFileStores(roles, out);
-            //TODO Mango 4.0 Fix up
-            //convertEmailEventHandlers(out);
-            //convertSetPointEventHandlers(out);
+            upgradeEventHandlers(roles, out);
+            upgradeEventDetectors(roles, out);
             dropTemplates(out);
             dropPointHierarchy(out);
             dropUserEvents(out);
@@ -400,6 +396,50 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         runScript(scripts, out);
     }
 
+    private void upgradeEventDetectors(Map<String, Role> roles, OutputStream out) throws Exception {
+        //Add permission id columns
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), eventDetectorsPermissionMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventDetectorsPermissionH2);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventDetectorsPermissionMSSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventDetectorsPermissionMySQL);
+        runScript(scripts, out);
+
+        //set permission to superadmin
+        Integer readId = insertMapping(Collections.singleton(PermissionHolder.SUPERADMIN_ROLE_XID), roles);
+        Integer editId = insertMapping(Collections.singleton(PermissionHolder.SUPERADMIN_ROLE_XID), roles);
+        ejt.update("UPDATE eventDetectors SET readPermissionId=?, editPermissionId=?", new Object[] {readId, editId});
+
+        //Restrict to NOT NULL
+        scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(),eventDetectorsPermissionNotNullMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventDetectorsPermissionNotNull);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventDetectorsPermissionNotNull);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventDetectorsPermissionNotNull);
+    }
+
+    private void upgradeEventHandlers(Map<String, Role> roles, OutputStream out) throws Exception {
+        //Add permission id columns
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), eventHandlersPermissionMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventHandlersPermissionH2);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventHandlersPermissionMSSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventHandlersPermissionMySQL);
+        runScript(scripts, out);
+
+        //set permission to superadmin
+        Integer readId = insertMapping(Collections.singleton(PermissionHolder.SUPERADMIN_ROLE_XID), roles);
+        Integer editId = insertMapping(Collections.singleton(PermissionHolder.SUPERADMIN_ROLE_XID), roles);
+        ejt.update("UPDATE eventHandlers SET readPermissionId=?, editPermissionId=?", new Object[] {readId, editId});
+
+        //Restrict to NOT NULL
+        scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), eventHandlersPermissionNotNullMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventHandlersPermissionNotNull);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventHandlersPermissionNotNull);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventHandlersPermissionNotNull);
+    }
+
     private void convertFileStores(Map<String, Role> roles, OutputStream out) throws Exception {
         //Add permission id columns
         Map<String, String[]> scripts = new HashMap<>();
@@ -436,39 +476,6 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), fileStoresDropPermissionsSQL);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoresDropPermissionsSQL);
         runScript(scripts, out);
-    }
-
-    /**
-     * Read out data and re-serialize to convert script roles
-     */
-    private void convertEmailEventHandlers(OutputStream out) {
-        //Read and save all persistent data sources to bump their serialization version
-        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
-            @Override
-            public void processRow(ResultSet rs) throws SQLException {
-                int id = rs.getInt(1);
-                AbstractEventHandlerVO vo = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
-                ejt.update("UPDATE eventHandlers SET data=? where id=?",
-                        new Object[] {SerializationHelper.writeObjectToArray(vo), id});
-            }
-        });
-    }
-
-    /**
-     * Read out data and re-serialize to convert script roles
-     * @param out
-     */
-    private void convertSetPointEventHandlers(OutputStream out) {
-        //Read and save all persistent data sources to bump their serialization version
-        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {SetPointEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
-            @Override
-            public void processRow(ResultSet rs) throws SQLException {
-                int id = rs.getInt(1);
-                AbstractEventHandlerVO vo = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
-                ejt.update("UPDATE eventHandlers SET data=? where id=?",
-                        new Object[] {SerializationHelper.writeObjectToArray(vo), id});
-            }
-        });
     }
 
     //
@@ -894,6 +901,72 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "CREATE TABLE mangoSessionData (sessionId NVARCHAR(120), contextPath NVARCHAR(60), virtualHost NVARCHAR(60), lastNode NVARCHAR(60), accessTime BIGINT, lastAccessTime BIGINT, createTime BIGINT, cookieTime BIGINT, lastSavedTime BIGINT, expiryTime BIGINT, maxInterval BIGINT, userId INT, primary key (sessionId, contextPath, virtualHost));",
             "CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);",
             "CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);"
+    };
+
+    //
+    //Event Detectors
+    //
+    private String[] eventDetectorsPermissionH2 = new String[] {
+            "ALTER TABLE  eventDetectors ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE  eventDetectors ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE  eventDetectors ADD CONSTRAINT eventDetectorsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE  eventDetectors ADD CONSTRAINT eventDetectorsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+    };
+    private String[] eventDetectorsPermissionMySQL = new String[] {
+            "ALTER TABLE eventDetectors ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE eventDetectors ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+    };
+
+    private String [] eventDetectorsPermissionNotNullMySQL = new String[] {
+            "ALTER TABLE eventDetectors MODIFY COLUMN readPermissionId INT NOT NULL;",
+            "ALTER TABLE eventDetectors MODIFY COLUMN editPermissionId INT NOT NULL;"
+    };
+
+    private String [] eventDetectorsPermissionNotNull = new String[] {
+            "ALTER TABLE eventDetectors ALTER COLUMN readPermissionId INT NOT NULL;",
+            "ALTER TABLE eventDetectors ALTER COLUMN editPermissionId INT NOT NULL;"
+    };
+
+    private String[]eventDetectorsPermissionMSSQL = new String[] {
+            "ALTER TABLE eventDetectors ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE eventDetectors ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+    };
+
+    //
+    //Event Handlers
+    //
+    private String[] eventHandlersPermissionH2 = new String[] {
+            "ALTER TABLE  eventHandlers ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE  eventHandlers ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE  eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE  eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+    };
+    private String[] eventHandlersPermissionMySQL = new String[] {
+            "ALTER TABLE eventHandlers ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE eventHandlers ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+    };
+
+    private String [] eventHandlersPermissionNotNullMySQL = new String[] {
+            "ALTER TABLE eventHandlers MODIFY COLUMN readPermissionId INT NOT NULL;",
+            "ALTER TABLE eventHandlers MODIFY COLUMN editPermissionId INT NOT NULL;"
+    };
+
+    private String [] eventHandlersPermissionNotNull = new String[] {
+            "ALTER TABLE eventHandlers ALTER COLUMN readPermissionId INT NOT NULL;",
+            "ALTER TABLE eventHandlers ALTER COLUMN editPermissionId INT NOT NULL;"
+    };
+
+    private String[] eventHandlersPermissionMSSQL = new String[] {
+            "ALTER TABLE eventHandlers ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE eventHandlers ADD COLUMN editPermissionId INT;",
+            "ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     @Override

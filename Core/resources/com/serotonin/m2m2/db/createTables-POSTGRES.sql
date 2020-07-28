@@ -319,17 +319,14 @@ CREATE TABLE eventHandlers (
   xid varchar(100) NOT NULL,
   alias varchar(255) NOT NULL,
   eventHandlerType varchar(40) NOT NULL,
-  
-  -- Event type, see events
-  eventTypeName varchar(32) NOT NULL,
-  eventSubtypeName varchar(32),
-  eventTypeRef1 integer NOT NULL,
-  eventTypeRef2 integer NOT NULL,
-  
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,  
   data bytea NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersUn1 UNIQUE (xid);
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 
 --
 --

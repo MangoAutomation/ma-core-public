@@ -323,10 +323,14 @@ create table eventHandlers (
   xid varchar(100) not null,
   alias varchar(255) not null,
   eventHandlerType varchar(40) NOT NULL,
+  readPermissionId INT NOT NULL,
+  editPermissionId INT NOT NULL,
   data longblob not null,
   primary key (id)
 ) engine=InnoDB;
 alter table eventHandlers add constraint eventHandlersUn1 unique (xid);
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 
 CREATE TABLE eventHandlersMapping (
   eventHandlerId int not null,

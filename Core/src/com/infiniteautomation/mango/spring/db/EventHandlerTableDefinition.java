@@ -36,9 +36,19 @@ public class EventHandlerTableDefinition extends AbstractTableDefinition {
     public static final Field<Integer> EVENT_HANDLER_MAPPING_TYPEREF2_ALIAS = DSL.field(EVENT_HANDLER_MAPPING_ALIAS.append(DSL.name("eventTypeRef2")), SQLDataType.INTEGER.nullable(false));
 
     public static final String TABLE_NAME = "eventHandlers";
+    public static final Table<Record> TABLE = DSL.table(TABLE_NAME);
+
+    public static final String READ_PERMISSION_NAME = "readPermissionId";
+    public static final String EDIT_PERMISSION_NAME = "editPermissionId";
+
+    public static final Field<Integer> READ_PERMISSION = DSL.field(TABLE.getQualifiedName().append(READ_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> EDIT_PERMISSION = DSL.field(TABLE.getQualifiedName().append(EDIT_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false));
+
+    public static final Field<Integer> READ_PERMISSION_ALIAS = DSL.field( DSL.name("eh").append(READ_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> EDIT_PERMISSION_ALIAS = DSL.field( DSL.name("eh").append(EDIT_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false));
 
     public EventHandlerTableDefinition() {
-        super(DSL.table(TABLE_NAME), DSL.name("eh"));
+        super(TABLE, DSL.name("eh"));
     }
 
     @Override
@@ -51,6 +61,8 @@ public class EventHandlerTableDefinition extends AbstractTableDefinition {
         super.addFields(fields);
         fields.add(DSL.field(DSL.name("eventHandlerType"), SQLDataType.VARCHAR(40)));
         fields.add(DSL.field(DSL.name("data"), SQLDataType.BLOB));
+        fields.add(DSL.field(DSL.name(READ_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false)));
+        fields.add(DSL.field(DSL.name(EDIT_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false)));
     }
 
 }
