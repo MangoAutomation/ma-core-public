@@ -6,6 +6,9 @@
 package com.serotonin.m2m2.vo.json;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -17,6 +20,8 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -32,7 +37,6 @@ public class JsonDataVO extends AbstractVO {
 
     @JsonProperty
     private MangoPermission editPermission = new MangoPermission();
-    @JsonProperty
     private MangoPermission readPermission = new MangoPermission();
 
     public JsonNode getJsonData() {
@@ -73,6 +77,19 @@ public class JsonDataVO extends AbstractVO {
             jsonData = JsonDataDao.getInstance().readValueFromString(json);
         } catch (Exception e) {
             throw new TranslatableJsonException("emport.error.parseError", "jsonData");
+        }
+
+        //Read permission handling in case we need to add the anonymous role
+        if(jsonObject.containsKey("readPermission")) {
+            readPermission = reader.read(MangoPermission.class, jsonObject.get("readPermission"));
+        }else {
+            readPermission = new MangoPermission();
+        }
+
+        if(jsonObject.containsKey("publicData")) {
+            Set<Set<Role>> newRoles = new HashSet<>(readPermission.getRoles());
+            newRoles.add(Collections.singleton(PermissionHolder.ANONYMOUS_ROLE));
+            readPermission = new MangoPermission(newRoles);
         }
     }
 
