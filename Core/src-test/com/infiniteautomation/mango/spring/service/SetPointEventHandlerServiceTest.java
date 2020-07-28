@@ -102,6 +102,8 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
             SetPointEventHandlerVO vo = newVO(editUser);
+            vo.setReadPermission(MangoPermission.createOrSet(editRole));
+            vo.setEditPermission(MangoPermission.createOrSet(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);

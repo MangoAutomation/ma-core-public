@@ -56,6 +56,8 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
             EmailEventHandlerVO vo = newVO(editUser);
+            vo.setReadPermission(MangoPermission.createOrSet(editRole));
+            vo.setEditPermission(MangoPermission.createOrSet(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
@@ -117,6 +119,9 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
+        assertPermission(expected.getReadPermission(), actual.getReadPermission());
+        assertPermission(expected.getEditPermission(), actual.getEditPermission());
+
         assertPermission(((EmailEventHandlerVO)expected).getScriptRoles().getPermission(), ((EmailEventHandlerVO)actual).getScriptRoles().getPermission());
 
         //TODO assert remaining
