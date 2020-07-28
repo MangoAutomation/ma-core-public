@@ -246,7 +246,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
                 service.delete(vo.getId());
 
                 //Ensure the mappings are gone
-                assertEquals(0, service.getDao().getUserRoles(vo).size());
+                assertEquals(0, getDao().getUserRoles(vo).size());
 
                 service.get(vo.getId());
             });
@@ -456,8 +456,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUsernameUnique() {
         getService().permissionService.runAsSystemAdmin(() -> {
             User user = insertNewVO(readUser);
-            assertFalse(service.getDao().isUsernameUnique(user.getUsername(), Common.NEW_ID));
-            assertTrue(service.getDao().isUsernameUnique(user.getUsername(), user.getId()));
+            assertFalse(getDao().isUsernameUnique(user.getUsername(), Common.NEW_ID));
+            assertTrue(getDao().isUsernameUnique(user.getUsername(), user.getId()));
         });
     }
 
@@ -465,8 +465,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testEmailUnique() {
         getService().permissionService.runAsSystemAdmin(() -> {
             User user = insertNewVO(readUser);
-            assertFalse(service.getDao().isEmailUnique(user.getEmail(), Common.NEW_ID));
-            assertTrue(service.getDao().isEmailUnique(user.getEmail(), user.getId()));
+            assertFalse(getDao().isEmailUnique(user.getEmail(), Common.NEW_ID));
+            assertTrue(getDao().isEmailUnique(user.getEmail(), user.getId()));
         });
     }
 
@@ -485,8 +485,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             User user = insertNewVO(readUser);
             user.setDisabled(true);
             service.update(user.getId(), user);
-            List<User> active = service.getDao().getActiveUsers();
-            List<User> all = service.getDao().getAll();
+            List<User> active = getDao().getActiveUsers();
+            List<User> all = getDao().getAll();
             assertEquals(all.size() - 1, active.size());
         });
     }

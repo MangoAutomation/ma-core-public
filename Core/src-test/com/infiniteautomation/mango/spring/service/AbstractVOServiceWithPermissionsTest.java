@@ -470,7 +470,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             assertEquals(0, count.get());
         });
         getService().permissionService.runAs(editUser, () -> {
-            Condition c = getService().getDao().getTable().getNameAlias().eq(saved.getName());
+            Condition c = getDao().getTable().getNameAlias().eq(saved.getName());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {
@@ -497,7 +497,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             assertEquals(0, count.get());
         });
         getService().permissionService.runAs(editUser, () -> {
-            Condition c = getService().getDao().getTable().getNameAlias().eq(saved.getName());
+            Condition c = getDao().getTable().getNameAlias().eq(saved.getName());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {

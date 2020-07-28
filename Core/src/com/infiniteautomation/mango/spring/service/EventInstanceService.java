@@ -19,6 +19,7 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -39,11 +40,13 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceTableDefinition, EventInstanceDao> {
 
     private final DataPointService dataPointService;
+    private final DataPointDao dataPointDao;
 
     @Autowired
-    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointService dataPointService) {
+    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointService dataPointService, DataPointDao dataPointDao) {
         super(dao, permissionService);
         this.dataPointService = dataPointService;
+        this.dataPointDao = dataPointDao;
     }
 
     @Override
@@ -133,7 +136,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
         Map<Integer, DataPointEventLevelSummary> map = new LinkedHashMap<>();
         for(String xid : dataPointXids) {
-            Integer point = dataPointService.getDao().getIdByXid(xid);
+            Integer point = dataPointDao.getIdByXid(xid);
             if(point != null) {
                 map.put(point, new DataPointEventLevelSummary(xid));
             }

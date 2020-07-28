@@ -419,15 +419,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
-     * Get the DAO
-     * @return
-     */
-    @Deprecated
-    public DAO getDao() {
-        return dao;
-    }
-
-    /**
      * get the permission service that was wired in
      * @return
      */
