@@ -67,6 +67,7 @@ public class JsonDataVO extends AbstractVO {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("jsonData", JsonDataDao.getInstance().writeValueAsString(jsonData));
+        writer.writeEntry("readPermission", readPermission);
     }
 
     @Override
