@@ -31,8 +31,8 @@ public class EventDetectorTableDefinition extends AbstractTableDefinition {
     public static final Field<Integer> READ_PERMISSION = DSL.field(TABLE.getQualifiedName().append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<Integer> EDIT_PERMISSION = DSL.field(TABLE.getQualifiedName().append("editPermissionId"), SQLDataType.INTEGER.nullable(false));
 
-    public static final Field<Integer> READ_PERMISSION_ALIAS = DSL.field( DSL.name("ed").append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
-    public static final Field<Integer> EDIT_PERMISSION_ALIAS = DSL.field( DSL.name("ed").append("editPermissionId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> READ_PERMISSION_ALIAS = DSL.field( DSL.name("edt").append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> EDIT_PERMISSION_ALIAS = DSL.field( DSL.name("edt").append("editPermissionId"), SQLDataType.INTEGER.nullable(false));
 
     public static final String SOURCE_TYPE_NAME_NAME = "sourceTypeName";
     public static final String TYPE_NAME_NAME = "typeName";

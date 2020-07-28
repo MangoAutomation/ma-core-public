@@ -31,6 +31,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -126,7 +127,7 @@ public interface PermissionMigration {
 
     default Integer permissionId(MangoPermission permission) {
         if (permission.getRoles().isEmpty()) {
-            return null;
+            return getOrInsertPermission(MangoPermission.createOrSet(PermissionHolder.SUPERADMIN_ROLE));
         }
 
         return getTransactionTemplate().execute(txStatus -> {

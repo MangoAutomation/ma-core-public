@@ -202,6 +202,8 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
     @Override
     public void savePreRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
+        permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getEditPermission());
         vo.getDefinition().savePreRelationalData(existing, vo);
     }
 

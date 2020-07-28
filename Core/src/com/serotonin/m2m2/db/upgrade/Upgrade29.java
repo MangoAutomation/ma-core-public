@@ -274,6 +274,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointPermissionNotNull);
+        runScript(scripts, out);
 
         scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsMySQL);
@@ -299,7 +300,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
                 //Add role/mapping
                 Set<String> editPermissions = explodePermissionGroups(rs.getString(2));
                 Integer edit = insertMapping(editPermissions, roles);
-                ejt.update("UPDATE dataSources SET editPermissionId=? WHERE id=?", new Object[] {edit, voId});
+                ejt.update("UPDATE dataSources SET editPermissionId=?,readPermissionId=? WHERE id=?", new Object[] {edit, edit, voId});
             }
         });
 
@@ -309,6 +310,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcePermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcePermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcePermissionNotNull);
+        runScript(scripts, out);
 
         //Drop columns
         scripts = new HashMap<>();
@@ -348,6 +350,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataPermissionNotNull);
+        runScript(scripts, out);
 
         scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataDropPermissionsSQL);
@@ -386,6 +389,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), mailingListsPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mailingListsPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mailingListsPermissionNotNull);
+        runScript(scripts, out);
 
         //Drop old columns
         scripts = new HashMap<>();
@@ -416,6 +420,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventDetectorsPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventDetectorsPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventDetectorsPermissionNotNull);
+        runScript(scripts, out);
     }
 
     private void upgradeEventHandlers(Map<String, Role> roles, OutputStream out) throws Exception {
@@ -438,6 +443,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventHandlersPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventHandlersPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventHandlersPermissionNotNull);
+        runScript(scripts, out);
     }
 
     private void convertFileStores(Map<String, Role> roles, OutputStream out) throws Exception {
@@ -469,6 +475,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), fileStoresPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), fileStoresPermissionNotNull);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoresPermissionNotNull);
+        runScript(scripts, out);
 
         scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), fileStoresDropPermissionsSQL);
