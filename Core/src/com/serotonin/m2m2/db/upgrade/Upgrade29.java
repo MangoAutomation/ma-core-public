@@ -98,8 +98,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             createSystemPermissions(out);
             convertUsers(roles, out);
             convertSystemSettingsPermissions(roles, out);
-            convertDataPoints(roles, out);
             convertDataSources(roles, out);
+            convertDataPoints(roles, out);
             convertJsonData(roles, out);
             convertMailingLists(roles, out);
             convertFileStores(roles, out);
@@ -248,6 +248,12 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         }
     }
 
+    /**
+     * Convert data points AFTER data sources so we can reference the readPermissionId and editPermissionId
+     * @param roles
+     * @param out
+     * @throws Exception
+     */
     private void convertDataPoints(Map<String, Role> roles, OutputStream out) throws Exception {
         //Create permission columns
         Map<String, String[]> scripts = new HashMap<>();
@@ -258,7 +264,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         runScript(scripts, out);
 
         //Move current permissions to roles
-        ejt.query("SELECT id, readPermission, setPermission FROM dataPoints", new RowCallbackHandler() {
+        ejt.query("SELECT id, readPermission, setPermission, dataSourceId FROM dataPoints", new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 int voId = rs.getInt(1);
@@ -267,7 +273,9 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
                 Integer read = insertMapping(readPermissions, roles);
                 Set<String> setPermissions = explodePermissionGroups(rs.getString(3));
                 Integer set = insertMapping(setPermissions, roles);
-                ejt.update("UPDATE dataPoints SET readPermissionId=?,setPermissionId=? WHERE id=?", new Object[] {read, set, voId});
+                int dataSourceId = rs.getInt(4);
+                Integer edit = ejt.queryForInt("SELECT editPermissionId from dataSources WHERE id=?", new Object[] {dataSourceId}, 0);
+                ejt.update("UPDATE dataPoints SET readPermissionId=?,editPermissionId=?,setPermissionId=? WHERE id=?", new Object[] {read, edit, set, voId});
             }
         });
 
@@ -701,13 +709,16 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     private String[] dataPointPermissionH2 = new String[] {
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE dataPoints ADD COLUMN editPermissionId INT;",
             "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT;",
             "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk4 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     private String [] dataPointPermissionNotNull = new String[] {
             "ALTER TABLE dataPoints ALTER COLUMN readPermissionId INT NOT NULL;",
+            "ALTER TABLE dataPoints ALTER COLUMN editPermissionId INT NOT NULL;",
             "ALTER TABLE dataPoints ALTER COLUMN setPermissionId INT NOT NULL;"
     };
 
@@ -721,15 +732,18 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
     private String [] dataPointPermissionNotNullMySQL = new String[] {
             "ALTER TABLE dataPoints MODIFY COLUMN readPermissionId INT NOT NULL;",
+            "ALTER TABLE dataPoints MODIFY COLUMN editPermissionId INT NOT NULL;",
             "ALTER TABLE dataPoints MODIFY COLUMN setPermissionId INT NOT NULL;"
     };
 
     private String[] dataPointPermissionMySQL = new String[] {
             "ALTER TABLE dataPoints DROP FOREIGN KEY dataPointsFk2;",
             "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE dataPoints ADD COLUMN editPermissionId INT;",
             "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT;",
             "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk4 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     private String[] dataPointsMSSQL = new String[] {
@@ -742,9 +756,11 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     private String[] dataPointPermissionMSSQL = new String[] {
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT;",
+            "ALTER TABLE dataPoints ADD COLUMN editPermissionId INT;",
             "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT;",
             "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
-            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk4 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;"
     };
 
     //
