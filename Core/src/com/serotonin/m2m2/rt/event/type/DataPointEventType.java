@@ -136,6 +136,6 @@ public class DataPointEventType extends EventType {
         DataPointVO point = DataPointDao.getInstance().get(dataPointId);
         if(point == null)
             return false;
-        return service.hasDataPointReadPermission(user, point);
+        return service.hasPermission(user, point.getReadPermission());
     }
 }

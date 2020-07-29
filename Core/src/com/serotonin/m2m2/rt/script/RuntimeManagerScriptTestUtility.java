@@ -121,7 +121,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
     @Override
     public int enableDataPoint(String xid){
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-        if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
+        if(vo == null || !permissionService.hasPermission(permissions, vo.getEditPermission()))
             return DOES_NOT_EXIST;
         else if(!vo.isEnabled())
             return OPERATION_SUCCESSFUL;
@@ -137,7 +137,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
     @Override
     public int disableDataPoint(String xid){
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-        if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
+        if(vo == null || !permissionService.hasPermission(permissions, vo.getEditPermission()))
             return DOES_NOT_EXIST;
         else if(vo.isEnabled())
             return OPERATION_SUCCESSFUL;

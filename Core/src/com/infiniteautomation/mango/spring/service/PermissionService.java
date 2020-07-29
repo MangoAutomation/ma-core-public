@@ -35,8 +35,6 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -325,80 +323,6 @@ public class PermissionService {
      */
     public boolean hasDataSourceReadPermission(PermissionHolder user, DataSourceVO ds) {
         return hasPermission(user, ds.getReadPermission());
-    }
-
-    //
-    //
-    // Data point access
-    //
-    /**
-     * Ensure the PermissionHolder can read the data point
-     * @param user
-     * @param point
-     * @throws PermissionException
-     */
-    public void ensureDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
-        if (!hasDataPointReadPermission(user, point)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getPermissionHolderName()), user);
-        }
-    }
-
-    /**
-     * Can this PermissionHolder read the data point?
-     * @param user
-     * @param point
-     * @return
-     * @throws PermissionException
-     */
-    public boolean hasDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
-        if (hasPermission(user, point.getReadPermission())) {
-            return true;
-        }else if(hasDataPointSetPermission(user, point)) {
-            return true;
-        }else {
-            //TODO Mango 4.0 check edit permission too
-            MangoPermission read = permissionDao.getDataSourceReadPermission(point.getDataSourceId());
-            if(read != null && hasPermission(user, read)) {
-                return true;
-            }else {
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Ensure this PermissionHolder set values on this data point.
-     * @param user
-     * @param point
-     * @throws PermissionException
-     */
-    public void ensureDataPointSetPermission(PermissionHolder user, DataPointVO point) throws PermissionException {
-        if (!hasDataPointSetPermission(user, point))
-            throw new PermissionException(new TranslatableMessage("permission.exception.setDataPoint", user.getPermissionHolderName()), user);
-    }
-
-    /**
-     * Can this PermissionHolder set values on this data point?
-     * @param user
-     * @param point
-     * @return
-     * @throws PermissionException
-     */
-    public boolean hasDataPointSetPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
-        if (hasPermission(user, point.getSetPermission())) {
-            return true;
-        }
-        MangoPermission edit = permissionDao.getDataSourceEditPermission(point.getDataSourceId());
-        if(edit != null && hasPermission(user, edit)) {
-            return true;
-        }
-
-        MangoPermission read = permissionDao.getDataSourceReadPermission(point.getDataSourceId());
-        if(read != null && hasPermission(user, read)) {
-            return true;
-        }else {
-            return false;
-        }
     }
 
     /**

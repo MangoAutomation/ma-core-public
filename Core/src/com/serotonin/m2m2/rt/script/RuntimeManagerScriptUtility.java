@@ -197,7 +197,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
         if(vo == null)
             return false;
         else{
-            if(permissionService.hasDataPointSetPermission(permissions, vo) || permissionService.hasDataPointReadPermission(permissions, vo)){
+            if(permissionService.hasPermission(permissions, vo.getReadPermission())){
                 DataSourceVO ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
                 if(ds == null)
                     return false;

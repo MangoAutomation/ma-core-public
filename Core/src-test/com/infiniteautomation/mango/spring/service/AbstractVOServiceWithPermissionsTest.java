@@ -434,7 +434,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             getService().permissionService.runAsSystemAdmin(() -> {
                 return service.insert(vo);
             });
-            getService().permissionService.runAs(readUser, () -> {
+            getService().permissionService.runAs(editUser, () -> {
                 ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
                 int count = getService().customizedCount(conditions);
                 assertEquals(0, count);
@@ -442,14 +442,14 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         });
         runTest(() -> {
             VO vo = newVO(readUser);
-            setEditPermission(MangoPermission.createOrSet(roleService.getSuperadminRole(), editRole), vo);
+            setEditPermission(MangoPermission.createOrSet(roleService.getSuperadminRole(), readRole), vo);
             getService().permissionService.runAsSystemAdmin(() -> {
                 return service.insert(vo);
             });
-            getService().permissionService.runAs(editUser, () -> {
+            getService().permissionService.runAs(readUser, () -> {
                 ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
                 int count = getService().customizedCount(conditions);
-                assertEquals(2, count);
+                assertEquals(0, count);
             });
         });
     }
@@ -485,10 +485,10 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     public void testQueryEditPermissionEnforcement() {
         VO vo = newVO(editUser);
         setEditPermission(MangoPermission.createOrSet(roleService.getSuperadminRole(), editRole), vo);
-        VO saved = getService().permissionService.runAsSystemAdmin(() -> {
-            return service.insert(vo);
+        getService().permissionService.runAsSystemAdmin(() -> {
+            service.insert(vo);
         });
-        getService().permissionService.runAs(readUser, () -> {
+        getService().permissionService.runAs(editUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {
@@ -496,13 +496,19 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             });
             assertEquals(0, count.get());
         });
+
+        VO readable = newVO(editUser);
+        setReadPermission(MangoPermission.createOrSet(roleService.getSuperadminRole(), editRole), readable);
+        VO savedReadable = getService().permissionService.runAsSystemAdmin(() -> {
+            return service.insert(readable);
+        });
         getService().permissionService.runAs(editUser, () -> {
-            Condition c = getDao().getTable().getNameAlias().eq(saved.getName());
+            Condition c = getDao().getTable().getNameAlias().eq(savedReadable.getName());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {
                 count.getAndIncrement();
-                assertEquals(saved.getName(), item.getName());
+                assertEquals(savedReadable.getName(), item.getName());
             });
             assertEquals(1, count.get());
         });

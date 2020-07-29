@@ -110,7 +110,7 @@ implements MethodSecurityExpressionOperations {
         PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 
-        return (vo != null) && permissionService.hasDataPointReadPermission(user, vo);
+        return (vo != null) && permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
@@ -122,7 +122,7 @@ implements MethodSecurityExpressionOperations {
         User user =  (User) this.getPrincipal();
         for(String xid : xids){
             DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-            if((vo == null)||(!permissionService.hasDataPointReadPermission(user, vo)))
+            if((vo == null)||(!permissionService.hasPermission(user, vo.getReadPermission())))
                 return false;
 
         }
@@ -138,7 +138,7 @@ implements MethodSecurityExpressionOperations {
         PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 
-        return (vo != null) && permissionService.hasDataPointSetPermission(user, vo);
+        return (vo != null) && permissionService.hasPermission(user, vo.getSetPermission());
     }
 
     /**
@@ -151,7 +151,7 @@ implements MethodSecurityExpressionOperations {
         PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         for(String xid : xids){
             DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-            if((vo == null)||(!permissionService.hasDataPointSetPermission(user, vo)))
+            if((vo == null)||(!permissionService.hasPermission(user, vo.getSetPermission())))
                 return false;
 
         }

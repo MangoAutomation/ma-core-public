@@ -41,6 +41,12 @@ public interface IDataPoint {
     MangoPermission getReadPermission();
 
     /**
+     * Roles that can edit the point's configuration
+     * @return
+     */
+    MangoPermission getEditPermission();
+
+    /**
      * Roles that can set the point's value
      * @return
      */

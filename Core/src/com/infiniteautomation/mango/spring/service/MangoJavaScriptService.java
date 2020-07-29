@@ -110,9 +110,11 @@ public class MangoJavaScriptService {
     private static final Object globalFunctionsLock = new Object();
 
     private final PermissionService permissionService;
+    private final DataPointService dataPointService;
 
     @Autowired
-    public MangoJavaScriptService(PermissionService permissionService) {
+    public MangoJavaScriptService(PermissionService permissionService, DataPointService dataPointService) {
+        this.dataPointService = dataPointService;
         this.permissionService = permissionService;
     }
 
@@ -158,7 +160,7 @@ public class MangoJavaScriptService {
             if(dp == null)
                 result.addContextualMessage("context", "javascript.validate.missingContextPoint", varName);
             else {
-                if(!permissionService.hasDataPointReadPermission(user, dp))
+                if(!dataPointService.hasReadPermission(user, dp))
                     result.addContextualMessage("context", "javascript.validate.noReadPermissionOnContextPoint", varName);
             }
             if (StringUtils.isBlank(varName)) {
@@ -533,7 +535,7 @@ public class MangoJavaScriptService {
                     return;
                 }
 
-                if(!permissionService.hasDataPointSetPermission(permissions, dprt.getVO())) {
+                if(!dataPointService.hasSetPermission(permissions, dprt.getVO())) {
                     result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.pointPermissionsFailure", dprt.getVO().getXid()), Level.warning));
                     return;
                 }

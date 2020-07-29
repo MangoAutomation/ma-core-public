@@ -258,72 +258,72 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureDataPointReadPermissionOK() {
         User testUser = this.createTestUser();
         DataPointVO dp = createDataPoint(testUser.getRoles(), Collections.emptySet());
-        permissionService.ensureDataPointReadPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureDataPointReadPermissionFail() {
         User testUser = this.createTestUser();
         DataPointVO dp = createDataPoint();
-        permissionService.ensureDataPointReadPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
     @Test
     public void ensureDataPointReadPermissionOkEmptyPerms() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
         DataPointVO dp = createDataPoint();
-        permissionService.ensureDataPointReadPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureDataPointReadPermissionFailEmptyPerms() {
         User testUser = this.createTestUser();
         DataPointVO dp = createDataPoint();
-        permissionService.ensureDataPointReadPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
-    @Test
-    public void ensureDataPointReadPermissionOKHasDataSourcePermission() {
+    @Test(expected = PermissionException.class)
+    public void ensureNoDataPointReadPermissionWithDataSourcePermission() {
         MockDataSourceVO ds = createDataSource(randomRole());
         DataPointVO dp = createDataPoint(ds);
         User testUser = createTestUser(ds.getEditPermission().getUniqueRoles());
-        permissionService.ensureDataPointReadPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
-    @Test
-    public void ensureDataPointReadPermissionOKHasSetPermission() {
+    @Test(expected = PermissionException.class)
+    public void ensureNoDataPointReadPermissionWithSetPermission() {
         DataPointVO dp = createDataPoint(Collections.emptySet(), randomRoles(1));
         User testUser = createTestUser(dp.getSetPermission().getUniqueRoles());
-        permissionService.ensureDataPointReadPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
     @Test
     public void ensureDataPointReadPermissionOKHasReadPermission() {
         DataPointVO dp = createDataPoint(randomRoles(1), Collections.emptySet());
         User testUser = createTestUser(dp.getReadPermission().getUniqueRoles());
-        permissionService.ensureDataPointReadPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
-    @Test
-    public void ensureDataPointSetPermissionOKHasDataSourcePermission() {
+    @Test(expected = PermissionException.class)
+    public void ensureNoDataPointSetPermissionWithDataSourcePermission() {
         MockDataSourceVO ds = createDataSource(randomRoles(1));
         User testUser = createTestUser(ds.getEditPermission().getUniqueRoles());
         DataPointVO dp = createDataPoint(ds);
-        permissionService.ensureDataPointSetPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getSetPermission());
     }
 
     @Test
     public void ensureDataPointSetPermissionOKHasSetPermission() {
         DataPointVO dp = createDataPoint(Collections.emptySet(), randomRoles(1));
         User testUser = createTestUser(dp.getSetPermission().getUniqueRoles());
-        permissionService.ensureDataPointSetPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getSetPermission());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureDataPointSetPermissionFailHasReadPermission() {
         DataPointVO dp = createDataPoint(randomRoles(1), randomRoles(1));
         User testUser = this.createTestUser(dp.getReadPermission().getUniqueRoles());
-        permissionService.ensureDataPointSetPermission(testUser, dp);
+        permissionService.ensurePermission(testUser, dp.getSetPermission());
     }
 
     @Test

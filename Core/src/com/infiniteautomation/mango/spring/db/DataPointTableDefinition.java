@@ -25,9 +25,11 @@ public class DataPointTableDefinition extends AbstractTableDefinition {
     public static final Table<Record> TABLE = DSL.table(TABLE_NAME);
     public static final Field<Integer> ID = DSL.field(TABLE.getQualifiedName().append("id"), SQLDataType.INTEGER.nullable(false));
     public static final Field<Integer> READ_PERMISSION = DSL.field(TABLE.getQualifiedName().append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> EDIT_PERMISSION = DSL.field(TABLE.getQualifiedName().append("editPermissionId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<Integer> SET_PERMISSION = DSL.field(TABLE.getQualifiedName().append("setPermissionId"), SQLDataType.INTEGER.nullable(false));
 
     public static final Field<Integer> READ_PERMISSION_ALIAS = DSL.field( DSL.name("dp").append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> EDIT_PERMISSION_ALIAS = DSL.field( DSL.name("dp").append("editPermissionId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<Integer> SET_PERMISSION_ALIAS = DSL.field( DSL.name("dp").append("setPermissionId"), SQLDataType.INTEGER.nullable(false));
 
     public DataPointTableDefinition() {
@@ -57,6 +59,7 @@ public class DataPointTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("settable"), SQLDataType.CHAR(1)));
         fields.add(DSL.field(DSL.name("jsonData"), SQLDataType.CLOB));
         fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(false)));
+        fields.add(DSL.field(DSL.name("editPermissionId"), SQLDataType.INTEGER.nullable(false)));
         fields.add(DSL.field(DSL.name("setPermissionId"), SQLDataType.INTEGER.nullable(false)));
     }
 

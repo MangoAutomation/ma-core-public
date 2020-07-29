@@ -201,6 +201,8 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     @JsonProperty
     private MangoPermission readPermission = new MangoPermission();
     @JsonProperty
+    private MangoPermission editPermission = new MangoPermission();
+    @JsonProperty
     private MangoPermission setPermission = new MangoPermission();
     @JsonProperty
     private JsonNode data;
@@ -619,6 +621,15 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     }
 
     @Override
+    public MangoPermission getEditPermission() {
+        return editPermission;
+    }
+
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission = editPermission;
+    }
+
+    @Override
     public MangoPermission getSetPermission() {
         return setPermission;
     }
@@ -679,6 +690,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             copy.setOverrideIntervalLoggingSamples(overrideIntervalLoggingSamples);
             copy.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
             copy.setReadPermission(readPermission);
+            copy.setEditPermission(editPermission);
             copy.setSetPermission(setPermission);
             copy.setPreventSetExtremeValues(preventSetExtremeValues);
             copy.setSetExtremeHighLimit(setExtremeHighLimit);

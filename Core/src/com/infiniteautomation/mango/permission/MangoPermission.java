@@ -194,7 +194,7 @@ public class MangoPermission {
 
     @Override
     public String toString() {
-        return "id: " + id;
+        return "id: " + id + "\n" + roles.toString();
     }
 
 }

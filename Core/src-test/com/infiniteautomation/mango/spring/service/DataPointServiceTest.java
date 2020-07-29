@@ -6,6 +6,8 @@ package com.infiniteautomation.mango.spring.service;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Test;
@@ -13,6 +15,7 @@ import org.junit.Test;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -47,9 +50,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
         runTest(() -> {
             DataPointVO vo = newVO(editUser);
             getService().permissionService.runAsSystemAdmin(() -> {
-                DataSourceVO ds = dataSourceService.get(vo.getDataSourceId());
-                ds.setEditPermission(MangoPermission.createOrSet(editRole));
-                dataSourceService.update(ds.getXid(), ds);
+                addRoleToCreatePermission(editRole, vo);
                 setReadPermission(MangoPermission.createOrSet(roleService.getUserRole()), vo);
                 vo.setSetPermission(MangoPermission.createOrSet(roleService.getUserRole()));
             });
@@ -65,7 +66,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
         runTest(() -> {
             getService().permissionService.runAs(editUser, () -> {
                 DataPointVO vo = newVO(readUser);
-                addRoleToCreatePermission(editRole);
+                addRoleToCreatePermission(editRole, vo);
                 setReadPermission(MangoPermission.createOrSet(roleService.getUserRole()), vo);
                 setEditPermission(MangoPermission.createOrSet(roleService.getUserRole()), vo);
                 vo.setSetPermission(MangoPermission.createOrSet(roleService.getUserRole()));
@@ -248,12 +249,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
 
     @Override
     void setEditPermission(MangoPermission permission, DataPointVO vo) {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            DataSourceVO ds = dataSourceService.get(vo.getDataSourceId());
-            ds.setEditPermission(permission);
-            dataSourceService.update(ds.getXid(), ds);
-        });
-        vo.setSetPermission(permission);
+        vo.setEditPermission(permission);
     }
 
     @Override
@@ -276,22 +272,23 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
         assertEquals(expected.getPointLocator().getDataTypeId(), actual.getPointLocator().getDataTypeId());
 
         assertPermission(expected.getReadPermission(), actual.getReadPermission());
+        assertPermission(expected.getEditPermission(), actual.getEditPermission());
         assertPermission(expected.getSetPermission(), actual.getSetPermission());
     }
 
     @Override
     DataPointVO newVO(User user) {
-        return getService().permissionService.runAsSystemAdmin(() -> {;
-        DataSourceVO mock = dataSourceService.insert(createDataSource());
-        //Create the point
-        DataPointVO vo = new DataPointVO();
-        vo.setXid(UUID.randomUUID().toString());
-        vo.setName(UUID.randomUUID().toString());
-        vo.setDataSourceId(mock.getId());
-        vo.setPointLocator(new MockPointLocatorVO());
-        //TODO Flesh out all fields
+        return getService().permissionService.runAsSystemAdmin(() -> {
+            DataSourceVO mock = dataSourceService.insert(createDataSource());
+            //Create the point
+            DataPointVO vo = new DataPointVO();
+            vo.setXid(UUID.randomUUID().toString());
+            vo.setName(UUID.randomUUID().toString());
+            vo.setDataSourceId(mock.getId());
+            vo.setPointLocator(new MockPointLocatorVO());
+            //TODO Flesh out all fields
 
-        return vo;
+            return vo;
         });
     }
 
@@ -327,5 +324,22 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Override
     String getEditRolesContextKey() {
         return "setPermission";
+    }
+
+    @Override
+    void addRoleToCreatePermission(Role vo) {
+        throw new ShouldNeverHappenException("use addRoleToCreatePermission(Role,DataPointVO)");
+    }
+
+    void addRoleToCreatePermission(Role role, DataPointVO vo) {
+        getService().permissionService.runAsSystemAdmin(() -> {
+            DataSourceVO ds = dataSourceService.get(vo.getDataSourceId());
+            Set<Set<Role>> roles = new HashSet<>(ds.getEditPermission().getRoles());
+            Set<Role> createRole = new HashSet<>();
+            createRole.add(role);
+            roles.add(createRole);
+            ds.setEditPermission(new MangoPermission(roles));
+            dataSourceService.update(ds.getXid(), ds);
+        });
     }
 }

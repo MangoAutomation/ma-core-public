@@ -12,16 +12,16 @@ import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
- * 
+ *
  * @author Terry Packer
  *
  */
 public abstract class ScriptPointValueSetter {
-    
+
     private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
         return Common.getBean(PermissionService.class);
     });
-    
+
     protected PermissionHolder permissions;
 
     public ScriptPointValueSetter(PermissionHolder permissions) {
@@ -34,7 +34,8 @@ public abstract class ScriptPointValueSetter {
         if(!point.getVO().getPointLocator().isSettable())
             return;
 
-        if(permissions != null && !permissionService.get().hasDataPointSetPermission(permissions, point.getVO()))
+        //TODO Mango 4.0 should this really allowed to be null?  Dangerous?
+        if(permissions != null && !permissionService.get().hasPermission(permissions, point.getVO().getSetPermission()))
             throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", point.getVO().getXid()));
 
         setImpl(point, value, timestamp, annotation);

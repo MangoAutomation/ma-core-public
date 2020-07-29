@@ -22,7 +22,14 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectJoinStep;
+import org.jooq.SortField;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -359,6 +366,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 this.table.getAlias("dataSourceId"),
                 this.table.getAlias("deviceName"),
                 this.table.getAlias("readPermissionId"),
+                this.table.getAlias("editPermissionId"),
                 this.table.getAlias("setPermissionId"))
                 .from(this.table.getTableAsAlias()), null).where(this.table.getXidAlias().eq(xid)).limit(1);
 
@@ -374,7 +382,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                         summary.setDataSourceId(rs.getInt(4));
                         summary.setDeviceName(rs.getString(5));
                         summary.setReadPermission(permissionDao.get(rs.getInt(6)));
-                        summary.setSetPermission(permissionDao.get(rs.getInt(7)));
+                        summary.setEditPermission(permissionDao.get(rs.getInt(7)));
+                        summary.setSetPermission(permissionDao.get(rs.getInt(8)));
                         return summary;
                     }else {
                         return null;
@@ -526,6 +535,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 boolToChar(vo.getPointLocator().isSettable()),
                 convertData(vo.getData()),
                 vo.getReadPermission().getId(),
+                vo.getEditPermission().getId(),
                 vo.getSetPermission().getId()
         };
     }
@@ -571,6 +581,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
             dp.setData(extractData(rs.getClob(++i)));
             dp.setReadPermission(new MangoPermission(rs.getInt(++i)));
+            dp.setEditPermission(new MangoPermission(rs.getInt(++i)));
             dp.setSetPermission(new MangoPermission(rs.getInt(++i)));
             // Data source information from join
             dp.setDataSourceName(rs.getString(++i));
@@ -584,6 +595,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     @Override
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
         permissionDao.permissionId(vo.getReadPermission());
+        permissionDao.permissionId(vo.getEditPermission());
         permissionDao.permissionId(vo.getSetPermission());
     }
 
@@ -612,6 +624,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
                 permissionDao.permissionDeleted(existing.getReadPermission());
             }
+            if(!existing.getEditPermission().equals(vo.getEditPermission())) {
+                permissionDao.permissionDeleted(existing.getEditPermission());
+            }
             if(!existing.getSetPermission().equals(vo.getSetPermission())) {
                 permissionDao.permissionDeleted(existing.getSetPermission());
             }
@@ -630,6 +645,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         //Populate permissions
         vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
         vo.setSetPermission(permissionDao.get(vo.getSetPermission().getId()));
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
@@ -662,7 +678,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     @Override
     public void deletePostRelationalData(DataPointVO vo) {
         //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getSetPermission());
+        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission(), vo.getSetPermission());
     }
 
     @Override
@@ -713,8 +729,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            DataPointTableDefinition.READ_PERMISSION_ALIAS, DataPointTableDefinition.SET_PERMISSION_ALIAS,
-                            DataSourceTableDefinition.READ_PERMISSION_ALIAS, DataSourceTableDefinition.EDIT_PERMISSION_ALIAS));
+                            DataPointTableDefinition.READ_PERMISSION_ALIAS));
 
         }
         return select;
@@ -760,7 +775,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            DataSourceTableDefinition.EDIT_PERMISSION_ALIAS));
+                            DataPointTableDefinition.EDIT_PERMISSION_ALIAS));
 
         }
         return select;
@@ -829,9 +844,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         final Map<String, Name> tagKeyToColumn = new HashMap<>();
 
         protected DataPointQueryBuilder(Map<String, Field<?>> fields,
-                                        Map<String, Function<Object, Object>> valueConverter,
-                                        Function<ConditionSortLimit, Integer> countFn,
-                                        BiConsumer<ConditionSortLimit, Consumer<DataPointVO>> queryFn) {
+                Map<String, Function<Object, Object>> valueConverter,
+                Function<ConditionSortLimit, Integer> countFn,
+                BiConsumer<ConditionSortLimit, Consumer<DataPointVO>> queryFn) {
             super(fields, valueConverter, countFn, queryFn);
         }
 
@@ -853,6 +868,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             return tagKeyToColumn.computeIfAbsent(tagKey, k -> DSL.name("key" + tagIndex++));
         }
 
+        @Override
         protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
             return new ConditionSortLimitWithTagKeys(condition, sort, limit, offset, tagKeyToColumn);
         }

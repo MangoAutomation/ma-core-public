@@ -21,6 +21,7 @@ public class DataPointSummary implements IDataPoint {
     private int dataSourceId;
     private String deviceName;
     private MangoPermission readPermission;
+    private MangoPermission editPermission;
     private MangoPermission setPermission;
     private Map<String, String> tags;
 
@@ -91,6 +92,15 @@ public class DataPointSummary implements IDataPoint {
 
     public void setReadPermission(MangoPermission readPermission) {
         this.readPermission = readPermission;
+    }
+
+    @Override
+    public MangoPermission getEditPermission() {
+        return editPermission;
+    }
+
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission = editPermission;
     }
 
     @Override

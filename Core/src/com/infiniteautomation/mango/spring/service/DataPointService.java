@@ -97,12 +97,12 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, DataPointVO vo) {
-        return permissionService.hasDataSourceEditPermission(user, vo.getDataSourceId());
+        return permissionService.hasPermission(user, vo.getEditPermission());
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, DataPointVO vo) {
-        return permissionService.hasDataPointReadPermission(user, vo);
+        return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
@@ -112,7 +112,12 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      * @return
      */
     public boolean hasSetPermission(PermissionHolder user, DataPointVO vo) {
-        return permissionService.hasDataPointSetPermission(user, vo);
+        return permissionService.hasPermission(user, vo.getSetPermission());
+    }
+
+    public void ensureSetPermission(PermissionHolder user, DataPointVO vo) {
+        if(!hasSetPermission(user, vo))
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
     }
 
     @Override
@@ -679,7 +684,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        this.permissionService.ensureDataPointReadPermission(user, vo);
+        if(!permissionService.hasPermission(user, vo.getReadPermission()))
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
+
         return vo;
     }
 
@@ -710,7 +717,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        permissionService.ensureDataPointSetPermission(user, vo);
+        ensureSetPermission(user, vo);
         Common.runtimeManager.setDataPointValue(vo.getId(), valueTime, source);
     }
 

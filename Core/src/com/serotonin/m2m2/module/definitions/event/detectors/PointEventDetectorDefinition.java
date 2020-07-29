@@ -66,7 +66,7 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
     public boolean hasReadPermission(PermissionHolder user, T vo) {
         if(vo.getDataPoint() == null)
             return false;
-        return dataPointService.getPermissionService().hasDataPointReadPermission(user, vo.getDataPoint());
+        return dataPointService.hasReadPermission(user, vo.getDataPoint());
     }
 
     @Override

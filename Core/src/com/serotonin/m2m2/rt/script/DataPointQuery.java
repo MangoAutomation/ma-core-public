@@ -24,7 +24,6 @@ import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 import net.jazdw.rql.parser.ASTNode;
-import net.jazdw.rql.parser.RQLParser;
 
 /**
  *
@@ -39,7 +38,6 @@ public class DataPointQuery extends ScriptUtility {
 
     private ScriptEngine engine;
     private ScriptPointValueSetter setter;
-    private RQLParser parser = new RQLParser();
 
     @Autowired
     public DataPointQuery(MangoJavaScriptService service, PermissionService permissionService) {
@@ -81,9 +79,8 @@ public class DataPointQuery extends ScriptUtility {
         AbstractPointWrapper wrapper = null;
 
         for(DataPointVO dp : dataPoints){
-
             //Can we read or write to this point?
-            if(permissionService.hasDataPointSetPermission(permissions, dp) || permissionService.hasDataPointReadPermission(permissions, dp)){
+            if(permissionService.hasPermission(permissions, dp.getReadPermission())){
                 rt = Common.runtimeManager.getDataPoint(dp.getId());
                 if(rt != null)
                     wrapper = service.wrapPoint(engine, rt, setter);
@@ -100,7 +97,7 @@ public class DataPointQuery extends ScriptUtility {
         if(dp == null)
             return null;
 
-        if(permissionService.hasDataPointSetPermission(permissions, dp) || permissionService.hasDataPointReadPermission(permissions, dp)) {
+        if(permissionService.hasPermission(permissions, dp.getReadPermission())) {
             DataPointRT rt = null;
             AbstractPointWrapper wrapper = null;
             rt = Common.runtimeManager.getDataPoint(dp.getId());
