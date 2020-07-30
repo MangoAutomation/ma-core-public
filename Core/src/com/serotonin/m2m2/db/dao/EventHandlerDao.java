@@ -290,7 +290,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            EventHandlerTableDefinition.READ_PERMISSION_ALIAS, EventHandlerTableDefinition.EDIT_PERMISSION_ALIAS));
+                            EventHandlerTableDefinition.READ_PERMISSION_ALIAS));
 
         }
         return select;
