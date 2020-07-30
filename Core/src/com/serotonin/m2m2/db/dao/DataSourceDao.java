@@ -352,7 +352,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            DataSourceTableDefinition.READ_PERMISSION_ALIAS, DataSourceTableDefinition.EDIT_PERMISSION_ALIAS));
+                            DataSourceTableDefinition.READ_PERMISSION_ALIAS));
 
         }
         return select;
