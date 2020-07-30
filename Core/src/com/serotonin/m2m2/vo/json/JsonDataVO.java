@@ -87,7 +87,7 @@ public class JsonDataVO extends AbstractVO {
             readPermission = new MangoPermission();
         }
 
-        if(jsonObject.containsKey("publicData")) {
+        if(jsonObject.containsKey("publicData") && jsonObject.getBoolean("publicData", false)) {
             Set<Set<Role>> newRoles = new HashSet<>(readPermission.getRoles());
             newRoles.add(Collections.singleton(PermissionHolder.ANONYMOUS_ROLE));
             readPermission = new MangoPermission(newRoles);
