@@ -72,7 +72,7 @@ public class MangoHttpClient implements Closeable {
      */
     public CloseableHttpResponse login(String username, String password) throws ClientProtocolException, IOException, URISyntaxException {
         URIBuilder b = new URIBuilder();
-        b = b.setHost(host).setPort(port).setScheme(ssl ? "https" : "http").setPath("/rest/v2/login");
+        b = b.setHost(host).setPort(port).setScheme(ssl ? "https" : "http").setPath("/rest/latest/login");
         HttpPost request = new HttpPost(b.build());
         request.setHeader("Accept", "application/json");
         

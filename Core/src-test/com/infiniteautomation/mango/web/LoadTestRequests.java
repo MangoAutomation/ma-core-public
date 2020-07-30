@@ -45,7 +45,7 @@ public class LoadTestRequests {
             response.close();
             
             for(int i=0; i<200; i++) {
-                response = client.get("/rest/v2/users/current");
+                response = client.get("/rest/latest/users/current");
                 if(response.getStatusLine().getStatusCode() != 200) {
                     fail(response.getStatusLine().getReasonPhrase());
                 }
@@ -62,7 +62,7 @@ public class LoadTestRequests {
             response.close();
             
             for(int i=0; i<200; i++) {
-                response = client.get("/rest/v2/users/current");
+                response = client.get("/rest/latest/users/current");
                 if(response.getStatusLine().getStatusCode() != 200) {
                     fail(response.getStatusLine().getReasonPhrase());
                 }
@@ -90,7 +90,7 @@ public class LoadTestRequests {
                         response.close();
                         
                         int delay = webQosWaitMs * 2;
-                        response = client.get("/rest/v2/example/delay-response/" + delay);
+                        response = client.get("/rest/latest/example/delay-response/" + delay);
                         if(response.getStatusLine().getStatusCode() != 200) {
                             failures.add(response.getStatusLine().getReasonPhrase());
                         }else {
@@ -154,7 +154,7 @@ public class LoadTestRequests {
                                 sb.append("0");
                             }
                             
-                            HttpPost request = new HttpPost(client.createURI("/rest/v2/example/log-info-message"));
+                            HttpPost request = new HttpPost(client.createURI("/rest/latest/example/log-info-message"));
                             request.setEntity(new StringEntity(sb.toString(), ContentType.TEXT_PLAIN) {
     
                                 @Override
@@ -229,13 +229,13 @@ public class LoadTestRequests {
             boolean doPost = false;
             for(int i=0; i<200; i++) {
                 if(!doPost) {
-                    response = client.get("/rest/v2/users/current");
+                    response = client.get("/rest/latest/users/current");
                 }else {
                     InputStream is = this.getClass().getClassLoader().getResourceAsStream("testMangoConfig.json");
                     MultipartEntityBuilder builder = MultipartEntityBuilder.create();
                     builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
                     builder.addBinaryBody("upfile", is, ContentType.DEFAULT_BINARY, "testConfig.json");
-                    response = client.post("/rest/v2/file-stores/DATA_FILE_TEMPLATE", builder.build(), new BasicNameValuePair("overwrite", "true"));
+                    response = client.post("/rest/latest/file-stores/DATA_FILE_TEMPLATE", builder.build(), new BasicNameValuePair("overwrite", "true"));
                 }
                 if(response.getStatusLine().getStatusCode() != 200) {
                     fail(response.getStatusLine().getReasonPhrase());
