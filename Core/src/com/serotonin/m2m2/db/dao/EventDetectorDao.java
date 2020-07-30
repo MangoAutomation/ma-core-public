@@ -232,7 +232,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            EventDetectorTableDefinition.READ_PERMISSION_ALIAS, EventDetectorTableDefinition.EDIT_PERMISSION_ALIAS));
+                            EventDetectorTableDefinition.READ_PERMISSION_ALIAS));
 
         }
         return select;

@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.module;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -15,6 +18,9 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO> extends ModuleElementDefinition {
+
+    @Autowired
+    protected PermissionService permissionService;
 
     /**
      * Name of the column in the event detectors into which to store the source id
@@ -77,7 +83,9 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * @param vo
      * @return
      */
-    abstract public boolean hasEditPermission(PermissionHolder user, T vo);
+    public boolean hasEditPermission(PermissionHolder user, T vo) {
+        return permissionService.hasPermission(user, vo.getEditPermission());
+    }
 
     /**
      * Can this user view this detector?
@@ -86,7 +94,9 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * @param vo
      * @return
      */
-    abstract public boolean hasReadPermission(PermissionHolder user, T vo);
+    public boolean hasReadPermission(PermissionHolder user, T vo) {
+        return permissionService.hasPermission(user, vo.getReadPermission());
+    }
 
     /**
      * Validate a new event detector

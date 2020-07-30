@@ -23,8 +23,7 @@ import com.serotonin.validation.StringValidation;
 /**
  * A way to manage only data point event detectors.
  *
- * This service does NOT reload the source in the runtime manager.  That
- * must be accomplished elsewhere
+ * This service does can optionally reload source in the runtime manager.
  *
  * @author Terry Packer
  *
@@ -82,26 +81,16 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, AbstractEventDetectorVO vo) {
-        if(permissionService.hasAdminRole(user))
-            return true;
         return vo.getDefinition().hasCreatePermission(user, vo);
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
-        if(permissionService.hasAdminRole(user))
-            return true;
-        if(permissionService.hasPermission(user, vo.getEditPermission()))
-            return true;
         return vo.getDefinition().hasEditPermission(user, vo);
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
-        if(permissionService.hasAdminRole(user))
-            return true;
-        if(permissionService.hasPermission(user, vo.getReadPermission()))
-            return true;
         return vo.getDefinition().hasReadPermission(user, vo);
     }
 
