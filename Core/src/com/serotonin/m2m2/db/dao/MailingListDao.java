@@ -185,7 +185,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            MailingListTableDefinition.READ_PERMISSION_ALIAS, MailingListTableDefinition.EDIT_PERMISSION_ALIAS));
+                            MailingListTableDefinition.READ_PERMISSION_ALIAS));
 
         }
         return select;
