@@ -156,18 +156,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>mango-graphics</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>mango-theme</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>virtual-ds</artifactId>
 			<version>4.0.0-SNAPSHOT</version>
 			<type>zip</type>
@@ -352,12 +340,6 @@
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>device-config</artifactId>
 			<version>4.0.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>advanced-components</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
