@@ -36,7 +36,6 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
@@ -69,13 +68,11 @@ public class DataPointTagsDao extends BaseDao {
     public static final String NAME_TAG_KEY = "name";
 
     private final DataPointTableDefinition dataPointTable;
-    private final DataSourceTableDefinition dataSourceTable;
     private final PermissionService permissionService;
 
     @Autowired
-    private DataPointTagsDao(DataPointTableDefinition dataPointTable, DataSourceTableDefinition dataSourceTable, PermissionService permissionService) {
+    private DataPointTagsDao(DataPointTableDefinition dataPointTable, PermissionService permissionService) {
         this.dataPointTable = dataPointTable;
-        this.dataSourceTable = dataSourceTable;
         this.permissionService = permissionService;
     }
 
@@ -180,7 +177,6 @@ public class DataPointTagsDao extends BaseDao {
 
         if (!permissionService.hasAdminRole(user)) {
             query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
-            query = query.join(dataSourceTable.getTableAsAlias()).on(dataPointTable.getAlias("dataSourceId").eq(dataSourceTable.getIdAlias()));
 
             ConditionSortLimit csl = new ConditionSortLimit(null, null, null, null);
             query = DataPointDao.getInstance().joinPermissions(query, csl, user);
@@ -215,6 +211,13 @@ public class DataPointTagsDao extends BaseDao {
         }
     }
 
+    /**
+     * For use in Script to get values for a key
+     * @param tagKey
+     * @param restrictions
+     * @param user
+     * @return
+     */
     public Set<String> getTagValuesForKey(String tagKey, Map<String, String> restrictions, User user) {
         if (restrictions.isEmpty()) {
             return getTagValuesForKey(tagKey, user);
@@ -224,7 +227,6 @@ public class DataPointTagsDao extends BaseDao {
         keys.addAll(restrictions.keySet());
         keys.add(tagKey);
         Map<String, Name> tagKeyToColumn = tagKeyToColumn(keys);
-
         Name tagKeyColumn = tagKeyToColumn.get(tagKey);
 
         List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
@@ -232,27 +234,16 @@ public class DataPointTagsDao extends BaseDao {
         }).collect(Collectors.toCollection(ArrayList::new));
         Condition allConditions = DSL.and(conditions);
 
-        Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-
-        SelectJoinStep<Record1<String>> query = this.create
-                .selectDistinct(DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyColumn), String.class))
-                .from(from);
-
-        if (!permissionService.hasAdminRole(user)) {
-            query = query.join(dataPointTable.getTableAsAlias()).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
-            query = query.join(dataSourceTable.getTableAsAlias()).on(dataPointTable.getAlias("dataSourceId").eq(dataSourceTable.getIdAlias()));
-
-            ConditionSortLimit csl = new ConditionSortLimit(allConditions, null, null, null);
-            query = DataPointDao.getInstance().joinPermissions(query, csl, user);
-            allConditions = csl.getCondition();
-        }
-
-        SelectConditionStep<Record1<String>> conditional = query.where(allConditions);
-        try (Stream<Record1<String>> stream = conditional.stream()) {
-            return stream.map(r -> r.value1()).collect(Collectors.toSet());
-        }
+        return getTagValuesForKey(tagKey, tagKeyColumn, tagKeyToColumn, allConditions, user);
     }
 
+    /**
+     * For use with AST node to get values for a key
+     * @param tagKey
+     * @param restrictions
+     * @param user
+     * @return
+     */
     public Set<String> getTagValuesForKey(String tagKey, ASTNode restrictions, User user) {
         RQLToConditionWithTagKeys visitor = new RQLToConditionWithTagKeys();
         Name tagKeyColumn = visitor.columnNameForTagKey(tagKey);
@@ -266,6 +257,11 @@ public class DataPointTagsDao extends BaseDao {
 
         Map<String, Name> tagKeyToColumn = conditions.getTagKeyToColumn();
 
+        return getTagValuesForKey(tagKey, tagKeyColumn, tagKeyToColumn, allConditions, user);
+    }
+
+    private Set<String> getTagValuesForKey(String tagKey, Name tagKeyColumn, Map<String, Name> tagKeyToColumn, Condition allConditions, User user) {
+
         Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
         SelectJoinStep<Record1<String>> query = this.create
@@ -275,18 +271,13 @@ public class DataPointTagsDao extends BaseDao {
 
         if (!permissionService.hasAdminRole(user)) {
             query = query.join(dataPointTable.getTableAsAlias()).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
-            query = query.join(dataSourceTable.getTableAsAlias()).on(dataPointTable.getAlias("dataSourceId").eq(dataSourceTable.getIdAlias()));
 
             ConditionSortLimit csl = new ConditionSortLimit(allConditions, null, null, null);
             query = DataPointDao.getInstance().joinPermissions(query, csl, user);
             allConditions = csl.getCondition();
         }
 
-        Select<Record1<String>> result = query;
-        if (!conditionList.isEmpty()) {
-            result = query.where(allConditions);
-        }
-
+        Select<Record1<String>> result = query.where(allConditions);
         try (Stream<Record1<String>> stream = result.stream()) {
             return stream.map(r -> r.value1()).collect(Collectors.toSet());
         }
