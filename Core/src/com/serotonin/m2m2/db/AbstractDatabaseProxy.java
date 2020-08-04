@@ -74,15 +74,14 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             try {
                 runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)engine=InnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
             }catch(BadSqlGrammarException e) {
-                String version = "unknown";
+                String version = "?";
                 try {
                     DatabaseMetaData dmd = getDataSource().getConnection().getMetaData();
                     version = dmd.getDatabaseProductVersion();
                 }catch(Exception ex) {
-                    //Munch
-                    ex.printStackTrace();
+                    log.error("Failed to create test table for JSON compatibility" + ex);
                 }
-                throw new ShouldNeverHappenException("Unable to start Mango, MySQL version must be at least 5.7.8 to support JSON columns. You have " + version);
+                throw new ShouldNeverHappenException("Unable to start Mango, MySQL version must be at least 5.7.8 to support JSON columns. Your version is " + version);
             }
         }
 
