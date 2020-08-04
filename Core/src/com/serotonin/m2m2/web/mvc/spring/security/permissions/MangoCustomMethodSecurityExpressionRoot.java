@@ -82,7 +82,7 @@ implements MethodSecurityExpressionOperations {
         if(permissionService.hasAdminRole(user))
             return true;
         DataSourceVO dsvo = DataSourceDao.getInstance().getByXid(xid);
-        if((dsvo == null)||(!permissionService.hasDataSourceEditPermission(user, dsvo)))
+        if((dsvo == null)||(!permissionService.hasPermission(user, dsvo.getEditPermission())))
             return false;
         return true;
     }

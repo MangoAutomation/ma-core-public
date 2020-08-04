@@ -35,7 +35,6 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -255,74 +254,6 @@ public class PermissionService {
         if(hasAdminRole(user)) return true;
 
         return hasPermission(user, dataSourcePermission.getPermission());
-    }
-
-    /**
-     * Ensure the user can edit this data source
-     * @param user
-     * @param ds
-     * @throws PermissionException
-     */
-    public void ensureDataSourceEditPermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
-        if (!hasDataSourceEditPermission(user, ds))
-            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
-    }
-
-    /**
-     * Ensure the user can edit this data source
-     * @param user
-     * @param ds
-     * @throws PermissionException
-     */
-    public void ensureDataSourceEditPermission(PermissionHolder user, int dsId) throws PermissionException {
-        if (!hasDataSourceEditPermission(user, dsId))
-            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
-    }
-
-    /**
-     * Does this permission holder have any of the edit roles on the data source?
-     * @param user
-     * @param ds
-     * @return
-     */
-    public boolean hasDataSourceEditPermission(PermissionHolder user, DataSourceVO ds) {
-        return hasPermission(user, ds.getEditPermission());
-    }
-
-    /**
-     * Does this permission holder have access to this data source
-     * @param user
-     * @param dsId
-     * @return
-     */
-    public boolean hasDataSourceEditPermission(PermissionHolder user, int dsId) {
-        MangoPermission edit = permissionDao.getDataSourceEditPermission(dsId);
-        if(edit != null && hasPermission(user, edit)) {
-            return true;
-        }else {
-            return false;
-        }
-    }
-
-    /**
-     * Ensure the user can read this data source
-     * @param user
-     * @param ds
-     * @throws PermissionException
-     */
-    public void ensureDataSourceReadPermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
-        if (!hasDataSourceReadPermission(user, ds))
-            throw new PermissionException(new TranslatableMessage("permission.exceptionreadDataSource", user.getPermissionHolderName()), user);
-    }
-
-    /**
-     * Does this permission holder have any of the read roles on the data source?
-     * @param user
-     * @param ds
-     * @return
-     */
-    public boolean hasDataSourceReadPermission(PermissionHolder user, DataSourceVO ds) {
-        return hasPermission(user, ds.getReadPermission());
     }
 
     /**

@@ -244,14 +244,14 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureDataSourcePermissionDsVoOK() {
         User testUser = this.createTestUser();
         MockDataSourceVO ds = createDataSource(testUser.getRoles());
-        permissionService.ensureDataSourceEditPermission(testUser, ds);
+        permissionService.ensurePermission(testUser, ds.getEditPermission());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureDataSourcePermissionDsVoFail() {
         User testUser = this.createTestUser();
         MockDataSourceVO ds = createDataSource(randomRoles(1));
-        permissionService.ensureDataSourceEditPermission(testUser, ds);
+        permissionService.ensurePermission(testUser, ds.getEditPermission());
     }
 
     @Test

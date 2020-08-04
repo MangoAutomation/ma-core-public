@@ -78,7 +78,8 @@ public class DataSourceQuery extends ScriptUtility {
         if(ds == null)
             return null;
 
-        if(permissionService.hasDataSourceEditPermission(permissions, ds)) {
+        //TODO Mango 4.0 Should this be read or edit permission?
+        if(permissionService.hasPermission(permissions, ds.getEditPermission())) {
             List<DataPointWrapper> points = getPointsForSource(ds);
             return new DataSourceWrapper(ds, points);
         } else

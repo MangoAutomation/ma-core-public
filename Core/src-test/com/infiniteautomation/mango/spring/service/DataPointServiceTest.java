@@ -52,6 +52,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             getService().permissionService.runAsSystemAdmin(() -> {
                 addRoleToCreatePermission(editRole, vo);
                 setReadPermission(MangoPermission.createOrSet(roleService.getUserRole()), vo);
+                setEditPermission(MangoPermission.createOrSet(roleService.getUserRole()), vo);
                 vo.setSetPermission(MangoPermission.createOrSet(roleService.getUserRole()));
             });
             getService().permissionService.runAs(editUser, () -> {
@@ -118,18 +119,6 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
                 assertVoEqual(fromDb, updated);
             });
         });
-    }
-
-    @Test()
-    @Override
-    public void testCannotRemoveEditAccess() {
-        //No-op will be tested in the data source service test
-    }
-
-    @Test()
-    @Override
-    public void testAddEditRoleUserDoesNotHave() {
-        //No-op will be tested in the data source service test
     }
 
     @Test(expected = NotFoundException.class)
@@ -237,6 +226,29 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
         }, getReadRolesContextKey(), getReadRolesContextKey());
     }
 
+    /**
+     * There will be 2 validation messages about this, must retain permission AND cannot add/remove a role you do not have
+     */
+    @Override
+    @Test
+    public void testAddEditRoleUserDoesNotHave() {
+        runTest(() -> {
+            DataPointVO vo = newVO(editUser);
+            setReadPermission(MangoPermission.createOrSet(roleService.getUserRole()), vo);
+            vo.setSetPermission(MangoPermission.createOrSet(roleService.getUserRole()));
+            setEditPermission(MangoPermission.createOrSet(roleService.getUserRole()), vo);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+            getService().permissionService.runAs(readUser, () -> {
+                DataPointVO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                setEditPermission(MangoPermission.createOrSet(roleService.getSuperadminRole()), fromDb);
+                service.update(fromDb.getId(), fromDb);
+            });
+        }, getEditRolesContextKey(), getEditRolesContextKey());
+    }
+
     @Override
     String getCreatePermissionType() {
         return null;
@@ -318,12 +330,12 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
 
     @Override
     void addEditRoleToFail(Role role, DataPointVO vo) {
-        vo.getSetPermission().getRoles().add(Collections.singleton(role));
+        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getEditRolesContextKey() {
-        return "setPermission";
+        return "editPermission";
     }
 
     @Override

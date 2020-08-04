@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -20,6 +20,7 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
@@ -70,7 +71,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
                 return OPERATION_NO_CHANGE;
 
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-            if(dsRt == null || !permissionService.hasDataSourceEditPermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
                 return OPERATION_NO_CHANGE;
 
             Common.runtimeManager.forcePointRead(vo.getId());
@@ -100,7 +101,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
                 return OPERATION_NO_CHANGE;
 
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !permissionService.hasDataSourceEditPermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
                 return OPERATION_NO_CHANGE;
 
             Common.runtimeManager.forceDataSourcePoll(vo.getId());
@@ -117,17 +118,15 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return true if it is, false if it is not
      */
     public boolean isDataSourceEnabled(String xid){
-
-        DataSourceVO vo = DataSourceDao.getInstance().getByXid(xid);
-
-        if(vo == null)
-            return false;
-        else{
+        try {
+            DataSourceVO vo = dataSourceService.get(xid);
             //This will throw an exception if there is no permission
-            if(permissionService.hasDataSourceEditPermission(permissions, vo))
+            if(permissionService.hasPermission(permissions, vo.getEditPermission()))
                 return vo.isEnabled();
             else
                 return false;
+        }catch(PermissionException | NotFoundException e) {
+            return false;
         }
 
     }
@@ -138,7 +137,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enableDataSource(String xid) {
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return dataSourceService.getPermissionService().runAs(permissions, () -> {
             try {
                 DataSourceVO vo = dataSourceService.get(xid);
                 if(!vo.isEnabled()) {
@@ -164,7 +163,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disableDataSource(String xid){
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return dataSourceService.getPermissionService().runAs(permissions, () -> {
             try {
                 DataSourceVO vo = dataSourceService.get(xid);
                 if(vo.isEnabled()) {
@@ -213,7 +212,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enableDataPoint(String xid){
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return dataSourceService.getPermissionService().runAs(permissions, () -> {
             try {
                 if(dataPointService.setDataPointState(xid, true, false)) {
                     return OPERATION_SUCCESSFUL;
@@ -232,7 +231,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disableDataPoint(String xid){
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return dataSourceService.getPermissionService().runAs(permissions, () -> {
             try {
                 if(dataPointService.setDataPointState(xid, false, false)) {
                     return OPERATION_SUCCESSFUL;

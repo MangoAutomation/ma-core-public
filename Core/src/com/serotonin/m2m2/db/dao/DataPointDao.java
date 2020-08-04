@@ -139,7 +139,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     // Data Points
     //
     /**
-     * Get data points for a data source
+     * Get data points for a data source, no permissions checks are done by this method.
      * @param dataSourceId
      * @param includeRelationalData
      * @return

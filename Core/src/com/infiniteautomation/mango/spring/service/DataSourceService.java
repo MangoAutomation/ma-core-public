@@ -72,12 +72,12 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, DataSourceVO vo) {
-        return permissionService.hasDataSourceEditPermission(user, vo);
+        return permissionService.hasPermission(user, vo.getEditPermission());
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, DataSourceVO vo) {
-        return permissionService.hasDataSourceReadPermission(user, vo);
+        return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     @Override
@@ -283,7 +283,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        permissionService.ensureDataSourceEditPermission(user, vo);
+        ensureEditPermission(user, vo);
         Common.runtimeManager.forceDataSourcePoll(vo.getId());
     }
 }

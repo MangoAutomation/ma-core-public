@@ -130,6 +130,6 @@ public class DataSourceEventType extends EventType {
         DataSourceVO ds = DataSourceDao.getInstance().get(dataSourceId);
         if(ds == null)
             return false;
-        return service.hasDataSourceEditPermission(user, ds);
+        return service.hasPermission(user, ds.getReadPermission());
     }
 }

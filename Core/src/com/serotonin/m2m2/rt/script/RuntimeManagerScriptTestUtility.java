@@ -39,7 +39,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
                 return OPERATION_NO_CHANGE;
 
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-            if(dsRt == null || !permissionService.hasDataSourceEditPermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
                 return OPERATION_NO_CHANGE;
 
             //forcePointRead
@@ -70,7 +70,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
                 return OPERATION_NO_CHANGE;
 
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !permissionService.hasDataSourceEditPermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
                 return OPERATION_NO_CHANGE;
 
             //Common.runtimeManager.forceDataSourcePoll(vo.getId());
@@ -89,7 +89,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
     @Override
     public int enableDataSource(String xid){
         DataSourceVO vo = DataSourceDao.getInstance().getByXid(xid);
-        if(vo == null || !permissionService.hasDataSourceEditPermission(permissions, vo))
+        if(vo == null || !permissionService.hasPermission(permissions, vo.getEditPermission()))
             return DOES_NOT_EXIST;
         else if(!vo.isEnabled())
             return OPERATION_SUCCESSFUL;
@@ -105,7 +105,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
     @Override
     public int disableDataSource(String xid){
         DataSourceVO vo = DataSourceDao.getInstance().getByXid(xid);
-        if(vo == null || !permissionService.hasDataSourceEditPermission(permissions, vo))
+        if(vo == null || !permissionService.hasPermission(permissions, vo.getEditPermission()))
             return DOES_NOT_EXIST;
         else if(vo.isEnabled())
             return OPERATION_SUCCESSFUL;

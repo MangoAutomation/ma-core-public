@@ -242,27 +242,4 @@ public class PermissionDao extends BaseDao {
             permissionUnlinked();
         }
     }
-
-    /**
-     * @param dsId
-     * @return
-     */
-    public MangoPermission getDataSourceEditPermission(int dsId) {
-        //TODO Mango 4.0 use join
-        return get(this.create.select(dataSourceTable.getAlias("editPermissionId"))
-                .from(dataSourceTable.getTableAsAlias())
-                .where(dataSourceTable.getAlias("id").equal(dsId)).fetchOneInto(Integer.class));
-
-    }
-
-    /**
-     * @param dsId
-     * @return
-     */
-    public MangoPermission getDataSourceReadPermission(int dsId) {
-        //TODO Mango 4.0 use join
-        return get(this.create.select(dataSourceTable.getAlias("readPermissionId"))
-                .from(dataSourceTable.getTableAsAlias())
-                .where(dataSourceTable.getAlias("id").equal(dsId)).fetchOneInto(Integer.class));
-    }
 }

@@ -82,17 +82,24 @@ import com.serotonin.validation.StringValidation;
 @Service
 public class DataPointService extends AbstractVOService<DataPointVO, DataPointTableDefinition, DataPointDao> {
 
+    private final DataSourceDao dataSourceDao;
     private final EventDetectorDao eventDetectorDao;
 
     @Autowired
-    public DataPointService(DataPointDao dao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
+    public DataPointService(DataPointDao dao, DataSourceDao dataSourceDao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
         super(dao, permissionService);
+        this.dataSourceDao = dataSourceDao;
         this.eventDetectorDao = eventDetectorDao;
     }
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, DataPointVO vo) {
-        return permissionService.hasDataSourceEditPermission(user, vo.getDataSourceId());
+        DataSourceVO ds = dataSourceDao.get(vo.getDataSourceId());
+        if(ds == null) {
+            return false;
+        }else {
+            return permissionService.hasPermission(user, ds.getEditPermission());
+        }
     }
 
     @Override
@@ -214,7 +221,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         DataPointVO vo = get(xid);
-        permissionService.ensureDataSourceEditPermission(user, vo.getDataSourceId());
+        ensureEditPermission(user, vo);
         return setDataPointState(vo, enabled, restart);
     }
 
