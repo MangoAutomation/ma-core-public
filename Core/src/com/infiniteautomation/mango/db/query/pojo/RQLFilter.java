@@ -3,7 +3,10 @@
  */
 package com.infiniteautomation.mango.db.query.pojo;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -12,9 +15,9 @@ import java.util.stream.Stream;
 
 import com.infiniteautomation.mango.db.query.RQLMatchToken;
 import com.infiniteautomation.mango.db.query.RQLOperation;
-
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+
 import net.jazdw.rql.parser.ASTNode;
 
 public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
@@ -170,6 +173,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 };
             }
             case CONTAINS: {
+                //TODO Mango 4.0 Support target of one or many
                 String property = mapPropertyName((String) arguments.get(0));
                 Object target = convertRQLArgument(property, arguments.get(1));
                 Comparator<Object> comparator = getComparator(property);
