@@ -455,8 +455,8 @@ CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contex
 INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES 
 	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', 1, 1, UNIX_TIMESTAMP(NOW()) * 1000, 'N', UNIX_TIMESTAMP(NOW()) * 1000);      
 -- Insert default roles
-INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmin role');
-INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'User role');
+INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmins');
+INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'Users');
 INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous role');
 -- Add admin user role mappings
 INSERT INTO userRoleMappings (roleId, userId) VALUES (1, 1);
