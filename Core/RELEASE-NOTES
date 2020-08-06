@@ -31,7 +31,7 @@
 * Add anonymous role for public access to public file store
 * Upgrade H2 to 1.4.200 to pickup new features and bugfixes
 * Upgrade Spring to 5.2.6
-* Upgrade Spring security to 5.3.1
+* Upgrade Spring security to 5.3.4.RELEASE
 * Persist HTTP sessions across reboots so Users are not logged out
 * Delete Mango work directory on upgrade as it is only used for the legacy UI
 * Fix bug where the quantize setting on a data source was not being imported in a JSON import
