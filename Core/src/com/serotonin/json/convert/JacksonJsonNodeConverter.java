@@ -5,10 +5,11 @@ package com.serotonin.json.convert;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
@@ -48,7 +49,14 @@ public class JacksonJsonNodeConverter implements ClassConverter {
     @Override
     public void jsonRead(JsonReader reader, JsonValue jsonValue, Object obj, Type type)
             throws JsonException {
-        throw new ShouldNeverHappenException("Root and Nested Jackson JsonNode types are not supported");
+        ObjectMapper mapper = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME);
+        try {
+            Map<String,Object> temp = jsonValue.toMap();
+            String src = mapper.writeValueAsString(temp);
+            mapper.readerForUpdating(obj).readValue(src);
+        } catch (JsonProcessingException e) {
+            throw new JsonException(e);
+        }
     }
 
 }
