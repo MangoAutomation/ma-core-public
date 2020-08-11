@@ -489,6 +489,9 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                         updated.remove(event.getVo().getRole());
                         //This will signal to the user to reset the inherited roles
                         user.setRoles(updated);
+                        //Fire a dao UPDATE event
+                        //TODO Mango 4.0 figure out how keep a copy of the pre-updated user to send out
+                        this.publishEvent(createDaoEvent(DaoEventType.UPDATE, user, user));
                     }
                     break;
                 case UPDATE:
@@ -501,6 +504,8 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                         }
                         //This will signal to the user to reset the inherited roles
                         user.setRoles(updated);
+                        //TODO Mango 4.0 figure out how keep a copy of the pre-updated user to send out
+                        this.publishEvent(createDaoEvent(DaoEventType.UPDATE, user, user));
                     }
                     break;
                 default:
