@@ -62,7 +62,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     @Override
     public ProcessResult validate(RoleVO vo, PermissionHolder user) {
-        ProcessResult result = super.validate(vo, user);
+        ProcessResult result = commonValidation(vo, user);
 
         //Don't allow the use of role 'user' or 'superadmin'
         if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
@@ -81,22 +81,30 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
             result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
         }
 
-        //Ensure inherited roles exist
-        if(vo.getInherited() != null) {
-            for(Role role : vo.getInherited()) {
-                if(dao.getXidById(role.getId()) == null) {
-                    result.addContextualMessage("inherited", "validate.role.notFound", role.getXid());
-                }
-            }
-        }
+
         return result;
     }
 
     @Override
     public ProcessResult validate(RoleVO existing, RoleVO vo, PermissionHolder user) {
-        ProcessResult result = this.validate(vo, user);
+        ProcessResult result = commonValidation(vo, user);
         if(!StringUtils.equals(existing.getXid(), vo.getXid())) {
             result.addContextualMessage("xid", "validate.role.cannotChangeXid");
+        }
+        return result;
+    }
+
+    public ProcessResult commonValidation(RoleVO vo, PermissionHolder user) {
+        ProcessResult result = super.validate(vo, user);
+        //Ensure inherited roles exist and they are not us
+        if(vo.getInherited() != null) {
+            for(Role role : vo.getInherited()) {
+                if(dao.getXidById(role.getId()) == null) {
+                    result.addContextualMessage("inherited", "validate.role.notFound", role.getXid());
+                }else if(role.getId() == vo.getId()){
+                    result.addContextualMessage("inherited", "validate.role.cannotInheritSelf", role.getXid());
+                }
+            }
         }
         return result;
     }
