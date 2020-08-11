@@ -42,13 +42,13 @@ import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 /**
@@ -479,12 +479,32 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
      * Make sure roles are removed from cached users, the mappings are ON CASCADE DELETE so this only matters for the cache
      * @param event
      */
-    public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+    public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         this.userCache.values().stream().forEach((user) -> {
-            if(user.getRoles().contains(event.getRole().getRole())) {
-                Set<Role> updated = new HashSet<>(user.getRoles());
-                updated.remove(event.getRole().getRole());
-                user.setRoles(updated);
+            switch(event.getType()) {
+                case DELETE:
+                    if(user.getAllInheritedRoles().contains(event.getVo().getRole())) {
+                        Set<Role> updated = new HashSet<>(user.getRoles());
+                        //This may have no effect if the role was inherited
+                        updated.remove(event.getVo().getRole());
+                        //This will signal to the user to reset the inherited roles
+                        user.setRoles(updated);
+                    }
+                    break;
+                case UPDATE:
+                    if(user.getAllInheritedRoles().contains(event.getVo().getRole())) {
+                        Set<Role> updated = new HashSet<>(user.getRoles());
+                        //This may have been an inherited role
+                        if(updated.contains(event.getVo().getRole())) {
+                            updated.remove(event.getVo().getRole());
+                            updated.add(event.getVo().getRole());
+                        }
+                        //This will signal to the user to reset the inherited roles
+                        user.setRoles(updated);
+                    }
+                    break;
+                default:
+                    break;
             }
         });
     }

@@ -13,10 +13,10 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -24,6 +24,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.ILifecycle;
 
 /**
@@ -271,17 +272,23 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     /**
-     * Override to handle any situations where you need to know that a role was deleted.
-     *  be sure to call super for this method as it handles the edit permissions
+     * Override to handle any situations where you need to know that a role was modified.
+     *  be sure to call super for this method as it handles the edit and read permissions
      *
      * @param event
      */
-    public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        if(vo.getEditPermission().containsRole(event.getRole().getRole())) {
-            vo.setEditPermission(vo.getEditPermission().removeRole(event.getRole().getRole()));
-        }
-        if(vo.getReadPermission().containsRole(event.getRole().getRole())) {
-            vo.setReadPermission(vo.getReadPermission().removeRole(event.getRole().getRole()));
+    public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
+        switch(event.getType()) {
+            case DELETE:
+                if(vo.getEditPermission().containsRole(event.getVo().getRole())) {
+                    vo.setEditPermission(vo.getEditPermission().removeRole(event.getVo().getRole()));
+                }
+                if(vo.getReadPermission().containsRole(event.getVo().getRole())) {
+                    vo.setReadPermission(vo.getReadPermission().removeRole(event.getVo().getRole()));
+                }
+                break;
+            default:
+                break;
         }
     }
 }

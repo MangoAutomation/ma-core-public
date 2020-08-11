@@ -11,11 +11,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
@@ -29,6 +29,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -58,10 +59,10 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     @Override
     @EventListener
-    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         //So we don't have to restart it
         for(DataSourceRT<?> rt : Common.runtimeManager.getRunningDataSources()) {
-            rt.handleRoleDeletedEvent(event);
+            rt.handleRoleEvent(event);
         }
     }
 

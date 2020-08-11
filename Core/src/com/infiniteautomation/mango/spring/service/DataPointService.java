@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.InvalidArgumentException;
@@ -47,7 +48,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -70,6 +70,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -129,14 +130,20 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
     @Override
     @EventListener
-    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        for(DataPointRT rt : Common.runtimeManager.getRunningDataPoints()) {
-            if(rt.getVO().getReadPermission().containsRole(event.getRole().getRole())) {
-                rt.getVO().setReadPermission(rt.getVO().getReadPermission().removeRole(event.getRole().getRole()));
-            }
-            if(rt.getVO().getSetPermission().containsRole(event.getRole().getRole())) {
-                rt.getVO().setSetPermission(rt.getVO().getSetPermission().removeRole(event.getRole().getRole()));
-            }
+    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
+        switch(event.getType()) {
+            case DELETE:
+                for(DataPointRT rt : Common.runtimeManager.getRunningDataPoints()) {
+                    if(rt.getVO().getReadPermission().containsRole(event.getVo().getRole())) {
+                        rt.getVO().setReadPermission(rt.getVO().getReadPermission().removeRole(event.getVo().getRole()));
+                    }
+                    if(rt.getVO().getSetPermission().containsRole(event.getVo().getRole())) {
+                        rt.getVO().setSetPermission(rt.getVO().getSetPermission().removeRole(event.getVo().getRole()));
+                    }
+                }
+                break;
+            default:
+                break;
         }
     }
 

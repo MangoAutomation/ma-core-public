@@ -13,13 +13,13 @@ import org.jooq.Field;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicVOAccess;
 import com.serotonin.m2m2.db.dao.QueryBuilder;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -92,7 +92,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * You must annotate the overridden method with @EventListener in order for this to work.
      * @param event
      */
-    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
 
     }
 

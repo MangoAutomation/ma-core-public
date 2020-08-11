@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.User;
@@ -35,6 +36,9 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
 
     private Set<Role> roles;
     private final String permissionHolderName; //Name for exception messages
+    //All inherited roles for this permission holder
+    //TODO Mango 4.0 make this required in the constructor
+    private transient LazyInitializer<Set<Role>> allInheritedRoles = new LazyInitializer<>();
 
     public ScriptPermissions() {
         this(Collections.emptySet());
@@ -86,7 +90,15 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
 
     @Override
     public Set<Role> getAllInheritedRoles() {
-        return roles;
+        return this.allInheritedRoles.get(() -> {
+            RoleDao dao = Common.getBean(RoleDao.class);
+            Set<Role> allRoles = new HashSet<>();
+            for(Role role : roles) {
+                allRoles.add(role);
+                allRoles.addAll(dao.getFlatInheritance(role));
+            }
+            return allRoles;
+        });
     }
 
     private static final int version = 2;

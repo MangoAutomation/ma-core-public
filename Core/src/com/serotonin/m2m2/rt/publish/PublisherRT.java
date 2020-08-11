@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -24,6 +24,7 @@ import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -73,11 +74,11 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     }
 
     /**
-     * Override to handle any situations where you need to know that a role was deleted.
+     * Override to handle any situations where you need to know that a role was modified.
      *
      * @param event
      */
-    public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+    public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
 
     }
 

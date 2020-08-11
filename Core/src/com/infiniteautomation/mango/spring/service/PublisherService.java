@@ -14,12 +14,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -27,6 +27,7 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -57,10 +58,16 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
 
     @Override
     @EventListener
-    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        //So we don't have to restart it
-        for(PublisherRT<?> rt : Common.runtimeManager.getRunningPublishers()) {
-            rt.handleRoleDeletedEvent(event);
+    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
+        switch(event.getType()) {
+            case DELETE:
+                //So we don't have to restart it
+                for(PublisherRT<?> rt : Common.runtimeManager.getRunningPublishers()) {
+                    rt.handleRoleEvent(event);
+                }
+                break;
+            default:
+                break;
         }
     }
 

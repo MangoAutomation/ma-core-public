@@ -12,14 +12,15 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * Service for access to event handlers
@@ -55,11 +56,17 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
 
     @Override
     @EventListener
-    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        List<AbstractEventHandlerVO> all = dao.getAll();
-        all.stream().forEach((eh) -> {
-            eh.getDefinition().handleRoleDeletedEvent(eh, event);
-        });
+    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
+        switch(event.getType()) {
+            case DELETE:
+                List<AbstractEventHandlerVO> all = dao.getAll();
+                all.stream().forEach((eh) -> {
+                    eh.getDefinition().handleRoleEvent(eh, event);
+                });
+                break;
+            default:
+                break;
+        }
     }
 
     @Override

@@ -13,11 +13,12 @@ import org.springframework.context.event.EventListener;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.db.dao.SystemPermissionDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * A permission definition allows a module to define a single permission string. The enforcement of this permission is
@@ -92,13 +93,13 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     }
 
     @EventListener
-    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+    protected void handleEvent(DaoEvent<? extends RoleVO> event) {
         //Make sure we don't have a reference to this role
-        if(this.permission.containsRole(event.getRole().getRole())) {
+        if(this.permission.containsRole(event.getVo().getRole())) {
             Set<Set<Role>> newPermission = new HashSet<>();
             for(Set<Role> roles : this.permission.getRoles()) {
                 Set<Role> newRoles = new HashSet<>(roles);
-                newRoles.remove(event.getRole().getRole());
+                newRoles.remove(event.getVo().getRole());
                 newPermission.add(Collections.unmodifiableSet(newRoles));
             }
             this.permission = new MangoPermission(newPermission);

@@ -9,13 +9,14 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * Provides modules with the ability to register additional event handlers
@@ -103,11 +104,11 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
     }
 
     /**
-     * Handle a role mapping being deleted
+     * Handle a role being modified
      * @param vo
      * @param event
      */
-    public void handleRoleDeletedEvent(T vo, RoleDeletedDaoEvent event) {
+    public void handleRoleEvent(T vo, DaoEvent<? extends RoleVO> event) {
 
     }
 

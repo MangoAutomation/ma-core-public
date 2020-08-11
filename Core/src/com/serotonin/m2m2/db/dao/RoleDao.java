@@ -21,7 +21,6 @@ import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -32,7 +31,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.role.Role;
@@ -57,17 +55,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
         this.permissionDao = permissionDao;
-    }
-
-    @Override
-    public boolean delete(RoleVO vo) {
-        //First get all mappings so we can publish them in the event
-        if(super.delete(vo)) {
-            this.eventPublisher.publishEvent(new RoleDeletedDaoEvent(this, vo));
-            return true;
-        }else {
-            return false;
-        }
     }
 
     @Override
@@ -254,32 +241,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
                 results.add(this.rowMapper.mapRow(rs, rowNum++));
             }
             return Collections.unmodifiableSet(results);
-        }
-    }
-
-    /**
-     * Event to inform what mappings existed when a role was deleted
-     * @author Terry Packer
-     *
-     */
-    public static class RoleDeletedDaoEvent extends ApplicationEvent implements PropagatingEvent  {
-        private static final long serialVersionUID = 1L;
-
-        private final RoleVO role;
-
-        /**
-         *
-         * @param dao
-         * @param role - the role that was deleted
-         * @param mappings - the mappings at the time of deletion
-         */
-        public RoleDeletedDaoEvent(RoleDao dao, RoleVO role) {
-            super(dao);
-            this.role = role;
-        }
-
-        public RoleVO getRole() {
-            return role;
         }
     }
 }

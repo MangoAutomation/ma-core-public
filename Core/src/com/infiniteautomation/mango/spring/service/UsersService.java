@@ -29,12 +29,12 @@ import org.springframework.stereotype.Service;
 import com.google.common.base.Objects;
 import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -51,6 +51,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
 import freemarker.template.TemplateException;
@@ -99,8 +100,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
     @Override
     @EventListener
-    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        this.dao.handleRoleDeletedEvent(event);
+    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
+        this.dao.handleRoleEvent(event);
     }
 
     /*

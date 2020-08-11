@@ -26,7 +26,6 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PermissionDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -48,19 +47,17 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 @Service
 public class PermissionService {
 
-    private final PermissionDao permissionDao;
     private final RoleDao roleDao;
     private final DataSourcePermissionDefinition dataSourcePermission;
     private final PermissionHolder systemSuperadmin;
     private final EventsViewPermissionDefinition eventsViewPermission;
 
     @Autowired
-    public PermissionService(PermissionDao permissionDao, RoleDao roleDao,
+    public PermissionService(RoleDao roleDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     PermissionHolder systemSuperadmin,
     DataSourcePermissionDefinition dataSourcePermission,
     EventsViewPermissionDefinition eventsView) {
-        this.permissionDao = permissionDao;
         this.roleDao = roleDao;
         this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
