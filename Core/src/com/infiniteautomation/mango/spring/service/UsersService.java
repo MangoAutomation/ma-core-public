@@ -48,6 +48,7 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
@@ -100,7 +101,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             switch(event.getType()) {
                 case DELETE:
                 case UPDATE:
-                    if(user.getRoles().contains(event.getVo().getRole())) {
+                    Set<Role> inherited = permissionService.getAllInheritedRoles(user);
+                    if(inherited.contains(event.getVo().getRole())) {
                         //Get a new copy (non-cached
                         User existing = get(user.getId());
                         //Fire a dao UPDATE event

@@ -130,6 +130,46 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
     }
 
     /**
+     * Get any roles inherited by this role
+     * @param role
+     * @return
+     */
+    public Set<Role> getInheritedBy(Role role) {
+        Set<Role> all = new HashSet<Role>();
+        addInheritedBy(role, all);
+        return all;
+    }
+
+    /**
+     * Recursively add all roles inherited by this role
+     * @param role
+     * @param all
+     */
+    private void addInheritedBy(Role role, Set<Role> all) {
+        Set<Role> inherited = getInheritedBy(role.getId());
+        for(Role inheritedRole : inherited) {
+            all.add(inheritedRole);
+            addInheritedBy(inheritedRole, all);
+        }
+    }
+
+    /**
+     * Get the inherited roles of this role from the database,
+     *  one level deep only.
+     * @param vo
+     * @return
+     */
+    private Set<Role> getInheritedBy(int roleId) {
+        Select<?> select = this.create.select(getSelectFields())
+                .from(this.table.getTableAsAlias())
+                .join(RoleTableDefinition.roleInheritanceTableAsAlias)
+                .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias))
+                .where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(roleId));
+        List<Object> args = select.getBindValues();
+        return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
+    }
+
+    /**
      * Recursively get a set of all inherited roles of this role
      * @param vo
      * @return
@@ -159,7 +199,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
      * @param vo
      * @return
      */
-    public Set<Role> getInherited(int roleId) {
+    private Set<Role> getInherited(int roleId) {
         Select<?> select = this.create.select(getSelectFields())
                 .from(this.table.getTableAsAlias())
                 .join(RoleTableDefinition.roleInheritanceTableAsAlias)

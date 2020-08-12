@@ -64,7 +64,7 @@ public class DataPointQuery extends ScriptUtility {
     public List<DataPointWrapper> query(String query){
         ASTNode root = RQLUtils.parseRQLtoAST(query);
         List<DataPointVO> dataPoints = new ArrayList<>();
-        ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null);
+        ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null, null);
         DataPointDao.getInstance().customizedQuery(conditions, permissions, new MappedRowCallback<DataPointVO>() {
             @Override
             public void row(DataPointVO item, int index) {

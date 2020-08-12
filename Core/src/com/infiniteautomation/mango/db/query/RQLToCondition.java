@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -38,6 +39,7 @@ public class RQLToCondition {
         return value;
     };
 
+    protected final Map<String, RQLSubSelectCondition> subSelectMapping;
     protected final Map<String, Field<?>> fieldMapping;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
@@ -45,7 +47,14 @@ public class RQLToCondition {
     protected Integer limit = null;
     protected Integer offset = null;
 
-    public RQLToCondition(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
+    /**
+     *
+     * @param subSelectMapping - not null
+     * @param fieldMapping - not null
+     * @param valueConverterMap - not null
+     */
+    public RQLToCondition(Map<String, RQLSubSelectCondition> subSelectMapping, Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
+        this.subSelectMapping = subSelectMapping;
         this.fieldMapping = fieldMapping;
         this.valueConverterMap = valueConverterMap;
     }
@@ -92,70 +101,80 @@ public class RQLToCondition {
     protected Condition visitConditionNode(ASTNode node) {
         List<Object> arguments = node.getArguments();
         String property = (String) arguments.get(0);
-
-        Field<Object> field = getField(property);
-        Function<Object, Object> valueConverter = getValueConverter(field);
-        Object firstArg = valueConverter.apply(arguments.get(1));
-
         RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase(Locale.ROOT));
 
-        switch (operation) {
-            case EQUAL_TO:
-                if (firstArg == null) {
-                    return field.isNull();
-                }
-                return field.eq(firstArg);
-            case GREATER_THAN:
-                return field.gt(firstArg);
-            case GREATER_THAN_EQUAL_TO:
-                return field.ge(firstArg);
-            case LESS_THAN:
-                return field.lt(firstArg);
-            case LESS_THAN_EQUAL_TO:
-                return field.le(firstArg);
-            case NOT_EQUAL_TO:
-                if (firstArg == null) {
-                    return field.isNotNull();
-                }
-                return field.ne(firstArg);
-            case MATCH: {
-                boolean caseSensitive = false;
-                if (arguments.size() > 2) {
-                    caseSensitive = (boolean) arguments.get(2);
-                }
+        Field<Object> field = getField(property);
+        if(field != null) {
+            Function<Object, Object> valueConverter = getValueConverter(field);
+            Object firstArg = valueConverter.apply(arguments.get(1));
 
-                String matchString = ((String) firstArg);
-
-                // Converts a match string containing * and ? a SQL like pattern
-                String likeText = RQLMatchToken.tokenize(matchString).map(t -> {
-                    if (t == RQLMatchToken.SINGLE_CHARACTER_WILDCARD) {
-                        return "_";
-                    } else if (t == RQLMatchToken.MULTI_CHARACTER_WILDCARD) {
-                        return "%";
-                    } else {
-                        return LIKE_PATTERN_ESCAPE.matcher(t.toString()).replaceAll("!$1");
+            switch (operation) {
+                case EQUAL_TO:
+                    if (firstArg == null) {
+                        return field.isNull();
                     }
-                }).collect(Collectors.joining());
+                    return field.eq(firstArg);
+                case GREATER_THAN:
+                    return field.gt(firstArg);
+                case GREATER_THAN_EQUAL_TO:
+                    return field.ge(firstArg);
+                case LESS_THAN:
+                    return field.lt(firstArg);
+                case LESS_THAN_EQUAL_TO:
+                    return field.le(firstArg);
+                case NOT_EQUAL_TO:
+                    if (firstArg == null) {
+                        return field.isNotNull();
+                    }
+                    return field.ne(firstArg);
+                case MATCH: {
+                    boolean caseSensitive = false;
+                    if (arguments.size() > 2) {
+                        caseSensitive = (boolean) arguments.get(2);
+                    }
 
-                if (caseSensitive) {
-                    return field.like(likeText).escape('!');
-                } else {
-                    return field.likeIgnoreCase(likeText).escape('!');
+                    String matchString = ((String) firstArg);
+
+                    // Converts a match string containing * and ? a SQL like pattern
+                    String likeText = RQLMatchToken.tokenize(matchString).map(t -> {
+                        if (t == RQLMatchToken.SINGLE_CHARACTER_WILDCARD) {
+                            return "_";
+                        } else if (t == RQLMatchToken.MULTI_CHARACTER_WILDCARD) {
+                            return "%";
+                        } else {
+                            return LIKE_PATTERN_ESCAPE.matcher(t.toString()).replaceAll("!$1");
+                        }
+                    }).collect(Collectors.joining());
+
+                    if (caseSensitive) {
+                        return field.like(likeText).escape('!');
+                    } else {
+                        return field.likeIgnoreCase(likeText).escape('!');
+                    }
                 }
+                case IN:
+                    List<?> inArray;
+                    if (firstArg instanceof List) {
+                        inArray = (List<?>) firstArg;
+                    } else {
+                        inArray = arguments.subList(1, node.getArgumentsSize())
+                                .stream()
+                                .map(valueConverter)
+                                .collect(Collectors.toList());
+                    }
+                    return field.in(inArray);
+                default:
+                    throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
             }
-            case IN:
-                List<?> inArray;
-                if (firstArg instanceof List) {
-                    inArray = (List<?>) firstArg;
-                } else {
-                    inArray = arguments.subList(1, node.getArgumentsSize())
-                            .stream()
-                            .map(valueConverter)
-                            .collect(Collectors.toList());
-                }
-                return field.in(inArray);
-            default:
-                throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
+        }else {
+            //Sub select conditions
+            RQLSubSelectCondition condition = this.subSelectMapping.get(property);
+            if(condition == null) {
+                List<String> properties = Stream.concat(fieldMapping.keySet().stream(), subSelectMapping.keySet().stream()).collect(Collectors.toList());
+                throw new RQLVisitException(String.format("Unknown property '%s', valid properties are %s", property, properties));
+            }else {
+                return condition.createCondition(operation, node);
+            }
         }
     }
 
@@ -175,8 +194,9 @@ public class RQLToCondition {
     protected <T> Field<T> getField(String property) {
         if (this.fieldMapping.containsKey(property)) {
             return (Field<T>) this.fieldMapping.get(property);
+        }else {
+            return null;
         }
-        throw new RQLVisitException(String.format("Unknown property '%s', valid properties are %s", property, fieldMapping.keySet().toString()));
     }
 
     protected Function<Object, Object> getValueConverter(Field<Object> field) {

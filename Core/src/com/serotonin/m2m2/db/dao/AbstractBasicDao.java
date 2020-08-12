@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
@@ -508,8 +509,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
-        RQLToCondition rqlToCondition = createRqlToCondition(combine(this.table.getAliasMap(), fieldMap), combine(this.valueConverterMap, valueConverters));
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMapping, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
+        RQLToCondition rqlToCondition = createRqlToCondition(combine(this.table.getSubSelectMap(), subSelectMapping), combine(this.table.getAliasMap(), fieldMap), combine(this.valueConverterMap, valueConverters));
         ConditionSortLimit conditions = rqlToCondition.visit(rql);
         return conditions;
     }
@@ -525,12 +526,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     /**
      * Create a stateful rql to condition (Override as necessary)
+     * @param subSelectMapping not null
      * @param fieldMap not null
      * @param converterMap not null
      * @return
      */
-    protected RQLToCondition createRqlToCondition(Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> converterMap) {
-        return new RQLToCondition(fieldMap, converterMap);
+    protected RQLToCondition createRqlToCondition(Map<String, RQLSubSelectCondition> subSelectMapping, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> converterMap) {
+        return new RQLToCondition(subSelectMapping, fieldMap, converterMap);
     }
 
     protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
@@ -753,7 +755,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public int count(PermissionHolder user, String rql) {
-        ConditionSortLimit csl = rqlToCondition(RQLUtils.parseRQLtoAST(rql), Collections.emptyMap(), Collections.emptyMap());
+        ConditionSortLimit csl = rqlToCondition(RQLUtils.parseRQLtoAST(rql), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
         return customizedCount(csl, user);
     }
 
@@ -778,7 +780,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void query(PermissionHolder user, String rql, Consumer<T> consumer) {
-        ConditionSortLimit csl = rqlToCondition(RQLUtils.parseRQLtoAST(rql), Collections.emptyMap(), Collections.emptyMap());
+        ConditionSortLimit csl = rqlToCondition(RQLUtils.parseRQLtoAST(rql), Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
         customizedQuery(csl, user, consumer);
     }
 

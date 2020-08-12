@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ * @author Terry Packer
+ */
 package com.serotonin.m2m2.rt.script;
 
 import java.io.StringWriter;
@@ -51,11 +55,14 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     private List<JsonImportExclusion> importExclusions;
     protected boolean importDuringValidation = false;
     private final DataSourceService dataSourceService;
+    private final DataPointDao dataPointDao;
 
     @Autowired
-    public JsonEmportScriptUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService dataSourceService) {
+    public JsonEmportScriptUtility(MangoJavaScriptService service, PermissionService permissionService,
+            DataSourceService dataSourceService, DataPointDao dataPointDao) {
         super(service, permissionService);
         this.dataSourceService = dataSourceService;
+        this.dataPointDao = dataPointDao;
     }
 
     @Override
@@ -113,7 +120,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         if(permissionService.hasAdminRole(permissions)) {
             ASTNode root = parser.parse(query);
             List<DataPointVO> dataPoints = new ArrayList<>();
-            ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null);
+            ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) dataPointDao.rqlToCondition(root, null, null, null);
             DataPointDao.getInstance().customizedQuery(conditions, permissions, new MappedRowCallback<DataPointVO>() {
                 @Override
                 public void row(DataPointVO item, int index) {

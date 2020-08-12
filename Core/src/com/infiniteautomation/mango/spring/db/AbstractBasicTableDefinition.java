@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.db;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,8 @@ import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
+
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 
 /**
  * @author Terry Packer
@@ -37,6 +40,11 @@ public abstract class AbstractBasicTableDefinition {
      * Insertion ordered
      */
     protected Map<String, Field<?>> aliasMap;
+
+    /**
+     * Map property names to sub select conditions
+     */
+    protected final Map<String, RQLSubSelectCondition> subSelectMap;
 
     protected final Field<Integer> idField;
     protected final Field<Integer> idAlias;
@@ -58,6 +66,7 @@ public abstract class AbstractBasicTableDefinition {
 
         this.fieldMap = new LinkedHashMap<>();
         this.aliasMap = new LinkedHashMap<>();
+        this.subSelectMap = new HashMap<>();
     }
 
     @PostConstruct
@@ -160,6 +169,10 @@ public abstract class AbstractBasicTableDefinition {
      */
     public Map<String, Field<?>> getAliasMap() {
         return aliasMap;
+    }
+
+    public Map<String, RQLSubSelectCondition> getSubSelectMap() {
+        return subSelectMap;
     }
 
     /**

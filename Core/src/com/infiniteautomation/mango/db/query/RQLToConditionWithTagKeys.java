@@ -34,7 +34,7 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
      * This constructor is only used when querying the data point tags table
      */
     public RQLToConditionWithTagKeys() {
-        super(Collections.emptyMap(), Collections.emptyMap());
+        super(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
         this.allPropertiesAreTags = true;
     }
 
@@ -45,7 +45,7 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
      * @param valueConverterMap
      */
     public RQLToConditionWithTagKeys(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
-        super(fieldMapping, valueConverterMap);
+        super(Collections.emptyMap(), fieldMapping, valueConverterMap);
         this.allPropertiesAreTags = false;
     }
 

@@ -42,6 +42,7 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -736,7 +737,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     }
 
     @Override
-    protected RQLToCondition createRqlToCondition(Map<String, Field<?>> fieldMap,
+    protected RQLToCondition createRqlToCondition(Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap,
             Map<String, Function<Object, Object>> converterMap) {
         return new RQLToConditionWithTagKeys(fieldMap, converterMap);
     }

@@ -12,6 +12,7 @@ import java.util.function.Function;
 import org.jooq.Field;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -279,15 +280,16 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      *  and value converters to translate the RQL conditions into the values expected from the database.
      *
      * @param rql
+     * @param subSelectMap - can be null
      * @param fieldMap - can be null
      * @param valueConverters - can be null
      * @return
      */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        return dao.rqlToCondition(rql, fieldMap, valueConverters);
+        return dao.rqlToCondition(rql, subSelectMap, fieldMap, valueConverters);
     }
 
     /**
@@ -317,7 +319,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        dao.customizedQuery(dao.rqlToCondition(conditions, null, null), user, (item, index) ->{
+        dao.customizedQuery(dao.rqlToCondition(conditions, null, null, null), user, (item, index) ->{
             dao.loadRelationalData(item);
             callback.row(item, index);
         });
@@ -344,7 +346,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        return dao.customizedCount(dao.rqlToCondition(conditions, null, null), user);
+        return dao.customizedCount(dao.rqlToCondition(conditions, null, null, null), user);
     }
 
     /**

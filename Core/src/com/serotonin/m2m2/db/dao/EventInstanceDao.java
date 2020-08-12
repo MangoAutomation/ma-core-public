@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
@@ -209,7 +211,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     }
 
     @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
         Map<String, Function<Object, Object>> fullMap;
         if(valueConverters == null) {
             fullMap = new HashMap<>(this.valueConverterMap);
@@ -247,7 +249,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     public static class RQLToEventInstanceConditions extends RQLToCondition {
 
         public RQLToEventInstanceConditions(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
-            super(fieldMapping, valueConverterMap);
+            super(Collections.emptyMap(), fieldMapping, valueConverterMap);
         }
 
         @Override

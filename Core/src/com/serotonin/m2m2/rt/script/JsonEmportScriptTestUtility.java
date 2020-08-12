@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ * @author Terry Packer
+ */
 package com.serotonin.m2m2.rt.script;
 
 import java.util.ArrayList;
@@ -8,14 +12,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 
     @Autowired
-    public JsonEmportScriptTestUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService dataSourceService) {
-        super(service, permissionService, dataSourceService);
+    public JsonEmportScriptTestUtility(MangoJavaScriptService service, PermissionService permissionService,
+            DataSourceService dataSourceService, DataPointDao dataPointDao) {
+        super(service, permissionService, dataSourceService, dataPointDao);
     }
 
     @Override

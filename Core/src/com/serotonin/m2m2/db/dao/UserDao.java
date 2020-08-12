@@ -21,7 +21,10 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Select;
+import org.jooq.SelectConditionStep;
+import org.jooq.SelectJoinStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -35,6 +38,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
+import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -48,6 +53,7 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 /**
@@ -483,4 +489,74 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         publishEvent(createDaoEvent(DaoEventType.UPDATE, user, existing));
     }
 
+    /**
+     * Create an RQL mapping to allow querying on user.roles
+     * @return
+     */
+    public RQLSubSelectCondition createUserRoleCondition() {
+        return (operation, node) -> {
+            List<Object> arguments = node.getArguments();
+
+            //Check the role Xid input
+            if (arguments.size() > 2) {
+                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
+            }
+
+            Object roleXid = arguments.get(1);
+            Integer roleId = null;
+
+            //TODO Mango 4.0 allow cache use to look up inheritance by xid
+            RoleVO role = UserDao.this.roleDao.getByXid((String)roleXid);
+            if(role != null) {
+                roleId = role.getId();
+            }
+            SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
+            SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.eq(roleId));
+            switch(operation) {
+                case CONTAINS:
+                    return UserDao.this.table.getIdAlias().in(afterWhere.asField());
+                default:
+                    throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
+            }
+        };
+    }
+
+    /**
+     * Create an RQL mapping to allow querying on user.inheritedRoles
+     * @return
+     */
+    public RQLSubSelectCondition createUserInheritedRoleCondition() {
+        return (operation, node) -> {
+            List<Object> arguments = node.getArguments();
+
+            //Check the role Xid input
+            if (arguments.size() > 2) {
+                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
+            }
+
+            Object roleXid = arguments.get(1);
+            Set<Integer> roleIds = new HashSet<>();
+
+            //TODO Mango 4.0 allow cache use to look up inheritance by xid
+            RoleVO role = UserDao.this.roleDao.getByXid((String)roleXid);
+            if(role != null) {
+                Set<Role> inheritedBy = UserDao.this.roleDao.getInheritedBy(role.getRole());
+                roleIds.add(role.getId());
+                for(Role r : inheritedBy) {
+                    roleIds.add(r.getId());
+                }
+            }else {
+                roleIds.add(null);
+            }
+
+            SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
+            SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.in(roleIds));
+            switch(operation) {
+                case CONTAINS:
+                    return UserDao.this.table.getIdAlias().in(afterWhere.asField());
+                default:
+                    throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
+            }
+        };
+    }
 }

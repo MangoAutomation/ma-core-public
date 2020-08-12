@@ -21,6 +21,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.TransactionCapable;
@@ -253,13 +254,13 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
      *  and value converters to translate the RQL conditions into the values expected from the database.
      *
-     *
      * @param rql
+     * @param subSelectMap - can be null
      * @param fieldMap - can be null
      * @param valueConverters - can be null
      * @return
      */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters);
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters);
 
     /**
      * Issues a SELECT FOR UPDATE for the row with the given id. Enables transactional updates on rows.
