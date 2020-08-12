@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
@@ -97,18 +99,42 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
             result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
         }
 
-        //Ensure inherited roles exist and they are not us
+        //Ensure inherited roles exist and they are not us and there are no loops
         if(vo.getInherited() != null) {
+            Set<Role> used = new HashSet<>();
+            used.add(vo.getRole());
             for(Role role : vo.getInherited()) {
                 if(dao.getXidById(role.getId()) == null) {
                     result.addContextualMessage("inherited", "validate.role.notFound", role.getXid());
-                }else if(role.getId() == vo.getId()){
-                    result.addContextualMessage("inherited", "validate.role.cannotInheritSelf", role.getXid());
+                }
+                if(recursivlyCheckForUsedRoles(role, used)) {
+                    result.addContextualMessage("inherited", "validate.role.inheritanceLoop", role.getXid());
+                    break;
                 }
             }
         }
         return result;
     }
+    /**
+     * Make sure no role is re-used in its hierarchy
+     * @param role
+     * @param used
+     * @return - true is role was already used somewhere in its inheritance
+     */
+    private boolean recursivlyCheckForUsedRoles(Role role, Set<Role> used) {
+        if(!used.add(role)) {
+            return true;
+        }
+        Set<Role> inheritance = dao.getFlatInheritance(role);
+        for(Role inherited : inheritance) {
+            if(!used.add(inherited)) {
+                return true;
+            }
+            recursivlyCheckForUsedRoles(role, used);
+        }
+        return false;
+    }
+
     /**
      * Get the superadmin role
      * @return
