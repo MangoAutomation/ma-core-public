@@ -44,16 +44,17 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleSetResultSetExtractor;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 /**
@@ -69,11 +70,12 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         return Common.getRuntimeContext().getBean(UserDao.class);
     });
 
-    private final RoleDao roleDao;
+    private final PermissionService permissionService;
+    //private final RoleDao roleDao;
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
     @Autowired
-    private UserDao(RoleDao roleDao,
+    private UserDao(PermissionService permissionService,
             UserTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
@@ -81,7 +83,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                 table,
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
                 mapper, publisher);
-        this.roleDao = roleDao;
+        this.permissionService = permissionService;
     }
 
     /**
@@ -151,7 +153,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
      * @return
      */
     public Set<Role> getUserRoles(User vo) {
-        return query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRoleSetResultSetExtractor());
+        return query(USER_ROLES_SELECT, new Object[] {vo.getId()}, new RoleSetResultSetExtractor());
     }
 
     @Override
@@ -505,8 +507,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             Object roleXid = arguments.get(1);
             Integer roleId = null;
 
-            //TODO Mango 4.0 allow cache use to look up inheritance by xid
-            RoleVO role = UserDao.this.roleDao.getByXid((String)roleXid);
+            Role role = permissionService.getRole((String)roleXid);
             if(role != null) {
                 roleId = role.getId();
             }
@@ -514,7 +515,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.eq(roleId));
             switch(operation) {
                 case CONTAINS:
-                    return UserDao.this.table.getIdAlias().in(afterWhere.asField());
+                    return table.getIdAlias().in(afterWhere.asField());
                 default:
                     throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
             }
@@ -537,23 +538,16 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             Object roleXid = arguments.get(1);
             Set<Integer> roleIds = new HashSet<>();
 
-            //TODO Mango 4.0 allow cache use to look up inheritance by xid
-            RoleVO role = UserDao.this.roleDao.getByXid((String)roleXid);
-            if(role != null) {
-                Set<Role> inheritedBy = UserDao.this.roleDao.getInheritedBy(role.getRole());
-                roleIds.add(role.getId());
-                for(Role r : inheritedBy) {
-                    roleIds.add(r.getId());
-                }
-            }else {
-                roleIds.add(null);
+            Set<Role> inherited = permissionService.getAllRolesInheritedBy((String)roleXid);
+            for(Role r : inherited) {
+                roleIds.add(r.getId());
             }
 
             SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
             SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.in(roleIds));
             switch(operation) {
                 case CONTAINS:
-                    return UserDao.this.table.getIdAlias().in(afterWhere.asField());
+                    return table.getIdAlias().in(afterWhere.asField());
                 default:
                     throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
             }

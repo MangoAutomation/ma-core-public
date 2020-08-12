@@ -17,14 +17,18 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -52,6 +56,9 @@ public class PermissionService {
     private final PermissionHolder systemSuperadmin;
     private final EventsViewPermissionDefinition eventsViewPermission;
 
+    //Cache of role xid to inheritance
+    private final Cache<String, RoleInheritance> roleHierarchyCache;
+
     @Autowired
     public PermissionService(RoleDao roleDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
@@ -62,6 +69,7 @@ public class PermissionService {
         this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
+        this.roleHierarchyCache = Caffeine.newBuilder().maximumSize(Common.envProps.getLong("permissions.roles.inheritanceCacheSize", 1000)).build();
     }
 
     /**
@@ -481,16 +489,78 @@ public class PermissionService {
     }
 
     /**
-     * Get the permission holders roles and all roles inherted by those roles
+     * Get a cached role, for performance
+     *
+     * Using this method will fill an entry in the cache and compute the
+     *  inheritance, assuming it will be used at some point later
+     * @param roleXid
+     * @return null if role does not exist
+     */
+    public Role getRole(String roleXid) {
+        RoleInheritance inheritance = roleHierarchyCache.get(roleXid, (xid) -> {
+            RoleInheritance i = new RoleInheritance();
+            RoleVO roleVo = roleDao.getByXid(xid);
+            if(roleVo == null) {
+                return null;
+            }
+            i.role = roleVo.getRole();
+            i.inherited = roleDao.getFlatInheritance(roleVo.getRole());
+            i.inheritedBy = roleDao.getInheritedBy(roleVo.getRole());
+            return i;
+        });
+        if(inheritance == null) {
+            return null;
+        }else {
+            return inheritance.role;
+        }
+    }
+
+    /**
+     * Get a set of this role and all roles inherited by this role using its xid
+     * @param roleXid
+     * @return
+     */
+    public Set<Role> getAllRolesInheritedBy(String roleXid) {
+        Set<Role> allRoles = new HashSet<>();
+
+        RoleInheritance inheritance = roleHierarchyCache.get(roleXid, (xid) -> {
+            RoleInheritance i = new RoleInheritance();
+            RoleVO roleVo = roleDao.getByXid(xid);
+            if(roleVo == null) {
+                return null;
+            }
+            i.role = roleVo.getRole();
+            i.inherited = roleDao.getFlatInheritance(roleVo.getRole());
+            i.inheritedBy = roleDao.getInheritedBy(roleVo.getRole());
+            return i;
+        });
+
+        if(inheritance!= null) {
+            allRoles.add(inheritance.role);
+            allRoles.addAll(inheritance.inheritedBy);
+        }
+        return Collections.unmodifiableSet(allRoles);
+    }
+
+    /**
+     * Get the permission holders roles and all roles inherited by those roles
      * @param holder
      * @return
      */
     public Set<Role> getAllInheritedRoles(PermissionHolder holder) {
-        //TODO Mango 4.0 create cache
         Set<Role> allRoles = new HashSet<>();
         for(Role role : holder.getRoles()) {
-            allRoles.add(role);
-            allRoles.addAll(roleDao.getFlatInheritance(role));
+            RoleInheritance inheritance = roleHierarchyCache.get(role.getXid(), (xid) -> {
+                RoleInheritance i = new RoleInheritance();
+                i.role = role;
+                i.inherited = roleDao.getFlatInheritance(role);
+                i.inheritedBy = roleDao.getInheritedBy(role);
+                return i;
+            });
+            if(inheritance != null) {
+                allRoles.add(role);
+                allRoles.addAll(inheritance.inherited);
+            }
         }
         return Collections.unmodifiableSet(allRoles);
     }
@@ -835,6 +905,22 @@ public class PermissionService {
     }
 
     /**
+     * Keep our cache up to date by evicting changed roles
+     * @param event
+     */
+    @EventListener
+    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
+        switch(event.getType()) {
+            case DELETE:
+            case UPDATE:
+                roleHierarchyCache.invalidate(event.getOriginalVo().getXid());
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
      * This should only be called on the upgrade to Mango 4.0 as it will create new roles,
      *  it is designed to be used during serialization to extract and create roles from serialized data
      * @param permissionSet
@@ -863,5 +949,11 @@ public class PermissionService {
         }
 
         return roles;
+    }
+
+    private static final class RoleInheritance {
+        Role role;
+        Set<Role> inherited;
+        Set<Role> inheritedBy;
     }
 }
