@@ -64,25 +64,6 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     @Override
     public ProcessResult validate(RoleVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-
-        //Don't allow the use of role 'user' or 'superadmin'
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
-            result.addContextualMessage("xid", "roles.cannotAlterSuperadminRole");
-        }
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
-            result.addContextualMessage("xid", "roles.cannotAlterUserRole");
-        }
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
-            result.addContextualMessage("xid", "roles.cannotAlterAnonymousRole");
-        }
-
-        //Don't allow spaces in the XID
-        Matcher matcher = Functions.WHITESPACE_PATTERN.matcher(vo.getXid());
-        if(matcher.find()) {
-            result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
-        }
-
-
         return result;
     }
 
@@ -97,6 +78,25 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     public ProcessResult commonValidation(RoleVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
+
+        //Don't allow the use of role 'user' or 'superadmin'
+        if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
+            result.addContextualMessage("xid", "roles.cannotAlterSuperadminRole");
+        }
+        if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
+            result.addContextualMessage("xid", "roles.cannotAlterUserRole");
+        }
+        if(StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
+            result.addContextualMessage("xid", "roles.cannotAlterAnonymousRole");
+        }
+
+
+        //Don't allow spaces in the XID
+        Matcher matcher = Functions.WHITESPACE_PATTERN.matcher(vo.getXid());
+        if(matcher.find()) {
+            result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
+        }
+
         //Ensure inherited roles exist and they are not us
         if(vo.getInherited() != null) {
             for(Role role : vo.getInherited()) {
