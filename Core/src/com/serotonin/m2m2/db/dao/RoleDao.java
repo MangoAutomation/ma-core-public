@@ -135,9 +135,11 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
      * @return
      */
     public Set<Role> getInheritedBy(Role role) {
-        Set<Role> all = new HashSet<Role>();
-        addInheritedBy(role, all);
-        return all;
+        return this.doInTransaction((tx) -> {
+            Set<Role> all = new HashSet<Role>();
+            addInheritedBy(role, all);
+            return all;
+        });
     }
 
     /**
@@ -174,10 +176,12 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
      * @param vo
      * @return
      */
-    public Set<Role> getFlatInheritance(Role role){
-        Set<Role> all = new HashSet<Role>();
-        addInheritance(role, all);
-        return all;
+    public Set<Role> getFlatInheritance(Role role) {
+        return this.doInTransaction((tx) -> {
+            Set<Role> all = new HashSet<Role>();
+            addInheritance(role, all);
+            return all;
+        });
     }
 
     /**
