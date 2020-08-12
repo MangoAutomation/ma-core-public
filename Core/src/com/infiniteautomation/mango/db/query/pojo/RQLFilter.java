@@ -20,6 +20,12 @@ import com.serotonin.m2m2.i18n.Translations;
 
 import net.jazdw.rql.parser.ASTNode;
 
+/**
+ *  TODO This class could use a tune up as the visit method is
+ *  called in the constructor so you can't override methods that use it
+ *  which depend on fields in the superclass
+ *
+ */
 public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
     private final Predicate<T> filter;
