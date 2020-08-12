@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -28,6 +29,7 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -215,10 +217,12 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null) {
-                PermissionService service = Common.getBean(PermissionService.class);
-                scriptRoles = new ScriptPermissions(service.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
-            }else
+                PermissionService permissionService = Common.getBean(PermissionService.class);
+                Set<Role> roles = permissionService.upgradeScriptRoles(oldPermissions.getAllLegacyPermissions());
+                scriptRoles = new ScriptPermissions(roles, oldPermissions.getPermissionHolderName());
+            }else {
                 scriptRoles = new ScriptPermissions();
+            }
         } else if (ver == 4) {
             targetPointId = in.readInt();
             activeAction = in.readInt();

@@ -4,7 +4,8 @@
 
 package com.infiniteautomation.mango.permission;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -48,7 +49,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return readRoles;
             }
 
@@ -82,7 +83,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return readRoles;
             }
 
@@ -119,7 +120,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return readRoles;
             }
 
@@ -161,7 +162,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 //This is odd as these roles should not be on a user either, but wanted to t
                 return readRoles;
             }
@@ -204,7 +205,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return readRoles;
             }
 
@@ -247,7 +248,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return readRoles;
             }
 

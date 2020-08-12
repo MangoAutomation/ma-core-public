@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -180,16 +179,6 @@ public class MangoPermission {
             andSet.add(role);
         }
         return new MangoPermission(roleSet);
-    }
-
-    public boolean isGranted(PermissionHolder user) {
-        Set<Role> userRoles = user.getAllInheritedRoles();
-        for (Set<Role> term : roles) {
-            if (userRoles.containsAll(term)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

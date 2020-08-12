@@ -383,7 +383,7 @@ public class RoleInheritanceTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return holderRoles;
             }
 

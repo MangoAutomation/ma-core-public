@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Map;
@@ -34,7 +33,6 @@ import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInval
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -50,7 +48,6 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
@@ -72,7 +69,6 @@ import freemarker.template.TemplateException;
 @Service
 public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> {
 
-    private final RoleDao roleDao;
     private final SystemSettingsDao systemSettings;
     private final PasswordService passwordService;
     private final PermissionDefinition editSelfPermission;
@@ -81,13 +77,12 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
     @Autowired
     public UsersService(UserDao dao, PermissionService permissionService,
-            RoleDao roleDao, SystemSettingsDao systemSettings,
+            SystemSettingsDao systemSettings,
             PasswordService passwordService,
             UserCreatePermission createPermission) {
         super(dao, permissionService);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
-        this.roleDao = roleDao;
         this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
         this.changeOwnUsernamePermission = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
         this.createPermission = createPermission;
@@ -101,7 +96,23 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        this.dao.handleRoleEvent(event);
+        this.dao.getUserCache().replaceAll((username, user) -> {
+            switch(event.getType()) {
+                case DELETE:
+                case UPDATE:
+                    if(user.getRoles().contains(event.getVo().getRole())) {
+                        //Get a new copy (non-cached
+                        User existing = get(user.getId());
+                        //Fire a dao UPDATE event
+                        this.dao.publishUserUpdated(user, existing);
+                        return existing;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return user;
+        });
     }
 
     /*
@@ -311,7 +322,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         //Validate roles
-        validateUserRoles(result, "roles", holder, false, null, vo.getRoles());
+        permissionService.validatePermissionHolderRoles(result, "roles", holder, false, null, vo.getRoles());
         return result;
     }
 
@@ -331,7 +342,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         if(holder instanceof User) {
             savingSelf = ((User)holder).getId() == existing.getId();
         }
-        validateUserRoles(result, "roles", holder, savingSelf, existing.getRoles(), vo.getRoles());
+        permissionService.validatePermissionHolderRoles(result, "roles", holder, savingSelf, existing.getRoles(), vo.getRoles());
 
         //Things we cannot do to ourselves
         if (holder instanceof User && ((User) holder).getId() == existing.getId()) {
@@ -499,80 +510,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         return response;
-    }
-
-    /**
-     * Validate roles.  This will validate that:
-     *
-     *   1. the new permissions are non null
-     *   2. all new permissions are not empty
-     *   3. the new permissions do not contain spaces
-     *   (then for non admin/owners)
-     *   4. the saving user will at least retain one permission
-     *   5. the user cannot not remove an existing permission they do not have
-     *   6. the user has all of the new permissions being added
-     *
-     *   If the saving user is also the owner, then the new permissions need not contain
-     *   one of the user's roles
-     *
-     * @param result - the result of the validation
-     * @param contextKey - the key to apply the messages to
-     * @param holder - the saving permission holder
-     * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
-     * @param existingRoles - the currently saved permissions
-     * @param newRoles - the new permissions to validate
-     */
-    public void validateUserRoles(ProcessResult result, String contextKey, PermissionHolder holder,
-            boolean savedByOwner, Set<Role> existingRoles, Set<Role> newRoles) {
-        if (holder == null) {
-            result.addContextualMessage(contextKey, "validate.userRequired");
-            return;
-        }
-
-        if(newRoles == null) {
-            result.addContextualMessage(contextKey, "validate.permission.null");
-            return;
-        }
-
-        for (Role role : newRoles) {
-            if (role == null) {
-                result.addContextualMessage(contextKey, "validate.role.empty");
-                return;
-            } else {
-                Integer id = roleDao.getIdByXid(role.getXid());
-                if( id == null) {
-                    result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
-                }else if (id != role.getId()) {
-                    result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
-                }
-            }
-        }
-
-        if(permissionService.hasAdminRole(holder))
-            return;
-
-        //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getAllInheritedRoles(), newRoles)) {
-            result.addContextualMessage(contextKey, "validate.mustRetainPermission");
-        }
-
-        if(existingRoles != null) {
-            //Check for permissions being added that the user does not have
-            Set<Role> added = new HashSet<>(newRoles);
-            added.removeAll(existingRoles);
-            added.removeAll(holder.getAllInheritedRoles());
-            if(added.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getAllInheritedRoles()));
-            }
-            //Check for permissions being removed that the user does not have
-            Set<Role> removed = new HashSet<>(existingRoles);
-            removed.removeAll(newRoles);
-            removed.removeAll(holder.getAllInheritedRoles());
-            if(removed.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getAllInheritedRoles()));
-            }
-        }
-        return;
     }
 
     @Override

@@ -48,7 +48,6 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 /**
@@ -475,42 +474,13 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         });
     }
 
-    /**
-     * Make sure roles are removed from cached users, the mappings are ON CASCADE DELETE so this only matters for the cache
-     * @param event
-     */
-    public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        this.userCache.values().stream().forEach((user) -> {
-            switch(event.getType()) {
-                case DELETE:
-                    if(user.getAllInheritedRoles().contains(event.getVo().getRole())) {
-                        Set<Role> updated = new HashSet<>(user.getRoles());
-                        //This may have no effect if the role was inherited
-                        updated.remove(event.getVo().getRole());
-                        //This will signal to the user to reset the inherited roles
-                        user.setRoles(updated);
-                        //Fire a dao UPDATE event
-                        //TODO Mango 4.0 figure out how keep a copy of the pre-updated user to send out
-                        this.publishEvent(createDaoEvent(DaoEventType.UPDATE, user, user));
-                    }
-                    break;
-                case UPDATE:
-                    if(user.getAllInheritedRoles().contains(event.getVo().getRole())) {
-                        Set<Role> updated = new HashSet<>(user.getRoles());
-                        //This may have been an inherited role
-                        if(updated.contains(event.getVo().getRole())) {
-                            updated.remove(event.getVo().getRole());
-                            updated.add(event.getVo().getRole());
-                        }
-                        //This will signal to the user to reset the inherited roles
-                        user.setRoles(updated);
-                        //TODO Mango 4.0 figure out how keep a copy of the pre-updated user to send out
-                        this.publishEvent(createDaoEvent(DaoEventType.UPDATE, user, user));
-                    }
-                    break;
-                default:
-                    break;
-            }
-        });
+    //TODO Mango 4.0 Move cache into service
+    public ConcurrentMap<String, User> getUserCache(){
+        return userCache;
     }
+    //TODO Mango 4.0 Move cache into service
+    public void publishUserUpdated(User user, User existing) {
+        publishEvent(createDaoEvent(DaoEventType.UPDATE, user, existing));
+    }
+
 }

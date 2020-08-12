@@ -111,7 +111,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
 
     @JsonIgnore
     @Override
-    public Set<Role> getAllInheritedRoles() {
+    public Set<Role> getRoles() {
         throw new ShouldNeverHappenException("deprecated and should never be used, convert to com.infiniteautomation.mango.util.script.ScriptPermissions via getAllLegacyPermissions()");
     }
 }

@@ -25,7 +25,7 @@ public class CompiledMangoScript implements MangoScript {
         this.compiled = compiled;
         this.scriptName = source.getScriptName();
         this.scriptFilename = source.getScriptFilename();
-        this.roles = source.getAllInheritedRoles();
+        this.roles = source.getRoles();
     }
 
     @Override
@@ -44,7 +44,7 @@ public class CompiledMangoScript implements MangoScript {
     }
 
     @Override
-    public Set<Role> getAllInheritedRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 

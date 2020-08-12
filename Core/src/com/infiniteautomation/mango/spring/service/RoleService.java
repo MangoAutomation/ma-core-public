@@ -43,6 +43,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         return permissionService.isValidPermissionHolder(user);
     }
 
+
     @Override
     public RoleVO delete(RoleVO vo)
             throws PermissionException, NotFoundException {

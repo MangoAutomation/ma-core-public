@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,6 +35,7 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.util.SerializationHelper;
 
@@ -409,9 +411,11 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null) {
                 PermissionService permissionService = Common.getBean(PermissionService.class);
-                scriptRoles = new ScriptPermissions(permissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
-            }else
+                Set<Role> roles = permissionService.upgradeScriptRoles(oldPermissions.getAllLegacyPermissions());
+                scriptRoles = new ScriptPermissions(roles, oldPermissions.getPermissionHolderName());
+            }else {
                 scriptRoles = new ScriptPermissions();
+            }
             script = SerializationHelper.readSafeUTF(in);
         }
         else if (ver == 5) {
@@ -454,9 +458,11 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null) {
                 PermissionService permissionService = Common.getBean(PermissionService.class);
-                scriptRoles = new ScriptPermissions(permissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
-            }else
+                Set<Role> roles = permissionService.upgradeScriptRoles(oldPermissions.getAllLegacyPermissions());
+                scriptRoles = new ScriptPermissions(roles, oldPermissions.getPermissionHolderName());
+            }else {
                 scriptRoles = new ScriptPermissions();
+            }
             script = SerializationHelper.readSafeUTF(in);
         }else if (ver == 6) {
             List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();

@@ -8,17 +8,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -34,23 +29,16 @@ import com.serotonin.m2m2.vo.role.Role;
  */
 public class ScriptPermissions implements Serializable, PermissionHolder {
 
-    private Set<Role> roles;
     private final String permissionHolderName; //Name for exception messages
-    //All inherited roles for this permission holder
-    //TODO Mango 4.0 make this required in the constructor
-    private transient LazyInitializer<Set<Role>> allInheritedRoles = new LazyInitializer<>();
+
+    private Set<Role> roles;
 
     public ScriptPermissions() {
         this(Collections.emptySet());
     }
 
-    public ScriptPermissions(MangoPermission permission) {
-        //Always an outer OR group
-        this(permission.getUniqueRoles());
-    }
-
-    public ScriptPermissions(Set<Role> permissionsSet) {
-        this(permissionsSet, "script");
+    public ScriptPermissions(Set<Role> roles) {
+        this(roles, "script");
     }
 
     public ScriptPermissions(User user) {
@@ -64,15 +52,6 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
             this.roles = Collections.unmodifiableSet(Collections.emptySet());
         }
         this.permissionHolderName = permissionHolderName;
-    }
-
-    public MangoPermission getPermission() {
-        //These represent a the roles the script runs on and as such will always be a Set of singleton roles
-        Set<Set<Role>> orSet = new HashSet<>();
-        for(Role role : roles) {
-            orSet.add(Collections.singleton(role));
-        }
-        return new MangoPermission(orSet);
     }
 
     @Override
@@ -89,16 +68,8 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
     }
 
     @Override
-    public Set<Role> getAllInheritedRoles() {
-        return this.allInheritedRoles.get(() -> {
-            RoleDao dao = Common.getBean(RoleDao.class);
-            Set<Role> allRoles = new HashSet<>();
-            for(Role role : roles) {
-                allRoles.add(role);
-                allRoles.addAll(dao.getFlatInheritance(role));
-            }
-            return allRoles;
-        });
+    public Set<Role> getRoles() {
+        return roles;
     }
 
     private static final int version = 2;
@@ -114,18 +85,10 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
         int ver = in.readInt();
         if(ver == 1) {
             PermissionService service = Common.getBean(PermissionService.class);
-            MangoPermission permission = service.upgradePermissions((Set<String>) in.readObject());
-            roles = permission.getUniqueRoles();
+            this.roles = service.upgradeScriptRoles((Set<String>) in.readObject());
         }else if(ver == 2){
+            //Will be cleaned in the load relational data method
             roles = (Set<Role>)in.readObject();
-            RoleDao dao = Common.getBean(RoleDao.class);
-            Iterator<Role> it = roles.iterator();
-            while(it.hasNext()) {
-                Role r = it.next();
-                if(dao.getIdByXid(r.getXid()) == null) {
-                    it.remove();
-                }
-            }
         }
     }
 }

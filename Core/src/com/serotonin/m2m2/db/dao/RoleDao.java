@@ -225,7 +225,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
         }
     }
 
-    private static class RoleSetResultSetExtractor implements ResultSetExtractor<Set<Role>> {
+    public static class RoleSetResultSetExtractor implements ResultSetExtractor<Set<Role>> {
 
         private final RoleRowMapper rowMapper;
 

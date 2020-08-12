@@ -4,7 +4,6 @@
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -53,9 +52,33 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
 
     @Override
     public void validate(ProcessResult response, ScriptEventHandlerVO handler, PermissionHolder user) {
+        commonValidation(response, handler, user);
+
+        if(handler.getScriptRoles() != null) {
+            permissionService.validatePermissionHolderRoles(response, "scriptRoles", user, false, null, handler.getScriptRoles());
+        }else {
+            response.addContextualMessage("scriptRoles", "validate.permission.null");
+        }
+    }
+
+    @Override
+    public void validate(ProcessResult response, ScriptEventHandlerVO existing,
+            ScriptEventHandlerVO vo, PermissionHolder user) {
+        commonValidation(response, existing, user);
+
+        if (vo.getScriptRoles() == null) {
+            response.addContextualMessage("scriptRoles", "validate.permission.null");
+        }else {
+            Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles();
+            permissionService.validatePermissionHolderRoles(response, "scriptRoles", user, false,
+                    roles, vo.getScriptRoles());
+        }
+    }
+
+    private void commonValidation(ProcessResult response, ScriptEventHandlerVO handler,
+            PermissionHolder user) {
         String script = handler.getScript();
         String engineName = handler.getEngineName();
-        Set<Role> scriptRoles = handler.getScriptRoles();
 
 
         if (script == null || script.isEmpty()) {
@@ -64,16 +87,8 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         if (engineName == null || engineName.isEmpty()) {
             response.addContextualMessage("engineName", "validate.required");
         }
-        if (scriptRoles == null) {
-            response.addContextualMessage("scriptRoles", "validate.required");
-        }
 
         if (!response.isValid()) {
-            return;
-        }
-
-        if (!permissionService.hasAllRoles(user, scriptRoles)) {
-            response.addContextualMessage("scriptRoles", "validate.role.invalidModification", user.getAllInheritedRoles().stream().map(r -> r.getXid()).collect(Collectors.toList()));
             return;
         }
 
@@ -98,5 +113,4 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
             response.addContextualMessage("engineName", "script.permissionMissing", engineName);
         }
     }
-
 }

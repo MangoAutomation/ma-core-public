@@ -315,7 +315,7 @@ public class PermissionService {
     public boolean hasAnyRole(PermissionHolder user, Set<Role> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<Role> heldRoles = user.getAllInheritedRoles();
+        Set<Role> heldRoles = getAllInheritedRoles(user);
         return containsAnyRole(heldRoles, requiredRoles);
     }
 
@@ -342,7 +342,7 @@ public class PermissionService {
     public boolean hasSingleRole(PermissionHolder user, Role requiredRole) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<Role> heldRoles = user.getAllInheritedRoles();
+        Set<Role> heldRoles = getAllInheritedRoles(user);
         return containsSingleRole(heldRoles, requiredRole);
     }
 
@@ -362,7 +362,8 @@ public class PermissionService {
     }
 
     /**
-     * Does this permission holder have all the required roles?
+     * Does this permission holder have all the required roles?  This will check
+     *  the inherited roles too.
      * @param user
      * @param requiredRoles
      * @return
@@ -370,7 +371,7 @@ public class PermissionService {
     public boolean hasAllRoles(PermissionHolder user, Set<Role> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<Role> heldRoles = user.getAllInheritedRoles();
+        Set<Role> heldRoles = getAllInheritedRoles(user);
         return containsAll(heldRoles, requiredRoles);
     }
 
@@ -480,17 +481,32 @@ public class PermissionService {
     }
 
     /**
-     * Validate roles.  This will validate that:
+     * Get the permission holders roles and all roles inherted by those roles
+     * @param holder
+     * @return
+     */
+    public Set<Role> getAllInheritedRoles(PermissionHolder holder) {
+        //TODO Mango 4.0 create cache
+        Set<Role> allRoles = new HashSet<>();
+        for(Role role : holder.getRoles()) {
+            allRoles.add(role);
+            allRoles.addAll(roleDao.getFlatInheritance(role));
+        }
+        return Collections.unmodifiableSet(allRoles);
+    }
+
+    /**
+     * Validate a permission.  This will validate that:
      *
-     *   1. the new permissions are non null
-     *   2. all new permissions are not empty
-     *   3. the new permissions do not contain spaces
+     *   1. the new roles are non null
+     *   2. all new roles are not empty
+     *   3. the new roles do exist
      *   (then for non admin/owners)
-     *   4. the saving user will at least retain one permission
-     *   5. the user cannot not remove an existing permission they do not have
-     *   6. the user has all of the new permissions being added
+     *   4. the saving user will at least retain permission
+     *   5. the user cannot not remove an existing role they do not have
+     *   6. the user has all of the new roles being added
      *
-     *   If the saving user is also the owner, then the new permissions need not contain
+     *   If the saving user is also the owner, then the new roles need not contain
      *   one of the user's roles
      *
      * @param result - the result of the validation
@@ -541,8 +557,10 @@ public class PermissionService {
         if(hasAdminRole(holder))
             return;
 
+        Set<Role> inherited = getAllInheritedRoles(holder);
+
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newPermission.containsRole(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getAllInheritedRoles(), newPermission.getUniqueRoles())) {
+        if(!savedByOwner && !newPermission.containsRole(PermissionHolder.USER_ROLE) && Collections.disjoint(inherited, newPermission.getUniqueRoles())) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 
@@ -550,16 +568,90 @@ public class PermissionService {
             //Check for permissions being added that the user does not have
             Set<Role> added = new HashSet<>(newPermission.getUniqueRoles());
             added.removeAll(existingPermission.getUniqueRoles());
-            added.removeAll(holder.getAllInheritedRoles());
+            added.removeAll(inherited);
             if(added.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getAllInheritedRoles()));
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
             }
             //Check for permissions being removed that the user does not have
             Set<Role> removed = new HashSet<>(existingPermission.getUniqueRoles());
             removed.removeAll(newPermission.getUniqueRoles());
-            removed.removeAll(holder.getAllInheritedRoles());
+            removed.removeAll(inherited);
             if(removed.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getAllInheritedRoles()));
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
+            }
+        }
+        return;
+    }
+
+    /**
+     * Validate roles.  Used for things like a User or ScriptPermission.
+     *   This will validate that:
+     *
+     *   1. the new roles are non null
+     *   2. all new roles are not empty
+     *   3. the new roles exist
+     *   (then for non admin/owners)
+     *   4. the user cannot not remove an existing role they do not have
+     *   5. the user has all of the new roles being added
+     *
+     *
+     * @param result - the result of the validation
+     * @param contextKey - the key to apply the messages to
+     * @param holder - the saving permission holder
+     * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
+     * @param existingRoles - the currently saved permissions
+     * @param newRoles - the new permissions to validate
+     */
+    public void validatePermissionHolderRoles(ProcessResult result, String contextKey, PermissionHolder holder,
+            boolean savedByOwner, Set<Role> existingRoles, Set<Role> newRoles) {
+        if (holder == null) {
+            result.addContextualMessage(contextKey, "validate.userRequired");
+            return;
+        }
+
+        if(newRoles == null) {
+            result.addContextualMessage(contextKey, "validate.permission.null");
+            return;
+        }
+
+        for (Role role : newRoles) {
+            if (role == null) {
+                result.addContextualMessage(contextKey, "validate.role.empty");
+                return;
+            } else {
+                Integer id = roleDao.getIdByXid(role.getXid());
+                if( id == null) {
+                    result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+                }else if (id != role.getId()) {
+                    result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
+                }
+            }
+        }
+
+        if(hasAdminRole(holder))
+            return;
+
+        Set<Role> inherited = getAllInheritedRoles(holder);
+
+        //Ensure the holder has at least one of the new permissions
+        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(inherited, newRoles)) {
+            result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+        }
+
+        if(existingRoles != null) {
+            //Check for permissions being added that the user does not have
+            Set<Role> added = new HashSet<>(newRoles);
+            added.removeAll(existingRoles);
+            added.removeAll(inherited);
+            if(added.size() > 0) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(inherited));
+            }
+            //Check for permissions being removed that the user does not have
+            Set<Role> removed = new HashSet<>(existingRoles);
+            removed.removeAll(newRoles);
+            removed.removeAll(inherited);
+            if(removed.size() > 0) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(inherited));
             }
         }
         return;
@@ -584,7 +676,8 @@ public class PermissionService {
         boolean currentUserAdmin = hasAdminRole(currentUser);
 
         // Add any matching groups
-        for (Role role : user.getAllInheritedRoles()) {
+        Set<Role> inherited = getAllInheritedRoles(user);
+        for (Role role : inherited) {
             if (currentUserAdmin || hasSingleRole(currentUser, role)) {
                 d.getAllRoles().add(role);
 
@@ -717,17 +810,6 @@ public class PermissionService {
      */
     public MangoPermission upgradePermissions(String permissions) {
         Set<String> permissionSet = PermissionService.explodeLegacyPermissionGroups(permissions);
-        return upgradePermissions(permissionSet);
-    }
-
-    /**
-     * This should only be called on the upgrade to Mango 4.0 as it will create new roles,
-     *  it is designed to be used during serialization to extract and create roles from serialized data
-     * @param permissionSet
-     * @return
-     */
-    //TODO Mango 4.0 use the role dao
-    public MangoPermission upgradePermissions(Set<String> permissionSet) {
         if(permissionSet == null) {
             return new MangoPermission();
         }
@@ -750,5 +832,36 @@ public class PermissionService {
         }
 
         return MangoPermission.createOrSet(roles);
+    }
+
+    /**
+     * This should only be called on the upgrade to Mango 4.0 as it will create new roles,
+     *  it is designed to be used during serialization to extract and create roles from serialized data
+     * @param permissionSet
+     * @return
+     */
+    public Set<Role> upgradeScriptRoles(Set<String> permissionSet) {
+        if(permissionSet == null) {
+            return new HashSet<>();
+        }
+
+        Set<Role> roles = new HashSet<>();
+        for(String permission : permissionSet) {
+            RoleVO role = roleDao.getByXid(permission);
+            if(role != null) {
+                roles.add(role.getRole());
+            }else {
+                RoleVO r = new RoleVO(Common.NEW_ID, permission, permission);
+                try {
+                    roleDao.insert(r);
+                    roles.add(r.getRole());
+                }catch(Exception e) {
+                    //Someone maybe inserted this role while we were doing this.
+                    roles.add(r.getRole());
+                }
+            }
+        }
+
+        return roles;
     }
 }

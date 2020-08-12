@@ -50,7 +50,7 @@ public class ScriptPermissionsJsonTest extends MangoTestBase {
         all.addAll(dataPointSetRoles);
         all.addAll(customRoles);
 
-        assertRoles(all, permissions.getAllInheritedRoles());
+        assertRoles(all, permissions.getRoles());
 
     }
 
@@ -67,7 +67,7 @@ public class ScriptPermissionsJsonTest extends MangoTestBase {
         toSerialize.setCustomPermissions(null);
 
         ScriptPermissions permissions = convert(toSerialize);
-        assertTrue(permissions.getAllInheritedRoles().isEmpty());
+        assertTrue(permissions.getRoles().isEmpty());
     }
 
     /**
@@ -88,7 +88,7 @@ public class ScriptPermissionsJsonTest extends MangoTestBase {
     public void testV2() {
         Set<Role> all = createRoles(2).stream().map(r->r.getRole()).collect(Collectors.toSet());
         ScriptPermissions permissions = convert(new ScriptPermissions(all));
-        assertRoles(all, permissions.getAllInheritedRoles());
+        assertRoles(all, permissions.getRoles());
     }
 
     /**

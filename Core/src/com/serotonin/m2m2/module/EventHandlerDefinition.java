@@ -118,7 +118,7 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * @param ds
      * @param user
      */
-    abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
+    abstract public void validate(ProcessResult response, T vo, PermissionHolder user);
 
     /**
      * Validate an event handler that is about to be updated
@@ -128,8 +128,8 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * @param ds
      * @param user
      */
-    public void validate(ProcessResult response, T existing, T ds, PermissionHolder user) {
-        validate(response, ds, user);
+    public void validate(ProcessResult response, T existing, T vo, PermissionHolder user) {
+        validate(response, vo, user);
     }
 
     /**

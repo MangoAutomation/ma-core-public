@@ -124,9 +124,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     //
     private transient LazyInitializer<Set<GrantedAuthority>> authorities = new LazyInitializer<>();
 
-    //All inherited roles for this permission holder
-    private transient LazyInitializer<Set<Role>> allInheritedRoles = new LazyInitializer<>();
-
     public User() {
         this.name = "";
         this.timezone = "";
@@ -416,7 +413,9 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities.get(() -> {
-            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(getAllInheritedRoles()));
+            //TODO Mango 4.0 see #1610
+            Set<Role> allInheritedRoles = Common.getBean(PermissionService.class).getAllInheritedRoles(this);
+            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(allInheritedRoles));
         });
     }
 
@@ -478,6 +477,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     public Set<String> getGrantedPermissions() {
         return grantedPermissions.get(() -> {
+            //TODO Mango 4.0 see #1610
             PermissionService service = Common.getBean(PermissionService.class);
             return Collections.unmodifiableSet(service.getGrantedPermissions(this));
         });
@@ -652,6 +652,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         return true;
     }
 
+    @Override
     public Set<Role> getRoles() {
         return roles;
     }
@@ -660,20 +661,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         this.roles = roles;
         this.grantedPermissions.reset();
         this.authorities.reset();
-        this.allInheritedRoles.reset();
-    }
-
-    @Override
-    public Set<Role> getAllInheritedRoles() {
-        return this.allInheritedRoles.get(() -> {
-            RoleDao dao = Common.getBean(RoleDao.class);
-            Set<Role> allRoles = new HashSet<>();
-            for(Role role : roles) {
-                allRoles.add(role);
-                allRoles.addAll(dao.getFlatInheritance(role));
-            }
-            return allRoles;
-        });
     }
 
     @Override
@@ -693,7 +680,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         localeObject = new LazyInitializer<>();
         grantedPermissions = new LazyInitializer<>();
         authorities = new LazyInitializer<>();
-        allInheritedRoles = new LazyInitializer<>();
     }
 
     Set<Role> readLegacyPermissions(String permissionName, Set<Role> existing, JsonObject jsonObject) throws TranslatableJsonException {

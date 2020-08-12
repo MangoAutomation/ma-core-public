@@ -59,7 +59,7 @@ public class PathMangoScript implements MangoScript {
     }
 
     @Override
-    public Set<Role> getAllInheritedRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 

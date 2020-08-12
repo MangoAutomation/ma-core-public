@@ -69,7 +69,7 @@ public interface PermissionHolder {
      * The roles for this permission holder, including all inherited roles
      * @return
      */
-    Set<Role> getAllInheritedRoles();
+    Set<Role> getRoles();
 
     /**
      * @author Jared Wiltshire
@@ -91,7 +91,7 @@ public interface PermissionHolder {
         }
 
         @Override
-        public Set<Role> getAllInheritedRoles() {
+        public Set<Role> getRoles() {
             return roles;
         }
     }
@@ -116,7 +116,7 @@ public interface PermissionHolder {
         }
 
         @Override
-        public Set<Role> getAllInheritedRoles() {
+        public Set<Role> getRoles() {
             return roles;
         }
     }

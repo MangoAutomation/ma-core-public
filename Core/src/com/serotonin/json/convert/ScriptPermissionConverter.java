@@ -38,7 +38,7 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
     public JsonValue jsonWrite(JsonTypeWriter writer, Object value) throws JsonException {
         ScriptPermissions permission = (ScriptPermissions)value;
         JsonArray roles = new JsonArray();
-        for(Role role : permission.getAllInheritedRoles()) {
+        for(Role role : permission.getRoles()) {
             roles.add(role.getXid());
         }
         return roles;
@@ -48,7 +48,7 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
     public void jsonWrite(JsonWriter writer, Object value) throws IOException, JsonException {
         ScriptPermissions permission = (ScriptPermissions)value;
         JsonArray roles = new JsonArray();
-        for(Role role : permission.getAllInheritedRoles()) {
+        for(Role role : permission.getRoles()) {
             roles.add(role.getXid());
         }
         writer.writeObject(roles);

@@ -711,7 +711,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             PermissionHolder user) {
 
         if(!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 
@@ -757,7 +757,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
         if(!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 

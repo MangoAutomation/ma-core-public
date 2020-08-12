@@ -164,7 +164,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
-        assertPermission(((SetPointEventHandlerVO)expected).getScriptRoles().getPermission(), ((SetPointEventHandlerVO)actual).getScriptRoles().getPermission());
+        assertRoles(((SetPointEventHandlerVO)expected).getScriptRoles().getRoles(), ((SetPointEventHandlerVO)actual).getScriptRoles().getRoles());
 
         //TODO assert remaining
     }

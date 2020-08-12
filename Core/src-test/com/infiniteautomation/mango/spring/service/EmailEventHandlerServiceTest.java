@@ -122,7 +122,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         assertPermission(expected.getReadPermission(), actual.getReadPermission());
         assertPermission(expected.getEditPermission(), actual.getEditPermission());
 
-        assertPermission(((EmailEventHandlerVO)expected).getScriptRoles().getPermission(), ((EmailEventHandlerVO)actual).getScriptRoles().getPermission());
+        assertRoles(((EmailEventHandlerVO)expected).getScriptRoles().getRoles(), ((EmailEventHandlerVO)actual).getScriptRoles().getRoles());
 
         //TODO assert remaining
     }

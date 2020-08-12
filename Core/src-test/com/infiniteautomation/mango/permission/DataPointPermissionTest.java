@@ -100,7 +100,7 @@ public class DataPointPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return readRoles;
             }
 
@@ -164,7 +164,7 @@ public class DataPointPermissionTest extends MangoTestBase {
             }
 
             @Override
-            public Set<Role> getAllInheritedRoles() {
+            public Set<Role> getRoles() {
                 return readRoles;
             }
 

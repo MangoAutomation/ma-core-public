@@ -5,22 +5,29 @@
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -33,6 +40,10 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     public static final int ACTIVE_SCRIPT_TYPE = 0;
     public static final int INACTIVE_SCRIPT_TYPE = 1;
 
+    @Autowired
+    EventHandlerService eventHandlerService;
+    @Autowired
+    RoleDao roleDao;
     @Autowired
     PermissionService service;
 
@@ -52,25 +63,37 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     }
 
     @Override
-    public void savePreRelationalData(SetPointEventHandlerVO existing, SetPointEventHandlerVO vo) {
-        //TODO Mango 4.0 Script Permissions
-    }
-
-    @Override
-    public void loadRelationalData(SetPointEventHandlerVO eh) {
-        //TODO Mango 4.0 Script Permissions
-    }
-
-    @Override
-    public void deleteRelationalData(SetPointEventHandlerVO eh) {
-        //TODO Mango 4.0 Script Permissions
+    public void handleRoleEvent(SetPointEventHandlerVO vo, DaoEvent<? extends RoleVO> event) {
+        //Remove and re-serialize our handler's script roles if it has a role that was deleted
+        if(vo.getScriptRoles().getRoles().contains(event.getVo().getRole())){
+            switch(event.getType()) {
+                case UPDATE:
+                    break;
+                case DELETE:
+                    Set<Role> updated = new HashSet<>(vo.getScriptRoles().getRoles());
+                    updated.remove(event.getVo().getRole());
+                    Set<Role> allRoles = new HashSet<>();
+                    for(Role role : updated) {
+                        allRoles.add(role);
+                        allRoles.addAll(roleDao.getFlatInheritance(role));
+                    }
+                    ScriptPermissions permission = new ScriptPermissions(allRoles, vo.getScriptRoles().getPermissionHolderName());
+                    vo.setScriptRoles(permission);
+                    eventHandlerService.update(vo.getId(), vo);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     @Override
     public void validate(ProcessResult result, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
         if(vo.getScriptRoles() != null) {
-            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getPermission());
+            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getRoles());
+        }else {
+            result.addContextualMessage("scriptRoles", "validate.permission.null");
         }
     }
 
@@ -80,9 +103,9 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
         if (vo.getScriptRoles() == null) {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
-            MangoPermission existingPermission = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getPermission();
-            service.validateVoRoles(result, "scriptRoles", savingUser, false,
-                    existingPermission, vo.getScriptRoles().getPermission());
+            Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
+            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, false,
+                    roles, vo.getScriptRoles().getRoles());
         }
     }
 

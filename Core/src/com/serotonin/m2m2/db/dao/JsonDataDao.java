@@ -164,7 +164,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user) {
         if (!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 

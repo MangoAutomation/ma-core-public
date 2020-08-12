@@ -10,15 +10,14 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
@@ -90,12 +89,6 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
 
     public User getEditUser() {
         return editUser;
-    }
-
-    public void setContextUser(PermissionHolder holder) {
-        SecurityContextImpl sc = new SecurityContextImpl();
-        sc.setAuthentication(new PreAuthenticatedAuthenticationToken(holder, holder.getAllInheritedRoles()));
-        SecurityContextHolder.setContext(sc);
     }
 
     @Test
@@ -192,6 +185,30 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
         assertTrue(expected.equals(actual));
     }
 
+    void assertRoles(Set<Role> expected, Set<Role> actual) {
+        assertEquals(expected.size(), actual.size());
+        Set<Role> missing = new HashSet<>();
+        for(Role expectedRole : expected) {
+            boolean found = false;
+            for(Role actualRole : actual) {
+                if(StringUtils.equals(expectedRole.getXid(), actualRole.getXid())) {
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                missing.add(expectedRole);
+            }
+        }
+        if(missing.size() > 0) {
+            String missingRoles = "";
+            for(Role missingRole : missing) {
+                missingRoles += "< " + missingRole.getId() + " - " + missingRole.getXid() + "> ";
+            }
+            fail("Not all roles matched, missing: " + missingRoles);
+        }
+    }
+
     void setupRoles() {
         roleService = Common.getBean(RoleService.class);
 
@@ -259,9 +276,11 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
             }
         }
     }
+
     public Role getEditRole() {
         return editRole;
     }
+
     public RoleService getRoleService() {
         return roleService;
     }
