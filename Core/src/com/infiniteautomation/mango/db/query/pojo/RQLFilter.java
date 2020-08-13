@@ -179,7 +179,6 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 };
             }
             case CONTAINS: {
-                //TODO Mango 4.0 Support target of one or many
                 String property = mapPropertyName((String) arguments.get(0));
                 Object target = convertRQLArgument(property, arguments.get(1));
                 Comparator<Object> comparator = getComparator(property);
