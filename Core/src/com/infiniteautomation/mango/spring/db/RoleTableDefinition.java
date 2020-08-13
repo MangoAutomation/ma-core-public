@@ -3,9 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.db;
 
-import java.util.Collections;
-import java.util.Map;
-
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
@@ -40,10 +37,5 @@ public class RoleTableDefinition extends AbstractTableDefinition {
     public static final Name roleInheritanceTableInheritedRoleIdName = DSL.name("inheritedRoleId");
     public static final Field<Integer> roleInheritanceTableInheritedRoleIdField = DSL.field(roleInheritanceTableInheritedRoleIdName, SQLDataType.INTEGER);
     public static final Field<Integer> roleInheritanceTableInheritedRoleIdFieldAlias = DSL.field(roleInheritanceTableAlias.append(roleInheritanceTableInheritedRoleIdName), SQLDataType.INTEGER);
-
-    @Override
-    protected Map<String, Field<?>> getAliasMappings() {
-        return Collections.singletonMap("inheritedBy", roleInheritanceTableRoleIdFieldAlias);
-    }
 
 }

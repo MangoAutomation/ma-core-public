@@ -789,14 +789,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     @Override
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
-        Map<String, Function<Object, Object>> map = new HashMap<>(super.createValueConverterMap());
-        map.put("dataTypeId", value -> {
+        Map<String, Function<Object, Object>> converters = super.createValueConverterMap();
+        Map<String, Function<Object, Object>> myConverters = new HashMap<>();
+        myConverters.put("dataTypeId", value -> {
             if (value instanceof String) {
                 return DataTypes.CODES.getId((String) value);
             }
             return value;
         });
-        return map;
+        return combine(converters, myConverters);
     }
 
     @Override

@@ -10,16 +10,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
@@ -92,6 +96,38 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
      */
     public static UserDao getInstance() {
         return springInstance.get();
+    }
+
+    @Override
+    protected Map<String, Field<?>> createAliasMap() {
+        Map<String, Field<?>> aliases = super.createAliasMap();
+        Map<String, Field<?>> myAliases = new HashMap<>();
+        myAliases.put("lastPasswordChange", table.getAlias("passwordChangeTimestamp"));
+        myAliases.put("created", table.getAlias("createdTs"));
+        myAliases.put("emailVerified", table.getAlias("emailVerifiedTs"));
+        return combine(aliases, myAliases);
+    }
+
+    @Override
+    protected Map<String, Function<Object, Object>> createValueConverterMap() {
+        Map<String, Function<Object, Object>> converters = super.createValueConverterMap();
+        Map<String, Function<Object, Object>> myConverters = new HashMap<>();
+        myConverters.put("receiveAlarmEmails", v -> {
+            if (v instanceof String) {
+                return AlarmLevels.fromName((String) v).value();
+            }
+            return v;
+        });
+        return combine(converters, myConverters);
+    }
+
+    @Override
+    protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
+        Map<String, RQLSubSelectCondition> subSelectMap = super.createSubSelectMap();
+        Map<String, RQLSubSelectCondition> mySubSelects = new HashMap<>();
+        mySubSelects.put("roles", createUserRoleCondition());
+        mySubSelects.put("inheritedRoles", createUserInheritedRoleCondition());
+        return combine(subSelectMap, mySubSelects);
     }
 
     /**
@@ -517,7 +553,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                 case CONTAINS:
                     return table.getIdAlias().in(afterWhere.asField());
                 default:
-                    throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
+                    throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
             }
         };
     }
@@ -549,7 +585,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                 case CONTAINS:
                     return table.getIdAlias().in(afterWhere.asField());
                 default:
-                    throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
+                    throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
             }
         };
     }

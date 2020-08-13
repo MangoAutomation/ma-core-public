@@ -89,6 +89,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
 
+    protected final Map<String, Field<?>> aliasMap;
+    protected final Map<String, RQLSubSelectCondition> subSelectMap;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
     public AbstractBasicDao(TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
@@ -108,6 +110,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         this.table = table;
         this.mapper = mapper;
         this.eventPublisher = publisher;
+
+        // Map of potential property names to db field aliases
+        this.aliasMap = this.createAliasMap();
+
+        // Map of potential property names to sub select conditions
+        this.subSelectMap = this.createSubSelectMap();
 
         // Map of properties to their QueryAttribute
         this.valueConverterMap = this.createValueConverterMap();
@@ -502,6 +510,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         }
     }
 
+    protected Map<String, Field<?>> createAliasMap() {
+        return this.table.getAliasMap();
+    }
+
+    protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
+        return this.table.getSubSelectMap();
+    }
+
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
         return this.table.getFieldMap().entrySet().stream()
                 .filter(e -> e.getValue().getDataType().getSQLDataType() == SQLDataType.CHAR)
@@ -510,7 +526,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMapping, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
-        RQLToCondition rqlToCondition = createRqlToCondition(combine(this.table.getSubSelectMap(), subSelectMapping), combine(this.table.getAliasMap(), fieldMap), combine(this.valueConverterMap, valueConverters));
+        RQLToCondition rqlToCondition = createRqlToCondition(combine(this.subSelectMap, subSelectMapping), combine(this.aliasMap, fieldMap), combine(this.valueConverterMap, valueConverters));
         ConditionSortLimit conditions = rqlToCondition.visit(rql);
         return conditions;
     }
@@ -786,7 +802,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public QueryBuilder<T> buildQuery(PermissionHolder user) {
-        return new QueryBuilder<T>(table.getAliasMap(), valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
+        return new QueryBuilder<T>(aliasMap, valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
     }
 
 }

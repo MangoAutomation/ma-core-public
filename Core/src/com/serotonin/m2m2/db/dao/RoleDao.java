@@ -12,12 +12,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.Query;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Select;
+import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,7 +29,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
+import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -55,6 +57,14 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
         this.permissionDao = permissionDao;
+    }
+
+    @Override
+    protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
+        Map<String, RQLSubSelectCondition> subselects = super.createSubSelectMap();
+        Map<String, RQLSubSelectCondition> mySubselects = new HashMap<>();
+        mySubselects.put("inherited", createInheritedRoleCondition());
+        return combine(subselects, mySubselects);
     }
 
     @Override
@@ -105,28 +115,10 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
     }
 
     @Override
-    protected Map<String, Function<Object, Object>> createValueConverterMap() {
-        Map<String, Function<Object, Object>> map = new HashMap<>(super.createValueConverterMap());
-        map.put("roleId", value -> {
-            if (value instanceof String) {
-                return getByXid((String) value).getId();
-            }
-            return value;
-        });
-        return map;
-    }
-
-    @Override
     public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
         // use select distinct as the join below results in multiple rows per role
         return this.create.selectDistinct(fields)
                 .from(this.table.getTableAsAlias());
-    }
-
-    @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        return select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
-                .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias));
     }
 
     /**
@@ -210,6 +202,36 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
                 .where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
         List<Object> args = select.getBindValues();
         return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
+    }
+
+    public RQLSubSelectCondition createInheritedRoleCondition() {
+        return (operation, node) -> {
+            List<Object> arguments = node.getArguments();
+
+            //Check the role Xid input
+            if (arguments.size() > 2) {
+                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
+            }
+
+            Object roleXid = arguments.get(1);
+            Integer roleId = null;
+
+            //TODO Should really used role cache in PermissionService but there is a
+            // circular dependency if injected due to our use of the RoleDao
+            RoleVO role = getByXid((String)roleXid);
+            if(role != null) {
+                roleId = role.getId();
+            }
+
+            SelectJoinStep<Record1<Integer>> select = create.select(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias).from(RoleTableDefinition.roleInheritanceTableAsAlias);
+            SelectConditionStep<Record1<Integer>> afterWhere = select.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
+            switch(operation) {
+                case CONTAINS:
+                    return table.getIdAlias().in(afterWhere.asField());
+                default:
+                    throw new RQLVisitException(String.format("Unsupported node type '%s' for property '%s'", node.getName(), arguments.get(0)));
+            }
+        };
     }
 
     /**
