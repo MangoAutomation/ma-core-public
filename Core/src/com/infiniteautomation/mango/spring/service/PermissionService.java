@@ -505,7 +505,7 @@ public class PermissionService {
             }
             i.role = roleVo.getRole();
             i.inherited = roleDao.getFlatInheritance(roleVo.getRole());
-            i.inheritedBy = roleDao.getInheritedBy(roleVo.getRole());
+            i.inheritedBy = roleDao.getRolesThatInherit(roleVo.getRole());
             return i;
         });
         if(inheritance == null) {
@@ -516,11 +516,11 @@ public class PermissionService {
     }
 
     /**
-     * Get a set of this role and all roles inherited by this role using its xid
+     * Get a set of this role and all roles that inherit this role
      * @param roleXid
      * @return
      */
-    public Set<Role> getAllRolesInheritedBy(String roleXid) {
+    public Set<Role> getRolesThatInherit(String roleXid) {
         Set<Role> allRoles = new HashSet<>();
 
         RoleInheritance inheritance = roleHierarchyCache.get(roleXid, (xid) -> {
@@ -531,7 +531,7 @@ public class PermissionService {
             }
             i.role = roleVo.getRole();
             i.inherited = roleDao.getFlatInheritance(roleVo.getRole());
-            i.inheritedBy = roleDao.getInheritedBy(roleVo.getRole());
+            i.inheritedBy = roleDao.getRolesThatInherit(roleVo.getRole());
             return i;
         });
 
@@ -554,7 +554,7 @@ public class PermissionService {
                 RoleInheritance i = new RoleInheritance();
                 i.role = role;
                 i.inherited = roleDao.getFlatInheritance(role);
-                i.inheritedBy = roleDao.getInheritedBy(role);
+                i.inheritedBy = roleDao.getRolesThatInherit(role);
                 return i;
             });
             if(inheritance != null) {
@@ -913,6 +913,9 @@ public class PermissionService {
         switch(event.getType()) {
             case DELETE:
             case UPDATE:
+                //TODO Mango 4.0 Invalidate all inherited roles
+                //TODO Mango 4.0 Invalidate all roles that inherit
+                //Invalidate me
                 roleHierarchyCache.invalidate(event.getOriginalVo().getXid());
                 break;
             default:

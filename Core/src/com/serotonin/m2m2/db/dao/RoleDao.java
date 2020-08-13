@@ -58,17 +58,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
     }
 
     @Override
-    public void deletePostRelationalData(RoleVO vo) {
-        permissionDao.roleUnlinked();
-    }
-
-    @Override
-    public void loadRelationalData(RoleVO vo) {
-        Set<Role> inherited = getInherited(vo.getId());
-        vo.setInherited(inherited);
-    }
-
-    @Override
     public void saveRelationalData(RoleVO existing, RoleVO vo) {
         if(existing != null) {
             //Drop the mappings
@@ -84,6 +73,17 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
             }
             create.batch(inserts).execute();
         }
+    }
+
+    @Override
+    public void loadRelationalData(RoleVO vo) {
+        Set<Role> inherited = getInherited(vo.getId());
+        vo.setInherited(inherited);
+    }
+
+    @Override
+    public void deletePostRelationalData(RoleVO vo) {
+        permissionDao.roleUnlinked();
     }
 
     @Override
@@ -130,38 +130,37 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
     }
 
     /**
-     * Get any roles inherited by this role
+     * Get all roles that inherit this role
      * @param role
      * @return
      */
-    public Set<Role> getInheritedBy(Role role) {
+    public Set<Role> getRolesThatInherit(Role role) {
         return this.doInTransaction((tx) -> {
             Set<Role> all = new HashSet<Role>();
-            addInheritedBy(role, all);
+            addRolesThatInherit(role, all);
             return all;
         });
     }
 
     /**
-     * Recursively add all roles inherited by this role
+     * Recursively add all roles that inherit this role
      * @param role
      * @param all
      */
-    private void addInheritedBy(Role role, Set<Role> all) {
-        Set<Role> inherited = getInheritedBy(role.getId());
+    private void addRolesThatInherit(Role role, Set<Role> all) {
+        Set<Role> inherited = getRolesThatInherit(role.getId());
         for(Role inheritedRole : inherited) {
             all.add(inheritedRole);
-            addInheritedBy(inheritedRole, all);
+            addRolesThatInherit(inheritedRole, all);
         }
     }
 
     /**
-     * Get the inherited roles of this role from the database,
-     *  one level deep only.
+     * Get the roles that inherit this role, one level deep.
      * @param vo
      * @return
      */
-    private Set<Role> getInheritedBy(int roleId) {
+    private Set<Role> getRolesThatInherit(int roleId) {
         Select<?> select = this.create.select(getSelectFields())
                 .from(this.table.getTableAsAlias())
                 .join(RoleTableDefinition.roleInheritanceTableAsAlias)

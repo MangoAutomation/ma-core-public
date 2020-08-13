@@ -538,7 +538,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             Object roleXid = arguments.get(1);
             Set<Integer> roleIds = new HashSet<>();
 
-            Set<Role> inherited = permissionService.getAllRolesInheritedBy((String)roleXid);
+            Set<Role> inherited = permissionService.getRolesThatInherit((String)roleXid);
             for(Role r : inherited) {
                 roleIds.add(r.getId());
             }
