@@ -5,7 +5,7 @@
 --
 
 -- Make sure that everything get created with utf8 as the charset.
-alter database default character set utf8mb4;
+alter database default character set utf8mb4 collate utf8mb4_unicode_ci;
 
 --
 -- System settings
