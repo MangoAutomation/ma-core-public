@@ -20,6 +20,7 @@ import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
+import org.jooq.SelectOnConditionStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -64,6 +65,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
         Map<String, RQLSubSelectCondition> subselects = super.createSubSelectMap();
         Map<String, RQLSubSelectCondition> mySubselects = new HashMap<>();
         mySubselects.put("inherited", createInheritedRoleCondition());
+        mySubselects.put("inheritedBy", createInheritedByRoleCondition());
         return combine(subselects, mySubselects);
     }
 
@@ -216,15 +218,66 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
             Object roleXid = arguments.get(1);
             Integer roleId = null;
 
+            SelectConditionStep<Record1<Integer>> afterWhere;
             //TODO Should really used role cache in PermissionService but there is a
             // circular dependency if injected due to our use of the RoleDao
-            RoleVO role = getByXid((String)roleXid);
-            if(role != null) {
-                roleId = role.getId();
+            if(roleXid != null) {
+                RoleVO role = getByXid((String)roleXid);
+                if(role != null) {
+                    roleId = role.getId();
+                }
+                SelectJoinStep<Record1<Integer>> select = create.select(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias)
+                        .from(RoleTableDefinition.roleInheritanceTableAsAlias);
+                afterWhere = select.where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(roleId));
+            }else {
+                //Find all roles with no inherited roles
+                SelectJoinStep<Record1<Integer>> select = create.select(table.getIdAlias()).from(table.getTableAsAlias());
+                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
+                        .on(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(table.getIdAlias()));
+                afterWhere = afterJoin.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.isNull());
             }
 
-            SelectJoinStep<Record1<Integer>> select = create.select(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias).from(RoleTableDefinition.roleInheritanceTableAsAlias);
-            SelectConditionStep<Record1<Integer>> afterWhere = select.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
+            switch(operation) {
+                case CONTAINS:
+                    return table.getIdAlias().in(afterWhere.asField());
+                default:
+                    throw new RQLVisitException(String.format("Unsupported node type '%s' for property '%s'", node.getName(), arguments.get(0)));
+            }
+        };
+    }
+
+    public RQLSubSelectCondition createInheritedByRoleCondition() {
+        return (operation, node) -> {
+            List<Object> arguments = node.getArguments();
+
+            //Check the role Xid input
+            if (arguments.size() > 2) {
+                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
+            }
+
+            Object roleXid = arguments.get(1);
+            Integer roleId = null;
+
+            SelectConditionStep<Record1<Integer>> afterWhere;
+            //TODO Should really used role cache in PermissionService but there is a
+            // circular dependency if injected due to our use of the RoleDao
+            if(roleXid != null) {
+                //Find all roles inherited by this role
+                RoleVO role = getByXid((String)roleXid);
+                if(role != null) {
+                    roleId = role.getId();
+                }
+                SelectJoinStep<Record1<Integer>> select = create.select(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias)
+                        .from(RoleTableDefinition.roleInheritanceTableAsAlias);
+                afterWhere = select.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
+            }else {
+                //Find all roles with that are not inherited by any role
+                SelectJoinStep<Record1<Integer>> select = create.select(table.getIdAlias()).from(table.getTableAsAlias());
+                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
+                        .on(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(table.getIdAlias()));
+                afterWhere = afterJoin.where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.isNull());
+            }
+
             switch(operation) {
                 case CONTAINS:
                     return table.getIdAlias().in(afterWhere.asField());
