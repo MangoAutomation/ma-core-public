@@ -915,8 +915,8 @@ public class PermissionService {
             case UPDATE:
                 //TODO Mango 4.0 Invalidate all inherited roles
                 //TODO Mango 4.0 Invalidate all roles that inherit
-                //Invalidate me
-                roleHierarchyCache.invalidate(event.getOriginalVo().getXid());
+                //TODO Invalidate me
+                roleHierarchyCache.invalidateAll();
                 break;
             default:
                 break;
