@@ -3,8 +3,9 @@
 --    @author Matthew Lohbihler
 --
 
--- Make sure that everything get created with utf8 as the charset.
-alter database default character set utf8;
+-- Make sure that everything get created with utf8mb4 as the charset.
+-- Collation is full unicode comparison, case-insensitive
+alter database default character set utf8mb4 collate utf8mb4_unicode_ci;
 
 --
 -- System settings

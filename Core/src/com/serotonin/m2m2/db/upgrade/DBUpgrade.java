@@ -24,6 +24,8 @@ import com.serotonin.m2m2.module.ModuleRegistry;
  * 'Upgrade[version]', where '[version]' is the version that the class upgrades <b>from</b>. The subclass must be in
  * this package.
  *
+ * <p>Ensure that you update {@link com.serotonin.m2m2.Common#getDatabaseSchemaVersion()} when implementing upgrades</p>
+ *
  * @author Matthew Lohbihler
  */
 abstract public class DBUpgrade extends BaseDao {
