@@ -18,9 +18,6 @@ import org.springframework.transaction.PlatformTransactionManager;
  */
 public abstract class UpgradeDefinition extends ModuleElementDefinition {
 
-    // TODO Mango 4.0 remove
-    protected final Version four = Version.valueOf("4.0.0");
-
     @Autowired
     protected ExtendedJdbcTemplate ejt;
     @Autowired
