@@ -13,7 +13,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
 import javax.script.ScriptEngineManager;
+import javax.sql.DataSource;
 
+import com.serotonin.db.SpringConnectionProvider;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.db.DatabaseProxy;
+import org.jooq.SQLDialect;
+import org.jooq.conf.RenderNameStyle;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.tools.StopWatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +41,7 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -306,5 +315,61 @@ public class MangoRuntimeContextConfiguration {
         }else {
             return new NullMangoSessionDataStore();
         }
+    }
+
+
+    @Bean
+    public DatabaseProxy.DatabaseType dataBaseType() {
+        return Common.databaseProxy.getType();
+    }
+
+    @Bean
+    public DataSource dataSource() {
+        return Common.databaseProxy.getDataSource();
+    }
+
+    @Bean
+    public PlatformTransactionManager platformTransactionManager() {
+        return Common.databaseProxy.getTransactionManager();
+    }
+
+    @Bean
+    public ExtendedJdbcTemplate extendedJdbcTemplate() {
+        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(dataSource());
+        return ejt;
+    }
+
+    @Bean
+    public org.jooq.Configuration jooqConfiguration(@Value("${db.useMetrics:false}") boolean useMetrics) {
+        org.jooq.Configuration configuration = new DefaultConfiguration();
+        configuration.set(new SpringConnectionProvider(dataSource()));
+
+        configuration.settings().setExecuteLogging(useMetrics);
+        if (useMetrics) {
+            configuration.set(StopWatchListener::new);
+        }
+
+        switch(dataBaseType()) {
+            case DERBY:
+                configuration.set(SQLDialect.DERBY);
+                break;
+            case H2:
+                configuration.set(SQLDialect.H2);
+                configuration.settings().setRenderNameStyle(RenderNameStyle.UPPER);
+                break;
+            case MYSQL:
+                configuration.set(SQLDialect.MYSQL);
+                break;
+            case POSTGRES:
+                configuration.set(SQLDialect.POSTGRES);
+                break;
+            case MSSQL:
+            default:
+                configuration.set(SQLDialect.DEFAULT);
+                break;
+        }
+
+        return configuration;
     }
 }

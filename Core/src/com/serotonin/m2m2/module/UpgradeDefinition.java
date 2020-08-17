@@ -6,6 +6,8 @@ package com.serotonin.m2m2.module;
 
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Define upgrade actions that depend on upgrading to a specific version.  If
@@ -16,10 +18,13 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
  */
 public abstract class UpgradeDefinition extends ModuleElementDefinition {
 
-    //Core release versions
+    // TODO Mango 4.0 remove
     protected final Version four = Version.valueOf("4.0.0");
 
+    @Autowired
     protected ExtendedJdbcTemplate ejt;
+    @Autowired
+    protected PlatformTransactionManager txManager;
 
     /**
      * Called after database is initialized, used to do any database related

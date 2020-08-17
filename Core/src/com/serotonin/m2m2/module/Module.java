@@ -4,25 +4,8 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.core.OrderComparator;
-
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.util.exception.ModuleUpgradeException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
@@ -32,6 +15,16 @@ import com.serotonin.m2m2.module.ModuleRegistry.CoreModule;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.util.license.ModuleLicense;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.core.OrderComparator;
+
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 /**
  * All information regarding a module required by the core.
@@ -112,7 +105,7 @@ public class Module {
 
     /**
      * Loads all the module element definition classes and uses ConditionalDefinition to filter them. Does not return any definitions from parent classloaders.
-     * @param classloader
+     * @param classLoader
      */
     public void loadDefinitions(ClassLoader classLoader) {
         try {
@@ -184,12 +177,8 @@ public class Module {
             return true;
         }
         try {
-            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-            ejt.setDataSource(Common.databaseProxy.getDataSource());
-
             for (ModuleElementDefinition df : definitions) {
                 if(df instanceof UpgradeDefinition) {
-                    ((UpgradeDefinition)df).ejt = ejt;
                     ((UpgradeDefinition)df).upgrade(this.previousVersion, this.version);
                 }
             }

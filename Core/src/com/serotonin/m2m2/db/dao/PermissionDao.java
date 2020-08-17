@@ -118,7 +118,6 @@ public class PermissionDao extends BaseDao {
      * Find the id of a permission or create one that matches
      *
      * @param permission
-     * @param insert if this permission was created on an insert it won't have replaced an old one so don't unlink permissions
      * @return
      */
     public Integer permissionId(MangoPermission permission) {
@@ -128,7 +127,7 @@ public class PermissionDao extends BaseDao {
     }
 
     private Integer getOrInsertPermission(MangoPermission permission) {
-        //TODO Optimize this whole method
+        //TODO Mango 4.0 Optimize this whole method
         Set<Integer> mintermIds = permission.getRoles().stream()
                 .map(this::getOrInsertMinterm)
                 .collect(Collectors.toSet());
@@ -170,6 +169,10 @@ public class PermissionDao extends BaseDao {
     }
 
     private int getOrInsertMinterm(Set<Role> minterm) {
+        if (minterm.isEmpty()) {
+            throw new IllegalArgumentException("Minterm should never be empty");
+        }
+
         Set<Integer> roleIds = minterm.stream()
                 .map(Role::getId)
                 .collect(Collectors.toSet());
