@@ -43,7 +43,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
 
     /**
      * replace the read roles with these
-     * @param roles
+     * @param permission
      * @param vo
      */
     abstract void setReadPermission(MangoPermission permission, VO vo);
@@ -64,7 +64,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
 
     /**
      * Replace the edit roles with these
-     * @param roles
+     * @param permission
      * @param vo
      */
     abstract void setEditPermission(MangoPermission permission, VO vo);
@@ -536,7 +536,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             getService().permissionService.runAsSystemAdmin(() -> {
                 PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getCreatePermissionType());
                 MangoPermission permission = def.getPermission();
-                Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.removeRole(vo).getRoles()), def);
+                Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.withoutRole(vo).getRoles()), def);
             });
         }
     }

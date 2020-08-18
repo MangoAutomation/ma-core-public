@@ -274,34 +274,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         dao.lockPassword(toLock);
     }
 
-    /**
-     * Get user permission information for all users, will filter
-     *  based on what roles the calling user can 'see'
-     * @return
-     */
-    public Set<UserRolesDetails> getPermissionDetailsForAllUsers() {
-        return getPermissionDetailsForAllUsers(Collections.emptySet());
-    }
-
-    /**
-     * Get User Permissions Information for all users, exclude provided roles in query, will filter
-     *  based on what roles the calling user can 'see'
-     * @param query - cannot be null
-     * @return
-     */
-    public Set<UserRolesDetails> getPermissionDetailsForAllUsers(Collection<String> query) {
-        PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        Set<UserRolesDetails> details = new TreeSet<>();
-        for (User u : dao.getActiveUsers()){
-            UserRolesDetails deets = permissionService.getPermissionDetails(user, query, u);
-            if(deets != null)
-                details.add(deets);
-        }
-        return details;
-    }
-
     @Override
     public ProcessResult validate(User vo, PermissionHolder holder) {
         ProcessResult result = commonValidation(vo, holder);

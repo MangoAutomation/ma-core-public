@@ -5,17 +5,15 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
 
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.serotonin.m2m2.vo.role.Role;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -131,19 +129,14 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        switch(event.getType()) {
-            case DELETE:
-                for(DataPointRT rt : Common.runtimeManager.getRunningDataPoints()) {
-                    if(rt.getVO().getReadPermission().containsRole(event.getVo().getRole())) {
-                        rt.getVO().setReadPermission(rt.getVO().getReadPermission().removeRole(event.getVo().getRole()));
-                    }
-                    if(rt.getVO().getSetPermission().containsRole(event.getVo().getRole())) {
-                        rt.getVO().setSetPermission(rt.getVO().getSetPermission().removeRole(event.getVo().getRole()));
-                    }
-                }
-                break;
-            default:
-                break;
+        if (event.getType() == DaoEventType.DELETE) {
+            Role deletedRole = event.getVo().getRole();
+            for (DataPointRT rt : Common.runtimeManager.getRunningDataPoints()) {
+                DataPointVO point = rt.getVO();
+                point.setReadPermission(point.getReadPermission().withoutRole(deletedRole));
+                point.setEditPermission(point.getEditPermission().withoutRole(deletedRole));
+                point.setSetPermission(point.getSetPermission().withoutRole(deletedRole));
+            }
         }
     }
 
@@ -218,7 +211,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      * @param xid - xid of point to restart
      * @param enabled - Enable or disable the data point
      * @param restart - Restart the data point, enabled must equal true
-     * @param user
      *
      * @throws NotFoundException
      * @throws PermissionException
@@ -673,8 +665,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     /**
      *
      * @param dataSourceId
-     * @param full
-     * @param holder
      * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {

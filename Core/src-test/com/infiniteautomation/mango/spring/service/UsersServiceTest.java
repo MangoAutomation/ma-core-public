@@ -362,7 +362,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         getService().permissionService.runAsSystemAdmin(() -> {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
             MangoPermission permission = def.getPermission();
-            Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.removeRole(vo).getRoles()), def);
+            Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.withoutRole(vo).getRoles()), def);
         });
     }
 

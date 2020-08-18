@@ -3,30 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Proxy;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Service;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.Common;
@@ -43,6 +22,24 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Service;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * @author Terry Packer
@@ -160,11 +157,13 @@ public class PermissionService {
 
     /**
      * Does this user have the superadmin role?
-     * @param holder
+     * @param user the user to test
      * @return
      */
-    public boolean hasAdminRole(PermissionHolder holder) {
-        return hasSingleRole(holder, PermissionHolder.SUPERADMIN_ROLE);
+    public boolean hasAdminRole(PermissionHolder user) {
+        if (!isValidPermissionHolder(user)) return false;
+        Set<Role> heldRoles = getAllInheritedRoles(user);
+        return heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE);
     }
 
     /**
@@ -185,14 +184,14 @@ public class PermissionService {
      */
     public boolean hasPermission(PermissionHolder user, MangoPermission permission) {
         if (!isValidPermissionHolder(user)) return false;
-        if(hasAdminRole(user)) return true;
+        Set<Role> heldRoles = getAllInheritedRoles(user);
 
-        for(Set<Role> group : permission.getRoles()) {
-            if(hasAllRoles(user, group)) {
-                return true;
-            }
+        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+            return true;
         }
-        return false;
+
+        Set<Set<Role>> minterms = permission.getRoles();
+        return minterms.stream().anyMatch(heldRoles::containsAll);
     }
 
     /**
@@ -202,11 +201,38 @@ public class PermissionService {
      */
     public void ensurePermission(PermissionHolder user, MangoPermission permission) {
         if (!hasPermission(user, permission)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user != null ? user.getPermissionHolderName() : ""), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
         }
     }
 
     /**
+     * Checks that the user has all of the roles that are assigned to the other PermissionHolder.
+     *
+     * @param user the current user
+     * @param other other
+     * @return true if user has all the roles of other
+     */
+    public boolean hasSupersetOfRoles(PermissionHolder user, PermissionHolder other) {
+        if (!isValidPermissionHolder(user)) return false;
+        Set<Role> heldRoles = getAllInheritedRoles(user);
+        return heldRoles.containsAll(other.getRoles());
+    }
+
+    /**
+     * Ensures that the user has all of the roles that are assigned to the other PermissionHolder.
+     *
+     * @param user the current user
+     * @param other other
+     */
+    public void ensureSupersetOfRoles(PermissionHolder user, PermissionHolder other) {
+        if (!hasSupersetOfRoles(user, other)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
+    }
+
+    /**
+     * TODO Mango 4.0 rename method
+     *
      * Does this user have any roles assigned to this permission?
      * @param definition
      * @param holder
@@ -217,10 +243,10 @@ public class PermissionService {
     }
 
     /**
-     * Return all the granted permissions a user has.  This is any Permission Definition that the user
-     *  has permission for.
+     * TODO Mango 4.0 rename method
      *
-     *  TODO Mango 4.0 all VO types too, i.e. dataPoint.read (these are not definitions)?
+     * Return all the granted system permissions a user has.  This is any PermissionDefinition that the user
+     * has permission for.
      *
      * @param holder
      * @return
@@ -238,6 +264,8 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove method
+     *
      * Ensure this user have the global data source permission
      * @param user
      * @throws PermissionException
@@ -248,6 +276,8 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove method
+     *
      * Does this user have the global data source permission?
      * @param user
      * @return
@@ -262,6 +292,8 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove method
+     *
      * Does this holder have access to view this event type?
      * @param user
      * @param eventType
@@ -272,6 +304,8 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove method
+     *
      * Ensure this holder has access to view this event type
      * @param user
      * @param eventType
@@ -283,6 +317,8 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove method
+     *
      * Ensure this holder has access to view this event type VO
      * @param user
      * @param eventType
@@ -293,6 +329,8 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove method
+     *
      * Can this user view any events?
      * @param user
      * @return
@@ -306,93 +344,14 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove method
+     *
      * Ensure this user can view any events?
      * @param user
      */
     public void ensureEventsVewPermission(PermissionHolder user) {
         if (!hasEventsViewPermission(user))
             throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getPermissionHolderName()), user);
-    }
-
-    /**
-     * Does this permission holder have at least one of the required roles
-     * @param user
-     * @param requiredRoles
-     * @return
-     */
-    public boolean hasAnyRole(PermissionHolder user, Set<Role> requiredRoles) {
-        if (!isValidPermissionHolder(user)) return false;
-
-        Set<Role> heldRoles = getAllInheritedRoles(user);
-        return containsAnyRole(heldRoles, requiredRoles);
-    }
-
-    /**
-     * Ensure this user has at least one of the roles
-     * @param user
-     * @param requiredPermissions
-     */
-    public void ensureHasAnyRole(PermissionHolder user, Set<Role> requiredRoles) {
-        if (!hasAnyRole(user, requiredRoles)) {
-            ensureValidPermissionHolder(user);
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
-        }
-    }
-
-    /**
-     * Is the exact required role in the permission holder's roles?
-     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
-     *  specially
-     * @param user
-     * @param requiredRole
-     * @return
-     */
-    public boolean hasSingleRole(PermissionHolder user, Role requiredRole) {
-        if (!isValidPermissionHolder(user)) return false;
-
-        Set<Role> heldRoles = getAllInheritedRoles(user);
-        return containsSingleRole(heldRoles, requiredRole);
-    }
-
-    /**
-     *  Ensure the exact required role is in the permission holder's roles
-     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
-     *  specially
-     *
-     * @param holder
-     * @param requiredRole
-     * @throws PermissionException
-     */
-    public void ensureSingleRole(PermissionHolder holder, Role requiredRole) throws PermissionException {
-        if(!hasSingleRole(holder, requiredRole)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", holder.getPermissionHolderName()), holder);
-        }
-    }
-
-    /**
-     * Does this permission holder have all the required roles?  This will check
-     *  the inherited roles too.
-     * @param user
-     * @param requiredRoles
-     * @return
-     */
-    public boolean hasAllRoles(PermissionHolder user, Set<Role> requiredRoles) {
-        if (!isValidPermissionHolder(user)) return false;
-
-        Set<Role> heldRoles = getAllInheritedRoles(user);
-        return containsAll(heldRoles, requiredRoles);
-    }
-
-    /**
-     * Ensure this holder has all the required roles
-     * @param user
-     * @param requiredRoles
-     */
-    public void ensureHasAllRoles(PermissionHolder user, Set<Role> requiredRoles) {
-        if (!hasAllRoles(user, requiredRoles)) {
-            ensureValidPermissionHolder(user);
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
-        }
     }
 
     /**
@@ -416,76 +375,6 @@ public class PermissionService {
      */
     public boolean isValidPermissionHolder(PermissionHolder user) {
         return !(user == null || user.isPermissionHolderDisabled());
-    }
-
-    /**
-     * Is the exact required role in the held roles?
-     *  NOTE: superadmin will have to have this role for this to be true for them. i.e. they are not treated
-     *  specially
-     * @param heldRoles
-     * @param requiredRole
-     * @return
-     */
-    public boolean containsSingleRole(Set<Role> heldRoles, Role requiredRole) {
-        // empty permissions string indicates that only superadmins are allowed access
-        if (requiredRole == null) {
-            return false;
-        }
-
-        return heldRoles.contains(requiredRole);
-    }
-
-    /**
-     * Is every required role in the held roles?
-     * @param heldRoles
-     * @param requiredRoles
-     * @return
-     */
-    private boolean containsAll(Set<Role> heldRoles, Set<Role> requiredRoles) {
-        checkRoleSet(requiredRoles);
-
-        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
-            return true;
-        }
-
-        // empty permissions string indicates that only superadmins are allowed access
-        if (requiredRoles.isEmpty()) {
-            return false;
-        }
-
-        for(Role role : requiredRoles) {
-            if(!heldRoles.contains(role)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Is any required role in the held roles?
-     * @param heldRoles
-     * @param requiredRoles
-     * @return
-     */
-    private boolean containsAnyRole(Set<Role> heldRoles, Set<Role> requiredRoles) {
-        checkRoleSet(requiredRoles);
-        //If I am superadmin or this has the default user role the we are good
-        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE) || requiredRoles.contains(PermissionHolder.USER_ROLE)) {
-            return true;
-        }
-
-        // empty roles indicates that only superadmins are allowed access
-        if (requiredRoles.isEmpty()) {
-            return false;
-        }
-
-        for (Role requiredRole : requiredRoles) {
-            if (heldRoles.contains(requiredRole)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -608,9 +497,9 @@ public class PermissionService {
                         result.addContextualMessage(contextKey, "validate.role.empty");
                     }else {
                         Integer id = roleDao.getIdByXid(role.getXid());
-                        if( id == null) {
+                        if (id == null) {
                             result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
-                        }else if (id != role.getId()) {
+                        } else if (id != role.getId()) {
                             result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
                         }
                     }
@@ -618,37 +507,26 @@ public class PermissionService {
             }
         }
 
-        //Ensure no more than 64 role sets
-        if(newPermission.getRoles().size() > 64) {
-            result.addContextualMessage(contextKey, "validate.role.tooManyGroups");
-            return;
-        }
-
         if(hasAdminRole(holder))
             return;
-
-        Set<Role> inherited = getAllInheritedRoles(holder);
 
         // Ensure the user retains access to the object
         if (!savedByOwner && !hasPermission(holder, newPermission)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+            return;
         }
 
-        if(existingPermission != null) {
-            //Check for permissions being added that the user does not have
-            Set<Role> added = new HashSet<>(newPermission.getUniqueRoles());
-            added.removeAll(existingPermission.getUniqueRoles());
-            added.removeAll(inherited);
-            if(added.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
-            }
-            //Check for permissions being removed that the user does not have
-            Set<Role> removed = new HashSet<>(existingPermission.getUniqueRoles());
-            removed.removeAll(newPermission.getUniqueRoles());
-            removed.removeAll(inherited);
-            if(removed.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
-            }
+        Set<Role> inherited = getAllInheritedRoles(holder);
+        Set<Role> existingRoles = existingPermission == null ?
+                Collections.emptySet() :
+                existingPermission.getRoles().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        Set<Role> newRoles = newPermission.getRoles().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+
+        //Check for permissions being added that the user does not have
+        boolean permissionAdded = newRoles.stream().anyMatch(r -> !(inherited.contains(r) || existingRoles.contains(r)));
+        boolean permissionRemoved = existingRoles.stream().anyMatch(r -> !(inherited.contains(r) || newRoles.contains(r)));
+        if (permissionAdded || permissionRemoved) {
+            result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
         }
     }
 
@@ -723,43 +601,6 @@ public class PermissionService {
                 result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(inherited));
             }
         }
-        return;
-    }
-
-    /**
-     * Provides detailed information on the permission held by a user for a given query string.
-     *
-     * Also filters out any permissions that are not held by currentUser,
-     * so not all permissions or users are viewable.
-     *
-     * If the currentUser is an admin then everything is visible
-     *
-     * @param currentUser - user to limit details of view to their permissions groups
-     * @param query - Any permissions to show as already added in the UI
-     * @param user - PermissionHolder for whom to check permissions
-     * @return Null if no permissions align else the permissions details with only the viewable groups
-     */
-    public UserRolesDetails getPermissionDetails(PermissionHolder currentUser, Collection<String> query, PermissionHolder user) {
-        UserRolesDetails d = new UserRolesDetails(user.getPermissionHolderName(), hasAdminRole(user));
-
-        boolean currentUserAdmin = hasAdminRole(currentUser);
-
-        // Add any matching groups
-        Set<Role> inherited = getAllInheritedRoles(user);
-        for (Role role : inherited) {
-            if (currentUserAdmin || hasSingleRole(currentUser, role)) {
-                d.getAllRoles().add(role);
-
-                if (query.contains(role.getXid())) {
-                    d.getMatchingRoles().add(role);
-                }
-            }
-        }
-
-        if (d.getAllRoles().size() == 0)
-            return null;
-
-        return d;
     }
 
     /**
@@ -797,50 +638,17 @@ public class PermissionService {
     }
 
     /**
-     * Check a role set so that
-     *  - set cannot be null
-     *  - role in set cannot be null
-     *  - xid of role cannot be null
-     * @param requiredPermissions
-     */
-    private static void checkRoleVOSet(Set<RoleVO> requiredRoles) {
-        Objects.requireNonNull(requiredRoles, "Role set cannot be null");
-
-        for (RoleVO requiredRole : requiredRoles) {
-            if (requiredRole == null || requiredRole.getXid().isEmpty()) {
-                throw new IllegalArgumentException("Role in set cannot be null or have empty role");
-            }
-        }
-    }
-
-    /**
-     * Check a role set so that
-     *  - set cannot be null
-     *  - role in set cannot be null
-     *  - xid of role cannot be null
-     * @param requiredPermissions
-     */
-    private static void checkRoleSet(Set<Role> requiredRoles) {
-        Objects.requireNonNull(requiredRoles, "Role set cannot be null");
-
-        for (Role requiredRole : requiredRoles) {
-            if (requiredRole == null || requiredRole.getXid().isEmpty()) {
-                throw new IllegalArgumentException("Role in set cannot be null or have empty role");
-            }
-        }
-    }
-
-    /**
+     * TODO Mango 4.0 remove
      * Turn a set of RoleVOs into a comma separated list for display in a message
      * @param roles
      * @return
      */
     public static String implodeRoleVOs(Set<RoleVO> roles) {
-        checkRoleVOSet(roles);
         return String.join(",", roles.stream().map(role -> role.getXid()).collect(Collectors.toSet()));
     }
 
     /**
+     * TODO Mango 4.0 remove
      * Turn a set of roles into a comma separated list for display in a message
      * @param roles
      * @return
@@ -891,6 +699,7 @@ public class PermissionService {
     }
 
     /**
+     * TODO Mango 4.0 remove
      * This should only be called on the upgrade to Mango 4.0 as it will create new roles,
      *  it is designed to be used during serialization to extract and create roles from serialized data
      * @param permissionSet

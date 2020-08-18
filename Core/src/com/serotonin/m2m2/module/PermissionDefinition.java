@@ -67,10 +67,13 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
 
     /**
      * Get the permission with current roles filled in
-     * @return
      */
     public MangoPermission getPermission() {
         return permission;
+    }
+
+    public void setPermission(MangoPermission permission) {
+        this.permission = permission;
     }
 
     @Override
@@ -83,27 +86,9 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
         }
     }
 
-    /**
-     * Replace the roles on this permission.
-     *
-     * @param scriptRoles
-     */
-    public void update(MangoPermission permission) throws ValidationException {
-        this.permission = permission;
-    }
-
     @EventListener
     protected void handleEvent(DaoEvent<? extends RoleVO> event) {
-        //Make sure we don't have a reference to this role
-        if(this.permission.containsRole(event.getVo().getRole())) {
-            Set<Set<Role>> newPermission = new HashSet<>();
-            for(Set<Role> roles : this.permission.getRoles()) {
-                Set<Role> newRoles = new HashSet<>(roles);
-                newRoles.remove(event.getVo().getRole());
-                newPermission.add(Collections.unmodifiableSet(newRoles));
-            }
-            this.permission = new MangoPermission(newPermission);
-        }
+        this.permission = this.permission.withoutRole(event.getVo().getRole());
     }
 
 }

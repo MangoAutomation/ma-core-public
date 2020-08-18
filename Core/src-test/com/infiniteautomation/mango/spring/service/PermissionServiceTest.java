@@ -1,19 +1,7 @@
-/**
+/*
  * Copyright (C) 2019  Infinite Automation Software. All rights reserved.
  */
 package com.infiniteautomation.mango.spring.service;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-import org.junit.Before;
-import org.junit.Test;
 
 import com.google.common.collect.Sets;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -30,6 +18,14 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Terry Packer
@@ -58,10 +54,6 @@ public class PermissionServiceTest extends MangoTestBase {
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
     }
 
-    MockDataSourceVO createDataSource() {
-        return createDataSource(Collections.emptySet());
-    }
-
     MockDataSourceVO createDataSource(Role editRole) {
         return createDataSource(Collections.singleton(editRole));
     }
@@ -70,9 +62,7 @@ public class PermissionServiceTest extends MangoTestBase {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
-        return (MockDataSourceVO) permissionService.runAsSystemAdmin(() -> {
-            return dataSourceService.insert(dsVo);
-        });
+        return (MockDataSourceVO) permissionService.runAsSystemAdmin(() -> dataSourceService.insert(dsVo));
     }
 
     DataPointVO createDataPoint() {
@@ -125,14 +115,16 @@ public class PermissionServiceTest extends MangoTestBase {
         return createTestUser(Collections.singleton(role));
     }
 
+    User createTestUserWithAllRolesFromPermission(MangoPermission permission) {
+        return createTestUser(permission.getRoles().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
+    }
+
     User createTestUser(Set<Role> roles) {
-        return permissionService.runAsSystemAdmin(() -> {
-            return createUser("permissions_test_user",
-                    "permissions_test_user",
-                    "permissions_test_user",
-                    "permissions_test_user@test.com",
-                    roles.toArray(new Role[roles.size()]));
-        });
+        return permissionService.runAsSystemAdmin(() -> createUser("permissions_test_user",
+                "permissions_test_user",
+                "permissions_test_user",
+                "permissions_test_user@test.com",
+                roles.toArray(new Role[0])));
     }
 
     @Override
@@ -140,36 +132,6 @@ public class PermissionServiceTest extends MangoTestBase {
         MockMangoLifecycle lifecycle = super.getLifecycle();
         lifecycle.setRuntimeManager(new MockRuntimeManager(true));
         return lifecycle;
-    }
-
-    @Test
-    public void testHasAnyRole() {
-        User testUser = createTestUser();
-        Set<Role> roles = new HashSet<>(testUser.getRoles());
-
-        assertTrue(permissionService.hasAnyRole(testUser, roles));
-        assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>()));
-        assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>(Arrays.asList(PermissionHolder.SUPERADMIN_ROLE))));
-
-        //Test 2 roles
-        roles.add(randomRole());
-        testUser.setRoles(new HashSet<>(roles));
-        permissionService.runAsSystemAdmin(() -> {
-            usersService.update(testUser.getUsername(), testUser);
-            assertTrue(permissionService.hasAnyRole(testUser, roles));
-            assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>()));
-            assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>(Arrays.asList(randomRole(), randomRole()))));
-        });
-
-        //Test 3 roles
-        roles.add(randomRole());
-        testUser.setRoles(new HashSet<>(roles));
-        permissionService.runAsSystemAdmin(() -> {
-            usersService.update(testUser.getUsername(), testUser);
-            assertTrue(permissionService.hasAnyRole(testUser, roles));
-            assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>()));
-            assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>(Arrays.asList(randomRole(), randomRole(), randomRole()))));
-        });
     }
 
     @Test
@@ -286,28 +248,28 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureNoDataPointReadPermissionWithDataSourcePermission() {
         MockDataSourceVO ds = createDataSource(randomRole());
         DataPointVO dp = createDataPoint(ds);
-        User testUser = createTestUser(ds.getEditPermission().getUniqueRoles());
+        User testUser = createTestUserWithAllRolesFromPermission(ds.getEditPermission());
         permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureNoDataPointReadPermissionWithSetPermission() {
         DataPointVO dp = createDataPoint(Collections.emptySet(), randomRoles(1));
-        User testUser = createTestUser(dp.getSetPermission().getUniqueRoles());
+        User testUser = createTestUserWithAllRolesFromPermission(dp.getSetPermission());
         permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
     @Test
     public void ensureDataPointReadPermissionOKHasReadPermission() {
         DataPointVO dp = createDataPoint(randomRoles(1), Collections.emptySet());
-        User testUser = createTestUser(dp.getReadPermission().getUniqueRoles());
+        User testUser = createTestUserWithAllRolesFromPermission(dp.getReadPermission());
         permissionService.ensurePermission(testUser, dp.getReadPermission());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureNoDataPointSetPermissionWithDataSourcePermission() {
         MockDataSourceVO ds = createDataSource(randomRoles(1));
-        User testUser = createTestUser(ds.getEditPermission().getUniqueRoles());
+        User testUser = createTestUserWithAllRolesFromPermission(ds.getEditPermission());
         DataPointVO dp = createDataPoint(ds);
         permissionService.ensurePermission(testUser, dp.getSetPermission());
     }
@@ -315,14 +277,14 @@ public class PermissionServiceTest extends MangoTestBase {
     @Test
     public void ensureDataPointSetPermissionOKHasSetPermission() {
         DataPointVO dp = createDataPoint(Collections.emptySet(), randomRoles(1));
-        User testUser = createTestUser(dp.getSetPermission().getUniqueRoles());
+        User testUser = createTestUserWithAllRolesFromPermission(dp.getSetPermission());
         permissionService.ensurePermission(testUser, dp.getSetPermission());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureDataPointSetPermissionFailHasReadPermission() {
         DataPointVO dp = createDataPoint(randomRoles(1), randomRoles(1));
-        User testUser = this.createTestUser(dp.getReadPermission().getUniqueRoles());
+        User testUser = createTestUserWithAllRolesFromPermission(dp.getReadPermission());
         permissionService.ensurePermission(testUser, dp.getSetPermission());
     }
 
@@ -346,53 +308,43 @@ public class PermissionServiceTest extends MangoTestBase {
     @Test
     public void ensureHasSingleRoleOKSuperadmin() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureSingleRole(testUser, testUser.getRoles().iterator().next());
-    }
-
-    @Test(expected = PermissionException.class)
-    public void ensureSuperadminHasSingleRoleFailNullRole() {
-        User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureSingleRole(testUser, null);
+        for (Role role : testUser.getRoles()) {
+            permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole(role));
+        }
     }
 
     @Test
     public void ensureHasSingleRoleOKHasPerm() {
         Set<Role> roles = this.randomRoles(2);
         User testUser = this.createTestUser(roles);
-        for(Role role : roles) {
-            permissionService.ensureSingleRole(testUser, role);
+        for (Role role : testUser.getRoles()) {
+            permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole(role));
         }
-    }
-
-    @Test(expected = PermissionException.class)
-    public void ensureHasSingleRoleFailNullRole() {
-        User testUser = this.createTestUser();
-        permissionService.ensureSingleRole(testUser, null);
     }
 
     @Test(expected = PermissionException.class)
     public void ensureHasSingleRoleFailEmptyRoles() {
         User testUser = this.createTestUser();
         Role unsavedRole = new Role(Common.NEW_ID, UUID.randomUUID().toString());
-        permissionService.ensureSingleRole(testUser, unsavedRole);
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole(unsavedRole));
     }
 
     @Test
     public void ensureHasAnyRoleOKSuperadmin() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAnyRole(testUser, randomRoles(2));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole(randomRoles(2)));
     }
 
     @Test
     public void ensureHasAnyRoleOKSuperadminEmptySet() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAnyRole(testUser, Collections.emptySet());
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureHasAnyPermissionFailEmptySet() {
         User testUser = this.createTestUser();
-        permissionService.ensureHasAnyRole(testUser, Collections.emptySet());
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole());
     }
 
     @Test
@@ -403,7 +355,7 @@ public class PermissionServiceTest extends MangoTestBase {
 
         User testUser = this.createTestUser(Sets.newHashSet(perm1, perm2));
 
-        permissionService.ensureHasAnyRole(testUser, Sets.newHashSet(perm1, perm3));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole(perm1, perm3));
     }
 
     @Test
@@ -413,7 +365,7 @@ public class PermissionServiceTest extends MangoTestBase {
 
         User testUser = this.createTestUser(Sets.newHashSet(perm1, perm2));
 
-        permissionService.ensureHasAnyRole(testUser, Sets.newHashSet(perm1, perm2));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole(perm1, perm2));
     }
 
     @Test(expected = PermissionException.class)
@@ -425,37 +377,37 @@ public class PermissionServiceTest extends MangoTestBase {
 
         User testUser = this.createTestUser(Sets.newHashSet(perm1, perm2));
 
-        permissionService.ensureHasAnyRole(testUser, Sets.newHashSet(perm3, perm4));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole(perm3, perm4));
     }
 
     @Test(expected = NullPointerException.class)
     public void ensureHasAnyPermissionFailNullSet() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAnyRole(testUser, null);
+        permissionService.ensurePermission(testUser, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void ensureHasAnyPermissionFailNullEntry() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAnyRole(testUser, Collections.singleton(null));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAnyRole((Role) null));
     }
 
     @Test
     public void ensureHasAllPermissionsOKSuperadmin() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAllRoles(testUser, Sets.newHashSet(randomRole(), randomRole()));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles(randomRole(), randomRole()));
     }
 
     @Test
     public void ensureHasAllPermissionsOKSuperadminEmptySet() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAllRoles(testUser, Collections.emptySet());
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles());
     }
 
     @Test(expected = PermissionException.class)
     public void ensureHasAllPermissionsFailEmptySet() {
         User testUser = this.createTestUser();
-        permissionService.ensureHasAllRoles(testUser, Collections.emptySet());
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles());
     }
 
     @Test(expected = PermissionException.class)
@@ -464,7 +416,7 @@ public class PermissionServiceTest extends MangoTestBase {
         Role perm2 = this.randomRole();
 
         User testUser = this.createTestUser(Sets.newHashSet(perm1, randomRole()));
-        permissionService.ensureHasAllRoles(testUser, Sets.newHashSet(perm1, perm2));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles(perm1, perm2));
     }
 
     @Test
@@ -473,7 +425,7 @@ public class PermissionServiceTest extends MangoTestBase {
         Role perm2 = this.randomRole();
 
         User testUser = this.createTestUser(Sets.newHashSet(perm1, perm2));
-        permissionService.ensureHasAllRoles(testUser, Sets.newHashSet(perm1, perm2));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles(perm1, perm2));
     }
 
     @Test(expected = PermissionException.class)
@@ -482,18 +434,18 @@ public class PermissionServiceTest extends MangoTestBase {
         Role  perm2 = this.randomRole();
 
         User testUser = this.createTestUser(Sets.newHashSet(randomRole(), randomRole()));
-        permissionService.ensureHasAllRoles(testUser, Sets.newHashSet(perm1, perm2));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles(perm1, perm2));
     }
 
     @Test(expected = NullPointerException.class)
     public void ensureHasAllPermissionsFailNullSet() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAllRoles(testUser, null);
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles((Role) null));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void ensureHasAllPermissionsFailNullEntry() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
-        permissionService.ensureHasAllRoles(testUser, Collections.singleton(null));
+        permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles((Role) null));
     }
 }

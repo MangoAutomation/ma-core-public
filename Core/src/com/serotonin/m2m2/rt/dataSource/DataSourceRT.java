@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -24,6 +25,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.ILifecycle;
 
@@ -278,17 +280,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @param event
      */
     public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        switch(event.getType()) {
-            case DELETE:
-                if(vo.getEditPermission().containsRole(event.getVo().getRole())) {
-                    vo.setEditPermission(vo.getEditPermission().removeRole(event.getVo().getRole()));
-                }
-                if(vo.getReadPermission().containsRole(event.getVo().getRole())) {
-                    vo.setReadPermission(vo.getReadPermission().removeRole(event.getVo().getRole()));
-                }
-                break;
-            default:
-                break;
+        if (event.getType() == DaoEventType.DELETE) {
+            Role deletedRole = event.getVo().getRole();
+            vo.setEditPermission(vo.getEditPermission().withoutRole(deletedRole));
+            vo.setReadPermission(vo.getReadPermission().withoutRole(deletedRole));
         }
     }
 }

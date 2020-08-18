@@ -3,144 +3,53 @@
  */
 package com.infiniteautomation.mango.permission;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.vo.role.Role;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Container for a set of roles that apply to a permission such as 'permissionDatasource' or  'permissions.user.editSelf'
  *   or a specific VO permission such as data point set permission.
  *
  *  @author Terry Packer
+ *  @author Jared Wiltshire
  *
  */
 public class MangoPermission {
 
-    protected Integer id;
+    // TODO Mango 4.0 remove
+    Integer id;
 
     @JsonProperty
     protected final Set<Set<Role>> roles;
 
-    public MangoPermission(Integer id) {
-        this(Collections.emptySet());
-        this.id = id;
-    }
-
+    /**
+     * Creates a permission that only superadmins have access to
+     */
     public MangoPermission() {
         this(Collections.emptySet());
     }
 
+    /**
+     * Creates a permission that only superadmins have access to
+     */
+    public MangoPermission(int id) {
+        this(Collections.emptySet());
+        this.id = id;
+    }
+
     public MangoPermission(Set<Set<Role>> roles) {
-        //TODO Mango 4.0 make inner sets unmodifiable or enforce that they must be
-        this.roles = Collections.unmodifiableSet(roles);
+        Objects.requireNonNull(roles);
+        this.roles = Collections.unmodifiableSet(roles.stream()
+                .map(Collections::unmodifiableSet)
+                .collect(Collectors.toSet()));
     }
 
     public Set<Set<Role>> getRoles() {
         return roles;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    /**
-     * This computes the hash on roles alone
-     */
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((roles == null) ? 0 : roles.hashCode());
-        return result;
-    }
-
-    /**
-     * This assumes equality based on roles alone
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        MangoPermission other = (MangoPermission) obj;
-
-        if (roles == null) {
-            if (other.roles != null)
-                return false;
-        } else {
-            if(other.roles == null) {
-                return false;
-            }else {
-                //check to see if they have the same terms
-                for(Set<Role> roleSet : roles) {
-                    int found = 0;
-                    for(Set<Role> otherRoleSet : other.roles) {
-                        for(Role role : roleSet) {
-                            if(otherRoleSet.contains(role)) {
-                                found++;
-                            }
-                        }
-                    }
-                    if(found != roleSet.size()) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-    /**
-     * When a role is deleted from the system it must be removed from any RT
-     * @param role
-     * @return
-     */
-    public MangoPermission removeRole(Role role) {
-        Set<Set<Role>> newOuterRoles = new HashSet<>();
-        for(Set<Role> roleSet : roles) {
-            Set<Role> newInnerRoles = new HashSet<>(roleSet);
-            newInnerRoles.remove(role);
-            newOuterRoles.add(Collections.unmodifiableSet(newInnerRoles));
-        }
-        return new MangoPermission(newOuterRoles);
-    }
-
-    /**
-     * Is this role contained in this permission
-     * @param role
-     * @return
-     */
-    public boolean containsRole(Role role) {
-        for(Set<Role> roleSet : roles) {
-            if(roleSet.contains(role)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Get a set of unique roles for this permission
-     * @return
-     */
-    public Set<Role> getUniqueRoles() {
-        Set<Role> unique = new HashSet<>();
-        for(Set<Role> roleSet : roles) {
-            unique.addAll(roleSet);
-        }
-        return Collections.unmodifiableSet(unique);
     }
 
     public static MangoPermission requireAnyRole(Role ...roles) {
@@ -170,8 +79,57 @@ public class MangoPermission {
     }
 
     @Override
-    public String toString() {
-        return "id: " + id + "\n" + roles.toString();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MangoPermission that = (MangoPermission) o;
+        return roles.equals(that.roles);
     }
 
+    @Override
+    public String toString() {
+        return "MangoPermission{" +
+                "roles=" + roles.stream().map(minterm -> {
+                    return minterm.stream()
+                            .map(Role::getXid)
+                            .collect(Collectors.joining(" AND ", "(", ")"));
+                }).collect(Collectors.joining(" OR ")) +
+                '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(roles);
+    }
+
+    /**
+     * Checks if this permission contains the role, if it does then it will return a new permission without that role.
+     * The permission is never modified.
+     *
+     * @param role the role to remove
+     * @return new permission or the existing one if it doesn't contain the role
+     */
+    public MangoPermission withoutRole(Role role) {
+        boolean containsRole = roles.stream()
+                .flatMap(Collection::stream)
+                .anyMatch(role::equals);
+
+        if (containsRole) {
+            return new MangoPermission(roles.stream().map(minterm -> {
+                return minterm.stream()
+                        .filter(r -> !r.equals(role))
+                        .collect(Collectors.toSet());
+            }).filter(minterm -> !minterm.isEmpty()).collect(Collectors.toSet()));
+        }
+
+        return this;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 }

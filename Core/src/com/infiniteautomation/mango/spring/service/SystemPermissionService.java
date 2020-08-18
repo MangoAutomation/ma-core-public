@@ -4,8 +4,10 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,37 +45,35 @@ public class SystemPermissionService {
 
     /**
      *
-     * @param roles
-     * @param permissionType
+     * @param permission
+     * @param def
+     * @throws ValidationException
      */
     public void update(MangoPermission permission, PermissionDefinition def) throws ValidationException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
         Objects.requireNonNull(def, "Permission definition cannot be null");
-
-        permissionService.ensureAdminRole(user);
+        permissionService.ensureAdminRole(Common.getUser());
 
         ProcessResult validation = new ProcessResult();
-        if(permission == null) {
+        if (permission == null) {
             validation.addContextualMessage("permission", "validate.required");
             throw new ValidationException(validation);
         }
 
-        Set<Role> unique = permission.getUniqueRoles();
-        for(Role role : unique) {
+        permission.getRoles().stream().flatMap(Collection::stream).forEach(role -> {
             try {
                 roleService.get(role.getXid());
-            }catch(NotFoundException e) {
+            } catch(NotFoundException e) {
                 validation.addGenericMessage("validate.role.notFound", role.getXid());
             }
-        }
+        });
 
-        if(validation.getHasMessages()) {
+        if (validation.getHasMessages()) {
             throw new ValidationException(validation);
         }
+
         //TODO Mango 4.0 Transaction rollback etc?
         dao.update(def.getPermissionTypeName(), def.getPermission(), permission);
-        def.update(permission);
+        def.setPermission(permission);
         //notify user cache
         this.userDao.permissionChanged();
     }
