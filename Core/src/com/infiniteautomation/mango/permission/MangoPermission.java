@@ -41,10 +41,28 @@ public class MangoPermission {
         this.id = id;
     }
 
+    /**
+     * Creates a permission for the given set of minterms.
+     * @param roles
+     */
     public MangoPermission(Set<Set<Role>> roles) {
-        Objects.requireNonNull(roles);
+        if (roles == null) {
+            throw new IllegalArgumentException("Roles cannot be null");
+        }
+
         this.roles = Collections.unmodifiableSet(roles.stream()
-                .map(Collections::unmodifiableSet)
+                .map(minterm -> {
+                    if (minterm == null) {
+                        throw new IllegalArgumentException("Minterm cannot be null");
+                    }
+                    if (minterm.isEmpty()) {
+                        throw new IllegalArgumentException("Minterm cannot be empty");
+                    }
+                    if (minterm.contains(null)) {
+                        throw new IllegalArgumentException("Minterm cannot contain null role");
+                    }
+                    return Collections.unmodifiableSet(minterm);
+                })
                 .collect(Collectors.toSet()));
     }
 

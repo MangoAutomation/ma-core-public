@@ -398,13 +398,13 @@ public class PermissionServiceTest extends MangoTestBase {
         permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles(randomRole(), randomRole()));
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void ensureHasAllPermissionsOKSuperadminEmptySet() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
         permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles());
     }
 
-    @Test(expected = PermissionException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void ensureHasAllPermissionsFailEmptySet() {
         User testUser = this.createTestUser();
         permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles());
@@ -437,7 +437,7 @@ public class PermissionServiceTest extends MangoTestBase {
         permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles(perm1, perm2));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void ensureHasAllPermissionsFailNullSet() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
         permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles((Role) null));

@@ -32,11 +32,8 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -183,6 +180,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasPermission(PermissionHolder user, MangoPermission permission) {
+        Objects.requireNonNull(permission);
         if (!isValidPermissionHolder(user)) return false;
         Set<Role> heldRoles = getAllInheritedRoles(user);
 
