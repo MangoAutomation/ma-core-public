@@ -43,13 +43,13 @@ public class DataPointPermissionTest extends MangoTestBase {
 
         //Insert some data points
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        DataPointVO point = (DataPointVO)this.createMockDataPoints(1, false, MangoPermission.createOrSet(readRoles), new MangoPermission()).get(0);
+        DataPointVO point = (DataPointVO)this.createMockDataPoints(1, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission()).get(0);
 
         //Save for later to see if the permission is removed
         int permissionId = point.getReadPermission().getId();
 
         //Update permission
-        point.setReadPermission(MangoPermission.createOrSet(readRoles.iterator().next()));
+        point.setReadPermission(MangoPermission.requireAnyRole(readRoles.iterator().next()));
         dao.update(point.getId(), point);
 
         //Check for the recently orphaned permission (it should not be there)
@@ -84,7 +84,7 @@ public class DataPointPermissionTest extends MangoTestBase {
     public void testDeleteDataPoint() {
         //Insert some data points
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        List<IDataPoint> points = this.createMockDataPoints(1, false, MangoPermission.createOrSet(readRoles), new MangoPermission());
+        List<IDataPoint> points = this.createMockDataPoints(1, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission());
 
         DataPointService service = Common.getBean(DataPointService.class);
         service.getPermissionService().runAs(new PermissionHolder() {
@@ -148,7 +148,7 @@ public class DataPointPermissionTest extends MangoTestBase {
     public void testDeleteDataPoints() {
         //Insert some data points
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        List<IDataPoint> points = this.createMockDataPoints(2, false, MangoPermission.createOrSet(readRoles), new MangoPermission());
+        List<IDataPoint> points = this.createMockDataPoints(2, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission());
 
         DataPointService service = Common.getBean(DataPointService.class);
         service.getPermissionService().runAs(new PermissionHolder() {

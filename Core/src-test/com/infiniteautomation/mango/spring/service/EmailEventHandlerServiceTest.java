@@ -56,8 +56,8 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
             EmailEventHandlerVO vo = newVO(editUser);
-            vo.setReadPermission(MangoPermission.createOrSet(editRole));
-            vo.setEditPermission(MangoPermission.createOrSet(editRole));
+            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);

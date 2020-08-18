@@ -69,7 +69,7 @@ public class PermissionServiceTest extends MangoTestBase {
     MockDataSourceVO createDataSource(Set<Role> editRoles) {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
-        dsVo.setEditPermission(MangoPermission.createOrSet(editRoles));
+        dsVo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
         return (MockDataSourceVO) permissionService.runAsSystemAdmin(() -> {
             return dataSourceService.insert(dsVo);
         });
@@ -92,8 +92,8 @@ public class PermissionServiceTest extends MangoTestBase {
         DataPointVO point = new DataPointVO();
         point.setDataSourceId(dsVo.getId());
         point.setName("permissions_test_datasource");
-        point.setReadPermission(MangoPermission.createOrSet(readRoles));
-        point.setSetPermission(MangoPermission.createOrSet(setRoles));
+        point.setReadPermission(MangoPermission.requireAnyRole(readRoles));
+        point.setSetPermission(MangoPermission.requireAnyRole(setRoles));
         point.setPointLocator(new MockPointLocatorVO());
         return permissionService.runAsSystemAdmin(() -> {
             dataPointService.insert(point);

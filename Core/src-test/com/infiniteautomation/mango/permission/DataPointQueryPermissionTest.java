@@ -67,7 +67,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         //Insert some data points
 
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.createOrSet(readRoles), new MangoPermission());
+        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
         DataPointService service = Common.getBean(DataPointService.class);
         service.getPermissionService().runAs(new PermissionHolder() {
@@ -104,7 +104,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
     public void testAndPermission() {
         //Insert some data points
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.createAndSet(readRoles), new MangoPermission());
+        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.requireAllRoles(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
         DataPointService service = Common.getBean(DataPointService.class);
         service.getPermissionService().runAs(new PermissionHolder() {
@@ -141,7 +141,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
     public void testDeleteAllRoles() {
         //Insert some data points
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.createAndSet(readRoles), new MangoPermission());
+        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.requireAllRoles(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
 
         RoleDao roleDao = Common.getBean(RoleDao.class);
@@ -184,7 +184,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
     public void testDeleteSingleRoleFromAndSet() {
         //Insert some data points
         Set<Role> readRoles = this.createRoles(3).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.createAndSet(readRoles), new MangoPermission());
+        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.requireAllRoles(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
 
         Role role = readRoles.iterator().next();
@@ -227,7 +227,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
     public void testDeleteSingleRoleFromOrSet() {
         //Insert some data points
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
-        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.createOrSet(readRoles), new MangoPermission());
+        List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
 
         Role role = readRoles.iterator().next();

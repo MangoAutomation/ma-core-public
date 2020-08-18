@@ -127,7 +127,7 @@ public interface PermissionMigration {
 
     default Integer permissionId(MangoPermission permission) {
         if (permission.getRoles().isEmpty()) {
-            return getOrInsertPermission(MangoPermission.createOrSet(PermissionHolder.SUPERADMIN_ROLE));
+            return getOrInsertPermission(MangoPermission.requireAnyRole(PermissionHolder.SUPERADMIN_ROLE));
         }
 
         return getTransactionTemplate().execute(txStatus -> {

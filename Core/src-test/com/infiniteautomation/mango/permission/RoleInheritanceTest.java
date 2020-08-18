@@ -43,16 +43,16 @@ public class RoleInheritanceTest extends MangoTestBase {
 
         //Lowest level
         RoleVOHierarchy read = createRoleVOHierarchy("read", "read");
-        MangoPermission readPermission = MangoPermission.createOrSet(read.getRole());
+        MangoPermission readPermission = MangoPermission.requireAnyRole(read.getRole());
 
         RoleVOHierarchy edit = createRoleVOHierarchy("edit", "edit", read);
-        MangoPermission editPermission = MangoPermission.createOrSet(edit.getRole());
+        MangoPermission editPermission = MangoPermission.requireAnyRole(edit.getRole());
 
         RoleVOHierarchy supervisor = createRoleVOHierarchy("supervisor", "supervisor", edit);
-        MangoPermission supervisorPermission = MangoPermission.createOrSet(supervisor.getRole());
+        MangoPermission supervisorPermission = MangoPermission.requireAnyRole(supervisor.getRole());
 
         RoleVOHierarchy admin = createRoleVOHierarchy("admin", "admin", supervisor);
-        MangoPermission adminPermission = MangoPermission.createOrSet(admin.getRole());
+        MangoPermission adminPermission = MangoPermission.requireAnyRole(admin.getRole());
 
         //What admin can do
         assertTrue(service.hasPermission(createPermissionHolder(admin), readPermission));
@@ -98,22 +98,22 @@ public class RoleInheritanceTest extends MangoTestBase {
         PermissionService service = Common.getBean(PermissionService.class);
 
         RoleVOHierarchy fluidRead = createRoleVOHierarchy("fluidRead", "fluidRead");
-        MangoPermission fluidReadPermission = MangoPermission.createOrSet(fluidRead.getRole());
+        MangoPermission fluidReadPermission = MangoPermission.requireAnyRole(fluidRead.getRole());
 
         RoleVOHierarchy fluidEdit = createRoleVOHierarchy("fluidEdit", "fluidEdit", fluidRead);
-        MangoPermission fluidEditPermission = MangoPermission.createOrSet(fluidEdit.getRole());
+        MangoPermission fluidEditPermission = MangoPermission.requireAnyRole(fluidEdit.getRole());
 
         RoleVOHierarchy solidRead = createRoleVOHierarchy("solidRead", "solidRead");
-        MangoPermission solidReadPermission = MangoPermission.createOrSet(solidRead.getRole());
+        MangoPermission solidReadPermission = MangoPermission.requireAnyRole(solidRead.getRole());
 
         RoleVOHierarchy solidEdit = createRoleVOHierarchy("solidEdit", "solidEdit", solidRead);
-        MangoPermission solidEditPermission = MangoPermission.createOrSet(solidEdit.getRole());
+        MangoPermission solidEditPermission = MangoPermission.requireAnyRole(solidEdit.getRole());
 
         RoleVOHierarchy gasRead = createRoleVOHierarchy("gasRead", "gasRead");
-        MangoPermission gasReadPermission = MangoPermission.createOrSet(gasRead.getRole());
+        MangoPermission gasReadPermission = MangoPermission.requireAnyRole(gasRead.getRole());
 
         RoleVOHierarchy gasEdit = createRoleVOHierarchy("gasEdit", "gasEdit", gasRead);
-        MangoPermission gasEditPermission = MangoPermission.createOrSet(gasEdit.getRole());
+        MangoPermission gasEditPermission = MangoPermission.requireAnyRole(gasEdit.getRole());
 
         RoleVOHierarchy fluidTechnician = createRoleVOHierarchy("fluidTechnician", "fluidTechnician", fluidEdit);
         RoleVOHierarchy solidTechnician = createRoleVOHierarchy("solidTechnician", "solidTechnician", solidEdit);
@@ -225,30 +225,30 @@ public class RoleInheritanceTest extends MangoTestBase {
 
         //Fluid roles
         RoleVOHierarchy fluidRead = createRoleVOHierarchy("fluidRead", "fluidRead");
-        MangoPermission fluidReadPermission = MangoPermission.createOrSet(fluidRead.getRole());
+        MangoPermission fluidReadPermission = MangoPermission.requireAnyRole(fluidRead.getRole());
 
         RoleVOHierarchy fluidEdit = createRoleVOHierarchy("fluidEdit", "fluidEdit", fluidRead);
-        MangoPermission fluidEditPermission = MangoPermission.createOrSet(fluidEdit.getRole());
+        MangoPermission fluidEditPermission = MangoPermission.requireAnyRole(fluidEdit.getRole());
 
         RoleVOHierarchy fluidTechnician = createRoleVOHierarchy("fluidTechnician", "fluidTechnician", fluidRead);
         RoleVOHierarchy fluidAdmin = createRoleVOHierarchy("fluidAdmin", "fluidAdmin", fluidEdit);
 
         //Solid roles
         RoleVOHierarchy solidRead = createRoleVOHierarchy("solidRead", "solidRead");
-        MangoPermission solidReadPermission = MangoPermission.createOrSet(solidRead.getRole());
+        MangoPermission solidReadPermission = MangoPermission.requireAnyRole(solidRead.getRole());
 
         RoleVOHierarchy solidEdit = createRoleVOHierarchy("solidEdit", "solidEdit", solidRead);
-        MangoPermission solidEditPermission = MangoPermission.createOrSet(solidEdit.getRole());
+        MangoPermission solidEditPermission = MangoPermission.requireAnyRole(solidEdit.getRole());
 
         RoleVOHierarchy solidTechnician = createRoleVOHierarchy("solidTechnician", "solidTechnician", solidRead);
         RoleVOHierarchy solidAdmin = createRoleVOHierarchy("solidAdmin", "solidAdmin", solidEdit);
 
         //Gas roles
         RoleVOHierarchy gasRead = createRoleVOHierarchy("gasRead", "gasRead");
-        MangoPermission gasReadPermission = MangoPermission.createOrSet(gasRead.getRole());
+        MangoPermission gasReadPermission = MangoPermission.requireAnyRole(gasRead.getRole());
 
         RoleVOHierarchy gasEdit = createRoleVOHierarchy("gasEdit", "gasEdit", gasRead);
-        MangoPermission gasEditPermission = MangoPermission.createOrSet(gasEdit.getRole());
+        MangoPermission gasEditPermission = MangoPermission.requireAnyRole(gasEdit.getRole());
 
         RoleVOHierarchy gasTechnician = createRoleVOHierarchy("gasTechnician", "gasTechnician", gasRead);
         RoleVOHierarchy gasAdmin = createRoleVOHierarchy("gasAdmin", "gasAdmin", gasEdit);

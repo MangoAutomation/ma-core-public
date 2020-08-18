@@ -32,6 +32,6 @@ public class EventsViewPermissionDefinition extends PermissionDefinition {
 
     @Override
     protected MangoPermission getDefaultPermission() {
-        return MangoPermission.createOrSet(PermissionHolder.USER_ROLE);
+        return MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE);
     }
 }

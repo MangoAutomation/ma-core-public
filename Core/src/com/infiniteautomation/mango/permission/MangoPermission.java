@@ -3,9 +3,12 @@
  */
 package com.infiniteautomation.mango.permission;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.vo.role.Role;
@@ -140,45 +143,30 @@ public class MangoPermission {
         return Collections.unmodifiableSet(unique);
     }
 
-    public static MangoPermission createOrSet(Role...roles) {
-        Set<Set<Role>> roleSet = new HashSet<>();
-        for(Role role : roles) {
-            roleSet.add(Collections.singleton(role));
-        }
-        return new MangoPermission(roleSet);
+    public static MangoPermission requireAnyRole(Role ...roles) {
+        return requireAnyRole(Arrays.stream(roles));
     }
 
-    public static MangoPermission createOrSet(Set<Role> roles) {
-        Set<Set<Role>> roleSet = new HashSet<>();
-        for(Role role : roles) {
-            roleSet.add(Collections.singleton(role));
-        }
-        return new MangoPermission(roleSet);
+    public static MangoPermission requireAnyRole(Set<Role> roles) {
+        return requireAnyRole(roles.stream());
     }
 
-    public static MangoPermission createAndSet(Role...roles) {
-        Set<Set<Role>> roleSet = new HashSet<>();
-        Set<Role> andSet = new HashSet<>();
-        roleSet.add(andSet);
-        for(Role role : roles) {
-            andSet.add(role);
-        }
-        return new MangoPermission(roleSet);
+    public static MangoPermission requireAnyRole(Stream<Role> roles) {
+        return new MangoPermission(roles
+                .map(Collections::singleton)
+                .collect(Collectors.toSet()));
     }
 
+    public static MangoPermission requireAllRoles(Role ...roles) {
+        return requireAllRoles(Arrays.stream(roles));
+    }
 
-    /**
-     * @param readRoles
-     * @return
-     */
-    public static MangoPermission createAndSet(Set<Role> roles) {
-        Set<Set<Role>> roleSet = new HashSet<>();
-        Set<Role> andSet = new HashSet<>();
-        roleSet.add(andSet);
-        for(Role role : roles) {
-            andSet.add(role);
-        }
-        return new MangoPermission(roleSet);
+    public static MangoPermission requireAllRoles(Set<Role> roles) {
+        return new MangoPermission(Collections.singleton(roles));
+    }
+
+    public static MangoPermission requireAllRoles(Stream<Role> roles) {
+        return requireAllRoles(roles.collect(Collectors.toSet()));
     }
 
     @Override

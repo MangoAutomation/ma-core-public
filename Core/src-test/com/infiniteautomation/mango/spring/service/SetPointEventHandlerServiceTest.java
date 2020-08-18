@@ -63,7 +63,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     MockDataSourceVO createDataSource(Set<Role> editRoles) {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
-        dsVo.setEditPermission(MangoPermission.createOrSet(editRoles));
+        dsVo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
         return (MockDataSourceVO) getService().permissionService.runAsSystemAdmin(() -> {
             return dataSourceService.insert(dsVo);
         });
@@ -74,8 +74,8 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             DataPointVO point = new DataPointVO();
             point.setDataSourceId(dsVo.getId());
             point.setName("permissions_test_datasource");
-            point.setReadPermission(MangoPermission.createOrSet(readRoles));
-            point.setSetPermission(MangoPermission.createOrSet(setRoles));
+            point.setReadPermission(MangoPermission.requireAnyRole(readRoles));
+            point.setSetPermission(MangoPermission.requireAnyRole(setRoles));
             point.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
 
             point = dataPointService.insert(point);
@@ -102,8 +102,8 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
             SetPointEventHandlerVO vo = newVO(editUser);
-            vo.setReadPermission(MangoPermission.createOrSet(editRole));
-            vo.setEditPermission(MangoPermission.createOrSet(editRole));
+            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
