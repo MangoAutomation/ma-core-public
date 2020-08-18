@@ -39,6 +39,7 @@
 * Upgrade apache commons database pool library (commons-dbcp2) to 2.7.0 
 * Change PointValueDao interface to use full DataPointVO instead of just the data point id
 * Change MySQL character set to utf8mb4 for full UTF support (note: Mango requires MySQL v5.7.8 or newer)
+* Upgrade Caffeine cache library to 2.8.5
 
 *Version 3.7.4*
 * Improve work item failure logging
