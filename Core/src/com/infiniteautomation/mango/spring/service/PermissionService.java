@@ -629,8 +629,8 @@ public class PermissionService {
 
         Set<Role> inherited = getAllInheritedRoles(holder);
 
-        //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newPermission.containsRole(PermissionHolder.USER_ROLE) && Collections.disjoint(inherited, newPermission.getUniqueRoles())) {
+        // Ensure the user retains access to the object
+        if (!savedByOwner && !hasPermission(holder, newPermission)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 
@@ -650,7 +650,6 @@ public class PermissionService {
                 result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
             }
         }
-        return;
     }
 
     /**
