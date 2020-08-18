@@ -271,7 +271,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getEditRolesContextKey(), getEditRolesContextKey());
+        }, getEditRolesContextKey());
     }
 
     @Test

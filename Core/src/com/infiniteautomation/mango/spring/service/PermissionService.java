@@ -507,7 +507,7 @@ public class PermissionService {
             }
         }
 
-        if(hasAdminRole(holder))
+        if (hasAdminRole(holder))
             return;
 
         // Ensure the user retains access to the object
@@ -516,16 +516,14 @@ public class PermissionService {
             return;
         }
 
+        // TODO Mango 4.0 review this logic
         Set<Role> inherited = getAllInheritedRoles(holder);
         Set<Role> existingRoles = existingPermission == null ?
                 Collections.emptySet() :
                 existingPermission.getRoles().stream().flatMap(Collection::stream).collect(Collectors.toSet());
         Set<Role> newRoles = newPermission.getRoles().stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
-        //Check for permissions being added that the user does not have
-        boolean permissionAdded = newRoles.stream().anyMatch(r -> !(inherited.contains(r) || existingRoles.contains(r)));
-        boolean permissionRemoved = existingRoles.stream().anyMatch(r -> !(inherited.contains(r) || newRoles.contains(r)));
-        if (permissionAdded || permissionRemoved) {
+        if (invalidAddOrRemove(inherited, existingRoles, newRoles)) {
             result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
         }
     }
@@ -551,6 +549,7 @@ public class PermissionService {
      */
     public void validatePermissionHolderRoles(ProcessResult result, String contextKey, PermissionHolder holder,
             boolean savedByOwner, Set<Role> existingRoles, Set<Role> newRoles) {
+
         if (holder == null) {
             result.addContextualMessage(contextKey, "validate.userRequired");
             return;
@@ -575,32 +574,33 @@ public class PermissionService {
             }
         }
 
-        if(hasAdminRole(holder))
+        if (hasAdminRole(holder))
             return;
 
         Set<Role> inherited = getAllInheritedRoles(holder);
 
+        // TODO Mango 4.0 review this logic
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(inherited, newRoles)) {
+        if (!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(inherited, newRoles)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+            return;
         }
 
-        if(existingRoles != null) {
-            //Check for permissions being added that the user does not have
-            Set<Role> added = new HashSet<>(newRoles);
-            added.removeAll(existingRoles);
-            added.removeAll(inherited);
-            if(added.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(inherited));
-            }
-            //Check for permissions being removed that the user does not have
-            Set<Role> removed = new HashSet<>(existingRoles);
-            removed.removeAll(newRoles);
-            removed.removeAll(inherited);
-            if(removed.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(inherited));
-            }
+        if (invalidAddOrRemove(inherited, existingRoles == null ? Collections.emptySet() : existingRoles, newRoles)) {
+            result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
         }
+    }
+
+    /**
+     * Check for permissions being added or removed that the user does not have
+     * @param inherited
+     * @param existingRoles
+     * @param newRoles
+     * @return
+     */
+    private boolean invalidAddOrRemove(Set<Role> inherited, Set<Role> existingRoles, Set<Role> newRoles) {
+        return newRoles.stream().anyMatch(r -> !(inherited.contains(r) || existingRoles.contains(r))) ||
+            existingRoles.stream().anyMatch(r -> !(inherited.contains(r) || newRoles.contains(r)));
     }
 
     /**
