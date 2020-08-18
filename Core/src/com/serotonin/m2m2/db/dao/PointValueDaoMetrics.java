@@ -336,7 +336,7 @@ public class PointValueDaoMetrics implements PointValueDao {
             BookendQueryCallback<IdPointValueTime> callback) {
         LogStopWatch logStopWatch = new LogStopWatch();
         dao.wideBookendQuery(vos, from, to, orderById, limit, callback);
-        logStopWatch.stop("wideBookendQuery(dataPointIds, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
+        logStopWatch.stop("wideBookendQuery(dataPointIds, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + ",callback)", this.metricsThreshold);
     }
 
     @Override
@@ -344,7 +344,7 @@ public class PointValueDaoMetrics implements PointValueDao {
             Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
         LogStopWatch logStopWatch = new LogStopWatch();
         dao.getPointValuesBetween(vos, from, to, orderById, limit, callback);
-        logStopWatch.stop("getPointValuesBetween(vos, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + "callback)", this.metricsThreshold);
+        logStopWatch.stop("getPointValuesBetween(vos, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + ",callback)", this.metricsThreshold);
     }
 
 }
