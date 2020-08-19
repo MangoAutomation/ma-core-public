@@ -37,6 +37,7 @@ public class JsonDataVO extends AbstractVO {
 
     @JsonProperty
     private MangoPermission editPermission = new MangoPermission();
+    // no @JsonProperty annotation, special handling in jsonRead()
     private MangoPermission readPermission = new MangoPermission();
 
     public JsonNode getJsonData() {
