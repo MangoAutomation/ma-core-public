@@ -513,17 +513,6 @@ public class PermissionService {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
             return;
         }
-
-        // TODO Mango 4.0 review this logic
-        Set<Role> inherited = getAllInheritedRoles(holder);
-        Set<Role> existingRoles = existingPermission == null ?
-                Collections.emptySet() :
-                existingPermission.getRoles().stream().flatMap(Collection::stream).collect(Collectors.toSet());
-        Set<Role> newRoles = newPermission.getRoles().stream().flatMap(Collection::stream).collect(Collectors.toSet());
-
-        if (invalidAddOrRemove(inherited, existingRoles, newRoles)) {
-            result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
-        }
     }
 
     /**
