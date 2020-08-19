@@ -180,7 +180,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getReadRolesContextKey(), getReadRolesContextKey());
+        }, getReadRolesContextKey());
     }
 
     @Test
@@ -267,7 +267,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getEditRolesContextKey(), getEditRolesContextKey());
+        }, getEditRolesContextKey());
     }
 
     @Test

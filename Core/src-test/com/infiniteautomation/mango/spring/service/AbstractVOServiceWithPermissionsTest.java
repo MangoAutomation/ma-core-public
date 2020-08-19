@@ -183,7 +183,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 service.update(fromDb.getId(), fromDb);
             });
 
-        }, getReadRolesContextKey(), getReadRolesContextKey());
+        }, getReadRolesContextKey());
     }
 
     @Test
