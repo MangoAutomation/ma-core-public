@@ -78,9 +78,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
     //Retry transactions that deadlock
-    //TODO Mango 4.0 make this an env property?
     //TODO Mango 4.0 make the retry criteria more accurate
-    protected final int transactionRetries = 5;
+    protected final int transactionRetries = Common.envProps.getInt("db.transaction.retries", 5);
 
     protected final TABLE table;
     protected final ObjectMapper mapper;
