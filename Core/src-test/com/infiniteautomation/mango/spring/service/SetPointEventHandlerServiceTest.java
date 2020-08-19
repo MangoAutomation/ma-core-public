@@ -104,7 +104,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             SetPointEventHandlerVO vo = newVO(editUser);
             vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
             vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
             getService().permissionService.runAs(editUser, () -> {
@@ -147,6 +147,39 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
                 service.get(vo.getId());
             });
         });
+    }
+
+    @Test
+    public void testCannotInsertUnauthorizedScriptRole() {
+        runTest(() -> {
+            addRoleToCreatePermission(editRole);
+            SetPointEventHandlerVO vo = newVO(editUser);
+            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
+            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+            vo.setScriptRoles(permissions);
+            getService().permissionService.runAs(editUser, () -> {
+                service.insert(vo);
+            });
+        }, "scriptRoles");
+    }
+
+    @Test
+    public void testCannotUpdateUnauthorizedScriptRole() {
+        runTest(() -> {
+            addRoleToCreatePermission(editRole);
+            SetPointEventHandlerVO vo = newVO(editUser);
+            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
+            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
+            vo.setScriptRoles(permissions);
+            getService().permissionService.runAs(editUser, () -> {
+                SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO)service.insert(vo);
+                ScriptPermissions newPermissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+                fromDb.setScriptRoles(newPermissions);
+                service.update(fromDb.getId(), fromDb);
+            });
+        }, "scriptRoles");
     }
 
     @Override
