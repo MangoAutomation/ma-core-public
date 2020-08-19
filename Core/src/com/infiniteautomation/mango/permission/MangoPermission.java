@@ -60,7 +60,7 @@ public final class MangoPermission {
                     if (minterm.contains(null)) {
                         throw new IllegalArgumentException("Minterm cannot contain null role");
                     }
-                    return Collections.unmodifiableSet(minterm);
+                    return Collections.unmodifiableSet(new HashSet<>(minterm));
                 })
                 .collect(Collectors.toSet()));
     }
