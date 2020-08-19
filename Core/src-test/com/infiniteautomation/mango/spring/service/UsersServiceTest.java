@@ -273,7 +273,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
                 saved.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
                 service.update(saved.getUsername(), saved);
             });
-        }, "roles", "roles");
+        }, "roles");
     }
 
     @Test
