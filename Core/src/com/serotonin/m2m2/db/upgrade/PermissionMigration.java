@@ -29,7 +29,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.util.Functions;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -112,18 +112,7 @@ public interface PermissionMigration {
      * @return
      */
     default Set<String> explodePermissionGroups(String groups) {
-        if (groups == null || groups.isEmpty()) {
-            return Collections.emptySet();
-        }
-
-        Set<String> set = new HashSet<>();
-        for (String s : groups.split(",")) {
-            s = s.replaceAll(Functions.WHITESPACE_REGEX, "");
-            if (!s.isEmpty()) {
-                set.add(s);
-            }
-        }
-        return Collections.unmodifiableSet(set);
+        return PermissionService.explodeLegacyPermissionGroups(groups);
     }
 
     default Integer permissionId(MangoPermission permission) {
