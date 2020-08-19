@@ -182,14 +182,15 @@ public class PermissionService {
     public boolean hasPermission(PermissionHolder user, MangoPermission permission) {
         Objects.requireNonNull(permission);
         if (!isValidPermissionHolder(user)) return false;
-        Set<Role> heldRoles = getAllInheritedRoles(user);
 
+        Set<Role> heldRoles = user.getRoles();
         if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
             return true;
         }
 
+        Set<Role> inherited = getAllInheritedRoles(user);
         Set<Set<Role>> minterms = permission.getRoles();
-        return minterms.stream().anyMatch(heldRoles::containsAll);
+        return minterms.stream().anyMatch(inherited::containsAll);
     }
 
     /**
@@ -436,7 +437,7 @@ public class PermissionService {
      */
     public Set<Role> getAllInheritedRoles(PermissionHolder holder) {
         Set<Role> allRoles = new HashSet<>();
-        for(Role role : holder.getRoles()) {
+        for (Role role : holder.getRoles()) {
             RoleInheritance inheritance = roleHierarchyCache.get(role.getXid(), (xid) -> {
                 RoleInheritance i = new RoleInheritance();
                 i.role = role;
@@ -444,7 +445,7 @@ public class PermissionService {
                 i.inheritedBy = roleDao.getRolesThatInherit(role);
                 return i;
             });
-            if(inheritance != null) {
+            if (inheritance != null) {
                 allRoles.add(role);
                 allRoles.addAll(inheritance.inherited);
             }
@@ -535,9 +536,12 @@ public class PermissionService {
                 result.addContextualMessage(contextKey, "validate.role.modifyOwnRoles");
             }
         } else {
-            Set<Role> inherited = getAllInheritedRoles(holder);
-            if (!inherited.containsAll(newRoles)) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
+            Set<Role> heldRoles = holder.getRoles();
+            if (!heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+                Set<Role> inherited = getAllInheritedRoles(holder);
+                if (!inherited.containsAll(newRoles)) {
+                    result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
+                }
             }
         }
     }
