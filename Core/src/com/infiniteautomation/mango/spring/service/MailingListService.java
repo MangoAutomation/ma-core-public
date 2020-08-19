@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -54,9 +55,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     }
 
     /**
-     * TODO Mango 4.0 require a permission holder? This is used only in the backend.
-     *
-     * Get any addresses for mailing lists that are mailed on alarm level up to and including 'alarmLevel'
+     *  Get any addresses for mailing lists that are mailed on alarm level up to and including 'alarmLevel'
      *
      * @param alarmLevel
      * @param time of gathering addresses used to determine if a list is inactive
@@ -64,6 +63,9 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      * @return
      */
     public Set<String> getAlarmAddresses(AlarmLevels alarmLevel, long time, RecipientListEntryType... types) {
+        PermissionHolder user = Common.getUser();
+        this.permissionService.ensureAdminRole(user);
+
         List<MailingList> result = new ArrayList<>();
         dao.doInTransaction((status) -> {
             dao.customizedQuery(dao.getJoinedSelectQuery().where(
@@ -83,14 +85,15 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      * Get a list of all active recipients for the desired types of entries while also
      *  populating the entries of the list.
      *
-     *  TODO Mango 4.0 require a permission holder? This is used only in the backend.
-     *
      * @param recipients
      * @param sendTime
      * @param types
      * @return
      */
     public Set<String> getActiveRecipients(List<MailingListRecipient> recipients, long sendTime, RecipientListEntryType... types){
+        PermissionHolder user = Common.getUser();
+        this.permissionService.ensureAdminRole(user);
+
         Set<String> addresses = new HashSet<String>();
         for (MailingListRecipient r : recipients) {
             if(ArrayUtils.contains(types, r.getRecipientType())) {

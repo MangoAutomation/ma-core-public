@@ -195,10 +195,12 @@ public class EventManagerImpl implements EventManager {
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
         // add email addresses for mailing lists which have been configured to receive events over a certain level
-        emailUsers.addAll(mailingListService.getAlarmAddresses(alarmLevel, time,
-                RecipientListEntryType.MAILING_LIST,
-                RecipientListEntryType.ADDRESS,
-                RecipientListEntryType.USER));
+        mailingListService.getPermissionService().runAsSystemAdmin(() -> {
+            emailUsers.addAll(mailingListService.getAlarmAddresses(alarmLevel, time,
+                    RecipientListEntryType.MAILING_LIST,
+                    RecipientListEntryType.ADDRESS,
+                    RecipientListEntryType.USER));
+        });
 
         //No Audit or Do Not Log events are User Events
         if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
