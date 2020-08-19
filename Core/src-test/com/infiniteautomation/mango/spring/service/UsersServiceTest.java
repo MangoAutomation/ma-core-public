@@ -73,6 +73,19 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         });
     }
 
+    @Test
+    @Override
+    public void testCreatePrivilegeSuccess() {
+        runTest(() -> {
+            User vo = newVO(editUser);
+            addRoleToCreatePermission(editRole);
+            vo.setRoles(Collections.singleton(editRole));
+            getService().permissionService.runAs(editUser, () -> {
+                service.insert(vo);
+            });
+        });
+    }
+
     /**
      * Test edit self permission
      */
@@ -511,6 +524,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         throw new UnsupportedOperationException();
     }
 
+    @Override
     void assertRoles(Set<Role> expected, Set<Role> actual) {
         assertEquals(expected.size(), actual.size());
         Set<Role> missing = new HashSet<>();
