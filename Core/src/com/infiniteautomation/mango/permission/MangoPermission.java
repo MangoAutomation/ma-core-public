@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2019  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
 package com.infiniteautomation.mango.permission;
 
@@ -18,13 +18,12 @@ import java.util.stream.Stream;
  *  @author Jared Wiltshire
  *
  */
-public class MangoPermission {
+public final class MangoPermission {
 
-    // TODO Mango 4.0 remove
-    Integer id;
+    private Integer id;
 
     @JsonProperty
-    protected final Set<Set<Role>> roles;
+    private final Set<Set<Role>> roles;
 
     /**
      * Creates a permission that only superadmins have access to
@@ -43,14 +42,14 @@ public class MangoPermission {
 
     /**
      * Creates a permission for the given set of minterms.
-     * @param roles
+     * @param minterms set of minterms
      */
-    public MangoPermission(Set<Set<Role>> roles) {
-        if (roles == null) {
+    public MangoPermission(Set<Set<Role>> minterms) {
+        if (minterms == null) {
             throw new IllegalArgumentException("Roles cannot be null");
         }
 
-        this.roles = Collections.unmodifiableSet(roles.stream()
+        this.roles = Collections.unmodifiableSet(minterms.stream()
                 .map(minterm -> {
                     if (minterm == null) {
                         throw new IllegalArgumentException("Minterm cannot be null");
@@ -115,12 +114,11 @@ public class MangoPermission {
     @Override
     public String toString() {
         return "MangoPermission{" +
-                "roles=" + roles.stream().map(minterm -> {
-            return minterm.stream()
-                    .map(Role::getXid)
-                    .collect(Collectors.joining(" AND ", "(", ")"));
-        }).collect(Collectors.joining(" OR ")) +
-                '}';
+            roles.stream().map(minterm -> minterm.stream()
+                        .map(Role::getXid)
+                        .collect(Collectors.joining(" AND ", "(", ")")))
+                    .collect(Collectors.joining(" OR ")) +
+        '}';
     }
 
     /**
@@ -136,11 +134,10 @@ public class MangoPermission {
                 .anyMatch(role::equals);
 
         if (containsRole) {
-            return new MangoPermission(roles.stream().map(minterm -> {
-                return minterm.stream()
-                        .filter(r -> !r.equals(role))
-                        .collect(Collectors.toSet());
-            }).filter(minterm -> !minterm.isEmpty()).collect(Collectors.toSet()));
+            return new MangoPermission(roles.stream().map(minterm -> minterm.stream()
+                    .filter(r -> !r.equals(role))
+                    .collect(Collectors.toSet()))
+                .filter(minterm -> !minterm.isEmpty()).collect(Collectors.toSet()));
         }
 
         return this;
@@ -152,5 +149,24 @@ public class MangoPermission {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public static MangoPermissionBuilder builder() {
+        return new MangoPermissionBuilder();
+    }
+
+    public static final class MangoPermissionBuilder {
+        Set<Set<Role>> minterms = new HashSet<>();
+
+        private MangoPermissionBuilder() {}
+
+        public MangoPermissionBuilder minterm(Role... roles) {
+            minterms.add(Arrays.stream(roles).collect(Collectors.toSet()));
+            return this;
+        }
+
+        public MangoPermission build() {
+            return new MangoPermission(minterms);
+        }
     }
 }
