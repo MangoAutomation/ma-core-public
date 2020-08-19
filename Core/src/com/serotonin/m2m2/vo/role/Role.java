@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author Terry Packer
  *
  */
-public class Role implements Serializable {
+public final class Role implements Serializable {
 
     private static final long serialVersionUID = 6960583419249000443L;
 
