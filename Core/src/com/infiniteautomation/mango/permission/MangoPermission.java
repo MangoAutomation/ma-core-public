@@ -96,6 +96,9 @@ public class MangoPermission {
         return requireAllRoles(roles.collect(Collectors.toSet()));
     }
 
+    /**
+     * Does not depend on id
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -105,19 +108,19 @@ public class MangoPermission {
     }
 
     @Override
-    public String toString() {
-        return "MangoPermission{" +
-                "roles=" + roles.stream().map(minterm -> {
-                    return minterm.stream()
-                            .map(Role::getXid)
-                            .collect(Collectors.joining(" AND ", "(", ")"));
-                }).collect(Collectors.joining(" OR ")) +
-                '}';
+    public int hashCode() {
+        return Objects.hash(roles);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(roles);
+    public String toString() {
+        return "MangoPermission{" +
+                "roles=" + roles.stream().map(minterm -> {
+            return minterm.stream()
+                    .map(Role::getXid)
+                    .collect(Collectors.joining(" AND ", "(", ")"));
+        }).collect(Collectors.joining(" OR ")) +
+                '}';
     }
 
     /**
