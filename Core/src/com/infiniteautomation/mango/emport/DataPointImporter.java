@@ -116,9 +116,6 @@ public class DataPointImporter extends Importer {
                         String pedXid = pedObject.getString("xid");
                         AbstractPointEventDetectorVO ped = null;
 
-                        //TODO Mango 4.0 adding the option to create new ones during import, this used to be thrown if the xid was missing
-                        //throw new TranslatableJsonException("emport.error.ped.missingAttr", "xid");
-
                         if (!StringUtils.isBlank(pedXid)) {
                             // Use the ped xid to lookup an existing ped.
                             for (AbstractPointEventDetectorVO existing : dp.getEventDetectors()) {
