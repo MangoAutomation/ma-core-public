@@ -131,11 +131,14 @@ public class ProcessResult implements Serializable {
     }
 
     /**
-     * Copies all messages and data from this ProcessResult to another ProcessResult
+     * Copies all messages and data another ProcessResult into this one
      * @param other
      */
-    public void copyTo(ProcessResult other) {
+    public void addMessages(ProcessResult other) {
         Objects.requireNonNull(other);
-        other.getMessages().addAll(messages);
+        if (other == this) {
+            throw new IllegalArgumentException();
+        }
+        messages.addAll(other.getMessages());
     }
 }

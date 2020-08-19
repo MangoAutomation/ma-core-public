@@ -458,13 +458,9 @@ public class PermissionService {
      *   1. the new roles are non null
      *   2. all new roles are not empty
      *   3. the new roles do exist
-     *   (then for non admin/owners)
      *   4. the saving user will at least retain permission
-     *   5. the user cannot not remove an existing role they do not have
-     *   6. the user has all of the new roles being added
      *
-     *   If the saving user is also the owner, then the new roles need not contain
-     *   one of the user's roles
+     *   If the saving user is the owner then the user does not need to have access to the permission.
      *
      * @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
@@ -475,43 +471,27 @@ public class PermissionService {
      */
     public void validateVoRoles(ProcessResult result, String contextKey, PermissionHolder holder,
             boolean savedByOwner, MangoPermission existingPermission, MangoPermission newPermission) {
+
         if (holder == null) {
             result.addContextualMessage(contextKey, "validate.userRequired");
             return;
         }
 
-        if(newPermission == null) {
+        if (newPermission == null) {
             result.addContextualMessage(contextKey, "validate.permission.null");
             return;
         }
 
         for (Set<Role> roles : newPermission.getRoles()) {
-            if (roles == null) {
-                result.addContextualMessage(contextKey, "validate.role.empty");
-                return;
-            } else {
-                for(Role role : roles) {
-                    if(role == null) {
-                        result.addContextualMessage(contextKey, "validate.role.empty");
-                    }else {
-                        Integer id = roleDao.getIdByXid(role.getXid());
-                        if (id == null) {
-                            result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
-                        } else if (id != role.getId()) {
-                            result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
-                        }
-                    }
-                }
-            }
+            validateRoles(result, contextKey, roles);
         }
-
-        if (hasAdminRole(holder))
+        if (!result.isValid()) {
             return;
+        }
 
         // Ensure the user retains access to the object
         if (!savedByOwner && !hasPermission(holder, newPermission)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
-            return;
         }
     }
 
@@ -522,15 +502,13 @@ public class PermissionService {
      *   1. the new roles are non null
      *   2. all new roles are not empty
      *   3. the new roles exist
-     *   (then for non admin/owners)
-     *   4. the user cannot not remove an existing role they do not have
-     *   5. the user has all of the new roles being added
-     *
+     *   4. the user cannot not modify their own roles
+     *   5. the user cannot assign a role they do not have
      *
      * @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
-     * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
+     * @param savedByOwner - is the saving user the owner of this item i.e. the user is saving themselves (use false if no owner is possible)
      * @param existingRoles - the currently saved permissions
      * @param newRoles - the new permissions to validate
      */
@@ -542,52 +520,37 @@ public class PermissionService {
             return;
         }
 
-        if(newRoles == null) {
+        if (newRoles == null) {
             result.addContextualMessage(contextKey, "validate.permission.null");
             return;
         }
 
-        for (Role role : newRoles) {
-            if (role == null) {
-                result.addContextualMessage(contextKey, "validate.role.empty");
-                return;
-            } else {
-                Integer id = roleDao.getIdByXid(role.getXid());
-                if( id == null) {
-                    result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
-                }else if (id != role.getId()) {
-                    result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
-                }
+        validateRoles(result, contextKey, newRoles);
+        if (!result.isValid()) {
+            return;
+        }
+
+        if (savedByOwner) {
+            if (!Objects.equals(existingRoles, newRoles)) {
+                result.addContextualMessage(contextKey, "validate.role.modifyOwnRoles");
             }
-        }
-
-        if (hasAdminRole(holder))
-            return;
-
-        Set<Role> inherited = getAllInheritedRoles(holder);
-
-        // TODO Mango 4.0 review this logic
-        //Ensure the holder has at least one of the new permissions
-        if (!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(inherited, newRoles)) {
-            result.addContextualMessage(contextKey, "validate.mustRetainPermission");
-            return;
-        }
-
-        if (invalidAddOrRemove(inherited, existingRoles == null ? Collections.emptySet() : existingRoles, newRoles)) {
-            result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
+        } else {
+            Set<Role> inherited = getAllInheritedRoles(holder);
+            if (!inherited.containsAll(newRoles)) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
+            }
         }
     }
 
-    /**
-     * Check for permissions being added or removed that the user does not have
-     * @param inherited
-     * @param existingRoles
-     * @param newRoles
-     * @return
-     */
-    private boolean invalidAddOrRemove(Set<Role> inherited, Set<Role> existingRoles, Set<Role> newRoles) {
-        return newRoles.stream().anyMatch(r -> !(inherited.contains(r) || existingRoles.contains(r))) ||
-            existingRoles.stream().anyMatch(r -> !(inherited.contains(r) || newRoles.contains(r)));
+    private void validateRoles(ProcessResult result, String contextKey, Set<Role> roles) {
+        for (Role role : roles) {
+            Integer id = roleDao.getIdByXid(role.getXid());
+            if (id == null) {
+                result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+            } else if (id != role.getId()) {
+                result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
+            }
+        }
     }
 
     /**

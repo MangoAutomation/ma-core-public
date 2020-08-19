@@ -16,14 +16,14 @@ public interface Validatable {
      *
      * @param response
      */
-    public void validate(ProcessResult response);
+    void validate(ProcessResult response);
 
     /**
      * Validates the object and throws a ValidationException if it is not valid
      *
      * @throws ValidationException
      */
-    public default void ensureValid() throws ValidationException {
+    default void ensureValid() throws ValidationException {
         ProcessResult response = new ProcessResult();
         this.validate(response);
         if (!response.isValid()) {
@@ -31,10 +31,10 @@ public interface Validatable {
         }
     }
 
-    public default void validate(String contextPrefix, ProcessResult response) {
+    default void validate(String contextPrefix, ProcessResult response) {
         ProcessResult contextResult = new ProcessResult();
         this.validate(contextResult);
         contextResult.prefixContextKey(contextPrefix);
-        contextResult.copyTo(response);
+        response.addMessages(contextResult);
     }
 }
