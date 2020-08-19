@@ -7,15 +7,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 
 import javax.mail.internet.AddressException;
@@ -25,8 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Objects;
-import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
@@ -341,11 +337,11 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
-        if(!Objects.equal(vo.getEmailVerified(), existing.getEmailVerified()) && !permissionService.hasAdminRole(holder)) {
+        if(!Objects.equals(vo.getEmailVerified(), existing.getEmailVerified()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("emailVerified", "validate.invalidValue");
         }
 
-        if(!Objects.equal(vo.getCreated(), existing.getCreated()) && !permissionService.hasAdminRole(holder)) {
+        if(!Objects.equals(vo.getCreated(), existing.getCreated()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("created", "validate.invalidValue");
         }
 
