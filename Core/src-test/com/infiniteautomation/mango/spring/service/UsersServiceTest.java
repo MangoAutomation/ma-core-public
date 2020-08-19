@@ -8,12 +8,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -205,12 +200,10 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             User vo = newVO(readUser);
             vo.setRoles(Collections.singleton(readRole));
-            User saved = getService().permissionService.runAsSystemAdmin(() -> {
-                return service.insert(vo);
-            });
+            User saved = getService().permissionService.runAsSystemAdmin(() -> service.insert(vo));
 
             //Ensure the ability to edit self
-            List<Role> myRoles = saved.getRoles().stream().collect(Collectors.toList());
+            List<Role> myRoles = new ArrayList<>(saved.getRoles());
             addRoleToEditSelfPermission(myRoles.get(0));
 
             getService().permissionService.runAs(saved, () -> {

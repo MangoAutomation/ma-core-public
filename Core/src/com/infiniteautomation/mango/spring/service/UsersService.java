@@ -308,32 +308,14 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         //Validate roles
-        boolean savingSelf = false;
-        if(holder instanceof User) {
-            savingSelf = ((User)holder).getId() == existing.getId();
-        }
+        boolean savingSelf = holder instanceof User && ((User)holder).getId() == existing.getId();
         permissionService.validatePermissionHolderRoles(result, "roles", holder, savingSelf, existing.getRoles(), vo.getRoles());
 
         //Things we cannot do to ourselves
-        if (holder instanceof User && ((User) holder).getId() == existing.getId()) {
-
+        if (savingSelf) {
             //Cannot disable
-            if(vo.isDisabled()) {
+            if (vo.isDisabled()) {
                 result.addContextualMessage("disabled", "users.validate.adminDisable");
-            }else {
-                //If we are disabled this check will throw an exception, we are invalid anyway so
-                // don't check
-                //Cannot remove admin permission
-                if(permissionService.hasAdminRole(existing))
-                    if(!permissionService.hasAdminRole(vo))
-                        result.addContextualMessage("roles", "users.validate.adminInvalid");
-            }
-        }
-
-        //Things we cannot do as non-admin
-        if (!permissionService.hasAdminRole(holder)) {
-            if (!vo.getRoles().equals(existing.getRoles())) {
-                result.addContextualMessage("roles", "users.validate.cannotChangePermissions");
             }
         }
 
