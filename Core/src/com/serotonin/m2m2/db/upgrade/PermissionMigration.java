@@ -35,6 +35,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
+ * TODO Mango 4.0 replace this with non-jOOQ code and use everywhere
  *
  * @author Terry Packer
  */
