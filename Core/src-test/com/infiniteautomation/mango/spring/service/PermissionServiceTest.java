@@ -120,11 +120,11 @@ public class PermissionServiceTest extends MangoTestBase {
     }
 
     User createTestUser(Set<Role> roles) {
-        return permissionService.runAsSystemAdmin(() -> createUser("permissions_test_user",
+        return createUser("permissions_test_user",
                 "permissions_test_user",
                 "permissions_test_user",
                 "permissions_test_user@test.com",
-                roles.toArray(new Role[0])));
+                roles.toArray(new Role[0]));
     }
 
     @Override
