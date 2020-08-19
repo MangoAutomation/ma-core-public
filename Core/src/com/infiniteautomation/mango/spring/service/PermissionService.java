@@ -532,6 +532,10 @@ public class PermissionService {
         }
 
         if (savedByOwner) {
+            // TODO Mango 4.0
+            // Should we allow users to add explicit roles to themselves that they currently inherit?
+            // Can they remove an explicit role from themselves if they still inherit it?
+
             if (!Objects.equals(existingRoles, newRoles)) {
                 result.addContextualMessage(contextKey, "validate.role.modifyOwnRoles");
             }
