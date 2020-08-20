@@ -49,7 +49,6 @@ public class DataPointTagsDisplaySettingDefinition extends SystemSettingsDefinit
                         response.addContextualMessage(DEFAULT_DISPLAY_TAGS, "validate.invalidTagKey");
                         break;
                     }
-                    //TODO Mango 4.0 Ensure the tag exists?
                 }
             }
         }catch(Exception e) {
