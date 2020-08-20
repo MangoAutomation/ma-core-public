@@ -672,7 +672,9 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     };
 
     private final String[] dataPointsMySQL = new String[] {
+            "ALTER TABLE dataPoints DROP FOREIGN KEY dataPointsFk1;",
             "ALTER TABLE dataPoints DROP INDEX dataPointsPermissionIndex;",
+            "ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);",
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
@@ -687,6 +689,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
     private final String[] dataPointPermissionMySQL = new String[] {
             "ALTER TABLE dataPoints DROP FOREIGN KEY dataPointsFk2;",
+            "ALTER TABLE dataPoints DROP INDEX dataPointsFk2;",
             "ALTER TABLE dataPoints ADD COLUMN readPermissionId INT;",
             "ALTER TABLE dataPoints ADD COLUMN editPermissionId INT;",
             "ALTER TABLE dataPoints ADD COLUMN setPermissionId INT;",
@@ -732,7 +735,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     };
 
     private final String[] dataSourcesMySQL = new String[] {
-            "ALTER TABLE dataPoints DROP INDEX dataSourcesPermissionIndex;",
+            "ALTER TABLE dataSources DROP INDEX dataSourcesPermissionIndex;",
             "ALTER TABLE dataSources DROP COLUMN editPermission;",
     };
     private final String[] dataSourcePermissionMySQL = new String[] {
