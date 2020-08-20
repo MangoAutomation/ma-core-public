@@ -69,6 +69,10 @@ public final class MangoPermission {
         return roles;
     }
 
+    public static MangoPermission superadminOnly() {
+        return new MangoPermission();
+    }
+
     public static MangoPermission requireAnyRole(Role ...roles) {
         return requireAnyRole(Arrays.stream(roles));
     }

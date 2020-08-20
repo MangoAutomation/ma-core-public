@@ -1,191 +1,129 @@
-/**
+/*
  * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
 
 package com.serotonin.m2m2.db.upgrade;
 
-import static com.serotonin.m2m2.db.dao.tables.MintermMappingTable.MINTERMS_MAPPING;
-import static com.serotonin.m2m2.db.dao.tables.MintermTable.MINTERMS;
-import static com.serotonin.m2m2.db.dao.tables.PermissionMappingTable.PERMISSIONS_MAPPING;
-import static com.serotonin.m2m2.db.dao.tables.PermissionTable.PERMISSIONS;
-import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.default_;
-import static org.jooq.impl.DSL.when;
-
-import java.io.OutputStream;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.jooq.DSLContext;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
-
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.role.Role;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.sql.Types;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * TODO Mango 4.0 replace this with non-jOOQ code and use everywhere
- *
  * @author Terry Packer
+ * @author Jared Wiltshire
  */
 public interface PermissionMigration {
 
-    /**
-     * Get an initalized ejt
-     * @return
-     */
-    public ExtendedJdbcTemplate getEjt();
-
-    public PlatformTransactionManager getTransactionManager();
-
-    public DSLContext getCreate();
-
-    void runScript(Map<String, String[]> scripts, OutputStream out);
-
-    public default TransactionTemplate getTransactionTemplate() {
+    ExtendedJdbcTemplate getJdbcTemplate();
+    PlatformTransactionManager getTransactionManager();
+    default TransactionTemplate getTransactionTemplate() {
         return new TransactionTemplate(getTransactionManager());
     }
 
-    /**
-     * Get all existing roles so we can ensure we don't create duplicate roles only new mappings
-     * @return
-     */
-    default Map<String, Role> getExistingRoles() {
-        return getEjt().query("SELECT id,xid FROM roles", new ResultSetExtractor<Map<String, Role>>() {
+    default MangoPermission getOrCreatePermission(MangoPermission permission) {
+        if (permission.getId() != null) {
+            throw new IllegalArgumentException("Permission is already saved: " + permission);
+        }
 
-            @Override
-            public Map<String, Role> extractData(ResultSet rs) throws SQLException, DataAccessException {
-                Map<String, Role> mappings = new HashMap<>();
-                while(rs.next()) {
-                    int id = rs.getInt(1);
-                    String xid = rs.getString(2);
-                    mappings.put(xid, new Role(id, xid));
+        return getTransactionTemplate().execute(tx -> {
+            Set<Integer> mintermIds = new HashSet<>();
+            Set<Set<Role>> minterms = new HashSet<>();
+            for (Set<Role> minterm : permission.getRoles()) {
+                Set<Role> savedRoles = new HashSet<>();
+                for (Role role : minterm) {
+                    savedRoles.add(getOrCreateRole(role));
                 }
-                return mappings;
+                mintermIds.add(getOrCreateMinterm(savedRoles));
             }
+
+            MangoPermission saved = new MangoPermission(minterms);
+            saved.setId(getOrCreatePermission(mintermIds));
+            return saved;
         });
     }
 
+    default Integer getOrCreatePermission(Set<Integer> mintermIdsSet) {
+        ExtendedJdbcTemplate ejt = getJdbcTemplate();
+        Integer[] mintermIds = mintermIdsSet.toArray(new Integer[0]);
+        try {
+            if (mintermIdsSet.isEmpty()) {
+                return ejt.queryForObject("SELECT permissions.id FROM permissions LEFT JOIN permissionsMinterms ON permissions.id = permissionsMinterms.permissionId WHERE permissionsMinterms.permissionId IS NULL LIMIT 1",
+                        Integer.class);
+            }
+            return ejt.queryForObject("SELECT permissionId FROM permissionsMinterms GROUP BY permissionId HAVING (COUNT(CASE WHEN mintermId IN (?) THEN 1 ELSE NULL END) = ? AND COUNT(permissionId) = ?) LIMIT 1",
+                    Integer.class, mintermIds, mintermIds.length, mintermIds.length);
+        } catch (EmptyResultDataAccessException e) {
+            int permissionId = ejt.doInsert("INSERT INTO permissions () VALUES ()", new Object[] {}, new int[] {});
+            for (Integer mintermId : mintermIds) {
+                ejt.doInsert("INSERT INTO permissionsMinterms (permissionId, mintermId) VALUES (?, ?)",
+                        new Object[] {permissionId, mintermId},
+                        new int[] {Types.INTEGER, Types.INTEGER});
+            }
+            return permissionId;
+        }
+    }
+
+    default Integer getOrCreateMinterm(Set<Role> minterm) {
+        if (minterm.isEmpty()) {
+            throw new IllegalArgumentException("Minterm should never be empty");
+        }
+
+        ExtendedJdbcTemplate ejt = getJdbcTemplate();
+        Integer[] roleIds = minterm.stream().map(Role::getId).toArray(Integer[]::new);
+        try {
+            return ejt.queryForObject("SELECT mintermId FROM mintermsRoles GROUP BY mintermId HAVING (COUNT(CASE WHEN roleId IN (?) THEN 1 ELSE NULL END) = ? AND COUNT(roleId) = ?) LIMIT 1",
+                    Integer.class, roleIds, roleIds.length, roleIds.length);
+        } catch (EmptyResultDataAccessException e) {
+            int mintermId = ejt.doInsert("INSERT INTO minterms () VALUES ()", new Object[] {}, new int[] {});
+            for (int roleId : roleIds) {
+                ejt.doInsert("INSERT INTO mintermsRoles (mintermId, roleId) VALUES (?, ?)",
+                        new Object[] {mintermId, roleId},
+                        new int[] {Types.INTEGER, Types.INTEGER});
+            }
+            return mintermId;
+        }
+    }
+
+    default Role getOrCreateRole(Role role) {
+        if (role.getId() > 0) {
+            return role;
+        }
+
+        ExtendedJdbcTemplate ejt = getJdbcTemplate();
+        String xid = role.getXid();
+        int roleId;
+        try {
+            roleId = Objects.requireNonNull(ejt.queryForObject("SELECT id FROM roles WHERE xid = ?", Integer.class, xid));
+        } catch (EmptyResultDataAccessException e) {
+            roleId = ejt.doInsert("INSERT INTO roles (xid, name) VALUES (?, ?)",
+                    new Object[] {xid, xid},
+                    new int[] {Types.VARCHAR, Types.VARCHAR});
+        }
+
+        return new Role(roleId, xid);
+    }
+
     /**
-     * Ensure role exists and insert OR mappings for this permission
-     *  this is protected for use in modules for this upgrade
-     *
-     * @param existingPermissions
-     * @param roles
-     * @return
+     * Returns an unsaved MangoPermission with roles that are also not saved (i.e. their id is -1)
+     * @param permissions legacy permission string to upgrade
+     * @return unsaved MangoPermission
      */
-    default Integer insertMapping(Set<String> existingPermissions, Map<String, Role> roles) {
-        //Ensure each role is only used 1x for this permission
-        Set<Set<Role>> permissionOrSet = new HashSet<>();
-        for(String permission : existingPermissions) {
-            //ensure all roles are lower case and don't have spaces on the ends
-            permission = permission.trim();
-            String role = permission.toLowerCase();
-            roles.compute(role, (k,r) -> {
-                if(r == null) {
-                    r = new Role(getEjt().doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}), role);
-                }
-                //Add an or mapping
-                permissionOrSet.add(Collections.singleton(r));
-                return r;
-            });
-        }
-        MangoPermission mangoPermission = new MangoPermission(permissionOrSet);
-        return permissionId(mangoPermission);
-    }
-
-
-    /**
-     * For use by modules in this upgrade
-     * @param groups
-     * @return
-     */
-    default Set<String> explodePermissionGroups(String groups) {
-        return PermissionService.explodeLegacyPermissionGroups(groups);
-    }
-
-    default Integer permissionId(MangoPermission permission) {
-        if (permission.getRoles().isEmpty()) {
-            return getOrInsertPermission(MangoPermission.requireAnyRole(PermissionHolder.SUPERADMIN_ROLE));
-        }
-
-        return getTransactionTemplate().execute(txStatus -> {
-            return getOrInsertPermission(permission);
-        });
-    }
-
-    default Integer getOrInsertPermission(MangoPermission permission) {
-        Set<Integer> mintermIds = permission.getRoles().stream()
-                .map(this::getOrInsertMinterm)
+    static MangoPermission parseLegacyPermission(String permissions) {
+        Set<String> xids = PermissionService.explodeLegacyPermissionGroups(permissions);
+        Set<Set<Role>> minterms = xids.stream()
+                .map(xid -> new Role(Common.NEW_ID, xid))
+                .map(Collections::singleton)
                 .collect(Collectors.toSet());
-
-        Integer permissionId = getCreate().select(PERMISSIONS_MAPPING.permissionId)
-                .from(PERMISSIONS_MAPPING)
-                .groupBy(PERMISSIONS_MAPPING.permissionId)
-                .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()))
-                .limit(1)
-                .fetchOne(0, Integer.class);
-
-        // no matching permission exists already, insert a new one
-        if (permissionId == null) {
-            permissionId = getCreate().insertInto(PERMISSIONS, PERMISSIONS.id)
-                    .values(default_(PERMISSIONS.id))
-                    .returningResult(PERMISSIONS.id)
-                    .fetchOne().get(PERMISSIONS.id);
-
-            int permissionIdFinal = permissionId;
-            getCreate().batch(
-                    mintermIds.stream()
-                    .map(id -> getCreate().insertInto(PERMISSIONS_MAPPING)
-                            .columns(PERMISSIONS_MAPPING.permissionId, PERMISSIONS_MAPPING.mintermId)
-                            .values(permissionIdFinal, id))
-                    .collect(Collectors.toList()))
-            .execute();
-        }
-
-        return permissionId;
+        return new MangoPermission(minterms);
     }
 
-    default int getOrInsertMinterm(Set<Role> minterm) {
-        Set<Integer> roleIds = minterm.stream()
-                .map(Role::getId)
-                .collect(Collectors.toSet());
-
-        Integer mintermId = getCreate().select(MINTERMS_MAPPING.mintermId)
-                .from(MINTERMS_MAPPING)
-                .groupBy(MINTERMS_MAPPING.mintermId)
-                .having(count(when(MINTERMS_MAPPING.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()))
-                .limit(1)
-                .fetchOne(0, Integer.class);
-
-        // no matching minterm exists already, insert a new one
-        if (mintermId == null) {
-            mintermId = getCreate().insertInto(MINTERMS, MINTERMS.id)
-                    .values(default_(MINTERMS.id))
-                    .returningResult(MINTERMS.id)
-                    .fetchOne().get(PERMISSIONS.id);
-
-            int mintermIdFinal = mintermId;
-            getCreate().batch(
-                    roleIds.stream()
-                    .map(id -> getCreate().insertInto(MINTERMS_MAPPING)
-                            .columns(MINTERMS_MAPPING.mintermId, MINTERMS_MAPPING.roleId)
-                            .values(mintermIdFinal, id))
-                    .collect(Collectors.toList()))
-            .execute();
-        }
-
-        return mintermId;
-    }
 }
