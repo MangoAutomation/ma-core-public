@@ -43,6 +43,8 @@ import java.util.stream.Collectors;
 public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
     private final Log LOG = LogFactory.getLog(Upgrade29.class);
+    private Map<MangoPermission, MangoPermission> permissionCache = new HashMap<>();
+    private Map<Role, Role> roleCache = new HashMap<>();
 
     @Override
     protected void upgrade() throws Exception {
@@ -972,5 +974,15 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     @Override
     public TransactionTemplate getTransactionTemplate() {
         return super.getTransactionTemplate();
+    }
+
+    @Override
+    public Map<MangoPermission, MangoPermission> permissionCache() {
+        return this.permissionCache;
+    }
+
+    @Override
+    public Map<Role, Role> roleCache() {
+        return this.roleCache;
     }
 }

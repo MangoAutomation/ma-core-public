@@ -29,9 +29,16 @@ public interface PermissionMigration {
         return new TransactionTemplate(getTransactionManager());
     }
 
+    Map<MangoPermission, MangoPermission> permissionCache();
+    Map<Role, Role> roleCache();
+
     default MangoPermission getOrCreatePermission(MangoPermission permission) {
+        return permissionCache().computeIfAbsent(permission, this::getOrCreatePermissionNoCache);
+    }
+
+    default MangoPermission getOrCreatePermissionNoCache(MangoPermission permission) {
         if (permission.getId() != null) {
-            throw new IllegalArgumentException("Permission is already saved: " + permission);
+            return permission;
         }
 
         return getTransactionTemplate().execute(tx -> {
@@ -94,10 +101,13 @@ public interface PermissionMigration {
     }
 
     default Role getOrCreateRole(Role role) {
+        return roleCache().computeIfAbsent(role, this::getOrCreateRoleNoCache);
+    }
+
+    default Role getOrCreateRoleNoCache(Role role) {
         if (role.getId() > 0) {
             return role;
         }
-
         ExtendedJdbcTemplate ejt = getJdbcTemplate();
         String xid = role.getXid();
         int roleId;
@@ -105,8 +115,8 @@ public interface PermissionMigration {
             roleId = Objects.requireNonNull(ejt.queryForObject("SELECT id FROM roles WHERE xid = ?", Integer.class, xid));
         } catch (EmptyResultDataAccessException e) {
             roleId = ejt.doInsert("INSERT INTO roles (xid, name) VALUES (?, ?)",
-                    new Object[] {xid, xid},
-                    new int[] {Types.VARCHAR, Types.VARCHAR});
+                    new Object[]{xid, xid},
+                    new int[]{Types.VARCHAR, Types.VARCHAR});
         }
 
         return new Role(roleId, xid);
