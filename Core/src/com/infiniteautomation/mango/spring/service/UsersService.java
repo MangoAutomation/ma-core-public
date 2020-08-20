@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Map;
@@ -98,14 +100,27 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             this.dao.getUserCache().replaceAll((username, user) -> {
                 switch(event.getType()) {
                     case DELETE:
-                    case UPDATE:
-                        Set<Role> inherited = permissionService.getAllInheritedRoles(user);
-                        if (inherited.contains(event.getVo().getRole())) {
-                            //Get a new copy (non-cached
+                        Role deleted = event.getVo().getRole();
+                        //Remove this role
+                        if(user.getRoles().contains(deleted)) {
+                            Set<Role> updated = new HashSet<>(user.getRoles());
+                            updated.remove(deleted);
+                            user.setRoles(Collections.unmodifiableSet(updated));
                             User existing = get(user.getId());
-                            //Fire a dao UPDATE event
                             this.dao.publishUserUpdated(user, existing);
-                            return existing;
+                        }
+                        break;
+                    case UPDATE:
+                        Role updatedRole = event.getVo().getRole();
+                        //We only care about our roles being changed
+                        if(user.getRoles().contains(updatedRole)) {
+                            //Replace this role
+                            Set<Role> updated = new HashSet<>(user.getRoles());
+                            updated.remove(updatedRole);
+                            updated.add(updatedRole);
+                            user.setRoles(Collections.unmodifiableSet(updated));
+                            User existing = get(user.getId());
+                            this.dao.publishUserUpdated(user, existing);
                         }
                         break;
                     default:
