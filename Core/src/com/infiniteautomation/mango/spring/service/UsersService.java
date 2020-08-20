@@ -106,6 +106,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                             Set<Role> updated = new HashSet<>(user.getRoles());
                             updated.remove(deleted);
                             user.setRoles(Collections.unmodifiableSet(updated));
+                            //TODO Mango 4.0 having this code implies that a user is not in the DB but will remain in
+                            // the cache, which is wrong... This does happen in the nightly node tests.
                             User existing = null;
                             try {existing = get(user.getId());}catch(NotFoundException e) { }
                             this.dao.publishUserUpdated(user, existing);
@@ -120,6 +122,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                             updated.remove(updatedRole);
                             updated.add(updatedRole);
                             user.setRoles(Collections.unmodifiableSet(updated));
+                            //TODO Mango 4.0 having this code implies that a user is not in the DB but will remain in
+                            // the cache, which is wrong... This does happen in the nightly node tests.
                             User existing = null;
                             try {existing = get(user.getId());}catch(NotFoundException e) { }
                             this.dao.publishUserUpdated(user, existing);
