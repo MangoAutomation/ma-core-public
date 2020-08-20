@@ -106,7 +106,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                             Set<Role> updated = new HashSet<>(user.getRoles());
                             updated.remove(deleted);
                             user.setRoles(Collections.unmodifiableSet(updated));
-                            User existing = get(user.getId());
+                            User existing = null;
+                            try {existing = get(user.getId());}catch(NotFoundException e) { }
                             this.dao.publishUserUpdated(user, existing);
                         }
                         break;
@@ -119,7 +120,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                             updated.remove(updatedRole);
                             updated.add(updatedRole);
                             user.setRoles(Collections.unmodifiableSet(updated));
-                            User existing = get(user.getId());
+                            User existing = null;
+                            try {existing = get(user.getId());}catch(NotFoundException e) { }
                             this.dao.publishUserUpdated(user, existing);
                         }
                         break;
