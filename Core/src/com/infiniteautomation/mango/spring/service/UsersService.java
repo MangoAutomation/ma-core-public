@@ -93,23 +93,26 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        this.dao.getUserCache().replaceAll((username, user) -> {
-            switch(event.getType()) {
-                case DELETE:
-                case UPDATE:
-                    Set<Role> inherited = permissionService.getAllInheritedRoles(user);
-                    if(inherited.contains(event.getVo().getRole())) {
-                        //Get a new copy (non-cached
-                        User existing = get(user.getId());
-                        //Fire a dao UPDATE event
-                        this.dao.publishUserUpdated(user, existing);
-                        return existing;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            return user;
+        // TODO Mango 4.0 review this - blocking call to DB to update concurrent cache
+        this.permissionService.runAsSystemAdmin(() -> {
+            this.dao.getUserCache().replaceAll((username, user) -> {
+                switch(event.getType()) {
+                    case DELETE:
+                    case UPDATE:
+                        Set<Role> inherited = permissionService.getAllInheritedRoles(user);
+                        if (inherited.contains(event.getVo().getRole())) {
+                            //Get a new copy (non-cached
+                            User existing = get(user.getId());
+                            //Fire a dao UPDATE event
+                            this.dao.publishUserUpdated(user, existing);
+                            return existing;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                return user;
+            });
         });
     }
 
@@ -254,7 +257,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     /**
      * Lock a user's password
      * @param username
-     * @param user
      * @throws PermissionException
      * @throws NotFoundException
      */
@@ -487,7 +489,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     /**
      * @param username
      * @param sendEmail
-     * @param user
      * @return
      * @throws IOException
      * @throws TemplateException
