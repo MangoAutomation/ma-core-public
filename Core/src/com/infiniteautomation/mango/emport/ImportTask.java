@@ -59,7 +59,11 @@ public class ImportTask extends ProgressiveTask {
     protected final DataPointService dataPointService;
     protected final EventDetectorsService eventDetectorService;
 
+    /**
+     * Who is running this import, useful for things like not importing the logged in user
+     */
     protected PermissionHolder user;
+
     /**
      * Create an Import task with a listener to be scheduled now
      * @param root
@@ -81,6 +85,9 @@ public class ImportTask extends ProgressiveTask {
             SystemPermissionService permissionService,
             ProgressiveTaskListener listener, boolean schedule) {
         super("JSON import task", "JsonImport", 10, listener);
+
+        //Get the current user to use during imports
+        this.user = Common.getUser();
         this.dataPointService = dataPointService;
         this.eventDetectorService = eventDetectorService;
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
