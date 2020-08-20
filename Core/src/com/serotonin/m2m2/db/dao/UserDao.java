@@ -318,9 +318,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                     //Set the last login time so it is available on the saved user
                     vo.setLastLogin(old.getLastLogin());
 
-                    boolean permissionsChanged = !old.getRoles().equals(vo.getRoles());
-
-                    if (passwordChanged || permissionsChanged || vo.isDisabled()) {
+                    if (passwordChanged || vo.isDisabled()) {
                         exireSessionsForUser(old);
                     }
 
