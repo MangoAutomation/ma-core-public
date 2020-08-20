@@ -108,9 +108,12 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                             user.setRoles(Collections.unmodifiableSet(updated));
                             //TODO Mango 4.0 having this code implies that a user is not in the DB but will remain in
                             // the cache, which is wrong... This does happen in the nightly node tests.
-                            User existing = null;
-                            try {existing = get(user.getId());}catch(NotFoundException e) { }
-                            this.dao.publishUserUpdated(user, existing);
+                            try {
+                                User existing = get(user.getId());
+                                this.dao.publishUserUpdated(user, existing);
+                            }catch(NotFoundException e) {
+                                return null;
+                            }
                         }
                         break;
                     case UPDATE:
@@ -124,9 +127,12 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                             user.setRoles(Collections.unmodifiableSet(updated));
                             //TODO Mango 4.0 having this code implies that a user is not in the DB but will remain in
                             // the cache, which is wrong... This does happen in the nightly node tests.
-                            User existing = null;
-                            try {existing = get(user.getId());}catch(NotFoundException e) { }
-                            this.dao.publishUserUpdated(user, existing);
+                            try {
+                                User existing = get(user.getId());
+                                this.dao.publishUserUpdated(user, existing);
+                            }catch(NotFoundException e) {
+                                return null;
+                            }
                         }
                         break;
                     default:
