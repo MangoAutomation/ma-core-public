@@ -34,8 +34,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     @Autowired
     protected SystemPermissionDao systemPermissionDao;
 
-    //TODO Mango 4.0 is this the ideal data structure or should be be using sync blocks?
-    protected MangoPermission permission;
+    protected volatile MangoPermission permission;
 
     /**
      * A  human readable and translatable brief description of the permission.
