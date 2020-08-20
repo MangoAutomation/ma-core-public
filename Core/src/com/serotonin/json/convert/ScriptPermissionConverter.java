@@ -66,7 +66,7 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
                 if(r != null) {
                     roles.add(r.getRole());
                 }else {
-                    //TODO Mango 4.0 use this? throw new TranslatableJsonException("emport.error.missingRole", permission, "scriptPermissions");
+                    //Let the validation pick this up as a missing role, the response to the user is cleaner
                     roles.add(new Role(Common.NEW_ID, val.toString()));
                 }
             }
@@ -83,7 +83,7 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
                 if(r != null) {
                     roles.add(r.getRole());
                 }else {
-                    //TODO Mango 4.0 use this? throw new TranslatableJsonException("emport.error.missingRole", permission, "scriptPermissions");
+                    //Let the validation pick this up as a missing role, the response to the user is cleaner
                     roles.add(new Role(Common.NEW_ID, role));
                 }
             }
