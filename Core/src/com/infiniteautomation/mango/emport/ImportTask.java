@@ -69,7 +69,6 @@ public class ImportTask extends ProgressiveTask {
      */
     public ImportTask(JsonObject root,
             Translations translations,
-            PermissionHolder user,
             RoleService roleService,
             UsersService usersService,
             MailingListService mailingListService,
@@ -82,7 +81,6 @@ public class ImportTask extends ProgressiveTask {
             SystemPermissionService permissionService,
             ProgressiveTaskListener listener, boolean schedule) {
         super("JSON import task", "JsonImport", 10, listener);
-        this.user = user;
         this.dataPointService = dataPointService;
         this.eventDetectorService = eventDetectorService;
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);

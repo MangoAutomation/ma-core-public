@@ -22,7 +22,6 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.ProgressiveTaskListener;
 
 /**
@@ -75,11 +74,10 @@ public class EmportService {
      * @param root
      * @return
      */
-    // TODO Mango 4.0 what is this here for? Why is a user passed through? Add ensureAdminRole() inside here?
-    public ImportTask getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations, PermissionHolder user) {
+    public ImportTask getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations) {
+        permissionService.ensureAdminRole(Common.getUser());
         return new ImportTask(root,
                 translations,
-                user,
                 roleService,
                 usersService,
                 mailingListService,

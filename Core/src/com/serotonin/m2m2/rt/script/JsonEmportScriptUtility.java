@@ -43,7 +43,6 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -178,8 +177,10 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask sit = new ScriptImportTask(jo, permissions);
-            sit.run(Common.timer.currentTimeMillis());
+            ScriptImportTask sit = new ScriptImportTask(jo);
+            permissionService.runAs(permissions, () -> {
+                sit.run(Common.timer.currentTimeMillis());
+            });
         }
     }
 
@@ -190,8 +191,10 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask sit = new ScriptImportTask(jo, permissions);
-            sit.run(Common.timer.currentTimeMillis());
+            ScriptImportTask sit = new ScriptImportTask(jo);
+            permissionService.runAs(permissions, () -> {
+                sit.run(Common.timer.currentTimeMillis());
+            });
             return sit.getMessages();
         }
         return null;
@@ -220,8 +223,8 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     class ScriptImportTask extends ImportTask {
 
-        public ScriptImportTask(JsonObject jo, PermissionHolder holder) {
-            super(jo, Common.getTranslations(), holder,
+        public ScriptImportTask(JsonObject jo) {
+            super(jo, Common.getTranslations(),
                     Common.getBean(RoleService.class),
                     Common.getBean(UsersService.class),
                     Common.getBean(MailingListService.class),

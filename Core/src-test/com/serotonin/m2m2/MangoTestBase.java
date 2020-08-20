@@ -41,6 +41,7 @@ import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
@@ -53,7 +54,6 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
@@ -243,34 +243,33 @@ public class MangoTestBase {
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
 
-        User admin = UserDao.getInstance().getByXid("admin");
-
-        ImportTask task = new ImportTask(jo,
-                Common.getTranslations(),
-                admin,
-                Common.getBean(RoleService.class),
-                Common.getBean(UsersService.class),
-                Common.getBean(MailingListService.class),
-                Common.getBean(DataSourceService.class),
-                Common.getBean(DataPointService.class),
-                Common.getBean(PublisherService.class),
-                Common.getBean(EventHandlerService.class),
-                Common.getBean(JsonDataService.class),
-                Common.getBean(EventDetectorsService.class),
-                Common.getBean(SystemPermissionService.class),
-                null, false);
-        task.run(Common.timer.currentTimeMillis());
-        if(task.getResponse().getHasMessages()){
-            for(ProcessMessage message : task.getResponse().getMessages()){
-                switch(message.getLevel()) {
-                    case error:
-                    case warning:
-                        fail(message.toString(Common.getTranslations()));
-                    case info:
-                        LOG.info(message.toString(Common.getTranslations()));
+        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
+            ImportTask task = new ImportTask(jo,
+                    Common.getTranslations(),
+                    Common.getBean(RoleService.class),
+                    Common.getBean(UsersService.class),
+                    Common.getBean(MailingListService.class),
+                    Common.getBean(DataSourceService.class),
+                    Common.getBean(DataPointService.class),
+                    Common.getBean(PublisherService.class),
+                    Common.getBean(EventHandlerService.class),
+                    Common.getBean(JsonDataService.class),
+                    Common.getBean(EventDetectorsService.class),
+                    Common.getBean(SystemPermissionService.class),
+                    null, false);
+            task.run(Common.timer.currentTimeMillis());
+            if(task.getResponse().getHasMessages()){
+                for(ProcessMessage message : task.getResponse().getMessages()){
+                    switch(message.getLevel()) {
+                        case error:
+                        case warning:
+                            fail(message.toString(Common.getTranslations()));
+                        case info:
+                            LOG.info(message.toString(Common.getTranslations()));
+                    }
                 }
             }
-        }
+        });
     }
 
     /**
