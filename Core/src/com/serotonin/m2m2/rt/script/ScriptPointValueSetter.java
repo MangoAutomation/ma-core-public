@@ -34,8 +34,7 @@ public abstract class ScriptPointValueSetter {
         if(!point.getVO().getPointLocator().isSettable())
             return;
 
-        //TODO Mango 4.0 should this really allowed to be null?  Dangerous?
-        if(permissions != null && !permissionService.get().hasPermission(permissions, point.getVO().getSetPermission()))
+        if(!permissionService.get().hasPermission(permissions, point.getVO().getSetPermission()))
             throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", point.getVO().getXid()));
 
         setImpl(point, value, timestamp, annotation);
