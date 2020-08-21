@@ -127,6 +127,7 @@ public class Common {
 
     private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")).normalize());
     private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
+    private static final Path BACKUP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.backup", "backup")).normalize());
 
     public static final int NEW_ID = -1;
 
@@ -455,6 +456,10 @@ public class Common {
 
     public static Path getTempPath() {
         return TEMP_PATH;
+    }
+
+    public static Path getBackupPath() {
+        return BACKUP_PATH;
     }
 
     public static CronTimerTrigger getCronTrigger(int periodType, int delaySeconds) {

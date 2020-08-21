@@ -671,7 +671,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(PLOT_GRIDLINE_COLOUR, "rgba(0,0,0,0.4)");
 
         //Default Backup Settings
-        DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.MA_HOME_PATH.resolve("backup").toString());
+        DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.getBackupPath().toString());
         DEFAULT_VALUES.put(BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
         DEFAULT_VALUES.put(BACKUP_PERIODS, 1);
         DEFAULT_VALUES.put(BACKUP_FILE_COUNT, 10);
@@ -679,7 +679,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
         //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
         //DEFAULT_VALUES.put(ALLOW_ANONYMOUS_GRAPHIC_VIEWS, false);
-        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_LOCATION, Common.MA_HOME_PATH.resolve("backup").toString());
+        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_LOCATION, Common.getBackupPath().toString());
         DEFAULT_VALUES.put(DATABASE_BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
         DEFAULT_VALUES.put(DATABASE_BACKUP_PERIODS, 1);
         DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_COUNT, 10);
