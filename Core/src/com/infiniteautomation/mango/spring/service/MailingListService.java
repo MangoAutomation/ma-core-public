@@ -342,7 +342,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      * @param acceptableTypes - allowed types
      */
     public void validateRecipient(String prefix, MailingListRecipient recipient, ProcessResult result, RecipientListEntryType... acceptableTypes) {
-        validateRecipient(null, recipient, result, acceptableTypes);
+        validateRecipient(null, prefix, recipient, result, acceptableTypes);
     }
 
     /**
