@@ -257,7 +257,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         }else {
             int index = 0;
             for(MailingListRecipient recipient : vo.getEntries()) {
-                validateRecipient("recipients[" + index + "]", recipient, result, RecipientListEntryType.values());
+                validateRecipient(vo, "recipients[" + index + "]", recipient, result, RecipientListEntryType.values());
                 index++;
             }
         }
@@ -270,13 +270,14 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     }
 
     /**
-     * Validate a recipient
-     * @param prefix - recipients[1] or inactiveRecipients[2]
+     * For internal use to validate a mailing list
+     * @param list
+     * @param prefix
      * @param recipient
      * @param result
-     * @param acceptableTypes - allowed types
+     * @param acceptableTypes
      */
-    public void validateRecipient(String prefix, MailingListRecipient recipient, ProcessResult result, RecipientListEntryType... acceptableTypes) {
+    protected void validateRecipient(MailingList list, String prefix, MailingListRecipient recipient, ProcessResult result, RecipientListEntryType... acceptableTypes) {
         if(!ArrayUtils.contains(acceptableTypes, recipient.getRecipientType())) {
             result.addContextualMessage(prefix + ".recipientType", "mailingLists.validate.invalidEntryType", recipient.getRecipientType(), acceptableTypes);
         }else {
@@ -289,11 +290,20 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                     break;
                 case MAILING_LIST:
                     //If a mailing list then make sure it exists and there are no circular references
-                    MailingList list = dao.get(recipient.getReferenceId());
-                    if(list == null) {
+                    MailingList sublist = dao.get(recipient.getReferenceId());
+                    if(sublist == null) {
                         result.addContextualMessage(prefix, "mailingLists.validate.listDoesNotExist");
                     }else {
-                        //TODO Mango 4.0 make sure no circular references in the list tree
+                        Set<Integer> listIds = new HashSet<>();
+                        if(list != null) {
+                            listIds.add(list.getId());
+                        }
+                        //Check to see if the top level recipient is the same as me
+                        if(listIds.add(sublist.getId())) {
+                            result.addContextualMessage(prefix, "mailingLists.validate.listCannotContainItself");
+                            return;
+                        }
+                        recursivelyCheckMailingListEntries(listIds, sublist, prefix, result);
                     }
                     break;
                 case PHONE_NUMBER:
@@ -320,6 +330,40 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                 default:
                     break;
 
+            }
+        }
+    }
+
+    /**
+     * Validate a recipient
+     * @param prefix - recipients[1] or inactiveRecipients[2]
+     * @param recipient
+     * @param result
+     * @param acceptableTypes - allowed types
+     */
+    public void validateRecipient(String prefix, MailingListRecipient recipient, ProcessResult result, RecipientListEntryType... acceptableTypes) {
+        validateRecipient(null, recipient, result, acceptableTypes);
+    }
+
+    /**
+     * @param listIds
+     * @param list
+     */
+    private void recursivelyCheckMailingListEntries(Set<Integer> listIds, MailingList list, String prefix, ProcessResult result) {
+        for(MailingListRecipient recipient : list.getEntries()) {
+            switch(recipient.getRecipientType()) {
+                case MAILING_LIST:
+                    if(!listIds.add(recipient.getReferenceId())) {
+                        //Failed, we already have this list as reference
+                        result.addContextualMessage(prefix, "mailingLists.validate.listCannotContainItself");
+                        return;
+                    }else {
+                        MailingList sublist = dao.get(recipient.getReferenceId());
+                        recursivelyCheckMailingListEntries(listIds, sublist, prefix, result);
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     }

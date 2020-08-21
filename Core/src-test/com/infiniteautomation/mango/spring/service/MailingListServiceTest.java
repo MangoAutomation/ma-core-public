@@ -22,6 +22,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
+import com.serotonin.m2m2.vo.mailingList.MailingListEntry;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
@@ -145,6 +146,29 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         }
         assertPermission(expected.getReadPermission(), actual.getReadPermission());
         assertPermission(expected.getEditPermission(), actual.getEditPermission());
+    }
+
+    @Test
+    public void testRecursiveMailingListsAreInvalid() {
+        runTest(() -> {
+            MailingList vo = newVO(readUser);
+            MailingList saved = getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+                MailingList fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                return fromDb;
+            });
+
+            MailingList recursive = newVO(readUser);
+            List<MailingListRecipient> entries = new ArrayList<>();
+            MailingListEntry ml = new MailingListEntry();
+            ml.setMailingListId(saved.getId());
+            entries.add(ml);
+            recursive.setEntries(entries);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(recursive);
+            });
+        }, "recipients[0]");
     }
 
     @Override
