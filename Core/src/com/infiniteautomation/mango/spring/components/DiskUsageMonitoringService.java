@@ -277,7 +277,10 @@ public class DiskUsageMonitoringService {
             return this.lastSqlDatabaseSize;
         }
         this.lastSqlDatabaseSizePollTime = now;
-        this.lastSqlDatabaseSize = getGb(Common.databaseProxy.getDatabaseSizeInBytes());
+        Long sizeInBytes = Common.databaseProxy.getDatabaseSizeInBytes();
+        if (sizeInBytes != null) {
+            this.lastSqlDatabaseSize = getGb(sizeInBytes);
+        }
         return this.lastSqlDatabaseSize;
     }
 
