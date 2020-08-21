@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -84,7 +85,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
         if (Common.envProps.getBoolean(propertyPrefix + "db.web.start", false)) {
             LOG.info("Initializing H2 web server");
-            String webArgs[] = new String[4];
+            String[] webArgs = new String[4];
             webArgs[0] = "-webPort";
             webArgs[1] = Common.envProps.getString(propertyPrefix + "db.web.port");
             webArgs[2] = "-ifExists";
@@ -106,7 +107,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     /**
      * Potentially upgrade the h2 pagestore database from v196
-     * @param propertyPrefix
      */
     private void upgradePageStore(String propertyPrefix) {
 
@@ -129,7 +129,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
             try {
                 LOG.info("Dumping legacy database to file " + dumpPath.toString());
-                dump(legacy, dumpPath);
+                dump(dumpPath);
 
                 //Delete existing so we can re-create it using the dump script
                 Files.delete(legacy);
@@ -141,7 +141,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 //Open a connection and import the dump script
                 LOG.info("Importing existing H2 database...");
                 String runScript = url + ";init=RUNSCRIPT FROM '" + dumpPath.toString().replaceAll("\\\\", "/") + "' COMPRESSION ZIP";
-                try(Connection conn = DriverManager.getConnection(runScript, user, password);){
+                try(Connection conn = DriverManager.getConnection(runScript, user, password)){
                     Statement stat = conn.createStatement();
                     //Might as well do a compaction here
                     stat.execute("SHUTDOWN COMPACT");
@@ -149,7 +149,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 }
 
                 try {
-                    LOG.info("Cleaning up H2 initializataion tests...");
+                    LOG.info("Cleaning up H2 initialization tests...");
                     Files.deleteIfExists(dumpPath);
                 } catch (IOException e) {
                     LOG.warn("Unable to delete un-necessary H2 dump file " + dumpPath.toString(), e);
@@ -189,6 +189,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
             return possibleDb.isFile() && filename.endsWith(".db") && filename.startsWith(dbPath.getFileName().toString());
         });
 
+        Objects.requireNonNull(matchingDbs);
+
         //Check to see if we have an existing db with a version number in it
         // if there are more than 1, select the latest version number in the list
         int version = 0;
@@ -212,8 +214,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         builder.append("jdbc:h2:");
 
         //Put in the db path
-        builder.append(dbPath.toString());
-        builder.append("." + version);
+        builder.append(dbPath.toString()).append(".").append(version);
 
         //Add back on any command parts
         for(int i=1; i<commandParts.length; i++) {
@@ -417,7 +418,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     /**
      * Get the current version of the database.
-     * @return
      */
     public int getCurrentVersion() {
         return Constants.BUILD_ID;
@@ -425,7 +425,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     /**
      * Get the expected runtime database name
-     * @return
      */
     public String getDatabaseFileSuffix() {
         return Constants.BUILD_ID + ".h2.db";
@@ -435,9 +434,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
      * Parse the version out of a database name, the format should be
      * *.[version].h2.db
      *   This method takes into account that there may be extra periods in the name
-     * @param databaseName
-     * @return
-     * @throws NumberFormatException
      */
     public int getVersion(String databaseName) throws IOException {
         String[] parts = databaseName.split("\\.");
@@ -457,10 +453,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
      *
      * *.h2.db = legacy
      * *.[version].h2.db = current
-     *
-     * @return
      */
-    public static boolean isLegacy(String databaseName) throws IOException {
+    public static boolean isLegacy(String databaseName) {
         String[] parts = databaseName.split("\\.");
         if(parts.length < 4)
             return true;
@@ -477,63 +471,61 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     /**
      * Dump a database to SQL using a legacy driver
-     * @param legacy
-     * @param dumpPath
-     * @throws Exception
      */
-    public void dump(Path legacy, Path dumpPath) throws Exception {
+    public void dump(Path dumpPath) throws Exception {
 
         //First load in the 196 Driver
         Path tempDirectory = Paths.get(System.getProperty("java.io.tmpdir"), H2Proxy.class.getName());
         File tempDirectoryFile = tempDirectory.toFile();
-        tempDirectoryFile.mkdirs();
+        if (!tempDirectoryFile.mkdirs()) {
+            throw new RuntimeException("Failed to create temporary directory: " + tempDirectoryFile);
+        }
         tempDirectoryFile.deleteOnExit();
 
-        ClassLoader jarLoader = loadLegacyJar();
-        Class<?> driverManager = Class.forName("org.h2.Driver", false, jarLoader);
+        try (URLClassLoader jarLoader = loadLegacyJar()) {
+            Class<?> driverManager = Class.forName("org.h2.Driver", false, jarLoader);
 
-        String url = Common.envProps.getString("db.url");
-        if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
-            url += ";DB_CLOSE_ON_EXIT=FALSE";
-        }
-        if (!url.contains(";MV_STORE=")) {
-            url += ";MV_STORE=FALSE";
-        }
-        if (!url.contains(";IGNORECASE=")) {
-            url += ";IGNORECASE=TRUE";
-        }
-        String user = Common.envProps.getString("db.username", null);
-        String password = Common.envProps.getString("db.password", null);
-        Properties connectionProperties = new Properties();
-        if(user != null) {
-            connectionProperties.put("user", user);
-        }
-        if(password != null) {
-            connectionProperties.put("password", password);
-        }
-
-        Method connect = driverManager.getMethod("connect", String.class, Properties.class);
-        //Get the INSTANCE to work on
-        Field instance = driverManager.getDeclaredField("INSTANCE");
-        instance.setAccessible(true);
-
-        try(Connection conn = (Connection)connect.invoke(instance.get(driverManager), url, connectionProperties)){
-            Statement stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
-            if(rs.next()) {
-                int version = rs.getInt(1);
-                LOG.info("H2 database is version " + version + " , will upgrade to " + Constants.BUILD_ID + ".");
+            String url = Common.envProps.getString("db.url");
+            if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
+                url += ";DB_CLOSE_ON_EXIT=FALSE";
             }
-            LOG.info("Exporting existing H2 database...");
-            stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
-            stat.close();
+            if (!url.contains(";MV_STORE=")) {
+                url += ";MV_STORE=FALSE";
+            }
+            if (!url.contains(";IGNORECASE=")) {
+                url += ";IGNORECASE=TRUE";
+            }
+            String user = Common.envProps.getString("db.username", null);
+            String password = Common.envProps.getString("db.password", null);
+            Properties connectionProperties = new Properties();
+            if (user != null) {
+                connectionProperties.put("user", user);
+            }
+            if (password != null) {
+                connectionProperties.put("password", password);
+            }
+
+            Method connect = driverManager.getMethod("connect", String.class, Properties.class);
+            //Get the INSTANCE to work on
+            Field instance = driverManager.getDeclaredField("INSTANCE");
+            instance.setAccessible(true);
+
+            try (Connection conn = (Connection) connect.invoke(instance.get(driverManager), url, connectionProperties)) {
+                Statement stat = conn.createStatement();
+                ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
+                if (rs.next()) {
+                    int version = rs.getInt(1);
+                    LOG.info("H2 database is version " + version + " , will upgrade to " + Constants.BUILD_ID + ".");
+                }
+                LOG.info("Exporting existing H2 database...");
+                stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
+                stat.close();
+            }
         }
     }
 
     /**
      * Load the legacy H2 Driver into an isolated class loader
-     * @return
-     * @throws MalformedURLException
      */
     public static URLClassLoader loadLegacyJar() throws MalformedURLException {
         return new ParentLastURLClassLoader(new URL[] {Common.MA_HOME_PATH.resolve("boot/h2-1.4.196.jar").toUri().toURL()});
@@ -546,7 +538,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
      * For those not familiar with class loading trickery, be wary
      */
     public static class ParentLastURLClassLoader extends URLClassLoader {
-        private ChildURLClassLoader childClassLoader;
+        private final ChildURLClassLoader childClassLoader;
 
         /**
          * This class allows me to call findClass on a classloader
@@ -567,7 +559,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
          * We need this because findClass is protected in URLClassLoader
          */
         private static class ChildURLClassLoader extends URLClassLoader {
-            private FindClassClassLoader realParent;
+            private final FindClassClassLoader realParent;
 
             public ChildURLClassLoader(URL[] urls, FindClassClassLoader realParent ) {
                 super(urls, null);
