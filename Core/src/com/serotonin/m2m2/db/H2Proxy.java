@@ -201,6 +201,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         Map<String, String> sourceOptions = new HashMap<>(userOptions);
         // force page store for source
         sourceOptions.put("MV_STORE", "FALSE");
+        sourceOptions.put("IFEXISTS", "TRUE");
         String sourceUrlWithOptions = configureURL(sourceUrl, sourceOptions);
         Properties connectionProperties = getConnectionProperties(propertyPrefix);
         try (Connection connection = Driver.load().connect(sourceUrlWithOptions, connectionProperties)) {
@@ -534,6 +535,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         Map<String, String> options = extractOptions(url);
         options.put("MV_STORE", "FALSE");
+        options.put("IFEXISTS", "TRUE");
 
         Properties connectionProperties = getConnectionProperties(propertyPrefix);
 
