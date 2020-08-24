@@ -41,6 +41,7 @@
 * Change MySQL character set to utf8mb4 for full UTF support (note: Mango requires MySQL v5.7.8 or newer)
 * Upgrade Caffeine cache library to 2.8.5
 * Retry failed transactional insert/updates for database layer controlled via env property db.transaction.retries 
+* Upgrade H2 to use MV Store engine for performance, this will dump and re-import your existing h2 database on upgrade
 
 *Version 3.7.4*
 * Improve work item failure logging
