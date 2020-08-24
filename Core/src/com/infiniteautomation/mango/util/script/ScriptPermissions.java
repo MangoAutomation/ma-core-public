@@ -46,11 +46,7 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
     }
 
     public ScriptPermissions(Set<Role> roles, String permissionHolderName) {
-        if (roles != null) {
-            this.roles = roles;
-        } else {
-            this.roles = Collections.unmodifiableSet(Collections.emptySet());
-        }
+        this.roles = Collections.unmodifiableSet(roles != null ? roles : Collections.emptySet());
         this.permissionHolderName = permissionHolderName;
     }
 
@@ -85,10 +81,10 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
         int ver = in.readInt();
         if(ver == 1) {
             PermissionService service = Common.getBean(PermissionService.class);
-            this.roles = service.upgradeScriptRoles((Set<String>) in.readObject());
+            this.roles = Collections.unmodifiableSet(service.upgradeScriptRoles((Set<String>) in.readObject()));
         }else if(ver == 2){
             //Will be cleaned in the load relational data method
-            roles = (Set<Role>)in.readObject();
+            this.roles = Collections.unmodifiableSet((Set<Role>)in.readObject());
         }
     }
 }
