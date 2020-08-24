@@ -3,14 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
@@ -21,8 +13,17 @@ import com.serotonin.json.type.JsonTypeWriter;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.module.definitions.permissions.ExportPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.ImportPermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.util.ProgressiveTaskListener;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Map;
 
 /**
  * Service to facilitate JSON import/export
@@ -43,19 +44,23 @@ public class EmportService {
     private final PermissionService permissionService;
     private final EventDetectorsService eventDetectorService;
     private final SystemPermissionService systemPermissionService;
+    private final ImportPermissionDefinition importPermissionDefinition;
+    private final ExportPermissionDefinition exportPermissionDefinition;
 
     @Autowired
     public EmportService(RoleService roleService,
-            UsersService usersService,
-            MailingListService mailingListService,
-            DataSourceService dataSourceService,
-            DataPointService dataPointService,
-            PublisherService publisherService,
-            EventHandlerService eventHandlerService,
-            JsonDataService jsonDataService,
-            PermissionService permissionService,
-            EventDetectorsService eventDetectorService,
-            SystemPermissionService systemPermissionService) {
+                         UsersService usersService,
+                         MailingListService mailingListService,
+                         DataSourceService dataSourceService,
+                         DataPointService dataPointService,
+                         PublisherService publisherService,
+                         EventHandlerService eventHandlerService,
+                         JsonDataService jsonDataService,
+                         PermissionService permissionService,
+                         EventDetectorsService eventDetectorService,
+                         SystemPermissionService systemPermissionService,
+                         ImportPermissionDefinition importPermissionDefinition,
+                         ExportPermissionDefinition exportPermissionDefinition) {
         this.roleService = roleService;
         this.usersService = usersService;
         this.mailingListService = mailingListService;
@@ -67,6 +72,8 @@ public class EmportService {
         this.permissionService = permissionService;
         this.eventDetectorService = eventDetectorService;
         this.systemPermissionService = systemPermissionService;
+        this.importPermissionDefinition = importPermissionDefinition;
+        this.exportPermissionDefinition = exportPermissionDefinition;
     }
 
     /**
@@ -75,7 +82,7 @@ public class EmportService {
      * @return
      */
     public ImportTask getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations) {
-        permissionService.ensureAdminRole(Common.getUser());
+        permissionService.ensurePermission(Common.getUser(), importPermissionDefinition.getPermission());
         return new ImportTask(root,
                 translations,
                 roleService,
@@ -99,12 +106,11 @@ public class EmportService {
      * @throws PermissionException
      */
     public String createExportData(int prettyIndent, String[] exportElements) throws PermissionException {
-        permissionService.ensureAdminRole(Common.getUser());
+        // permission check happens again later but dont want them to create the export data without the permission
+        permissionService.ensurePermission(Common.getUser(), exportPermissionDefinition.getPermission());
 
         Map<String, Object> data = ConfigurationExportData.createExportDataMap(exportElements);
-        StringWriter stringWriter = new StringWriter();
-        export(data, stringWriter, prettyIndent);
-        return stringWriter.toString();
+        return export(data, prettyIndent);
     }
 
     public String export(Map<String, Object> data, int prettyIndent) {
@@ -121,7 +127,7 @@ public class EmportService {
      * @throws PermissionException
      */
     public void export(Map<String, Object> data, Writer writer, int prettyIndent) throws PermissionException {
-        permissionService.ensureAdminRole(Common.getUser());
+        permissionService.ensurePermission(Common.getUser(), exportPermissionDefinition.getPermission());
 
         JsonTypeWriter typeWriter = new JsonTypeWriter(Common.JSON_CONTEXT);
         JsonWriter jsonWriter = new JsonWriter(Common.JSON_CONTEXT, writer);
@@ -132,10 +138,7 @@ public class EmportService {
             JsonValue export = typeWriter.writeObject(data);
             jsonWriter.writeObject(export);
         }
-        catch (JsonException e) {
-            throw new ShouldNeverHappenException(e);
-        }
-        catch (IOException e) {
+        catch (JsonException | IOException e) {
             throw new ShouldNeverHappenException(e);
         }
     }
