@@ -52,6 +52,15 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private JdbcConnectionPool dataSource;
     private Server web; //web UI
 
+    public static final Map<String, String> DEFAULT_OPTIONS;
+    static {
+        Map<String, String> options = new HashMap<>();
+        options.put("DB_CLOSE_ON_EXIT", "FALSE");
+        options.put("IGNORECASE", "TRUE");
+        options.put("MV_STORE", "TRUE");
+        DEFAULT_OPTIONS = Collections.unmodifiableMap(options);
+    }
+
     @Override
     protected void initializeImpl(String propertyPrefix) {
         LOG.info("Initializing H2 connection manager");
@@ -136,12 +145,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 String url = getUrl(propertyPrefix);
                 //Open a connection and import the dump script
                 LOG.info("Importing existing H2 database...");
-                String runScript = url + ";init=RUNSCRIPT FROM '" + dumpPath.toString().replaceAll("\\\\", "/") + "' COMPRESSION ZIP";
-                try(Connection conn = DriverManager.getConnection(runScript, user, password)){
-                    Statement stat = conn.createStatement();
-                    //Might as well do a compaction here
-                    stat.execute("SHUTDOWN COMPACT");
-                    stat.close();
+                try (Connection conn = DriverManager.getConnection(url, user, password)) {
+                    restoreFromFile(dumpPath, conn);
                 }
 
                 try {
@@ -166,13 +171,16 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private void upgradePageStoreToMvStore(String propertyPrefix) throws Exception {
         String upgradeUrl = Common.envProps.getString(propertyPrefix + "db.url");
-        String urlUpperCase = upgradeUrl.toUpperCase(Locale.ROOT);
-        if (urlUpperCase.contains(";MV_STORE=FALSE")) {
-            // user has explicitly configured their URL, leave alone
+        Map<String, String> userOptions = extractOptions(upgradeUrl);
+        if ("FALSE".equals(userOptions.get("MV_STORE"))) {
+            // user has explicitly configured their URL to be page store, leave alone
             return;
         }
 
-        List<H2FileInfo> files = getFilesForURL(upgradeUrl).collect(Collectors.toList());
+        List<H2FileInfo> files = getFilesForURL(upgradeUrl)
+                .sorted(Comparator.<H2FileInfo>comparingInt(a -> a.version).reversed())
+                .collect(Collectors.toList());
+
         if (files.stream().anyMatch(file -> file.storeType == StoreType.MV_STORE)) {
             // there is already a MV store DB, leave alone
             return;
@@ -182,54 +190,56 @@ public class H2Proxy extends AbstractDatabaseProxy {
             return;
         }
 
-        // sort by version
-        files.sort(Comparator.<H2FileInfo>comparingInt(a -> a.version).reversed());
-
         H2FileInfo dbToUpgrade = files.get(0);
         Path dumpPath = Common.getBackupPath().resolve(dbToUpgrade.filePath.getFileName() + ".zip");
         if (Files.exists(dumpPath)) {
             throw new RuntimeException("Found existing backup for this database, aborting upgrade. Backup file: " + dumpPath);
         }
 
-        String url = "jdbc:h2:" + dbToUpgrade.filePath.getParent().resolve(dbToUpgrade.prefix + "." + dbToUpgrade.version);
-        List<String> userOptions = extractOptions(upgradeUrl);
-        if (!userOptions.isEmpty()) {
-            url += ";" + String.join(";", userOptions);
-        }
-
-        String configuredUrl = configureURL(url, StoreType.PAGE_STORE);
+        String sourceUrl = "jdbc:h2:" + dbToUpgrade.filePath.getParent().resolve(dbToUpgrade.baseName + "." + dbToUpgrade.version);
+        Map<String, String> sourceOptions = new HashMap<>(userOptions);
+        // force page store for source
+        sourceOptions.put("MV_STORE", "FALSE");
+        String sourceUrlWithOptions = configureURL(sourceUrl, sourceOptions);
         Properties connectionProperties = getConnectionProperties(propertyPrefix);
-        dumpToFile(dumpPath, () -> Driver.load().connect(configuredUrl, connectionProperties));
-
-        // remove old database file, have a backup at this point
-        Files.delete(dbToUpgrade.filePath);
+        try (Connection connection = Driver.load().connect(sourceUrlWithOptions, connectionProperties)) {
+            dumpToFile(dumpPath, connection);
+        }
 
         LOG.info("Importing H2 database from " + dumpPath);
-        String destinationUrl = "jdbc:h2:" + dbToUpgrade.filePath.getParent().resolve(dbToUpgrade.prefix + "." + getCurrentVersion());
-        if (!userOptions.isEmpty()) {
-            destinationUrl += ";" + String.join(";", userOptions);
-        }
-        destinationUrl = configureURL(destinationUrl, StoreType.MV_STORE);
-
-        try (Connection conn = Driver.load().connect(destinationUrl, connectionProperties)) {
-            try (Statement stat = conn.createStatement()) {
-                stat.execute("RUNSCRIPT FROM '" + dumpPath.toString().replaceAll("\\\\", "/") + "' COMPRESSION ZIP");
-                stat.execute("SHUTDOWN COMPACT");
-            }
+        String destinationUrl = "jdbc:h2:" + dbToUpgrade.filePath.getParent().resolve(dbToUpgrade.baseName + "." + Constants.BUILD_ID);
+        String destinationUrlWithOptions = configureURL(destinationUrl, userOptions);
+        try (Connection connection = Driver.load().connect(destinationUrlWithOptions, connectionProperties)) {
+            restoreFromFile(dumpPath, connection);
         }
         LOG.info("H2 database imported successfully");
+
+        try {
+            LOG.info("Removing old H2 database from " + dbToUpgrade.filePath);
+            Files.delete(dbToUpgrade.filePath);
+        } catch (IOException e) {
+            LOG.warn("Unable to delete old H2 database from " + dumpPath, e);
+        }
 
         try {
             LOG.info("Removing H2 database backup from " + dumpPath);
             Files.delete(dumpPath);
         } catch (IOException e) {
-            LOG.info("Unable to delete H2 database backup from " + dumpPath, e);
+            LOG.warn("Unable to delete H2 database backup from " + dumpPath, e);
         }
     }
 
-    private List<String> extractOptions(String url) {
-        List<String> options = Arrays.asList(url.split(";"));
-        return options.subList(1, options.size());
+    private Map<String, String> extractOptions(String url) {
+        Map<String, String> combinedOptions = new HashMap<>(DEFAULT_OPTIONS);
+
+        Arrays.stream(url.split(";"))
+                .map(s -> s.toUpperCase(Locale.ROOT).split("="))
+                .filter(o -> o.length > 1)
+                .forEach(o -> {
+                    combinedOptions.put(o[0], o[1]);
+                });
+
+        return combinedOptions;
     }
 
     private Properties getConnectionProperties(String propertyPrefix) {
@@ -239,33 +249,30 @@ public class H2Proxy extends AbstractDatabaseProxy {
         return connectionProperties;
     }
 
-    private String configureURL(String url, StoreType storeType) {
-        String urlUpperCase = url.toUpperCase(Locale.ROOT);
-        if (!urlUpperCase.contains(";DB_CLOSE_ON_EXIT=")) {
-            url += ";DB_CLOSE_ON_EXIT=FALSE";
+    private String configureURL(String url, Map<String, String> options) {
+        StringBuilder urlWithOptions = new StringBuilder(url);
+        for (Map.Entry<String, String> entry: options.entrySet()) {
+            urlWithOptions.append(";")
+                    .append(entry.getKey())
+                    .append("=")
+                    .append(entry.getValue());
         }
-        if (!urlUpperCase.contains(";MV_STORE=")) {
-            url += ";MV_STORE=" + (storeType == StoreType.MV_STORE ? "TRUE" : "FALSE");
-        }
-        if (!urlUpperCase.contains(";IGNORECASE=")) {
-            url += ";IGNORECASE=TRUE";
-        }
-        return url;
+        return urlWithOptions.toString();
     }
 
     private Stream<H2FileInfo> getFilesForURL(String h2Url) throws IOException {
         Path path = getDbPathFromUrl(h2Url);
         String fileNamePrefix = path.getFileName().toString();
-        Pattern filePattern = Pattern.compile("^" + Pattern.quote(fileNamePrefix) + "\\.(\\d+)\\.(h2|mv)\\.db$", Pattern.CASE_INSENSITIVE);
+        Pattern filePattern = Pattern.compile("^" + Pattern.quote(fileNamePrefix) + "\\.(\\d+)(\\.(?:h2|mv)\\.db)$", Pattern.CASE_INSENSITIVE);
 
         return Files.list(path.getParent())
                 .map(H2FileInfo::new)
                 .filter(info -> {
                     Matcher matcher = filePattern.matcher(info.filePath.getFileName().toString());
                     if (matcher.matches() && Files.isRegularFile(info.filePath)) {
-                        info.prefix = fileNamePrefix;
+                        info.baseName = fileNamePrefix;
                         info.version = Integer.parseInt(matcher.group(1));
-                        info.storeType = StoreType.fromString(matcher.group(2));
+                        info.storeType = StoreType.fromExtension(matcher.group(2));
                         return true;
                     }
                     return false;
@@ -274,7 +281,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private static class H2FileInfo {
         Path filePath;
-        String prefix;
+        String baseName;
         Integer version;
         StoreType storeType;
 
@@ -284,75 +291,64 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
 
     private enum StoreType {
-        PAGE_STORE,
-        MV_STORE;
+        PAGE_STORE(".h2.db"),
+        MV_STORE(".mv.db");
 
-        public static StoreType fromString(String extension) {
-            switch(extension.toLowerCase(Locale.ROOT)) {
-                case "h2": return PAGE_STORE;
-                case "mv": return MV_STORE;
-                default: throw new IllegalArgumentException("Unknown store type: " + extension);
-            }
+        final String extension;
+
+        StoreType(String extension) {
+            this.extension = extension;
+        }
+
+        public static StoreType fromExtension(String extension) {
+            String lower = extension.toLowerCase(Locale.ROOT);
+            return Arrays.stream(StoreType.values())
+                    .filter(t -> t.extension.equals(lower))
+                    .findAny()
+                    .orElseThrow(NoSuchElementException::new);
         }
     }
 
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
-        String [] jdbcParts = url.split("jdbc:h2:");
-        String [] commandParts = jdbcParts[1].split(";");
-        Path dbPath = Common.MA_HOME_PATH.resolve(commandParts[0]).toAbsolutePath().normalize();
+        Map<String, String> options = extractOptions(url);
+        StoreType desiredStoreType = "FALSE".equals(options.get("MV_STORE")) ? StoreType.PAGE_STORE : StoreType.MV_STORE;
 
-        //Determine the version info
-        Path dbFolder = dbPath.getParent();
-
-        //Make sure we have a db folder, create if not
+        List<H2FileInfo> files;
         try {
-            Files.createDirectories(dbFolder);
+            files = getFilesForURL(url).filter(file -> file.storeType == desiredStoreType)
+                    .sorted(Comparator.<H2FileInfo>comparingInt(a -> a.version).reversed())
+                    .collect(Collectors.toList());
         } catch (IOException e) {
-            throw new ShouldNeverHappenException("Could not create databases directory at " + dbFolder.toString());
+            throw new RuntimeException("Couldn't list database files for URL: " + url, e);
         }
 
-        String[] matchingDbs = dbFolder.toFile().list((dir, filename) -> {
-            File possibleDb = new File(dir, filename);
-            return possibleDb.isFile() && filename.endsWith(".db") && filename.startsWith(dbPath.getFileName().toString());
-        });
+        Path parentDirectory;
+        String baseName;
+        int version;
 
-        Objects.requireNonNull(matchingDbs);
-
-        //Check to see if we have an existing db with a version number in it
-        // if there are more than 1, select the latest version number in the list
-        int version = 0;
-        for(String match : matchingDbs) {
-            try {
-                int newVersion = getVersion(match);
-                if(newVersion > version)
-                    version = newVersion;
-            } catch (IOException e) {
-                //Ignore
-            }
+        if (files.isEmpty()) {
+            // new database
+            Path dbPath = getDbPathFromUrl(url);
+            parentDirectory = dbPath.getParent();
+            baseName = dbPath.getFileName().toString();
+            version = Constants.BUILD_ID;
+        } else {
+            // found existing database
+            H2FileInfo file = files.get(0);
+            parentDirectory = file.filePath.getParent();
+            baseName = file.baseName;
+            version = file.version;
         }
 
-        //If version is 0 then there is not an existing database we can open,
-        // create a new one with our current version.
-        if(version == 0)
-            version = getCurrentVersion();
-
-        //Rebuild URL
-        StringBuilder builder = new StringBuilder();
-        builder.append("jdbc:h2:");
-
-        //Put in the db path
-        builder.append(dbPath.toString()).append(".").append(version);
-
-        //Add back on any command parts
-        for(int i=1; i<commandParts.length; i++) {
-            builder.append(";");
-            builder.append(commandParts[i]);
+        try {
+            Files.createDirectories(parentDirectory);
+        } catch (IOException e) {
+            throw new ShouldNeverHappenException("Could not create databases directory at " + parentDirectory);
         }
-        url = builder.toString();
 
-        // Force MV store
-        return configureURL(url, StoreType.MV_STORE);
+        String sourceUrl = "jdbc:h2:" + parentDirectory.resolve(baseName + "." + version);
+        return configureURL(sourceUrl, options);
     }
 
     @Override
@@ -471,16 +467,11 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 ejt.queryForObject("call DATABASE_PATH()", new Object[] {}, String.class, null);
         if (dataDir == null)
             return null;
+
         String url = getUrl("");
-
-        File dbFile;
-        String urlUpperCase = url.toUpperCase(Locale.ROOT);
-        if (urlUpperCase.contains(";MV_STORE=FALSE")) {
-            dbFile = new File(dataDir + ".h2.db");
-        } else {
-            dbFile = new File(dataDir + ".mv.db");
-        }
-
+        Map<String, String> options = extractOptions(url);
+        StoreType desiredStoreType = "FALSE".equals(options.get("MV_STORE")) ? StoreType.PAGE_STORE : StoreType.MV_STORE;
+        File dbFile = new File(dataDir + desiredStoreType.extension);
         return dbFile.exists() ? dbFile : null;
     }
 
@@ -526,70 +517,24 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
 
     /**
-     * Get the current version of the database.
-     */
-    public int getCurrentVersion() {
-        return Constants.BUILD_ID;
-    }
-
-    /**
-     * Parse the version out of a database name, the format should be
-     * *.[version].h2|mv.db
-     *   This method takes into account that there may be extra periods in the name
-     */
-    public int getVersion(String databaseName) throws IOException {
-        String[] parts = databaseName.split("\\.");
-        try{
-            return getVersion(parts);
-        }catch(NumberFormatException e) {
-            throw new IOException("Invalid h2 database name format: " + databaseName);
-        }
-    }
-
-    private static int getVersion(String[] parts) throws NumberFormatException {
-        return Integer.parseInt(parts[parts.length - 3]);
-    }
-
-    /**
      * Check the name of the database file to see if it is a legacy db.
      *
      * *.h2.db = legacy
      * *.[version].h2.db = current
      */
     public static boolean isLegacy(String databaseName) {
-        String[] parts = databaseName.split("\\.");
-        if(parts.length < 4)
-            return true;
-        else {
-            //Try to parse version
-            try{
-                getVersion(parts);
-                return false;
-            }catch(NumberFormatException e) {
-                return true;
-            }
-        }
+        return !databaseName.matches("\\.\\d+\\.h2\\.db$");
     }
 
     /**
      * Dump legacy database to SQL using legacy driver from separate classloader
      */
-    public void dumpLegacy(String propertyPrefix, Path dumpPath) throws Exception {
+    private void dumpLegacy(String propertyPrefix, Path dumpPath) throws Exception {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
-        String urlUpperCase = url.toUpperCase(Locale.ROOT);
-        if (!urlUpperCase.contains(";DB_CLOSE_ON_EXIT=")) {
-            url += ";DB_CLOSE_ON_EXIT=FALSE";
-        }
-        if (!urlUpperCase.contains(";MV_STORE=")) {
-            url += ";MV_STORE=FALSE";
-        }
-        if (!urlUpperCase.contains(";IGNORECASE=")) {
-            url += ";IGNORECASE=TRUE";
-        }
+        Map<String, String> options = extractOptions(url);
+        options.put("MV_STORE", "FALSE");
 
-        Properties connectionProperties = new Properties();
-        connectionProperties.compute("user", (a, b) -> Common.envProps.getString(propertyPrefix + "db.username", null));
-        connectionProperties.compute("password", (a, b) -> Common.envProps.getString(propertyPrefix + "db.password", null));
+        Properties connectionProperties = getConnectionProperties(propertyPrefix);
 
         try (URLClassLoader jarLoader = loadLegacyJar()) {
             Class<?> driverManager = Class.forName("org.h2.Driver", false, jarLoader);
@@ -598,19 +543,26 @@ public class H2Proxy extends AbstractDatabaseProxy {
             Field instance = driverManager.getDeclaredField("INSTANCE");
             instance.setAccessible(true);
 
-            final String finalUrl = url;
-            dumpToFile(dumpPath, () -> (Connection) connect.invoke(instance.get(driverManager), finalUrl, connectionProperties));
+            String configuredUrl = configureURL(url, options);
+            try (Connection c = (Connection) connect.invoke(instance.get(driverManager), configuredUrl, connectionProperties)){
+                dumpToFile(dumpPath, c);
+            }
         }
     }
 
-    public void dumpToFile(Path dumpPath, Callable<Connection> connectionSupplier) throws Exception {
-        try (Connection conn = connectionSupplier.call()) {
-            try (Statement stat = conn.createStatement()) {
-                ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
-                int version = rs.next() ? rs.getInt(1) : -1;
-                LOG.info("Dumping H2 database version " + version + " to SQL file at " + dumpPath);
-                stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
-            }
+    private void dumpToFile(Path dumpPath, Connection connection) throws Exception {
+        try (Statement stat = connection.createStatement()) {
+            ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
+            int version = rs.next() ? rs.getInt(1) : -1;
+            LOG.info("Dumping H2 database version " + version + " to SQL file at " + dumpPath);
+            stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
+        }
+    }
+
+    private void restoreFromFile(Path restorePath, Connection connection) throws Exception {
+        try (Statement stat = connection.createStatement()) {
+            stat.execute("RUNSCRIPT FROM '" + restorePath.toString().replaceAll("\\\\", "/") + "' COMPRESSION ZIP");
+            stat.execute("SHUTDOWN COMPACT");
         }
     }
 
