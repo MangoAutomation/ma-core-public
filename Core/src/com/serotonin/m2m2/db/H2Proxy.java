@@ -34,7 +34,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -136,26 +135,28 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 LOG.info("Dumping legacy database to file " + dumpPath.toString());
                 dumpLegacy(propertyPrefix, dumpPath);
 
-                //Delete existing so we can re-create it using the dump script
-                Files.delete(legacy);
-
-                String user = Common.envProps.getString(propertyPrefix + "db.username", null);
-                String password = Common.envProps.getString(propertyPrefix + "db.password", null);
-
                 String url = getUrl(propertyPrefix);
                 //Open a connection and import the dump script
-                LOG.info("Importing existing H2 database...");
-                try (Connection conn = DriverManager.getConnection(url, user, password)) {
-                    restoreFromFile(dumpPath, conn);
+                LOG.info("Importing H2 database from " + dumpPath);
+                Properties connectionProperties = getConnectionProperties(propertyPrefix);
+                try (Connection connection = Driver.load().connect(url, connectionProperties)) {
+                    restoreFromFile(dumpPath, connection);
+                }
+                LOG.info("H2 database imported successfully");
+
+                try {
+                    LOG.info("Removing old H2 database from " + legacy);
+                    Files.delete(legacy);
+                } catch (IOException e) {
+                    LOG.warn("Unable to delete old H2 database from " + dumpPath, e);
                 }
 
                 try {
-                    LOG.info("Cleaning up H2 initialization tests...");
-                    Files.deleteIfExists(dumpPath);
+                    LOG.info("Removing H2 database backup from " + dumpPath);
+                    Files.delete(dumpPath);
                 } catch (IOException e) {
-                    LOG.warn("Unable to delete un-necessary H2 dump file " + dumpPath.toString(), e);
+                    LOG.warn("Unable to delete H2 database backup from " + dumpPath, e);
                 }
-
             } catch(Exception e) {
                 if(e.getCause() instanceof JdbcSQLIntegrityConstraintViolationException) {
                     //This is very likely a db that failed to open due to it being a legacy DB that was already opened 1x by a later H2 driver
