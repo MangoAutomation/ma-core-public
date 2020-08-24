@@ -3,8 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -55,7 +55,7 @@ public class PermissionService {
     private final EventsViewPermissionDefinition eventsViewPermission;
 
     //Cache of role xid to inheritance
-    private final Cache<String, RoleInheritance> roleHierarchyCache;
+    private final LoadingCache<String, RoleInheritance> roleHierarchyCache;
 
     @Autowired
     public PermissionService(RoleDao roleDao,
@@ -67,7 +67,9 @@ public class PermissionService {
         this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
-        this.roleHierarchyCache = Caffeine.newBuilder().maximumSize(Common.envProps.getLong("permissions.roles.inheritanceCacheSize", 1000)).build();
+        this.roleHierarchyCache = Caffeine.newBuilder()
+                .maximumSize(Common.envProps.getLong("permissions.roles.inheritanceCacheSize", 1000))
+                .build(this::loadRoleInheritance);
     }
 
     /**
@@ -389,17 +391,7 @@ public class PermissionService {
      * @return null if role does not exist
      */
     public Role getRole(String roleXid) {
-        RoleInheritance inheritance = roleHierarchyCache.get(roleXid, (xid) -> {
-            RoleInheritance i = new RoleInheritance();
-            RoleVO roleVo = roleDao.getByXid(xid);
-            if(roleVo == null) {
-                return null;
-            }
-            i.role = roleVo.getRole();
-            i.inherited = roleDao.getFlatInheritance(roleVo.getRole());
-            i.inheritedBy = roleDao.getRolesThatInherit(roleVo.getRole());
-            return i;
-        });
+        RoleInheritance inheritance = roleHierarchyCache.get(roleXid);
         if(inheritance == null) {
             return null;
         }else {
@@ -415,23 +407,25 @@ public class PermissionService {
     public Set<Role> getRolesThatInherit(String roleXid) {
         Set<Role> allRoles = new HashSet<>();
 
-        RoleInheritance inheritance = roleHierarchyCache.get(roleXid, (xid) -> {
-            RoleInheritance i = new RoleInheritance();
-            RoleVO roleVo = roleDao.getByXid(xid);
-            if(roleVo == null) {
-                return null;
-            }
-            i.role = roleVo.getRole();
-            i.inherited = roleDao.getFlatInheritance(roleVo.getRole());
-            i.inheritedBy = roleDao.getRolesThatInherit(roleVo.getRole());
-            return i;
-        });
+        RoleInheritance inheritance = roleHierarchyCache.get(roleXid);
 
         if(inheritance!= null) {
             allRoles.add(inheritance.role);
             allRoles.addAll(inheritance.inheritedBy);
         }
         return Collections.unmodifiableSet(allRoles);
+    }
+
+    private RoleInheritance loadRoleInheritance(String xid) {
+        RoleInheritance i = new RoleInheritance();
+        RoleVO roleVo = roleDao.getByXid(xid);
+        if(roleVo == null) {
+            return null;
+        }
+        i.role = roleVo.getRole();
+        i.inherited = roleDao.getFlatInheritance(roleVo.getRole());
+        i.inheritedBy = roleDao.getRolesThatInherit(roleVo.getRole());
+        return i;
     }
 
     /**
@@ -442,13 +436,7 @@ public class PermissionService {
     public Set<Role> getAllInheritedRoles(PermissionHolder holder) {
         Set<Role> allRoles = new HashSet<>();
         for (Role role : holder.getRoles()) {
-            RoleInheritance inheritance = roleHierarchyCache.get(role.getXid(), (xid) -> {
-                RoleInheritance i = new RoleInheritance();
-                i.role = role;
-                i.inherited = roleDao.getFlatInheritance(role);
-                i.inheritedBy = roleDao.getRolesThatInherit(role);
-                return i;
-            });
+            RoleInheritance inheritance = roleHierarchyCache.get(role.getXid());
             if (inheritance != null) {
                 allRoles.add(role);
                 allRoles.addAll(inheritance.inherited);
