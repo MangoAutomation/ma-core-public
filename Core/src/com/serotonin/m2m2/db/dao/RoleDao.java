@@ -219,7 +219,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
             Integer roleId = null;
 
             SelectConditionStep<Record1<Integer>> afterWhere;
-            //TODO Should really used role cache in PermissionService but there is a
+            //TODO Mango 4.0 Should really used role cache in PermissionService but there is a
             // circular dependency if injected due to our use of the RoleDao
             if(roleXid != null) {
                 RoleVO role = getByXid((String)roleXid);
@@ -259,7 +259,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
             Integer roleId = null;
 
             SelectConditionStep<Record1<Integer>> afterWhere;
-            //TODO Should really used role cache in PermissionService but there is a
+            //TODO Mango 4.0 Should really used role cache in PermissionService but there is a
             // circular dependency if injected due to our use of the RoleDao
             if(roleXid != null) {
                 //Find all roles inherited by this role
