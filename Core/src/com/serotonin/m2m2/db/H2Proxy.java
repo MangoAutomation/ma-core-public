@@ -267,6 +267,10 @@ public class H2Proxy extends AbstractDatabaseProxy {
         String fileNamePrefix = path.getFileName().toString();
         Pattern filePattern = Pattern.compile("^" + Pattern.quote(fileNamePrefix) + "\\.(\\d+)(\\.(?:h2|mv)\\.db)$", Pattern.CASE_INSENSITIVE);
 
+        if (!Files.isDirectory(path.getParent())) {
+            return Stream.empty();
+        }
+
         return Files.list(path.getParent())
                 .map(H2FileInfo::new)
                 .filter(info -> {
