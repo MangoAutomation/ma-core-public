@@ -8,6 +8,8 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 public class ExportPermissionDefinition extends PermissionDefinition {
+    public static final String PERMISSION = "config.export";
+
     @Override
     public TranslatableMessage getDescription() {
         return new TranslatableMessage("permission.config.export");
@@ -15,6 +17,6 @@ public class ExportPermissionDefinition extends PermissionDefinition {
 
     @Override
     public String getPermissionTypeName() {
-        return "config.export";
+        return PERMISSION;
     }
 }
