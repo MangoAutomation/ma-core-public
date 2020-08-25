@@ -69,7 +69,7 @@ public class PermissionService {
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
         this.roleHierarchyCache = Caffeine.newBuilder()
-                .maximumSize(Common.envProps.getLong("permissions.roles.inheritanceCacheSize", 1000))
+                .maximumSize(Common.envProps.getLong("cache.roles.size", 1000))
                 .build(this::loadRoleInheritance);
     }
 

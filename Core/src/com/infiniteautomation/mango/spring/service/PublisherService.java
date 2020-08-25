@@ -3,18 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.HashSet;
-import java.util.ListIterator;
-import java.util.Objects;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -28,6 +19,15 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.ListIterator;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Terry Packer
@@ -56,18 +56,12 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
         return permissionService.hasAdminRole(user);
     }
 
-    @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        switch(event.getType()) {
-            case DELETE:
-                //So we don't have to restart it
-                for(PublisherRT<?> rt : Common.runtimeManager.getRunningPublishers()) {
-                    rt.handleRoleEvent(event);
-                }
-                break;
-            default:
-                break;
+        if (event.getType() == DaoEventType.DELETE) {//So we don't have to restart it
+            for (PublisherRT<?> rt : Common.runtimeManager.getRunningPublishers()) {
+                rt.handleRoleEvent(event);
+            }
         }
     }
 

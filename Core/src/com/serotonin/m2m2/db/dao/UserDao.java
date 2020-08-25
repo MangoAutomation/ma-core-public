@@ -41,8 +41,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 
 /**
@@ -57,8 +55,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
 
     private final PermissionService permissionService;
-    //private final RoleDao roleDao;
-    private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
     @Autowired
     private UserDao(PermissionService permissionService,
@@ -153,16 +149,14 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     public User getByXid(String username) {
         if (username == null) return null;
 
-        return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
-            Select<Record> query = getJoinedSelectQuery().where(this.table.getField("username").equalIgnoreCase(username));
-            List<Object> args = query.getBindValues();
-            User user = ejt.query(query.getSQL(), args.toArray(new Object[0]),
-                    getObjectResultSetExtractor());
-            if(user != null) {
-                loadRelationalData(user);
-            }
-            return user;
-        });
+        Select<Record> query = getJoinedSelectQuery().where(this.table.getField("username").equalIgnoreCase(username));
+        List<Object> args = query.getBindValues();
+        User user = ejt.query(query.getSQL(), args.toArray(new Object[0]),
+                getObjectResultSetExtractor());
+        if(user != null) {
+            loadRelationalData(user);
+        }
+        return user;
     }
 
     /**
@@ -302,7 +296,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                     expireSessionsForUser(old1);
                 }
 
-                userCache.remove(old1.getUsername().toLowerCase(Locale.ROOT));
                 return old1;
             });
 
@@ -325,6 +318,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         }
     }
 
+    // TODO Mango 4.0 add event listener to MangoSessionRegistry
     private void expireSessionsForUser(User user) {
         // web context may not be initialized, can't inject this context
         ApplicationContext context = Common.getRootWebContext();
@@ -337,10 +331,9 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     @Override
     public boolean delete(User vo) {
         boolean deleted = super.delete(vo);
-        if(deleted) {
+        if (deleted) {
             // expire the user's sessions
             expireSessionsForUser(vo);
-            userCache.remove(vo.getUsername().toLowerCase(Locale.ROOT));
         }
         return deleted;
     }
@@ -372,8 +365,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         }
 
         user.setTokenVersion(newTokenVersion);
-
-        userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
         eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
@@ -409,7 +400,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
 
         // expire the user's sessions
         expireSessionsForUser(user);
-        userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
         eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
@@ -422,8 +412,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         long loginTime = Common.timer.currentTimeMillis();
         user.setLastLogin(loginTime);
         ejt.update("UPDATE users SET lastLogin=? WHERE id=?", loginTime, user.getId());
-        userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-
         eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
@@ -432,7 +420,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", homeUrl, userId);
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
-        userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
         eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
@@ -441,7 +428,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         ejt.update("UPDATE users SET muted=? WHERE id=?", boolToChar(muted), userId);
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
-        userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
         eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
@@ -483,22 +469,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     @Override
     protected String getXidPrefix() {
         return "";
-    }
-
-    /**
-     * When a permission was modified, require the reload of granted permissions
-     */
-    public void permissionChanged() {
-        this.userCache.values().forEach(User::resetGrantedPermissions);
-    }
-
-    //TODO Mango 4.0 Move cache into service
-    public ConcurrentMap<String, User> getUserCache(){
-        return userCache;
-    }
-    //TODO Mango 4.0 Move cache into service
-    public void publishUserUpdated(User user, User existing) {
-        publishEvent(createDaoEvent(DaoEventType.UPDATE, user, existing));
     }
 
     /**

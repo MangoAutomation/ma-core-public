@@ -3,30 +3,11 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.DateTimeException;
-import java.time.ZoneId;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IllformedLocaleException;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.regex.Matcher;
-
-import javax.mail.internet.AddressException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -49,8 +30,22 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
-
 import freemarker.template.TemplateException;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import javax.mail.internet.AddressException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.regex.Matcher;
+
+import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
 
 /**
  * Service to access Users
@@ -73,87 +68,106 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     private final PermissionDefinition editSelfPermission;
     private final PermissionDefinition changeOwnUsernamePermission;
     private final UserCreatePermission createPermission;
+    private final ApplicationEventPublisher eventPublisher;
+    private final LoadingCache<String, User> userByUsername;
 
     @Autowired
     public UsersService(UserDao dao, PermissionService permissionService,
             SystemSettingsDao systemSettings,
             PasswordService passwordService,
-            UserCreatePermission createPermission) {
+            UserCreatePermission createPermission,
+            ApplicationEventPublisher eventPublisher) {
         super(dao, permissionService);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
         this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
         this.changeOwnUsernamePermission = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
         this.createPermission = createPermission;
+        this.eventPublisher = eventPublisher;
+
+        this.userByUsername = Caffeine.newBuilder()
+                .maximumSize(Common.envProps.getLong("cache.users.size", 1000))
+                .build(this.dao::getByXid);
     }
 
     @Override
-    public PermissionDefinition getCreatePermission() {
+    protected PermissionDefinition getCreatePermission() {
         return createPermission;
     }
 
-    @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        // TODO Mango 4.0 review this - blocking call to DB to update concurrent cache
-        this.permissionService.runAsSystemAdmin(() -> {
-            this.dao.getUserCache().replaceAll((username, user) -> {
-                switch(event.getType()) {
-                    case DELETE:
-                        Role deleted = event.getVo().getRole();
+        if (event.getType() == DaoEventType.DELETE || event.getType() == DaoEventType.UPDATE) {
+            Role originalRole = event.getType() == DaoEventType.UPDATE ?
+                    event.getOriginalVo().getRole() :
+                    event.getVo().getRole();
+
+            // TODO Mango 4.0 this is only weakly consistent
+            for (User user : this.userByUsername.asMap().values()) {
+                if (user.getRoles().contains(originalRole)) {
+                    Set<Role> updatedRoles = new HashSet<>(user.getRoles());
+                    if (event.getType() == DaoEventType.DELETE) {
                         //Remove this role
-                        if(user.getRoles().contains(deleted)) {
-                            Set<Role> updated = new HashSet<>(user.getRoles());
-                            updated.remove(deleted);
-                            user.setRoles(Collections.unmodifiableSet(updated));
-                            //TODO Mango 4.0 having this code implies that a user is not in the DB but will remain in
-                            // the cache, which is wrong... This does happen in the nightly node tests.
-                            try {
-                                User existing = get(user.getId());
-                                this.dao.publishUserUpdated(user, existing);
-                            }catch(NotFoundException e) {
-                                return null;
-                            }
-                        }
-                        break;
-                    case UPDATE:
-                        Role updatedRole = event.getVo().getRole();
-                        //We only care about our roles being changed
-                        if(user.getRoles().contains(updatedRole)) {
-                            //Replace this role
-                            Set<Role> updated = new HashSet<>(user.getRoles());
-                            updated.remove(updatedRole);
-                            updated.add(updatedRole);
-                            user.setRoles(Collections.unmodifiableSet(updated));
-                            //TODO Mango 4.0 having this code implies that a user is not in the DB but will remain in
-                            // the cache, which is wrong... This does happen in the nightly node tests.
-                            try {
-                                User existing = get(user.getId());
-                                this.dao.publishUserUpdated(user, existing);
-                            }catch(NotFoundException e) {
-                                return null;
-                            }
-                        }
-                        break;
-                    default:
-                        break;
+                        updatedRoles.remove(originalRole);
+                    } else if (event.getType() == DaoEventType.UPDATE) {
+                        //Replace this role
+                        updatedRoles.remove(originalRole);
+                        updatedRoles.add(event.getVo().getRole());
+                    }
+                    user.setRoles(Collections.unmodifiableSet(updatedRoles));
+                    publishUserUpdated(user);
                 }
-                return user;
-            });
-        });
+            }
+        }
+    }
+
+    @EventListener
+    protected void systemPermissionUpdated(SystemPermissionService.SystemPermissionUpdated event) {
+        // TODO Mango 4.0 this is only weakly consistent
+        for (User user : this.userByUsername.asMap().values()) {
+            user.resetGrantedPermissions();
+            // TODO Mango 4.0 we want to know when a user's granted permissions have changed via WebSocket update
+            // TODO but this will always fire even if they didn't change, and only for users in the cache
+//            publishUserUpdated(user);
+        }
+    }
+
+    @EventListener
+    protected void userUpdated(DaoEvent<? extends User> event) {
+        if (event.getType() == DaoEventType.UPDATE) {
+            String originalUsername = event.getOriginalVo().getUsername().toLowerCase(Locale.ROOT);
+            String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+            this.userByUsername.invalidate(originalUsername);
+            this.userByUsername.put(username, event.getVo());
+        } else if (event.getType() == DaoEventType.DELETE) {
+            String originalUsername = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+            this.userByUsername.invalidate(originalUsername);
+        }
+    }
+
+    private void publishUserUpdated(User user) {
+        User existing = dao.get(user.getId());
+        if (existing == null) {
+            throw new IllegalStateException("User '" + user.getUsername() + "' was found in the user cache, but is not present in the DB");
+        }
+
+        // Notify WebSockets and invalidate cache via listener below
+        DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, existing);
+        this.eventPublisher.publishEvent(userUpdatedEvent);
     }
 
     /*
      * Nice little hack since Users don't have an XID.
      */
     @Override
-    public User get(String username)
-            throws NotFoundException, PermissionException {
-        User vo = dao.getByXid(username);
+    public User get(String username) throws NotFoundException, PermissionException {
+        Optional.ofNullable(username).orElseThrow(IllegalArgumentException::new);
+
+        User vo = userByUsername.get(username.toLowerCase(Locale.ROOT));
         if(vo == null)
             throw new NotFoundException();
         PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureReadPermission(user, vo);
         return vo;
@@ -172,7 +186,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             throw new NotFoundException();
 
         PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
         ensureReadPermission(user, vo);
         return vo;
     }
@@ -181,7 +195,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User insert(User vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         //Ensure they can create
         ensureCreatePermission(user, vo);
@@ -215,7 +229,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User update(User existing, User vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
@@ -252,7 +266,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User delete(User vo)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         //You cannot delete yourself
         if (user instanceof User && ((User) user).getId() == vo.getId())
@@ -290,7 +304,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public void lockPassword(String username)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
-        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         permissionService.ensureAdminRole(user);
         User toLock = this.get(username);
@@ -411,16 +425,16 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                 String algorithm = m.group(1);
                 String hashOrPassword = m.group(2);
 
-                if ((User.PLAIN_TEXT_ALGORITHM.equals(algorithm) || User.NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
-                    response.addMessage("password", new TranslatableMessage("validate.required"));
-                }
-
                 //Validate against our rules
-                if (User.PLAIN_TEXT_ALGORITHM.equals(algorithm) || User.NONE_ALGORITHM.equals(algorithm)){
+                if (User.PLAIN_TEXT_ALGORITHM.equals(algorithm) || User.NONE_ALGORITHM.equals(algorithm)) {
+                    if (StringUtils.isBlank(hashOrPassword)) {
+                        response.addMessage("password", new TranslatableMessage("validate.required"));
+                    }
+
                     try {
                         passwordService.validatePassword(hashOrPassword);
-                    }catch (PasswordInvalidException e) {
-                        for(TranslatableMessage message : e.getMessages()) {
+                    } catch (PasswordInvalidException e) {
+                        for (TranslatableMessage message : e.getMessages()) {
                             response.addMessage("password", message);
                         }
                     }
@@ -495,22 +509,21 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
     @Override
     public boolean hasEditPermission(PermissionHolder holder, User vo) {
-        if(permissionService.hasAdminRole(holder)) {
+        if (permissionService.hasAdminRole(holder)) {
             return true;
-        }else if (holder instanceof User && ((User) holder).getId()  == vo.getId() && permissionService.hasPermission(holder, editSelfPermission.getPermission()))
-            return true;
-        else
-            return false;
+        }
+
+        return holder instanceof User && ((User) holder).getId() == vo.getId() &&
+                permissionService.hasPermission(holder, editSelfPermission.getPermission());
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, User vo) {
-        if(permissionService.hasAdminRole(user))
+        if (permissionService.hasAdminRole(user)) {
             return true;
-        else if (user instanceof User && ((User) user).getId()  == vo.getId())
-            return true;
-        else
-            return false;
+        }
+
+        return user instanceof User && ((User) user).getId() == vo.getId();
     }
 
     /**

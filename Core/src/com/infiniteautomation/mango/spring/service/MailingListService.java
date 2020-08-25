@@ -177,7 +177,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     }
 
     @Override
-    public PermissionDefinition getCreatePermission() {
+    protected PermissionDefinition getCreatePermission() {
         return createPermission;
     }
 

@@ -3,13 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -31,6 +24,12 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  *
@@ -53,11 +52,10 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     }
 
     @Override
-    public PermissionDefinition getCreatePermission() {
+    protected PermissionDefinition getCreatePermission() {
         return createPermission;
     }
 
-    @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         //So we don't have to restart it

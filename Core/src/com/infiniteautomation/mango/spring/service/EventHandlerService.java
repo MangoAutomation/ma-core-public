@@ -3,16 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -21,6 +14,13 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Service for access to event handlers
@@ -40,7 +40,7 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     }
 
     @Override
-    public PermissionDefinition getCreatePermission() {
+    protected PermissionDefinition getCreatePermission() {
         return createPermission;
     }
 
@@ -54,18 +54,13 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
         return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
-    @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-        switch(event.getType()) {
-            case DELETE:
-                List<AbstractEventHandlerVO> all = dao.getAll();
-                all.stream().forEach((eh) -> {
-                    eh.getDefinition().handleRoleEvent(eh, event);
-                });
-                break;
-            default:
-                break;
+        if (event.getType() == DaoEventType.DELETE) {
+            List<AbstractEventHandlerVO> all = dao.getAll();
+            all.stream().forEach((eh) -> {
+                eh.getDefinition().handleRoleEvent(eh, event);
+            });
         }
     }
 

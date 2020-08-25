@@ -4,24 +4,21 @@
 
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemPermissionDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Objects;
 
 /**
  *
@@ -33,14 +30,20 @@ public class SystemPermissionService {
     private final SystemPermissionDao dao;
     private final PermissionService permissionService;
     private final RoleService roleService;
-    private final UserDao userDao;
+    private final UsersService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    public SystemPermissionService(SystemPermissionDao dao, PermissionService permissionService, RoleService roleService, UserDao userDao) {
+    public SystemPermissionService(SystemPermissionDao dao,
+                                   PermissionService permissionService,
+                                   RoleService roleService,
+                                   UsersService userService,
+                                   ApplicationEventPublisher eventPublisher) {
         this.dao = dao;
         this.permissionService = permissionService;
         this.roleService = roleService;
-        this.userDao = userDao;
+        this.userService = userService;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -74,7 +77,19 @@ public class SystemPermissionService {
         //TODO Mango 4.0 Transaction rollback etc?
         dao.update(def.getPermissionTypeName(), def.getPermission(), permission);
         def.setPermission(permission);
-        //notify user cache
-        this.userDao.permissionChanged();
+        this.eventPublisher.publishEvent(new SystemPermissionUpdated(def));
+    }
+
+    public class SystemPermissionUpdated extends ApplicationEvent implements PropagatingEvent {
+        private final PermissionDefinition permissionDefinition;
+
+        private SystemPermissionUpdated(PermissionDefinition permissionDefinition) {
+            super(SystemPermissionService.this);
+            this.permissionDefinition = permissionDefinition;
+        }
+
+        public PermissionDefinition getPermissionDefinition() {
+            return permissionDefinition;
+        }
     }
 }

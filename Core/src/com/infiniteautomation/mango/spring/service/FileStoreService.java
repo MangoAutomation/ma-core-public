@@ -64,7 +64,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
     }
 
     @Override
-    public PermissionDefinition getCreatePermission() {
+    protected PermissionDefinition getCreatePermission() {
         return createPermission;
     }
 

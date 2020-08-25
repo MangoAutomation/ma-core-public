@@ -40,7 +40,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
     }
 
     @Override
-    public PermissionDefinition getCreatePermission() {
+    protected PermissionDefinition getCreatePermission() {
         return createPermission;
     }
 

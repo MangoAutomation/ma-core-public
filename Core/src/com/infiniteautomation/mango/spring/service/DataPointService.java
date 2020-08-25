@@ -3,36 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.Map.Entry;
-
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
-
-import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.events.DaoEventType;
-import com.serotonin.m2m2.vo.role.Role;
-import org.apache.commons.lang3.StringUtils;
-import org.jooq.Condition;
-import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.Select;
-import org.jooq.SelectConnectByStep;
-import org.jooq.SelectHavingStep;
-import org.jooq.SelectJoinStep;
-import org.jooq.SelectLimitStep;
-import org.jooq.SortField;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.InvalidArgumentException;
@@ -68,8 +42,23 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.stereotype.Service;
+
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Service for Data Points.  Event detectors can be added to a data point via this service when updating a point,
@@ -126,7 +115,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
     }
 
-    @Override
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         if (event.getType() == DaoEventType.DELETE) {

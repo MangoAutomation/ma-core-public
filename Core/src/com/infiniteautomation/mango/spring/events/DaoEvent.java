@@ -3,15 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.events;
 
-import java.util.Objects;
-
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.ResolvableTypeProvider;
 
-import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
-import com.serotonin.m2m2.db.dao.AbstractBasicDao;
-import com.serotonin.m2m2.vo.AbstractBasicVO;
+import java.util.Objects;
 
 /**
  * @author Jared Wiltshire

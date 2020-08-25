@@ -3,18 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import org.jooq.Field;
-
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
-import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
@@ -27,9 +18,14 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
-
 import net.jazdw.rql.parser.ASTNode;
+import org.jooq.Field;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * TODO Mango 4.0 extract interface
@@ -84,45 +80,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      *  override as necessary
      * @return
      */
-    public PermissionDefinition getCreatePermission() {
+    protected PermissionDefinition getCreatePermission() {
         return null;
-    }
-
-    /**
-     * Handle when a role was deleted with the existing mappings at the time of deletion
-     * You must annotate the overridden method with @EventListener in order for this to work.
-     * @param event
-     */
-    protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
-
-    }
-
-    /**
-     * A new role was created.
-     *  Override as required
-     * @param role
-     */
-    protected void roleCreated(RoleVO role) {
-
-    }
-
-    /**
-     * A role was deleted, update any runtime members that have this role.
-     *   The database will delete on cascade from the mapping table so this
-     *   only concerns runtime data.
-     * @param role
-     */
-    protected void roleDeleted(RoleVO role) {
-
-    }
-
-    /**
-     * A role was updated, only the name can be updated.
-     *  Override as required
-     * @param role
-     */
-    protected void roleUpdated(RoleVO role) {
-
     }
 
     /**
