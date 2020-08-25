@@ -4,8 +4,13 @@
 
 package com.infiniteautomation.mango.permission;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,14 +18,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
-
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -369,7 +368,11 @@ public class RoleInheritanceTest extends MangoTestBase {
     }
 
     private PermissionHolder createPermissionHolder(RoleVOHierarchy... roles) {
-        Set<Role> holderRoles = Arrays.asList(roles).stream().map(r -> r.getRoles()).collect(Collectors.toSet()).stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        Set<Role> holderRoles = Arrays.stream(roles)
+                .map(RoleVOHierarchy::getRoles)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
         return new PermissionHolder() {
 
             @Override
@@ -390,7 +393,7 @@ public class RoleInheritanceTest extends MangoTestBase {
         };
     }
 
-    class RoleVOHierarchy extends RoleVO {
+    static class RoleVOHierarchy extends RoleVO {
 
         private static final long serialVersionUID = 1L;
 

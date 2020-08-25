@@ -18,6 +18,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -434,11 +435,10 @@ public class PermissionService {
      * @return
      */
     public Set<Role> getAllInheritedRoles(PermissionHolder holder) {
-        Set<Role> allRoles = new HashSet<>();
+        Set<Role> allRoles = new HashSet<>(holder.getRoles());
         for (Role role : holder.getRoles()) {
             RoleInheritance inheritance = roleHierarchyCache.get(role.getXid());
             if (inheritance != null) {
-                allRoles.add(role);
                 allRoles.addAll(inheritance.inherited);
             }
         }
@@ -594,7 +594,7 @@ public class PermissionService {
      * @return
      */
     public static String implodeRoleVOs(Set<RoleVO> roles) {
-        return String.join(",", roles.stream().map(role -> role.getXid()).collect(Collectors.toSet()));
+        return String.join(",", roles.stream().map(AbstractVO::getXid).collect(Collectors.toSet()));
     }
 
     /**
