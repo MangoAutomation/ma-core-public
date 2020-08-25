@@ -4,44 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.Select;
-import org.jooq.SelectConditionStep;
-import org.jooq.SelectJoinStep;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
@@ -60,6 +24,26 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jooq.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 /**
  * TODO Mango 4.0 Move userCache into service?
@@ -70,9 +54,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
-    private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {
-        return Common.getRuntimeContext().getBean(UserDao.class);
-    });
+    private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
 
     private final PermissionService permissionService;
     //private final RoleDao roleDao;
@@ -174,7 +156,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
             Select<Record> query = getJoinedSelectQuery().where(this.table.getField("username").equalIgnoreCase(username));
             List<Object> args = query.getBindValues();
-            User user = ejt.query(query.getSQL(), args.toArray(new Object[args.size()]),
+            User user = ejt.query(query.getSQL(), args.toArray(new Object[0]),
                     getObjectResultSetExtractor());
             if(user != null) {
                 loadRelationalData(user);
@@ -201,7 +183,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     public void saveRelationalData(User existing, User vo) {
         if(existing != null) {
             //delete role mappings
-            ejt.update(USER_ROLES_DELETE, new Object[] {vo.getId()});
+            ejt.update(USER_ROLES_DELETE, vo.getId());
         }
         //insert role mappings
         List<Role> entries = new ArrayList<>(vo.getRoles());
@@ -229,7 +211,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         if (emailAddress == null) return null;
         Select<Record> query = getJoinedSelectQuery().where(this.table.getField("email").eq(emailAddress));
         List<Object> args = query.getBindValues();
-        return ejt.query(query.getSQL(), args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
+        return ejt.query(query.getSQL(), args.toArray(new Object[0]), getObjectResultSetExtractor());
     }
 
     class UserRowMapper implements RowMapper<User> {
@@ -273,7 +255,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     public List<User> getActiveUsers() {
         Select<Record> query = getJoinedSelectQuery().where(this.table.getField("disabled").eq("N"));
         List<Object> args = query.getBindValues();
-        return query(query.getSQL(), args.toArray(new Object[args.size()]), getListResultSetExtractor());
+        return query(query.getSQL(), args.toArray(new Object[0]), getListResultSetExtractor());
     }
 
     private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";
@@ -298,33 +280,30 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         // we hash plain text passwords after validation has taken place so we can check complexity etc
         vo.hashPlainText();
         try {
-            User old = getTransactionTemplate().execute(new TransactionCallback<User>() {
-                @Override
-                public User doInTransaction(TransactionStatus status) {
-                    User old = get(vo.getId());
-                    if (old == null) {
-                        return null;
-                    }
-                    enforceUserRole(vo);
-                    boolean passwordChanged = !old.getPassword().equals(vo.getPassword());
-                    if (passwordChanged) {
-                        vo.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
-                        vo.setPasswordVersion(old.getPasswordVersion() + 1);
-                    } else {
-                        vo.setPasswordChangeTimestamp(old.getPasswordChangeTimestamp());
-                        vo.setPasswordVersion(old.getPasswordVersion());
-                    }
-                    UserDao.super.update(old, vo);
-                    //Set the last login time so it is available on the saved user
-                    vo.setLastLogin(old.getLastLogin());
-
-                    if (passwordChanged || vo.isDisabled()) {
-                        exireSessionsForUser(old);
-                    }
-
-                    userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
-                    return old;
+            User old = getTransactionTemplate().execute(status -> {
+                User old1 = get(vo.getId());
+                if (old1 == null) {
+                    return null;
                 }
+                enforceUserRole(vo);
+                boolean passwordChanged = !old1.getPassword().equals(vo.getPassword());
+                if (passwordChanged) {
+                    vo.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
+                    vo.setPasswordVersion(old1.getPasswordVersion() + 1);
+                } else {
+                    vo.setPasswordChangeTimestamp(old1.getPasswordChangeTimestamp());
+                    vo.setPasswordVersion(old1.getPasswordVersion());
+                }
+                UserDao.super.update(old1, vo);
+                //Set the last login time so it is available on the saved user
+                vo.setLastLogin(old1.getLastLogin());
+
+                if (passwordChanged || vo.isDisabled()) {
+                    expireSessionsForUser(old1);
+                }
+
+                userCache.remove(old1.getUsername().toLowerCase(Locale.ROOT));
+                return old1;
             });
 
             if (old == null) {
@@ -346,7 +325,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         }
     }
 
-    private void exireSessionsForUser(User user) {
+    private void expireSessionsForUser(User user) {
         // web context may not be initialized, can't inject this context
         ApplicationContext context = Common.getRootWebContext();
         if (context != null) {
@@ -360,7 +339,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         boolean deleted = super.delete(vo);
         if(deleted) {
             // expire the user's sessions
-            exireSessionsForUser(vo);
+            expireSessionsForUser(vo);
             userCache.remove(vo.getUsername().toLowerCase(Locale.ROOT));
         }
         return deleted;
@@ -371,8 +350,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         Object[] args = new Object[] { vo.getId() };
         ejt.update("UPDATE userComments SET userId=null WHERE userId=?", args);
         ejt.update("DELETE FROM mailingListMembers WHERE userId=?", args);
-        ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
-                new TranslatableMessage("events.ackedByDeletedUser").serialize(), vo.getId() });
+        ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new TranslatableMessage("events.ackedByDeletedUser").serialize(), vo.getId());
     }
 
     /**
@@ -388,7 +366,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         String username = user.getUsername();
 
 
-        int count = ejt.update("UPDATE users SET tokenVersion = ? WHERE id = ? AND tokenVersion = ? AND username = ?", new Object[] { newTokenVersion, userId, currentTokenVersion, username });
+        int count = ejt.update("UPDATE users SET tokenVersion = ? WHERE id = ? AND tokenVersion = ? AND username = ?", newTokenVersion, userId, currentTokenVersion, username);
         if (count == 0) {
             throw new EmptyResultDataAccessException("Updated no rows", 1);
         }
@@ -396,7 +374,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         user.setTokenVersion(newTokenVersion);
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
+        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
     public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
@@ -420,7 +398,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         String username = user.getUsername();
 
         int count = ejt.update("UPDATE users SET password = ?, passwordVersion = ?, passwordChangeTimestamp = ? WHERE id = ? AND passwordVersion = ? AND username = ?",
-                new Object[] { newPasswordHash, newPasswordVersion, passwordChangeTimestamp, userId, currentPasswordVersion, username });
+                newPasswordHash, newPasswordVersion, passwordChangeTimestamp, userId, currentPasswordVersion, username);
         if (count == 0) {
             throw new EmptyResultDataAccessException("Updated no rows", 1);
         }
@@ -430,9 +408,9 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         user.setPasswordChangeTimestamp(passwordChangeTimestamp);
 
         // expire the user's sessions
-        exireSessionsForUser(user);
+        expireSessionsForUser(user);
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
+        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
     public void recordLogin(User user) {
@@ -443,28 +421,28 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
 
         long loginTime = Common.timer.currentTimeMillis();
         user.setLastLogin(loginTime);
-        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });
+        ejt.update("UPDATE users SET lastLogin=? WHERE id=?", loginTime, user.getId());
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
 
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
+        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
         User old = get(userId);
-        ejt.update("UPDATE users SET homeUrl=? WHERE id=?", new Object[] { homeUrl, userId });
+        ejt.update("UPDATE users SET homeUrl=? WHERE id=?", homeUrl, userId);
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
+        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
     public void saveMuted(int userId, boolean muted) {
         User old = get(userId);
-        ejt.update("UPDATE users SET muted=? WHERE id=?", new Object[] { boolToChar(muted), userId });
+        ejt.update("UPDATE users SET muted=? WHERE id=?", boolToChar(muted), userId);
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
+        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
     @Override
@@ -511,9 +489,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
      * When a permission was modified, require the reload of granted permissions
      */
     public void permissionChanged() {
-        this.userCache.values().stream().forEach((user) -> {
-            user.resetGrantedPermissions();
-        });
+        this.userCache.values().forEach(User::resetGrantedPermissions);
     }
 
     //TODO Mango 4.0 Move cache into service
@@ -547,12 +523,10 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             }
             SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
             SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.eq(roleId));
-            switch(operation) {
-                case CONTAINS:
-                    return table.getIdAlias().in(afterWhere.asField());
-                default:
-                    throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
+            if (operation == RQLOperation.CONTAINS) {
+                return table.getIdAlias().in(afterWhere.asField());
             }
+            throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
         };
     }
 
@@ -579,12 +553,10 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
 
             SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
             SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.in(roleIds));
-            switch(operation) {
-                case CONTAINS:
-                    return table.getIdAlias().in(afterWhere.asField());
-                default:
-                    throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
+            if (operation == RQLOperation.CONTAINS) {
+                return table.getIdAlias().in(afterWhere.asField());
             }
+            throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
         };
     }
 }
