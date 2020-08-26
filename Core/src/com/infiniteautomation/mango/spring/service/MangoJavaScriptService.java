@@ -242,22 +242,26 @@ public class MangoJavaScriptService {
                 script.initialize(vo.getContext());
 
                 long time = Common.timer.currentTimeMillis();
-                if(vo.getResultDataTypeId() != null) {
-                    script.execute(time, time, vo.getResultDataTypeId());
-                    //Convert the UNCHANGED value
-                    Object o = script.getResult().getResult();
-                    if(o instanceof PointValueTime && ((PointValueTime)o).getValue() == UNCHANGED) {
-                        //TODO fix this display hack:
-                        String unchanged;
-                        if(user instanceof User) {
-                            unchanged = new TranslatableMessage(noChangeKey).translate(((User)user).getTranslations());
-                        }else {
-                            unchanged = new TranslatableMessage(noChangeKey).translate(Common.getTranslations());
+                permissionService.runAsCallable(vo.getPermissions(), () -> {
+                    if(vo.getResultDataTypeId() != null) {
+                        script.execute(time, time, vo.getResultDataTypeId());
+                        //Convert the UNCHANGED value
+                        Object o = script.getResult().getResult();
+                        if(o instanceof PointValueTime && ((PointValueTime)o).getValue() == UNCHANGED) {
+                            //TODO fix this display hack:
+                            String unchanged;
+                            if(user instanceof User) {
+                                unchanged = new TranslatableMessage(noChangeKey).translate(((User)user).getTranslations());
+                            }else {
+                                unchanged = new TranslatableMessage(noChangeKey).translate(Common.getTranslations());
+                            }
+                            script.getResult().setResult(new PointValueTime(unchanged, ((PointValueTime)o).getTime()));
                         }
-                        script.getResult().setResult(new PointValueTime(unchanged, ((PointValueTime)o).getTime()));
+                    }else {
+                        script.execute(time, time);
                     }
-                }else
-                    script.execute(time, time);
+                    return null;
+                });
             }
         }catch (ScriptError e) {
             //The script exception should be clean as both compile() and execute() clean it
@@ -306,10 +310,14 @@ public class MangoJavaScriptService {
                 script.initialize(vo.getContext());
 
                 long time = Common.timer.currentTimeMillis();
-                if(vo.getResultDataTypeId() != null)
-                    script.execute(time, time, vo.getResultDataTypeId());
-                else
-                    script.execute(time, time);
+                permissionService.runAsCallable(script.getPermissionHolder(), () -> {
+                    if(vo.getResultDataTypeId() != null) {
+                        script.execute(time, time, vo.getResultDataTypeId());
+                    }else {
+                        script.execute(time, time);
+                    }
+                    return null;
+                });
             }
         }catch (ScriptError e) {
             //The script exception should be clean as both compile() and execute() clean it
@@ -459,24 +467,28 @@ public class MangoJavaScriptService {
      * @throws ScriptPermissionsException
      */
     public void execute(CompiledMangoJavaScript script, long runtime, long timestamp) throws ScriptError, ScriptPermissionsException {
-        //TODO Check permissions
-        script.getResult().reset();
         try {
-            //Setup the wraper context
-            Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
-            engineScope.put(MangoJavaScriptService.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
+            permissionService.runAsCallable(script.getPermissionHolder(), () -> {
+                script.getResult().reset();
 
-            //Ensure the result is available to the utilities
-            for(ScriptUtility util : script.getUtilities()) {
-                util.setResult(script.getResult());
-            }
+                //Setup the wraper context
+                Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
+                engineScope.put(MangoJavaScriptService.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
 
-            //Initialize additional utilities
-            for(ScriptUtility util : script.getAdditionalUtilities())
-                util.setResult(script.getResult());
+                //Ensure the result is available to the utilities
+                for(ScriptUtility util : script.getUtilities()) {
+                    util.setResult(script.getResult());
+                }
 
-            Object resultObject = script.getCompiledScript().eval();
-            script.getResult().setResult(resultObject);
+                //Initialize additional utilities
+                for(ScriptUtility util : script.getAdditionalUtilities())
+                    util.setResult(script.getResult());
+
+                Object resultObject = script.getCompiledScript().eval();
+                script.getResult().setResult(resultObject);
+
+                return null;
+            });
         }catch(ScriptException e) {
             throw ScriptError.create(e, script.isWrapInFunction());
         }catch (RuntimeException e) {
@@ -485,6 +497,8 @@ public class MangoJavaScriptService {
                 throw (ScriptPermissionsException)e.getCause();
             else
                 throw new ShouldNeverHappenException(e);
+        }catch(Exception e) {
+            throw new ShouldNeverHappenException(e);
         }
     }
 
@@ -499,19 +513,43 @@ public class MangoJavaScriptService {
      * @throws ScriptPermissionsException
      */
     public void execute(CompiledMangoJavaScript script, long runtime, long timestamp, Integer resultDataTypeId) throws ScriptError, ResultTypeException, ScriptPermissionsException {
-        //TODO check permissions?
-        execute(script, runtime, timestamp);
+        try {
+            permissionService.runAsCallable(script.getPermissionHolder(), () -> {
+                execute(script, runtime, timestamp);
 
-        Object ts = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get(MangoJavaScriptService.TIMESTAMP_CONTEXT_KEY);
-        if (ts != null) {
-            // Check the type of the object.
-            if (ts instanceof Number)
-                // Convert to long
-                timestamp = ((Number) ts).longValue();
+                Object ts = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get(MangoJavaScriptService.TIMESTAMP_CONTEXT_KEY);
+                long scriptRuntime;
+                if (ts != null) {
+                    // Check the type of the object.
+                    if (ts instanceof Number) {
+                        // Convert to long
+                        scriptRuntime = ((Number) ts).longValue();
+                    }else {
+                        scriptRuntime = timestamp;
+                    }
+                }else {
+                    scriptRuntime = timestamp;
+                }
+                Object resultObject = script.getResult().getResult();
+                DataValue value = coerce(resultObject, resultDataTypeId);
+                script.getResult().setResult(new PointValueTime(value, scriptRuntime));
+                return null;
+            });
+
+        }catch(ScriptException e) {
+            throw ScriptError.create(e, script.isWrapInFunction());
+        }catch (RuntimeException e) {
+            //Nashorn seems to like to wrap exceptions in RuntimeException
+            if(e.getCause() instanceof ScriptPermissionsException)
+                throw (ScriptPermissionsException)e.getCause();
+            else
+                throw new ShouldNeverHappenException(e);
+        }catch(Exception e) {
+            if(e instanceof ResultTypeException) {
+                throw (ResultTypeException)e;
+            }
+            throw new ShouldNeverHappenException(e);
         }
-        Object resultObject = script.getResult().getResult();
-        DataValue value = coerce(resultObject, resultDataTypeId);
-        script.getResult().setResult(new PointValueTime(value, timestamp));
     }
 
     /**
