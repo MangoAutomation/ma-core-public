@@ -3,14 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -22,6 +14,13 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
 
 /**
  * @author Terry Packer
@@ -65,8 +64,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     @Override
     public ProcessResult validate(RoleVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
-        return result;
+        return commonValidation(vo, user);
     }
 
     @Override
@@ -92,7 +90,6 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
             result.addContextualMessage("xid", "roles.cannotAlterAnonymousRole");
         }
 
-
         //Don't allow spaces in the XID
         Matcher matcher = Functions.WHITESPACE_PATTERN.matcher(vo.getXid());
         if(matcher.find()) {
@@ -107,7 +104,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
                 if(dao.getXidById(role.getId()) == null) {
                     result.addContextualMessage("inherited", "validate.role.notFound", role.getXid());
                 }
-                if(recursivlyCheckForUsedRoles(role, used)) {
+                if(recursivelyCheckForUsedRoles(role, used)) {
                     result.addContextualMessage("inherited", "validate.role.inheritanceLoop", role.getXid());
                     break;
                 }
@@ -121,7 +118,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * @param used
      * @return - true is role was already used somewhere in its inheritance
      */
-    private boolean recursivlyCheckForUsedRoles(Role role, Set<Role> used) {
+    private boolean recursivelyCheckForUsedRoles(Role role, Set<Role> used) {
         if(!used.add(role)) {
             return true;
         }
@@ -130,7 +127,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
             if(!used.add(inherited)) {
                 return true;
             }
-            recursivlyCheckForUsedRoles(role, used);
+            recursivelyCheckForUsedRoles(role, used);
         }
         return false;
     }
