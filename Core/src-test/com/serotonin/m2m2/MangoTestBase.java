@@ -42,10 +42,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import java.io.*;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -218,15 +216,9 @@ public class MangoTestBase {
      * Load a default test JSON Configuration into Mango
      * @throws JsonException
      * @throws IOException
-     * @throws URISyntaxException
      */
-    protected void loadDefaultConfiguration() throws JsonException, IOException, URISyntaxException {
-        File cfg = new File(MangoTestBase.class.getResource("/testMangoConfig.json").toURI());
-        loadConfiguration(cfg);
-    }
-
-    protected void loadConfiguration(File jsonFile) throws IOException, JsonException {
-        try (InputStream is = Files.newInputStream(jsonFile.toPath())) {
+    protected void loadDefaultConfiguration() throws JsonException, IOException {
+        try (InputStream is = getClass().getResourceAsStream("/testMangoConfig.json")) {
             loadConfiguration(is);
         }
     }
