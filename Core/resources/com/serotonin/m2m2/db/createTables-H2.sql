@@ -46,11 +46,11 @@ CREATE TABLE mintermsRoles (
 	mintermId int(11) NOT NULL,
 	roleId int(11) NOT NULL
 );
-ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);
-ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx UNIQUE (mintermId);
-ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx UNIQUE (roleId);
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId, roleId);
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;
+CREATE INDEX mintermsRolesFk1Idx ON mintermsRoles (mintermId ASC);
+CREATE INDEX mintermsRolesFk2Idx ON mintermsRoles (roleId ASC);
 
 CREATE TABLE permissions (
 	id int(11) NOT NULL AUTO_INCREMENT,
@@ -62,10 +62,10 @@ CREATE TABLE permissionsMinterms (
 	mintermId int(11) NOT NULL
 );
 ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE (permissionId, mintermId);
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx UNIQUE (permissionId);
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx UNIQUE (mintermId);
 ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
+CREATE INDEX permissionsMintermsFk1Idx ON permissionsMinterms (permissionId ASC);
+CREATE INDEX permissionsMintermsFk2Idx ON permissionsMinterms (mintermId ASC);
 
 --
 -- System wide permissions
