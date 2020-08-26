@@ -45,6 +45,7 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -224,8 +225,14 @@ public class MangoTestBase {
         loadConfiguration(cfg);
     }
 
-    protected void loadConfiguration(File jsonFile) throws JsonException, IOException, URISyntaxException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsonFile), StandardCharsets.UTF_8));
+    protected void loadConfiguration(File jsonFile) throws IOException, JsonException {
+        try (InputStream is = Files.newInputStream(jsonFile.toPath())) {
+            loadConfiguration(is);
+        }
+    }
+
+    protected void loadConfiguration(InputStream jsonFile) throws IOException, JsonException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(jsonFile, StandardCharsets.UTF_8));
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
 
