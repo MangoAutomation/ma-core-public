@@ -227,15 +227,16 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         runScript(scripts, out);
 
         //Move current permissions to roles
-        ejt.query("SELECT id, readPermission, setPermission, dataSourceId FROM dataPoints", rs -> {
+        ejt.query("SELECT dp.id, dp.readPermission, dp.setPermission, ds.editPermissionId " +
+                "FROM dataPoints AS dp LEFT JOIN dataSources AS ds ON dp.dataSourceId = ds.id", rs -> {
             int voId = rs.getInt(1);
             //Add role/mapping
             MangoPermission readPermissions = PermissionMigration.parseLegacyPermission(rs.getString(2));
             Integer read = getOrCreatePermission(readPermissions).getId();
             MangoPermission setPermissions = PermissionMigration.parseLegacyPermission(rs.getString(3));
             Integer set = getOrCreatePermission(setPermissions).getId();
-            int dataSourceId = rs.getInt(4);
-            int edit = ejt.queryForInt("SELECT editPermissionId from dataSources WHERE id=?", new Object[] {dataSourceId}, 0);
+            int edit = rs.getInt(4);
+            if (edit == 0) throw new IllegalStateException("dataSource.editPermissionId was null for dataPoint.id " + voId);
             ejt.update("UPDATE dataPoints SET readPermissionId=?,editPermissionId=?,setPermissionId=? WHERE id=?", read, edit, set, voId);
         });
 
