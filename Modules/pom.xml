@@ -72,6 +72,18 @@
         </profile>
     </profiles>
     <build>
+        <testResources>
+            <testResource>
+                <directory>resources-test</directory>
+            </testResource>
+            <testResource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>module.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
         <pluginManagement>
             <plugins>
                 <plugin>

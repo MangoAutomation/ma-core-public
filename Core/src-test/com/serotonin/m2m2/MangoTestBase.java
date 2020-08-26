@@ -4,48 +4,9 @@
  */
 package com.serotonin.m2m2;
 
-import static org.junit.Assert.fail;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.service.DataPointService;
-import com.infiniteautomation.mango.spring.service.DataSourceService;
-import com.infiniteautomation.mango.spring.service.EventDetectorsService;
-import com.infiniteautomation.mango.spring.service.EventHandlerService;
-import com.infiniteautomation.mango.spring.service.JsonDataService;
-import com.infiniteautomation.mango.spring.service.MailingListService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.spring.service.PublisherService;
-import com.infiniteautomation.mango.spring.service.RoleService;
-import com.infiniteautomation.mango.spring.service.SystemPermissionService;
-import com.infiniteautomation.mango.spring.service.UsersService;
+import com.infiniteautomation.mango.spring.service.*;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -58,6 +19,7 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
@@ -70,6 +32,23 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
+import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -123,9 +102,7 @@ public class MangoTestBase {
             Configurator.initialize(null, source);
         }
 
-        List<ModuleElementDefinition> definitions = new ArrayList<>();
-        definitions.add(new MockDataSourceDefinition());
-        addModule("BaseTest", definitions);
+        addModule("BaseTest", new MockDataSourceDefinition());
     }
 
     @Before
@@ -206,25 +183,34 @@ public class MangoTestBase {
      * @param definitions
      * @return
      */
-    protected static void addModule(String name, List<ModuleElementDefinition> definitions) {
-
+    protected static MangoTestModule addModule(String name, ModuleElementDefinition... definitions) {
         MangoTestModule module = new MangoTestModule(name);
         module.loadDefinitions(MangoTestBase.class.getClassLoader());
-
-        for(ModuleElementDefinition definition : definitions)
-            module.addDefinition(definition);
-
+        Arrays.stream(definitions).forEach(module::addDefinition);
         modules.add(module);
+        return module;
     }
 
-    /**
-     * Add module, load all definitions
-     * @param name
-     */
-    protected static void addModule(String name) {
-        MangoTestModule module = new MangoTestModule(name);
-        module.loadDefinitions(MangoTestBase.class.getClassLoader());
-        modules.add(module);
+    protected static List<MangoTestModule> loadModules() {
+        try {
+            List<MangoTestModule> loaded = new ArrayList<>();
+            Enumeration<URL> urls = MangoTestBase.class.getClassLoader().getResources("module.properties");
+            while (urls.hasMoreElements()) {
+                URL url = urls.nextElement();
+                Properties properties = new Properties();
+                try (InputStream is = url.openStream()) {
+                    properties.load(is);
+                }
+                String moduleName = properties.getProperty(ModuleUtils.Constants.PROP_NAME);
+                MangoTestModule module = new MangoTestModule(moduleName);
+                module.loadDefinitions(MangoTestBase.class.getClassLoader());
+                loaded.add(module);
+            }
+            modules.addAll(loaded);
+            return loaded;
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't load module.properties", e);
+        }
     }
 
     /**
