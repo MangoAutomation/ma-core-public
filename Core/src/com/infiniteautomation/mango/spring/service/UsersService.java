@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.mail.internet.AddressException;
 import java.io.IOException;
@@ -148,10 +149,10 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     private void publishUserUpdated(User user) {
         User existing = dao.get(user.getId());
         if (existing == null) {
-            throw new IllegalStateException("User '" + user.getUsername() + "' was found in the user cache, but is not present in the DB");
+            throw new IllegalStateException("User '" + user.getUsername() + "' was found in the user cache, but is not present in the database");
         }
 
-        // Notify WebSockets and invalidate cache via listener below
+        // Notify WebSockets and invalidate cache via listener userUpdated()
         DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, existing);
         this.eventPublisher.publishEvent(userUpdatedEvent);
     }
@@ -161,15 +162,14 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
      */
     @Override
     public User get(String username) throws NotFoundException, PermissionException {
-        Optional.ofNullable(username).orElseThrow(IllegalArgumentException::new);
+        Assert.notNull(username, "Username required");
 
         User vo = userByUsername.get(username.toLowerCase(Locale.ROOT));
         if(vo == null)
             throw new NotFoundException();
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        ensureReadPermission(user, vo);
+        PermissionHolder currentUser = Common.getUser();
+        ensureReadPermission(currentUser, vo);
         return vo;
     }
 
@@ -185,20 +185,16 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         if(vo == null)
             throw new NotFoundException();
 
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-        ensureReadPermission(user, vo);
+        PermissionHolder currentUser = Common.getUser();
+        ensureReadPermission(currentUser, vo);
         return vo;
     }
 
     @Override
-    public User insert(User vo)
-            throws PermissionException, ValidationException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
+    public User insert(User vo) throws PermissionException, ValidationException {
+        PermissionHolder currentUser = Common.getUser();
         //Ensure they can create
-        ensureCreatePermission(user, vo);
+        ensureCreatePermission(currentUser, vo);
 
         //Ensure id is not set
         if(vo.getId() != Common.NEW_ID) {
@@ -211,7 +207,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
 
-        ensureValid(vo, user);
+        ensureValid(vo, currentUser);
 
         //After validation we can set the created date if necessary
         if(vo.getCreated() == null) {
@@ -226,14 +222,10 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     }
 
     @Override
-    public User update(User existing, User vo)
-            throws PermissionException, ValidationException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        ensureEditPermission(user, existing);
+    public User update(User existing, User vo) throws PermissionException, ValidationException {
+        PermissionHolder currentUser = Common.getUser();
+        ensureEditPermission(currentUser, existing);
         vo.setId(existing.getId());
-
 
         //Set the date created, it will be validated later
         if(vo.getCreated() == null) {
@@ -257,23 +249,20 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
-        ensureValid(existing, vo, Common.getUser());
+        ensureValid(existing, vo, currentUser);
         dao.update(existing, vo);
         return vo;
     }
 
     @Override
-    public User delete(User vo)
-            throws PermissionException, NotFoundException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
+    public User delete(User vo) throws PermissionException, NotFoundException {
+        PermissionHolder currentUser = Common.getUser();
+        ensureEditPermission(currentUser, vo);
 
         //You cannot delete yourself
-        if (user instanceof User && ((User) user).getId() == vo.getId())
-            throw new PermissionException(new TranslatableMessage("users.validate.badDelete"), user);
+        if (currentUser instanceof User && ((User) currentUser).getId() == vo.getId())
+            throw new PermissionException(new TranslatableMessage("users.validate.badDelete"), currentUser);
 
-        //Only admin can delete
-        permissionService.ensureAdminRole(user);
         dao.delete(vo);
         return vo;
     }
@@ -281,15 +270,18 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     /**
      * Update the password for a user
      *
-     * @param user
+     * @param user user to update password for
      * @param newPassword plain text password
      * @throws ValidationException if password is not valid
+     * @throws PermissionException if the current user does not have permission to edit this user
      */
-    public void updatePassword(User user, String newPassword) throws ValidationException {
+    public void updatePassword(User user, String newPassword) throws PermissionException, ValidationException {
+        ensureEditPermission(Common.getUser(), user);
+
         // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
         User copy = this.get(user.getId());
         copy.setPlainTextPassword(newPassword);
-        ensureValid(user, Common.getUser());
+        ensureValid(user, copy, Common.getUser());
         copy.hashPlainText();
 
         this.dao.updatePasswordHash(user, copy.getPassword());
@@ -301,15 +293,13 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
      * @throws PermissionException
      * @throws NotFoundException
      */
-    public void lockPassword(String username)
-            throws PermissionException, NotFoundException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        permissionService.ensureAdminRole(user);
+    public void lockPassword(String username) throws PermissionException, NotFoundException {
         User toLock = this.get(username);
-        if (user instanceof User && ((User) user).getId() == toLock.getId())
-            throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), user);
+        PermissionHolder currentUser = Common.getUser();
+        ensureEditPermission(currentUser, toLock);
+
+        if (currentUser instanceof User && ((User) currentUser).getId() == toLock.getId())
+            throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), currentUser);
         dao.lockPassword(toLock);
     }
 
