@@ -3,12 +3,12 @@
  */
 package com.serotonin.m2m2.vo.permission;
 
+import com.serotonin.m2m2.vo.role.Role;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Something that holds permissions, typically a user. Could however in the future be groups, data source scripts etc.
@@ -17,22 +17,22 @@ import com.serotonin.m2m2.vo.role.Role;
  */
 public interface PermissionHolder {
 
-    public static final String SUPERADMIN_ROLE_XID = "superadmin";
-    public static final String USER_ROLE_XID = "user";
-    public static final String ANONYMOUS_ROLE_XID = "anonymous";
+    String SUPERADMIN_ROLE_XID = "superadmin";
+    String USER_ROLE_XID = "user";
+    String ANONYMOUS_ROLE_XID = "anonymous";
 
     /**
      * The superadmin role from the database upon initialization
      */
-    public static final Role SUPERADMIN_ROLE = new Role(1, SUPERADMIN_ROLE_XID);
+    Role SUPERADMIN_ROLE = new Role(1, SUPERADMIN_ROLE_XID);
     /**
      * The user role from the database upon initialization
      */
-    public static final Role USER_ROLE = new Role(2, USER_ROLE_XID);
+    Role USER_ROLE = new Role(2, USER_ROLE_XID);
     /**
      * The anonymous role from the database upon initialization
      */
-    public static final Role ANONYMOUS_ROLE = new Role(3, ANONYMOUS_ROLE_XID);
+    Role ANONYMOUS_ROLE = new Role(3, ANONYMOUS_ROLE_XID);
 
 
     /**
@@ -43,7 +43,7 @@ public interface PermissionHolder {
      * Note: When working in a Spring service or controller prefer injecting
      * @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder
      */
-    public static final PermissionHolder SYSTEM_SUPERADMIN = new SystemSuperadmin();
+    PermissionHolder SYSTEM_SUPERADMIN = new SystemSuperadmin();
 
     /**
      * Represents any un-authenticated permission holder and is a member of the anonymous role. This PermissionHolder should only be used in scenarios
@@ -53,7 +53,7 @@ public interface PermissionHolder {
      * Note: When working in a Spring service or controller prefer injecting
      * @Qualifier(ANONYMOUS_PERMISSION_HOLDER) PermissionHolder
      */
-    public static final PermissionHolder ANONYMOUS = new Anonymous();
+    PermissionHolder ANONYMOUS = new Anonymous();
 
     /**
      * @return a name for the permission holder, typically the username
@@ -74,7 +74,7 @@ public interface PermissionHolder {
     /**
      * @author Jared Wiltshire
      */
-    public static final class Anonymous implements PermissionHolder {
+    final class Anonymous implements PermissionHolder {
         private final Set<Role> roles = Collections.unmodifiableSet(Collections.singleton(ANONYMOUS_ROLE));
 
         private Anonymous() {
@@ -99,7 +99,7 @@ public interface PermissionHolder {
     /**
      * @author Jared Wiltshire
      */
-    public static final class SystemSuperadmin implements PermissionHolder {
+    final class SystemSuperadmin implements PermissionHolder {
         private final Set<Role> roles = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(SUPERADMIN_ROLE, USER_ROLE)));
 
         private SystemSuperadmin() {

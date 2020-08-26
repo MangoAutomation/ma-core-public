@@ -24,7 +24,7 @@ ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
 
 --
 -- Role Inheritance Mappings
--- 
+--
 CREATE TABLE roleInheritance (
 	roleId INT NOT NULL,
 	inheritedRoleId INT NOT NULL
@@ -68,7 +68,7 @@ ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KE
 
 --
 -- System wide permissions
--- 
+--
 CREATE TABLE systemPermissions (
 	permissionType NVARCHAR(255),
 	permissionId INT NOT NULL
@@ -154,7 +154,7 @@ create table mailingListInactive (
   mailingListId int not null,
   inactiveInterval int not null
 );
-alter table mailingListInactive add constraint mailingListInactiveFk1 foreign key (mailingListId) 
+alter table mailingListInactive add constraint mailingListInactiveFk1 foreign key (mailingListId)
   references mailingLists(id) on delete cascade;
 
 create table mailingListMembers (
@@ -163,7 +163,7 @@ create table mailingListMembers (
   userId int,
   address nvarchar(255)
 );
-alter table mailingListMembers add constraint mailingListMembersFk1 foreign key (mailingListId) 
+alter table mailingListMembers add constraint mailingListMembersFk1 foreign key (mailingListId)
   references mailingLists(id) on delete cascade;
 
 
@@ -262,7 +262,7 @@ create table pointValueAnnotations (
   sourceMessage ntext,
   primary key (pointValueId)
 );
-  
+
 --
 --
 -- Event detectors
@@ -321,7 +321,7 @@ create table eventHandlers (
   eventHandlerType nvarchar(40) not null,
   readPermissionId INT NOT NULL,
   editPermissionId INT NOT NULL,
-  
+
   data image not null,
   primary key (id)
 );
@@ -332,7 +332,7 @@ ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermi
 --
 --
 -- Audit Table
--- 
+--
 CREATE TABLE audit (
   id int NOT NULL identity,
   typeName nvarchar(32) NOT NULL,
@@ -398,8 +398,8 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 -- FileStores
 --
 CREATE TABLE fileStores (
-	id int not null auto_increment, 
-	storeName nvarchar(100) not null, 
+	id int not null auto_increment,
+	storeName nvarchar(100) not null,
 	readPermissionId INT NOT NULL,
     writePermissionId INT NOT NULL,
 	PRIMARY KEY (id)
@@ -435,12 +435,12 @@ CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contex
 -- Mango Default Data
 --
 -- Insert admin user
-INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES 
-	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', 1, 1, 0, 'N', 0);      
+INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES
+	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', 1, 1, 0, 'N', 0);
 -- Insert default roles
 INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmins');
 INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'Users');
-INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous role');
+INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous');
 -- Add admin user role mappings
 INSERT INTO userRoleMappings (roleId, userId) VALUES (1, 1);
 INSERT INTO userRoleMappings (roleId, userId) VALUES (2, 1);

@@ -26,7 +26,7 @@ ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
 
 --
 -- Role Inheritance Mappings
--- 
+--
 CREATE TABLE roleInheritance (
 	roleId INT NOT NULL,
 	inheritedRoleId INT NOT NULL
@@ -69,7 +69,7 @@ ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KE
 
 --
 -- System wide permissions
--- 
+--
 CREATE TABLE systemPermissions (
 	permissionType VARCHAR(255),
 	permissionId INT NOT NULL
@@ -156,7 +156,7 @@ CREATE TABLE mailingListInactive (
   mailingListId int NOT NULL,
   inactiveInterval int NOT NULL
 );
-ALTER TABLE mailingListInactive ADD CONSTRAINT mailingListInactiveFk1 FOREIGN KEY (mailingListId) 
+ALTER TABLE mailingListInactive ADD CONSTRAINT mailingListInactiveFk1 FOREIGN KEY (mailingListId)
   REFERENCES mailingLists(id) ON DELETE CASCADE;
 
 CREATE TABLE mailingListMembers (
@@ -165,7 +165,7 @@ CREATE TABLE mailingListMembers (
   userId int,
   address varchar(255)
 );
-ALTER TABLE mailingListMembers ADD CONSTRAINT mailingListMembersFk1 FOREIGN KEY (mailingListId) 
+ALTER TABLE mailingListMembers ADD CONSTRAINT mailingListMembersFk1 FOREIGN KEY (mailingListId)
   REFERENCES mailingLists(id) ON DELETE CASCADE;
 
 
@@ -329,7 +329,7 @@ ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermi
 
 CREATE TABLE eventHandlersMapping (
   eventHandlerId int not null,
-  
+
   -- Event type, see events
   eventTypeName varchar(32) NOT NULL,
   eventSubtypeName varchar(32) NOT NULL DEFAULT '',
@@ -342,7 +342,7 @@ ALTER TABLE eventHandlersMapping ADD CONSTRAINT handlerMappingUniqueness UNIQUE(
 --
 --
 -- Audit Table
--- 
+--
 CREATE TABLE audit (
   id int NOT NULL auto_increment,
   typeName varchar(32) NOT NULL,
@@ -406,8 +406,8 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 -- FileStores
 --
 CREATE TABLE fileStores (
-	id int not null auto_increment, 
-	storeName varchar(100) not null, 
+	id int not null auto_increment,
+	storeName varchar(100) not null,
 	readPermissionId INT NOT NULL,
     writePermissionId INT NOT NULL,
 	PRIMARY KEY (id)
@@ -443,12 +443,12 @@ CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contex
 -- Mango Default Data
 --
 -- Insert admin user
-INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES 
-	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', 1, 1, DATEDIFF('SECOND', DATE '1970-01-01', CURRENT_TIMESTAMP()) * 1000, 'N', DATEDIFF('SECOND', DATE '1970-01-01', CURRENT_TIMESTAMP()) * 1000);      
+INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES
+	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', 1, 1, DATEDIFF('SECOND', DATE '1970-01-01', CURRENT_TIMESTAMP()) * 1000, 'N', DATEDIFF('SECOND', DATE '1970-01-01', CURRENT_TIMESTAMP()) * 1000);
 -- Insert default roles
 INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmins');
 INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'Users');
-INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous role');
+INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous');
 -- Add admin user role mappings
 INSERT INTO userRoleMappings (roleId, userId) VALUES (1, 1);
 INSERT INTO userRoleMappings (roleId, userId) VALUES (2, 1);

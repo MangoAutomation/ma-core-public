@@ -164,12 +164,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         runScript(scripts, out);
 
         //Add default user and superadmin roles
-        scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), defaultRolesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), defaultRolesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), defaultRolesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), defaultRolesSQL);
-        runScript(scripts, out);
+        runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, defaultRolesSQL), out);
     }
 
     private void convertUsers(OutputStream out) {
@@ -307,6 +302,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             if (charToBool(rs.getString(4))) {
                 //Is public so add anonymous role
                 Set<Set<Role>> newRoles = new HashSet<>(readPermissions.getRoles());
+                newRoles.add(Collections.singleton(PermissionHolder.USER_ROLE));
                 newRoles.add(Collections.singleton(PermissionHolder.ANONYMOUS_ROLE));
                 readPermissions = new MangoPermission(newRoles);
             }
@@ -628,7 +624,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     private final String[] defaultRolesSQL = new String[] {
             "INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmins');",
             "INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'Users');",
-            "INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous role');"
+            "INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous');"
     };
 
     //Point Hierarchy
