@@ -24,7 +24,7 @@ public class PublicFileStoreDefinition extends FileStoreDefinition {
     private final MangoPermission readPermission;
 
     public PublicFileStoreDefinition() {
-        this.readPermission = MangoPermission.requireAllRoles(PermissionHolder.ANONYMOUS_ROLE);
+        this.readPermission = MangoPermission.requireAnyRole(PermissionHolder.ANONYMOUS_ROLE, PermissionHolder.USER_ROLE);
     }
 
     @Override

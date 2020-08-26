@@ -5,11 +5,6 @@
  */
 package com.serotonin.m2m2.vo.json;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.json.JsonException;
@@ -22,6 +17,11 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Terry Packer
@@ -91,6 +91,7 @@ public class JsonDataVO extends AbstractVO {
         if(jsonObject.containsKey("publicData") && jsonObject.getBoolean("publicData", false)) {
             Set<Set<Role>> newRoles = new HashSet<>(readPermission.getRoles());
             newRoles.add(Collections.singleton(PermissionHolder.ANONYMOUS_ROLE));
+            newRoles.add(Collections.singleton(PermissionHolder.USER_ROLE));
             readPermission = new MangoPermission(newRoles);
         }
     }
