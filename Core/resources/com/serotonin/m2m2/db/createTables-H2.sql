@@ -47,8 +47,8 @@ CREATE TABLE mintermsRoles (
 	roleId int(11) NOT NULL
 );
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);
-ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx KEY (mintermId);
-ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx KEY (roleId);
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx UNIQUE (mintermId);
+ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx UNIQUE (roleId);
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 
@@ -61,9 +61,9 @@ CREATE TABLE permissionsMinterms (
 	permissionId int(11) NOT NULL,
 	mintermId int(11) NOT NULL
 );
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE KEY (permissionId, mintermId);
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx KEY (permissionId);
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx KEY(mintermId);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE (permissionId, mintermId);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx UNIQUE (permissionId);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx UNIQUE (mintermId);
 ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 
@@ -135,7 +135,7 @@ CREATE TABLE userComments (
 );
 ALTER TABLE userComments ADD CONSTRAINT userCommentsFk1 FOREIGN KEY (userId) REFERENCES users(id);
 ALTER TABLE userComments ADD CONSTRAINT userCommentsUn1 UNIQUE (xid);
-CREATE INDEX userComments_performance1 ON userComments (`commentType` ASC, `typeKey` ASC);
+CREATE INDEX userComments_performance1 ON userComments (commentType ASC, typeKey ASC);
 
 --
 -- Mailing lists
@@ -235,7 +235,7 @@ CREATE TABLE dataPointTags (
   tagKey VARCHAR(255) NOT NULL,
   tagValue VARCHAR(255) NOT NULL
 );
-ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId ASC, tagKey ASC);
+ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId, tagKey);
 ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;
 CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
 
@@ -304,9 +304,9 @@ CREATE TABLE events (
   PRIMARY KEY (id)
 );
 ALTER TABLE events ADD CONSTRAINT eventsFk1 FOREIGN KEY (ackUserId) REFERENCES users(id);
-CREATE INDEX events_performance1 ON events (`activeTs` ASC);
-CREATE INDEX events_performance2 ON events (`rtnApplicable` ASC, `rtnTs` ASC);
-CREATE INDEX events_performance3 ON events (`typeName` ASC, `subTypeName` ASC, `typeRef1` ASC);
+CREATE INDEX events_performance1 ON events (activeTs ASC);
+CREATE INDEX events_performance2 ON events (rtnApplicable ASC, rtnTs ASC);
+CREATE INDEX events_performance3 ON events (typeName ASC, subTypeName ASC, typeRef1 ASC);
 
 --
 --
