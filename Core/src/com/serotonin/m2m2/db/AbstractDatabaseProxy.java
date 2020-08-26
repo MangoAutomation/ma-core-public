@@ -4,22 +4,17 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.MissingResourceException;
-
-import javax.sql.DataSource;
-
+import com.infiniteautomation.mango.util.NullOutputStream;
+import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.DaoUtils;
+import com.serotonin.db.spring.ConnectionCallbackVoid;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.*;
+import com.serotonin.m2m2.db.upgrade.DBUpgrade;
+import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,20 +25,16 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.infiniteautomation.mango.util.NullOutputStream;
-import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.DaoUtils;
-import com.serotonin.db.spring.ConnectionCallbackVoid;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
-import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.upgrade.DBUpgrade;
-import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
+import javax.sql.DataSource;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.MissingResourceException;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
@@ -85,10 +76,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             }
         }
 
-        boolean newDatabase = false;
         try {
             if (newDatabaseCheck(ejt)) {
-                newDatabase = true;
                 // Check if we should convert from another database.
                 String convertTypeStr = null;
                 try {
@@ -118,25 +107,18 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                     }
 
                     sourceProxy.terminate(false);
+                } else {
+                    this.initializeCoreDatabase(ejt);
                 }
-                else {
-
-                    // Record the current version.
-                    SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
-                            Integer.toString(Common.getDatabaseSchemaVersion()));
-
-                    // Add the settings flag that this is a new instance. This flag is removed when an administrator
-                    // logs in.
-                    SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
-                }
-            }
-            else
+            } else {
                 // The database exists, so let's make its schema version matches the application version.
                 DBUpgrade.checkUpgrade();
+            }
 
             //Ensure the modules are upgraded/installed after the core schema is updated
-            for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
+            for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
                 def.newInstallationCheck(ejt);
+            }
 
             // Check if we are using NoSQL
             NoSQLProxy proxy = ModuleRegistry.getDefinition(NoSQLProxy.class);
@@ -144,7 +126,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 noSQLProxy = proxy;
                 noSQLProxy.initialize();
             }
-
         }
         catch (CannotGetJdbcConnectionException e) {
             log.fatal("Unable to connect to database of type " + getType().name(), e);
@@ -158,8 +139,27 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         // Allow modules to upgrade their schemas
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             DBUpgrade.checkUpgrade(def, classLoader);
+    }
 
-        postInitialize(ejt, "", newDatabase);
+    /**
+     * Inserts and updates data for a new installation
+     * @param ejt
+     */
+    protected void initializeCoreDatabase(ExtendedJdbcTemplate ejt) {
+        String insertSystemSetting = "INSERT INTO systemSettings (settingName, settingValue) VALUES (?, ?);";
+        String updateRoleName = "UPDATE roles SET name = ? WHERE id = ?;";
+        String updateUserName = "UPDATE users SET name = ? WHERE id = ?;";
+
+        // Add the settings flag that this is a new instance. This flag is removed when an administrator logs in.
+        ejt.update(insertSystemSetting, SystemSettingsDao.NEW_INSTANCE, BaseDao.boolToChar(true));
+        // Record the current version.
+        ejt.update(insertSystemSetting, SystemSettingsDao.DATABASE_SCHEMA_VERSION, Integer.toString(Common.getDatabaseSchemaVersion()));
+
+        // TODO Mango 4.0 we should a setup page where on first login the admin chooses the locale, timezone and sets a new password
+        ejt.update(updateRoleName, Common.translate("roles.superadmin"), PermissionHolder.SUPERADMIN_ROLE.getId());
+        ejt.update(updateRoleName, Common.translate("roles.user"), PermissionHolder.USER_ROLE.getId());
+        ejt.update(updateRoleName, Common.translate("roles.anonymous"), PermissionHolder.ANONYMOUS_ROLE.getId());
+        ejt.update(updateUserName, Common.translate("users.defaultAdministratorName"), 1);
     }
 
     private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
@@ -197,10 +197,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     abstract protected void initializeImpl(String propertyPrefix);
-
-    protected void postInitialize(ExtendedJdbcTemplate ejt, String propertyPrefix, boolean newDatabase) {
-        // no op - override as necessary
-    }
 
     @Override
     public void doInConnection(ConnectionCallbackVoid callback) {
