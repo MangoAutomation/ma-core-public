@@ -165,6 +165,12 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Add default user and superadmin roles
         runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, defaultRolesSQL), out);
+
+        // update the role names so they are localized
+        String updateRoleName = "UPDATE roles SET name = ? WHERE id = ?;";
+        ejt.update(updateRoleName, Common.translate("roles.superadmin"), PermissionHolder.SUPERADMIN_ROLE.getId());
+        ejt.update(updateRoleName, Common.translate("roles.user"), PermissionHolder.USER_ROLE.getId());
+        ejt.update(updateRoleName, Common.translate("roles.anonymous"), PermissionHolder.ANONYMOUS_ROLE.getId());
     }
 
     private void convertUsers(OutputStream out) {
