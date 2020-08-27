@@ -149,7 +149,13 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     private void publishUserUpdated(User user) {
         User existing = dao.get(user.getId());
         if (existing == null) {
-            throw new IllegalStateException("User '" + user.getUsername() + "' was found in the user cache, but is not present in the database");
+            // this is a temporary work around for when user is deleted while iterating cache entries
+            User fromCache = this.userByUsername.getIfPresent(user.getUsername());
+            if (fromCache != null) {
+                throw new IllegalStateException("User '" + user.getUsername() + "' was found in the user cache, but is not present in the database");
+            } else {
+                return;
+            }
         }
 
         // Notify WebSockets and invalidate cache via listener userUpdated()
