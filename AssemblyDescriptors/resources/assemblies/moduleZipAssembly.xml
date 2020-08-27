@@ -26,12 +26,11 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}</directory>
+      <directory>${project.build.outputDirectory}</directory>
       <outputDirectory></outputDirectory>
       <includes>
         <include>module.properties</include>
       </includes>
-      <filtered>true</filtered>
     </fileSet>
   </fileSets>
   <dependencySets>
