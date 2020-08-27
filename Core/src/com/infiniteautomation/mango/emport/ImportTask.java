@@ -160,7 +160,7 @@ public class ImportTask extends ProgressiveTask {
             importers.add(0, importer);
         }
 
-        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths
+        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processUpdatedDetectors
 
         if(schedule)
             Common.backgroundProcessing.execute(this);
@@ -274,7 +274,7 @@ public class ImportTask extends ProgressiveTask {
             //Our progress is 100 - chunk*importersLeft
             int importItemsLeft = 1;
             if(completed)
-                importItemsLeft = 0; //Since we know we ran the processDataPointPaths method
+                importItemsLeft = 0; //Since we know we ran the processUpdatedDetectors method
             for(ImportItem item : importItems)
                 if(!item.isComplete())
                     importItemsLeft++;
