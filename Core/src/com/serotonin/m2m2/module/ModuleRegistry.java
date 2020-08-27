@@ -4,29 +4,21 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-
+import com.github.zafarkhaja.semver.Version;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.ICoreLicense;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.provider.Providers;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.OrderComparator;
 
-import com.github.zafarkhaja.semver.Version;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ICoreLicense;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.license.LicenseEnforcement;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
-import com.serotonin.provider.Providers;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The registry of all modules in an MA instance.
@@ -59,9 +51,6 @@ public class ModuleRegistry {
     private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
     private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
-
-    private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
-
 
     /**
      * @return a list of all available modules in the instance.
@@ -581,20 +570,6 @@ public class ModuleRegistry {
         for (Module module : MODULES.values())
             locales.addAll(module.getLocales());
         return locales;
-    }
-
-    public static synchronized void addLicenseEnforcement(LicenseEnforcement licenseEnforcement) {
-        licenseEnforcements.add(licenseEnforcement);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T extends LicenseEnforcement> List<T> getLicenseEnforcements(Class<T> clazz) {
-        List<T> result = new ArrayList<T>();
-        for (LicenseEnforcement le : licenseEnforcements) {
-            if (clazz.isAssignableFrom(le.getClass()))
-                result.add((T) le);
-        }
-        return result;
     }
 
     public static final CoreModule CORE_MODULE = new CoreModule(ModuleRegistry.CORE_MODULE_NAME,
