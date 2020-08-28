@@ -5,28 +5,29 @@
  <version>4.0.0-SNAPSHOT</version>
  <name>Mango Parent</name>
  <packaging>pom</packaging>
- <properties>
-  <jettyVersion>9.4.27.v20200227</jettyVersion>
-  <springVersion>5.2.6.RELEASE</springVersion>
-  <springSecurityVersion>5.3.4.RELEASE</springSecurityVersion>
-  <log4jVersion>2.10.0</log4jVersion>
-  <slf4jVersion>1.8.0-beta4</slf4jVersion>
-  <jacksonVersion>2.10.2</jacksonVersion>
-  <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
-  <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
-  <compilerSourceVersion>1.8</compilerSourceVersion>
-  <compilerTargetVersion>1.8</compilerTargetVersion>
-  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  <mango.build.versionState>0</mango.build.versionState>
-  <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
-  <buildNumber>${maven.build.timestamp}</buildNumber>
-  <bouncyCastleVersion>1.62</bouncyCastleVersion>
-  <jna.version>5.5.0</jna.version>
-  <junitVersion>4.12</junitVersion>
-  <asm.version>7.2</asm.version>
-  <spotbugs.version>4.0.2</spotbugs.version>
-  <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
- </properties>
+    <properties>
+        <jettyVersion>9.4.27.v20200227</jettyVersion>
+        <springVersion>5.2.6.RELEASE</springVersion>
+        <springSecurityVersion>5.3.4.RELEASE</springSecurityVersion>
+        <log4jVersion>2.10.0</log4jVersion>
+        <slf4jVersion>1.8.0-beta4</slf4jVersion>
+        <jacksonVersion>2.10.2</jacksonVersion>
+        <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
+        <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
+        <compilerSourceVersion>1.8</compilerSourceVersion>
+        <compilerTargetVersion>1.8</compilerTargetVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+        <buildNumber>${maven.build.timestamp}</buildNumber>
+        <buildTimestamp>${maven.build.timestamp}</buildTimestamp>
+        <bouncyCastleVersion>1.62</bouncyCastleVersion>
+        <jna.version>5.5.0</jna.version>
+        <junitVersion>4.12</junitVersion>
+        <asm.version>7.2</asm.version>
+        <spotbugs.version>4.0.2</spotbugs.version>
+        <jetty.alpn.version>2.0.10</jetty.alpn.version>
+        <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
+    </properties>
  <organization>
    <name>Infinite Automation Systems, Inc.</name>
    <url>https://www.infiniteautomation.com/</url>
@@ -87,6 +88,25 @@
         <module>CoreBundle</module>
       </modules>
     </profile>
+     <profile>
+         <id>core-bundle</id>
+         <modules>
+             <module>../ma-core-private</module>
+             <module>../ma-modules-public</module>
+             <module>../ma-modules-private</module>
+             <module>../ma-modules-proprietary</module>
+             <module>../ma-dashboards</module>
+             <module>CoreBundle</module>
+         </modules>
+     </profile>
+     <profile>
+         <id>core-bundle-public</id>
+         <modules>
+             <module>../ma-modules-public</module>
+             <module>../ma-dashboards</module>
+             <module>CoreBundle</module>
+         </modules>
+     </profile>
     <profile>
     	<!-- Profile to release to maven.mangoautomation.net via the release plugin -->
 		<id>releases</id>
@@ -253,12 +273,12 @@
           </plugin>
           <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.0.0</version>
+            <version>3.3.0</version>
             <dependencies>
               <dependency>
                 <groupId>com.infiniteautomation.mango</groupId>
                 <artifactId>assembly-descriptors</artifactId>
-                <version>${project.parent.version}</version>
+                <version>4.0.0-SNAPSHOT</version>
               </dependency>
             </dependencies>
           </plugin>

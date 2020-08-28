@@ -16,7 +16,6 @@
         <webDirectory>${project.build.directory}/web</webDirectory>
         <moduleTagDirectory>${webDirectory}/WEB-INF/tags/${moduleName}</moduleTagDirectory>
         <moduleWebDirectory>${webDirectory}/modules/${moduleName}/web</moduleWebDirectory>
-        <moduleZipAssembly>moduleZipAssembly</moduleZipAssembly>
         <webpack.mode>production</webpack.mode>
         <installNodeAndYarnPhase>generate-resources</installNodeAndYarnPhase>
         <yarnVersionPhase>generate-resources</yarnVersionPhase>
@@ -102,7 +101,7 @@
                             </goals>
                             <configuration>
                                 <descriptorRefs>
-                                    <descriptorRef>${moduleZipAssembly}</descriptorRef>
+                                    <descriptorRef>module-zip</descriptorRef>
                                 </descriptorRefs>
                                 <finalName>${zipAssemblyName}</finalName>
                                 <appendAssemblyId>false</appendAssemblyId>
