@@ -3,27 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.components;
 
-import java.io.File;
-import java.nio.file.FileStore;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.PollableMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
@@ -32,6 +11,26 @@ import com.serotonin.m2m2.db.NoSQLProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.File;
+import java.nio.file.FileStore;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Monitor partition sizes and optionally file stores and ma_home directories
@@ -229,10 +228,13 @@ public class DiskUsageMonitoringService {
             location = FileStoreDefinition.ROOT;
         }
         try{
-            FileStore store = Files.getFileStore(Common.MA_HOME_PATH.resolve(location));
-            filestorePartitionTotalSpace.setValue(getGb(store.getTotalSpace()));
-            filestorePartitionUsableSpace.setValue(getGb(store.getUsableSpace()));
-            filestorePartitionUsedSpace.setValue(getGb(store.getTotalSpace() - store.getUsableSpace()));
+            Path fileStorePath = Common.MA_HOME_PATH.resolve(location);
+            if (Files.isDirectory(fileStorePath)) {
+                FileStore store = Files.getFileStore(fileStorePath);
+                filestorePartitionTotalSpace.setValue(getGb(store.getTotalSpace()));
+                filestorePartitionUsableSpace.setValue(getGb(store.getUsableSpace()));
+                filestorePartitionUsedSpace.setValue(getGb(store.getTotalSpace() - store.getUsableSpace()));
+            }
         }catch(Exception e) {
             log.error("Unable to get Filestore partition usage", e);
         }
