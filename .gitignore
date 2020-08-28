@@ -1,2 +1,6 @@
 .settings
 .project
+
+# IntelliJ settings
+*.iml
+.idea
