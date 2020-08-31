@@ -4,6 +4,8 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.sql.Clob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -12,7 +14,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 /**
- * When returning data point detectors this will fill the VO with the data point
+ * When returning data point detectors this will fill the VO with the data point and load the handlerXids + other relational data like permissions
  *
  * @author Terry Packer
  *
@@ -29,6 +31,13 @@ public class PointEventDetectorRowMapper extends EventDetectorRowMapper<Abstract
     public PointEventDetectorRowMapper(int firstColumn, ExtractJson<Clob, JsonNode> extractJson, DataPointVO dp, EventDetectorDao dao){
         super(firstColumn, extractJson, dao);
         this.dp = dp;
+    }
+
+    @Override
+    public AbstractPointEventDetectorVO mapRow(ResultSet rs, int rowNum) throws SQLException {
+        AbstractPointEventDetectorVO vo = super.mapRow(rs, rowNum);
+        dao.loadRelationalData(vo);
+        return vo;
     }
 
     @Override
