@@ -3,9 +3,17 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Objects;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.TranslatableIllegalStateException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -20,16 +28,11 @@ import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 /**
  *
@@ -276,13 +279,33 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
      * @throws NotFoundException
      * @throws PermissionException - if calling permission holder does not have edit permission
      * @throws RTException - if source is disabled
+     * @throws TranslatableIllegalStateException - if source not of polling type
      */
     public void forceDataSourcePoll(int id) throws NotFoundException, PermissionException, RTException {
         DataSourceVO vo = get(id);
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        forceDataSourcePoll(vo);
+    }
 
-        ensureEditPermission(user, vo);
-        Common.runtimeManager.forceDataSourcePoll(vo.getId());
+    /**
+     * Force the poll of a data source
+     * @param xid
+     * @throws NotFoundException
+     * @throws PermissionException - if calling permission holder does not have edit permission
+     * @throws RTException - if source is disabled
+     * @throws TranslatableIllegalStateException - if source not of polling type
+     */
+    public void forceDataSourcePoll(String xid) throws NotFoundException, PermissionException, RTException {
+        DataSourceVO vo = get(xid);
+        forceDataSourcePoll(vo);
+    }
+
+    private void forceDataSourcePoll(DataSourceVO vo) {
+        if(vo instanceof PollingDataSourceVO) {
+            PermissionHolder user = Common.getUser();
+            ensureEditPermission(user, vo);
+            Common.runtimeManager.forceDataSourcePoll(vo.getId());
+        }else {
+            throw new TranslatableIllegalStateException(new TranslatableMessage("dsEdit.failedForcePoll", vo.getName()));
+        }
     }
 }
