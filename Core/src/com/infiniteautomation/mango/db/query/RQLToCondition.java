@@ -4,6 +4,14 @@
 
 package com.infiniteautomation.mango.db.query;
 
+import com.serotonin.m2m2.db.dao.BaseDao;
+import net.jazdw.rql.parser.ASTNode;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.SortField;
+import org.jooq.SortOrder;
+import org.jooq.impl.DSL;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -12,16 +20,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.jooq.Condition;
-import org.jooq.Field;
-import org.jooq.SortField;
-import org.jooq.SortOrder;
-import org.jooq.impl.DSL;
-
-import com.serotonin.m2m2.db.dao.BaseDao;
-
-import net.jazdw.rql.parser.ASTNode;
 
 /**
  * Transforms RQL node into a jOOQ Condition along with sort fields, limit and offset
@@ -153,16 +151,13 @@ public class RQLToCondition {
                     }
                 }
                 case IN:
-                    List<?> inArray;
+                    Stream<?> inArray;
                     if (firstArg instanceof List) {
-                        inArray = (List<?>) firstArg;
+                        inArray = ((List<?>) firstArg).stream();
                     } else {
-                        inArray = arguments.subList(1, node.getArgumentsSize())
-                                .stream()
-                                .map(valueConverter)
-                                .collect(Collectors.toList());
+                        inArray = arguments.stream().skip(1);
                     }
-                    return field.in(inArray);
+                    return field.in(inArray.map(valueConverter).collect(Collectors.toList()));
                 default:
                     throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
             }
