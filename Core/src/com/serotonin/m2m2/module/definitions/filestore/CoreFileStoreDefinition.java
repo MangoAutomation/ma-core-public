@@ -4,11 +4,11 @@
  */
 package com.serotonin.m2m2.module.definitions.filestore;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
 
@@ -20,6 +20,11 @@ import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermi
 public class CoreFileStoreDefinition extends FileStoreDefinition{
 
     public static final String NAME = "default";
+
+    @Autowired
+    private CoreFileStoreReadPermissionDefinition readPermission;
+    @Autowired
+    private CoreFileStoreWritePermissionDefinition writePermission;
 
     @Override
     public TranslatableMessage getStoreDescription() {
@@ -33,14 +38,12 @@ public class CoreFileStoreDefinition extends FileStoreDefinition{
 
     @Override
     public MangoPermission getReadPermission() {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(CoreFileStoreReadPermissionDefinition.TYPE_NAME);
-        return permission.getPermission();
+        return readPermission.getPermission();
     }
 
     @Override
     public MangoPermission getWritePermission() {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(CoreFileStoreWritePermissionDefinition.TYPE_NAME);
-        return permission.getPermission();
+        return writePermission.getPermission();
     }
 
 }

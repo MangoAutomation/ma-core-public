@@ -6,7 +6,6 @@ package com.infiniteautomation.mango.spring.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import com.google.common.io.Files;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -115,11 +113,10 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
         PermissionHolder user = Common.getUser();
 
-        this.customizedQuery(new ConditionSortLimit(null, null, null, null), (item, row) -> {
-            names.add(item.getStoreName());
-        });
+        this.customizedQuery(new ConditionSortLimit(null, null, null, null),
+                (item, row) -> names.add(item.getStoreName()));
 
-        for(FileStoreDefinition def : moduleDefs) {
+        for (FileStoreDefinition def : moduleDefs) {
             if(this.permissionService.hasPermission(user, def.getReadPermission())) {
                 names.add(def.getStoreName());
             }
@@ -230,7 +227,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         }
     }
 
-    public File moveFileOrFolder(String fileStoreName, File root, File fileOrFolder, String moveTo) throws TranslatableException, IOException, URISyntaxException {
+    public File moveFileOrFolder(String fileStoreName, File root, File fileOrFolder, String moveTo) throws TranslatableException, IOException {
         Path srcPath = fileOrFolder.toPath();
 
         File dstFile = new File(fileOrFolder.getParentFile(), moveTo).getCanonicalFile();
@@ -252,7 +249,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         return new File(movedPath.toUri());
     }
 
-    public File copyFileOrFolder(String fileStoreName, File root, File srcFile, String dst) throws TranslatableException, IOException, URISyntaxException {
+    public File copyFileOrFolder(String fileStoreName, File root, File srcFile, String dst) throws TranslatableException, IOException {
         if (srcFile.isDirectory()) {
             throw new TranslatableException(new TranslatableMessage("filestore.cantCopyDirectory"));
         }
@@ -278,7 +275,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         return new File(copiedPath.toUri());
     }
 
-    public File findUniqueFileName(File directory, String filename, boolean overwrite) throws TranslatableException, IOException {
+    public File findUniqueFileName(File directory, String filename, boolean overwrite) throws IOException {
         File file = new File(directory, filename).getCanonicalFile();
         if (overwrite) {
             return file;
@@ -286,10 +283,11 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
         File parent = file.getParentFile();
 
-        String originalName = Files.getNameWithoutExtension(filename);
-        String extension = Files.getFileExtension(filename);
-        int i = 1;
+        int lastIndex = filename.lastIndexOf('.');
+        String originalName = lastIndex < 0 ? filename : filename.substring(0, lastIndex);
+        String extension = lastIndex < 0 ? "" : filename.substring(lastIndex + 1);
 
+        int i = 1;
         while (file.exists()) {
             if (extension.isEmpty()) {
                 file = new File(parent, String.format("%s_%03d", originalName, i++));
@@ -313,7 +311,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      * @return
      * @throws UnsupportedEncodingException
      */
-    public String removeToRoot(File root, File file) throws UnsupportedEncodingException {
+    public String removeToRoot(File root, File file) {
         Path relativePath = root.toPath().relativize(file.toPath());
         String relativePathStr = relativePath.toString().replace(File.separatorChar, '/');
 

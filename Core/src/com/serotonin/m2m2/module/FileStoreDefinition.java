@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,13 +41,13 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     abstract public String getStoreName();
 
     /**
-     * Get the write permission
+     * Get the write permission, should delegate to a {@link PermissionDefinition}
      * @return
      */
     public abstract MangoPermission getWritePermission();
 
     /**
-     * Get the read permission
+     * Get the read permission, should delegate to a {@link PermissionDefinition}
      * @return
      */
     public abstract MangoPermission getReadPermission();
@@ -61,10 +60,6 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     public Path getRootPath() {
         String location = Common.envProps.getString(FILE_STORE_LOCATION_ENV_PROPERTY, ROOT);
         return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName()).toAbsolutePath().normalize();
-    }
-
-    public File getRoot() {
-        return getRootPath().toFile();
     }
 
     public void ensureExists() throws IOException {

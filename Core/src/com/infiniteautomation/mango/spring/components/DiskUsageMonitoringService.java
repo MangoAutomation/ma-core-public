@@ -3,23 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.components;
 
-import com.infiniteautomation.mango.monitor.MonitoredValues;
-import com.infiniteautomation.mango.monitor.PollableMonitor;
-import com.infiniteautomation.mango.monitor.ValueMonitor;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.NoSQLProxy;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.FileStoreDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.File;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
@@ -31,6 +14,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.infiniteautomation.mango.monitor.MonitoredValues;
+import com.infiniteautomation.mango.monitor.PollableMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitor;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.NoSQLProxy;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.FileStoreDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 
 /**
  * Monitor partition sizes and optionally file stores and ma_home directories
@@ -87,7 +89,7 @@ public class DiskUsageMonitoringService {
     private final Map<String, ValueMonitor<Double>> fileStoreMonitors = new HashMap<>();
     private volatile ScheduledFuture<?> scheduledFuture;
 
-    private final double gb = 1024*1024*1024;
+    private static final double GB = 1024*1024*1024;
 
     //NoSQL disk space
     private Double lastNoSqlDatabaseSize;
@@ -163,7 +165,7 @@ public class DiskUsageMonitoringService {
                     .build();
 
             //Setup all filestores
-            ModuleRegistry.getFileStoreDefinitions().values().stream().forEach( fs-> {
+            ModuleRegistry.getFileStoreDefinitions().values().forEach(fs-> {
                 ValueMonitor<Double> monitor = monitoredValues.<Double>create(FILE_STORE_SIZE_PREFIX + fs.getStoreName())
                         .name(new TranslatableMessage("internal.monitor.fileStoreSize", fs.getStoreDescription()))
                         .build();
@@ -247,8 +249,9 @@ public class DiskUsageMonitoringService {
         this.sqlDatabaseSize.poll(now);
         this.noSqlDatabaseSize.poll(now);
 
-        fileStoreMonitors.entrySet().stream().forEach(monitor -> {
-            monitor.getValue().setValue(getGb(getSize(ModuleRegistry.getFileStoreDefinition(monitor.getKey()).getRoot())));
+        fileStoreMonitors.forEach((key, value) -> {
+            Path rootPath = ModuleRegistry.getFileStoreDefinition(key).getRootPath();
+            value.setValue(getGb(getSize(rootPath.toFile())));
         });
     }
 
@@ -258,13 +261,13 @@ public class DiskUsageMonitoringService {
      */
     private long getSize(File directory) {
         if(!directory.exists()) {
-            return -1l;
+            return -1L;
         }
         try {
             return FileUtils.sizeOfDirectory(directory);
         }catch(Exception e) {
             log.error("Unable to compute size of " + directory.getAbsolutePath(), e);
-            return 0l;
+            return 0L;
         }
     }
 
@@ -312,7 +315,7 @@ public class DiskUsageMonitoringService {
      * @return
      */
     private double getGb(long bytes) {
-        return bytes/gb;
+        return bytes/GB;
     }
 
 }
