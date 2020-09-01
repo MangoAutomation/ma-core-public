@@ -238,8 +238,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     /* TODO Mango 4.0
      * For future use if we want to allow some data sources to startup in safe mode
      *  will require RuntimeManagerChanges
-     * (non-Javadoc)
-     * @see com.serotonin.util.ILifecycle#initialize(boolean)
      */
     @Override
     public void initialize(boolean safe) {
@@ -252,6 +250,20 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     public void initialize(){
         // no op
+    }
+
+    /**
+     * Hook to know when all points are added, the source is fully initialized
+     */
+    public void initialized() {
+
+    }
+
+    /**
+     * Hook for just before points get removed from the data source
+     */
+    public void terminating() {
+
     }
 
     @Override

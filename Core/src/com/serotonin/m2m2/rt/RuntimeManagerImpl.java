@@ -412,6 +412,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 }
             }
         }
+        //Signal to the data source that all points are added.
+        dataSource.initialized();
 
         long endTime = System.nanoTime();
 
@@ -445,6 +447,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
         if (dataSource == null)
             return;
         try{
+            //Signal we are going down
+            dataSource.terminating();
+
             // Stop the data points.
             for (DataPointRT p : dataPoints.values()) {
                 if (p.getDataSourceId() == id)
