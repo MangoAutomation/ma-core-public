@@ -3,6 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.jooq.Field;
+
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
@@ -19,13 +27,6 @@ import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import net.jazdw.rql.parser.ASTNode;
-import org.jooq.Field;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * TODO Mango 4.0 extract interface
@@ -194,7 +195,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(T existing, T vo) throws PermissionException, ValidationException {
+    protected T update(T existing, T vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
@@ -225,7 +226,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @throws PermissionException
      * @throws NotFoundException
      */
-    public T delete(T vo) throws PermissionException, NotFoundException {
+    protected T delete(T vo) throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
