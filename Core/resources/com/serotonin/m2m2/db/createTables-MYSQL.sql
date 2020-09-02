@@ -413,12 +413,13 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 --
 CREATE TABLE fileStores (
 	id int not null auto_increment,
-	storeName varchar(100) not null,
+	xid varchar(100) not null,
+    name varchar(255) not null,
 	readPermissionId INT NOT NULL,
     writePermissionId INT NOT NULL,
 	PRIMARY KEY (id)
 ) engine=InnoDB;
-ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
+ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (xid);
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 

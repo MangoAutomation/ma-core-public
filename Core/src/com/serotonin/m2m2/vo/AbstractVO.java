@@ -128,7 +128,7 @@ JsonSerializable, Cloneable {
     private static final long serialVersionUID = -1;
 
     /**
-     * Get the Audit Message Key
+     * Get the audit event translatable message key
      * @return
      */
     public abstract String getTypeKey();

@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -34,14 +33,13 @@ import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePerm
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.validation.StringValidation;
 
 /**
  * @author Terry Packer
  *
  */
 @Service
-public class FileStoreService extends AbstractBasicVOService<FileStore, FileStoreTableDefinition, FileStoreDao> {
+public class FileStoreService extends AbstractVOService<FileStore, FileStoreTableDefinition, FileStoreDao> {
 
     private final UserFileStoreCreatePermissionDefinition createPermission;
     private final Path fileStoreRoot;
@@ -68,7 +66,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
     @Override
     public ProcessResult validate(FileStore vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+        ProcessResult result = super.validate(vo, user);
         permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
         permissionService.validateVoRoles(result, "writePermission", user, false, null, vo.getWritePermission());
         return result;
@@ -76,18 +74,9 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
     @Override
     public ProcessResult validate(FileStore existing, FileStore vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+        ProcessResult result = super.validate(vo, user);
         permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
         permissionService.validateVoRoles(result, "writePermission", user, false, existing.getWritePermission(), vo.getWritePermission());
-        return result;
-    }
-
-    protected ProcessResult commonValidation(FileStore vo, PermissionHolder holder) {
-        ProcessResult result = new ProcessResult();
-        if (StringUtils.isBlank(vo.getStoreName()))
-            result.addContextualMessage("storeName", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(vo.getStoreName(), 100))
-            result.addMessage("storeName", new TranslatableMessage("validate.notLongerThan", 100));
         return result;
     }
 
@@ -146,7 +135,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         if (definition != null) {
             store = definition.toFileStore();
         } else {
-            store = dao.getByName(name);
+            store = dao.getByXid(name);
             if (store == null) {
                 throw new NotFoundException();
             }
@@ -178,7 +167,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
             root = fsd.getRootPath();
         }else {
             FileStore fs = getByName(fileStoreName, true);
-            root = fs.getRootPath();
+            root = this.fileStoreRoot.resolve(fs.getXid());
         }
 
         Path filePath = root.resolve(path).toAbsolutePath().normalize();
@@ -206,7 +195,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
             root = fsd.getRootPath();
         }else {
             FileStore fs = getByName(fileStoreName, false);
-            root = fs.getRootPath();
+            root = this.fileStoreRoot.resolve(fs.getXid());
         }
 
         Path filePath = root.resolve(path).toAbsolutePath().normalize();
@@ -227,7 +216,8 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
     public void deleteFileStore(FileStore fs, boolean purgeFiles) throws IOException, PermissionException, NotFoundException {
         fs = delete(fs.getId());
         if(purgeFiles) {
-            FileUtils.deleteDirectory(fs.getRootPath().toFile());
+            Path root = this.fileStoreRoot.resolve(fs.getXid());
+            FileUtils.deleteDirectory(root.toFile());
         }
     }
 

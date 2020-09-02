@@ -4,29 +4,23 @@
  */
 package com.serotonin.m2m2.vo;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.FileStoreDefinition;
+import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 
 /**
- *
  * @author Phillip Dunlap
+ * @author Jared Wiltshire
  */
-public class FileStore extends AbstractBasicVO {
-    private boolean fromDefinition = false;
-    private String storeName;
-    private MangoPermission readPermission = new MangoPermission();
-    private MangoPermission writePermission = new MangoPermission();
+public class FileStore extends AbstractVO {
+    public static final String XID_PREFIX = "FS_";
 
-    public String getStoreName() {
-        return storeName;
-    }
-    public void setStoreName(String storeName) {
-        this.storeName = storeName;
-    }
+    private boolean fromDefinition = false;
+
+    @JsonProperty
+    private MangoPermission readPermission = new MangoPermission();
+    @JsonProperty
+    private MangoPermission writePermission = new MangoPermission();
 
     public MangoPermission getReadPermission() {
         return readPermission;
@@ -52,14 +46,26 @@ public class FileStore extends AbstractBasicVO {
         this.fromDefinition = fromDefinition;
     }
 
-    /**
-     * Get the root of this filestore
-     * @return
-     * @throws IOException
-     */
-    public Path getRootPath() {
-        String location = Common.envProps.getString(FileStoreDefinition.FILE_STORE_LOCATION_ENV_PROPERTY, FileStoreDefinition.ROOT);
-        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName()).toAbsolutePath().normalize();
+    @Override
+    public String getTypeKey() {
+        return FileStoreAuditEvent.TYPE_KEY;
+    }
+
+    public static class FileStoreAuditEvent extends AuditEventTypeDefinition {
+
+        public static final String TYPE_NAME = "FILE_STORE";
+        public static final String TYPE_KEY = "filestore.description";
+
+        @Override
+        public String getTypeName() {
+            return TYPE_NAME;
+        }
+
+        @Override
+        public String getDescriptionKey() {
+            return TYPE_KEY;
+        }
+
     }
 
 }

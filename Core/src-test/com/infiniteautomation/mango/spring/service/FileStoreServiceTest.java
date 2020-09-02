@@ -3,8 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Collections;
 import java.util.UUID;
 
@@ -16,6 +14,8 @@ import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePerm
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Terry Packer
@@ -36,7 +36,8 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     @Override
     public void assertVoEqual(FileStore expected, FileStore actual) {
         assertEquals(expected.getId(), actual.getId());
-        assertEquals(expected.getStoreName(), actual.getStoreName());
+        assertEquals(expected.getName(), actual.getName());
+        assertEquals(expected.getXid(), actual.getXid());
 
         assertPermission(expected.getReadPermission(), actual.getReadPermission());
         assertPermission(expected.getWritePermission(), actual.getWritePermission());
@@ -45,7 +46,8 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     @Override
     public FileStore newVO(User owner) {
         FileStore vo = new FileStore();
-        vo.setStoreName(UUID.randomUUID().toString());
+        vo.setXid(UUID.randomUUID().toString());
+        vo.setName(vo.getXid());
         return vo;
     }
 
@@ -53,7 +55,8 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     FileStore updateVO(FileStore existing) {
         FileStore edit = new FileStore();
         edit.setId(existing.getId());
-        edit.setStoreName("new store name");
+        edit.setXid("new store name");
+        edit.setName(edit.getXid());
         return edit;
     }
 

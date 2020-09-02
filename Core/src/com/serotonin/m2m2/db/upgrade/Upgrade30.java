@@ -3,15 +3,16 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
+
 /**
  * Upgrades the MySQL character set to utf8mb4
+ * @author Jared Wiltshire
  */
 public class Upgrade30 extends DBUpgrade {
     @Override

@@ -3,13 +3,14 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
-import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
-
 import java.util.HashMap;
 import java.util.Map;
 
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
+
 /**
  * Drops redundant indexes
+ * @author Jared Wiltshire
  */
 public class Upgrade31 extends DBUpgrade {
     @Override

@@ -6,7 +6,6 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,19 +31,20 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.tables.MintermMappingTable;
 import com.serotonin.m2m2.db.dao.tables.PermissionMappingTable;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  *
  * @author Phillip Dunlap
+ * @author Jared Wiltshire
  */
 @Repository
-public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefinition> {
+public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinition> {
 
-    private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> {
-        return Common.getRuntimeContext().getBean(FileStoreDao.class);
-    });
+    private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(FileStoreDao.class));
 
     private final PermissionDao permissionDao;
     private final PermissionService permissionService;
@@ -55,7 +55,7 @@ public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefi
             ApplicationEventPublisher publisher,
             PermissionDao permissionDao,
             PermissionService permissionService) {
-        super(table, mapper, publisher);
+        super(FileStore.FileStoreAuditEvent.TYPE_NAME, table, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher);
         this.permissionDao = permissionDao;
         this.permissionService = permissionService;
     }
@@ -64,34 +64,30 @@ public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefi
         return springInstance.get();
     }
 
-    /**
-     * Get a store by name
-     * @param storeName
-     * @return
-     */
-    public FileStore getByName(String storeName) {
-        return ejt.queryForObject(getJoinedSelectQuery().getSQL() + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
+    @Override
+    protected String getXidPrefix() {
+        return FileStore.XID_PREFIX;
     }
 
-    private class FileStoreRowMapper implements RowMapper<FileStore> {
-
+    private static class FileStoreRowMapper implements RowMapper<FileStore> {
         @Override
         public FileStore mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
             FileStore result = new FileStore();
             result.setId(rs.getInt(++i));
-            result.setStoreName(rs.getString(++i));
+            result.setXid(rs.getString(++i));
+            result.setName(rs.getString(++i));
             result.setReadPermission(new MangoPermission(rs.getInt(++i)));
             result.setWritePermission(new MangoPermission(rs.getInt(++i)));
             return result;
         }
-
     }
 
     @Override
     protected Object[] voToObjectArray(FileStore vo) {
         return new Object[] {
-                vo.getStoreName(),
+                vo.getXid(),
+                vo.getName(),
                 vo.getReadPermission().getId(),
                 vo.getWritePermission().getId()
         };
@@ -137,7 +133,7 @@ public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefi
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
         if(!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
+            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 
