@@ -133,6 +133,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
     /**
      * Helper to get stores based on permission
+     *
      * @param name
      * @param write
      * @return
@@ -140,13 +141,20 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
     protected FileStore getByName(String name, boolean write) {
         PermissionHolder user = Common.getUser();
 
-        FileStore store = dao.getByName(name);
-        if(store == null) {
-            throw new NotFoundException();
+        FileStore store;
+        FileStoreDefinition definition = ModuleRegistry.getFileStoreDefinitions().get(name);
+        if (definition != null) {
+            store = definition.toFileStore();
+        } else {
+            store = dao.getByName(name);
+            if (store == null) {
+                throw new NotFoundException();
+            }
         }
-        if(write) {
+
+        if (write) {
             ensureEditPermission(user, store);
-        }else {
+        } else {
             ensureReadPermission(user, store);
         }
         return store;
