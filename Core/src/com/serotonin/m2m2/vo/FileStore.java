@@ -16,6 +16,7 @@ import com.serotonin.m2m2.module.FileStoreDefinition;
  * @author Phillip Dunlap
  */
 public class FileStore extends AbstractBasicVO {
+    private boolean fromDefinition = false;
     private String storeName;
     private MangoPermission readPermission = new MangoPermission();
     private MangoPermission writePermission = new MangoPermission();
@@ -41,6 +42,14 @@ public class FileStore extends AbstractBasicVO {
 
     public void setWritePermission(MangoPermission writePermission) {
         this.writePermission = writePermission;
+    }
+
+    public boolean isFromDefinition() {
+        return fromDefinition;
+    }
+
+    public void setFromDefinition(boolean fromDefinition) {
+        this.fromDefinition = fromDefinition;
     }
 
     /**

@@ -102,26 +102,22 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
     }
 
     /**
-     * List all filestore names that the user has read permission for
-     *
-     * @return
-     * @throws PermissionException
+     * List all file-stores that the user has read permission for
      */
-    public List<String> getStoreNames() throws PermissionException {
-        List<String> names = new ArrayList<>();
-        Collection<FileStoreDefinition> moduleDefs = ModuleRegistry.getFileStoreDefinitions().values();
-
-        PermissionHolder user = Common.getUser();
+    public List<FileStore> getStores() {
+        List<FileStore> stores = new ArrayList<>();
 
         this.customizedQuery(new ConditionSortLimit(null, null, null, null),
-                (item, row) -> names.add(item.getStoreName()));
+                (item, row) -> stores.add(item));
 
+        PermissionHolder user = Common.getUser();
+        Collection<FileStoreDefinition> moduleDefs = ModuleRegistry.getFileStoreDefinitions().values();
         for (FileStoreDefinition def : moduleDefs) {
-            if(this.permissionService.hasPermission(user, def.getReadPermission())) {
-                names.add(def.getStoreName());
+            if (this.permissionService.hasPermission(user, def.getReadPermission())) {
+                stores.add(def.toFileStore());
             }
         }
-        return names;
+        return stores;
     }
 
     /**

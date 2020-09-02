@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.FileStore;
 
 /**
  * Define a file storage area within the filestore directory of the core
@@ -64,5 +65,14 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
 
     public void ensureExists() throws IOException {
         Files.createDirectories(getRootPath());
+    }
+
+    public FileStore toFileStore() {
+        FileStore fileStore = new FileStore();
+        fileStore.setFromDefinition(true);
+        fileStore.setStoreName(getStoreName());
+        fileStore.setWritePermission(getWritePermission());
+        fileStore.setReadPermission(getReadPermission());
+        return fileStore;
     }
 }
