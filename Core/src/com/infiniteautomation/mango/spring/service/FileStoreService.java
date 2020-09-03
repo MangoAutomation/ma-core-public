@@ -9,6 +9,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -196,12 +197,12 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
         FileStore fileStore = getWithoutPermissionCheck(xid);
         ensureEditPermission(Common.getUser(), fileStore);
         FileStorePath srcPath = getPathWithinFileStore(fileStore, src);
-        FileStorePath dstPath = getPathWithinFileStore(fileStore, dst);
 
         if (!Files.exists(srcPath.absolutePath)) {
             throw new NotFoundException();
         }
 
+        FileStorePath dstPath = srcPath.getParent().resolve(Paths.get(dst));
         if (Files.isDirectory(dstPath.absolutePath)) {
             Path pathWithFileName = dstPath.absolutePath.resolve(srcPath.absolutePath.getFileName());
             dstPath = new FileStorePath(fileStore, pathWithFileName);
@@ -221,12 +222,12 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
         FileStore fileStore = getWithoutPermissionCheck(xid);
         ensureEditPermission(Common.getUser(), fileStore);
         FileStorePath srcPath = getPathWithinFileStore(fileStore, src);
-        FileStorePath dstPath = getPathWithinFileStore(fileStore, dst);
 
         if (!Files.exists(srcPath.absolutePath)) {
             throw new NotFoundException();
         }
 
+        FileStorePath dstPath = srcPath.getParent().resolve(Paths.get(dst));
         if (Files.isDirectory(dstPath.absolutePath)) {
             Path pathWithFileName = dstPath.absolutePath.resolve(srcPath.absolutePath.getFileName());
             dstPath = new FileStorePath(fileStore, pathWithFileName);
