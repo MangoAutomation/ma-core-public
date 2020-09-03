@@ -9,7 +9,6 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +38,11 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 @Service
 public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceTableDefinition, EventInstanceDao> {
 
-    private final DataPointService dataPointService;
     private final DataPointDao dataPointDao;
 
     @Autowired
-    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointService dataPointService, DataPointDao dataPointDao) {
+    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao) {
         super(dao, permissionService);
-        this.dataPointService = dataPointService;
         this.dataPointDao = dataPointDao;
     }
 
@@ -76,7 +73,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public List<UserEventLevelSummary> getActiveSummary() throws PermissionException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
         this.permissionService.ensureEventsVewPermission(user);
 
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
@@ -100,7 +96,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public List<UserEventLevelSummary> getUnacknowledgedSummary() {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
         this.permissionService.ensureEventsVewPermission(user);
 
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
@@ -131,7 +126,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids) throws NotFoundException, PermissionException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
         this.permissionService.ensureEventsVewPermission(user);
 
         Map<Integer, DataPointEventLevelSummary> map = new LinkedHashMap<>();
@@ -158,7 +152,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public List<EventInstance> getAllActiveUserEvents() {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
         this.permissionService.ensureEventsVewPermission(user);
 
         return Common.eventManager.getAllActiveUserEvents(user);

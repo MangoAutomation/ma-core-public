@@ -3,6 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
 import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -19,15 +27,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.ListIterator;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author Terry Packer
@@ -69,7 +68,6 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     public PublisherVO<? extends PublishedPointVO> insert(PublisherVO<? extends PublishedPointVO> vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
@@ -94,7 +92,6 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     @Override
     public PublisherVO<? extends PublishedPointVO> update(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureEditPermission(user, existing);
 
@@ -116,7 +113,6 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     public PublisherVO<? extends PublishedPointVO> delete(PublisherVO<? extends PublishedPointVO> vo)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deletePublisher(vo.getId());
@@ -131,7 +127,6 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     public void restart(String xid, boolean enabled, boolean restart) {
         PublisherVO<? extends PublishedPointVO>  vo = get(xid);
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureEditPermission(user, vo);
         if (enabled && restart) {
@@ -175,22 +170,19 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
             response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
 
         Set<Integer> set = new HashSet<>();
-        ListIterator<? extends PublishedPointVO> it = vo.getPoints().listIterator();
 
-        while(it.hasNext()) {
-            PublishedPointVO point = it.next();
+        for (PublishedPointVO point : vo.getPoints()) {
             int pointId = point.getDataPointId();
             //Does this point even exist?
 
             if (set.contains(pointId)) {
                 DataPointVO dp = DataPointDao.getInstance().get(pointId);
                 response.addContextualMessage("points", "validate.publisher.duplicatePoint", dp.getExtendedName(), dp.getXid());
-            }
-            else{
+            } else {
                 String dpXid = DataPointDao.getInstance().getXidById(pointId);
-                if(dpXid == null) {
+                if (dpXid == null) {
                     response.addContextualMessage("points", "validate.publisher.missingPoint", pointId);
-                }else {
+                } else {
                     set.add(pointId);
                 }
             }

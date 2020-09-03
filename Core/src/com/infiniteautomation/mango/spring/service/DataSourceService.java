@@ -3,8 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Objects;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -86,7 +84,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     public DataSourceVO insert(DataSourceVO vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
@@ -112,7 +109,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public DataSourceVO update(DataSourceVO existing, DataSourceVO vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureEditPermission(user, existing);
 
@@ -132,7 +128,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public DataSourceVO delete(DataSourceVO vo) throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
@@ -238,7 +233,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public ProcessResult validate(DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
+        boolean owner = user != null && permissionService.hasDataSourcePermission(user);
         permissionService.validateVoRoles(response, "editPermission", user, owner, null, vo.getEditPermission());
         permissionService.validateVoRoles(response, "readPermission", user, owner, null, vo.getReadPermission());
 
@@ -251,7 +246,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     public ProcessResult validate(DataSourceVO existing, DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
         //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
-        boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
+        boolean owner = user != null && permissionService.hasDataSourcePermission(user);
         permissionService.validateVoRoles(response, "editPermission", user, owner, existing.getEditPermission(), vo.getEditPermission());
         permissionService.validateVoRoles(response, "readPermission", user, owner, existing.getReadPermission(), vo.getReadPermission());
 

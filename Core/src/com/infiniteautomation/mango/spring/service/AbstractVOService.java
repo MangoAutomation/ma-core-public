@@ -3,8 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Objects;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
@@ -72,12 +70,9 @@ public abstract class AbstractVOService<T extends AbstractVO, TABLE extends Abst
      */
     public T get(String xid) throws NotFoundException, PermissionException {
         T vo = dao.getByXid(xid);
-
         if(vo == null)
             throw new NotFoundException();
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
         ensureReadPermission(user, vo);
         return vo;
     }
@@ -92,8 +87,6 @@ public abstract class AbstractVOService<T extends AbstractVO, TABLE extends Abst
     @Override
     public T insert(T vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
         //Ensure they can create
         ensureCreatePermission(user, vo);
 

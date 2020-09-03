@@ -3,6 +3,31 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectHavingStep;
+import org.jooq.SelectJoinStep;
+import org.jooq.SelectLimitStep;
+import org.jooq.SortField;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.stereotype.Service;
+
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -45,20 +70,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
-import org.apache.commons.lang3.StringUtils;
-import org.jooq.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.stereotype.Service;
-
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Service for Data Points.  Event detectors can be added to a data point via this service when updating a point,
@@ -132,7 +143,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     public DataPointVO insert(DataPointVO vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         //Ensure they can create
         ensureCreatePermission(user, vo);
@@ -162,7 +172,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     @Override
     public DataPointVO update(DataPointVO existing, DataPointVO vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureEditPermission(user, existing);
 
@@ -185,7 +194,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     public DataPointVO delete(DataPointVO vo)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureDeletePermission(user, vo);
         Common.runtimeManager.stopDataPoint(vo.getId());
@@ -205,7 +213,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      */
     public boolean setDataPointState(String xid, boolean enabled, boolean restart) throws NotFoundException, PermissionException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         DataPointVO vo = get(xid);
         ensureEditPermission(user, vo);
@@ -219,9 +226,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      * @return true if state changed
      */
     public boolean reloadDataPoint(String xid) {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
         DataPointVO vo = get(xid);
         return reloadDataPoint(vo);
     }
@@ -234,9 +238,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      * @return true if state changed
      */
     public boolean reloadDataPoint(Integer id) {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
         DataPointVO vo = get(id);
         return reloadDataPoint(vo);
     }
@@ -247,6 +248,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      * @return true if state changed
      */
     protected boolean reloadDataPoint(DataPointVO vo) {
+        ensureEditPermission(Common.getUser(), vo);
         boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
         if(running) {
             return setDataPointState(vo, true, true);
@@ -350,7 +352,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      */
     public void queryDeviceNames(Condition conditions, boolean sortAsc, Integer limit, Integer offset, MappedRowCallback<String> callback) {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         Field<Object> deviceName = this.dao.getTable().getAlias("deviceName");
         List<SortField<Object>> sort = new ArrayList<>();
@@ -362,7 +363,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
         ConditionSortLimit csl = new ConditionSortLimit(conditions, sort, limit, offset);
 
-        SelectJoinStep<Record> select = this.dao.getSelectQuery(Arrays.asList(deviceName));
+        SelectJoinStep<Record> select = this.dao.getSelectQuery(Collections.singletonList(deviceName));
         select = dao.joinTables(select, null);
 
         if(!permissionService.hasAdminRole(user)) {
@@ -371,7 +372,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
         SelectConnectByStep<Record> afterWhere = conditions == null ? select : select.where(conditions);
         SelectHavingStep<Record> afterGroupBy = afterWhere.groupBy(deviceName);
-        SelectLimitStep<Record> afterSort = sort == null ? afterGroupBy : afterGroupBy.orderBy(sort);
+        SelectLimitStep<Record> afterSort = afterGroupBy.orderBy(sort);
 
         Select<Record> offsetStep = afterSort;
         if (limit != null) {
@@ -382,18 +383,13 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             }
         }
 
-        dao.customizedQuery(offsetStep, new ResultSetExtractor<Void>() {
-
-            @Override
-            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
-                int rowNum = 0;
-                while (rs.next()) {
-                    callback.row(rs.getString(1), rowNum);
-                    rowNum++;
-                }
-                return null;
+        dao.customizedQuery(offsetStep, (ResultSetExtractor<Void>) rs -> {
+            int rowNum = 0;
+            while (rs.next()) {
+                callback.row(rs.getString(1), rowNum);
+                rowNum++;
             }
-
+            return null;
         });
     }
 
@@ -675,12 +671,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         if(vo == null) {
             throw new NotFoundException();
         }
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        if(!permissionService.hasPermission(user, vo.getReadPermission()))
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
-
+        permissionService.ensurePermission(Common.getUser(), vo.getReadPermission());
         return vo;
     }
 
@@ -709,7 +700,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     public void setValue(int id, PointValueTime valueTime, SetPointSource source) throws NotFoundException, PermissionException, RTException {
         DataPointVO vo = get(id);
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureSetPermission(user, vo);
         Common.runtimeManager.setDataPointValue(vo.getId(), valueTime, source);

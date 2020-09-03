@@ -105,7 +105,8 @@ public class MangoJavaScriptService {
     public static final DataValue UNCHANGED = new BinaryValue(false);
     public static final String UNCHANGED_KEY = "UNCHANGED";
 
-    private final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM YYYY HH:mm:ss z");
+    // TODO Mango 4.0 this is not thread safe
+    private final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z");
 
     private static final Object globalFunctionsLock = new Object();
 
@@ -153,7 +154,7 @@ public class MangoJavaScriptService {
      */
     public void validateContext(List<ScriptContextVariable> context, PermissionHolder user, ProcessResult result) {
         //Validate the context, can we read all points and are the var names valid
-        List<String> varNameSpace = new ArrayList<String>();
+        List<String> varNameSpace = new ArrayList<>();
         for(ScriptContextVariable var : context) {
             String varName = var.getVariableName();
             DataPointVO dp = DataPointDao.getInstance().get(var.getDataPointId());
@@ -204,7 +205,7 @@ public class MangoJavaScriptService {
      * @throws PermissionException
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, String noChangeKey) throws ValidationException, PermissionException {
-        return testScript(vo, (result, holder) ->{ return createValidationSetter(result);}, noChangeKey);
+        return testScript(vo, (result, holder) -> createValidationSetter(result), noChangeKey);
     }
 
     /**
@@ -215,7 +216,7 @@ public class MangoJavaScriptService {
      * @throws PermissionException
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo) throws ValidationException, PermissionException {
-        return testScript(vo, (result, holder) ->{ return createValidationSetter(result);}, "eventHandlers.script.successUnchanged");
+        return testScript(vo, (result, holder) -> createValidationSetter(result), "eventHandlers.script.successUnchanged");
     }
 
     /**
@@ -227,14 +228,13 @@ public class MangoJavaScriptService {
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter, String noChangeKey) {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureValid(vo, user);
         final StringWriter scriptOut = new StringWriter();
         MangoJavaScriptResult result = new  MangoJavaScriptResult();
         try {
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter);){
+            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter)){
                 CompiledMangoJavaScript script = new CompiledMangoJavaScript(
                         vo, createSetter.apply(result, vo.getPermissions()), scriptLog, result, this);
 
@@ -285,7 +285,6 @@ public class MangoJavaScriptService {
      */
     public MangoJavaScriptResult executeScript(MangoJavaScript vo, ScriptPointValueSetter setter) throws ValidationException, PermissionException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         ensureValid(vo, user);
         MangoJavaScriptResult result = new MangoJavaScriptResult();
@@ -301,7 +300,7 @@ public class MangoJavaScriptService {
         }
 
         try {
-            try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter, vo.getLog(), vo.isCloseLog());){
+            try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter, vo.getLog(), vo.isCloseLog())){
 
                 CompiledMangoJavaScript script = new CompiledMangoJavaScript(
                         vo, setter, scriptLog, result, this);
@@ -322,11 +321,9 @@ public class MangoJavaScriptService {
         }catch (ScriptError e) {
             //The script exception should be clean as both compile() and execute() clean it
             result.addError(new MangoJavaScriptError(e.getTranslatableMessage(), e.getLineNumber(), e.getColumnNumber()));
-        }catch(ResultTypeException e) {
+        }catch(ResultTypeException | DataPointStateException e) {
             result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
-        }catch(DataPointStateException e) {
-            result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
-        }catch (Exception e) {
+        } catch (Exception e) {
             result.addError(new MangoJavaScriptError(e.getMessage()));
         }finally {
             if(vo.isReturnLogOutput())
@@ -389,7 +386,7 @@ public class MangoJavaScriptService {
      * @param script
      * @param context - if provided points will be wrapped with script's setter (alternatively use script.addToContext()
      */
-    public void initialize(CompiledMangoJavaScript script, Map<String, IDataPointValueSource> context) throws ScriptError, ScriptPermissionsException {
+    public void initialize(CompiledMangoJavaScript script, Map<String, IDataPointValueSource> context) throws ScriptError {
         //TODO assert compiled
         //TODO assert permissions to execute global scripts
         //TODO assert setter not null
@@ -399,7 +396,7 @@ public class MangoJavaScriptService {
 
         engineScope.put(MangoJavaScriptService.UNCHANGED_KEY, MangoJavaScriptService.UNCHANGED);
 
-        Set<String> points = new HashSet<String>();
+        Set<String> points = new HashSet<>();
         engineScope.put(MangoJavaScriptService.POINTS_CONTEXT_KEY, points);
         //Holder for modifying timestamps of meta points, in Engine Scope so it can be modified by all
         engineScope.put(MangoJavaScriptService.TIMESTAMP_CONTEXT_KEY, null);
@@ -471,7 +468,7 @@ public class MangoJavaScriptService {
             permissionService.runAsCallable(script.getPermissionHolder(), () -> {
                 script.getResult().reset();
 
-                //Setup the wraper context
+                //Setup the wrapper context
                 Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
                 engineScope.put(MangoJavaScriptService.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
 
@@ -598,11 +595,8 @@ public class MangoJavaScriptService {
      * @return
      */
     public ScriptEngine newEngine() {
-        PermissionHolder holder = Common.getUser();
-        Objects.requireNonNull(holder, "Permission holder must be set in security context");
-
         NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-        if(holder != null && permissionService.hasAdminRole(holder))
+        if(permissionService.hasAdminRole(Common.getUser()))
             return factory.getScriptEngine();
         else
             return factory.getScriptEngine(new NoJavaFilter());
@@ -804,7 +798,7 @@ public class MangoJavaScriptService {
         return this.permissionService;
     }
 
-    private class ScriptLogExtender extends ScriptLog {
+    private static class ScriptLogExtender extends ScriptLog {
 
         private final ScriptLog logger;
         private final boolean closeExtendedLog;
