@@ -253,11 +253,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     public FileStorePath createDirectory(String xid, String toCreate) {
         FileStorePath toCreatePath = forWrite(xid, toCreate);
         try {
-            Files.createDirectories(toCreatePath.absolutePath.getParent());
-            Files.createDirectory(toCreatePath.absolutePath);
+            Files.createDirectories(toCreatePath.absolutePath);
             return toCreatePath;
-        } catch (FileAlreadyExistsException e) {
-            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", toCreatePath.standardizedPath()));
         } catch (Exception e) {
             throw new FileStoreException(new TranslatableMessage("filestore.errorCreatingDirectory"));
         }
