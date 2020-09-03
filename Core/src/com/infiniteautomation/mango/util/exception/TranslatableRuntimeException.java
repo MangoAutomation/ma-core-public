@@ -14,21 +14,14 @@ public class TranslatableRuntimeException extends RuntimeException implements Tr
 
     private TranslatableMessage translatableMessage = null;
 
-    public TranslatableRuntimeException() {
-        super();
-    }
-
     public TranslatableRuntimeException(TranslatableMessage message, Throwable cause) {
         super(cause);
         this.translatableMessage = message;
     }
 
     public TranslatableRuntimeException(TranslatableMessage message) {
+        super();
         this.translatableMessage = message;
-    }
-
-    public TranslatableRuntimeException(Throwable cause) {
-        super(cause);
     }
 
     @Override
