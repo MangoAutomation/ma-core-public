@@ -4,21 +4,29 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.core.OrderComparator;
+
 import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.spring.service.FileStoreService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.provider.Providers;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.core.OrderComparator;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The registry of all modules in an MA instance.
@@ -509,7 +517,12 @@ public class ModuleRegistry {
                             } catch (IOException e) {
                                 LOG.error("Couldn't create directory for file store", e);
                             }
-                            map.put(def.getStoreName(), def);
+
+                            String xid = def.getStoreName();
+                            if (FileStoreService.INVALID_XID_CHARACTERS.matcher(xid).matches()) {
+                                throw new RuntimeException("Filestore name contains invalid character");
+                            }
+                            map.put(xid, def);
                         }
                     }
                     FILE_STORE_DEFINITIONS = map;

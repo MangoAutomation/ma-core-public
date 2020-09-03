@@ -7,11 +7,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     private final UserFileStoreCreatePermissionDefinition createPermission;
     private final Path fileStoreRoot;
 
+    public static final Pattern INVALID_XID_CHARACTERS = Pattern.compile("[./\\\\]");
+
     /**
      * @param dao
      * @param permissionService
@@ -68,6 +71,7 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     @Override
     public ProcessResult validate(FileStore vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
+        validateXid(result, vo);
         permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
         permissionService.validateVoRoles(result, "writePermission", user, false, null, vo.getWritePermission());
         return result;
@@ -76,9 +80,21 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     @Override
     public ProcessResult validate(FileStore existing, FileStore vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
+        validateXid(result, vo);
         permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
         permissionService.validateVoRoles(result, "writePermission", user, false, existing.getWritePermission(), vo.getWritePermission());
         return result;
+    }
+
+    private void validateXid(ProcessResult result, FileStore vo) {
+        String xid = vo.getXid();
+        if (xid != null) {
+            if (INVALID_XID_CHARACTERS.matcher(xid).matches()) {
+                result.addContextualMessage("xid", "validate.containsInvalidCharacters");
+            } else if (ModuleRegistry.getFileStoreDefinitions().containsKey(xid)) {
+                result.addContextualMessage("xid", "filestore.reservedXid");
+            }
+        }
     }
 
     @Override
@@ -147,117 +163,122 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
         FileStore deleted = delete(xid);
         if (purgeFiles) {
             Path root = getFileStoreRoot(deleted);
-            FileUtils.deleteDirectory(root.toFile());
+            if (Files.exists(root)) {
+                FileUtils.deleteDirectory(root.toFile());
+            }
         }
     }
 
-    public void deleteFileOrFolder(String xid, String toDelete, boolean recursive) {
+    public FileStorePath deleteFileOrFolder(String xid, String toDelete, boolean recursive) {
         FileStore fileStore = getWithoutPermissionCheck(xid);
         ensureEditPermission(Common.getUser(), fileStore);
-        Path root = getFileStoreRoot(fileStore);
-        Path toDeletePath = getPathWithinFileStore(fileStore, toDelete);
+        FileStorePath toDeletePath = getPathWithinFileStore(fileStore, toDelete);
 
-        if (!Files.exists(toDeletePath)) {
-            throw new FileStoreException(new TranslatableMessage("filestore.fileDoesNotExist", relativePath(root, toDeletePath)));
+        if (!Files.exists(toDeletePath.absolutePath)) {
+            throw new NotFoundException();
         }
 
         try {
-            if (Files.isDirectory(toDeletePath) && recursive) {
-                FileUtils.deleteDirectory(toDeletePath.toFile());
+            if (Files.isDirectory(toDeletePath.absolutePath) && recursive) {
+                FileUtils.deleteDirectory(toDeletePath.absolutePath.toFile());
             } else {
-                Files.delete(toDeletePath);
+                Files.delete(toDeletePath.absolutePath);
             }
+            return toDeletePath;
+        } catch (NoSuchFileException e) {
+            throw new NotFoundException();
         } catch (Exception e) {
             throw new FileStoreException(new TranslatableMessage("filestore.errorDeletingFile"));
         }
     }
 
-    public Path moveFileOrFolder(String xid, String src, String dst) {
+    public FileStorePath moveFileOrFolder(String xid, String src, String dst) {
         FileStore fileStore = getWithoutPermissionCheck(xid);
         ensureEditPermission(Common.getUser(), fileStore);
-        Path root = getFileStoreRoot(fileStore);
-        Path srcPath = getPathWithinFileStore(fileStore, src);
-        Path dstPath = getPathWithinFileStore(fileStore, dst);
+        FileStorePath srcPath = getPathWithinFileStore(fileStore, src);
+        FileStorePath dstPath = getPathWithinFileStore(fileStore, dst);
 
-        if (!Files.exists(srcPath)) {
-            throw new FileStoreException(new TranslatableMessage("filestore.fileDoesNotExist", relativePath(root, srcPath)));
+        if (!Files.exists(srcPath.absolutePath)) {
+            throw new NotFoundException();
         }
 
-        if (Files.isDirectory(dstPath)) {
-            dstPath = dstPath.resolve(srcPath.getFileName());
+        if (Files.isDirectory(dstPath.absolutePath)) {
+            Path pathWithFileName = dstPath.absolutePath.resolve(srcPath.absolutePath.getFileName());
+            dstPath = new FileStorePath(fileStore, pathWithFileName);
         }
 
         try {
-            return Files.move(srcPath, dstPath);
+            Files.move(srcPath.absolutePath, dstPath.absolutePath);
+            return dstPath;
         } catch (FileAlreadyExistsException e) {
-            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", relativePath(root, dstPath)));
+            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", dstPath.standardizedPath()));
         } catch (Exception e) {
             throw new FileStoreException(new TranslatableMessage("filestore.errorMovingFile"));
         }
     }
 
-    public Path copyFileOrFolder(String xid, String src, String dst) {
+    public FileStorePath copyFileOrFolder(String xid, String src, String dst) {
         FileStore fileStore = getWithoutPermissionCheck(xid);
         ensureEditPermission(Common.getUser(), fileStore);
-        Path root = getFileStoreRoot(fileStore);
-        Path srcPath = getPathWithinFileStore(fileStore, src);
-        Path dstPath = getPathWithinFileStore(fileStore, dst);
+        FileStorePath srcPath = getPathWithinFileStore(fileStore, src);
+        FileStorePath dstPath = getPathWithinFileStore(fileStore, dst);
 
-        if (!Files.exists(srcPath)) {
-            throw new FileStoreException(new TranslatableMessage("filestore.fileDoesNotExist", relativePath(root, srcPath)));
+        if (!Files.exists(srcPath.absolutePath)) {
+            throw new NotFoundException();
         }
 
-        if (Files.isDirectory(srcPath)) {
-            throw new FileStoreException(new TranslatableMessage("filestore.cantCopyDirectory"));
+        if (Files.isDirectory(dstPath.absolutePath)) {
+            Path pathWithFileName = dstPath.absolutePath.resolve(srcPath.absolutePath.getFileName());
+            dstPath = new FileStorePath(fileStore, pathWithFileName);
         }
 
-        if (Files.isDirectory(dstPath)) {
-            dstPath = dstPath.resolve(srcPath.getFileName());
+        if (Files.exists(dstPath.absolutePath)) {
+            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", dstPath.standardizedPath()));
         }
 
         try {
-            return Files.copy(srcPath, dstPath);
+            if (Files.isDirectory(srcPath.absolutePath)) {
+                FileUtils.copyDirectory(srcPath.absolutePath.toFile(), dstPath.absolutePath.toFile());
+            } else {
+                Files.copy(srcPath.absolutePath, dstPath.absolutePath);
+            }
+            return dstPath;
         } catch (FileAlreadyExistsException e) {
-            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", relativePath(root, dstPath)));
+            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", dstPath.standardizedPath()));
         } catch (Exception e) {
             throw new FileStoreException(new TranslatableMessage("filestore.errorCopyingFile"));
         }
     }
 
-    public Path createDirectory(String xid, String toCreate) {
-        FileStore fileStore = getWithoutPermissionCheck(xid);
-        ensureEditPermission(Common.getUser(), fileStore);
-        Path root = getFileStoreRoot(fileStore);
-        Path toCreatePath = getPathWithinFileStore(fileStore, toCreate);
+    public FileStorePath createDirectory(String xid, String toCreate) {
+        FileStorePath toCreatePath = forWrite(xid, toCreate);
         try {
-            Files.createDirectories(toCreatePath.getParent());
-            return Files.createDirectory(toCreatePath);
+            Files.createDirectories(toCreatePath.absolutePath.getParent());
+            Files.createDirectory(toCreatePath.absolutePath);
+            return toCreatePath;
         } catch (FileAlreadyExistsException e) {
-            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", relativePath(root, toCreatePath)));
+            throw new FileStoreException(new TranslatableMessage("filestore.fileExists", toCreatePath.standardizedPath()));
         } catch (Exception e) {
             throw new FileStoreException(new TranslatableMessage("filestore.errorCreatingDirectory"));
         }
     }
 
     private Path getFileStoreRoot(FileStore fileStore) {
-        // TODO xids with slash or dots?
-        Path test = Paths.get("test/abc");
-        System.out.println(test.getNameCount());
-        System.out.println(test);
         return this.fileStoreRoot.resolve(fileStore.getXid());
     }
 
-    private Path getPathWithinFileStore(FileStore fileStore, String path) {
+    private FileStorePath getPathWithinFileStore(FileStore fileStore, String path) {
         Path root = getFileStoreRoot(fileStore);
         Path filePath = root.resolve(path).toAbsolutePath().normalize();
         if (!filePath.startsWith(root)) {
             throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.invalidPath"));
         }
-        return filePath;
+        return new FileStorePath(fileStore, filePath);
     }
 
     /**
      * Retrieves the path to a file in the file store, checking that the user has write permission for the file store.
+     * Does not check if the file exists, only that the filestore exists.
      *
      * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
      * @param path
@@ -266,13 +287,12 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
      * @throws NotFoundException   file store does not exist
      */
     public Path getPathForWrite(String xid, String path) throws PermissionException, NotFoundException {
-        FileStore fileStore = getWithoutPermissionCheck(xid);
-        ensureEditPermission(Common.getUser(), fileStore);
-        return getPathWithinFileStore(fileStore, path);
+        return forWrite(xid, path).getAbsolutePath();
     }
 
     /**
      * Retrieves the path to a file in the file store, checking that the user has read permission for the file store.
+     * Does not check if the file exists, only that the filestore exists.
      *
      * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
      * @param path
@@ -281,12 +301,42 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
      * @throws NotFoundException   file store does not exist
      */
     public Path getPathForRead(String xid, String path) throws PermissionException, NotFoundException {
+        return forRead(xid, path).getAbsolutePath();
+    }
+
+    /**
+     * Retrieves the path to a file in the file store, checking that the user has write permission for the file store.
+     * Does not check if the file exists, only that the filestore exists.
+     *
+     * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
+     * @param path
+     * @return
+     * @throws PermissionException user does not have permission to write to the file store
+     * @throws NotFoundException   file store does not exist
+     */
+    public FileStorePath forWrite(String xid, String path) throws PermissionException, NotFoundException {
+        FileStore fileStore = getWithoutPermissionCheck(xid);
+        ensureEditPermission(Common.getUser(), fileStore);
+        return getPathWithinFileStore(fileStore, path);
+    }
+
+    /**
+     * Retrieves the path to a file in the file store, checking that the user has read permission for the file store.
+     * Does not check if the file exists, only that the filestore exists.
+     *
+     * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
+     * @param path
+     * @return
+     * @throws PermissionException user does not have permission to read from the file store
+     * @throws NotFoundException   file store does not exist
+     */
+    public FileStorePath forRead(String xid, String path) throws PermissionException, NotFoundException {
         FileStore fileStore = getWithoutPermissionCheck(xid);
         ensureReadPermission(Common.getUser(), fileStore);
         return getPathWithinFileStore(fileStore, path);
     }
 
-    private FileStore resolveFileStore(Path path) {
+    private FileStorePath resolveFileStore(Path path) {
         Path absolutePath = path.toAbsolutePath().normalize();
         if (!absolutePath.startsWith(fileStoreRoot)) {
             throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.invalidPath"));
@@ -296,7 +346,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
             throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.invalidPath"));
         }
         String fileStoreName = relative.getName(0).toString();
-        return getWithoutPermissionCheck(fileStoreName);
+        FileStore fileStore = getWithoutPermissionCheck(fileStoreName);
+        return new FileStorePath(fileStore, absolutePath);
     }
 
     /**
@@ -306,7 +357,7 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
      * @throws PermissionException      filestore exists but user does not have read access
      */
     public void ensureReadAccess(Path path) throws IllegalArgumentException, NotFoundException, PermissionException {
-        FileStore fileStore = resolveFileStore(path);
+        FileStore fileStore = resolveFileStore(path).getFileStore();
         ensureReadPermission(Common.getUser(), fileStore);
     }
 
@@ -317,13 +368,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
      * @throws PermissionException      filestore exists but user does not have write access
      */
     public void ensureWriteAccess(Path path) throws IllegalArgumentException, NotFoundException, PermissionException {
-        FileStore fileStore = resolveFileStore(path);
+        FileStore fileStore = resolveFileStore(path).getFileStore();
         ensureEditPermission(Common.getUser(), fileStore);
-    }
-
-    public String relativePath(Path root, Path file) {
-        Path relativePath = root.relativize(file);
-        return relativePath.toString().replace(File.separatorChar, '/');
     }
 
     public static class FileStoreException extends TranslatableRuntimeException {
@@ -333,6 +379,52 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
 
         public FileStoreException(TranslatableMessage message) {
             super(message);
+        }
+    }
+
+    public class FileStorePath {
+        private final FileStore fileStore;
+        private final Path absolutePath;
+
+        private FileStorePath(FileStore fileStore, Path absolutePath) {
+            this.fileStore = fileStore;
+            this.absolutePath = absolutePath;
+        }
+
+        public FileStore getFileStore() {
+            return fileStore;
+        }
+
+        public Path getAbsolutePath() {
+            return absolutePath;
+        }
+
+        public Path getRelativePath() {
+            return getFileStoreRoot().relativize(this.absolutePath);
+        }
+
+        public Path getFileStoreRoot() {
+            return FileStoreService.this.getFileStoreRoot(this.fileStore);
+        }
+
+        public String standardizedPath() {
+            return getRelativePath().toString().replace(File.separatorChar, '/');
+        }
+
+        public FileStorePath resolve(Path other) {
+            Path newPath = absolutePath.resolve(other).toAbsolutePath().normalize();
+            if (!newPath.startsWith(getFileStoreRoot())) {
+                throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.invalidPath"));
+            }
+            return new FileStorePath(fileStore, newPath);
+        }
+
+        public FileStorePath getParent() {
+            Path newPath = absolutePath.getParent();
+            if (!newPath.startsWith(getFileStoreRoot())) {
+                throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.invalidPath"));
+            }
+            return new FileStorePath(fileStore, newPath);
         }
     }
 }

@@ -35,7 +35,8 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     abstract public TranslatableMessage getStoreDescription();
 
     /**
-     * The name of the store.  Should be unique across all Modules and Mango Core
+     * The name of the store.  Should be unique across all Modules and Mango Core.
+     * Note: this is used as the pseudo-XID when this file store definition is retrieved from the REST API.
      *
      * @return the store name
      */
