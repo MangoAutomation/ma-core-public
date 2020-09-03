@@ -28,6 +28,7 @@ public class FileStoreTableDefinition extends AbstractTableDefinition {
 
     @Override
     protected void addFields(List<Field<?>> fields) {
+        super.addFields(fields);
         fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(true)));
         fields.add(DSL.field(DSL.name("writePermissionId"), SQLDataType.INTEGER.nullable(true)));
     }
