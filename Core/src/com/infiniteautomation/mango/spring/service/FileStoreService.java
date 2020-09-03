@@ -90,7 +90,7 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     private void validateXid(ProcessResult result, FileStore vo) {
         String xid = vo.getXid();
         if (xid != null) {
-            if (INVALID_XID_CHARACTERS.matcher(xid).matches()) {
+            if (INVALID_XID_CHARACTERS.matcher(xid).find()) {
                 result.addContextualMessage("xid", "validate.containsInvalidCharacters");
             } else if (ModuleRegistry.getFileStoreDefinitions().containsKey(xid)) {
                 result.addContextualMessage("xid", "filestore.reservedXid");

@@ -519,7 +519,7 @@ public class ModuleRegistry {
                             }
 
                             String xid = def.getStoreName();
-                            if (FileStoreService.INVALID_XID_CHARACTERS.matcher(xid).matches()) {
+                            if (FileStoreService.INVALID_XID_CHARACTERS.matcher(xid).find()) {
                                 throw new RuntimeException("Filestore name contains invalid character");
                             }
                             map.put(xid, def);
