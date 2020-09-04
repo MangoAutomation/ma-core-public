@@ -9,6 +9,7 @@ import java.util.List;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
@@ -91,9 +92,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
         if (this.table.getField("xid") == null) {
             throw new UnsupportedOperationException("This table does not have an XID column");
         }
-        if (xid == null) {
-            throw new IllegalArgumentException();
-        }
+        Assert.notNull(xid, "Must supply xid");
 
         Select<Record> query = this.getJoinedSelectQuery()
                 .where(table.getXidAlias().eq(xid))
@@ -112,9 +111,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
         if (this.table.getField("name") == null) {
             throw new UnsupportedOperationException("This table does not have a name column");
         }
-        if (name == null) {
-            throw new IllegalArgumentException();
-        }
+        Assert.notNull(name, "Must supply name");
 
         Select<Record> query = this.getJoinedSelectQuery()
                 .where(this.table.getField("name").eq(name));
