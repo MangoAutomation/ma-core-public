@@ -215,6 +215,10 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
         ensureEditPermission(Common.getUser(), fileStore);
         FileStorePath toDeletePath = getPathWithinFileStore(fileStore, toDelete);
 
+        if (toDeletePath.absolutePath.equals(toDeletePath.getFileStoreRoot())) {
+            throw new FileStoreException(new TranslatableMessage("filestore.deleteRootNotPermitted"));
+        }
+
         if (!Files.exists(toDeletePath.absolutePath)) {
             throw new NotFoundException();
         }
