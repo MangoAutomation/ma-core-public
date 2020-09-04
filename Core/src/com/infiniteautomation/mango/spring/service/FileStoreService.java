@@ -154,37 +154,60 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
         return vo;
     }
 
-    /**
-     * @param xid xid of the user file store, or the storeName of the {@link FileStoreDefinition}
-     * @param purgeFiles
-     * @throws IOException
-     * @throws PermissionException
-     * @throws NotFoundException
-     */
-    public void delete(String xid, boolean purgeFiles) throws IOException, PermissionException, NotFoundException {
-        FileStore deleted = delete(xid);
-        if (purgeFiles) {
-            Path root = getFileStoreRoot(deleted);
-            if (Files.exists(root)) {
-                FileUtils.deleteDirectory(root.toFile());
-            }
+    @Override
+    public FileStore insert(FileStore vo) throws PermissionException, ValidationException {
+        FileStore newFilestore = super.insert(vo);
+        Path newPath = getFileStoreRoot(newFilestore);
+        try {
+            Files.createDirectories(newPath);
+        } catch (IOException e) {
+            throw new FileStoreException(new TranslatableMessage("filestore.failedToCreateRoot", newFilestore.getXid()), e);
         }
+        return newFilestore;
     }
 
     @Override
-    public FileStore update(String existingXid, FileStore vo) throws PermissionException, ValidationException, NotFoundException {
-        if (ModuleRegistry.getFileStoreDefinitions().containsKey(existingXid)) {
+    protected FileStore update(FileStore existing, FileStore vo) throws PermissionException, ValidationException {
+        if (ModuleRegistry.getFileStoreDefinitions().containsKey(existing.getXid())) {
             throw new UnsupportedOperationException("Updating a built in filestore is not supported");
         }
-        return super.update(existingXid, vo);
+
+        FileStore updated = super.update(existing, vo);
+
+        // move files to the new location if the XID changed
+        if (!updated.getXid().equals(existing.getXid())) {
+            Path existingPath = getFileStoreRoot(existing);
+            Path newPath = getFileStoreRoot(existing);
+            if (Files.exists(existingPath)) {
+                try {
+                    Files.move(existingPath, newPath);
+                } catch (IOException e) {
+                    throw new FileStoreException(new TranslatableMessage("filestore.failedToMoveFiles", updated.getXid()), e);
+                }
+            }
+        }
+
+        return updated;
     }
 
     @Override
-    public FileStore delete(String xid) throws PermissionException, NotFoundException {
-        if (ModuleRegistry.getFileStoreDefinitions().containsKey(xid)) {
+    protected FileStore delete(FileStore vo) throws PermissionException, NotFoundException {
+        if (ModuleRegistry.getFileStoreDefinitions().containsKey(vo.getXid())) {
             throw new UnsupportedOperationException("Deleting a built in filestore is not supported");
         }
-        return super.delete(xid);
+
+        FileStore deleted = super.delete(vo);
+
+        Path root = getFileStoreRoot(deleted);
+        if (Files.exists(root)) {
+            try {
+                FileUtils.deleteDirectory(root.toFile());
+            } catch (IOException e) {
+                throw new FileStoreException(new TranslatableMessage("filestore.failedToDeleteFiles", deleted.getXid()), e);
+            }
+        }
+
+        return deleted;
     }
 
     public FileStorePath deleteFileOrFolder(String xid, String toDelete, boolean recursive) {
