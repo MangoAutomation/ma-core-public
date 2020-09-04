@@ -25,6 +25,7 @@ import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableIllegalArgumentException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -154,7 +155,7 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     }
 
     /**
-     * @param xid        xid of the user file store, or the storeName of the {@link FileStoreDefinition}
+     * @param xid xid of the user file store, or the storeName of the {@link FileStoreDefinition}
      * @param purgeFiles
      * @throws IOException
      * @throws PermissionException
@@ -168,6 +169,22 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
                 FileUtils.deleteDirectory(root.toFile());
             }
         }
+    }
+
+    @Override
+    public FileStore update(String existingXid, FileStore vo) throws PermissionException, ValidationException, NotFoundException {
+        if (ModuleRegistry.getFileStoreDefinitions().containsKey(existingXid)) {
+            throw new UnsupportedOperationException("Updating a built in filestore is not supported");
+        }
+        return super.update(existingXid, vo);
+    }
+
+    @Override
+    public FileStore delete(String xid) throws PermissionException, NotFoundException {
+        if (ModuleRegistry.getFileStoreDefinitions().containsKey(xid)) {
+            throw new UnsupportedOperationException("Deleting a built in filestore is not supported");
+        }
+        return super.delete(xid);
     }
 
     public FileStorePath deleteFileOrFolder(String xid, String toDelete, boolean recursive) {
