@@ -105,8 +105,7 @@ public class MangoJavaScriptService {
     public static final DataValue UNCHANGED = new BinaryValue(false);
     public static final String UNCHANGED_KEY = "UNCHANGED";
 
-    // TODO Mango 4.0 this is not thread safe
-    private final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z");
+    private static final String DATE_FORMAT = "dd MMM yyyy HH:mm:ss z";
 
     private static final Object globalFunctionsLock = new Object();
 
@@ -575,9 +574,11 @@ public class MangoJavaScriptService {
                     return;
                 }
                 if(annotation != null)
-                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValueAnnotation", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp)), annotation)));
+                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValueAnnotation", dprt.getVO().getExtendedName(), value,
+                            getDateFormat().format(new Date(timestamp)), annotation)));
                 else
-                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValue", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp)))));
+                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValue", dprt.getVO().getExtendedName(), value,
+                            getDateFormat().format(new Date(timestamp)))));
             }
 
             @Override
@@ -791,7 +792,7 @@ public class MangoJavaScriptService {
     }
 
     public SimpleDateFormat getDateFormat() {
-        return sdf;
+        return new SimpleDateFormat(DATE_FORMAT);
     }
 
     public PermissionService getPermissionService() {
