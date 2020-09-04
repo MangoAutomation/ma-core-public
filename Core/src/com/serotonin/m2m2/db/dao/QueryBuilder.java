@@ -147,11 +147,19 @@ public class QueryBuilder<T> {
     }
 
     public QueryBuilder<T> equal(String fieldName, Object value) {
-        return applyFn(fieldName, (f, c) -> f.equal(c.apply(value)));
+        if(value == null) {
+            return applyFn(fieldName, (f, c) -> f.isNull());
+        }else {
+            return applyFn(fieldName, (f, c) -> f.equal(c.apply(value)));
+        }
     }
 
     public QueryBuilder<T> notEqual(String fieldName, Object value) {
-        return applyFn(fieldName, (f, c) -> f.notEqual(c.apply(value)));
+        if(value == null) {
+            return applyFn(fieldName, (f, c) -> f.isNotNull());
+        }else {
+            return applyFn(fieldName, (f, c) -> f.notEqual(c.apply(value)));
+        }
     }
 
     public QueryBuilder<T> lessThan(String fieldName, Object value) {
