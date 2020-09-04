@@ -108,6 +108,12 @@
              <module>CoreBundle</module>
          </modules>
      </profile>
+     <profile>
+         <id>docker-image</id>
+         <modules>
+            <module>docker-image</module>
+         </modules>
+     </profile>
     <profile>
     	<!-- Profile to release to maven.mangoautomation.net via the release plugin -->
 		<id>releases</id>

@@ -70,57 +70,6 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>docker-image</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>core-bundle-unzipped-modules</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <configuration>
-                                    <descriptors>
-                                        <descriptor>core-bundle-unzipped-modules.xml</descriptor>
-                                    </descriptors>
-                                    <attach>false</attach>
-                                    <finalName>docker-image-${project.version}</finalName>
-                                    <appendAssemblyId>false</appendAssemblyId>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.spotify</groupId>
-                        <artifactId>dockerfile-maven-plugin</artifactId>
-                        <version>1.4.13</version>
-                        <executions>
-                            <execution>
-                                <id>default</id>
-                                <goals>
-                                    <goal>build</goal>
-                                    <goal>push</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <repository>ghcr.io/infiniteautomation/mango</repository>
-                            <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-                            <tag>nightly</tag>
-                            <buildArgs>
-                                <BUNDLE_ZIP>maven-target/docker-image-${project.version}.zip</BUNDLE_ZIP>
-                            </buildArgs>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
     <dependencies>
         <dependency>
             <groupId>com.infiniteautomation</groupId>
