@@ -177,7 +177,7 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
         // move files to the new location if the XID changed
         if (!updated.getXid().equals(existing.getXid())) {
             Path existingPath = getFileStoreRoot(existing);
-            Path newPath = getFileStoreRoot(existing);
+            Path newPath = getFileStoreRoot(updated);
             if (Files.exists(existingPath)) {
                 try {
                     Files.move(existingPath, newPath);
