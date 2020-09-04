@@ -40,6 +40,16 @@
                             <goal>push</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>push-version</id>
+                        <goals>
+                            <goal>tag</goal>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <tag>${project.version}</tag>
+                        </configuration>
+                    </execution>
                 </executions>
                 <configuration>
                     <repository>ghcr.io/infiniteautomation/mango</repository>
