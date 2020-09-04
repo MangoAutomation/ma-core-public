@@ -15,7 +15,7 @@ import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 public class FileStore extends AbstractVO {
     public static final String XID_PREFIX = "FS_";
 
-    private boolean fromDefinition = false;
+    private boolean builtIn = false;
 
     @JsonProperty
     private MangoPermission readPermission = new MangoPermission();
@@ -38,12 +38,12 @@ public class FileStore extends AbstractVO {
         this.writePermission = writePermission;
     }
 
-    public boolean isFromDefinition() {
-        return fromDefinition;
+    public boolean isBuiltIn() {
+        return builtIn;
     }
 
-    public void setFromDefinition(boolean fromDefinition) {
-        this.fromDefinition = fromDefinition;
+    public void setBuiltIn(boolean builtIn) {
+        this.builtIn = builtIn;
     }
 
     @Override

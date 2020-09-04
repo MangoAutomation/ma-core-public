@@ -70,7 +70,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
 
     public FileStore toFileStore() {
         FileStore fileStore = new FileStore();
-        fileStore.setFromDefinition(true);
+        fileStore.setBuiltIn(true);
         fileStore.setXid(getStoreName());
         // TODO maybe use current user locale?
         fileStore.setName(getStoreDescription().translate(Common.getTranslations()));
