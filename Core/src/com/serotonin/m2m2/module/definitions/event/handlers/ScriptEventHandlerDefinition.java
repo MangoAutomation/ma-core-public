@@ -64,7 +64,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
     @Override
     public void validate(ProcessResult response, ScriptEventHandlerVO existing,
             ScriptEventHandlerVO vo, PermissionHolder user) {
-        commonValidation(response, existing, user);
+        commonValidation(response, vo, user);
 
         if (vo.getScriptRoles() == null) {
             response.addContextualMessage("scriptRoles", "validate.permission.null");
