@@ -3,13 +3,6 @@
  */
 package com.serotonin.m2m2.rt.event.handlers;
 
-import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.Map;
-
-import com.infiniteautomation.mango.spring.script.EvalContext;
-import com.infiniteautomation.mango.spring.script.ScriptService;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
 
@@ -19,23 +12,11 @@ import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
 public class ScriptEventHandlerRT extends EventHandlerRT<ScriptEventHandlerVO> {
 
     public static final String EVENT_HANDLER_KEY = "eventHandler";
+    private final EventHandlerInterface scriptHandlerDelegate;
 
-    final EventHandlerInterface scriptHandlerDelegate;
-
-    public ScriptEventHandlerRT(ScriptEventHandlerVO vo) {
+    public ScriptEventHandlerRT(ScriptEventHandlerVO vo, EventHandlerInterface scriptHandlerDelegate) {
         super(vo);
-
-        ScriptService scriptService = Common.getBean(ScriptService.class);
-        Map<String, Object> bindings = Collections.singletonMap(EVENT_HANDLER_KEY, vo);
-
-        EvalContext context = new EvalContext(bindings);
-        context.setWriter(new PrintWriter(System.out));
-        context.setErrorWriter(new PrintWriter(System.err));
-
-        this.scriptHandlerDelegate = scriptService.getInterface(
-                vo.toMangoScript(),
-                EventHandlerInterface.class,
-                context);
+        this.scriptHandlerDelegate = scriptHandlerDelegate;
     }
 
     @Override

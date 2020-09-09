@@ -3,19 +3,30 @@
  */
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Throwables;
+import com.infiniteautomation.mango.spring.script.EvalContext;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
 import com.infiniteautomation.mango.spring.script.ScriptService;
+import com.infiniteautomation.mango.spring.script.permissions.StandardStreamsPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.SourceLocation;
+import com.serotonin.m2m2.rt.event.handlers.EventHandlerInterface;
+import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.ScriptEventHandlerRT;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -34,6 +45,8 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
     ScriptService scriptService;
     @Autowired
     PermissionService permissionService;
+    @Autowired
+    StandardStreamsPermission standardStreamsPermission;
 
     @Override
     public String getEventHandlerTypeName() {
@@ -51,6 +64,11 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
     }
 
     @Override
+    public EventHandlerRT<ScriptEventHandlerVO> createRuntime(ScriptEventHandlerVO vo) {
+        return permissionService.runAsSystemAdmin(() -> createRuntimeInternal(vo));
+    }
+
+    @Override
     public void validate(ProcessResult response, ScriptEventHandlerVO handler, PermissionHolder user) {
         commonValidation(response, handler, user);
 
@@ -59,6 +77,25 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         }else {
             response.addContextualMessage("scriptRoles", "validate.permission.null");
         }
+    }
+
+    private ScriptEventHandlerRT createRuntimeInternal(ScriptEventHandlerVO vo) {
+        Map<String, Object> bindings = Collections.singletonMap(ScriptEventHandlerRT.EVENT_HANDLER_KEY, vo);
+        EvalContext context = new EvalContext(bindings);
+
+        PermissionHolder user = Common.getUser();
+        if (permissionService.hasPermission(user, standardStreamsPermission.getPermission())) {
+            context.setWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
+            context.setErrorWriter(new BufferedWriter(new OutputStreamWriter(System.err)));
+            context.setReader(new BufferedReader(new InputStreamReader(System.in)));
+        }
+
+        EventHandlerInterface scriptHandlerDelegate = scriptService.getInterface(
+                vo.toMangoScript(),
+                EventHandlerInterface.class,
+                context);
+
+        return new ScriptEventHandlerRT(vo, scriptHandlerDelegate);
     }
 
     @Override
@@ -93,7 +130,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         }
 
         try {
-            new ScriptEventHandlerRT(handler);
+            createRuntimeInternal(handler);
         } catch (EngineNotFoundException e) {
             response.addContextualMessage("engineName", "validate.invalidValueWithAcceptable", e.getAvailableEngines());
         } catch (ScriptEvalException e) {

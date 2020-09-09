@@ -23,6 +23,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
+import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
+import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
@@ -30,7 +32,6 @@ import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-
 import freemarker.template.Template;
 
 /**
@@ -178,5 +179,10 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
         if(!EmailEventHandlerVO.SUBJECT_INCLUDE_CODES.isValidId(vo.getSubject()))
             result.addContextualMessage("subject", "validate.invalidValue");
 
+    }
+
+    @Override
+    public EventHandlerRT<EmailEventHandlerVO> createRuntime(EmailEventHandlerVO vo){
+        return new EmailHandlerRT(vo);
     }
 }

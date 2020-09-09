@@ -19,7 +19,6 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
-import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 
@@ -37,12 +36,6 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
     private EventHandlerDefinition<? extends AbstractEventHandlerVO> definition;
 
     List<EventType> eventTypes = null;
-
-    /**
-     * Create the runtime handler
-     * @return
-     */
-    public abstract EventHandlerRT<?> createRuntime();
 
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(name))

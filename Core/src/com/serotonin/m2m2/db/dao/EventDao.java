@@ -12,7 +12,9 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -44,15 +46,19 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
  *
  * @author Terry Packer
  */
+@Repository
 public class EventDao extends BaseDao {
     private static final Log LOG = LogFactory.getLog(EventDao.class);
 
-    private static final LazyInitSupplier<EventDao> instance = new LazyInitSupplier<>(() -> {
-        return new EventDao();
-    });
+    private static final LazyInitSupplier<EventDao> instance = new LazyInitSupplier<>(() -> Common.getBean(EventDao.class));
 
-    private EventDao(){
+    private final AuditEventDao auditEventDao;
+    private final UserCommentDao userCommentDao;
 
+    @Autowired
+    private EventDao(AuditEventDao auditEventDao, UserCommentDao userCommentDao) {
+        this.auditEventDao = auditEventDao;
+        this.userCommentDao = userCommentDao;
     }
 
     public static EventDao getInstance() {
@@ -78,7 +84,7 @@ public class EventDao extends BaseDao {
                 LOG.error(e.getMessage(), e);
             }
             vo.setMessage(event.getMessage());
-            AuditEventDao.getInstance().insert(vo);
+            auditEventDao.insert(vo);
             // Save for use in the cache
             type.setReferenceId2(vo.getId());
         } else {
@@ -254,11 +260,11 @@ public class EventDao extends BaseDao {
     void attachRelationalInfo(EventInstance event) {
         if (event.isHasComments())
             event.setEventComments(query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
-                    UserCommentDao.getInstance().getRowMapper()));
+                    userCommentDao.getRowMapper()));
     }
 
     public EventInstance insertEventComment(UserCommentVO comment) {
-        UserCommentDao.getInstance().insert(comment);
+        userCommentDao.insert(comment);
         return getEventInstance(comment.getReferenceId());
     }
 

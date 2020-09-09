@@ -13,8 +13,6 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.ProcessHandlerRT;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -113,11 +111,6 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO {
         if (i != null)
             inactiveProcessTimeout = i.intValue();
 
-    }
-
-    @Override
-    public EventHandlerRT<ProcessEventHandlerVO> createRuntime(){
-        return new ProcessHandlerRT(this);
     }
 
 }

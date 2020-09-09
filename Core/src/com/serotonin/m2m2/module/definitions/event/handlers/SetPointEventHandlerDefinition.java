@@ -22,6 +22,8 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
+import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
+import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
@@ -210,4 +212,8 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
             vo.setAdditionalContext(new ArrayList<>());
     }
 
+    @Override
+    public EventHandlerRT<SetPointEventHandlerVO> createRuntime(SetPointEventHandlerVO vo){
+        return new SetPointHandlerRT(vo);
+    }
 }

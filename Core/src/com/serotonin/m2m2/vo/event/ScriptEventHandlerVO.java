@@ -7,17 +7,15 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.StringMangoScript;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.ScriptEventHandlerRT;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
@@ -32,14 +30,6 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
     String script;
     @JsonProperty
     Set<Role> scriptRoles = Collections.emptySet();
-
-    @Override
-    public EventHandlerRT<ScriptEventHandlerVO> createRuntime() {
-        PermissionService permissionService = Common.getBean(PermissionService.class);
-        return permissionService.runAsSystemAdmin(() -> {
-            return new ScriptEventHandlerRT(this);
-        });
-    }
 
     private static final long serialVersionUID = -1L;
     private static final int version = 1;
@@ -92,7 +82,7 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
     }
 
     private Set<String> getScriptRoleXids() {
-        return scriptRoles.stream().map(r -> r.getXid()).collect(Collectors.toSet());
+        return scriptRoles.stream().map(Role::getXid).collect(Collectors.toSet());
     }
 
     private void setScriptRoleXids(Set<String> xids) {
@@ -100,6 +90,6 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
         this.scriptRoles = xids.stream().map(xid -> {
             RoleVO vo = roleDao.getByXid(xid);
             return vo != null ? vo.getRole() : null;
-        }).filter(r -> r != null).collect(Collectors.toSet());
+        }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 }

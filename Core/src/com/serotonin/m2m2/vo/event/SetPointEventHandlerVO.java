@@ -25,8 +25,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.role.Role;
@@ -376,11 +374,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
         } else {
             this.additionalContext = new ArrayList<>();
         }
-    }
-
-    @Override
-    public EventHandlerRT<SetPointEventHandlerVO> createRuntime(){
-        return new SetPointHandlerRT(this);
     }
 
     public static TranslatableMessage getSetActionMessage(int action) {

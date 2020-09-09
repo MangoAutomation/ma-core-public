@@ -7,7 +7,6 @@ package com.serotonin.m2m2.rt;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -15,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -28,6 +28,7 @@ import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
@@ -55,17 +56,20 @@ public class EventManagerImpl implements EventManager {
     private static final int RECENT_EVENT_PERIOD = 1000 * 60 * 10; // 10
     // minutes.
 
-    private final List<EventManagerListenerDefinition> listeners = new CopyOnWriteArrayList<EventManagerListenerDefinition>();
+    private final List<EventManagerListenerDefinition> listeners = new CopyOnWriteArrayList<>();
     private final ReadWriteLock activeEventsLock = new ReentrantReadWriteLock();
-    private final List<EventInstance> activeEvents = new ArrayList<EventInstance>();
+    private final List<EventInstance> activeEvents = new ArrayList<>();
     private final ReadWriteLock recentEventsLock = new ReentrantReadWriteLock();
-    private final List<EventInstance> recentEvents = new ArrayList<EventInstance>();
+    private final List<EventInstance> recentEvents = new ArrayList<>();
     private EventDao eventDao;
     private UserDao userDao;
     private long lastAlarmTimestamp = 0;
     private int highestActiveAlarmLevel = 0;
     private UserEventListener userEventMulticaster = null;
     private MailingListService mailingListService;
+    private AuditEventDao auditEventDao;
+    private EventHandlerDao eventHandlerDao;
+    private PermissionService permissionService;
 
     /**
      * State machine allowed order:
@@ -78,8 +82,6 @@ public class EventManagerImpl implements EventManager {
      *
      */
     private int state = PRE_INITIALIZE;
-
-    private PermissionService permissionService;
 
     public EventManagerImpl() {
 
@@ -165,11 +167,11 @@ public class EventManagerImpl implements EventManager {
         }
 
         // Create user alarm records for all applicable users
-        List<Integer> eventUserIds = new ArrayList<Integer>();
+        List<Integer> eventUserIds = new ArrayList<>();
         // set of email addresses which have been configured to receive events over a certain level
-        Set<String> emailUsers = new HashSet<String>();
+        Set<String> emailUsers = new HashSet<>();
 
-        List<Integer> userIdsToNotify = new ArrayList<Integer>();
+        List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
         for (User user : userDao.getActiveUsers()) {
@@ -326,8 +328,7 @@ public class EventManagerImpl implements EventManager {
         while (evt != null) {
             evt.returnToNormal(time, cause);
 
-            List<Integer> userIdsToNotify = new ArrayList<Integer>();
-            Set<Integer> userIdsForCache = new HashSet<Integer>();
+            List<Integer> userIdsToNotify = new ArrayList<>();
             for (User user : activeUsers) {
                 // Do not create an event for this user if the event type says the
                 // user should be skipped.
@@ -337,10 +338,8 @@ public class EventManagerImpl implements EventManager {
                 if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
                     if (permissionService.hasEventTypePermission(user, type)) {
                         userIdsToNotify.add(user.getId());
-                        userIdsForCache.add(user.getId());
                     }
                 }
-
             }
 
             if(multicaster != null && Common.backgroundProcessing != null)
@@ -371,7 +370,7 @@ public class EventManagerImpl implements EventManager {
     private void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
         List<User> activeUsers = userDao.getActiveUsers();
 
-        List<Integer> eventIds = new ArrayList<Integer>();
+        List<Integer> eventIds = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
         for(EventInstance evt : evts){
@@ -380,8 +379,7 @@ public class EventManagerImpl implements EventManager {
 
             evt.returnToNormal(time, inactiveCause);
 
-            List<Integer> userIdsToNotify = new ArrayList<Integer>();
-            Set<Integer> userIdsForCache = new HashSet<Integer>();
+            List<Integer> userIdsToNotify = new ArrayList<>();
             for (User user : activeUsers) {
                 // Do not create an event for this user if the event type says the
                 // user should be skipped.
@@ -390,7 +388,6 @@ public class EventManagerImpl implements EventManager {
 
                 if (permissionService.hasEventTypePermission(user, evt.getEventType())) {
                     userIdsToNotify.add(user.getId());
-                    userIdsForCache.add(user.getId());
                 }
             }
 
@@ -433,7 +430,7 @@ public class EventManagerImpl implements EventManager {
         evt.setAcknowledgedTimestamp(time);
         evt.setAlternateAckSource(alternateAckSource);
 
-        List<Integer> userIdsToNotify = new ArrayList<Integer>();
+        List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
         for (User user : userDao.getActiveUsers()) {
@@ -520,7 +517,7 @@ public class EventManagerImpl implements EventManager {
             recentEventsLock.writeLock().unlock();
         }
 
-        int auditEventCount = AuditEventDao.getInstance().purgeAllEvents();
+        int auditEventCount = auditEventDao.purgeAllEvents();
         return auditEventCount + eventDao.purgeAllEvents();
     }
 
@@ -534,29 +531,19 @@ public class EventManagerImpl implements EventManager {
 
         activeEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if(e.getActiveTimestamp() < time)
-                    it.remove();
-            }
+            activeEvents.removeIf(e -> e.getActiveTimestamp() < time);
         }finally{
             activeEventsLock.writeLock().unlock();
         }
 
         recentEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = recentEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if(e.getActiveTimestamp() < time)
-                    it.remove();
-            }
+            recentEvents.removeIf(e -> e.getActiveTimestamp() < time);
         }finally{
             recentEventsLock.writeLock().unlock();
         }
 
-        int auditCount = AuditEventDao.getInstance().purgeEventsBefore(time);
+        int auditCount = auditEventDao.purgeEventsBefore(time);
         return auditCount + eventDao.purgeEventsBefore(time);
     }
 
@@ -571,30 +558,20 @@ public class EventManagerImpl implements EventManager {
 
         activeEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if((e.getActiveTimestamp() < time)&&(e.getEventType().getEventType().equals(typeName)))
-                    it.remove();
-            }
+            activeEvents.removeIf(e -> (e.getActiveTimestamp() < time) && (e.getEventType().getEventType().equals(typeName)));
         }finally{
             activeEventsLock.writeLock().unlock();
         }
 
         recentEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = recentEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if((e.getActiveTimestamp() < time)&&(e.getEventType().getEventType().equals(typeName)))
-                    it.remove();
-            }
+            recentEvents.removeIf(e -> (e.getActiveTimestamp() < time) && (e.getEventType().getEventType().equals(typeName)));
         }finally{
             recentEventsLock.writeLock().unlock();
         }
 
         if(EventType.EventTypeNames.AUDIT.equals(typeName)) {
-            return AuditEventDao.getInstance().purgeEventsBefore(time);
+            return auditEventDao.purgeEventsBefore(time);
         }else {
             return eventDao.purgeEventsBefore(time, typeName);
         }
@@ -611,29 +588,19 @@ public class EventManagerImpl implements EventManager {
 
         activeEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if((e.getActiveTimestamp() < time)&&(e.getAlarmLevel() == alarmLevel))
-                    it.remove();
-            }
+            activeEvents.removeIf(e -> (e.getActiveTimestamp() < time) && (e.getAlarmLevel() == alarmLevel));
         }finally{
             activeEventsLock.writeLock().unlock();
         }
 
         recentEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = recentEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if((e.getActiveTimestamp() < time)&&(e.getAlarmLevel() == alarmLevel))
-                    it.remove();
-            }
+            recentEvents.removeIf(e -> (e.getActiveTimestamp() < time) && (e.getAlarmLevel() == alarmLevel));
         }finally{
             recentEventsLock.writeLock().unlock();
         }
 
-        int auditEventCount = AuditEventDao.getInstance().purgeEventsBefore(time, alarmLevel);
+        int auditEventCount = auditEventDao.purgeEventsBefore(time, alarmLevel);
         return auditEventCount + eventDao.purgeEventsBefore(time, alarmLevel);
     }
 
@@ -644,7 +611,7 @@ public class EventManagerImpl implements EventManager {
     @Override
     public void cancelEventsForDataPoint(int dataPointId) {
 
-        List<EventInstance> dataPointEvents = new ArrayList<EventInstance>();
+        List<EventInstance> dataPointEvents = new ArrayList<>();
         activeEventsLock.writeLock().lock();
         try{
             ListIterator<EventInstance> it = activeEvents.listIterator();
@@ -663,12 +630,7 @@ public class EventManagerImpl implements EventManager {
 
         recentEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = recentEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if (e.getEventType().getDataPointId() == dataPointId)
-                    it.remove();
-            }
+            recentEvents.removeIf(e -> e.getEventType().getDataPointId() == dataPointId);
         }finally{
             recentEventsLock.writeLock().unlock();
         }
@@ -681,7 +643,7 @@ public class EventManagerImpl implements EventManager {
     @Override
     public void cancelEventsForDataSource(int dataSourceId) {
 
-        List<EventInstance> dataSourceEvents = new ArrayList<EventInstance>();
+        List<EventInstance> dataSourceEvents = new ArrayList<>();
         activeEventsLock.writeLock().lock();
         try{
             ListIterator<EventInstance> it = activeEvents.listIterator();
@@ -700,12 +662,7 @@ public class EventManagerImpl implements EventManager {
 
         recentEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = recentEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if(e.getEventType().getDataSourceId() == dataSourceId)
-                    it.remove();
-            }
+            recentEvents.removeIf(e -> e.getEventType().getDataSourceId() == dataSourceId);
         }finally{
             recentEventsLock.writeLock().unlock();
         }
@@ -718,7 +675,7 @@ public class EventManagerImpl implements EventManager {
     @Override
     public void cancelEventsForPublisher(int publisherId) {
 
-        List<EventInstance> publisherEvents = new ArrayList<EventInstance>();
+        List<EventInstance> publisherEvents = new ArrayList<>();
         activeEventsLock.writeLock().lock();
         try{
             ListIterator<EventInstance> it = activeEvents.listIterator();
@@ -737,12 +694,7 @@ public class EventManagerImpl implements EventManager {
 
         recentEventsLock.writeLock().lock();
         try{
-            ListIterator<EventInstance> it = recentEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
-                if(e.getEventType().getPublisherId() == publisherId)
-                    it.remove();
-            }
+            recentEvents.removeIf(e -> e.getEventType().getPublisherId() == publisherId);
         }finally{
             recentEventsLock.writeLock().unlock();
         }
@@ -753,9 +705,7 @@ public class EventManagerImpl implements EventManager {
         int max = 0;
         activeEventsLock.readLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
+            for (EventInstance e : activeEvents) {
                 if (e.getAlarmLevel().value() > max)
                     max = e.getAlarmLevel().value();
             }
@@ -806,9 +756,11 @@ public class EventManagerImpl implements EventManager {
         state = INITIALIZE;
 
         permissionService = Common.getBean(PermissionService.class);
-        eventDao = EventDao.getInstance();
-        userDao = UserDao.getInstance();
+        eventDao = Common.getBean(EventDao.class);
+        userDao = Common.getBean(UserDao.class);
         mailingListService = Common.getBean(MailingListService.class);
+        auditEventDao = Common.getBean(AuditEventDao.class);
+        eventHandlerDao = Common.getBean(EventHandlerDao.class);
 
         // Get all active events from the database.
         activeEventsLock.writeLock().lock();
@@ -873,12 +825,7 @@ public class EventManagerImpl implements EventManager {
         }
 
         //Prune for user
-        Iterator<EventInstance> it = userEvents.iterator();
-        while(it.hasNext()) {
-            if(!permissionService.hasEventTypePermission(user, it.next().getEventType())) {
-                it.remove();
-            }
-        }
+        userEvents.removeIf(eventInstance -> !permissionService.hasEventTypePermission(user, eventInstance.getEventType()));
         return userEvents;
     }
 
@@ -896,9 +843,8 @@ public class EventManagerImpl implements EventManager {
 
         activeEventsLock.readLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                e = it.next();
+            for (EventInstance activeEvent : activeEvents) {
+                e = activeEvent;
                 if (e.getId() == id)
                     return e;
             }
@@ -914,34 +860,27 @@ public class EventManagerImpl implements EventManager {
      * none.
      */
     private EventInstance get(EventType type) {
-
         activeEventsLock.readLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                EventInstance e = it.next();
+            for (EventInstance e : activeEvents) {
                 if (e.getEventType().equals(type))
                     return e;
             }
         }finally{
             activeEventsLock.readLock().unlock();
         }
-
         return null;
     }
 
     private List<EventInstance> getAll(EventType type) {
-        List<EventInstance> result = new ArrayList<EventInstance>();
         activeEventsLock.readLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                result.add(it.next());
-            }
+            return activeEvents.stream()
+                    .filter(e -> e.getEventType().equals(type))
+                    .collect(Collectors.toList());
         }finally{
             activeEventsLock.readLock().unlock();
         }
-        return result;
     }
 
     /**
@@ -951,13 +890,10 @@ public class EventManagerImpl implements EventManager {
      */
     @Override
     public List<EventInstance> getAllActive() {
-        List<EventInstance> result = new ArrayList<EventInstance>();
+        List<EventInstance> result = new ArrayList<>();
         activeEventsLock.readLock().lock();
         try{
-            ListIterator<EventInstance> it = activeEvents.listIterator();
-            while(it.hasNext()){
-                result.add(it.next());
-            }
+            result.addAll(activeEvents);
         }finally{
             activeEventsLock.readLock().unlock();
         }
@@ -990,13 +926,14 @@ public class EventManagerImpl implements EventManager {
     }
 
     private void setHandlers(EventInstance evt) {
-        List<AbstractEventHandlerVO> vos = EventHandlerDao.getInstance().getEventHandlers(evt.getEventType());
+        List<AbstractEventHandlerVO> vos = eventHandlerDao.getEventHandlers(evt.getEventType());
         List<EventHandlerRT<?>> rts = null;
         for (AbstractEventHandlerVO vo : vos) {
             if (!vo.isDisabled()) {
                 if (rts == null)
-                    rts = new ArrayList<EventHandlerRT<?>>();
-                rts.add(vo.createRuntime());
+                    rts = new ArrayList<>();
+                EventHandlerDefinition<AbstractEventHandlerVO> definition = vo.getDefinition();
+                rts.add(definition.createRuntime(vo));
             }
         }
         if (rts != null)
@@ -1127,7 +1064,7 @@ public class EventManagerImpl implements EventManager {
             else if(returnToNormal)
                 type = "return to normal";
             else if(acknowledged)
-                type = "acknowleged";
+                type = "acknowledged";
             return "Event " + type + " Notification for event: " + event.getId();
         }
 

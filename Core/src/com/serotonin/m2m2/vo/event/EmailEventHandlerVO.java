@@ -30,8 +30,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
@@ -706,8 +704,4 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
         }
     }
 
-    @Override
-    public EventHandlerRT<EmailEventHandlerVO> createRuntime(){
-        return new EmailHandlerRT(this);
-    }
 }
