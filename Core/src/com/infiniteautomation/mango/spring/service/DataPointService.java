@@ -50,6 +50,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
 import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -83,12 +84,14 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
     private final DataSourceDao dataSourceDao;
     private final EventDetectorDao eventDetectorDao;
+    private final List<DataPointChangeDefinition> changeDefinitions;
 
     @Autowired
     public DataPointService(DataPointDao dao, DataSourceDao dataSourceDao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
         super(dao, permissionService);
         this.dataSourceDao = dataSourceDao;
         this.eventDetectorDao = eventDetectorDao;
+        this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
     }
 
     @Override
@@ -158,8 +161,16 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
 
+        for(DataPointChangeDefinition def : changeDefinitions) {
+            def.preInsert(vo);
+        }
+
         ensureValid(vo, user);
         dao.insert(vo);
+
+        for(DataPointChangeDefinition def : changeDefinitions) {
+            def.postInsert(vo);
+        }
 
         if(vo.isEnabled()) {
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
@@ -176,10 +187,19 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         ensureEditPermission(user, existing);
 
         vo.setId(existing.getId());
+
+        for(DataPointChangeDefinition def : changeDefinitions) {
+            def.preUpdate(vo);
+        }
+
         ensureValid(existing, vo, user);
 
         Common.runtimeManager.stopDataPoint(vo.getId());
         dao.update(existing, vo);
+
+        for(DataPointChangeDefinition def : changeDefinitions) {
+            def.postUpdate(vo);
+        }
 
         if(vo.isEnabled()) {
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
@@ -196,8 +216,18 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         PermissionHolder user = Common.getUser();
 
         ensureDeletePermission(user, vo);
+
+        for(DataPointChangeDefinition def : changeDefinitions) {
+            def.preDelete(vo);
+        }
+
         Common.runtimeManager.stopDataPoint(vo.getId());
         dao.delete(vo);
+
+        for(DataPointChangeDefinition def : changeDefinitions) {
+            def.postDelete(vo);
+        }
+
         Common.eventManager.cancelEventsForDataPoint(vo.getId());
         return vo;
     }

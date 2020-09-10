@@ -42,6 +42,7 @@
 * Upgrade Caffeine cache library to 2.8.5
 * Retry failed transactional insert/updates for database layer controlled via env property db.transaction.retries 
 * Upgrade H2 to use MV Store engine for performance, this will dump and re-import your existing h2 database on upgrade
+* Add DataPointChangeDefinition to allow modules to hook into data point create update and delete logic
 
 *Version 3.7.4*
 * Improve work item failure logging

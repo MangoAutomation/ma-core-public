@@ -24,6 +24,7 @@ import com.infiniteautomation.mango.spring.service.FileStoreService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.provider.Providers;
@@ -59,6 +60,7 @@ public class ModuleRegistry {
     private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
     private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
+    private static List<DataPointChangeDefinition> DATA_POINT_CHANGE_DEFINITIONS;
 
     /**
      * @return a list of all available modules in the instance.
@@ -545,6 +547,25 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (JAVASCRIPT_CONTEXT_DEFINITIONS == null) {
                     JAVASCRIPT_CONTEXT_DEFINITIONS = getDefinitions(MangoJavascriptContextObjectDefinition.class);
+                }
+            }
+        }
+    }
+
+    //
+    //
+    // Read Only Settings special handling
+    //
+    public static List<DataPointChangeDefinition> getDataPointChangeDefinitions() {
+        ensureDataPointChangeDefinitions();
+        return DATA_POINT_CHANGE_DEFINITIONS;
+    }
+
+    private static void ensureDataPointChangeDefinitions() {
+        if (DATA_POINT_CHANGE_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (DATA_POINT_CHANGE_DEFINITIONS == null) {
+                    DATA_POINT_CHANGE_DEFINITIONS = getDefinitions(DataPointChangeDefinition.class);
                 }
             }
         }
