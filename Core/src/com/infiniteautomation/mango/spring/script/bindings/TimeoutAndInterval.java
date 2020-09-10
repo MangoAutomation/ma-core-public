@@ -44,32 +44,41 @@ public class TimeoutAndInterval extends ScriptBindingsDefinition {
 
     @FunctionalInterface
     public interface SetTimeout {
-        ScheduledFuture<?> setTimeout(Runnable task, long delay);
+        TimeoutResult setTimeout(Runnable task, long delay);
     }
 
     @FunctionalInterface
     public interface ClearTimeout {
-        void clearInterval(ScheduledFuture<?> intervalID);
+        void clearInterval(TimeoutResult intervalID);
+    }
+
+    public static class TimeoutResult {
+        final ScheduledFuture<?> future;
+        private TimeoutResult(ScheduledFuture<?> future) {
+            this.future = future;
+        }
     }
 
     class Timers {
-        public ScheduledFuture<?> setTimeout(Runnable task, long delay) {
-            return scheduledExecutorService.schedule(task, delay, TimeUnit.MILLISECONDS);
+        public TimeoutResult setTimeout(Runnable task, long delay) {
+            ScheduledFuture<?> future = scheduledExecutorService.schedule(task, delay, TimeUnit.MILLISECONDS);
+            return new TimeoutResult(future);
         }
 
-        public ScheduledFuture<?> setInterval(Runnable task, long delay) {
-            return scheduledExecutorService.scheduleAtFixedRate(task, delay, delay, TimeUnit.MILLISECONDS);
+        public TimeoutResult setInterval(Runnable task, long delay) {
+            ScheduledFuture<?> future = scheduledExecutorService.scheduleAtFixedRate(task, delay, delay, TimeUnit.MILLISECONDS);
+            return new TimeoutResult(future);
         }
 
-        public void clearTimeout(ScheduledFuture<?> timeoutID) {
+        public void clearTimeout(TimeoutResult timeoutID) {
             if (timeoutID != null) {
-                timeoutID.cancel(false);
+                timeoutID.future.cancel(false);
             }
         }
 
-        public void clearInterval(ScheduledFuture<?> intervalID) {
+        public void clearInterval(TimeoutResult intervalID) {
             if (intervalID != null) {
-                intervalID.cancel(false);
+                intervalID.future.cancel(false);
             }
         }
     }
@@ -82,7 +91,7 @@ public class TimeoutAndInterval extends ScriptBindingsDefinition {
         }
 
         @Override
-        public ScheduledFuture<?> setTimeout(Runnable task, long delay) {
+        public TimeoutResult setTimeout(Runnable task, long delay) {
             return super.setTimeout(() -> {
                 synchronized (synchronizationObject) {
                     task.run();
@@ -91,7 +100,7 @@ public class TimeoutAndInterval extends ScriptBindingsDefinition {
         }
 
         @Override
-        public ScheduledFuture<?> setInterval(Runnable task, long delay) {
+        public TimeoutResult setInterval(Runnable task, long delay) {
             return super.setInterval(() -> {
                 synchronized (synchronizationObject) {
                     task.run();
