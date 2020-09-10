@@ -13,6 +13,7 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.permissions.LogBindingPermission;
 import com.serotonin.m2m2.module.ScriptBindingsDefinition;
+import com.serotonin.m2m2.module.ScriptEngineDefinition;
 
 /**
  * @author Jared Wiltshire
@@ -23,7 +24,8 @@ public class LogBinding extends ScriptBindingsDefinition {
     LogBindingPermission logBindingPermission;
 
     @Override
-    public void addBindings(MangoScript script, Bindings engineBindings, ScriptNativeConverter converter) {
+    public void addBindings(MangoScript script, Bindings engineBindings, Object synchronizationObject,
+                            ScriptEngineDefinition scriptEngineDefinition) {
         Logger log = LoggerFactory.getLogger("script." + script.getScriptName());
         engineBindings.put("log", log);
     }

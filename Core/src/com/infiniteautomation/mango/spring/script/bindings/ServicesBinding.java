@@ -15,6 +15,7 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.permissions.ServicesBindingPermission;
 import com.serotonin.m2m2.module.ScriptBindingsDefinition;
+import com.serotonin.m2m2.module.ScriptEngineDefinition;
 
 /**
  * @author Jared Wiltshire
@@ -28,9 +29,10 @@ public class ServicesBinding extends ScriptBindingsDefinition {
     ApplicationContext context;
 
     @Override
-    public void addBindings(MangoScript script, Bindings engineBindings, ScriptNativeConverter converter) {
+    public void addBindings(MangoScript script, Bindings engineBindings, Object synchronizationObject,
+                            ScriptEngineDefinition scriptEngineDefinition) {
         Map<String, Object> services = context.getBeansWithAnnotation(Service.class);
-        engineBindings.put("services", converter.convert(services));
+        engineBindings.put("services", scriptEngineDefinition.toScriptNative(services));
     }
 
     @Override

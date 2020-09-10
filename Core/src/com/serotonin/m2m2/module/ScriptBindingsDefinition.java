@@ -22,14 +22,7 @@ public abstract class ScriptBindingsDefinition extends ModuleElementDefinition {
     protected PermissionService permissionService;
 
     public abstract MangoPermission requiredPermission();
-    public abstract void addBindings(MangoScript script, Bindings engineBindings, ScriptNativeConverter engineDefinition);
+    public abstract void addBindings(MangoScript script, Bindings engineBindings, Object synchronizationObject,
+                                     ScriptEngineDefinition engineDefinition);
 
-    /**
-     * Converts a Java object to its native representation in the scripting environment
-     * @author Jared Wiltshire
-     */
-    @FunctionalInterface
-    public static interface ScriptNativeConverter {
-        Object convert(Object value);
-    }
 }

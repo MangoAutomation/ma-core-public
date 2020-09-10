@@ -5,6 +5,8 @@ package com.infiniteautomation.mango.spring.script;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -107,11 +109,13 @@ public class ScriptService {
         final MangoScript script;
         final ScriptEngineDefinition engineDefinition;
         final ScriptEngine engine;
+        final Object synchronizationObject;
 
         private ScriptAndEngine(MangoScript script, ScriptEngineDefinition engineDefinition, ScriptEngine engine) {
             this.script = script;
             this.engineDefinition = engineDefinition;
             this.engine = engine;
+            this.synchronizationObject = new Object();
         }
     }
 
@@ -166,7 +170,8 @@ public class ScriptService {
         for (ScriptBindingsDefinition bindingsDef : bindingsDefinitions) {
             MangoPermission permission = bindingsDef.requiredPermission();
             if (permissionService.hasPermission(script, permission)) {
-                bindingsDef.addBindings(script, engineBindings, engineDefinition::toScriptNative);
+                bindingsDef.addBindings(script, engineBindings, scriptAndEngine.synchronizationObject,
+                        engineDefinition);
             }
         }
 
@@ -225,7 +230,27 @@ public class ScriptService {
             throw new ScriptInterfaceException(clazz);
         }
 
-        return permissionService.runAsProxy(script, instance);
+        ScriptEngineDefinition engineDefinition = scriptAndEngine.engineDefinition;
+
+        T runAsInstance = permissionService.runAsProxy(script, instance);
+        if (engineDefinition.singleThreadedAccess()) {
+            return synchronizedProxy(scriptAndEngine.synchronizationObject, runAsInstance);
+        }
+        return runAsInstance;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T synchronizedProxy(Object synchronizationObject, T instance) {
+        Class<?> clazz = instance.getClass();
+        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), (proxy, method, args) -> {
+            synchronized (synchronizationObject) {
+                try {
+                    return method.invoke(instance, args);
+                } catch (InvocationTargetException e) {
+                    throw e.getCause();
+                }
+            }
+        });
     }
 
     public String findEngineForFile(Path filePath) throws IOException {
@@ -237,12 +262,12 @@ public class ScriptService {
         return findEngine(extension, mimeType);
     }
 
-    public String findEngine(String extension, String mimeType) throws IOException {
+    public String findEngine(String extension, String mimeType) {
         return getEngineFactories()
                 .filter(factory -> {
                     return extension != null && factory.getExtensions().contains(extension) ||
                             mimeType != null && factory.getMimeTypes().contains(mimeType);
-                }).map(f -> f.getEngineName())
+                }).map(ScriptEngineFactory::getEngineName)
                 .findFirst()
                 .orElseThrow(() -> new NoEngineForFileException(extension, mimeType));
     }

@@ -119,4 +119,8 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
         return permission.getPermission();
     }
 
+    @Override
+    public boolean singleThreadedAccess() {
+        return true;
+    }
 }

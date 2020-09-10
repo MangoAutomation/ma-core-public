@@ -41,4 +41,8 @@ public abstract class ScriptEngineDefinition extends ModuleElementDefinition {
         Throwable rootCause = Throwables.getRootCause(e);
         return new SourceLocation(e.getFileName(), lineNumber >= 0 ? lineNumber : null, columnNumber >= 0 ? columnNumber : null, Throwables.getStackTraceAsString(rootCause));
     }
+
+    public boolean singleThreadedAccess() {
+        return false;
+    }
 }
