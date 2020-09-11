@@ -13,10 +13,10 @@ import org.jooq.SortField;
  * @author Jared Wiltshire
  */
 public class ConditionSortLimit {
-    private final Condition condition;
-    private final List<SortField<Object>> sort;
-    private final Integer limit;
-    private final Integer offset;
+    protected final Condition condition;
+    protected final List<SortField<Object>> sort;
+    protected final Integer limit;
+    protected final Integer offset;
 
     public ConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
         this.condition = condition;
