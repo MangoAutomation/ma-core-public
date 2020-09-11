@@ -27,4 +27,9 @@ public class ConditionSortLimitWithTagKeys extends ConditionSortLimit {
     public Map<String, Name> getTagKeyToColumn() {
         return tagKeyToColumn;
     }
+
+    @Override
+    public ConditionSortLimitWithTagKeys withNullLimitOffset() {
+        return new ConditionSortLimitWithTagKeys(condition, sort, null, null, tagKeyToColumn);
+    }
 }
