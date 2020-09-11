@@ -7,16 +7,18 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
+import org.jooq.Table;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,8 +27,10 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
-import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
@@ -47,8 +51,9 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
-
 import net.jazdw.rql.parser.ASTNode;
+
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 /**
  * This is used for querying events from the database
@@ -59,22 +64,23 @@ import net.jazdw.rql.parser.ASTNode;
 @Repository()
 public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstanceTableDefinition> {
 
-    private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
-        return Common.getRuntimeContext().getBean(EventInstanceDao.class);
-    });
+    private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(
+            () -> Common.getRuntimeContext().getBean(EventInstanceDao.class));
 
     private final UserTableDefinition userTable;
     private final UserCommentTableDefinition userCommentTable;
+    private final DataPointTagsDao dataPointTagsDao;
 
     @Autowired
     private EventInstanceDao(EventInstanceTableDefinition table,
             UserTableDefinition userTable,
             UserCommentTableDefinition userCommentTable,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+            ApplicationEventPublisher publisher, DataPointTagsDao dataPointTagsDao) {
         super(null, table, null, mapper, publisher);
         this.userTable = userTable;
         this.userCommentTable = userCommentTable;
+        this.dataPointTagsDao = dataPointTagsDao;
     }
 
     /**
@@ -92,16 +98,24 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
     @Override
     protected Object[] voToObjectArray(EventInstanceVO vo) {
-        return new Object[]{
-                vo.getId(),
-
-        };
+        return new Object[]{vo.getId()};
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select,
-            ConditionSortLimit conditions) {
-        return select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+
+        select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
+
+        if (conditions instanceof ConditionSortLimitWithTagKeys) {
+            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
+            if (!tagKeyToColumn.isEmpty()) {
+                // TODO Mango 4.0 throw exception or don't join if event type is not restricted to DATA_POINT
+                Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getAlias("typeRef1")));
+            }
+        }
+
+        return select;
     }
 
     @Override
@@ -247,60 +261,67 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         return combine(converters, myConverters);
     }
 
-    public static class RQLToEventInstanceConditions extends RQLToCondition {
+    public static class RQLToEventInstanceConditions extends RQLToConditionWithTagKeys {
 
         public RQLToEventInstanceConditions(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
-            super(Collections.emptyMap(), fieldMapping, valueConverterMap);
+            super(fieldMapping, valueConverterMap);
         }
 
         @Override
         protected Condition visitConditionNode(ASTNode node) {
             String property = (String) node.getArgument(0);
+
             switch(property) {
-                case "acknowledged":
+                case "acknowledged": {
                     Field<Object> ackField = getField(property);
                     Function<Object, Object> ackValueConverter = getValueConverter(ackField);
                     Object ackFirstArg = ackValueConverter.apply(node.getArgument(1));
-                    switch (node.getName().toLowerCase()) {
-                        case "eq":
-                            if(ackFirstArg == null) {
+                    RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase(Locale.ROOT));
+                    switch (operation) {
+                        case EQUAL_TO: {
+                            if (ackFirstArg == null) {
                                 return ackField.isNull();
-                            }else {
-                                return (Boolean)ackFirstArg ? ackField.isNotNull() : ackField.isNull();
+                            } else {
+                                return (Boolean) ackFirstArg ? ackField.isNotNull() : ackField.isNull();
                             }
-                        case "ne":
-                            if(ackFirstArg == null) {
+                        }
+                        case NOT_EQUAL_TO: {
+                            if (ackFirstArg == null) {
                                 return ackField.isNotNull();
-                            }else {
-                                return (Boolean)ackFirstArg ? ackField.isNull() : ackField.isNotNull();
+                            } else {
+                                return (Boolean) ackFirstArg ? ackField.isNull() : ackField.isNotNull();
                             }
-                        default:
-                            return super.visitConditionNode(node);
+                        }
                     }
-                case "active":
+                    break;
+                }
+                case "active": {
                     Field<Object> activeField = getField(property);
                     Function<Object, Object> activeValueConverter = getValueConverter(activeField);
                     Object activeFirstArg = activeValueConverter.apply(node.getArgument(1));
+                    RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase(Locale.ROOT));
                     Condition rtnApplicable = getField("rtnApplicable").eq("Y");
-                    switch (node.getName().toLowerCase()) {
-                        case "eq":
-                            if(activeFirstArg == null) {
+                    switch (operation) {
+                        case EQUAL_TO: {
+                            if (activeFirstArg == null) {
                                 return activeField.isNull();
-                            }else {
-                                return (Boolean)activeFirstArg ? activeField.isNull().and(rtnApplicable) : activeField.isNotNull().and(rtnApplicable);
+                            } else {
+                                return (Boolean) activeFirstArg ? activeField.isNull().and(rtnApplicable) : activeField.isNotNull().and(rtnApplicable);
                             }
-                        case "ne":
-                            if(activeFirstArg == null) {
+                        }
+                        case NOT_EQUAL_TO: {
+                            if (activeFirstArg == null) {
                                 return activeField.isNull().and(rtnApplicable);
-                            }else {
-                                return (Boolean)activeFirstArg ? activeField.isNotNull().and(rtnApplicable) : activeField.isNull().and(rtnApplicable);
+                            } else {
+                                return (Boolean) activeFirstArg ? activeField.isNotNull().and(rtnApplicable) : activeField.isNull().and(rtnApplicable);
                             }
-                        default:
-                            return super.visitConditionNode(node);
+                        }
                     }
-                default:
-                    return super.visitConditionNode(node);
+                    break;
+                }
             }
+
+            return super.visitConditionNode(node);
         }
     }
 }

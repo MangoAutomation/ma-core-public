@@ -26,6 +26,9 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public class RQLToConditionWithTagKeys extends RQLToCondition {
 
+    public static final String TAGS_PREFIX = "tags.";
+    public static final int TAGS_PREFIX_LENGTH = TAGS_PREFIX.length();
+
     int tagIndex = 0;
     final Map<String, Name> tagKeyToColumn = new HashMap<>();
     final boolean allPropertiesAreTags;
@@ -60,20 +63,20 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
     }
 
     @Override
-    protected Field<Object> getField(String property) {
+    @SuppressWarnings("unchecked")
+    protected <T> Field<T> getField(String property) {
         String tagKey;
 
         if (allPropertiesAreTags) {
             tagKey = property;
-        } else if (property.startsWith("tags.")) {
-            tagKey = property.substring("tags.".length());
+        } else if (property.startsWith(TAGS_PREFIX)) {
+            tagKey = property.substring(TAGS_PREFIX_LENGTH);
         } else {
             return super.getField(property);
         }
 
         Name columnName = columnNameForTagKey(tagKey);
-
-        return DSL.field(DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS.append(columnName));
+        return (Field<T>) DSL.field(DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS.append(columnName));
     }
 
     public Name columnNameForTagKey(String tagKey) {
