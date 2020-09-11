@@ -3,9 +3,13 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +17,7 @@ import java.util.Map;
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
@@ -167,6 +172,105 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         ensureEditPermission(user, vo);
         Common.eventManager.acknowledgeEventById(id, System.currentTimeMillis(), user, message);
         return vo;
+    }
+
+    public List<PeriodCounts> countQuery(ConditionSortLimit conditions, List<Instant> periodBoundaries) {
+        Assert.notNull(conditions, "Conditions can't be null");
+        Assert.notNull(periodBoundaries, "periodBoundaries can't be null");
+        Assert.isTrue(periodBoundaries.size() >= 2, "periodBoundaries must have at least 2 elements");
+
+        Collections.sort(periodBoundaries);
+
+        List<PeriodCounts> list = new ArrayList<>(periodBoundaries.size() - 1);
+        for (int i = 0; i < periodBoundaries.size() - 1; i++) {
+            Instant from = periodBoundaries.get(i);
+            Instant to = periodBoundaries.get(i + 1);
+            list.add(new PeriodCounts(from, to));
+        }
+
+        PermissionHolder user = Common.getUser();
+        CurrentPeriod current = new CurrentPeriod(list);
+        customizedQuery(conditions.withNullLimitOffset(), (EventInstanceVO item, int index) -> {
+            if (hasReadPermission(user, item)) {
+                PeriodCounts period = current.getPeriod(Instant.ofEpochMilli(item.getActiveTimestamp()));
+                if (period != null) {
+                    if (item.isRtnApplicable() && item.getRtnTimestamp() == null) {
+                        period.active.increment(item.getAlarmLevel());
+                    }
+                    if (item.getAcknowledgedTimestamp() == null) {
+                        period.unacknowledged.increment(item.getAlarmLevel());
+                    }
+                    period.total.increment(item.getAlarmLevel());
+                }
+            }
+        });
+        return list;
+    }
+
+    private static class CurrentPeriod {
+        final Iterator<PeriodCounts> periods;
+        PeriodCounts current = null;
+
+        CurrentPeriod(List<PeriodCounts> periods) {
+            this.periods = periods.iterator();
+            if (this.periods.hasNext()) {
+                current = this.periods.next();
+            }
+        }
+
+        PeriodCounts getPeriod(Instant instant) {
+            while (current != null && instant.compareTo(current.from) >= 0 && instant.compareTo(current.to) < 0) {
+                current = periods.hasNext() ? periods.next() : null;
+            }
+            return current;
+        }
+    }
+
+    public static class PeriodCounts {
+        private final Instant from;
+        private final Instant to;
+        private final AlarmCounts active = new AlarmCounts();
+        private final AlarmCounts unacknowledged = new AlarmCounts();
+        private final AlarmCounts total = new AlarmCounts();
+
+        private PeriodCounts(Instant from, Instant to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        public Instant getFrom() {
+            return from;
+        }
+
+        public Instant getTo() {
+            return to;
+        }
+
+        public Map<AlarmLevels, Integer> getActive() {
+            return active;
+        }
+
+        public Map<AlarmLevels, Integer> getTotal() {
+            return total;
+        }
+
+        public Map<AlarmLevels, Integer> getUnacknowledged() {
+            return unacknowledged;
+        }
+    }
+
+    public static class AlarmCounts extends HashMap<AlarmLevels, Integer> {
+        public AlarmCounts() {
+            for (AlarmLevels level : AlarmLevels.values()) {
+                if (level != AlarmLevels.DO_NOT_LOG && level != AlarmLevels.IGNORE) {
+                    put(level, 0);
+                }
+            }
+        }
+
+        public void increment(AlarmLevels level) {
+            this.computeIfPresent(level, (l, count) -> ++count);
+        }
     }
 
 }
