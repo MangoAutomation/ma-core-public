@@ -28,7 +28,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -39,12 +38,10 @@ import com.serotonin.m2m2.vo.role.Role;
 public class PermissionDao extends BaseDao {
 
     private final RoleTableDefinition roleTable;
-    private final DataSourceTableDefinition dataSourceTable;
 
     @Autowired
-    PermissionDao(RoleTableDefinition roleTable, DataSourceTableDefinition dataSourceTable) {
+    PermissionDao(RoleTableDefinition roleTable) {
         this.roleTable = roleTable;
-        this.dataSourceTable = dataSourceTable;
     }
 
     /**
@@ -162,9 +159,10 @@ public class PermissionDao extends BaseDao {
                             .values(permissionIdFinal, id))
                     .collect(Collectors.toList()))
             .execute();
+            permission.setId(permissionId);
+        }else {
+            permission.setId(permissionId);
         }
-
-        permission.setId(permissionId);
         return permissionId;
     }
 
@@ -228,10 +226,13 @@ public class PermissionDao extends BaseDao {
     }
 
     /**
+     * TODO Mango 4.0 remove (use PermissionService.permissionDeleted())
+     *
      * A vo with a permission was deleted, attempt to delete it and clean up
      *  if other VOs reference this permission it will not be deleted
      * @param permissions
      */
+    @Deprecated
     public void permissionDeleted(MangoPermission... permissions) {
         int deleted = 0;
         for(MangoPermission permission : permissions) {
@@ -244,5 +245,22 @@ public class PermissionDao extends BaseDao {
         if(deleted > 0) {
             permissionUnlinked();
         }
+    }
+
+    /**
+     * A vo with a permission was deleted, attempt to delete it and clean up
+     *  if other VOs reference this permission it will not be deleted
+     * @param permissions
+     */
+    public boolean permissionDeleted(Integer id) {
+        try{
+            if(create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(id)).execute() > 0) {
+                permissionUnlinked();
+                return true;
+            }
+        }catch(Exception e) {
+            //permission still in use
+        }
+        return false;
     }
 }

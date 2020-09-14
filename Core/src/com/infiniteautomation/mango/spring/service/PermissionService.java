@@ -3,13 +3,34 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Service;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.Functions;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PermissionDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -24,24 +45,6 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Service;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Proxy;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * @author Terry Packer
@@ -51,26 +54,34 @@ import java.util.stream.Collectors;
 public class PermissionService {
 
     private final RoleDao roleDao;
+    private final PermissionDao permissionDao;
     private final DataSourcePermissionDefinition dataSourcePermission;
     private final PermissionHolder systemSuperadmin;
     private final EventsViewPermissionDefinition eventsViewPermission;
 
     //Cache of role xid to inheritance
     private final LoadingCache<String, RoleInheritance> roleHierarchyCache;
+    //Cache of permissionId to MangoPermission
+    private final LoadingCache<Integer, MangoPermission> permissionCache;
 
     @Autowired
     public PermissionService(RoleDao roleDao,
+            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     PermissionHolder systemSuperadmin,
     DataSourcePermissionDefinition dataSourcePermission,
     EventsViewPermissionDefinition eventsView) {
         this.roleDao = roleDao;
+        this.permissionDao = permissionDao;
         this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
         this.roleHierarchyCache = Caffeine.newBuilder()
                 .maximumSize(Common.envProps.getLong("cache.roles.size", 1000))
                 .build(this::loadRoleInheritance);
+        this.permissionCache = Caffeine.newBuilder()
+                .maximumSize(Common.envProps.getLong("cache.permission.size", 1000))
+                .build(this::loadPermission);
     }
 
     /**
@@ -443,6 +454,42 @@ public class PermissionService {
             }
         }
         return Collections.unmodifiableSet(allRoles);
+    }
+
+    /**
+     * Get a permission from the cache, load from db if necessary
+     * @param id
+     * @return
+     * @throws NotFoundException if permission with this ID not found
+     */
+    public MangoPermission get(Integer id) throws NotFoundException {
+        MangoPermission permission = this.permissionCache.get(id);
+        if(permission == null) {
+            throw new NotFoundException();
+        }else {
+            return permission;
+        }
+    }
+
+    /**
+     * A vo with a permission was deleted, attempt to delete it and clean up
+     *  if other VOs reference this permission it will not be deleted
+     * @param permission
+     */
+    public void permissionDeleted(MangoPermission permission) {
+        if(permissionDao.permissionDeleted(permission.getId())) {
+            this.permissionCache.invalidate(permission.getId());
+        }
+    }
+
+    /**
+     * Load a permission from the database via it's id, used by cache
+     * @param id
+     * @return
+     */
+    private MangoPermission loadPermission(Integer id) {
+        //TODO Mango 4.0 throw NotFoundException?
+        return permissionDao.get(id);
     }
 
     /**
