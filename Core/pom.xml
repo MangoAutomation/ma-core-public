@@ -3,7 +3,7 @@
 	<parent>
 		<artifactId>mango-parent</artifactId>
 		<groupId>com.infiniteautomation.mango</groupId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0-beta.2</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>com.infiniteautomation</groupId>

@@ -2,7 +2,7 @@
  <modelVersion>4.0.0</modelVersion>
  <groupId>com.infiniteautomation.mango</groupId>
  <artifactId>mango-parent</artifactId>
- <version>4.0.0-SNAPSHOT</version>
+ <version>4.0.0-beta.2</version>
  <name>Mango Parent</name>
  <packaging>pom</packaging>
     <properties>
@@ -285,7 +285,7 @@
               <dependency>
                 <groupId>com.infiniteautomation.mango</groupId>
                 <artifactId>assembly-descriptors</artifactId>
-                <version>4.0.0-SNAPSHOT</version>
+                <version>4.0.0-beta.2</version>
               </dependency>
             </dependencies>
           </plugin>
