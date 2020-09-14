@@ -3,10 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -174,7 +174,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         return vo;
     }
 
-    public List<PeriodCounts> countQuery(ConditionSortLimit conditions, List<Instant> periodBoundaries) {
+    public List<PeriodCounts> countQuery(ConditionSortLimit conditions, List<Date> periodBoundaries) {
         Assert.notNull(conditions, "Conditions can't be null");
         Assert.notNull(periodBoundaries, "periodBoundaries can't be null");
         Assert.isTrue(periodBoundaries.size() >= 2, "periodBoundaries must have at least 2 elements");
@@ -183,8 +183,8 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
         List<PeriodCounts> list = new ArrayList<>(periodBoundaries.size() - 1);
         for (int i = 0; i < periodBoundaries.size() - 1; i++) {
-            Instant from = periodBoundaries.get(i);
-            Instant to = periodBoundaries.get(i + 1);
+            Date from = periodBoundaries.get(i);
+            Date to = periodBoundaries.get(i + 1);
             list.add(new PeriodCounts(from, to));
         }
 
@@ -192,7 +192,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         CurrentPeriod current = new CurrentPeriod(list);
         customizedQuery(conditions.withNullLimitOffset(), (EventInstanceVO item, int index) -> {
             if (hasReadPermission(user, item)) {
-                PeriodCounts period = current.getPeriod(Instant.ofEpochMilli(item.getActiveTimestamp()));
+                PeriodCounts period = current.getPeriod(new Date(item.getActiveTimestamp()));
                 if (period != null) {
                     if (item.isRtnApplicable() && item.getRtnTimestamp() == null) {
                         period.active.increment(item.getAlarmLevel());
@@ -218,8 +218,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             }
         }
 
-        PeriodCounts getPeriod(Instant instant) {
-            while (current != null && instant.compareTo(current.from) >= 0 && instant.compareTo(current.to) < 0) {
+        PeriodCounts getPeriod(Date instant) {
+            long time = instant.getTime();
+            while (current != null && time >= current.from.getTime() && time < current.to.getTime()) {
                 current = periods.hasNext() ? periods.next() : null;
             }
             return current;
@@ -227,22 +228,22 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     }
 
     public static class PeriodCounts {
-        private final Instant from;
-        private final Instant to;
+        private final Date from;
+        private final Date to;
         private final AlarmCounts active = new AlarmCounts();
         private final AlarmCounts unacknowledged = new AlarmCounts();
         private final AlarmCounts total = new AlarmCounts();
 
-        private PeriodCounts(Instant from, Instant to) {
+        private PeriodCounts(Date from, Date to) {
             this.from = from;
             this.to = to;
         }
 
-        public Instant getFrom() {
+        public Date getFrom() {
             return from;
         }
 
-        public Instant getTo() {
+        public Date getTo() {
             return to;
         }
 
