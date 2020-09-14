@@ -472,6 +472,19 @@ public class PermissionService {
     }
 
     /**
+     * Get/Create a permission based on the minterms of this permission
+     *  and return the id for it. This is done before saving a VO with a
+     *  permission so there is a FK to reference.
+     * @param permission
+     * @return
+     */
+    public Integer permissionId(MangoPermission permission) {
+        //TODO Mango 4.0 use cache, need to be able to quickly find a permission
+        // without using the ID.
+        return permissionDao.permissionId(permission);
+    }
+
+    /**
      * A vo with a permission was deleted, attempt to delete it and clean up
      *  if other VOs reference this permission it will not be deleted
      * @param permission
