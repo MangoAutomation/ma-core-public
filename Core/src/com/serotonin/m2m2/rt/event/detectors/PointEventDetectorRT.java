@@ -22,6 +22,9 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorVO> extends AbstractEventDetectorRT<T> implements DataPointListener {
 
+    public static final String EVENT_DETECTOR_CONTEXT_KEY = "pointEventDetector";
+    public static final String DATA_POINT_CONTEXT_KEY = "point";
+
     public PointEventDetectorRT(T vo) {
         super(vo);
     }
@@ -49,12 +52,12 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
 
     protected Map<String, Object> createEventContext() {
         Map<String, Object> context = new HashMap<String, Object>();
-        context.put("pointEventDetector", vo);
+        context.put(EVENT_DETECTOR_CONTEXT_KEY, vo);
         DataPointVO dataPointVo = vo.getDataPoint();
         //Load the tags if they have not already been loaded
         if(dataPointVo.getTags() == null)
             dataPointVo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPointVo.getId()));
-        context.put("point", dataPointVo);
+        context.put(DATA_POINT_CONTEXT_KEY, dataPointVo);
         return context;
     }
 
