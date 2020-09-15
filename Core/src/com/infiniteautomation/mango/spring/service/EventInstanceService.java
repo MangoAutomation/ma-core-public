@@ -220,7 +220,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
         PeriodCounts getPeriod(Date instant) {
             long time = instant.getTime();
-            while (current != null && time >= current.from.getTime() && time < current.to.getTime()) {
+            while (current != null && (time < current.from.getTime() || time >= current.to.getTime())) {
                 current = periods.hasNext() ? periods.next() : null;
             }
             return current;
