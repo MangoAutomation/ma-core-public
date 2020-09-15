@@ -149,7 +149,11 @@ public class EventManagerImpl implements EventManager {
         // Determine if the event should be suppressed (automatically acknowledged and handlers dont run)
         TranslatableMessage autoAckMessage = null;
         for (EventManagerListenerDefinition l : listeners) {
-            autoAckMessage = l.autoAckEventWithMessage(type);
+            try {
+                autoAckMessage = l.autoAckEventWithMessage(type);
+            } catch (Exception e) {
+                log.warn("Error in event manager listener, continuing", e);
+            }
             if (autoAckMessage != null)
                 break;
         }
@@ -158,7 +162,11 @@ public class EventManagerImpl implements EventManager {
                 alarmLevel, message, context);
 
         for (EventManagerListenerDefinition l : listeners) {
-            evt = l.modifyEvent(evt);
+            try {
+                evt = l.modifyEvent(evt);
+            } catch (Exception e) {
+                log.warn("Error in event manager listener, continuing", e);
+            }
             if (evt == null) {
                 return;
             }
