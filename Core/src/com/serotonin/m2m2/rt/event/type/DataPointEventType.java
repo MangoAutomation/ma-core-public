@@ -22,6 +22,10 @@ public class DataPointEventType extends EventType {
     private int pointEventDetectorId;
     private DuplicateHandling duplicateHandling = DuplicateHandling.IGNORE;
 
+    //For performance when loading from DB
+    //TODO Mango 4.0 improve on this concept
+    private DataPointVO dataPoint;
+
     public DataPointEventType() {
         // Required for reflection.
     }
@@ -67,6 +71,10 @@ public class DataPointEventType extends EventType {
         return pointEventDetectorId;
     }
 
+    public DataPointVO getDataPoint() {
+        return dataPoint;
+    }
+
     @Override
     public String toString() {
         return "DataPointEventType(dataPointId=" + dataPointId + ", detectorId=" + pointEventDetectorId + ")";
@@ -89,6 +97,10 @@ public class DataPointEventType extends EventType {
     @Override
     public int getReferenceId2() {
         return pointEventDetectorId;
+    }
+
+    public void setDataPoint(DataPointVO dataPoint) {
+        this.dataPoint = dataPoint;
     }
 
     @Override
@@ -133,9 +145,14 @@ public class DataPointEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        DataPointVO point = DataPointDao.getInstance().get(dataPointId);
-        if(point == null)
+        if(dataPoint  == null) {
+            dataPoint = DataPointDao.getInstance().get(dataPointId);
+        }
+
+        if(dataPoint == null) {
             return false;
-        return service.hasPermission(user, point.getReadPermission());
+        }else {
+            return service.hasPermission(user, dataPoint.getReadPermission());
+        }
     }
 }
