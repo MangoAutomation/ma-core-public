@@ -173,6 +173,10 @@ public class DataPointImporter extends Importer {
                             }
                         }else {
                             dataPointService.update(dp.getDataPoint().getId(), dp.getDataPoint());
+                            //Update all our event detector source Ids
+                            for(AbstractPointEventDetectorVO ed : dp.getEventDetectors()) {
+                                ed.setSourceId(dp.getDataPoint().getId());
+                            }
                         }
                         addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     }else{
