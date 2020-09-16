@@ -354,7 +354,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             dataPointCopy.setEnabled(false);
 
             //Copy Tags
-            dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
+            dataPointCopy.setTags(dataPoint.getTags());
 
             insert(dataPointCopy);
 
