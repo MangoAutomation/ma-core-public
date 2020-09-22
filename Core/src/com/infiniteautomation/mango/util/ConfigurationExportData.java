@@ -129,7 +129,7 @@ public class ConfigurationExportData {
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
             data.put(PUBLISHERS, PublisherDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
-            data.put(EVENT_HANDLERS, EventHandlerDao.getInstance().getEventHandlers());
+            data.put(EVENT_HANDLERS, EventHandlerDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
             data.put(SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
         if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))

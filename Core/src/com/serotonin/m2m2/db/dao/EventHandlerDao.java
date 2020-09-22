@@ -136,11 +136,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     public List<AbstractEventHandlerVO> getEventHandlersByType(String typeName) {
-        return query(EVENT_HANDLER_SELECT + " WHERE eventHandlerType=?", new Object[] {typeName}, new EventHandlerRowMapper());
-    }
-
-    public List<AbstractEventHandlerVO> getEventHandlers() {
-        return query(EVENT_HANDLER_SELECT, new EventHandlerRowMapper());
+        return query(EVENT_HANDLER_SELECT + " WHERE eventHandlerType=?", new Object[] {typeName}, new EventHandlerWithRelationalDataRowMapper());
     }
 
     private List<EventType> getEventTypesForHandler(int handlerId) {
@@ -173,18 +169,6 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                 new EventHandlerRowMapper());
     }
 
-    public AbstractEventHandlerVO getEventHandler(int eventHandlerId) {
-        return queryForObject(EVENT_HANDLER_SELECT + "where id=?", new Object[] { eventHandlerId },
-                new EventHandlerRowMapper());
-    }
-
-    public AbstractEventHandlerVO getEventHandler(String xid) {
-        return queryForObject(EVENT_HANDLER_SELECT + "where xid=?", new Object[] { xid }, new EventHandlerRowMapper(),
-                null);
-    }
-
-
-
     class EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO> {
         @Override
         public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -195,7 +179,20 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
             h.setDefinition(ModuleRegistry.getEventHandlerDefinition(rs.getString(4)));
             h.setReadPermission(new MangoPermission(rs.getInt(6)));
             h.setEditPermission(new MangoPermission(rs.getInt(7)));
+            return h;
+        }
+    }
 
+    /**
+     * For use in the legacy query methods
+     *
+     * @author Terry Packer
+     */
+    class EventHandlerWithRelationalDataRowMapper extends EventHandlerRowMapper {
+        @Override
+        public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
+            AbstractEventHandlerVO h = super.mapRow(rs, rowNum);
+            loadRelationalData(h);
             return h;
         }
     }
