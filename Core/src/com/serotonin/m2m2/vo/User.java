@@ -6,9 +6,7 @@ package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -26,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
-import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -38,7 +35,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -123,6 +119,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     //Spring Security
     //
     private transient LazyInitializer<Set<GrantedAuthority>> authorities = new LazyInitializer<>();
+    private Long nextPasswordExpire;
 
     public User() {
         this.name = "";
@@ -431,19 +428,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     @Override
     public boolean isCredentialsNonExpired() {
-        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.PASSWORD_EXPIRATION_ENABLED)) {
-            int resetPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE);
-            int resetPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
-            NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(resetPeriodType, resetPeriods);
-            ZoneId zoneId = this.getZoneId();
-            ZonedDateTime lastChange = ZonedDateTime.ofInstant(Instant.ofEpochMilli(this.passwordChangeTimestamp), zoneId);
-            ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Common.timer.currentTimeMillis()), zoneId);
-            ZonedDateTime nextChange = (ZonedDateTime) adjuster.adjustInto(lastChange);
-            if(nextChange.isAfter(now))
-                return true;
-            return false;
-        }
-        return true;
+        return this.nextPasswordExpire == null || this.nextPasswordExpire > Common.timer.currentTimeMillis();
     }
 
     @Override
@@ -606,6 +591,10 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     @Override
     public boolean isPermissionHolderDisabled() {
         return this.disabled;
+    }
+
+    public void setNextPasswordExpire(Long nextPasswordExpire) {
+        this.nextPasswordExpire = nextPasswordExpire;
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
