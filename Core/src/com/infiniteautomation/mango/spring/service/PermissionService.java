@@ -3,6 +3,25 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Service;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -24,24 +43,6 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.EventListener;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-import org.springframework.stereotype.Service;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Proxy;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * @author Terry Packer
@@ -190,12 +191,11 @@ public class PermissionService {
         Objects.requireNonNull(permission);
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<Role> heldRoles = user.getRoles();
-        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+        Set<Role> inherited = getAllInheritedRoles(user);
+        if (inherited.contains(PermissionHolder.SUPERADMIN_ROLE)) {
             return true;
         }
 
-        Set<Role> inherited = getAllInheritedRoles(user);
         Set<Set<Role>> minterms = permission.getRoles();
         return minterms.stream().anyMatch(inherited::containsAll);
     }
