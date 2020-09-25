@@ -140,7 +140,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     private List<EventType> getEventTypesForHandler(int handlerId) {
-        return ejt.query("SELECT eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2 FROM eventHandlersMapping WHERE eventHandlerid=?", new Object[] {handlerId}, new RowMapper<EventType>() {
+        return ejt.query("SELECT eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2 FROM eventHandlersMapping WHERE eventHandlerId=?", new Object[] {handlerId}, new RowMapper<EventType>() {
             @Override
             public EventType mapRow(ResultSet rs, int rowNum) throws SQLException {
                 return EventDao.createEventType(rs, 1);
