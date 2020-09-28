@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -447,21 +448,32 @@ public class RuntimeManagerImpl implements RuntimeManager {
         if (dataSource == null)
             return;
         try{
+            LogStopWatch log = new LogStopWatch();
+
             //Signal we are going down
             dataSource.terminating();
+            log.logInfo("Terminating down data source.", 0);
 
+            List<Integer> pointIds = new ArrayList<>();
             // Stop the data points.
             for (DataPointRT p : dataPoints.values()) {
-                if (p.getDataSourceId() == id)
+                if (p.getDataSourceId() == id) {
                     stopDataPointShutdown(p.getVO());
+                    pointIds.add(p.getId());
+                }
             }
+
+            //Terminate all events at once
+            Common.eventManager.cancelEventsForDataPoints(pointIds);
+
             synchronized (runningDataSources) {
                 runningDataSources.remove(dataSource.getId());
             }
-
+            log.logInfo("Terminated data points.", 0);
             dataSource.terminate();
-
+            log.logInfo("Terminated data source.", 0);
             dataSource.joinTermination();
+            log.logInfo("Joine Terminated data source.", 0);
             LOG.info("Data source '" + dataSource.getName() + "' stopped");
         }catch(Exception e){
             LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
@@ -504,6 +516,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                             LOG.warn("Listener exception: " + e2.getMessage(), e2);
                     }
                 p.terminate();
+                Common.eventManager.cancelEventsForDataPoint(p.getId());
             }
         }
     }
@@ -551,6 +564,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                                 LOG.warn("Exception in point terminated listener's method: " + e.getMessage(), e);
                             }
                         rt.terminate();
+                        Common.eventManager.cancelEventsForDataPoint(rt.getId());
                     }
                     return dataPoint;
                 });
@@ -624,6 +638,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                     for(Exception e2 : e.getExceptions())
                         LOG.warn("Listener exception: " + e2.getMessage(), e2);
                 }
+            //Stop data point but don't cancel events until after to do this in bulk.
             p.terminate();
         }
 

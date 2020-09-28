@@ -888,7 +888,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 pedRT.terminate();
             }
         }
-        Common.eventManager.cancelEventsForDataPoint(vo.getId());
     }
 
     @Override

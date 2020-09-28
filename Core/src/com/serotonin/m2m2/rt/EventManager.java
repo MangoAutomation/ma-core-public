@@ -104,7 +104,17 @@ public interface EventManager extends ILifecycle{
     //
     // Canceling events.
     //
+    /**
+     * Cancel active events for a Data Point
+     * @param dataPointId
+     */
     void cancelEventsForDataPoint(int dataPointId);
+
+    /**
+     * Cancel active events for these Data Points
+     * @param pointIds
+     */
+    void cancelEventsForDataPoints(List<Integer> pointIds);
 
     /**
      * Cancel active events for a Data Source
