@@ -651,6 +651,33 @@ public class EventManagerImpl implements EventManager {
         }
     }
 
+    @Override
+    public void cancelEventsForDataPoints(List<Integer> pointIds) {
+        List<EventInstance> dataPointEvents = new ArrayList<>();
+        activeEventsLock.writeLock().lock();
+        try{
+            ListIterator<EventInstance> it = activeEvents.listIterator();
+            while(it.hasNext()){
+                EventInstance e = it.next();
+                if(pointIds.contains(e.getEventType().getDataPointId())) {
+                    it.remove();
+                    dataPointEvents.add(e);
+                }
+            }
+        }finally{
+            activeEventsLock.writeLock().unlock();
+        }
+
+        deactivateEvents(dataPointEvents, Common.timer.currentTimeMillis(), ReturnCause.SOURCE_DISABLED);
+
+        recentEventsLock.writeLock().lock();
+        try{
+            recentEvents.removeIf(e -> pointIds.contains(e.getEventType().getDataPointId()));
+        }finally{
+            recentEventsLock.writeLock().unlock();
+        }
+    }
+
     /**
      * Cancel active events for a Data Source
      * @param dataSourceId
