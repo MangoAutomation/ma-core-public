@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -448,11 +447,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
         if (dataSource == null)
             return;
         try{
-            LogStopWatch log = new LogStopWatch();
-
+            long now = Common.timer.currentTimeMillis();
             //Signal we are going down
             dataSource.terminating();
-            log.logInfo("Terminating down data source.", 0);
 
             List<Integer> pointIds = new ArrayList<>();
             // Stop the data points.
@@ -469,12 +466,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
             synchronized (runningDataSources) {
                 runningDataSources.remove(dataSource.getId());
             }
-            log.logInfo("Terminated data points.", 0);
             dataSource.terminate();
-            log.logInfo("Terminated data source.", 0);
             dataSource.joinTermination();
-            log.logInfo("Joine Terminated data source.", 0);
-            LOG.info("Data source '" + dataSource.getName() + "' stopped");
+            LOG.info("Data source '" + dataSource.getName() + "' stopped in " + (Common.timer.currentTimeMillis() - now) + "ms");
         }catch(Exception e){
             LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
         }
