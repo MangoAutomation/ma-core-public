@@ -101,6 +101,9 @@ public class MangoJavaScriptService {
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
     public static final String POINTS_MAP_KEY = "CONTEXT_POINTS";
+    public static final String SELF_POINT_XID_KEY = "SELF_POINT_XID";
+    public static final String EXTERNAL_POINTS_KEY = "EXTERNAL_POINTS";
+    public static final String EXTERNAL_POINTS_ARRAY_KEY = "EXTERNAL_POINTS_ARRAY";
     public static final String TIMESTAMP_CONTEXT_KEY = "TIMESTAMP";
     public static final DataValue UNCHANGED = new BinaryValue(false);
     public static final String UNCHANGED_KEY = "UNCHANGED";
@@ -390,6 +393,10 @@ public class MangoJavaScriptService {
         //TODO assert permissions to execute global scripts
         //TODO assert setter not null
 
+        if (context == null) {
+            context = new HashMap<>();
+        }
+
         Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
         //TODO Clear engine scope completely?
 
@@ -423,15 +430,21 @@ public class MangoJavaScriptService {
         for(Entry<String,Object> entry: entries)
             engineScope.put(entry.getKey(), entry.getValue());
 
-        if(context != null) {
-            for (String varName : context.keySet()) {
-                IDataPointValueSource point = context.get(varName);
-                engineScope.put(varName, wrapPoint(script.getEngine(), point, script.getSetter()));
-                points.add(varName);
+        String selfPointXid = (String) script.getAdditionalContext().get(SELF_POINT_XID_KEY);
+
+        Map<String, AbstractPointWrapper> external = new HashMap<>();
+        for (String varName : context.keySet()) {
+            IDataPointValueSource point = context.get(varName);
+            AbstractPointWrapper wrapped = wrapPoint(script.getEngine(), point, script.getSetter());
+            engineScope.put(varName, wrapped);
+            points.add(varName);
+            if (!point.getVO().getXid().equals(selfPointXid)) {
+                external.put(varName, wrapped);
             }
-            engineScope.put(MangoJavaScriptService.POINTS_MAP_KEY, context);
-        }else
-            engineScope.put(MangoJavaScriptService.POINTS_MAP_KEY, new HashMap<>());
+        }
+        engineScope.put(EXTERNAL_POINTS_KEY, external);
+        engineScope.put(EXTERNAL_POINTS_ARRAY_KEY, new ArrayList<>(external.values()));
+        engineScope.put(POINTS_MAP_KEY, context);
 
         //Set the print writer and log
         script.getEngine().getContext().setWriter(script.getLog().getStdOutWriter());
