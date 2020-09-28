@@ -443,7 +443,7 @@ public class MangoJavaScriptService {
             }
         }
         engineScope.put(EXTERNAL_POINTS_KEY, external);
-        engineScope.put(EXTERNAL_POINTS_ARRAY_KEY, new ArrayList<>(external.values()));
+        engineScope.put(EXTERNAL_POINTS_ARRAY_KEY, external.values());
         engineScope.put(POINTS_MAP_KEY, context);
 
         //Set the print writer and log
@@ -689,16 +689,24 @@ public class MangoJavaScriptService {
      */
     @SuppressWarnings("unchecked")
     public void addToContext(ScriptEngine engine, String varName, DataPointRT dprt, ScriptPointValueSetter setCallback) {
-        AbstractPointWrapper wrapper = wrapPoint(engine, dprt, setCallback);
-        engine.put(varName, wrapper);
+        Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-        Map<String, IDataPointValueSource> context = (Map<String, IDataPointValueSource>)engine.getBindings(ScriptContext.ENGINE_SCOPE).get(POINTS_MAP_KEY);
+        AbstractPointWrapper wrapper = wrapPoint(engine, dprt, setCallback);
+        engineBindings.put(varName, wrapper);
+
+        Map<String, IDataPointValueSource> context = (Map<String, IDataPointValueSource>)engineBindings.get(POINTS_MAP_KEY);
         context.put(varName, dprt);
 
-        Set<String> points = (Set<String>) engine.get(POINTS_CONTEXT_KEY);
+        Set<String> points = (Set<String>) engineBindings.get(POINTS_CONTEXT_KEY);
         if (points != null) {
             points.remove(varName);
             points.add(varName);
+        }
+
+        String selfPointXid = (String) engineBindings.get(SELF_POINT_XID_KEY);
+        Map<String, AbstractPointWrapper> external = (Map<String, AbstractPointWrapper>) engineBindings.get(EXTERNAL_POINTS_KEY);
+        if (!dprt.getVO().getXid().equals(selfPointXid)) {
+            external.put(varName, wrapper);
         }
     }
 
@@ -711,18 +719,20 @@ public class MangoJavaScriptService {
      */
     @SuppressWarnings("unchecked")
     public void removeFromContext(ScriptEngine engine, String varName) {
+        Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-        Map<String, IDataPointValueSource> context = (Map<String, IDataPointValueSource>)engine.getBindings(ScriptContext.ENGINE_SCOPE).get(POINTS_MAP_KEY);
+        Map<String, IDataPointValueSource> context = (Map<String, IDataPointValueSource>)engineBindings.get(POINTS_MAP_KEY);
         context.remove(varName);
 
-        Set<String> points = (Set<String>) engine.get(POINTS_CONTEXT_KEY);
+        Set<String> points = (Set<String>) engineBindings.get(POINTS_CONTEXT_KEY);
         if (points != null) {
             points.remove(varName);
         }
-        engine.getBindings(ScriptContext.ENGINE_SCOPE).remove(varName);
+        engineBindings.remove(varName);
+
+        Map<String, AbstractPointWrapper> external = (Map<String, AbstractPointWrapper>) engineBindings.get(EXTERNAL_POINTS_KEY);
+        external.remove(varName);
     }
-
-
 
     /**
      * Coerce an object into a DataValue
