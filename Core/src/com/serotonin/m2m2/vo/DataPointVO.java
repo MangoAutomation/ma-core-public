@@ -1275,8 +1275,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         if (purgePeriod == 0)
             purgePeriod = 1;
 
-        //Ensure our lazy fields are initialized
-        initializeLazyFields();
     }
 
     private void setUnitsOnTextRenderer() {
@@ -1489,12 +1487,5 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             newTags.remove(DataPointTagsDao.DEVICE_TAG_KEY);
             return newTags;
         });
-    }
-
-    private void initializeLazyFields() {
-        this.readPermission = new LazyField<>(new MangoPermission());
-        this.editPermission = new LazyField<>(new MangoPermission());
-        this.setPermission = new LazyField<>(new MangoPermission());
-        this.tags = new LazyField<>(new HashMap<>());
     }
 }

@@ -581,9 +581,16 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             rs.getString(++i);
 
             dp.setData(extractData(rs.getClob(++i)));
-            dp.setReadPermission(new MangoPermission(rs.getInt(++i)));
-            dp.setEditPermission(new MangoPermission(rs.getInt(++i)));
-            dp.setSetPermission(new MangoPermission(rs.getInt(++i)));
+
+            MangoPermission read = new MangoPermission(rs.getInt(++i));
+            dp.supplyReadPermission(() -> read);
+
+            MangoPermission edit = new MangoPermission(rs.getInt(++i));
+            dp.supplyEditPermission(() -> edit);
+
+            MangoPermission set = new MangoPermission(rs.getInt(++i));
+            dp.supplySetPermission(() -> set);
+
             // Data source information from join
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
