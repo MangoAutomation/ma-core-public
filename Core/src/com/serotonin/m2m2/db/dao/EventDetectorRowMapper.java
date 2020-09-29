@@ -144,7 +144,7 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
             LOG.error(e.getMessage(), e);
         }
         vo.setReadPermission(new MangoPermission(rs.getInt(readPermissionIndex)));
-        vo.setEditPermission(new MangoPermission(rs.getInt(readPermissionIndex)));
+        vo.setEditPermission(new MangoPermission(rs.getInt(editPermissionIndex)));
 
         return vo;
     }
