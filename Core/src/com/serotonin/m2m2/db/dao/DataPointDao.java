@@ -4,11 +4,55 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectJoinStep;
+import org.jooq.SortField;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.db.query.*;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
+import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.*;
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
+import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
+import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -38,28 +82,6 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Repository;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Comparator;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 /**
  *
@@ -620,12 +642,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     @Override
     public void loadRelationalData(DataPointVO vo) {
         //TODO Mango 4.0 loading tags always is much slower, need to performance test startup times
-        vo.setTags(dataPointTagsDao.getTagsForDataPointId(vo.getId()));
+        vo.supplyTags(() -> dataPointTagsDao.getTagsForDataPointId(vo.getId()));
 
         //Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
-        vo.setSetPermission(permissionDao.get(vo.getSetPermission().getId()));
+        MangoPermission read = vo.getReadPermission();
+        vo.supplyReadPermission(() -> permissionDao.get(read.getId()));
+        MangoPermission edit = vo.getEditPermission();
+        vo.supplyEditPermission(() -> permissionDao.get(edit.getId()));
+        MangoPermission set = vo.getSetPermission();
+        vo.supplySetPermission(() -> permissionDao.get(set.getId()));
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {

@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
@@ -189,10 +190,12 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     @Override
     public void loadRelationalData(AbstractEventDetectorVO vo) {
-        vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
+        vo.supplyEventHandlerXids(() -> EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
         //Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
+        MangoPermission read = vo.getReadPermission();
+        vo.supplyReadPermission(() -> permissionDao.get(read.getId()));
+        MangoPermission edit = vo.getEditPermission();
+        vo.supplyEditPermission(() -> permissionDao.get(edit.getId()));
         vo.getDefinition().loadRelationalData(vo);
     }
 

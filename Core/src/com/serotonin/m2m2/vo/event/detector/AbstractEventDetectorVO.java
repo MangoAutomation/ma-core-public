@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -38,9 +40,9 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
     public static final String XID_PREFIX = "ED_";
 
     @JsonProperty
-    private MangoPermission editPermission = new MangoPermission();
+    private LazyField<MangoPermission> editPermission = new LazyField<>(new MangoPermission());
     @JsonProperty
-    private MangoPermission readPermission = new MangoPermission();
+    private LazyField<MangoPermission> readPermission = new LazyField<>(new MangoPermission());
     @JsonProperty
     private JsonNode data;
 
@@ -59,7 +61,7 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
      * All event handlers that map to this detector.
      * When non-null this will replace all mappings for this detector <--> handlers
      */
-    private List<String> eventHandlerXids;
+    private LazyField<List<String>> eventHandlerXids = new LazyField<>();
 
     /**
      * Our defintion
@@ -145,19 +147,27 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
     }
 
     public MangoPermission getEditPermission() {
-        return editPermission;
+        return editPermission.get();
     }
 
     public void setEditPermission(MangoPermission editPermission) {
-        this.editPermission = editPermission;
+        this.editPermission.set(editPermission);
+    }
+
+    public void supplyEditPermission(Supplier<MangoPermission> editPermission) {
+        this.editPermission = new LazyField<>(editPermission);
     }
 
     public MangoPermission getReadPermission() {
-        return readPermission;
+        return readPermission.get();
     }
 
     public void setReadPermission(MangoPermission readPermission) {
-        this.readPermission = readPermission;
+        this.readPermission.set(readPermission);
+    }
+
+    public void supplyReadPermission(Supplier<MangoPermission> readPermission) {
+        this.readPermission = new LazyField<>(readPermission);
     }
 
     public JsonNode getData() {
@@ -196,14 +206,18 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
      * @return the eventHandlerXids
      */
     public List<String> getEventHandlerXids() {
-        return eventHandlerXids;
+        return eventHandlerXids.get();
     }
 
     /**
      * @param eventHandlerXids the eventHandlerXids to set
      */
     public void setEventHandlerXids(List<String> eventHandlerXids) {
-        this.eventHandlerXids = eventHandlerXids;
+        this.eventHandlerXids.set(eventHandlerXids);
+    }
+
+    public void supplyEventHandlerXids(Supplier<List<String>> eventHandlerXids) {
+        this.eventHandlerXids = new LazyField<>(eventHandlerXids);
     }
 
     @Override
