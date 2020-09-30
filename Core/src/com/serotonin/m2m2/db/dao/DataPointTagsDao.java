@@ -14,8 +14,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -41,8 +39,7 @@ import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
-
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
@@ -50,7 +47,6 @@ import net.jazdw.rql.parser.ASTNode;
  */
 @Repository()
 public class DataPointTagsDao extends BaseDao {
-    static final Log LOG = LogFactory.getLog(DataPointTagsDao.class);
     private static final LazyInitializer<DataPointTagsDao> springInstance = new LazyInitializer<>();
 
     public static final Name DATA_POINT_TAGS_ALIAS = DSL.name("tags");
@@ -81,9 +77,7 @@ public class DataPointTagsDao extends BaseDao {
      * @return
      */
     public static DataPointTagsDao getInstance() {
-        return springInstance.get(() -> {
-            return Common.getRuntimeContext().getBean(DataPointTagsDao.class);
-        });
+        return springInstance.get(() -> Common.getRuntimeContext().getBean(DataPointTagsDao.class));
     }
 
     /**
@@ -99,7 +93,7 @@ public class DataPointTagsDao extends BaseDao {
                 .where(DATA_POINT_ID.eq(dataPointId));
 
         try (Stream<Record2<String, String>> stream = query.stream()) {
-            return stream.collect(Collectors.toMap(r -> r.value1(), r -> r.value2()));
+            return stream.collect(Collectors.toMap(Record2::value1, Record2::value2));
         }
     }
 
@@ -132,7 +126,7 @@ public class DataPointTagsDao extends BaseDao {
                 .columns(DATA_POINT_ID, TAG_KEY, TAG_VALUE)
                 .values((Integer) null, null, null)
                 );
-        tags.entrySet().forEach(e -> b.bind(dataPointId, e.getKey(), e.getValue()));
+        tags.forEach((key, value) -> b.bind(dataPointId, key, value));
 
         if (name != null && !name.isEmpty()) {
             b.bind(dataPointId, NAME_TAG_KEY, name);
@@ -169,11 +163,9 @@ public class DataPointTagsDao extends BaseDao {
     }
 
 
-    public Set<String> getTagKeys(User user) {
-        Table<Record> fromTable = DATA_POINT_TAGS;
-
+    public Set<String> getTagKeys(PermissionHolder user) {
         SelectJoinStep<Record1<String>> query = this.create.selectDistinct(TAG_KEY)
-                .from(fromTable);
+                .from(DATA_POINT_TAGS);
 
         if (!permissionService.hasAdminRole(user)) {
             query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
@@ -181,20 +173,18 @@ public class DataPointTagsDao extends BaseDao {
             ConditionSortLimit csl = new ConditionSortLimit(null, null, null, null);
             query = DataPointDao.getInstance().joinPermissions(query, csl, user);
             try (Stream<Record1<String>> stream = query.where(csl.getCondition()).stream()) {
-                return stream.map(r -> r.value1()).collect(Collectors.toSet());
+                return stream.map(Record1::value1).collect(Collectors.toSet());
             }
         }else {
             try (Stream<Record1<String>> stream = query.stream()) {
-                return stream.map(r -> r.value1()).collect(Collectors.toSet());
+                return stream.map(Record1::value1).collect(Collectors.toSet());
             }
         }
     }
 
-    public Set<String> getTagValuesForKey(String tagKey, User user) {
-        Table<Record> fromTable = DATA_POINT_TAGS;
-
+    public Set<String> getTagValuesForKey(String tagKey, PermissionHolder user) {
         SelectJoinStep<Record1<String>> query = this.create.selectDistinct(TAG_VALUE)
-                .from(fromTable);
+                .from(DATA_POINT_TAGS);
 
         SelectConditionStep<Record1<String>> conditional;
         if (!permissionService.hasAdminRole(user)) {
@@ -207,7 +197,7 @@ public class DataPointTagsDao extends BaseDao {
         }
 
         try (Stream<Record1<String>> stream = conditional.stream()) {
-            return stream.map(r -> r.value1()).collect(Collectors.toSet());
+            return stream.map(Record1::value1).collect(Collectors.toSet());
         }
     }
 
@@ -218,23 +208,22 @@ public class DataPointTagsDao extends BaseDao {
      * @param user
      * @return
      */
-    public Set<String> getTagValuesForKey(String tagKey, Map<String, String> restrictions, User user) {
+    public Set<String> getTagValuesForKey(String tagKey, Map<String, String> restrictions, PermissionHolder user) {
         if (restrictions.isEmpty()) {
             return getTagValuesForKey(tagKey, user);
         }
 
-        Set<String> keys = new HashSet<>();
-        keys.addAll(restrictions.keySet());
+        Set<String> keys = new HashSet<>(restrictions.keySet());
         keys.add(tagKey);
         Map<String, Name> tagKeyToColumn = tagKeyToColumn(keys);
         Name tagKeyColumn = tagKeyToColumn.get(tagKey);
 
-        List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
-            return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
-        }).collect(Collectors.toCollection(ArrayList::new));
+        List<Condition> conditions = restrictions.entrySet().stream()
+                .map(e -> DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue()))
+                .collect(Collectors.toCollection(ArrayList::new));
         Condition allConditions = DSL.and(conditions);
 
-        return getTagValuesForKey(tagKey, tagKeyColumn, tagKeyToColumn, allConditions, user);
+        return getTagValuesForKey(tagKeyColumn, tagKeyToColumn, allConditions, user);
     }
 
     /**
@@ -244,7 +233,7 @@ public class DataPointTagsDao extends BaseDao {
      * @param user
      * @return
      */
-    public Set<String> getTagValuesForKey(String tagKey, ASTNode restrictions, User user) {
+    public Set<String> getTagValuesForKey(String tagKey, ASTNode restrictions, PermissionHolder user) {
         RQLToConditionWithTagKeys visitor = new RQLToConditionWithTagKeys();
         Name tagKeyColumn = visitor.columnNameForTagKey(tagKey);
 
@@ -257,10 +246,10 @@ public class DataPointTagsDao extends BaseDao {
 
         Map<String, Name> tagKeyToColumn = conditions.getTagKeyToColumn();
 
-        return getTagValuesForKey(tagKey, tagKeyColumn, tagKeyToColumn, allConditions, user);
+        return getTagValuesForKey(tagKeyColumn, tagKeyToColumn, allConditions, user);
     }
 
-    private Set<String> getTagValuesForKey(String tagKey, Name tagKeyColumn, Map<String, Name> tagKeyToColumn, Condition allConditions, User user) {
+    private Set<String> getTagValuesForKey(Name tagKeyColumn, Map<String, Name> tagKeyToColumn, Condition allConditions, PermissionHolder user) {
 
         Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
@@ -279,7 +268,7 @@ public class DataPointTagsDao extends BaseDao {
 
         Select<Record1<String>> result = query.where(allConditions);
         try (Stream<Record1<String>> stream = result.stream()) {
-            return stream.map(r -> r.value1()).collect(Collectors.toSet());
+            return stream.map(Record1::value1).collect(Collectors.toSet());
         }
     }
 
