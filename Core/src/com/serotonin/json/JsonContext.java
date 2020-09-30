@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.protobuf.LazyField;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.json.convert.ArrayConverter;
@@ -44,6 +45,7 @@ import com.serotonin.json.convert.JsonObjectConverter;
 import com.serotonin.json.convert.JsonPropertyConverter;
 import com.serotonin.json.convert.JsonStringConverter;
 import com.serotonin.json.convert.JsonValueConverter;
+import com.serotonin.json.convert.LazyFieldConverter;
 import com.serotonin.json.convert.LongConverter;
 import com.serotonin.json.convert.MangoPermissionConverter;
 import com.serotonin.json.convert.MapConverter;
@@ -158,6 +160,7 @@ public class JsonContext {
         addConverter(new RoleConverter(), Role.class);
         addConverter(new MangoPermissionConverter(), MangoPermission.class);
         addConverter(new ScriptPermissionConverter(), ScriptPermissions.class);
+        addConverter(new LazyFieldConverter(), LazyField.class);
 
         // Object factories
         addFactory(new ListFactory(), List.class);

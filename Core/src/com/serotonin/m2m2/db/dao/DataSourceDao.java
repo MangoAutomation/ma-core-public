@@ -52,7 +52,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.SerializationHelper;
@@ -117,7 +116,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
             while(tries > 0) {
                 try {
                     withLockedRow(vo.getId(), (txStatus) -> {
-                        result.points = DataPointDao.getInstance().deleteDataPoints(vo.getId());
+                        DataPointDao.getInstance().deleteDataPoints(vo.getId());
                         deleteRelationalData(vo);
                         result.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
                         deletePostRelationalData(vo);
@@ -140,15 +139,12 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
                 AuditEventType.raiseDeletedEvent(this.typeName, vo);
             }
 
-            DataPointDao.getInstance().raiseDeletedEvents(result.points);
-
             return result.deleted > 0;
         }
         return false;
     }
 
     private class DataSourceDeletionResult {
-        private List<DataPointVO> points;
         private Integer deleted;
     }
 

@@ -6,7 +6,9 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
+import com.google.common.collect.Iterables;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -45,6 +47,24 @@ public class BaseDao extends DaoUtils {
     protected boolean isXidUnique(String xid, int excludeId, String tableName) {
         return ejt.queryForInt("select count(*) from " + tableName + " where xid=? and id<>?", new Object[] { xid,
                 excludeId }, 0) == 0;
+    }
+
+    /**
+     * Get the defined batch size for IN() conditions
+     * @return
+     */
+    protected int getInBatchSize() {
+        return Common.envProps.getInt("db.in.maxOperands", 1000);
+    }
+
+    /**
+     * Break an interable collection into batches to execute large 'in' queries
+     * @param <T>
+     * @param parameters
+     * @return
+     */
+    protected <T> Iterable<List<T>> batchInParameters(Iterable<T> parameters){
+        return Iterables.partition(parameters, getInBatchSize());
     }
 
     //

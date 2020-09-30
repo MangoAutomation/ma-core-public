@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -287,49 +289,113 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     /**
      * Delete the data point for a data source, this must be called within a transaction
+     *  and will does not specifically load relational data.  This will clean permissions
      *
      * @param dataSourceId
      */
-    List<DataPointVO> deleteDataPoints(final int dataSourceId) {
+    void deleteDataPoints(final int dataSourceId) {
 
-        List<DataPointVO> points = customizedQuery(getJoinedSelectQuery().where(table.getAlias("dataSourceId").eq(dataSourceId)),
-                getListResultSetExtractor());
+        //We will not load any relational data from this and rely on the permissionIds being set
+        Select<Record> query = getJoinedSelectQuery().where(table.getAlias("dataSourceId").eq(dataSourceId));
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
+        query(sql, args.toArray(), new ResultSetExtractor<Void>() {
 
-        if (points.size() > 0) {
-            List<Integer> ids = new ArrayList<>();
-            for(DataPointVO dp : points) {
-                ids.add(dp.getId());
-            }
+            @Override
+            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
+                RowMapper<DataPointVO> rowMapper = getRowMapper();
+                int rowNum = 0;
+                List<DataPointVO> batch = new ArrayList<>();
+                List<Integer> pointIds = new ArrayList<>();
+                Set<Integer> permissionIds = new HashSet<>();
+                int batchSize = getInBatchSize();
 
-            //delete event handler mappings
-            create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
-            .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
-                    EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.in(ids)).execute();
+                while (rs.next()) {
+                    try {
+                        DataPointVO row = rowMapper.mapRow(rs, rowNum);
 
-            //delete user comments
-            create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
-                    userCommentTable.getField("typeKey").in(ids)).execute();
+                        //Don't trigger a lazy load (load relational after this)
+                        permissionIds.add(row.getReadPermission().getId());
+                        permissionIds.add(row.getEditPermission().getId());
+                        permissionIds.add(row.getSetPermission().getId());
 
-            //delete event detectors
-            create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").in(ids)).execute();
+                        loadRelationalData(row);
+                        batch.add(row);
+                        pointIds.add(row.getId());
 
-            for(DataPointVO vo : points) {
-                DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
-                if(def != null) {
-                    def.deleteRelationalData(vo);
+                    }catch (Exception e) {
+                        if (e.getCause() instanceof ModuleNotLoadedException) {
+                            try {
+                                LOG.error("Data point with xid '" + rs.getString("xid")
+                                + "' could not be loaded. Is its module missing?", e.getCause());
+                            }catch(SQLException e1) {
+                                LOG.error(e.getMessage(), e);
+                            }
+                        }else {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }finally {
+                        rowNum++;
+                    }
+
+                    //Check if time to batch
+                    if(batch.size() == batchSize) {
+                        deleteBatch(batch, pointIds, permissionIds);
+                        batch.clear();
+                        pointIds.clear();
+                        permissionIds.clear();
+                    }
+
                 }
+                if(batch.size() > 0) {
+                    deleteBatch(batch, pointIds, permissionIds);
+                }
+                return null;
             }
+        });
+    }
 
-            //delete the points in bulk
-            create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
+    /**
+     * @param batch
+     * @param pointIds
+     * @param permissionIds
+     */
+    protected void deleteBatch(List<DataPointVO> batch, List<Integer> ids,
+            Set<Integer> permissionIds) {
+        //delete event handler mappings
+        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
+        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
+                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.in(ids)).execute();
 
-            //Clean permissions
-            for(DataPointVO vo : points) {
-                permissionDao.permissionDeleted(vo.getReadPermission(), vo.getSetPermission());
+        //delete user comments
+        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
+                userCommentTable.getField("typeKey").in(ids)).execute();
+
+        //delete event detectors
+        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").in(ids)).execute();
+
+        for(DataPointVO vo : batch) {
+            DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+            if(def != null) {
+                def.deleteRelationalData(vo);
             }
-
         }
-        return points;
+
+        //delete the points in bulk
+        int deleted = create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
+
+        if(this.countMonitor != null) {
+            this.countMonitor.addValue(-deleted);
+        }
+
+        permissionDao.permissionDeleted(permissionIds);
+
+        //Audit Events/Dao events
+        for(DataPointVO vo : batch) {
+            AuditEventType.raiseDeletedEvent(this.typeName, vo);
+            publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
+        }
+
     }
 
     /**
