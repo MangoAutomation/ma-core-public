@@ -246,14 +246,14 @@ public class PermissionDao extends BaseDao {
     }
 
     /**
-     * Bulk delete many permissions
+     * Delete many permissions
      * @param permissionIds
      */
     public void permissionDeleted(Set<Integer> permissionIds) {
         int deleted = 0;
-        for(List<Integer> batch :  batchInParameters(permissionIds)) {
+        for(Integer id :  permissionIds) {
             try{
-                deleted += create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.in(batch)).execute();
+                deleted += create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(id)).execute();
             }catch(Exception e) {
                 //permission still in use
             }
