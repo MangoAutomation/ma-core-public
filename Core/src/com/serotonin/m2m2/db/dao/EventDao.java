@@ -7,17 +7,21 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Field;
+import org.jooq.UpdateConditionStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -54,11 +58,15 @@ public class EventDao extends BaseDao {
 
     private final AuditEventDao auditEventDao;
     private final UserCommentDao userCommentDao;
+    private final EventInstanceTableDefinition table;
 
     @Autowired
-    private EventDao(AuditEventDao auditEventDao, UserCommentDao userCommentDao) {
+    private EventDao(AuditEventDao auditEventDao,
+            UserCommentDao userCommentDao,
+            EventInstanceTableDefinition table) {
         this.auditEventDao = auditEventDao;
         this.userCommentDao = userCommentDao;
+        this.table = table;
     }
 
     public static EventDao getInstance() {
@@ -129,21 +137,28 @@ public class EventDao extends BaseDao {
         }
     }
 
-    private static final String EVENT_BULK_RTN = "update events set rtnTs=?, rtnCause=? where id in ";
+    /**
+     * Bulk return events to normal in batches based on the env property
+     *
+     * @param eventIds
+     * @param timestamp
+     * @param cause
+     */
     public void returnEventsToNormal(List<Integer> eventIds, long timestamp, ReturnCause cause){
-        if(eventIds.size() == 0)
+        if(eventIds.size() == 0) {
             throw new ShouldNeverHappenException("Not enough Ids!");
-        StringBuilder inClause = new StringBuilder();
-        inClause.append("(");
-        final String comma = ",";
-        Iterator<Integer> it = eventIds.iterator();
-        while(it.hasNext()){
-            inClause.append(it.next());
-            if(it.hasNext())
-                inClause.append(comma);
         }
-        inClause.append(")");
-        ejt.update( EVENT_BULK_RTN + inClause.toString(), new Object[]{timestamp, cause.value()});
+
+        Map<Field<?>, Object> values = new LinkedHashMap<>();
+        values.put(this.table.getField("rtnTs"), timestamp);
+        values.put(this.table.getField("rtnCause"), cause.value());
+
+        for(List<Integer> batch : batchInParameters(eventIds)) {
+            UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getField("rtnApplicable").eq(boolToChar(true)).and(this.table.getIdField().in(batch)));
+            String sql = update.getSQL();
+            List<Object> args = update.getBindValues();
+            ejt.update(sql, args.toArray(new Object[args.size()]));
+        }
     }
 
     private static final String EVENT_ACK = "update events set ackTs=?, ackUserId=?, alternateAckSource=? where id=? and ackTs is null";
