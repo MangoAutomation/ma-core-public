@@ -298,7 +298,11 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     public FileStorePath createDirectory(String xid, String toCreate) {
         FileStorePath toCreatePath = forWrite(xid, toCreate);
         try {
-            Files.createDirectories(toCreatePath.absolutePath);
+            // createDirectories fails if the path is a symlink to an existing directory
+            // check if it is a directory (with follow symlinks) first to prevent this
+            if (!Files.isDirectory(toCreatePath.absolutePath)) {
+                Files.createDirectories(toCreatePath.absolutePath);
+            }
             return toCreatePath;
         } catch (Exception e) {
             throw new FileStoreException(new TranslatableMessage("filestore.errorCreatingDirectory"));
