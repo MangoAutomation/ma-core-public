@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.protobuf.LazyField;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.LazyField;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.json.convert.ArrayConverter;
 import com.serotonin.json.convert.BigDecimalConverter;

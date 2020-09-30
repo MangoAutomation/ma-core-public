@@ -13,12 +13,10 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonTypeWriter;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.json.util.TypeUtils;
 
 /**
- * TODO Mango 4.0 this class isn't currently used as if you annotate
- *  the property that is a LazyField it will detect the Type from the getter/setter
- *  which is the lazy type.  However if one was to try and directly
- *  use the LazyField this converter will be necessary.
+ *
  * @author Terry Packer
  */
 public class LazyFieldConverter extends AbstractClassConverter {
@@ -40,8 +38,11 @@ public class LazyFieldConverter extends AbstractClassConverter {
     @Override
     public void jsonRead(JsonReader reader, JsonValue jsonValue, Object obj, Type type)
             throws JsonException {
+        @SuppressWarnings("unchecked")
         LazyField<Object> field = (LazyField<Object>)obj;
-        field.set(reader.read(type, jsonValue));
+        Type innerType = TypeUtils.getActualTypeArgument(type, 0);
+
+        field.set(reader.read(innerType, jsonValue));
     }
 
 }
