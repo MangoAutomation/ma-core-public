@@ -4,20 +4,14 @@ Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
  */
 package com.serotonin.m2m2.module;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
-import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemPermissionDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -30,9 +24,6 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Matthew Lohbihler
  */
 abstract public class PermissionDefinition extends ModuleElementDefinition {
-
-    @Autowired
-    protected SystemPermissionDao systemPermissionDao;
 
     protected volatile MangoPermission permission;
 
@@ -77,6 +68,10 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
 
     @Override
     public void postDatabase(Version previousVersion, Version current) {
+
+        //Can't autowire this due to circular dependencies with the PermissionService
+        SystemPermissionDao systemPermissionDao = Common.getBean(SystemPermissionDao.class);
+
         //Install our default roles if there are none in the database
         this.permission = systemPermissionDao.get(getPermissionTypeName());
         if(this.permission == null) {
@@ -87,7 +82,13 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
 
     @EventListener
     protected void handleEvent(DaoEvent<? extends RoleVO> event) {
-        this.permission = this.permission.withoutRole(event.getVo().getRole());
+        switch(event.getType()) {
+            case DELETE:
+                this.permission = this.permission.withoutRole(event.getVo().getRole());
+                break;
+            default:
+                break;
+        }
     }
 
 }
