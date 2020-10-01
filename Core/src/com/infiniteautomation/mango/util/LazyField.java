@@ -16,6 +16,7 @@ import java.util.function.Supplier;
  */
 public class LazyField<T> {
 
+    //TODO Mango 4.0 Make non final and null out after use
     final Supplier<T> delegate;
     volatile T value;
     volatile boolean initialized;

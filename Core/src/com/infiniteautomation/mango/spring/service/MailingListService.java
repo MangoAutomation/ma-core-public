@@ -75,6 +75,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
 
         List<MailingList> result = new ArrayList<>();
 
+        // TODO Mango 4.0 this is only weakly consistent
         cache.asMap().forEach((id, ml) -> {
             if(ml.getReceiveAlarmEmails().value() >= 0 && ml.getReceiveAlarmEmails().value() <= alarmLevel.value()) {
                 result.add(ml);

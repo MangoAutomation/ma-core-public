@@ -59,7 +59,6 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     private static final boolean MYSQL_SYNTAX;
 
     private final PermissionService permissionService;
-    private final PermissionDao permissionDao;
 
     static {
         if(Common.databaseProxy.getType() == DatabaseProxy.DatabaseType.H2) {
@@ -77,7 +76,6 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     @Autowired
     private EventHandlerDao(EventHandlerTableDefinition table,
             PermissionService permissionService,
-            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_HANDLER,
@@ -85,7 +83,6 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
-        this.permissionDao = permissionDao;
     }
 
     /**
@@ -199,8 +196,12 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
     @Override
     public void savePreRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getEditPermission());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        vo.setEditPermission(editPermission);
+
         vo.getDefinition().savePreRelationalData(existing, vo);
     }
 
@@ -233,11 +234,12 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                 }
             }
             vo.getDefinition().saveRelationalData(existing, vo);
+
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionDao.permissionDeleted(existing.getEditPermission());
+                permissionService.permissionDeleted(existing.getEditPermission());
             }
         }
     }
@@ -247,9 +249,8 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         vo.setEventTypes(getEventTypesForHandler(vo.getId()));
         vo.getDefinition().loadRelationalData(vo);
         //Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
-
+        vo.setReadPermission(permissionService.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionService.get(vo.getEditPermission().getId()));
     }
 
     @Override
@@ -262,7 +263,9 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     public void deletePostRelationalData(AbstractEventHandlerVO vo) {
         vo.getDefinition().deletePostRelationalData(vo);
         //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        MangoPermission readPermission = vo.getReadPermission();
+        MangoPermission editPermission = vo.getEditPermission();
+        permissionService.permissionDeleted(readPermission, editPermission);
     }
 
     @Override

@@ -4,18 +4,23 @@
 
 package com.serotonin.m2m2.db.upgrade;
 
+import java.sql.Types;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.role.Role;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
-
-import java.sql.Types;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Terry Packer
@@ -51,9 +56,8 @@ public interface PermissionMigration {
                 }
                 mintermIds.add(getOrCreateMinterm(savedRoles));
             }
-
-            MangoPermission saved = new MangoPermission(minterms);
-            saved.setId(getOrCreatePermission(mintermIds));
+            Integer id = getOrCreatePermission(mintermIds);
+            MangoPermission saved = new MangoPermission(id, minterms);
             return saved;
         });
     }

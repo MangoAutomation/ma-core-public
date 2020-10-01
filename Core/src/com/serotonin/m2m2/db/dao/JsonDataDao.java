@@ -56,7 +56,6 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
     });
 
     private final PermissionService permissionService;
-    private final PermissionDao permissionDao;
 
     /**
      * @param handler
@@ -64,10 +63,10 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
      */
     @Autowired
     private JsonDataDao(JsonDataTableDefinition table, @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-            ApplicationEventPublisher publisher, PermissionService permissionService, PermissionDao permissionDao) {
+            ApplicationEventPublisher publisher,
+            PermissionService permissionService) {
         super(AuditEventType.TYPE_JSON_DATA, table, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher);
         this.permissionService = permissionService;
-        this.permissionDao = permissionDao;
     }
 
     /**
@@ -132,18 +131,21 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
 
     @Override
     public void savePreRelationalData(JsonDataVO existing, JsonDataVO vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getEditPermission());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        vo.setEditPermission(editPermission);
     }
 
     @Override
     public void saveRelationalData(JsonDataVO existing, JsonDataVO vo) {
-        if (existing != null) {
-            if (!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
-            if (!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionDao.permissionDeleted(existing.getEditPermission());
+            if(!existing.getEditPermission().equals(vo.getEditPermission())) {
+                permissionService.permissionDeleted(existing.getEditPermission());
             }
         }
     }
@@ -151,14 +153,14 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
     @Override
     public void loadRelationalData(JsonDataVO vo) {
         // Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
+        vo.setReadPermission(permissionService.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionService.get(vo.getEditPermission().getId()));
     }
 
     @Override
     public void deletePostRelationalData(JsonDataVO vo) {
         // Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        permissionService.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
     }
 
     @Override

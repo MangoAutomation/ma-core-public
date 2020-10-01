@@ -3,12 +3,17 @@
  */
 package com.infiniteautomation.mango.permission;
 
-import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.vo.role.Role;
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Container for a set of roles that apply to a permission such as 'permissionDatasource' or  'permissions.user.editSelf'
@@ -20,7 +25,7 @@ import java.util.stream.Stream;
  */
 public final class MangoPermission {
 
-    private Integer id;
+    private final Integer id;
 
     @JsonProperty
     private final Set<Set<Role>> roles;
@@ -29,15 +34,21 @@ public final class MangoPermission {
      * Creates a permission that only superadmins have access to
      */
     public MangoPermission() {
-        this(Collections.emptySet());
+        this(null, Collections.emptySet());
     }
 
     /**
      * Creates a permission that only superadmins have access to
      */
     public MangoPermission(int id) {
-        this(Collections.emptySet());
-        this.id = id;
+        this(id, Collections.emptySet());
+    }
+
+    /**
+     * @param readPermission
+     */
+    public MangoPermission(MangoPermission permission) {
+        this(permission.getId(), permission.getRoles());
     }
 
     /**
@@ -45,6 +56,12 @@ public final class MangoPermission {
      * @param minterms set of minterms
      */
     public MangoPermission(Set<Set<Role>> minterms) {
+        this(null, minterms);
+    }
+
+    public MangoPermission(Integer id, Set<Set<Role>> minterms) {
+        this.id = id;
+
         if (minterms == null) {
             throw new IllegalArgumentException("Roles cannot be null");
         }
@@ -64,6 +81,7 @@ public final class MangoPermission {
                 })
                 .collect(Collectors.toSet()));
     }
+
 
     public Set<Set<Role>> getRoles() {
         return roles;
@@ -118,11 +136,11 @@ public final class MangoPermission {
     @Override
     public String toString() {
         return "MangoPermission{" +
-            roles.stream().map(minterm -> minterm.stream()
+                roles.stream().map(minterm -> minterm.stream()
                         .map(Role::getXid)
                         .collect(Collectors.joining(" AND ", "(", ")")))
-                    .collect(Collectors.joining(" OR ")) +
-        '}';
+                .collect(Collectors.joining(" OR ")) +
+                '}';
     }
 
     /**
@@ -141,7 +159,7 @@ public final class MangoPermission {
             return new MangoPermission(roles.stream().map(minterm -> minterm.stream()
                     .filter(r -> !r.equals(role))
                     .collect(Collectors.toSet()))
-                .filter(minterm -> !minterm.isEmpty()).collect(Collectors.toSet()));
+                    .filter(minterm -> !minterm.isEmpty()).collect(Collectors.toSet()));
         }
 
         return this;
@@ -149,10 +167,6 @@ public final class MangoPermission {
 
     public Integer getId() {
         return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public static MangoPermissionBuilder builder() {

@@ -98,7 +98,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     private final EventDetectorTableDefinition eventDetectorTable;
     private final UserCommentTableDefinition userCommentTable;
     private final PermissionService permissionService;
-    private final PermissionDao permissionDao;
     private final DataPointTagsDao dataPointTagsDao;
     private final EventDetectorDao eventDetectorDao;
 
@@ -114,7 +113,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
-            PermissionDao permissionDao,
             DataPointTagsDao dataPointTagsDao,
             EventDetectorDao eventDetectorDao) {
         super(EventType.EventTypeNames.DATA_POINT, table,
@@ -124,7 +122,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         this.eventDetectorTable = eventDetectorTable;
         this.userCommentTable = userCommentTable;
         this.permissionService = permissionService;
-        this.permissionDao = permissionDao;
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
     }
@@ -388,7 +385,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             this.countMonitor.addValue(-deleted);
         }
 
-        permissionDao.permissionDeleted(permissionIds);
+        for(Integer id : permissionIds) {
+            permissionService.permissionDeleted(id);
+        }
 
         //Audit Events/Dao events
         for(DataPointVO vo : batch) {
@@ -448,9 +447,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                         summary.setName(rs.getString(3));
                         summary.setDataSourceId(rs.getInt(4));
                         summary.setDeviceName(rs.getString(5));
-                        summary.setReadPermission(permissionDao.get(rs.getInt(6)));
-                        summary.setEditPermission(permissionDao.get(rs.getInt(7)));
-                        summary.setSetPermission(permissionDao.get(rs.getInt(8)));
+                        summary.setReadPermission(permissionService.get(rs.getInt(6)));
+                        summary.setEditPermission(permissionService.get(rs.getInt(7)));
+                        summary.setSetPermission(permissionService.get(rs.getInt(8)));
                         return summary;
                     }else {
                         return null;
@@ -668,9 +667,14 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     @Override
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getEditPermission());
-        permissionDao.permissionId(vo.getSetPermission());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        vo.setEditPermission(editPermission);
+
+        MangoPermission setPermission = permissionService.findOrCreate(vo.getSetPermission().getRoles());
+        vo.setSetPermission(setPermission);
     }
 
     @Override
@@ -696,13 +700,13 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionDao.permissionDeleted(existing.getEditPermission());
+                permissionService.permissionDeleted(existing.getEditPermission());
             }
             if(!existing.getSetPermission().equals(vo.getSetPermission())) {
-                permissionDao.permissionDeleted(existing.getSetPermission());
+                permissionService.permissionDeleted(existing.getSetPermission());
             }
         }
     }
@@ -719,11 +723,11 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         //Populate permissions
         MangoPermission read = vo.getReadPermission();
-        vo.supplyReadPermission(() -> permissionDao.get(read.getId()));
+        vo.supplyReadPermission(() -> permissionService.get(read.getId()));
         MangoPermission edit = vo.getEditPermission();
-        vo.supplyEditPermission(() -> permissionDao.get(edit.getId()));
+        vo.supplyEditPermission(() -> permissionService.get(edit.getId()));
         MangoPermission set = vo.getSetPermission();
-        vo.supplySetPermission(() -> permissionDao.get(set.getId()));
+        vo.supplySetPermission(() -> permissionService.get(set.getId()));
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
@@ -754,8 +758,12 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     @Override
     public void deletePostRelationalData(DataPointVO vo) {
-        //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission(), vo.getSetPermission());
+        //Clean permissions, be aware of the lazy loading problem that deleting a permission
+        // here before it is lazily accessed will throw a NotFoundException
+        MangoPermission readPermission = vo.getReadPermission();
+        MangoPermission editPermission = vo.getEditPermission();
+        MangoPermission setPermission = vo.getSetPermission();
+        permissionService.permissionDeleted(readPermission, editPermission, setPermission);
     }
 
     @Override
@@ -914,6 +922,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         return new DataPointQueryBuilder(table.getAliasMap(), valueConverterMap,
                 csl -> customizedCount(csl, user),
                 (csl, consumer) -> customizedQuery(csl, user, consumer));
+    }
+
+    /**
+     * Get the read permission ID for in memory checks
+     * @param dataPointId
+     * @return permission id or null
+     */
+    public Integer getReadPermissionId(int dataPointId) {
+        return this.create.select(DataPointTableDefinition.READ_PERMISSION).from(DataPointTableDefinition.TABLE).where(this.table.getIdField().eq(dataPointId)).fetchOneInto(Integer.class);
     }
 
     private static class DataPointQueryBuilder extends QueryBuilder<DataPointVO> {

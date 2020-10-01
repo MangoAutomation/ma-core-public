@@ -28,7 +28,11 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.Functions;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PermissionDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -49,29 +53,39 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Service
-public class PermissionService {
+public class PermissionService implements CachingService {
 
     private final RoleDao roleDao;
+    private final PermissionDao permissionDao;
+
     private final DataSourcePermissionDefinition dataSourcePermission;
     private final PermissionHolder systemSuperadmin;
     private final EventsViewPermissionDefinition eventsViewPermission;
 
     //Cache of role xid to inheritance
     private final LoadingCache<String, RoleInheritance> roleHierarchyCache;
+    //Cache of permissionId to MangoPermission
+    private final LoadingCache<Integer, MangoPermission> permissionCache;
 
     @Autowired
     public PermissionService(RoleDao roleDao,
+            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     PermissionHolder systemSuperadmin,
     DataSourcePermissionDefinition dataSourcePermission,
     EventsViewPermissionDefinition eventsView) {
         this.roleDao = roleDao;
+        this.permissionDao = permissionDao;
+
         this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
         this.roleHierarchyCache = Caffeine.newBuilder()
                 .maximumSize(Common.envProps.getLong("cache.roles.size", 1000))
                 .build(this::loadRoleInheritance);
+        this.permissionCache = Caffeine.newBuilder()
+                .maximumSize(Common.envProps.getLong("cache.permission.size", 1000))
+                .build(this::loadPermission);
     }
 
     /**
@@ -372,6 +386,66 @@ public class PermissionService {
     }
 
     /**
+     * Does this PermissionHolder have read permission for this point
+     * @param user
+     * @param dataPointId
+     * @return
+     */
+    public boolean hasDataPointReadPermission(PermissionHolder user, int dataPointId) {
+        if (!isValidPermissionHolder(user)) return false;
+
+        //TODO Mango 4.0 after removing the getInstance() method we can use @Lazy to inject this dao
+        Integer permissionId = DataPointDao.getInstance().getReadPermissionId(dataPointId);
+        if(permissionId == null) {
+            return hasAdminRole(user);
+        }else {
+            MangoPermission permission = permissionCache.get(permissionId);
+            return hasPermission(user, permission);
+        }
+    }
+
+    /**
+     * Ensure this PermissionHolder has read permission for this point
+     * @param user
+     * @param dataPointId
+     * @throws PermissionException
+     */
+    public void ensureDataPointReadPermission(PermissionHolder user, int dataPointId) throws PermissionException {
+        if (!hasDataPointReadPermission(user, dataPointId))
+            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getPermissionHolderName()), user);
+    }
+
+    /**
+     * Does this PermissionHolder have read permission for this source
+     * @param user
+     * @param dataSourceId
+     * @return
+     */
+    public boolean hasDataSourceReadPermission(PermissionHolder user, int dataSourceId) {
+        if (!isValidPermissionHolder(user)) return false;
+
+        //TODO Mango 4.0 after removing the getInstance() method we can use @Lazy to inject this dao
+        Integer permissionId = DataSourceDao.getInstance().getReadPermissionId(dataSourceId);
+        if(permissionId == null) {
+            return hasAdminRole(user);
+        }else {
+            MangoPermission permission = permissionCache.get(permissionId);
+            return hasPermission(user, permission);
+        }
+    }
+
+    /**
+     * Ensure this PermissionHolder has read permission for this source
+     * @param user
+     * @param dataSourceId
+     * @throws PermissionException
+     */
+    public void ensureDataSourceReadPermission(PermissionHolder user, int dataSourceId) throws PermissionException {
+        if (!hasDataSourceReadPermission(user, dataSourceId))
+            throw new PermissionException(new TranslatableMessage("permission.exception.readDataSource", user.getPermissionHolderName()), user);
+    }
+
+    /**
      * Is this permission holder valid, to be valid they:
      * - must be non null
      * - must not disabled
@@ -444,6 +518,74 @@ public class PermissionService {
         }
         return Collections.unmodifiableSet(allRoles);
     }
+
+    /**
+     * Get a permission from the cache, load from db if necessary
+     * @param id
+     * @return
+     * @throws NotFoundException if permission with this ID not found
+     */
+    public MangoPermission get(Integer id) throws NotFoundException {
+        MangoPermission permission = this.permissionCache.get(id);
+        if(permission == null) {
+            throw new NotFoundException();
+        }else {
+            return permission;
+        }
+    }
+
+    /**
+     * Find or create a permission entry to match these minterms
+     * @param minterms
+     * @return
+     */
+    public MangoPermission findOrCreate(Set<Set<Role>> minterms) {
+        // TODO Mango 4.0 this is only weakly consistent
+        for(MangoPermission p : permissionCache.asMap().values()) {
+            //TODO checking ID so we don't accidentally change it
+            // not sure if that is possible based on the permission.equals() method
+            if(p.getRoles().equals(minterms)) {
+                return p;
+            }
+        }
+
+        Integer id = permissionDao.permissionId(minterms);
+        //TODO Insert into cache here?
+        return new MangoPermission(id, minterms);
+    }
+
+    /**
+     * A vo with a permission was deleted, attempt to delete it and clean up
+     *  if other VOs reference this permission it will not be deleted
+     * @param permission
+     */
+    public void permissionDeleted(MangoPermission... permissions) {
+        for(MangoPermission permission : permissions) {
+            this.permissionDeleted(permission.getId());
+        }
+    }
+
+    /**
+     * Delete permission from system by ID, if other VOs
+     *  reference this permission it will not be deleted
+     * @param permissionId
+     */
+    public void permissionDeleted(Integer permissionId) {
+        if(permissionDao.permissionDeleted(permissionId)) {
+            this.permissionCache.invalidate(permissionId);
+        }
+    }
+
+    /**
+     * Load a permission from the database via it's id, used by cache
+     * @param id
+     * @return
+     */
+    private MangoPermission loadPermission(Integer id) {
+        //TODO Mango 4.0 throw NotFoundException?
+        return permissionDao.get(id);
+    }
+
 
     /**
      * Validate a permission.  This will validate that:
@@ -642,10 +784,18 @@ public class PermissionService {
                 //TODO Mango 4.0 Invalidate all roles that inherit
                 //TODO Invalidate me
                 roleHierarchyCache.invalidateAll();
+                //TODO Mango 4.0 find and invalidate permissions that have this role
+                permissionCache.invalidateAll();
                 break;
             default:
                 break;
         }
+    }
+
+    @Override
+    public void clearCaches() {
+        this.roleHierarchyCache.invalidateAll();
+        this.permissionCache.invalidateAll();
     }
 
     /**
