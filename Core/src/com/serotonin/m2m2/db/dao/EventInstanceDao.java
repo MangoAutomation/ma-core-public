@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,13 +14,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.SelectJoinStep;
+import org.jooq.SelectOnConditionStep;
 import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,12 +38,18 @@ import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.tables.MintermMappingTable;
+import com.serotonin.m2m2.db.dao.tables.PermissionMappingTable;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -46,14 +58,15 @@ import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
-import net.jazdw.rql.parser.ASTNode;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * This is used for querying events from the database
@@ -69,18 +82,28 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
     private final UserTableDefinition userTable;
     private final UserCommentTableDefinition userCommentTable;
+    private final DataPointTableDefinition dataPointTable;
+    private final DataSourceTableDefinition dataSourceTable;
     private final DataPointTagsDao dataPointTagsDao;
+    private final PermissionService permissionService;
 
     @Autowired
     private EventInstanceDao(EventInstanceTableDefinition table,
             UserTableDefinition userTable,
             UserCommentTableDefinition userCommentTable,
+            DataPointTableDefinition dataPointTable,
+            DataSourceTableDefinition dataSourceTable,
+            DataPointTagsDao dataPointTagsDao,
+            PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher, DataPointTagsDao dataPointTagsDao) {
+            ApplicationEventPublisher publisher) {
         super(null, table, null, mapper, publisher);
         this.userTable = userTable;
         this.userCommentTable = userCommentTable;
+        this.dataPointTable = dataPointTable;
+        this.dataSourceTable = dataSourceTable;
         this.dataPointTagsDao = dataPointTagsDao;
+        this.permissionService = permissionService;
     }
 
     /**
@@ -106,6 +129,10 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
         select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
 
+        //TODO add hook for Event type Definitions
+        select = select.leftJoin(dataPointTable.getTableAsAlias()).on(dataPointTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_POINT)));
+        select = select.leftJoin(dataSourceTable.getTableAsAlias()).on(dataSourceTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_SOURCE)));
+
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
@@ -116,6 +143,55 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         }
 
         return select;
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
+            ConditionSortLimit conditions, PermissionHolder user) {
+
+        if(!permissionService.hasAdminRole(user)) {
+            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
+
+            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+
+            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .from(MintermMappingTable.MINTERMS_MAPPING)
+                    .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+                    .having(DSL.count().eq(DSL.count(
+                            DSL.case_().when(roleIdsIn, DSL.inline(1))
+                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
+
+            SelectOnConditionStep<Record1<Integer>> permissionGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId));
+
+            //Data Point Permissions Join
+            Table<?> dataPointPermissionsGranted = permissionGranted.asTable("dataPointPermissionsGranted");
+            select = select.join(dataPointPermissionsGranted).on(
+                    dataPointPermissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            DataPointTableDefinition.READ_PERMISSION_ALIAS).or(this.table.getAlias("typeName").ne(EventTypeNames.DATA_POINT)));
+
+            //Data Source Permissions Join
+            Table<?> dataSourcePermissionsGranted = permissionGranted.asTable("dataSourcePermissionsGranted");
+            select = select.join(dataSourcePermissionsGranted).on(
+                    dataSourcePermissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            DataSourceTableDefinition.READ_PERMISSION_ALIAS).or(this.table.getAlias("typeName").ne(EventTypeNames.DATA_SOURCE)));
+
+            //TODO Other event type joins potentially via EventTypeDefinitions here
+
+            //Conditional Restrictions
+            Condition notSystemEventType = this.table.getAlias("typeName").ne(EventTypeNames.SYSTEM);
+            conditions.andCondition(notSystemEventType);
+
+            Condition notPublisherEventType  = this.table.getAlias("typeName").ne(EventTypeNames.PUBLISHER);
+            conditions.andCondition(notPublisherEventType);
+
+            Condition notMissionEventType  = this.table.getAlias("typeName").ne(EventTypeNames.MISSING);
+            conditions.andCondition(notMissionEventType);
+
+        }
+        return select;
+
     }
 
     @Override

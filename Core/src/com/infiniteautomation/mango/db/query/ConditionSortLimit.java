@@ -13,7 +13,7 @@ import org.jooq.SortField;
  * @author Jared Wiltshire
  */
 public class ConditionSortLimit {
-    protected final Condition condition;
+    protected Condition condition;
     protected final List<SortField<Object>> sort;
     protected final Integer limit;
     protected final Integer offset;
@@ -43,5 +43,29 @@ public class ConditionSortLimit {
 
     public ConditionSortLimit withNullLimitOffset() {
         return new ConditionSortLimit(condition, sort, null, null);
+    }
+
+    /**
+     * Add an AND condition
+     * @param and
+     */
+    public void andCondition(Condition and) {
+        if(condition != null) {
+            condition = condition.and(and);
+        }else {
+            condition = and;
+        }
+    }
+
+    /**
+     * Add an OR condition
+     * @param or
+     */
+    public void orCondition(Condition or) {
+        if(condition != null) {
+            condition = condition.or(or);
+        }else {
+            condition = or;
+        }
     }
 }
