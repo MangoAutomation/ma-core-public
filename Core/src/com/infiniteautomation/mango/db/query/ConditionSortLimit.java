@@ -68,4 +68,5 @@ public class ConditionSortLimit {
             condition = or;
         }
     }
+
 }

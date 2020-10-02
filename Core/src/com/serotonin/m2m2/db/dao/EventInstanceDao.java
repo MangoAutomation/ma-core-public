@@ -86,6 +86,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     private final DataSourceTableDefinition dataSourceTable;
     private final DataPointTagsDao dataPointTagsDao;
     private final PermissionService permissionService;
+    private final List<EventTypeDefinition> eventTypeDefinitions;
 
     @Autowired
     private EventInstanceDao(EventInstanceTableDefinition table,
@@ -104,6 +105,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         this.dataSourceTable = dataSourceTable;
         this.dataPointTagsDao = dataPointTagsDao;
         this.permissionService = permissionService;
+        this.eventTypeDefinitions = ModuleRegistry.getEventTypeDefinitions();
     }
 
     /**
@@ -129,17 +131,21 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
         select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
 
-        //TODO add hook for Event type Definitions
-        select = select.leftJoin(dataPointTable.getTableAsAlias()).on(dataPointTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_POINT)));
-        select = select.leftJoin(dataSourceTable.getTableAsAlias()).on(dataSourceTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_SOURCE)));
-
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
                 // TODO Mango 4.0 throw exception or don't join if event type is not restricted to DATA_POINT
                 Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getAlias("typeRef1")));
+                select = select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getAlias("typeRef1")));
             }
+        }
+
+        //TODO Mango 4.0 don't join if eventType is not of these types and user is not superadmin
+        select = select.leftJoin(dataPointTable.getTableAsAlias()).on(dataPointTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_POINT)));
+        select = select.leftJoin(dataSourceTable.getTableAsAlias()).on(dataSourceTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_SOURCE)));
+
+        for(EventTypeDefinition def : eventTypeDefinitions) {
+            select = def.joinTables(select, conditions);
         }
 
         return select;
@@ -177,7 +183,10 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
                     dataSourcePermissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
                             DataSourceTableDefinition.READ_PERMISSION_ALIAS).or(this.table.getAlias("typeName").ne(EventTypeNames.DATA_SOURCE)));
 
-            //TODO Other event type joins potentially via EventTypeDefinitions here
+            //Other event type joins potentially via EventTypeDefinitions here
+            for(EventTypeDefinition def : eventTypeDefinitions) {
+                select = def.joinPermissions(select, conditions, permissionGranted, user);
+            }
 
             //Conditional Restrictions
             Condition notSystemEventType = this.table.getAlias("typeName").ne(EventTypeNames.SYSTEM);
