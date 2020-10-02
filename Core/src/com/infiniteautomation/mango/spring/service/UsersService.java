@@ -558,7 +558,9 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
     @Override
     public void clearCaches() {
-        this.userByUsername.invalidateAll();
+        PermissionHolder currentUser = Common.getUser();
+        permissionService.ensureAdminRole(currentUser);
+        userByUsername.invalidateAll();
     }
 
 }

@@ -27,6 +27,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.spring.service.CachingService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
@@ -427,7 +428,9 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         }
 
         //clear all caches in services
-        Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream().forEach(s -> s.clearCaches());
+        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
+            Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream().forEach(s -> s.clearCaches());
+        });
     }
 
     @Override

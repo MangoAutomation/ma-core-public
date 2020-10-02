@@ -794,6 +794,8 @@ public class PermissionService implements CachingService {
 
     @Override
     public void clearCaches() {
+        PermissionHolder currentUser = Common.getUser();
+        ensureAdminRole(currentUser);
         this.roleHierarchyCache.invalidateAll();
         this.permissionCache.invalidateAll();
     }
