@@ -303,7 +303,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                         if (diff < 0)
                             diff = -diff;
 
-                        if (diff > vo.getTolerance()) {
+                        if (diff > vo.getTolerance() || Double.isNaN(newd) != Double.isNaN(toleranceOrigin)) {
                             toleranceOrigin = newd;
                             logValue = true;
                         }
