@@ -140,14 +140,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
             }
         }
 
-        //TODO Mango 4.0 don't join if eventType is not of these types and user is not superadmin
-        select = select.leftJoin(dataPointTable.getTableAsAlias()).on(dataPointTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_POINT)));
-        select = select.leftJoin(dataSourceTable.getTableAsAlias()).on(dataSourceTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_SOURCE)));
-
-        for(EventTypeDefinition def : eventTypeDefinitions) {
-            select = def.joinTables(select, conditions);
-        }
-
         return select;
     }
 
@@ -156,6 +148,15 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
             ConditionSortLimit conditions, PermissionHolder user) {
 
         if(!permissionService.hasAdminRole(user)) {
+
+            //TODO Mango 4.0 don't join if eventType is not of these types and user is not superadmin
+            select = select.leftJoin(dataPointTable.getTableAsAlias()).on(dataPointTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_POINT)));
+            select = select.leftJoin(dataSourceTable.getTableAsAlias()).on(dataSourceTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_SOURCE)));
+
+            for(EventTypeDefinition def : eventTypeDefinitions) {
+                select = def.joinTables(select, conditions);
+            }
+
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
