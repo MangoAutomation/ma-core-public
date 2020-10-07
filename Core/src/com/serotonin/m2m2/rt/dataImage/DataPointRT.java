@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.infiniteautomation.mango.statistics.StartsAndRuntime;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -61,7 +62,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private final PointLocatorRT<?> pointLocator;
 
     // Runtime data.
-    private volatile PointValueTime pointValue;
+    private final LazyField<PointValueTime> pointValue;
     private final PointValueCache valueCache;
     private List<PointEventDetectorRT<?>> detectors;
     private final Map<String, Object> attributes = new HashMap<String, Object>();
@@ -101,8 +102,16 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         } else {
             valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache);
         }
-        if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
+        if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
             averagingValues = new ArrayList<IValueTime>();
+        }
+        this.pointValue = new LazyField<>(() -> {
+            PointValueTime pvt = valueCache.getLatestPointValue();
+            // Set the tolerance origin if this is a numeric
+            if (pvt != null && pvt.getValue() instanceof NumericValue)
+                toleranceOrigin = pvt.getDoubleValue();
+            return pvt;
+        });
     }
 
     /**
@@ -279,7 +288,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             return;
         }
 
-        boolean backdated = pointValue != null && newValue.getTime() < pointValue.getTime();
+        boolean backdated = pointValue.get() != null && newValue.getTime() < pointValue.get().getTime();
 
         // Determine whether the new value qualifies for logging.
         boolean logValue;
@@ -310,9 +319,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                         else
                             logValue = false;
                     } else if(newValue.getValue() instanceof ImageValue) {
-                        logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.getValue()).getDigest());
+                        logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.get().getValue()).getDigest());
                     } else
-                        logValue = !Objects.equals(newValue.getValue(), pointValue.getValue());
+                        logValue = !Objects.equals(newValue.getValue(), pointValue.get().getValue());
                 }
 
                 saveValue = logValue;
@@ -327,7 +336,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     // Backdated. Ignore it
                     logValue = false;
                 else
-                    logValue = newValue.getTime() != pointValue.getTime();
+                    logValue = newValue.getTime() != pointValue.get().getTime();
 
                 saveValue = logValue;
                 break;
@@ -355,9 +364,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
 
         // Ignore historical values.
-        if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
-            PointValueTime oldValue = pointValue;
-            pointValue = newValue;
+        if (pointValue.get() == null || newValue.getTime() >= pointValue.get().getTime()) {
+            PointValueTime oldValue = pointValue.get();
+            pointValue.set(newValue);
             fireEvents(oldValue, newValue, null, source != null, false, logValue, true, false);
         }
         else
@@ -424,13 +433,13 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         valueCache.savePointValue(newValue, source, logValue, async);
 
         //Update our value if it is newer
-        if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
-            PointValueTime oldValue = pointValue;
-            pointValue = newValue;
+        if (pointValue == null || newValue.getTime() >= pointValue.get().getTime()) {
+            PointValueTime oldValue = pointValue.get();
+            pointValue.set(newValue);
             if(fireEvents == FireEvents.ON_CURRENT_VALUE_UPDATE || fireEvents == FireEvents.ALWAYS)
                 fireEvents(oldValue, newValue, null, source != null, false, logValue, true, false);
         }else if(fireEvents == FireEvents.ALWAYS)
-            fireEvents(pointValue, newValue, null, source != null, true, logValue, false, false);
+            fireEvents(pointValue.get(), newValue, null, source != null, true, logValue, false, false);
 
     }
 
@@ -459,7 +468,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             Date startTime = new Date(nextPollTime + delay);
 
             if (vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL) {
-                intervalValue = pointValue;
+                intervalValue = pointValue.get();
                 if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
                     intervalStartTime = timer == null ? Common.timer.currentTimeMillis() : timer.currentTimeMillis();
                     if(averagingValues.size() > 0) {
@@ -566,11 +575,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             DataValue value;
             if(vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL) {
                 if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.INSTANT)
-                    value = PointValueTime.getValue(pointValue);
+                    value = PointValueTime.getValue(pointValue.get());
                 else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.MAXIMUM
                         || vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.MINIMUM) {
                     value = PointValueTime.getValue(intervalValue);
-                    intervalValue = pointValue;
+                    intervalValue = pointValue.get();
                 }
                 else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
 
@@ -613,7 +622,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
                     intervalStartTime = fireTime;
                     fireTime = sampleWindowStartTime + (fireTime - sampleWindowStartTime)/2L; //Fix to simulate center tapped filter (un-shift the average)
-                    intervalValue = pointValue;
+                    intervalValue = pointValue.get();
 
                     if(!vo.isOverrideIntervalLoggingSamples())
                         averagingValues.clear();
@@ -623,9 +632,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
                 //Okay, no changes rescheduled the timer. Get a value,
                 if(pointValue != null) {
-                    value = pointValue.getValue();
+                    value = pointValue.get().getValue();
                     if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
-                        toleranceOrigin = pointValue.getDoubleValue();
+                        toleranceOrigin = pointValue.get().getDoubleValue();
                 } else
                     value = null;
 
@@ -652,14 +661,16 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     public void resetValues() {
         valueCache.reset();
-        if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE)
-            pointValue = valueCache.getLatestPointValue();
+        if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE) {
+            pointValue.set(valueCache.getLatestPointValue());
+        }
     }
 
     public void resetValues(long before) {
         valueCache.reset(before);
-        if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE)
-            pointValue = valueCache.getLatestPointValue();
+        if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE) {
+            pointValue.set(valueCache.getLatestPointValue());
+        }
     }
 
     //
@@ -673,7 +684,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     @Override
     public PointValueTime getPointValue() {
-        return pointValue;
+        return pointValue.get();
     }
 
     @SuppressWarnings("unchecked")
@@ -864,13 +875,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     public void initialize() {
-        // Get the latest value for the point from the database.
-        pointValue = valueCache.getLatestPointValue();
-
-        // Set the tolerance origin if this is a numeric
-        if (pointValue != null && pointValue.getValue() instanceof NumericValue)
-            toleranceOrigin = pointValue.getDoubleValue();
-
         // Add point event listeners
         for (PointEventDetectorRT<?> pedRT : detectors) {
             pedRT.initialize();
@@ -897,7 +901,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     public void initializeHistorical() {
         if(timer != null) {
-            pointValue = getPointValueBefore(timer.currentTimeMillis());
+            pointValue.set(getPointValueBefore(timer.currentTimeMillis()));
             initializeIntervalLogging(timer.currentTimeMillis(), false);
         } else
             initializeIntervalLogging(0l, false);
@@ -905,7 +909,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     public void terminateHistorical() {
         terminateIntervalLogging();
-        pointValue = valueCache.getLatestPointValue();
+        pointValue.set(valueCache.getLatestPointValue());
     }
 
     /**
