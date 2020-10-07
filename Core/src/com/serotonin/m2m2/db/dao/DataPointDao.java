@@ -4,11 +4,55 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectJoinStep;
+import org.jooq.SortField;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.db.query.*;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
+import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.*;
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
+import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
+import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -38,28 +82,6 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.stereotype.Repository;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Comparator;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 /**
  *
@@ -74,7 +96,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     private final EventDetectorTableDefinition eventDetectorTable;
     private final UserCommentTableDefinition userCommentTable;
     private final PermissionService permissionService;
-    private final PermissionDao permissionDao;
     private final DataPointTagsDao dataPointTagsDao;
     private final EventDetectorDao eventDetectorDao;
 
@@ -90,7 +111,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
-            PermissionDao permissionDao,
             DataPointTagsDao dataPointTagsDao,
             EventDetectorDao eventDetectorDao) {
         super(EventType.EventTypeNames.DATA_POINT, table,
@@ -100,7 +120,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         this.eventDetectorTable = eventDetectorTable;
         this.userCommentTable = userCommentTable;
         this.permissionService = permissionService;
-        this.permissionDao = permissionDao;
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
     }
@@ -303,7 +322,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
             //Clean permissions
             for(DataPointVO vo : points) {
-                permissionDao.permissionDeleted(vo.getReadPermission(), vo.getSetPermission());
+                permissionService.permissionDeleted(vo.getReadPermission());
+                permissionService.permissionDeleted(vo.getSetPermission());
+                permissionService.permissionDeleted(vo.getEditPermission());
             }
 
         }
@@ -360,9 +381,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                         summary.setName(rs.getString(3));
                         summary.setDataSourceId(rs.getInt(4));
                         summary.setDeviceName(rs.getString(5));
-                        summary.setReadPermission(permissionDao.get(rs.getInt(6)));
-                        summary.setEditPermission(permissionDao.get(rs.getInt(7)));
-                        summary.setSetPermission(permissionDao.get(rs.getInt(8)));
+                        summary.setReadPermission(permissionService.get(rs.getInt(6)));
+                        summary.setEditPermission(permissionService.get(rs.getInt(7)));
+                        summary.setSetPermission(permissionService.get(rs.getInt(8)));
                         return summary;
                     }else {
                         return null;
@@ -573,9 +594,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     @Override
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getEditPermission());
-        permissionDao.permissionId(vo.getSetPermission());
+        permissionService.permissionId(vo.getReadPermission());
+        permissionService.permissionId(vo.getEditPermission());
+        permissionService.permissionId(vo.getSetPermission());
     }
 
     @Override
@@ -601,13 +622,13 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionDao.permissionDeleted(existing.getEditPermission());
+                permissionService.permissionDeleted(existing.getEditPermission());
             }
             if(!existing.getSetPermission().equals(vo.getSetPermission())) {
-                permissionDao.permissionDeleted(existing.getSetPermission());
+                permissionService.permissionDeleted(existing.getSetPermission());
             }
         }
     }
@@ -623,9 +644,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         vo.setTags(dataPointTagsDao.getTagsForDataPointId(vo.getId()));
 
         //Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
-        vo.setSetPermission(permissionDao.get(vo.getSetPermission().getId()));
+        vo.setReadPermission(permissionService.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionService.get(vo.getEditPermission().getId()));
+        vo.setSetPermission(permissionService.get(vo.getSetPermission().getId()));
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
@@ -657,7 +678,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     @Override
     public void deletePostRelationalData(DataPointVO vo) {
         //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission(), vo.getSetPermission());
+        permissionService.permissionDeleted(vo.getReadPermission());
+        permissionService.permissionDeleted(vo.getEditPermission());
+        permissionService.permissionDeleted(vo.getSetPermission());
     }
 
     @Override

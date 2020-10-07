@@ -28,7 +28,9 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.Functions;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PermissionDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -52,26 +54,34 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class PermissionService {
 
     private final RoleDao roleDao;
+    private final PermissionDao permissionDao;
     private final DataSourcePermissionDefinition dataSourcePermission;
     private final PermissionHolder systemSuperadmin;
     private final EventsViewPermissionDefinition eventsViewPermission;
 
     //Cache of role xid to inheritance
     private final LoadingCache<String, RoleInheritance> roleHierarchyCache;
+    //Cache of permissionId to MangoPermission
+    private final LoadingCache<Integer, MangoPermission> permissionCache;
 
     @Autowired
     public PermissionService(RoleDao roleDao,
+            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     PermissionHolder systemSuperadmin,
     DataSourcePermissionDefinition dataSourcePermission,
     EventsViewPermissionDefinition eventsView) {
         this.roleDao = roleDao;
+        this.permissionDao = permissionDao;
         this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
         this.roleHierarchyCache = Caffeine.newBuilder()
                 .maximumSize(Common.envProps.getLong("cache.roles.size", 1000))
                 .build(this::loadRoleInheritance);
+        this.permissionCache = Caffeine.newBuilder()
+                .maximumSize(Common.envProps.getLong("cache.permission.size", 1000))
+                .build(this::loadPermission);
     }
 
     /**
@@ -443,6 +453,55 @@ public class PermissionService {
             }
         }
         return Collections.unmodifiableSet(allRoles);
+    }
+
+    /**
+     * Get a permission from the cache, load from db if necessary
+     * @param id
+     * @return
+     * @throws NotFoundException if permission with this ID not found
+     */
+    public MangoPermission get(Integer id) throws NotFoundException {
+        MangoPermission permission = this.permissionCache.get(id);
+        if(permission == null) {
+            throw new NotFoundException();
+        }else {
+            return permission;
+        }
+    }
+
+    /**
+     * Get/Create a permission based on the minterms of this permission
+     *  and return the id for it. This is done before saving a VO with a
+     *  permission so there is a FK to reference.
+     * @param permission
+     * @return
+     */
+    public Integer permissionId(MangoPermission permission) {
+        //TODO Mango 4.0 use cache, need to be able to quickly find a permission
+        // without using the ID.
+        return permissionDao.permissionId(permission);
+    }
+
+    /**
+     * A vo with a permission was deleted, attempt to delete it and clean up
+     *  if other VOs reference this permission it will not be deleted
+     * @param permission
+     */
+    public void permissionDeleted(MangoPermission permission) {
+        if(permissionDao.permissionDeleted(permission.getId())) {
+            this.permissionCache.invalidate(permission.getId());
+        }
+    }
+
+    /**
+     * Load a permission from the database via it's id, used by cache
+     * @param id
+     * @return
+     */
+    private MangoPermission loadPermission(Integer id) {
+        //TODO Mango 4.0 throw NotFoundException?
+        return permissionDao.get(id);
     }
 
     /**
