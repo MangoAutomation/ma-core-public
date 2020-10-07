@@ -20,9 +20,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.SelectJoinStep;
-import org.jooq.SelectOnConditionStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,9 +35,8 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
@@ -58,7 +55,6 @@ import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -82,18 +78,13 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
     private final UserTableDefinition userTable;
     private final UserCommentTableDefinition userCommentTable;
-    private final DataPointTableDefinition dataPointTable;
-    private final DataSourceTableDefinition dataSourceTable;
     private final DataPointTagsDao dataPointTagsDao;
     private final PermissionService permissionService;
-    private final List<EventTypeDefinition> eventTypeDefinitions;
 
     @Autowired
     private EventInstanceDao(EventInstanceTableDefinition table,
             UserTableDefinition userTable,
             UserCommentTableDefinition userCommentTable,
-            DataPointTableDefinition dataPointTable,
-            DataSourceTableDefinition dataSourceTable,
             DataPointTagsDao dataPointTagsDao,
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
@@ -101,11 +92,8 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         super(null, table, null, mapper, publisher);
         this.userTable = userTable;
         this.userCommentTable = userCommentTable;
-        this.dataPointTable = dataPointTable;
-        this.dataSourceTable = dataSourceTable;
         this.dataPointTagsDao = dataPointTagsDao;
         this.permissionService = permissionService;
-        this.eventTypeDefinitions = ModuleRegistry.getEventTypeDefinitions();
     }
 
     /**
@@ -149,14 +137,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
         if(!permissionService.hasAdminRole(user)) {
 
-            //TODO Mango 4.0 don't join if eventType is not of these types and user is not superadmin
-            select = select.leftJoin(dataPointTable.getTableAsAlias()).on(dataPointTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_POINT)));
-            select = select.leftJoin(dataSourceTable.getTableAsAlias()).on(dataSourceTable.getIdAlias().eq(this.table.getAlias("typeRef1")).and(this.table.getAlias("typeName").eq(EventTypeNames.DATA_SOURCE)));
-
-            for(EventTypeDefinition def : eventTypeDefinitions) {
-                select = def.joinTables(select, conditions);
-            }
-
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
@@ -168,36 +148,14 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
                             DSL.case_().when(roleIdsIn, DSL.inline(1))
                             .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
 
-            SelectOnConditionStep<Record1<Integer>> permissionGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
+            Table<?> permissionsGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
                     .from(PermissionMappingTable.PERMISSIONS_MAPPING)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId));
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+                    .asTable("permissionsGranted");
 
-            //Data Point Permissions Join
-            Table<?> dataPointPermissionsGranted = permissionGranted.asTable("dataPointPermissionsGranted");
-            select = select.join(dataPointPermissionsGranted).on(
-                    dataPointPermissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            DataPointTableDefinition.READ_PERMISSION_ALIAS).or(this.table.getAlias("typeName").ne(EventTypeNames.DATA_POINT)));
-
-            //Data Source Permissions Join
-            Table<?> dataSourcePermissionsGranted = permissionGranted.asTable("dataSourcePermissionsGranted");
-            select = select.join(dataSourcePermissionsGranted).on(
-                    dataSourcePermissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
-                            DataSourceTableDefinition.READ_PERMISSION_ALIAS).or(this.table.getAlias("typeName").ne(EventTypeNames.DATA_SOURCE)));
-
-            //Other event type joins potentially via EventTypeDefinitions here
-            for(EventTypeDefinition def : eventTypeDefinitions) {
-                select = def.joinPermissions(select, conditions, permissionGranted, user);
-            }
-
-            //Conditional Restrictions
-            Condition notSystemEventType = this.table.getAlias("typeName").ne(EventTypeNames.SYSTEM);
-            conditions.andCondition(notSystemEventType);
-
-            Condition notPublisherEventType  = this.table.getAlias("typeName").ne(EventTypeNames.PUBLISHER);
-            conditions.andCondition(notPublisherEventType);
-
-            Condition notMissionEventType  = this.table.getAlias("typeName").ne(EventTypeNames.MISSING);
-            conditions.andCondition(notMissionEventType);
+            select = select.join(permissionsGranted).on(
+                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                            EventInstanceTableDefinition.READ_PERMISSION_ALIAS));
 
         }
         return select;
@@ -245,26 +203,55 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
                 //}
             }
 
+            MangoPermission read = new MangoPermission(rs.getInt(15));
+            event.supplyReadPermission(() -> read);
+
             long ackTs = rs.getLong(12);
             if (!rs.wasNull()) {
                 //Compute total time
                 event.setAcknowledgedTimestamp(ackTs);
                 event.setAcknowledgedByUserId(rs.getInt(13));
                 if (!rs.wasNull())
-                    event.setAcknowledgedByUsername(rs.getString(15));
+                    event.setAcknowledgedByUsername(rs.getString(16));
                 event.setAlternateAckSource(BaseDao.readTranslatableMessage(rs, 14));
             }
-            event.setHasComments(rs.getInt(16) > 0);
+            event.setHasComments(rs.getInt(17) > 0);
+
 
             return event;
         }
     }
 
     @Override
+    public void savePreRelationalData(EventInstanceVO existing, EventInstanceVO vo) {
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+    }
+
+    @Override
+    public void saveRelationalData(EventInstanceVO existing, EventInstanceVO vo) {
+        if(existing != null) {
+            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+                permissionService.permissionDeleted(existing.getReadPermission());
+            }
+        }
+    }
+
+    @Override
     public void loadRelationalData(EventInstanceVO vo) {
-        if (vo.isHasComments())
-            vo.setEventComments(EventInstanceDao.getInstance().query(EVENT_COMMENT_SELECT, new Object[] { vo.getId() },
+        if (vo.isHasComments()) {
+            vo.setEventComments(query(EVENT_COMMENT_SELECT, new Object[] { vo.getId() },
                     UserCommentDao.getInstance().getRowMapper()));
+        }
+
+        MangoPermission read = vo.getReadPermission();
+        vo.supplyReadPermission(() -> permissionService.get(read.getId()));
+    }
+
+    @Override
+    public void deletePostRelationalData(EventInstanceVO vo) {
+        MangoPermission readPermission = vo.getReadPermission();
+        permissionService.permissionDeleted(readPermission);
     }
 
     private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //

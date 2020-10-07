@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Component;
@@ -18,10 +20,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventInstanceTableDefinition extends AbstractTableDefinition {
 
+    public static final String TABLE_ALIAS = "evt";
     public static final String TABLE_NAME = "events";
+    public static final Table<Record> TABLE = DSL.table(TABLE_NAME);
+
+    public static final Field<Integer> READ_PERMISSION = DSL.field(TABLE.getQualifiedName().append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> READ_PERMISSION_ALIAS = DSL.field( DSL.name(TABLE_ALIAS).append("readPermissionId"), SQLDataType.INTEGER.nullable(false));
 
     public EventInstanceTableDefinition() {
-        super(DSL.table(TABLE_NAME), DSL.name("evt"));
+        super(DSL.table(TABLE_NAME), DSL.name(TABLE_ALIAS));
     }
 
     @Override
@@ -40,6 +47,7 @@ public class EventInstanceTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("ackTs"), SQLDataType.BIGINT));
         fields.add(DSL.field(DSL.name("ackUserId"), SQLDataType.INTEGER));
         fields.add(DSL.field(DSL.name("alternateAckSource"), SQLDataType.CLOB));
+        fields.add(READ_PERMISSION);
     }
 
     @Override

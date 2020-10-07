@@ -160,6 +160,7 @@ public class EventManagerImpl implements EventManager {
 
         EventInstance evt = new EventInstance(type, time, rtnApplicable,
                 alarmLevel, message, context);
+        evt.setReadPermission(type.getEventPermission(context, permissionService));
 
         for (EventManagerListenerDefinition l : listeners) {
             try {

@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt.event.type;
 
+import java.util.Map;
+
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -83,6 +85,15 @@ public class MockEventType extends EventType {
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
         return service.hasAdminRole(user) || service.hasPermission(user, MangoPermission.requireAnyRole(this.required));
+    }
+
+    @Override
+    public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service) {
+        if(required != null) {
+            return MangoPermission.builder().minterm(required).build();
+        }else {
+            return MangoPermission.superadminOnly();
+        }
     }
 
     @Override

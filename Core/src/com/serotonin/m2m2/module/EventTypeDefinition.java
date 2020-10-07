@@ -6,12 +6,6 @@ package com.serotonin.m2m2.module;
 
 import java.util.List;
 
-import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.SelectJoinStep;
-import org.jooq.SelectOnConditionStep;
-
-import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -177,32 +171,4 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     public EventType createDefaultEventType() {
         return createEventType(null, 0, 0);
     }
-
-    /**
-     * Join any tables necessary to extract the event type information and
-     *  check permissions
-     * @param <R>
-     * @param select
-     * @param conditions
-     * @return
-     */
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        return select;
-    }
-
-    /**
-     * Join on permissions if applicable, this is only called is user
-     *  is not superadmin
-     * @param <R>
-     * @param select
-     * @param conditions
-     * @param permissionGranted
-     * @param user
-     * @return
-     */
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
-            ConditionSortLimit conditions, SelectOnConditionStep<Record1<Integer>> permissionGranted, PermissionHolder user) {
-        return select;
-    }
-
 }

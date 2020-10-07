@@ -183,6 +183,11 @@ public final class MangoPermission {
             return this;
         }
 
+        public MangoPermissionBuilder minterm(Stream<Role> roles) {
+            minterms.add(roles.collect(Collectors.toSet()));
+            return this;
+        }
+
         public MangoPermission build() {
             return new MangoPermission(minterms);
         }

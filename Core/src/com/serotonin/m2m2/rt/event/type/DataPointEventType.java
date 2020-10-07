@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
+import java.util.Map;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -13,6 +15,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
+import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -134,6 +137,16 @@ public class DataPointEventType extends EventType {
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
         return service.hasDataPointReadPermission(user, dataPointId);
+    }
+
+    @Override
+    public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service) {
+        DataPointVO dp = (DataPointVO)context.get(PointEventDetectorRT.DATA_POINT_CONTEXT_KEY);
+        if(dp != null) {
+            return dp.getReadPermission();
+        }else {
+            return MangoPermission.superadminOnly();
+        }
     }
 
     //TODO Mango 4.0 remove this and move into base class as a "source" to be set when the event is raised

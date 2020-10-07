@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
+import java.util.Map;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -123,5 +125,10 @@ public class PublisherEventType extends EventType {
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
         return service.hasAdminRole(user);
+    }
+
+    @Override
+    public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service) {
+        return MangoPermission.superadminOnly();
     }
 }

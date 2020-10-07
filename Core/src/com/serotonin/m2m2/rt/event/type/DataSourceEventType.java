@@ -5,13 +5,16 @@
 package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
+import java.util.Map;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -131,5 +134,15 @@ public class DataSourceEventType extends EventType {
         if(ds == null)
             return false;
         return service.hasPermission(user, ds.getReadPermission());
+    }
+
+    @Override
+    public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service) {
+        DataSourceVO vo = (DataSourceVO)context.get(DataSourceRT.DATA_SOURCE_EVENT_CONTEXT_KEY);
+        if(vo != null) {
+            return vo.getReadPermission();
+        }else {
+            return MangoPermission.superadminOnly();
+        }
     }
 }

@@ -8,8 +8,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.util.Functions;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
@@ -78,6 +81,8 @@ public class EventInstance implements EventInstanceI {
     private String acknowledgedByUsername;
     private TranslatableMessage alternateAckSource;
     private boolean hasComments;
+
+    private LazyField<MangoPermission> readPermission = new LazyField<>(new MangoPermission());
 
     //Used so that the multicaster knows what to ignore
     private List<Integer> idsToNotify;
@@ -277,6 +282,18 @@ public class EventInstance implements EventInstanceI {
 
     public void setHasComments(boolean hasComments) {
         this.hasComments = hasComments;
+    }
+
+    public MangoPermission getReadPermission() {
+        return readPermission.get();
+    }
+
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission.set(readPermission);
+    }
+
+    public void supplyReadPermission(Supplier<MangoPermission> readPermission) {
+        this.readPermission = new LazyField<MangoPermission>(readPermission);
     }
 
     public Map<String, Object> getContext() {

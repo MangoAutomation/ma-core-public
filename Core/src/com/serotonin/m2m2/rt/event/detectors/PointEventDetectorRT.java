@@ -10,7 +10,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -54,9 +53,6 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
         Map<String, Object> context = new HashMap<String, Object>();
         context.put(EVENT_DETECTOR_CONTEXT_KEY, vo);
         DataPointVO dataPointVo = vo.getDataPoint();
-        //Load the tags if they have not already been loaded
-        if(dataPointVo.getTags() == null)
-            dataPointVo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPointVo.getId()));
         context.put(DATA_POINT_CONTEXT_KEY, dataPointVo);
         return context;
     }
