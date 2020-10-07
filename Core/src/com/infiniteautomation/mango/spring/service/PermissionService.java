@@ -386,6 +386,17 @@ public class PermissionService implements CachingService {
     }
 
     /**
+     * Ensure this PermissionHolder has read permission for this point
+     * @param user
+     * @param dataPointId
+     * @throws PermissionException
+     */
+    public void ensureDataPointReadPermission(PermissionHolder user, int dataPointId) throws PermissionException {
+        if (!hasDataPointReadPermission(user, dataPointId))
+            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getPermissionHolderName()), user);
+    }
+
+    /**
      * Does this PermissionHolder have read permission for this point
      * @param user
      * @param dataPointId
@@ -402,17 +413,6 @@ public class PermissionService implements CachingService {
             MangoPermission permission = permissionCache.get(permissionId);
             return hasPermission(user, permission);
         }
-    }
-
-    /**
-     * Ensure this PermissionHolder has read permission for this point
-     * @param user
-     * @param dataPointId
-     * @throws PermissionException
-     */
-    public void ensureDataPointReadPermission(PermissionHolder user, int dataPointId) throws PermissionException {
-        if (!hasDataPointReadPermission(user, dataPointId))
-            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getPermissionHolderName()), user);
     }
 
     /**
