@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -302,5 +303,24 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         }else {
             throw new TranslatableIllegalStateException(new TranslatableMessage("dsEdit.failedForcePoll", vo.getName()));
         }
+    }
+
+    /**
+     * Get the read permission for this data source
+     * @param dataPointId
+     * @return
+     * @throws NotFoundException
+     * @throws PermissionException
+     */
+    public MangoPermission getReadPermission(int dataPointId) throws NotFoundException, PermissionException{
+        PermissionHolder user = Common.getUser();
+        Integer permissionId = dao.getReadPermissionId(dataPointId);
+        if(permissionId == null) {
+            throw new NotFoundException();
+        }
+
+        MangoPermission read = permissionService.get(permissionId);
+        permissionService.ensurePermission(user, read);
+        return read;
     }
 }

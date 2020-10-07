@@ -29,6 +29,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -770,5 +771,24 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     public void reliquish(int id) throws NotFoundException, PermissionException, RTException {
         DataPointVO vo = get(id);
         Common.runtimeManager.relinquish(vo.getId());
+    }
+
+    /**
+     * Get the read permission for this data point
+     * @param dataPointId
+     * @return
+     * @throws NotFoundException
+     * @throws PermissionException
+     */
+    public MangoPermission getReadPermission(int dataPointId) throws NotFoundException, PermissionException{
+        PermissionHolder user = Common.getUser();
+        Integer permissionId = dao.getReadPermissionId(dataPointId);
+        if(permissionId == null) {
+            throw new NotFoundException();
+        }
+
+        MangoPermission read = permissionService.get(permissionId);
+        permissionService.ensurePermission(user, read);
+        return read;
     }
 }
