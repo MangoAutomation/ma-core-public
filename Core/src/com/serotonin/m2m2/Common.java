@@ -84,6 +84,7 @@ import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.util.properties.MangoProperties;
+
 import freemarker.template.Configuration;
 
 public class Common {
@@ -275,7 +276,7 @@ public class Common {
      * @return
      */
     public static int getDatabaseSchemaVersion() {
-        return 33;
+        return 34;
     }
 
     public static File getLogsDir() {
