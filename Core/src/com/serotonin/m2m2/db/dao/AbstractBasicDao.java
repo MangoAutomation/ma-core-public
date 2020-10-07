@@ -3,6 +3,45 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.Clob;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.InsertValuesStepN;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Select;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
+import org.jooq.SelectLimitStep;
+import org.jooq.SelectSelectStep;
+import org.jooq.SortField;
+import org.jooq.UpdateConditionStep;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.support.DataAccessUtils;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,28 +64,8 @@ import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import net.jazdw.rql.parser.ASTNode;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.support.DataAccessUtils;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.Clob;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * Provides an API to retrieve, update and save VO objects from and to the
@@ -300,7 +319,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
-        return this.create.selectDistinct(fields)
+        return this.create.select(fields)
                 .from(this.table.getTableAsAlias());
     }
 
@@ -327,7 +346,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         if (this.table.getIdAlias() == null) {
             return this.create.selectCount();
         } else {
-            return this.create.select(DSL.countDistinct(this.table.getIdAlias()));
+            return this.create.select(DSL.count(this.table.getIdAlias()));
         }
     }
 
