@@ -47,7 +47,7 @@ public class PointValueCache {
             if (cache == null) {
                 newCache = new ArrayList<>();
                 if (defaultSize > 0) {
-                    refreshCache(defaultSize, newCache);
+                    newCache = refreshCache(defaultSize, newCache);
                 }
             } else {
                 if (cache.size() > defaultSize) {
