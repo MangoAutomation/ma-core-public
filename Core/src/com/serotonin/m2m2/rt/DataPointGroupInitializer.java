@@ -51,7 +51,7 @@ public class DataPointGroupInitializer {
     public void initialize() {
 
         long startTs = Common.timer.currentTimeMillis();
-        if(this.group == null){
+        if(this.group == null || this.group.size() == 0){
             if(this.useMetrics)
                 LOG.info("Initialization of 0 data points took " + (Common.timer.currentTimeMillis() - startTs));
             return;
