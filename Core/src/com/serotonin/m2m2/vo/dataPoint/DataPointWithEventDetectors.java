@@ -22,6 +22,7 @@ public class DataPointWithEventDetectors {
     private final DataPointVO dataPoint;
     private List<AbstractPointEventDetectorVO> eventDetectors;
 
+
     public DataPointWithEventDetectors(DataPointVO vo,
             List<AbstractPointEventDetectorVO> detectors) {
         this.dataPoint = vo;

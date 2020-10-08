@@ -31,6 +31,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
+import com.serotonin.m2m2.rt.DataPointGroupInitializer.DataPointWithEventDetectorsAndCache;
 import com.serotonin.m2m2.rt.dataImage.DataPointEventMulticaster;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -396,6 +397,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             }
         }
 
+        List<DataPointWithEventDetectorsAndCache> cachedPoints = new ArrayList<>(dataSourcePoints.size());
         for (DataPointWithEventDetectors dataPoint : dataSourcePoints) {
             if (dataPoint.getDataPoint().isEnabled()) {
                 List<PointValueTime> latestValuesForPoint = null;
@@ -405,13 +407,16 @@ public class RuntimeManagerImpl implements RuntimeManager {
                         latestValuesForPoint = new ArrayList<>();
                     }
                 }
-                try {
-                    startDataPointStartup(dataPoint, latestValuesForPoint);
-                } catch (Exception e) {
-                    LOG.error("Failed to start data point " + dataPoint.getDataPoint().getXid(), e);
-                }
+                cachedPoints.add(new DataPointWithEventDetectorsAndCache(dataPoint, latestValuesForPoint));
             }
         }
+
+        //Startup multi threaded
+        int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", 8);
+        boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(cachedPoints, useMetrics, startupThreads);
+        pointInitializer.initialize();
+
         //Signal to the data source that all points are added.
         dataSource.initialized();
 
@@ -481,7 +486,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public void startDataPoint(DataPointWithEventDetectors vo) {
         Assert.isTrue(vo.getDataPoint().isEnabled(), "Attempting to start disabled data point.");
-        startDataPoint(vo, null);
+        DataPointWithEventDetectorsAndCache dp = new DataPointWithEventDetectorsAndCache(vo, null);
+        startDataPoint(dp);
     }
 
     @Override
@@ -515,9 +521,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
     }
 
-    private void startDataPoint(DataPointWithEventDetectors vo, List<PointValueTime> initialCache) {
+    private void startDataPoint(DataPointWithEventDetectorsAndCache vo) {
         synchronized (dataPoints) {
-            startDataPointStartup(vo, initialCache);
+            startDataPointStartup(vo);
         }
     }
 
@@ -526,14 +532,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * @param vo
      * @param latestValue
      */
-    private void startDataPointStartup(DataPointWithEventDetectors vo, List<PointValueTime> initialCache) {
+    @Override
+    public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
         Assert.isTrue(vo.getDataPoint().isEnabled(), "Data point not enabled");
 
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(vo.getDataPoint().getDataSourceId());
         if (ds != null) {
             // Change the VO into a data point implementation.
-            DataPointRT dataPoint = new DataPointRT(vo, vo.getDataPoint().getPointLocator().createRuntime(), ds.getVo(), initialCache);
+            DataPointRT dataPoint = new DataPointRT(vo, vo.getDataPoint().getPointLocator().createRuntime(), ds.getVo(), vo.getInitialCache());
 
             // Add/update it in the data image.
             synchronized (dataPoints) {

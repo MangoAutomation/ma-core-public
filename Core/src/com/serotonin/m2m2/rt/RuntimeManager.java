@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.DataPointGroupInitializer.DataPointWithEventDetectorsAndCache;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -96,6 +97,12 @@ public interface RuntimeManager extends ILifecycle {
      * @param vo
      */
     void startDataPoint(DataPointWithEventDetectors vo);
+
+    /**
+     * Only to be used at startup as synchronization has been reduced for performance
+     * @param vo
+     */
+    void startDataPointStartup(DataPointWithEventDetectorsAndCache vo);
 
     /**
      *
