@@ -158,7 +158,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     }
 
     /**
-     * Get points for runtime in an efficient manner by joining with the event detectors
+     * Get points for runtime in an efficient manner by joining with the event detectors and only returning
+     *  data points that are enabled
      * @param dataSourceId
      * @return
      */
@@ -168,7 +169,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         Select<Record> select = this.joinTables(this.getSelectQuery(fields), null).leftOuterJoin(this.eventDetectorTable.getTableAsAlias())
                 .on(this.table.getIdAlias().eq(this.eventDetectorTable.getField("dataPointId")))
-                .where(this.table.getAlias("dataSourceId").eq(dataSourceId));
+                .where(this.table.getAlias("dataSourceId").eq(dataSourceId).and(this.table.getAlias("enabled").eq(boolToChar(true))));
 
         return this.customizedQuery(select, new DataPointStartupResultSetExtractor());
     }

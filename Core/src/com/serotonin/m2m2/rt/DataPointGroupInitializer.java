@@ -5,16 +5,21 @@
 package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.timer.RejectedTaskReason;
 
@@ -27,21 +32,27 @@ public class DataPointGroupInitializer {
 
     private final Log LOG = LogFactory.getLog(DataPointGroupInitializer.class);
 
-    private List<DataPointWithEventDetectorsAndCache> group;
+    private final DataSourceVO ds;
+    private List<DataPointWithEventDetectors> group;
     private int threadPoolSize;
     private List<DataPointSubGroupInitializer> runningTasks;
     private boolean useMetrics;
+    private final PointValueDao dao;
 
     /**
      *
+     * @param ds
      * @param group
+     * @param dao
      * @param logMetrics
      * @param threadPoolSize
      */
-    public DataPointGroupInitializer(List<DataPointWithEventDetectorsAndCache> group, boolean logMetrics, int threadPoolSize) {
+    public DataPointGroupInitializer(DataSourceVO ds, List<DataPointWithEventDetectors> group, PointValueDao dao, boolean logMetrics, int threadPoolSize) {
+        this.ds = ds;
         this.group = group;
         this.useMetrics = logMetrics;
         this.threadPoolSize = threadPoolSize;
+        this.dao = dao;
     }
 
     /**
@@ -121,10 +132,10 @@ public class DataPointGroupInitializer {
 
         private final Log LOG = LogFactory.getLog(DataPointSubGroupInitializer.class);
 
-        private List<DataPointWithEventDetectorsAndCache> subgroup;
+        private List<DataPointWithEventDetectors> subgroup;
         private DataPointGroupInitializer parent;
 
-        public DataPointSubGroupInitializer(List<DataPointWithEventDetectorsAndCache> subgroup, DataPointGroupInitializer parent){
+        public DataPointSubGroupInitializer(List<DataPointWithEventDetectors> subgroup, DataPointGroupInitializer parent){
             super("Data point subgroup initializer");
             this.subgroup = subgroup;
             this.parent = parent;
@@ -133,7 +144,49 @@ public class DataPointGroupInitializer {
         @Override
         public void run(long runtime) {
             try{
-                for(DataPointWithEventDetectorsAndCache config : subgroup){
+                //Bulk request the latest values
+                List<DataPointVO> queryPoints = subgroup.stream().map(p -> p.getDataPoint()).collect(Collectors.toList());
+
+                Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
+
+                // Find the maximum cache size for all point in the datasource
+                // This number of values will be retrieved for all points in the datasource
+                // If even one point has a high cache size this *may* cause issues
+                int maxCacheSize = 0;
+                for (DataPointWithEventDetectors dataPoint : subgroup) {
+                    if (dataPoint.getDataPoint().getDefaultCacheSize() > maxCacheSize) {
+                        maxCacheSize = dataPoint.getDataPoint().getDefaultCacheSize();
+                    }
+                }
+
+                try {
+                    dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize, (pvt, index) -> {
+                        latestValuesMap.compute(pvt.getId(), (k,v) -> {
+                            if(v == null) {
+                                v = new ArrayList<>();
+                            }
+                            v.add(pvt);
+                            return v;
+                        });
+                    });
+                } catch (Exception e) {
+                    LOG.error("Failed to get latest point values for datasource " + ds.getXid() + ". Mango will try to retrieve latest point values per point which will take longer.", e);
+                }
+
+                List<DataPointWithEventDetectorsAndCache> cachedPoints = new ArrayList<>(subgroup.size());
+                for (DataPointWithEventDetectors dataPoint : subgroup) {
+                    List<PointValueTime> latestValuesForPoint = null;
+                    if (latestValuesMap != null) {
+                        latestValuesForPoint = latestValuesMap.get(dataPoint.getDataPoint().getId());
+                        if (latestValuesForPoint == null) {
+                            latestValuesForPoint = new ArrayList<>();
+                        }
+                    }
+                    cachedPoints.add(new DataPointWithEventDetectorsAndCache(dataPoint, latestValuesForPoint));
+                }
+
+                //Now start them
+                for(DataPointWithEventDetectorsAndCache config : cachedPoints){
                     try{
                         Common.runtimeManager.startDataPointStartup(config);
                     }catch(Exception e){

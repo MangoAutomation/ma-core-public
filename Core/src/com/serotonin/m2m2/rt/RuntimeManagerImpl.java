@@ -23,7 +23,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -377,44 +376,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Add the enabled points to the data source.
         List<DataPointWithEventDetectors> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
 
-        Map<Integer, List<PointValueTime>> latestValuesMap = null;
-        PointValueDao pvDao = Common.databaseProxy.newPointValueDao();
-        if (pvDao instanceof EnhancedPointValueDao) {
-
-            // Find the maximum cache size for all point in the datasource
-            // This number of values will be retrieved for all points in the datasource
-            // If even one point has a high cache size this *may* cause issues
-            int maxCacheSize = 0;
-            for (DataPointWithEventDetectors dataPoint : dataSourcePoints) {
-                if (dataPoint.getDataPoint().getDefaultCacheSize() > maxCacheSize)
-                    maxCacheSize = dataPoint.getDataPoint().getDefaultCacheSize();
-            }
-
-            try {
-                latestValuesMap = ((EnhancedPointValueDao)pvDao).getLatestPointValuesForDataSource(vo, maxCacheSize);
-            } catch (Exception e) {
-                LOG.error("Failed to get latest point values for datasource " + vo.getXid() + ". Mango will try to retrieve latest point values per point which will take longer.", e);
-            }
-        }
-
-        List<DataPointWithEventDetectorsAndCache> cachedPoints = new ArrayList<>(dataSourcePoints.size());
-        for (DataPointWithEventDetectors dataPoint : dataSourcePoints) {
-            if (dataPoint.getDataPoint().isEnabled()) {
-                List<PointValueTime> latestValuesForPoint = null;
-                if (latestValuesMap != null) {
-                    latestValuesForPoint = latestValuesMap.get(dataPoint.getDataPoint().getId());
-                    if (latestValuesForPoint == null) {
-                        latestValuesForPoint = new ArrayList<>();
-                    }
-                }
-                cachedPoints.add(new DataPointWithEventDetectorsAndCache(dataPoint, latestValuesForPoint));
-            }
-        }
-
         //Startup multi threaded
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", 8);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(cachedPoints, useMetrics, startupThreads);
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(vo, dataSourcePoints, Common.databaseProxy.newPointValueDao(), useMetrics, startupThreads);
         pointInitializer.initialize();
 
         //Signal to the data source that all points are added.

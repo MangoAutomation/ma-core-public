@@ -22,7 +22,6 @@ import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -54,7 +53,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private static final Log LOG = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
     private static final String prefix = "INTVL_LOG-";
-    private static final boolean enhanced = Common.databaseProxy.newPointValueDao() instanceof EnhancedPointValueDao;
 
     // Configuration data.
     private final DataPointVO vo;
@@ -97,11 +95,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
         this.dsVo = dsVo;
         this.pointLocator = pointLocator;
-        if (enhanced) {
-            valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache);
-        } else {
-            valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache);
-        }
+        this.valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache);
+
         if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
             averagingValues = new ArrayList<IValueTime>();
         }
