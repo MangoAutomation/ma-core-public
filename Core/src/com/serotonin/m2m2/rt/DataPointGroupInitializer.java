@@ -198,6 +198,9 @@ public class DataPointGroupInitializer {
                 LOG.error(e.getMessage(), e);
             }finally{
                 this.parent.removeRunningTask(this);
+                if(useMetrics) {
+                    LOG.info("Started " + subgroup.size() + " data points out of " + group.size());
+                }
             }
         }
 
