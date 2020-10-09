@@ -4,9 +4,10 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import java.util.Arrays;
+
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.MultistateStateDetectorVO;
 
 public class MultistateStateDetectorRT extends StateDetectorRT<MultistateStateDetectorVO> {
@@ -18,19 +19,39 @@ public class MultistateStateDetectorRT extends StateDetectorRT<MultistateStateDe
     @Override
     public TranslatableMessage getMessage() {
         String name = vo.getDataPoint().getExtendedName();
-        String prettyText = vo.getDataPoint().getTextRenderer()
-                .getText(vo.getState(), TextRenderer.HINT_SPECIFIC);
+        String stateText = vo.getStateText();
         TranslatableMessage durationDescription = getDurationDescription();
+        boolean inverted = vo.isInverted();
+        boolean multipleStates = vo.getStates() != null;
 
-        if (durationDescription == null)
-            return new TranslatableMessage("event.detector.state", name, prettyText);
-        return new TranslatableMessage("event.detector.periodState", name, prettyText, durationDescription);
+        if (durationDescription == null) {
+            if (multipleStates) {
+                return new TranslatableMessage(inverted ? "event.detector.notStateIn" : "event.detector.stateIn", name, stateText);
+            }
+            return new TranslatableMessage(inverted ? "event.detector.notState" : "event.detector.state", name, stateText);
+        }
+
+        if (multipleStates) {
+            return new TranslatableMessage(inverted ? "event.detector.notPeriodStateIn" : "event.detector.periodStateIn",
+                    name, stateText, durationDescription);
+        }
+        return new TranslatableMessage(inverted ? "event.detector.notPeriodState" : "event.detector.periodState", name,
+                stateText, durationDescription);
     }
 
     @Override
     protected boolean stateDetected(PointValueTime newValue) {
-        int newMultistate = newValue.getIntegerValue();
-        return newMultistate == vo.getState();
+        int value = newValue.getIntegerValue();
+        boolean match;
+
+        int[] states = vo.getStates();
+        if (states != null) {
+            match = Arrays.stream(states).anyMatch(s -> s == value);
+        } else {
+            match = vo.getState() == value;
+        }
+
+        return vo.isInverted() != match;
     }
 
     @Override
