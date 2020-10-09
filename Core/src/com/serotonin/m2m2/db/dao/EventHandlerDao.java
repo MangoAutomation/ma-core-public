@@ -174,8 +174,13 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
             h.setXid(rs.getString(2));
             h.setAlias(rs.getString(3));
             h.setDefinition(ModuleRegistry.getEventHandlerDefinition(rs.getString(4)));
-            h.setReadPermission(new MangoPermission(rs.getInt(6)));
-            h.setEditPermission(new MangoPermission(rs.getInt(7)));
+
+            MangoPermission read = new MangoPermission(rs.getInt(6));
+            h.supplyReadPermission(() -> read);
+
+            MangoPermission edit = new MangoPermission(rs.getInt(7));
+            h.supplyEditPermission(() -> edit);
+
             return h;
         }
     }
@@ -249,8 +254,11 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         vo.setEventTypes(getEventTypesForHandler(vo.getId()));
         vo.getDefinition().loadRelationalData(vo);
         //Populate permissions
-        vo.setReadPermission(permissionService.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionService.get(vo.getEditPermission().getId()));
+        MangoPermission read = vo.getReadPermission();
+        vo.supplyReadPermission(() -> permissionService.get(read.getId()));
+        MangoPermission edit = vo.getEditPermission();
+        vo.supplyEditPermission(() -> permissionService.get(edit.getId()));
+
     }
 
     @Override

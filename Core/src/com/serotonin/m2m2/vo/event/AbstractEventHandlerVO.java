@@ -8,10 +8,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -29,9 +31,9 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
     private boolean disabled;
 
     @JsonProperty
-    private MangoPermission editPermission = new MangoPermission();
+    private LazyField<MangoPermission> readPermission = new LazyField<>(new MangoPermission());
     @JsonProperty
-    private MangoPermission readPermission = new MangoPermission();
+    private LazyField<MangoPermission> editPermission = new LazyField<>(new MangoPermission());
 
     private EventHandlerDefinition<? extends AbstractEventHandlerVO> definition;
 
@@ -102,20 +104,28 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
         this.eventTypes = eventTypes;
     }
 
-    public MangoPermission getEditPermission() {
-        return editPermission;
-    }
-
-    public void setEditPermission(MangoPermission editPermission) {
-        this.editPermission = editPermission;
-    }
-
     public MangoPermission getReadPermission() {
-        return readPermission;
+        return readPermission.get();
     }
 
     public void setReadPermission(MangoPermission readPermission) {
-        this.readPermission = readPermission;
+        this.readPermission.set(readPermission);
+    }
+
+    public void supplyReadPermission(Supplier<MangoPermission> readPermission) {
+        this.readPermission = new LazyField<MangoPermission>(readPermission);
+    }
+
+    public MangoPermission getEditPermission() {
+        return editPermission.get();
+    }
+
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission.set(editPermission);
+    }
+
+    public void supplyEditPermission(Supplier<MangoPermission> editPermission) {
+        this.editPermission = new LazyField<MangoPermission>(editPermission);
     }
 
     //
