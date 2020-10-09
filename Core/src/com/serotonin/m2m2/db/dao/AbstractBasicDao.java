@@ -621,6 +621,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
                         results.add(row);
                     }catch (Exception e) {
                         error.accept(e, rs);
+                        //Abort mission
+                        break;
                     }finally {
                         rowNum++;
                     }
@@ -669,6 +671,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
                         results.add(row);
                     }catch (Exception e) {
                         error.accept(e, rs);
+                        //Abort mission
+                        break;
                     }finally {
                         rowNum++;
                     }
@@ -717,6 +721,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
                         callback.row(row, rowNum);
                     }catch (Exception e) {
                         error.accept(e, rs);
+                        //Abort mission
+                        break;
                     }finally {
                         rowNum++;
                     }
