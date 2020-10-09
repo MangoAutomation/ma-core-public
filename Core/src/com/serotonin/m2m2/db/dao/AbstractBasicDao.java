@@ -450,7 +450,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         int count = this.ejt.queryForInt(sql, argumentsArray, 0);
 
         if (stopWatch != null) {
-            stopWatch.stop("customizedCount(): " + this.create.renderInlined(select), metricsThreshold);
+            Select<Record1<Integer>> selectOutput = select;
+            stopWatch.stop(() -> "customizedCount(): " + this.create.renderInlined(selectOutput), metricsThreshold);
         }
 
         return count;
@@ -504,7 +505,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             return this.query(sql, argumentsArray, callback);
         }finally {
             if (stopWatch != null) {
-                stopWatch.stop("customizedQuery(): " + this.create.renderInlined(select), metricsThreshold);
+                stopWatch.stop(() -> "customizedQuery(): " + this.create.renderInlined(select), metricsThreshold);
             }
         }
     }
