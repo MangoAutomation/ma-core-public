@@ -18,8 +18,8 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
- * Adds XID and name columns to file store table
- * @author Jared Wiltshire
+ * Adds readPermissionId column to events table
+ * @author Terry Packer
  */
 public class Upgrade33 extends DBUpgrade implements PermissionMigration {
 
