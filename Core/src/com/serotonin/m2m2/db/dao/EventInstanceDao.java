@@ -110,8 +110,43 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     }
 
     @Override
-    protected Object[] voToObjectArray(EventInstanceVO vo) {
-        return new Object[]{vo.getId()};
+    protected Object[] voToObjectArray(EventInstanceVO event) {
+        EventType type = event.getEventType();
+        if (event.isRtnApplicable() && !event.isActive()) {
+            return new Object[] {
+                    type.getEventType(),
+                    type.getEventSubtype(),
+                    type.getReferenceId1(),
+                    type.getReferenceId2(),
+                    event.getActiveTimestamp(),
+                    boolToChar(event.isRtnApplicable()),
+                    event.getRtnTimestamp(),
+                    event.getRtnCause().value(),
+                    event.getAlarmLevel().value(),
+                    writeTranslatableMessage(event.getMessage()),
+                    null,
+                    null,
+                    null,
+                    event.getReadPermission().getId()
+            };
+        }else {
+            return new Object[] {
+                    type.getEventType(),
+                    type.getEventSubtype(),
+                    type.getReferenceId1(),
+                    type.getReferenceId2(),
+                    event.getActiveTimestamp(),
+                    boolToChar(event.isRtnApplicable()),
+                    null,
+                    null,
+                    event.getAlarmLevel().value(),
+                    writeTranslatableMessage(event.getMessage()),
+                    null,
+                    null,
+                    null,
+                    event.getReadPermission().getId()
+            };
+        }
     }
 
     @Override
@@ -396,5 +431,13 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
             return super.visitConditionNode(node);
         }
+    }
+
+    /**
+     * We don't have an XID
+     */
+    @Override
+    public boolean isXidUnique(String xid, int excludeId) {
+        return true;
     }
 }

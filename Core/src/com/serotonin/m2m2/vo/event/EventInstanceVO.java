@@ -213,9 +213,13 @@ public class EventInstanceVO extends AbstractVO implements EventInstanceI {
         this.readPermission = new LazyField<MangoPermission>(readPermission);
     }
 
+    public boolean isActive() {
+        return rtnApplicable && rtnTimestamp == null;
+    }
+
     @Override
     public String getTypeKey() {
-        return null; //TODO Currently No Audit Events for this
+        return "common.default"; //TODO Currently No Audit Events for this
     }
 
 }

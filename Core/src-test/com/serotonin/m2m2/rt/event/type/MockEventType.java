@@ -84,7 +84,11 @@ public class MockEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        return service.hasAdminRole(user) || service.hasPermission(user, MangoPermission.requireAnyRole(this.required));
+        if(required != null) {
+            return service.hasPermission(user, MangoPermission.requireAnyRole(this.required));
+        }else{
+            return service.hasAdminRole(user);
+        }
     }
 
     @Override

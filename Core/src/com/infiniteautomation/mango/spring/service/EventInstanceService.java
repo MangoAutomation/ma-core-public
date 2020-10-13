@@ -25,6 +25,7 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.DataPointEventLevelSummary;
@@ -269,5 +270,33 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             this.computeIfPresent(level, (l, count) -> ++count);
         }
     }
+
+
+    @Override
+    public ProcessResult validate(EventInstanceVO vo, PermissionHolder user) {
+        ProcessResult result = commonValidation(vo, user);
+        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
+
+        return result;
+    }
+    @Override
+    public ProcessResult validate(EventInstanceVO existing, EventInstanceVO vo,
+            PermissionHolder user) {
+        ProcessResult result = commonValidation(vo, user);
+        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
+
+        return result;
+    }
+
+    /**
+     * @param vo
+     * @param user
+     * @return
+     */
+    private ProcessResult commonValidation(EventInstanceVO vo, PermissionHolder user) {
+        ProcessResult result = new ProcessResult();
+        return result;
+    }
+
 
 }
