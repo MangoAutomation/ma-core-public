@@ -582,7 +582,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     /**
-     * Available to overload the result set extractor for list queries
+     * Available to overload the result set extractor for list queries.
+     *
+     * If a module is not installed the exception is caught and logged,
+     * which could mess up a query limit/offset scenario.  Resulting in
+     * less items than asked for.
+     *
      * @param callback
      * @return
      */
@@ -634,7 +639,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     /**
-     * Available to overload the result set extractor for list queries
+     * Available to overload the result set extractor for list queries.
+     *
+     * If a module is not installed the exception is caught and logged,
+     * which could mess up a query limit/offset scenario.  Resulting in
+     * less items than asked for.
+     *
      * @param callback
      * @return
      */
