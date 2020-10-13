@@ -152,7 +152,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Initialize the prioritized data sources. Start the polling later.
         List<DataSourceVO> pollingRound = new ArrayList<DataSourceVO>();
-        int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
+        int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
             List<DataSourceVO> priorityList = priorityMap.get(startPriority);
@@ -377,7 +377,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         List<DataPointWithEventDetectors> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
 
         //Startup multi threaded
-        int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", 8);
+        int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
         boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
         DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(vo, dataSourcePoints, Common.databaseProxy.newPointValueDao(), useMetrics, startupThreads);
         pointInitializer.initialize();

@@ -43,7 +43,8 @@
 * Retry failed transactional insert/updates for database layer controlled via env property db.transaction.retries 
 * Upgrade H2 to use MV Store engine for performance, this will dump and re-import your existing h2 database on upgrade
 * Add DataPointChangeDefinition to allow modules to hook into data point create update and delete logic
-* Add env properties to improve data source startup times runtime.datapoint.startupThreads and runtime.datapoint.logStartupMetrics
+* Add env properties to improve data source startup times runtime.datapoint.startupThreads and runtime.datapoint.logStartupMetrics default is number of CPU cores
+* Change runtime.datasource.startupThreads to default to 1
 * Add cache settings for users cache.users.size permissions cache.permission.size and roles cache.roles.size
 * Add env property to limit the number of IN query operands db.in.maxOperands for very large queries
 * Add env property to control backup location paths.backup
