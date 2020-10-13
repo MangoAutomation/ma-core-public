@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -27,194 +28,62 @@ import com.serotonin.timer.RejectedTaskReason;
  * This class is used at startup to initialize data points on a single source in parallel.
  *
  * @author Terry Packer
+ * @author Jared Wiltshire
  */
 public class DataPointGroupInitializer {
 
     private final Log LOG = LogFactory.getLog(DataPointGroupInitializer.class);
 
     private final DataSourceVO ds;
-    private List<DataPointWithEventDetectors> group;
-    private int threadPoolSize;
-    private List<DataPointSubGroupInitializer> runningTasks;
-    private boolean useMetrics;
+    private final List<DataPointWithEventDetectors> dsPoints;
+    private final int threadPoolSize;
+    private final boolean useMetrics;
     private final PointValueDao dao;
 
     /**
-     *
      * @param ds
-     * @param group
+     * @param dsPoints
      * @param dao
      * @param logMetrics
      * @param threadPoolSize
      */
-    public DataPointGroupInitializer(DataSourceVO ds, List<DataPointWithEventDetectors> group, PointValueDao dao, boolean logMetrics, int threadPoolSize) {
+    public DataPointGroupInitializer(DataSourceVO ds, List<DataPointWithEventDetectors> dsPoints, PointValueDao dao, boolean logMetrics, int threadPoolSize) {
         this.ds = ds;
-        this.group = group;
+        this.dsPoints = dsPoints;
         this.useMetrics = logMetrics;
         this.threadPoolSize = threadPoolSize;
         this.dao = dao;
     }
 
     /**
-     * Blocking method that will attempt to start all datasources in parallel using threadPoolSize number of threads at most.
-     * @return List of all data sources that need to begin polling.
+     * Blocking method that will attempt to start all data points in parallel using threadPoolSize number of threads at most.
      */
     public void initialize() {
-
         long startTs = Common.timer.currentTimeMillis();
-        if(this.group == null || this.group.size() == 0){
-            if(this.useMetrics)
-                LOG.info("Initialization of 0 data points took " + (Common.timer.currentTimeMillis() - startTs));
-            return;
-        }
+        int numPoints = this.dsPoints.size();
 
         //Compute the size of the subGroup that each thread will use.
-        int subGroupSize = this.group.size() / this.threadPoolSize;
-        int lastGroup;
-        if(subGroupSize == 0){
-            subGroupSize = 1;
-            lastGroup = this.group.size() - 1;
-        }else{
-            lastGroup = this.threadPoolSize - 1;
-        }
+        int quotient = numPoints / this.threadPoolSize;
+        int remainder = numPoints % this.threadPoolSize;
+        int subGroupSize = remainder == 0 ? quotient : quotient + 1;
 
+        if (useMetrics)
+            LOG.info("Initializing " + numPoints + " data points in " + this.threadPoolSize + " threads.");
 
-        if(useMetrics)
-            LOG.info("Initializing " + this.group.size() + " data points in " + this.threadPoolSize + " threads.");
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        this.runningTasks = new ArrayList<DataPointSubGroupInitializer>(this.threadPoolSize);
         //Add and Start the tasks
-        int endPos;
-        for(int i=0; i<this.threadPoolSize; i++){
-
-            if(i==lastGroup){
-                //Last group may be larger
-                endPos = this.group.size();
-            }else{
-                endPos = (i*subGroupSize) + subGroupSize;
-            }
-
-            DataPointSubGroupInitializer currentSubgroup = new DataPointSubGroupInitializer(this.group.subList(i*subGroupSize, endPos), this);
-
-            synchronized(this.runningTasks){
-                this.runningTasks.add(currentSubgroup);
-            }
+        for (int from = 0; from < numPoints; from += subGroupSize) {
+            int to = Math.min(from + subGroupSize, numPoints);
+            DataPointSubGroupInitializer currentSubgroup = new DataPointSubGroupInitializer(this.dsPoints.subList(from, to));
             Common.backgroundProcessing.execute(currentSubgroup);
-
-            //When we have more threads than groups
-            if(i >= this.group.size() -1)
-                break;
+            futures.add(currentSubgroup.future);
         }
 
-        //Wait here until all threads are finished
-        while(runningTasks.size() > 0){
-            try { Thread.sleep(100); } catch (InterruptedException e) { }
-        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        if(this.useMetrics)
-            LOG.info("Initialization of " + this.group.size() + " data points took " + (Common.timer.currentTimeMillis() - startTs) + "ms");
-
-        return;
-    }
-
-    public void removeRunningTask(DataPointSubGroupInitializer task){
-        synchronized(this.runningTasks){
-            this.runningTasks.remove(task);
-        }
-    }
-
-    /**
-     * Initialize a sub group of the data sources in one thread.
-     * @author Terry Packer
-     *
-     */
-    class DataPointSubGroupInitializer extends HighPriorityTask{
-
-        private final Log LOG = LogFactory.getLog(DataPointSubGroupInitializer.class);
-
-        private List<DataPointWithEventDetectors> subgroup;
-        private DataPointGroupInitializer parent;
-
-        public DataPointSubGroupInitializer(List<DataPointWithEventDetectors> subgroup, DataPointGroupInitializer parent){
-            super("Data point subgroup initializer");
-            this.subgroup = subgroup;
-            this.parent = parent;
-        }
-
-        @Override
-        public void run(long runtime) {
-            try{
-                //Bulk request the latest values
-                List<DataPointVO> queryPoints = subgroup.stream().map(p -> p.getDataPoint()).collect(Collectors.toList());
-
-                Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
-
-                // Find the maximum cache size for all point in the datasource
-                // This number of values will be retrieved for all points in the datasource
-                // If even one point has a high cache size this *may* cause issues
-                int maxCacheSize = 0;
-                for (DataPointWithEventDetectors dataPoint : subgroup) {
-                    if (dataPoint.getDataPoint().getDefaultCacheSize() > maxCacheSize) {
-                        maxCacheSize = dataPoint.getDataPoint().getDefaultCacheSize();
-                    }
-                }
-
-                try {
-                    dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize, (pvt, index) -> {
-                        latestValuesMap.compute(pvt.getId(), (k,v) -> {
-                            if(v == null) {
-                                v = new ArrayList<>();
-                            }
-                            v.add(pvt);
-                            return v;
-                        });
-                    });
-                } catch (Exception e) {
-                    LOG.error("Failed to get latest point values for datasource " + ds.getXid() + ". Mango will try to retrieve latest point values per point which will take longer.", e);
-                }
-
-                List<DataPointWithEventDetectorsAndCache> cachedPoints = new ArrayList<>(subgroup.size());
-                for (DataPointWithEventDetectors dataPoint : subgroup) {
-                    List<PointValueTime> latestValuesForPoint = null;
-                    if (latestValuesMap != null) {
-                        latestValuesForPoint = latestValuesMap.get(dataPoint.getDataPoint().getId());
-                        if (latestValuesForPoint == null) {
-                            latestValuesForPoint = new ArrayList<>();
-                        }
-                    }
-                    cachedPoints.add(new DataPointWithEventDetectorsAndCache(dataPoint, latestValuesForPoint));
-                }
-
-                //Now start them
-                for(DataPointWithEventDetectorsAndCache config : cachedPoints){
-                    try{
-                        Common.runtimeManager.startDataPointStartup(config);
-                    }catch(Exception e){
-                        //Ensure only 1 can fail at a time
-                        LOG.error(e.getMessage(), e);
-                    }
-                }
-            }catch(Exception e){
-                LOG.error(e.getMessage(), e);
-            }finally{
-                this.parent.removeRunningTask(this);
-                if(useMetrics) {
-                    LOG.info("Started " + subgroup.size() + " data points out of " + group.size());
-                }
-            }
-        }
-
-        @Override
-        public boolean cancel() {
-            this.parent.removeRunningTask(this);
-            return super.cancel();
-        }
-
-        @Override
-        public void rejected(RejectedTaskReason reason) {
-            this.parent.removeRunningTask(this);
-            super.rejected(reason);
-        }
+        if (this.useMetrics)
+            LOG.info("Initialization of " + this.dsPoints.size() + " data points took " + (Common.timer.currentTimeMillis() - startTs) + "ms");
     }
 
     public static class DataPointWithEventDetectorsAndCache extends DataPointWithEventDetectors {
@@ -226,13 +95,92 @@ public class DataPointGroupInitializer {
         }
 
         public DataPointWithEventDetectorsAndCache(DataPointVO vo,
-                List<AbstractPointEventDetectorVO> detectors, List<PointValueTime> initialCache) {
+                                                   List<AbstractPointEventDetectorVO> detectors, List<PointValueTime> initialCache) {
             super(vo, detectors);
             this.initialCache = initialCache;
         }
 
         public List<PointValueTime> getInitialCache() {
             return initialCache;
+        }
+    }
+
+    /**
+     * Initialize a sub group of the data points in one thread.
+     *
+     * @author Terry Packer
+     */
+    private class DataPointSubGroupInitializer extends HighPriorityTask {
+
+        private final Log LOG = LogFactory.getLog(DataPointSubGroupInitializer.class);
+        private final List<DataPointWithEventDetectors> subgroup;
+        private final CompletableFuture<Void> future;
+
+        public DataPointSubGroupInitializer(List<DataPointWithEventDetectors> subgroup) {
+            super("Data point subgroup initializer");
+            this.subgroup = subgroup;
+            this.future = new CompletableFuture<>();
+        }
+
+        @Override
+        public void run(long runtime) {
+            try {
+                //Bulk request the latest values
+                List<DataPointVO> queryPoints = subgroup.stream()
+                        .map(DataPointWithEventDetectors::getDataPoint)
+                        .collect(Collectors.toList());
+
+                // Find the maximum cache size for all point in the datasource
+                // This number of values will be retrieved for all points in the datasource
+                // If even one point has a high cache size this *may* cause issues
+                int maxCacheSize = queryPoints.stream()
+                        .map(DataPointVO::getDefaultCacheSize)
+                        .mapToInt(Integer::intValue)
+                        .max()
+                        .orElse(0);
+
+                Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
+                try {
+                    dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize,
+                            (pvt, i) -> latestValuesMap.computeIfAbsent(pvt.getId(), (k) -> new ArrayList<>()).add(pvt));
+                } catch (Exception e) {
+                    LOG.error("Failed to get latest point values for datasource " + ds.getXid() +
+                            ". Mango will try to retrieve latest point values per point which will take longer.", e);
+                }
+
+                //Now start them
+                for (DataPointWithEventDetectors dataPoint : subgroup) {
+                    try {
+                        // can be null, gets passed to com.serotonin.m2m2.rt.dataImage.PointValueCache.PointValueCache
+                        List<PointValueTime> cache = latestValuesMap.get(dataPoint.getDataPoint().getId());
+                        DataPointWithEventDetectorsAndCache config = new DataPointWithEventDetectorsAndCache(dataPoint, cache);
+                        Common.runtimeManager.startDataPointStartup(config);
+                    } catch (Exception e) {
+                        //Ensure only 1 can fail at a time
+                        LOG.error(e.getMessage(), e);
+                    }
+                }
+                future.complete(null);
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+                LOG.error(e.getMessage(), e);
+            } finally {
+                if (useMetrics) {
+                    LOG.info("Started " + subgroup.size() + " data points out of " + dsPoints.size());
+                }
+            }
+        }
+
+        @Override
+        public boolean cancel() {
+            this.future.cancel(false);
+            return super.cancel();
+        }
+
+        @Override
+        public void rejected(RejectedTaskReason reason) {
+            this.future.cancel(false);
+            super.rejected(reason);
         }
     }
 }
