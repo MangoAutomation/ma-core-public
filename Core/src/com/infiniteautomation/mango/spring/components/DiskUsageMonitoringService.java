@@ -89,7 +89,7 @@ public class DiskUsageMonitoringService {
     private final Map<String, ValueMonitor<Double>> fileStoreMonitors = new HashMap<>();
     private volatile ScheduledFuture<?> scheduledFuture;
 
-    private static final double GB = 1024*1024*1024;
+    private static final double GIB = 1024*1024*1024;
 
     //NoSQL disk space
     private Double lastNoSqlDatabaseSize;
@@ -195,18 +195,18 @@ public class DiskUsageMonitoringService {
         //Volume information for MA Home Partition
         try {
             FileStore store = Files.getFileStore(Common.MA_HOME_PATH);
-            maHomePartitionTotalSpace.setValue(getGb(store.getTotalSpace()));
-            maHomePartitionUsableSpace.setValue(getGb(store.getUsableSpace()));
-            maHomePartitionUsedSpace.setValue(getGb(store.getTotalSpace() - store.getUsableSpace()));
+            maHomePartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
+            maHomePartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
+            maHomePartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
         }catch(Exception e) {
             log.error("Unable to get MA_HOME partition usage", e);
         }
         //Volume information for NoSQL partition
         try {
             FileStore store = Files.getFileStore(Paths.get(NoSQLProxy.getDatabasePath()).toAbsolutePath());
-            noSqlPartitionTotalSpace.setValue(getGb(store.getTotalSpace()));
-            noSqlPartitionUsableSpace.setValue(getGb(store.getUsableSpace()));
-            noSqlPartitionUsedSpace.setValue(getGb(store.getTotalSpace() - store.getUsableSpace()));
+            noSqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
+            noSqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
+            noSqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
         }catch(Exception e) {
             log.error("Unable to get NoSQL partition usage", e);
         }
@@ -216,9 +216,9 @@ public class DiskUsageMonitoringService {
         if(dataDirectory != null) {
             try{
                 FileStore store = Files.getFileStore(dataDirectory.toPath());
-                sqlPartitionTotalSpace.setValue(getGb(store.getTotalSpace()));
-                sqlPartitionUsableSpace.setValue(getGb(store.getUsableSpace()));
-                sqlPartitionUsedSpace.setValue(getGb(store.getTotalSpace() - store.getUsableSpace()));
+                sqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
+                sqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
+                sqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
             }catch(Exception e) {
                 log.error("Unable to get Filestore partition usage", e);
             }
@@ -233,16 +233,16 @@ public class DiskUsageMonitoringService {
             Path fileStorePath = Common.MA_HOME_PATH.resolve(location);
             if (Files.isDirectory(fileStorePath)) {
                 FileStore store = Files.getFileStore(fileStorePath);
-                filestorePartitionTotalSpace.setValue(getGb(store.getTotalSpace()));
-                filestorePartitionUsableSpace.setValue(getGb(store.getUsableSpace()));
-                filestorePartitionUsedSpace.setValue(getGb(store.getTotalSpace() - store.getUsableSpace()));
+                filestorePartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
+                filestorePartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
+                filestorePartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
             }
         }catch(Exception e) {
             log.error("Unable to get Filestore partition usage", e);
         }
 
         if (this.maHomeSize != null) {
-            maHomeSize.setValue(getGb(getSize(Common.MA_HOME_PATH.toFile())));
+            maHomeSize.setValue(getGiB(getSize(Common.MA_HOME_PATH.toFile())));
         }
 
         long now = Common.timer.currentTimeMillis();
@@ -251,7 +251,7 @@ public class DiskUsageMonitoringService {
 
         fileStoreMonitors.forEach((key, value) -> {
             Path rootPath = ModuleRegistry.getFileStoreDefinition(key).getRootPath();
-            value.setValue(getGb(getSize(rootPath.toFile())));
+            value.setValue(getGiB(getSize(rootPath.toFile())));
         });
     }
 
@@ -284,7 +284,7 @@ public class DiskUsageMonitoringService {
         this.lastSqlDatabaseSizePollTime = now;
         Long sizeInBytes = Common.databaseProxy.getDatabaseSizeInBytes();
         if (sizeInBytes != null) {
-            this.lastSqlDatabaseSize = getGb(sizeInBytes);
+            this.lastSqlDatabaseSize = getGiB(sizeInBytes);
         }
         return this.lastSqlDatabaseSize;
     }
@@ -302,7 +302,7 @@ public class DiskUsageMonitoringService {
         this.lastNoSqlDatabaseSizePollTime = now;
         if (Common.databaseProxy.getNoSQLProxy() != null) {
             String pointDataStoreName = Common.envProps.getString("db.nosql.pointDataStoreName", "mangoTSDB");
-            this.lastNoSqlDatabaseSize = getGb(Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointDataStoreName));
+            this.lastNoSqlDatabaseSize = getGiB(Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointDataStoreName));
         }else {
             this.lastNoSqlDatabaseSize = 0d;
         }
@@ -310,12 +310,12 @@ public class DiskUsageMonitoringService {
     }
 
     /**
-     * Convert bytes to gigabytes
+     * Convert bytes to gibibytes
      * @param bytes
      * @return
      */
-    private double getGb(long bytes) {
-        return bytes/GB;
+    private double getGiB(long bytes) {
+        return bytes/ GIB;
     }
 
 }

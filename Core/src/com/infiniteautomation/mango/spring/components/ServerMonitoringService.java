@@ -114,7 +114,7 @@ public class ServerMonitoringService {
     private final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
     private final Runtime runtime = Runtime.getRuntime();
 
-    private final int mb = 1024*1024;
+    private final int mib = 1024*1024;
 
     private final ExecutorService executor;
     private final ScheduledExecutorService scheduledExecutor;
@@ -248,9 +248,9 @@ public class ServerMonitoringService {
             dbIdleConnections.setValue(Common.databaseProxy.getIdleConnections());
         }
 
-        //In MB
-        javaMaxMemory.setValue((int)(runtime.maxMemory()/mb));
-        javaUsedMemory.setValue((int)(runtime.totalMemory()/mb) -(int)(runtime.freeMemory()/mb));
+        //In MiB
+        javaMaxMemory.setValue((int)(runtime.maxMemory()/ mib));
+        javaUsedMemory.setValue((int)(runtime.totalMemory()/ mib) -(int)(runtime.freeMemory()/ mib));
         javaFreeMemory.setValue(javaMaxMemory.getValue() - javaUsedMemory.getValue());
 
         //Uptime in HRS

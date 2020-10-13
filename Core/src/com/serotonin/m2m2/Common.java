@@ -31,6 +31,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.measure.converter.RationalConverter;
+import javax.measure.quantity.Quantity;
+import javax.measure.unit.Unit;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -878,5 +882,31 @@ public class Common {
         }
 
         return tokens;
+    }
+
+    private static final RationalConverter EXBI_CONVERTER = new RationalConverter(1152921504606846976L,1);
+    private static final RationalConverter PEBI_CONVERTER = new RationalConverter(1125899906842624L,1);
+    private static final RationalConverter TEBI_CONVERTER = new RationalConverter(1099511627776L,1);
+    private static final RationalConverter GIBI_CONVERTER = new RationalConverter(1073741824L, 1);
+    private static final RationalConverter MEBI_CONVERTER = new RationalConverter(1048576L, 1);
+    private static final RationalConverter KIBI_CONVERTER = new RationalConverter(1024L, 1);
+
+    public static <Q extends Quantity> Unit<Q> EXBI(Unit<Q> unit) {
+        return unit.transform(EXBI_CONVERTER);
+    }
+    public static <Q extends Quantity> Unit<Q> PEBI(Unit<Q> unit) {
+        return unit.transform(PEBI_CONVERTER);
+    }
+    public static <Q extends Quantity> Unit<Q> TEBI(Unit<Q> unit) {
+        return unit.transform(TEBI_CONVERTER);
+    }
+    public static <Q extends Quantity> Unit<Q> GIBI(Unit<Q> unit) {
+        return unit.transform(GIBI_CONVERTER);
+    }
+    public static <Q extends Quantity> Unit<Q> MEBI(Unit<Q> unit) {
+        return unit.transform(MEBI_CONVERTER);
+    }
+    public static <Q extends Quantity> Unit<Q> KIBI(Unit<Q> unit) {
+        return unit.transform(KIBI_CONVERTER);
     }
 }
