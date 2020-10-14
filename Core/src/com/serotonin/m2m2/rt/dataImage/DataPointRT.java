@@ -292,7 +292,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         switch (vo.getLoggingType()) {
             case DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL:
             case DataPointVO.LoggingTypes.ON_CHANGE:
-                if (pointValue == null)
+                if (pointValue.get() == null)
                     logValue = true;
                 else if (backdated)
                     // Backdated. Ignore it
@@ -325,7 +325,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 logValue = true;
                 break;
             case DataPointVO.LoggingTypes.ON_TS_CHANGE:
-                if (pointValue == null)
+                if (pointValue.get() == null)
                     logValue = true;
                 else if (backdated)
                     // Backdated. Ignore it
@@ -428,7 +428,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         valueCache.savePointValue(newValue, source, logValue, async);
 
         //Update our value if it is newer
-        if (pointValue == null || newValue.getTime() >= pointValue.get().getTime()) {
+        if (pointValue.get() == null || newValue.getTime() >= pointValue.get().getTime()) {
             PointValueTime oldValue = pointValue.get();
             pointValue.set(newValue);
             if(fireEvents == FireEvents.ON_CURRENT_VALUE_UPDATE || fireEvents == FireEvents.ALWAYS)
@@ -626,7 +626,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());
             } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
                 //Okay, no changes rescheduled the timer. Get a value,
-                if(pointValue != null) {
+                if(pointValue.get() != null) {
                     value = pointValue.get().getValue();
                     if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
                         toleranceOrigin = pointValue.get().getDoubleValue();
