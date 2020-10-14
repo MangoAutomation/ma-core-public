@@ -3,10 +3,12 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
@@ -121,6 +123,23 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
                     assertNotNull("Didn't find expected VO", expected);
                     assertVoEqual(expected, vo);
                 }
+            });
+        });
+    }
+
+    @Test
+    public void testQuery() {
+        runTest(() -> {
+            getService().permissionService.runAsSystemAdmin(() -> {
+                List<RoleVO> vos = new ArrayList<>();
+                for(int i=0; i<5; i++) {
+                    vos.add(insertNewVO(readUser));
+                }
+                AtomicInteger count = new AtomicInteger();
+                service.buildQuery().equal("xid", vos.get(0).getXid()).query(r->{
+                    assertVoEqual(vos.get(0), r);
+                    assertEquals(count.incrementAndGet(), 1);
+                });
             });
         });
     }
