@@ -14,6 +14,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -151,15 +154,21 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         // Initialize the prioritized data sources. Start the polling later.
-        List<DataSourceVO> pollingRound = new ArrayList<DataSourceVO>();
-        int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
+        List<DataSourceVO> pollingRound = new ArrayList<>();
+        int startupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
-        for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
-            List<DataSourceVO> priorityList = priorityMap.get(startPriority);
-            if (priorityList != null) {
-                DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList, useMetrics, dataSourceStartupThreads);
-                pollingRound.addAll(initializer.initialize());
+        ExecutorService executor = newFixedThreadPool("Data source initializer", startupThreads);
+        try {
+            for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
+                List<DataSourceVO> priorityList = priorityMap.get(startPriority);
+                if (priorityList != null) {
+                    DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList,
+                            useMetrics, executor);
+                    pollingRound.addAll(initializer.initialize());
+                }
             }
+        } finally {
+            shutdownExecutorService(executor);
         }
 
         // Tell the data sources to start polling. Delaying the polling start gives the data points a chance to
@@ -341,7 +350,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
     }
 
-
     private boolean initializeDataSource(DataSourceVO vo) {
         synchronized (runningDataSources) {
             return initializeDataSourceStartup(vo);
@@ -377,12 +385,17 @@ public class RuntimeManagerImpl implements RuntimeManager {
         List<DataPointWithEventDetectors> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
 
         //Startup multi threaded
+        int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
-        int minPointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.minPointsPerThread", 1000);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(vo, dataSourcePoints,
-                Common.databaseProxy.newPointValueDao(), useMetrics, startupThreads, minPointsPerThread);
-        pointInitializer.initialize();
+        ExecutorService executor = newFixedThreadPool("Data point initializer", startupThreads);
+        try {
+            DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(vo, dataSourcePoints,
+                    Common.databaseProxy.newPointValueDao(), useMetrics, pointsPerThread, executor);
+            pointInitializer.initialize();
+        } finally {
+            shutdownExecutorService(executor);
+        }
 
         //Signal to the data source that all points are added.
         dataSource.initialized();
@@ -885,4 +898,25 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
     }
 
+    public ExecutorService newFixedThreadPool(String poolName, int maxPoolSize) {
+        return Executors.newFixedThreadPool(maxPoolSize, runnable -> {
+            Thread thread = new Thread(runnable, poolName);
+            thread.setDaemon(true);
+            thread.setPriority(Thread.NORM_PRIORITY);
+            thread.setUncaughtExceptionHandler((t, ex) ->
+                    LOG.error("Uncaught exception in " + poolName, ex));
+            return thread;
+        });
+    }
+
+    public void shutdownExecutorService(ExecutorService executorService) {
+        executorService.shutdownNow();
+        try {
+            if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
+                LOG.error("Failed to shutdown ExecutorService");
+            }
+        } catch (InterruptedException e) {
+            LOG.error("Failed to shutdown ExecutorService", e);
+        }
+    }
 }
