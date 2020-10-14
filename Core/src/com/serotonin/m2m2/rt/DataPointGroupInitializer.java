@@ -41,6 +41,7 @@ public class DataPointGroupInitializer {
     private final int threadPoolSize;
     private final boolean useMetrics;
     private final PointValueDao dao;
+    private final int minPointsPerThread;
 
     /**
      * @param ds
@@ -49,12 +50,14 @@ public class DataPointGroupInitializer {
      * @param logMetrics
      * @param threadPoolSize
      */
-    public DataPointGroupInitializer(DataSourceVO ds, List<DataPointWithEventDetectors> dsPoints, PointValueDao dao, boolean logMetrics, int threadPoolSize) {
+    public DataPointGroupInitializer(DataSourceVO ds, List<DataPointWithEventDetectors> dsPoints, PointValueDao dao,
+                                     boolean logMetrics, int threadPoolSize, int minPointsPerThread) {
         this.ds = ds;
         this.dsPoints = dsPoints;
         this.useMetrics = logMetrics;
         this.threadPoolSize = threadPoolSize;
         this.dao = dao;
+        this.minPointsPerThread = minPointsPerThread;
     }
 
     /**
@@ -67,10 +70,10 @@ public class DataPointGroupInitializer {
         //Compute the size of the subGroup that each thread will use.
         int quotient = numPoints / this.threadPoolSize;
         int remainder = numPoints % this.threadPoolSize;
-        int subGroupSize = remainder == 0 ? quotient : quotient + 1;
+        int subGroupSize = Math.max(remainder == 0 ? quotient : quotient + 1, minPointsPerThread);
 
         if (useMetrics)
-            log.info("Initializing " + numPoints + " data points in " + this.threadPoolSize + " threads.");
+            log.info("Initializing " + numPoints + " data points in up to " + this.threadPoolSize + " threads.");
 
         List<DataPointSubGroupInitializer> groups = new ArrayList<>();
 

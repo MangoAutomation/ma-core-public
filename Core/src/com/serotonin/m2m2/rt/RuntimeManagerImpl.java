@@ -378,8 +378,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         //Startup multi threaded
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
+        int minPointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.minPointsPerThread", 1000);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(vo, dataSourcePoints, Common.databaseProxy.newPointValueDao(), useMetrics, startupThreads);
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(vo, dataSourcePoints,
+                Common.databaseProxy.newPointValueDao(), useMetrics, startupThreads, minPointsPerThread);
         pointInitializer.initialize();
 
         //Signal to the data source that all points are added.
