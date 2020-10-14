@@ -146,9 +146,6 @@ public class DataPointRTTest extends MangoTestBase {
 
     class DataPointRtMockDatabaseProxy extends H2InMemoryDatabaseProxy {
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.H2InMemoryDatabaseProxy#newPointValueDao()
-         */
         @Override
         public PointValueDao newPointValueDao() {
             return new MockPointValueDao();
