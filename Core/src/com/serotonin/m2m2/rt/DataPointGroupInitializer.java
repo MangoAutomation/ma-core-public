@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -32,7 +34,7 @@ import com.serotonin.timer.RejectedTaskReason;
  */
 public class DataPointGroupInitializer {
 
-    private final Log LOG = LogFactory.getLog(DataPointGroupInitializer.class);
+    private final Log log = LogFactory.getLog(DataPointGroupInitializer.class);
 
     private final DataSourceVO ds;
     private final List<DataPointWithEventDetectors> dsPoints;
@@ -68,22 +70,28 @@ public class DataPointGroupInitializer {
         int subGroupSize = remainder == 0 ? quotient : quotient + 1;
 
         if (useMetrics)
-            LOG.info("Initializing " + numPoints + " data points in " + this.threadPoolSize + " threads.");
+            log.info("Initializing " + numPoints + " data points in " + this.threadPoolSize + " threads.");
 
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        List<DataPointSubGroupInitializer> groups = new ArrayList<>();
 
         //Add and Start the tasks
         for (int from = 0; from < numPoints; from += subGroupSize) {
             int to = Math.min(from + subGroupSize, numPoints);
             DataPointSubGroupInitializer currentSubgroup = new DataPointSubGroupInitializer(this.dsPoints.subList(from, to));
             Common.backgroundProcessing.execute(currentSubgroup);
-            futures.add(currentSubgroup.future);
+            groups.add(currentSubgroup);
         }
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        for (DataPointSubGroupInitializer group : groups) {
+            try {
+                group.future.get();
+            } catch (ExecutionException | CancellationException | InterruptedException e) {
+                log.error("Failed to start some data points", e);
+            }
+        }
 
         if (this.useMetrics)
-            LOG.info("Initialization of " + this.dsPoints.size() + " data points took " + (Common.timer.currentTimeMillis() - startTs) + "ms");
+            log.info("Initialization of " + this.dsPoints.size() + " data points took " + (Common.timer.currentTimeMillis() - startTs) + "ms");
     }
 
     public static class DataPointWithEventDetectorsAndCache extends DataPointWithEventDetectors {
@@ -109,10 +117,11 @@ public class DataPointGroupInitializer {
      * Initialize a sub group of the data points in one thread.
      *
      * @author Terry Packer
+     * @author Jared Wiltshire
      */
     private class DataPointSubGroupInitializer extends HighPriorityTask {
 
-        private final Log LOG = LogFactory.getLog(DataPointSubGroupInitializer.class);
+        private final Log log = LogFactory.getLog(DataPointSubGroupInitializer.class);
         private final List<DataPointWithEventDetectors> subgroup;
         private final CompletableFuture<Void> future;
 
@@ -144,7 +153,7 @@ public class DataPointGroupInitializer {
                     dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize,
                             (pvt, i) -> latestValuesMap.computeIfAbsent(pvt.getId(), (k) -> new ArrayList<>()).add(pvt));
                 } catch (Exception e) {
-                    LOG.error("Failed to get latest point values for datasource " + ds.getXid() +
+                    log.error("Failed to get latest point values for datasource " + ds.getXid() +
                             ". Mango will try to retrieve latest point values per point which will take longer.", e);
                 }
 
@@ -157,16 +166,15 @@ public class DataPointGroupInitializer {
                         Common.runtimeManager.startDataPointStartup(config);
                     } catch (Exception e) {
                         //Ensure only 1 can fail at a time
-                        LOG.error(e.getMessage(), e);
+                        log.error(e.getMessage(), e);
                     }
                 }
                 future.complete(null);
             } catch (Exception e) {
                 future.completeExceptionally(e);
-                LOG.error(e.getMessage(), e);
             } finally {
                 if (useMetrics) {
-                    LOG.info("Started " + subgroup.size() + " data points out of " + dsPoints.size());
+                    log.info("Started " + subgroup.size() + " data points out of " + dsPoints.size());
                 }
             }
         }
