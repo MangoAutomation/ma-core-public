@@ -15,8 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -157,18 +155,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
         List<DataSourceVO> pollingRound = new ArrayList<>();
         int startupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
-        ExecutorService executor = newFixedThreadPool("Data source initializer", startupThreads);
-        try {
-            for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
-                List<DataSourceVO> priorityList = priorityMap.get(startPriority);
-                if (priorityList != null) {
-                    DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList,
-                            useMetrics, executor);
-                    pollingRound.addAll(initializer.initialize());
-                }
+        ExecutorService executor = Common.getBean(ExecutorService.class);
+        for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
+            List<DataSourceVO> priorityList = priorityMap.get(startPriority);
+            if (priorityList != null) {
+                DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(
+                        useMetrics, executor, startupThreads, startPriority);
+                pollingRound.addAll(initializer.initialize(priorityList));
             }
-        } finally {
-            shutdownExecutorService(executor);
         }
 
         // Tell the data sources to start polling. Delaying the polling start gives the data points a chance to
@@ -245,18 +239,19 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
+        ExecutorService executor = Common.getBean(ExecutorService.class);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
             List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
-                DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorities[i], priorityList, useMetrics, dataSourceStartupThreads);
-                initializer.terminate();
+                DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(
+                        useMetrics, executor, dataSourceStartupThreads, priorities[i]);
+                initializer.initialize(priorityList);
             }
         }
 
         // Run everything else.
         rtmdIndex = stopRTMDefs(defs, rtmdIndex, Integer.MIN_VALUE);
-
     }
 
     @Override
@@ -388,14 +383,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
         boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
-        ExecutorService executor = newFixedThreadPool("Data point initializer", startupThreads);
-        try {
-            DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(vo, dataSourcePoints,
-                    Common.databaseProxy.newPointValueDao(), useMetrics, pointsPerThread, executor);
-            pointInitializer.initialize();
-        } finally {
-            shutdownExecutorService(executor);
-        }
+        ExecutorService executor = Common.getBean(ExecutorService.class);
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(useMetrics, executor, startupThreads, Common.databaseProxy.newPointValueDao());
+        pointInitializer.initializeInGroups(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.
         dataSource.initialized();
@@ -895,28 +885,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
             publisher.terminate();
             publisher.joinTermination();
             runningPublishers.remove(publisher);
-        }
-    }
-
-    public ExecutorService newFixedThreadPool(String poolName, int maxPoolSize) {
-        return Executors.newFixedThreadPool(maxPoolSize, runnable -> {
-            Thread thread = new Thread(runnable, poolName);
-            thread.setDaemon(true);
-            thread.setPriority(Thread.NORM_PRIORITY);
-            thread.setUncaughtExceptionHandler((t, ex) ->
-                    LOG.error("Uncaught exception in " + poolName, ex));
-            return thread;
-        });
-    }
-
-    public void shutdownExecutorService(ExecutorService executorService) {
-        executorService.shutdownNow();
-        try {
-            if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
-                LOG.error("Failed to shutdown ExecutorService");
-            }
-        } catch (InterruptedException e) {
-            LOG.error("Failed to shutdown ExecutorService", e);
         }
     }
 }
