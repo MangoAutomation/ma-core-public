@@ -161,7 +161,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             if (priorityList != null) {
                 DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(
                         useMetrics, executor, startupThreads, startPriority);
-                pollingRound.addAll(initializer.initialize(priorityList));
+                pollingRound.addAll(initializer.process(priorityList));
             }
         }
 
@@ -246,7 +246,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             if (priorityList != null) {
                 DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(
                         useMetrics, executor, dataSourceStartupThreads, priorities[i]);
-                initializer.initialize(priorityList);
+                initializer.process(priorityList);
             }
         }
 
@@ -385,7 +385,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
         ExecutorService executor = Common.getBean(ExecutorService.class);
         DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(useMetrics, executor, startupThreads, Common.databaseProxy.newPointValueDao());
-        pointInitializer.initializeInGroups(dataSourcePoints, pointsPerThread);
+        pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.
         dataSource.initialized();

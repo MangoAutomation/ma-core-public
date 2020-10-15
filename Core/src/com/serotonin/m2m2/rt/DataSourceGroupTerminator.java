@@ -19,7 +19,7 @@ import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
  * @author Jared Wiltshire
  *
  */
-public class DataSourceGroupTerminator extends GroupInitializer<DataSourceRT<?>, Void> {
+public class DataSourceGroupTerminator extends GroupProcessor<DataSourceRT<?>, Void> {
     private final StartPriority startPriority;
 
     public DataSourceGroupTerminator(boolean useMetrics, ExecutorService executor, int maxConcurrency, StartPriority startPriority) {
@@ -28,13 +28,13 @@ public class DataSourceGroupTerminator extends GroupInitializer<DataSourceRT<?>,
     }
 
     @Override
-    public List<Void> initialize(List<DataSourceRT<?>> items) {
+    public List<Void> process(List<DataSourceRT<?>> items) {
         long startTs = Common.timer.currentTimeMillis();
         if (useMetrics && log.isInfoEnabled()) {
             log.info("Terminating {} {} priority data sources in {} threads",
                     items.size(), startPriority, maxConcurrency);
         }
-        List<Void> result = super.initialize(items);
+        List<Void> result = super.process(items);
         if (useMetrics && log.isInfoEnabled()) {
             log.info("Termination of {} {} priority data sources in {} threads took {} ms",
                     items.size(), startPriority, maxConcurrency, Common.timer.currentTimeMillis() - startTs);
@@ -43,7 +43,7 @@ public class DataSourceGroupTerminator extends GroupInitializer<DataSourceRT<?>,
     }
 
     @Override
-    protected Void apply(DataSourceRT<?> dataSourceRT) {
+    protected Void processItem(DataSourceRT<?> dataSourceRT) {
         Common.runtimeManager.stopDataSourceShutdown(dataSourceRT.getId());
         return null;
     }

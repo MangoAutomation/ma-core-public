@@ -21,7 +21,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
  * @author Jared Wiltshire
  *
  */
-public class DataSourceGroupInitializer extends GroupInitializer<DataSourceVO, DataSourceVO> {
+public class DataSourceGroupInitializer extends GroupProcessor<DataSourceVO, DataSourceVO> {
     private final StartPriority startPriority;
 
     public DataSourceGroupInitializer(boolean useMetrics, ExecutorService executor, int maxConcurrency, StartPriority startPriority) {
@@ -30,13 +30,13 @@ public class DataSourceGroupInitializer extends GroupInitializer<DataSourceVO, D
     }
 
     @Override
-    public List<DataSourceVO> initialize(List<DataSourceVO> items) {
+    public List<DataSourceVO> process(List<DataSourceVO> items) {
         long startTs = Common.timer.currentTimeMillis();
         if (useMetrics && log.isInfoEnabled()) {
             log.info("Initializing {} {} priority data sources in {} threads",
                     items.size(), startPriority, maxConcurrency);
         }
-        List<DataSourceVO> result = super.initialize(items);
+        List<DataSourceVO> result = super.process(items);
         if (useMetrics && log.isInfoEnabled()) {
             log.info("Initialization of {} {} priority data sources in {} threads took {} ms",
                     items.size(), startPriority, maxConcurrency, Common.timer.currentTimeMillis() - startTs);
@@ -45,7 +45,7 @@ public class DataSourceGroupInitializer extends GroupInitializer<DataSourceVO, D
     }
 
     @Override
-    protected DataSourceVO apply(DataSourceVO dataSource) {
+    protected DataSourceVO processItem(DataSourceVO dataSource) {
         if (Common.runtimeManager.initializeDataSourceStartup(dataSource)) {
             return dataSource;
         } else {

@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jared Wiltshire
  */
-public abstract class GroupInitializer<T,R> {
+public abstract class GroupProcessor<T,R> {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected final boolean useMetrics;
     protected final LimitedConcurrencyExecutor executor;
@@ -27,16 +27,16 @@ public abstract class GroupInitializer<T,R> {
     /**
      * @param priorityList
      */
-    public GroupInitializer(boolean useMetrics, ExecutorService executor, int maxConcurrency) {
+    public GroupProcessor(boolean useMetrics, ExecutorService executor, int maxConcurrency) {
         this.useMetrics = useMetrics;
         this.executor = new LimitedConcurrencyExecutor(executor, maxConcurrency);
         this.maxConcurrency = maxConcurrency;
     }
 
-    public List<R> initialize(List<T> items) {
+    public List<R> process(List<T> items) {
         List<CompletableFuture<R>> futures = new ArrayList<>(items.size());
         for (T item : items) {
-            futures.add(executor.submit(() -> apply(item)));
+            futures.add(executor.submit(() -> processItem(item)));
         }
 
         List<R> results = new ArrayList<>();
@@ -54,5 +54,5 @@ public abstract class GroupInitializer<T,R> {
         return results;
     }
 
-    protected abstract R apply(T t) throws Exception;
+    protected abstract R processItem(T t) throws Exception;
 }

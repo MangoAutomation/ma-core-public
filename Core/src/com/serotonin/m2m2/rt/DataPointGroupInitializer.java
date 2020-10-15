@@ -24,7 +24,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
  * @author Terry Packer
  * @author Jared Wiltshire
  */
-public class DataPointGroupInitializer extends GroupInitializer<List<DataPointWithEventDetectors>, Void> {
+public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWithEventDetectors>, Void> {
 
     private final PointValueDao dao;
 
@@ -33,7 +33,7 @@ public class DataPointGroupInitializer extends GroupInitializer<List<DataPointWi
         this.dao = dao;
     }
 
-    public void initializeInGroups(List<DataPointWithEventDetectors> items, int groupSize) {
+    public void initialize(List<DataPointWithEventDetectors> items, int groupSize) {
         long startTs = Common.timer.currentTimeMillis();
         if (useMetrics && log.isInfoEnabled()) {
             log.info("Initializing {} data points in {} threads",
@@ -47,7 +47,7 @@ public class DataPointGroupInitializer extends GroupInitializer<List<DataPointWi
             int to = Math.min(from + groupSize, numPoints);
             subgroups.add(items.subList(from, to));
         }
-        initialize(subgroups);
+        process(subgroups);
 
         if (useMetrics && log.isInfoEnabled()) {
             log.info("Initialization of {} data points in {} threads took {} ms",
@@ -56,7 +56,7 @@ public class DataPointGroupInitializer extends GroupInitializer<List<DataPointWi
     }
 
     @Override
-    protected Void apply(List<DataPointWithEventDetectors> subgroup) {
+    protected Void processItem(List<DataPointWithEventDetectors> subgroup) {
         if (useMetrics && log.isInfoEnabled()) {
             log.info("Initializing group of {} data points",
                     subgroup.size());
