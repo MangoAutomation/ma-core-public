@@ -106,7 +106,17 @@ public class PointValueDaoMetrics implements PointValueDao {
     public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback){
         LogStopWatch LogStopWatch = new LogStopWatch();
         dao.getLatestPointValues(vos, before, orderById, limit, callback);
-        LogStopWatch.stop(() -> "getLatestPointValues(vos,limit,before, orderById, callback) (" + vos +", " + limit + ", " + before + "," + orderById + ", callback)", this.metricsThreshold);
+        Supplier<String> msg;
+        if(vos.size() <= 10) {
+            msg = () -> {
+                return "getLatestPointValues(vos,limit,before, orderById, callback) (" + vos +", " + limit + ", " + before + "," + orderById + ", callback)";
+            };
+        }else {
+            msg = () -> {
+                return "getLatestPointValues(vos,limit,before, orderById, callback) ([" + vos.size() +"], " + limit + ", " + before + "," + orderById + ", callback)";
+            };
+        }
+        LogStopWatch.stop(msg, this.metricsThreshold);
     }
 
     @Override
@@ -154,16 +164,24 @@ public class PointValueDaoMetrics implements PointValueDao {
             long to, MappedRowCallback<IdPointValueTime> callback) {
         LogStopWatch LogStopWatch = new LogStopWatch();
         dao.getPointValuesBetween(vos,from,to,callback);
-        Supplier<String> msg = () -> {
-            String sqlIn = "[";
-            for(int i=0; i<vos.size(); i++){
-                sqlIn += vos.get(i);
-                if(i < vos.size())
-                    sqlIn += ",";
-            }
-            sqlIn += "]";
-            return "getPointValuesBetween(vos,from,to,callback) ("+ sqlIn + ", " + from + ", " + to + ", " + callback.toString() + ")";
-        };
+        Supplier<String> msg;
+        if(vos.size() <= 10) {
+            msg = () -> {
+                String sqlIn = "[";
+                for(int i=0; i<vos.size(); i++){
+                    sqlIn += vos.get(i);
+                    if(i < vos.size())
+                        sqlIn += ",";
+                }
+                sqlIn += "]";
+                return "getPointValuesBetween(vos,from,to,callback) ("+ sqlIn + ", " + from + ", " + to + ", " + callback.toString() + ")";
+            };
+        }else {
+            msg = () -> {
+                String sqlIn = "[" + vos.size() + "]";
+                return "getPointValuesBetween(vos,from,to,callback) ("+ sqlIn + ", " + from + ", " + to + ", " + callback.toString() + ")";
+            };
+        }
         LogStopWatch.stop(msg, this.metricsThreshold);
 
     }
@@ -347,7 +365,17 @@ public class PointValueDaoMetrics implements PointValueDao {
             BookendQueryCallback<IdPointValueTime> callback) {
         LogStopWatch logStopWatch = new LogStopWatch();
         dao.wideBookendQuery(vos, from, to, orderById, limit, callback);
-        logStopWatch.stop(() -> "wideBookendQuery(dataPointIds, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + ",callback)", this.metricsThreshold);
+        Supplier<String> msg;
+        if(vos.size() <= 10) {
+            msg = () -> {
+                return "wideBookendQuery(dataPointIds, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + ",callback)";
+            };
+        }else {
+            msg = () -> {
+                return "wideBookendQuery(dataPointIds, from, to, orderById, limit, callback) + ([" + vos.size() + "], " + to + ", " + from + ", " + limit + ",callback)";
+            };
+        }
+        logStopWatch.stop(msg, this.metricsThreshold);
     }
 
     @Override
@@ -355,7 +383,17 @@ public class PointValueDaoMetrics implements PointValueDao {
             Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
         LogStopWatch logStopWatch = new LogStopWatch();
         dao.getPointValuesBetween(vos, from, to, orderById, limit, callback);
-        logStopWatch.stop(() -> "getPointValuesBetween(vos, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + ",callback)", this.metricsThreshold);
+        Supplier<String> msg;
+        if(vos.size() <= 10) {
+            msg = () -> {
+                return "getPointValuesBetween(vos, from, to, orderById, limit, callback) + (" + vos + ", " + to + ", " + from + ", " + limit + ",callback)";
+            };
+        }else {
+            msg = () -> {
+                return "getPointValuesBetween(vos, from, to, orderById, limit, callback) + ([" + vos.size() + "], " + to + ", " + from + ", " + limit + ",callback)";
+            };
+        }
+        logStopWatch.stop(msg, this.metricsThreshold);
     }
 
 }
