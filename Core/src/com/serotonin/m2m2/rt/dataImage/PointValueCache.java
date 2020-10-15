@@ -161,7 +161,7 @@ public class PointValueCache {
                 List<PointValueTime> cc = new ArrayList<>();
                 cc.addAll(existing);
                 List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
-                dao.getLatestPointValues(vos, Common.timer.currentTimeMillis() + 1, false, size, (value, index) -> {
+                dao.getLatestPointValues(vos, Long.MAX_VALUE, false, size, (value, index) -> {
                     //Cache is in same order as rows
                     if(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
                         //The cached value is newer so add it
