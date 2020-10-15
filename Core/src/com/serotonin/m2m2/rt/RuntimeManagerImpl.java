@@ -31,7 +31,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
-import com.serotonin.m2m2.rt.DataPointGroupInitializer.DataPointWithEventDetectorsAndCache;
 import com.serotonin.m2m2.rt.dataImage.DataPointEventMulticaster;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;

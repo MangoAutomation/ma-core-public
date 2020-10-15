@@ -16,7 +16,6 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
-import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 /**
  * This class is used at startup to initialize data points on a single source in parallel.
@@ -107,22 +106,4 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
         return null;
     }
 
-    public static class DataPointWithEventDetectorsAndCache extends DataPointWithEventDetectors {
-        private final List<PointValueTime> initialCache;
-
-        public DataPointWithEventDetectorsAndCache(DataPointWithEventDetectors vo, List<PointValueTime> initialCache) {
-            super(vo.getDataPoint(), vo.getEventDetectors());
-            this.initialCache = initialCache;
-        }
-
-        public DataPointWithEventDetectorsAndCache(DataPointVO vo,
-                                                   List<AbstractPointEventDetectorVO> detectors, List<PointValueTime> initialCache) {
-            super(vo, detectors);
-            this.initialCache = initialCache;
-        }
-
-        public List<PointValueTime> getInitialCache() {
-            return initialCache;
-        }
-    }
 }

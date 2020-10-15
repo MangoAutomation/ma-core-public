@@ -16,7 +16,7 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
-import com.serotonin.m2m2.rt.DataPointGroupInitializer.DataPointWithEventDetectorsAndCache;
+import com.serotonin.m2m2.rt.DataPointWithEventDetectorsAndCache;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
