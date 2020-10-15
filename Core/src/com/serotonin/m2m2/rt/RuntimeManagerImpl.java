@@ -236,7 +236,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             priorityList.add(rt);
         }
 
-        int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
+        int dataSourceShutdownThreads = Common.envProps.getInt("runtime.datasource.shutdownThreads", 1);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         ExecutorService executor = Common.getBean(ExecutorService.class);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
@@ -244,7 +244,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
                 DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(
-                        useMetrics, executor, dataSourceStartupThreads, priorities[i]);
+                        useMetrics, executor, dataSourceShutdownThreads, priorities[i]);
                 initializer.process(priorityList);
             }
         }
