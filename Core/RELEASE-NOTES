@@ -36,15 +36,17 @@
 * Delete Mango work directory on upgrade as it is only used for the legacy UI
 * Fix bug where the quantize setting on a data source was not being imported in a JSON import
 * Add ability for modules to define asynchronous servlets
-* Upgrade apache commons database pool library (commons-dbcp2) to 2.7.0 
+* Upgrade apache commons database pool library (commons-dbcp2) to 2.7.0
 * Change PointValueDao interface to use full DataPointVO instead of just the data point id
 * Change MySQL character set to utf8mb4 for full UTF support (note: Mango requires MySQL v5.7.8 or newer)
 * Upgrade Caffeine cache library to 2.8.5
-* Retry failed transactional insert/updates for database layer controlled via env property db.transaction.retries 
+* Retry failed transactional insert/updates for database layer controlled via env property db.transaction.retries
 * Upgrade H2 to use MV Store engine for performance, this will dump and re-import your existing h2 database on upgrade
 * Add DataPointChangeDefinition to allow modules to hook into data point create update and delete logic
-* Add env properties to improve data source startup times runtime.datapoint.startupThreads and runtime.datapoint.logStartupMetrics default is number of CPU cores
-* Change runtime.datasource.startupThreads to default to 1
+* Add env property runtime.datapoint.startupThreads (default = number CPU cores), number of threads per data source to use for point initialization
+* Add env property runtime.datapoint.startupThreads.pointsPerThread (default = 1000), number of points to initialize at once in each thread
+* Change env property runtime.datasource.startupThreads (default = 1), since we now use multiple threads for point initialization
+* Add env property runtime.datasource.shutdownThreads (default = 1), number of threads used to stop data sources at shutdown
 * Add cache settings for users cache.users.size permissions cache.permission.size and roles cache.roles.size
 * Add env property to limit the number of IN query operands db.in.maxOperands for very large queries
 * Add env property to control backup location paths.backup
@@ -93,10 +95,10 @@
 * Allow web.cache env properties to be modifiable during runtime
 * Remove ETag header and rely on last-modified for file resource requests
 * Add support to control cache headers on web repsonses for specific resources via module code
-* Increase defaults for REST request rate limit since DoS and QoS filters will handle this 
-* Add support for JSON configuration to export and import dates as ISO 8601 format 
+* Increase defaults for REST request rate limit since DoS and QoS filters will handle this
+* Add support for JSON configuration to export and import dates as ISO 8601 format
 * Fix bug in Serial Port Manager that added a new high priority thread every time the serial ports were refreshed
-* Make Serial Port event processing task a high priority Thread 
+* Make Serial Port event processing task a high priority Thread
 * Improve error handling for rejected task executions to ensure they cannot kill the main timer thread
 * Add web.forwardedHeaders.* settings to env.properties, enables configuring Mango to honor Forwarded and X-Forwarded-* headers for operation behind a proxy server
 * Remove InputStream EPoll task from high priority executor make it a Thread as it is always running and would otherwise just take up a thread in the pool
@@ -210,12 +212,12 @@
 * Configure both database and common Jackson Object Mappers to not fail when de-serializing JSON with extra unused fields
 * Supply the terminated Data Point VO in DataPointListener.terminate method to determine if the point is stopped by the data source or was disabled and the source is still running
 * Fix bug in Change and NoChange event detectors to prevent them raising events with timestamps in the future
-* Fix bug where Change and NoChange event detectors could be initialized to wait too long for the first change/no change event 
+* Fix bug where Change and NoChange event detectors could be initialized to wait too long for the first change/no change event
 * Upgrade H2 to stop size of database from continuously growing, for this fix Mango will automatically dump and re-import your database on startup as H2 databases from older versions are not compatible in binary form
 * ALPN (Application-Layer Protocol Negotiation) for HTTP/2 on Java 10+, make sure the ALPN startup extension is not in use as that will cause problems
 * Fix bug in ON_CHANGE_INTERVAL logging, prevent errant logging tasks at point termination
 * Use UTF8 for encoding email address names, better language support
-* Adding Rate of Change data point event detector 
+* Adding Rate of Change data point event detector
 * Analog Change detector event stays active if the change remains in its period (the "duration" setting)
 * Improve validation of Data Point Text Renderers
 * Enforce permission access rule where saving user must retain permission to item
@@ -254,7 +256,7 @@
 * Fix bug in Module.webPath()
 * Fix for returning error messages when switching user
 * Add edit-ui-pages as a default permission for creating JSON data items
-* Fix synchronization issue in virtual server serial sockets. 
+* Fix synchronization issue in virtual server serial sockets.
 * Ensure Global Scripts are imported first so that Meta point and Scripting data sources that are imported at the same time can use the scripts
 * Allow emails event handlers to run without recipients to allow thier scripts to execute even though no email is sent
 * Fix bug where when only 1 User is logged in they recieve Audit and Do Not Log Events in the UI
@@ -294,7 +296,7 @@
 * Adding ability to set password expiration period, default is to be disabled
 * Implement setPointValue in HistoricalDataPoint, save value unconditionally
 * Bugfix for repeatedly saving the Point Hierarchy creating many data point listeners
-* Shorten description for Data Point event notify work items to reduce memory footprint in large systems.  
+* Shorten description for Data Point event notify work items to reduce memory footprint in large systems.
 * Improve performance/stability when multi-casting User notifications of alarms
 * Add ability to change password after it expires if password is known
 * Upgrade Spring and Jetty dependencies for compatibility with java 9/10
@@ -353,7 +355,7 @@
 * Improve bulk permissions editing accuracy for data points
 * Fix database upgrade 21 to not fail when deleting a duplicate user that has foreign key entries in linked tables.  IMPORTANT: if you have duplicate users with the same username the user created most recently will be deleted.
 * Improve performance of the overrides system
-* Better handling of special doubles, i.e. NaN and Infinity for Configuration Export/Import 
+* Better handling of special doubles, i.e. NaN and Infinity for Configuration Export/Import
 
 *Version 3.4.4*
 * More HTML escapes
@@ -384,8 +386,8 @@
 
 *Version 3.4.0*
 * Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers
-* Increase the XID field to 100 characters from 50 
-* Adding new module definitions for custom queries to be used as helpers in REST query endpoints 
+* Increase the XID field to 100 characters from 50
+* Adding new module definitions for custom queries to be used as helpers in REST query endpoints
 * Adding definition for Events by Data Point Tag query at /v1/events/module-defined-query/DATA_POINT_EVENTS_BY_TAG
 * Adding simplify settings as a property of data point VO
 * Removing get(object) and get(DataValue) from StartsAndRuntimeList javascript wrapper so these methods are no longer available and should never have been used
@@ -462,7 +464,7 @@
 *Version 3.3.0*
 * Ability to import a point hierarchy path for data points in the data point JSON via "path" : "new path"
 * Improved accuracy of Rollups
-* Modified statistics according to 
+* Modified statistics according to
 * Analog Statistics minimum value with no values in period changed from null to NaN
 * Analog Statistics maximum value with no values in period changed from null to NaN
 * Analog Statistics average value no values in period changed from null to NaN
@@ -565,7 +567,7 @@
 * Allow setting point values from Point Links, Event Handlers and Meta Points
 * Ability for scripts to launch imports
 * Ability for script points to access Data Point Summary
-* Adding event detector JSON importer 
+* Adding event detector JSON importer
 * Email event handler can now add data points to ftl model for use in template
 * Logfiles now always created at MA_HOME/logs
 * Performance improvements
@@ -624,18 +626,18 @@
 * Adding locale and Name settings to User
 * Ability to send mail to Mailing List for alarms above a desired level
 * Events raised by Event Detectors now contain data point Name + Device Name instead of just Name
-* REST v2 api 
+* REST v2 api
 * Ability to add comments to Data points, Events and Json Data store entries
 * Auto generated XIDs are now UUID values with the XID prefix
 * Improved help files
 * Adding extension support for ma.bat (Windows)
-* New chart settings for data points 
+* New chart settings for data points
 * New Licensing Simplified point restriction licenses to have one limit for all IAS data source modules
 * Prevent extreme sets - New data point property which prevents a user from sending a value outside the range to the edge device if enabled
 * Adding gpm and kWh Units
 * Improved code generics to simplify new module development
 * Adding Web Socket endpoints for CRUD operations on all database tables
-* Adding database table row counts as system metrics for most tables 
+* Adding database table row counts as system metrics for most tables
 * Adding System uptime as internal metric
 * Image value enhancements for Image type data points
 * Log4j upgraded to Version 2 for increased performance and lower memory use
@@ -761,7 +763,7 @@
 * Added system settings to allow Site Analytics code to be added into the HTML of all pages
 * Fixed bug where deleting a user linked to an email event handler would break the event handler
 * Adding support for HTML5 Audio to play Alarm sounds on all pages
-* Performance enhancements to improve maximum poll rates for data sources 
+* Performance enhancements to improve maximum poll rates for data sources
 
 *Version 2.7.2*
 * Fixed bug where uploading point values was being reject as a security breach
@@ -780,7 +782,7 @@
 * Improved REST error feedback in Response headers and log file
 * Upgrade Jetty to 9.2.12.v20150709
 * Adding Spring Security
-* Jetty JSP Engine configurable/tunable via env.properties 
+* Jetty JSP Engine configurable/tunable via env.properties
 * For better JSP performance set development=false if you do not need runtime compilation of JSP files
 * Fixed Purge Override bug where data source purge override was not being respected.
 * WebSocket Ping/Pong connection testing to ensure dead connections are cleaned up
@@ -835,7 +837,7 @@
 * Added css and favicon to url versioning system to ensure browser cache-refreshes on core updates
 * Added some protective measures to ensure users with multiple tabs open don't clobber points and data sources, only 1 tab is officially supported
 * Removed upgrade for MySQL PointValues table from MyISAM to InnoDB (users are expected to do this manually if desired)
-* Fixed Help Window from floating around after clicking a linked help file. 
+* Fixed Help Window from floating around after clicking a linked help file.
 * Added additional methods for scripting and meta points: (pointValuesBetween, pointValuesSince, pointValueBefore, pointValueAfter)
 * Added additional method for point statistics in scripts:  getStats(from, to)
 * Fixed bug where Units were being squared on copy.
@@ -882,7 +884,7 @@
 * Added purge now options to all data sources
 * Added some helpful features for developers to use the NoSQL Proxy for Database Type Modules
 * Added ability to disable Data Type drop down menu JSP Tag using the 'disabled' attribute
-* Fixed bug in editing Multistate Points where the value of 0 might be confused with an empty value 
+* Fixed bug in editing Multistate Points where the value of 0 might be confused with an empty value
 * Fixed bug in editing Data Sources where the Data Source points list filters would be reset upon save.
 * Added ip address of user to Login Event that is then viewable on Alarms Page.
 * Added feature to session cookie that allows users to login to multiple mangos on the same host at the same time (Upgraded ma-priv to 1.1.6)
@@ -914,7 +916,7 @@
 * Added help to Chart view on data point details page to explain the Chart Servlet feature
 * Cleaned up css styling on data source page
 * Fixed bug on Data Source page where data source points table was leaving extra columns from previously viewed data sources
-* Fixed bug on Data Source page where the enable/disable light could get out of sync with the actual state of the data source 
+* Fixed bug on Data Source page where the enable/disable light could get out of sync with the actual state of the data source
 * Fixed bugs on Data Point Settings tab where both the Purge Override settings and Discarding Extreme Values were not saving.
 * Added db.useMetrics env boolean property to allow all queries to report times via the INFO log level.
 * Fixed bug in JScience Library where any units with a 4 in the numerical multiplier would fail to load.
@@ -954,7 +956,7 @@ Fixed bug that would cause copying data points with ConvertingTextRenderers to f
 * Enabled a URL tag that disables the Mango header and menu | ?showHeader=false&showToolbar=false
 * Updated Event Detector emails to have more descriptive subjects
 * Replaced Engineering Units with JScience Units and include unit conversation
-* Updated all data point drop down list throughout Mango to use searchable lists 
+* Updated all data point drop down list throughout Mango to use searchable lists
 * Upgraded Active Alarm display at the top of every page
 * Added Alarm Report to allow for filtering and searching alarms
 * Reworked Data Source area for easier modification of points and data sources
@@ -995,7 +997,7 @@ Fixed bug that would cause copying data points with ConvertingTextRenderers to f
 
 *Version 2.0.5*
 
-* Added module lifecycle call "postDatabase" 
+* Added module lifecycle call "postDatabase"
 * Performance improvements when loading points from the database
 * Fix for incorrect 0 values calculated on points with interval averaging upon initialization
 * Added persistence to sound muting so the value is saved between sessions. New users default to being muted.
@@ -1015,7 +1017,7 @@ Fixed bug that would cause copying data points with ConvertingTextRenderers to f
 * Multiple references to M2M2 changed to MA
 * Allow modules to override dox folders (help documentation)
 * Allow modules to define handler interceptors
-* Allow the dojo URI to be overridden prior to JSP processing 
+* Allow the dojo URI to be overridden prior to JSP processing
 
 
 *Version 2.0.2*
