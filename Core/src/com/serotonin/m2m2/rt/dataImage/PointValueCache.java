@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -36,26 +37,30 @@ public class PointValueCache {
      * methods like add() or remove() on the cache object. Further, since the cache object can be replaced from time to
      * time, always use a local copy of the variable for read purposes.
      */
-    private List<PointValueTime> cache;
+    private final LazyField<List<PointValueTime>> cache;
 
     public PointValueCache(DataPointVO vo, int defaultSize, List<PointValueTime> cache) {
         this.vo = vo;
         this.defaultSize = defaultSize;
-
-        if (cache == null) {
-            this.cache = new ArrayList<>();
-            if (defaultSize > 0) {
-                refreshCache(defaultSize);
-            }
-        } else {
-            if (cache.size() > defaultSize) {
-                // dont keep excess point values hanging around
-                this.cache = new ArrayList<>(cache.subList(0, defaultSize));
+        this.cache = new LazyField<>(() -> {
+            List<PointValueTime> newCache;
+            if (cache == null) {
+                newCache = new ArrayList<>();
+                if (defaultSize > 0) {
+                    newCache = refreshCache(defaultSize, newCache);
+                }
             } else {
-                this.cache = cache;
+                if (cache.size() > defaultSize) {
+                    // dont keep excess point values hanging around
+                    newCache = new ArrayList<>(cache.subList(0, defaultSize));
+                } else {
+                    newCache = cache;
+                }
+                this.maxSize = defaultSize;
             }
-            this.maxSize = defaultSize;
-        }
+            return newCache;
+        });
+
     }
 
     void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
@@ -74,7 +79,7 @@ public class PointValueCache {
                 pvt = savePointValueSync(pvt, source);
         }
 
-        List<PointValueTime> c = cache;
+        List<PointValueTime> c = cache.get();
         List<PointValueTime> newCache = new ArrayList<PointValueTime>(c.size() + 1);
         newCache.addAll(c);
 
@@ -93,7 +98,7 @@ public class PointValueCache {
         while (newCache.size() > maxSize)
             newCache.remove(newCache.size() - 1);
 
-        cache = newCache;
+        cache.set(newCache);
     }
 
     /**
@@ -105,10 +110,12 @@ public class PointValueCache {
     }
 
     public PointValueTime getLatestPointValue() {
-        if (maxSize == 0)
-            refreshCache(1);
+        if (maxSize == 0) {
+            List<PointValueTime> c = cache.get();
+            cache.set(refreshCache(1, c));
+        }
 
-        List<PointValueTime> c = cache;
+        List<PointValueTime> c = cache.get();
         if (c.size() > 0)
             return c.get(0);
 
@@ -116,10 +123,12 @@ public class PointValueCache {
     }
 
     public List<PointValueTime> getLatestPointValues(int limit) {
-        if (maxSize < limit)
-            refreshCache(limit);
+        if (maxSize < limit) {
+            List<PointValueTime> c = cache.get();
+            cache.set(refreshCache(limit, c));
+        }
 
-        List<PointValueTime> c = cache;
+        List<PointValueTime> c = cache.get();
         if (limit == c.size())
             return new ArrayList<PointValueTime>(c);
 
@@ -132,7 +141,7 @@ public class PointValueCache {
      * Refresh the cache, keeping existing cached values if they are not already logged.
      * @param size
      */
-    private void refreshCache(int size) {
+    private List<PointValueTime> refreshCache(int size, List<PointValueTime> existing) {
         if (size > maxSize) {
             maxSize = size;
             if (size == 1) {
@@ -141,16 +150,18 @@ public class PointValueCache {
                 if (pvt != null) {
                     List<PointValueTime> c = new ArrayList<PointValueTime>();
                     c.add(pvt);
-                    cache = c;
+                    return c;
+                }else {
+                    return existing;
                 }
             }
             else {
                 List<DataPointVO> vos = new ArrayList<>();
                 vos.add(vo);
                 List<PointValueTime> cc = new ArrayList<>();
-                cc.addAll(cache);
+                cc.addAll(existing);
                 List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
-                dao.getLatestPointValues(vos, Common.timer.currentTimeMillis() + 1, false, size, (value, index) -> {
+                dao.getLatestPointValues(vos, Long.MAX_VALUE, false, size, (value, index) -> {
                     //Cache is in same order as rows
                     if(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
                         //The cached value is newer so add it
@@ -166,8 +177,10 @@ public class PointValueCache {
                             nc.add(value);
                     }
                 });
-                cache = nc;
+                return nc;
             }
+        }else {
+            return existing;
         }
     }
 
@@ -175,18 +188,19 @@ public class PointValueCache {
      * Never manipulate the contents of this list!
      */
     public List<PointValueTime> getCacheContents() {
-        return cache;
+        return cache.get();
     }
 
     public void reset() {
         List<PointValueTime> nc = dao.getLatestPointValues(vo, defaultSize);
         maxSize = defaultSize;
-        cache = nc;
+        cache.set(nc);
     }
 
     public void reset(long before) {
-        List<PointValueTime> nc = new ArrayList<PointValueTime>(cache.size());
-        nc.addAll(cache);
+        List<PointValueTime> c = cache.get();
+        List<PointValueTime> nc = new ArrayList<PointValueTime>(c.size());
+        nc.addAll(c);
         Iterator<PointValueTime> iter = nc.iterator();
         while(iter.hasNext())
             if(iter.next().getTime() < before)
@@ -194,9 +208,8 @@ public class PointValueCache {
 
         if(nc.size() < defaultSize) {
             maxSize = 0;
-            cache = nc;
-            refreshCache(defaultSize);
+            cache.set(refreshCache(defaultSize, nc));
         } else
-            cache = nc;
+            cache.set(nc);
     }
 }

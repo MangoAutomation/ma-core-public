@@ -13,9 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jooq.Field;
 import org.jooq.Query;
-import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
@@ -114,13 +112,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
     @Override
     public RowMapper<RoleVO> getRowMapper() {
         return new RoleVORowMapper();
-    }
-
-    @Override
-    public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
-        // use select distinct as the join below results in multiple rows per role
-        return this.create.selectDistinct(fields)
-                .from(this.table.getTableAsAlias());
     }
 
     /**

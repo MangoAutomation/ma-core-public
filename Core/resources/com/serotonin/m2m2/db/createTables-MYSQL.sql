@@ -307,9 +307,11 @@ create table events (
   ackTs bigint,
   ackUserId int,
   alternateAckSource longtext,
+  readPermissionId INT NOT NULL,
   primary key (id)
 ) engine=InnoDB;
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
+ALTER TABLE events ADD CONSTRAINT eventsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 alter table events add index performance1 (activeTs ASC);
 ALTER TABLE events ADD INDEX events_performance2 (`rtnApplicable` ASC, `rtnTs` ASC);
 ALTER TABLE events ADD INDEX events_performance3 (`typeName` ASC, `subTypeName` ASC, `typeRef1` ASC);

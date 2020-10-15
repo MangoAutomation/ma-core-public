@@ -15,9 +15,13 @@ import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -46,12 +50,15 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
 
     private final UserDao userDao;
     private final MailingListCreatePermission createPermission;
+    private final Cache<Integer, MailingList> cache;
 
     @Autowired
     public MailingListService(MailingListDao dao, PermissionService permissionService, UserDao userDao, MailingListCreatePermission createPermission) {
         super(dao, permissionService);
         this.userDao = userDao;
         this.createPermission = createPermission;
+        this.cache = Caffeine.newBuilder().build();
+        this.dao.getAll().stream().forEach(ml -> this.cache.put(ml.getId(), ml));
     }
 
     /**
@@ -67,13 +74,14 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         this.permissionService.ensureAdminRole(user);
 
         List<MailingList> result = new ArrayList<>();
-        dao.doInTransaction((status) -> {
-            dao.customizedQuery(dao.getJoinedSelectQuery().where(
-                    dao.getTable().getAlias("receiveAlarmEmails").greaterOrEqual(0),
-                    dao.getTable().getAlias("receiveAlarmEmails").lessOrEqual(alarmLevel.value())), (value, index) -> {
-                        result.add(value);
-                    });
+
+        // TODO Mango 4.0 this is only weakly consistent
+        cache.asMap().forEach((id, ml) -> {
+            if(ml.getReceiveAlarmEmails().value() >= 0 && ml.getReceiveAlarmEmails().value() <= alarmLevel.value()) {
+                result.add(ml);
+            }
         });
+
         Set<String> addresses = new HashSet<>();
         for(MailingList list : result) {
             addresses.addAll(getActiveRecipients(list.getEntries(), time, types));
@@ -382,5 +390,24 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         interval += dt.getHour() * 4;
         interval += (dt.getDayOfWeek().getValue() - 1) * 96;
         return interval;
+    }
+
+    /**
+     * Keep our cache up to date by evicting changed roles
+     * @param event
+     */
+    @EventListener
+    protected void handleMailingListEvent(DaoEvent<? extends MailingList> event) {
+        switch(event.getType()) {
+            case DELETE:
+                this.cache.invalidate(event.getVo().getId());
+                break;
+            case UPDATE:
+            case CREATE:
+                this.cache.put(event.getVo().getId(), event.getVo());
+                break;
+            default:
+                break;
+        }
     }
 }

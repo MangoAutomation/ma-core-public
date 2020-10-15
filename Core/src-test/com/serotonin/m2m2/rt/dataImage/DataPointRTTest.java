@@ -121,9 +121,6 @@ public class DataPointRTTest extends MangoTestBase {
     //TODO Test for Historical Generation
     //TODO Test Quantized
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.MangoTestBase#getLifecycle()
-     */
     @Override
     protected MockMangoLifecycle getLifecycle() {
         return new DataPointRtMockMangoLifecycle(modules, enableH2Web, h2WebPort);
@@ -149,9 +146,6 @@ public class DataPointRTTest extends MangoTestBase {
 
     class DataPointRtMockDatabaseProxy extends H2InMemoryDatabaseProxy {
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.H2InMemoryDatabaseProxy#newPointValueDao()
-         */
         @Override
         public PointValueDao newPointValueDao() {
             return new MockPointValueDao();

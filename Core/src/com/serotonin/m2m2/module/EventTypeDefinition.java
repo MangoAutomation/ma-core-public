@@ -171,5 +171,4 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     public EventType createDefaultEventType() {
         return createEventType(null, 0, 0);
     }
-
 }

@@ -160,6 +160,7 @@ public class EventManagerImpl implements EventManager {
 
         EventInstance evt = new EventInstance(type, time, rtnApplicable,
                 alarmLevel, message, context);
+        evt.setReadPermission(type.getEventPermission(context, permissionService));
 
         for (EventManagerListenerDefinition l : listeners) {
             try {
@@ -646,6 +647,33 @@ public class EventManagerImpl implements EventManager {
         recentEventsLock.writeLock().lock();
         try{
             recentEvents.removeIf(e -> e.getEventType().getDataPointId() == dataPointId);
+        }finally{
+            recentEventsLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void cancelEventsForDataPoints(List<Integer> pointIds) {
+        List<EventInstance> dataPointEvents = new ArrayList<>();
+        activeEventsLock.writeLock().lock();
+        try{
+            ListIterator<EventInstance> it = activeEvents.listIterator();
+            while(it.hasNext()){
+                EventInstance e = it.next();
+                if(pointIds.contains(e.getEventType().getDataPointId())) {
+                    it.remove();
+                    dataPointEvents.add(e);
+                }
+            }
+        }finally{
+            activeEventsLock.writeLock().unlock();
+        }
+
+        deactivateEvents(dataPointEvents, Common.timer.currentTimeMillis(), ReturnCause.SOURCE_DISABLED);
+
+        recentEventsLock.writeLock().lock();
+        try{
+            recentEvents.removeIf(e -> pointIds.contains(e.getEventType().getDataPointId()));
         }finally{
             recentEventsLock.writeLock().unlock();
         }

@@ -263,7 +263,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                 int resetPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE);
                 int resetPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
                 long nextExpiration = user.getPasswordChangeTimestamp() + Common.getMillis(resetPeriodType, resetPeriods);
-                System.out.println(new Date(nextExpiration));
                 user.setNextPasswordExpire(nextExpiration);
             }
 

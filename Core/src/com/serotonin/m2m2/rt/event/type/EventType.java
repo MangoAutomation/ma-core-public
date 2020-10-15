@@ -5,9 +5,11 @@
 package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -169,6 +171,16 @@ abstract public class EventType implements JsonSerializable {
      * @return
      */
     abstract public boolean hasPermission(PermissionHolder user, PermissionService service);
+
+    /**
+     * This is the permission that will be stored on the event in the database
+     *  and used to determine access.  This is applied during raising the event
+     *  and one can assume the context is filled
+     *
+     * @param context from raised event
+     * @return
+     */
+    abstract public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service);
 
     /**
      * Determines if the notification of this event to the given user should be suppressed. Useful if the action of the

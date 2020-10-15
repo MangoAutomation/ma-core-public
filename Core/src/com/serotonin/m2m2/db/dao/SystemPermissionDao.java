@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 /**
  *
  * @author Terry Packer
@@ -17,18 +18,18 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 @Repository()
 public class SystemPermissionDao extends BaseDao {
 
-    private final PermissionDao permissionDao;
+    private final PermissionService permissionService;
 
     @Autowired
-    SystemPermissionDao(PermissionDao permissionDao) {
-        this.permissionDao = permissionDao;
+    SystemPermissionDao(PermissionService permissionService) {
+        this.permissionService = permissionService;
     }
 
     public MangoPermission get(String permissionType) {
         //TODO Mango 4.0 use a join
         Integer id = this.create.select(SYSTEM_PERMISSIONS.permissionId).from(SYSTEM_PERMISSIONS).where(SYSTEM_PERMISSIONS.permissionType.eq(permissionType)).limit(1).fetchOne(0, Integer.class);
         if(id != null) {
-            return permissionDao.get(id);
+            return permissionService.get(id);
         }else {
             return null;
         }
@@ -41,8 +42,8 @@ public class SystemPermissionDao extends BaseDao {
      * @return
      */
     public void insert(String permissionTypeName, MangoPermission permission) {
-        permissionDao.permissionId(permission);
-        this.create.insertInto(SYSTEM_PERMISSIONS).columns(SYSTEM_PERMISSIONS.permissionId, SYSTEM_PERMISSIONS.permissionType).values(permission.getId(), permissionTypeName).execute();
+        MangoPermission toInsert = permissionService.findOrCreate(permission.getRoles());
+        this.create.insertInto(SYSTEM_PERMISSIONS).columns(SYSTEM_PERMISSIONS.permissionId, SYSTEM_PERMISSIONS.permissionType).values(toInsert.getId(), permissionTypeName).execute();
     }
 
     /**
@@ -52,11 +53,11 @@ public class SystemPermissionDao extends BaseDao {
      * @return
      */
     public void update(String permissionTypeName, MangoPermission existing, MangoPermission permission) {
-        permissionDao.permissionId(permission);
         if(!existing.equals(permission)) {
-            permissionDao.permissionDeleted(existing);
+            permissionService.permissionDeleted(existing);
         }
-        this.create.update(SYSTEM_PERMISSIONS).set(SYSTEM_PERMISSIONS.permissionId, permission.getId()).where(SYSTEM_PERMISSIONS.permissionType.eq(permissionTypeName)).execute();
+        MangoPermission toUpdate = permissionService.findOrCreate(permission.getRoles());
+        this.create.update(SYSTEM_PERMISSIONS).set(SYSTEM_PERMISSIONS.permissionId, toUpdate.getId()).where(SYSTEM_PERMISSIONS.permissionType.eq(permissionTypeName)).execute();
     }
 
 }

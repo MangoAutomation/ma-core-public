@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
+import java.util.Map;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -13,6 +15,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
+import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -21,10 +24,6 @@ public class DataPointEventType extends EventType {
     private int dataPointId;
     private int pointEventDetectorId;
     private DuplicateHandling duplicateHandling = DuplicateHandling.IGNORE;
-
-    //For performance when loading from DB
-    //TODO Mango 4.0 improve on this concept
-    private DataPointVO dataPoint;
 
     public DataPointEventType() {
         // Required for reflection.
@@ -71,10 +70,6 @@ public class DataPointEventType extends EventType {
         return pointEventDetectorId;
     }
 
-    public DataPointVO getDataPoint() {
-        return dataPoint;
-    }
-
     @Override
     public String toString() {
         return "DataPointEventType(dataPointId=" + dataPointId + ", detectorId=" + pointEventDetectorId + ")";
@@ -97,10 +92,6 @@ public class DataPointEventType extends EventType {
     @Override
     public int getReferenceId2() {
         return pointEventDetectorId;
-    }
-
-    public void setDataPoint(DataPointVO dataPoint) {
-        this.dataPoint = dataPoint;
     }
 
     @Override
@@ -145,14 +136,28 @@ public class DataPointEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        if(dataPoint  == null) {
-            dataPoint = DataPointDao.getInstance().get(dataPointId);
-        }
+        return service.hasDataPointReadPermission(user, dataPointId);
+    }
 
-        if(dataPoint == null) {
-            return false;
+    @Override
+    public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service) {
+        DataPointVO dp = (DataPointVO)context.get(PointEventDetectorRT.DATA_POINT_CONTEXT_KEY);
+        if(dp != null) {
+            return dp.getReadPermission();
         }else {
-            return service.hasPermission(user, dataPoint.getReadPermission());
+            return MangoPermission.superadminOnly();
         }
     }
+
+    //TODO Mango 4.0 remove this and move into base class as a "source" to be set when the event is raised
+    // it is used to enhance the performance of the REST api's need for these
+    private DataPointVO dataPoint;
+    public DataPointVO getDataPoint() {
+        return dataPoint;
+    }
+
+    public void setDataPoint(DataPointVO dataPoint) {
+        this.dataPoint = dataPoint;
+    }
+
 }

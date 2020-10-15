@@ -4,12 +4,14 @@
  */
 package com.serotonin.log;
 
+import java.util.function.Supplier;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
  * Helper class to generate timing log output
- * 
+ *
  * @author Terry Packer
  */
 public class LogStopWatch {
@@ -29,55 +31,55 @@ public class LogStopWatch {
     /**
      * Logs an info line to the log/console with the message and the elapsed time, can be called
      * multiple times
-     * 
+     *
      * @param text
      */
-    public void stop(String text) {
-        logInfo(text, 0);
+    public void stop(Supplier<String> message) {
+        logInfo(message, 0);
     }
-    
+
     /**
      * Logs a line to the log/console with the message and the elapsed time, can be called
      * multiple times.
-     * 
+     *
      * If threshold is greater than 0 then the message will be logged at warning level,
      * otherwise it will be logged at info level.
-     * 
+     *
      * @param text
      * @param threshold message will only be logged if elapsed time is longer than the threshold
      */
-    public void stop(String text, long threshold) {
+    public void stop(Supplier<String> message, long threshold) {
         if (threshold > 0) {
-            logWarn(text, threshold);
+            logWarn(message, threshold);
         } else {
-            logInfo(text, 0);
+            logInfo(message, 0);
         }
     }
 
-    public void logWarn(String message, long threshold) {
+    public void logWarn(Supplier<String> message, long threshold) {
         long duration = getElapsedTime();
-        if (duration >= threshold) {
+        if (logger.isWarnEnabled() && duration >= threshold) {
             logger.warn(createMessage(duration, message));
         }
     }
 
-    public void logInfo(String message, long threshold) {
+    public void logInfo(Supplier<String> message, long threshold) {
         long duration = getElapsedTime();
-        if (duration >= threshold) {
+        if (logger.isInfoEnabled() && duration >= threshold) {
             logger.info(createMessage(duration, message));
         }
     }
 
-    public void logDebug(String message, long threshold) {
+    public void logDebug(Supplier<String> message, long threshold) {
         long duration = getElapsedTime();
-        if (duration >= threshold) {
+        if (logger.isDebugEnabled() && duration >= threshold) {
             logger.debug(createMessage(duration, message));
         }
     }
 
-    public void logTrace(String message, long threshold) {
+    public void logTrace(Supplier<String> message, long threshold) {
         long duration = getElapsedTime();
-        if (duration >= threshold) {
+        if (logger.isTraceEnabled() && duration >= threshold) {
             logger.trace(createMessage(duration, message));
         }
     }
@@ -88,13 +90,13 @@ public class LogStopWatch {
     public long getElapsedTime() {
         return (System.nanoTime() - startTime) / 1000000;
     }
-    
-    private String createMessage(long duration, String message) {
+
+    private String createMessage(long duration, Supplier<String> message) {
         StringBuilder builder = new StringBuilder();
         builder.append(time);
         builder.append(duration);
         builder.append(closeDuration);
-        builder.append(message);
+        builder.append(message.get());
         builder.append(close);
         return builder.toString();
     }

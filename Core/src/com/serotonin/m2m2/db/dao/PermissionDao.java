@@ -28,36 +28,34 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
+ * NOTE: Permissions are cached, usage of tjos dao should be limited to within the PermissionService
  * @author Jared Wiltshire
  */
 @Repository
 public class PermissionDao extends BaseDao {
 
     private final RoleTableDefinition roleTable;
-    private final DataSourceTableDefinition dataSourceTable;
 
     @Autowired
-    PermissionDao(RoleTableDefinition roleTable, DataSourceTableDefinition dataSourceTable) {
+    PermissionDao(RoleTableDefinition roleTable) {
         this.roleTable = roleTable;
-        this.dataSourceTable = dataSourceTable;
     }
 
     /**
      * Get a MangoPermission by id
      * @param id
-     * @return permission if found if not an empty permission (will not return null)
+     * @return permission if found or null
      */
     public MangoPermission get(Integer id) {
         //TODO Mango 4.0 improve performance
         //Fist check to see if it exists as it may have no minterms
         Integer foundId = create.select(PERMISSIONS.id).from(PERMISSIONS).where(PERMISSIONS.id.equal(id)).fetchOneInto(Integer.class);
         if(foundId == null) {
-            return new MangoPermission();
+            return null;
         }
 
         List<Field<?>> fields = new ArrayList<>();
@@ -103,11 +101,10 @@ public class PermissionDao extends BaseDao {
                             mintermId = rs.getInt(minterIdIndex);
                         }
                     }
-                    MangoPermission permission = new MangoPermission(roleSet);
-                    permission.setId(id);
+                    MangoPermission permission = new MangoPermission(id, roleSet);
                     return permission;
                 }else {
-                    return new MangoPermission(foundId);
+                    return new MangoPermission(id);
                 }
             }
 
@@ -115,25 +112,25 @@ public class PermissionDao extends BaseDao {
     }
 
     /**
-     * Find the id of a permission or create one that matches
+     * Find the Permission id of the combination of these minterms or create one that matches
      *
-     * @param permission
+     * @param minterms
      * @return
      */
-    public Integer permissionId(MangoPermission permission) {
+    public Integer permissionId(Set<Set<Role>> minterms) {
         return getTransactionTemplate().execute(txStatus -> {
-            return getOrInsertPermission(permission);
+            return getOrInsertPermission(minterms);
         });
     }
 
-    private Integer getOrInsertPermission(MangoPermission permission) {
+    private Integer getOrInsertPermission(Set<Set<Role>> minterms) {
         //TODO Mango 4.0 Optimize this whole method
-        Set<Integer> mintermIds = permission.getRoles().stream()
+        Set<Integer> mintermIds = minterms.stream()
                 .map(this::getOrInsertMinterm)
                 .collect(Collectors.toSet());
 
         Integer permissionId;
-        if(permission.getRoles().isEmpty()) {
+        if(minterms.isEmpty()) {
             permissionId = create.select(PERMISSIONS.id).from(PERMISSIONS)
                     .leftJoin(PERMISSIONS_MAPPING).on(PERMISSIONS.id.eq(PERMISSIONS_MAPPING.permissionId))
                     .where(PERMISSIONS_MAPPING.permissionId.isNull()).limit(1).fetchOne(0, Integer.class);
@@ -164,7 +161,6 @@ public class PermissionDao extends BaseDao {
             .execute();
         }
 
-        permission.setId(permissionId);
         return permissionId;
     }
 
@@ -232,17 +228,15 @@ public class PermissionDao extends BaseDao {
      *  if other VOs reference this permission it will not be deleted
      * @param permissions
      */
-    public void permissionDeleted(MangoPermission... permissions) {
-        int deleted = 0;
-        for(MangoPermission permission : permissions) {
-            try{
-                deleted += create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(permission.getId())).execute();
-            }catch(Exception e) {
-                //permission still in use
+    public boolean permissionDeleted(Integer id) {
+        try{
+            if(create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(id)).execute() > 0) {
+                permissionUnlinked();
+                return true;
             }
+        }catch(Exception e) {
+            //permission still in use
         }
-        if(deleted > 0) {
-            permissionUnlinked();
-        }
+        return false;
     }
 }

@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,7 +24,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -151,14 +151,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         // Initialize the prioritized data sources. Start the polling later.
-        List<DataSourceVO> pollingRound = new ArrayList<DataSourceVO>();
-        int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
-        boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
+        List<DataSourceVO> pollingRound = new ArrayList<>();
+        int startupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
+        ExecutorService executor = Common.getBean(ExecutorService.class);
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
             List<DataSourceVO> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
-                DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList, useMetrics, dataSourceStartupThreads);
-                pollingRound.addAll(initializer.initialize());
+                DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(
+                        executor, startupThreads, startPriority);
+                pollingRound.addAll(initializer.process(priorityList));
             }
         }
 
@@ -234,20 +235,20 @@ public class RuntimeManagerImpl implements RuntimeManager {
             priorityList.add(rt);
         }
 
-        int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
-        boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
+        int dataSourceShutdownThreads = Common.envProps.getInt("runtime.datasource.shutdownThreads", 1);
+        ExecutorService executor = Common.getBean(ExecutorService.class);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
             List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
-                DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorities[i], priorityList, useMetrics, dataSourceStartupThreads);
-                initializer.terminate();
+                DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(
+                        executor, dataSourceShutdownThreads, priorities[i]);
+                initializer.process(priorityList);
             }
         }
 
         // Run everything else.
         rtmdIndex = stopRTMDefs(defs, rtmdIndex, Integer.MIN_VALUE);
-
     }
 
     @Override
@@ -341,7 +342,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
     }
 
-
     private boolean initializeDataSource(DataSourceVO vo) {
         synchronized (runningDataSources) {
             return initializeDataSourceStartup(vo);
@@ -376,42 +376,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Add the enabled points to the data source.
         List<DataPointWithEventDetectors> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
 
-        Map<Integer, List<PointValueTime>> latestValuesMap = null;
-        PointValueDao pvDao = Common.databaseProxy.newPointValueDao();
-        if (pvDao instanceof EnhancedPointValueDao) {
+        //Startup multi threaded
+        int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
+        int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
+        ExecutorService executor = Common.getBean(ExecutorService.class);
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executor, startupThreads, Common.databaseProxy.newPointValueDao());
+        pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
-            // Find the maximum cache size for all point in the datasource
-            // This number of values will be retrieved for all points in the datasource
-            // If even one point has a high cache size this *may* cause issues
-            int maxCacheSize = 0;
-            for (DataPointWithEventDetectors dataPoint : dataSourcePoints) {
-                if (dataPoint.getDataPoint().getDefaultCacheSize() > maxCacheSize)
-                    maxCacheSize = dataPoint.getDataPoint().getDefaultCacheSize();
-            }
-
-            try {
-                latestValuesMap = ((EnhancedPointValueDao)pvDao).getLatestPointValuesForDataSource(vo, maxCacheSize);
-            } catch (Exception e) {
-                LOG.error("Failed to get latest point values for datasource " + vo.getXid() + ". Mango will try to retrieve latest point values per point which will take longer.", e);
-            }
-        }
-
-        for (DataPointWithEventDetectors dataPoint : dataSourcePoints) {
-            if (dataPoint.getDataPoint().isEnabled()) {
-                List<PointValueTime> latestValuesForPoint = null;
-                if (latestValuesMap != null) {
-                    latestValuesForPoint = latestValuesMap.get(dataPoint.getDataPoint().getId());
-                    if (latestValuesForPoint == null) {
-                        latestValuesForPoint = new ArrayList<>();
-                    }
-                }
-                try {
-                    startDataPointStartup(dataPoint, latestValuesForPoint);
-                } catch (Exception e) {
-                    LOG.error("Failed to start data point " + dataPoint.getDataPoint().getXid(), e);
-                }
-            }
-        }
         //Signal to the data source that all points are added.
         dataSource.initialized();
 
@@ -447,22 +418,28 @@ public class RuntimeManagerImpl implements RuntimeManager {
         if (dataSource == null)
             return;
         try{
+            long now = Common.timer.currentTimeMillis();
             //Signal we are going down
             dataSource.terminating();
 
+            List<Integer> pointIds = new ArrayList<>();
             // Stop the data points.
             for (DataPointRT p : dataPoints.values()) {
-                if (p.getDataSourceId() == id)
+                if (p.getDataSourceId() == id) {
                     stopDataPointShutdown(p.getVO());
+                    pointIds.add(p.getId());
+                }
             }
+
+            //Terminate all events at once
+            Common.eventManager.cancelEventsForDataPoints(pointIds);
+
             synchronized (runningDataSources) {
                 runningDataSources.remove(dataSource.getId());
             }
-
             dataSource.terminate();
-
             dataSource.joinTermination();
-            LOG.info("Data source '" + dataSource.getName() + "' stopped");
+            LOG.info("Data source '" + dataSource.getName() + "' stopped in " + (Common.timer.currentTimeMillis() - now) + "ms");
         }catch(Exception e){
             LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
         }
@@ -475,7 +452,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public void startDataPoint(DataPointWithEventDetectors vo) {
         Assert.isTrue(vo.getDataPoint().isEnabled(), "Attempting to start disabled data point.");
-        startDataPoint(vo, null);
+        DataPointWithEventDetectorsAndCache dp = new DataPointWithEventDetectorsAndCache(vo, null);
+        startDataPoint(dp);
     }
 
     @Override
@@ -504,13 +482,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
                             LOG.warn("Listener exception: " + e2.getMessage(), e2);
                     }
                 p.terminate();
+                Common.eventManager.cancelEventsForDataPoint(p.getId());
             }
         }
     }
 
-    private void startDataPoint(DataPointWithEventDetectors vo, List<PointValueTime> initialCache) {
+    private void startDataPoint(DataPointWithEventDetectorsAndCache vo) {
         synchronized (dataPoints) {
-            startDataPointStartup(vo, initialCache);
+            startDataPointStartup(vo);
         }
     }
 
@@ -519,14 +498,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * @param vo
      * @param latestValue
      */
-    private void startDataPointStartup(DataPointWithEventDetectors vo, List<PointValueTime> initialCache) {
+    @Override
+    public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
         Assert.isTrue(vo.getDataPoint().isEnabled(), "Data point not enabled");
 
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(vo.getDataPoint().getDataSourceId());
         if (ds != null) {
             // Change the VO into a data point implementation.
-            DataPointRT dataPoint = new DataPointRT(vo, vo.getDataPoint().getPointLocator().createRuntime(), ds.getVo(), initialCache);
+            DataPointRT dataPoint = new DataPointRT(vo, vo.getDataPoint().getPointLocator().createRuntime(), ds.getVo(), vo.getInitialCache());
 
             // Add/update it in the data image.
             synchronized (dataPoints) {
@@ -551,6 +531,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                                 LOG.warn("Exception in point terminated listener's method: " + e.getMessage(), e);
                             }
                         rt.terminate();
+                        Common.eventManager.cancelEventsForDataPoint(rt.getId());
                     }
                     return dataPoint;
                 });
@@ -624,6 +605,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                     for(Exception e2 : e.getExceptions())
                         LOG.warn("Listener exception: " + e2.getMessage(), e2);
                 }
+            //Stop data point but don't cancel events until after to do this in bulk.
             p.terminate();
         }
 
@@ -901,5 +883,4 @@ public class RuntimeManagerImpl implements RuntimeManager {
             runningPublishers.remove(publisher);
         }
     }
-
 }

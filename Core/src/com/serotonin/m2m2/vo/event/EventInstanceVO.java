@@ -7,7 +7,10 @@ package com.serotonin.m2m2.vo.event;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.ReturnCause;
@@ -74,6 +77,7 @@ public class EventInstanceVO extends AbstractVO implements EventInstanceI {
     private String acknowledgedByUsername;
     private TranslatableMessage alternateAckSource;
     private boolean hasComments;
+    private LazyField<MangoPermission> readPermission = new LazyField<>(new MangoPermission());
 
     @Override
     public EventType getEventType() {
@@ -197,9 +201,25 @@ public class EventInstanceVO extends AbstractVO implements EventInstanceI {
         this.hasComments = hasComments;
     }
 
+    public MangoPermission getReadPermission() {
+        return readPermission.get();
+    }
+
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission.set(readPermission);
+    }
+
+    public void supplyReadPermission(Supplier<MangoPermission> readPermission) {
+        this.readPermission = new LazyField<MangoPermission>(readPermission);
+    }
+
+    public boolean isActive() {
+        return rtnApplicable && rtnTimestamp == null;
+    }
+
     @Override
     public String getTypeKey() {
-        return null; //TODO Currently No Audit Events for this
+        return "common.default"; //TODO Currently No Audit Events for this
     }
 
 }

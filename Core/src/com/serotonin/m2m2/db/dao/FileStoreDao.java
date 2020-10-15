@@ -46,17 +46,14 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinit
 
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(FileStoreDao.class));
 
-    private final PermissionDao permissionDao;
     private final PermissionService permissionService;
 
     @Autowired
     private FileStoreDao(FileStoreTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
-            PermissionDao permissionDao,
             PermissionService permissionService) {
         super(FileStore.FileStoreAuditEvent.TYPE_NAME, table, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher);
-        this.permissionDao = permissionDao;
         this.permissionService = permissionService;
     }
 
@@ -100,18 +97,21 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinit
 
     @Override
     public void savePreRelationalData(FileStore existing, FileStore vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getWritePermission());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+
+        MangoPermission writePermission = permissionService.findOrCreate(vo.getWritePermission().getRoles());
+        vo.setWritePermission(writePermission);
     }
 
     @Override
     public void saveRelationalData(FileStore existing, FileStore vo) {
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
             if(!existing.getWritePermission().equals(vo.getWritePermission())) {
-                permissionDao.permissionDeleted(existing.getWritePermission());
+                permissionService.permissionDeleted(existing.getWritePermission());
             }
         }
     }
@@ -119,14 +119,14 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinit
     @Override
     public void loadRelationalData(FileStore vo) {
         //Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setWritePermission(permissionDao.get(vo.getWritePermission().getId()));
+        vo.setReadPermission(permissionService.get(vo.getReadPermission().getId()));
+        vo.setWritePermission(permissionService.get(vo.getWritePermission().getId()));
     }
 
     @Override
     public void deletePostRelationalData(FileStore vo) {
         //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getWritePermission());
+        permissionService.permissionDeleted(vo.getReadPermission(), vo.getWritePermission());
     }
 
     @Override

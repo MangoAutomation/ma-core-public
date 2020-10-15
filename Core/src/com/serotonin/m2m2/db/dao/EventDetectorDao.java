@@ -31,6 +31,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
@@ -75,14 +76,12 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     private final DataSourceTableDefinition dataSourceTable;
 
     private final PermissionService permissionService;
-    private final PermissionDao permissionDao;
 
     @Autowired
     private EventDetectorDao(EventDetectorTableDefinition table,
             DataPointTableDefinition dataPointTable,
             DataSourceTableDefinition dataSourceTable,
             PermissionService permissionService,
-            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_EVENT_DETECTOR,
@@ -92,7 +91,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         this.dataPointTable = dataPointTable;
         this.dataSourceTable = dataSourceTable;
         this.permissionService = permissionService;
-        this.permissionDao = permissionDao;
         //Build our ordered column set from the Module Registry
         List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
         this.sourceTypeToColumnNameMap = new LinkedHashMap<>(defs.size());
@@ -159,8 +157,12 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     @Override
     public void savePreRelationalData(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getEditPermission());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        vo.setEditPermission(editPermission);
+
         vo.getDefinition().savePreRelationalData(existing, vo);
     }
 
@@ -179,20 +181,24 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         }
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionDao.permissionDeleted(existing.getEditPermission());
+                permissionService.permissionDeleted(existing.getEditPermission());
             }
         }
     }
 
     @Override
     public void loadRelationalData(AbstractEventDetectorVO vo) {
-        vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
+        vo.supplyEventHandlerXids(() -> EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
+
         //Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
+        MangoPermission read = vo.getReadPermission();
+        vo.supplyReadPermission(() -> permissionService.get(read.getId()));
+        MangoPermission edit = vo.getEditPermission();
+        vo.supplyEditPermission(() -> permissionService.get(edit.getId()));
+
         vo.getDefinition().loadRelationalData(vo);
     }
 
@@ -206,7 +212,9 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     @Override
     public void deletePostRelationalData(AbstractEventDetectorVO vo) {
         //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        MangoPermission readPermission = vo.getReadPermission();
+        MangoPermission editPermission = vo.getEditPermission();
+        permissionService.permissionDeleted(readPermission, editPermission);
         vo.getDefinition().deletePostRelationalData(vo);
     }
 

@@ -3,6 +3,32 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
+import java.time.ZoneId;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IllformedLocaleException;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.regex.Matcher;
+
+import javax.mail.internet.AddressException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
@@ -30,23 +56,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
+
 import freemarker.template.TemplateException;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
-import javax.mail.internet.AddressException;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.DateTimeException;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.regex.Matcher;
-
-import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
 
 /**
  * Service to access Users
@@ -62,7 +73,7 @@ import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
  *
  */
 @Service
-public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> {
+public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> implements CachingService {
 
     private final SystemSettingsDao systemSettings;
     private final PasswordService passwordService;
@@ -101,24 +112,24 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         if (event.getType() == DaoEventType.DELETE || event.getType() == DaoEventType.UPDATE) {
             Role originalRole = event.getType() == DaoEventType.UPDATE ?
                     event.getOriginalVo().getRole() :
-                    event.getVo().getRole();
+                        event.getVo().getRole();
 
-            // TODO Mango 4.0 this is only weakly consistent
-            for (User user : this.userByUsername.asMap().values()) {
-                if (user.getRoles().contains(originalRole)) {
-                    Set<Role> updatedRoles = new HashSet<>(user.getRoles());
-                    if (event.getType() == DaoEventType.DELETE) {
-                        //Remove this role
-                        updatedRoles.remove(originalRole);
-                    } else if (event.getType() == DaoEventType.UPDATE) {
-                        //Replace this role
-                        updatedRoles.remove(originalRole);
-                        updatedRoles.add(event.getVo().getRole());
+                    // TODO Mango 4.0 this is only weakly consistent
+                    for (User user : this.userByUsername.asMap().values()) {
+                        if (user.getRoles().contains(originalRole)) {
+                            Set<Role> updatedRoles = new HashSet<>(user.getRoles());
+                            if (event.getType() == DaoEventType.DELETE) {
+                                //Remove this role
+                                updatedRoles.remove(originalRole);
+                            } else if (event.getType() == DaoEventType.UPDATE) {
+                                //Replace this role
+                                updatedRoles.remove(originalRole);
+                                updatedRoles.add(event.getVo().getRole());
+                            }
+                            user.setRoles(Collections.unmodifiableSet(updatedRoles));
+                            publishUserUpdated(user);
+                        }
                     }
-                    user.setRoles(Collections.unmodifiableSet(updatedRoles));
-                    publishUserUpdated(user);
-                }
-            }
         }
     }
 
@@ -129,7 +140,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             user.resetGrantedPermissions();
             // TODO Mango 4.0 we want to know when a user's granted permissions have changed via WebSocket update
             // TODO but this will always fire even if they didn't change, and only for users in the cache
-//            publishUserUpdated(user);
+            //            publishUserUpdated(user);
         }
     }
 
@@ -543,6 +554,13 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         EmailWorkItem.queueEmail(existing.getEmail(), content);
 
         return approved;
+    }
+
+    @Override
+    public void clearCaches() {
+        PermissionHolder currentUser = Common.getUser();
+        permissionService.ensureAdminRole(currentUser);
+        userByUsername.invalidateAll();
     }
 
 }

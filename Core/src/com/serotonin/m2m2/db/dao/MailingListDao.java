@@ -58,12 +58,10 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
     });
 
     private final PermissionService permissionService;
-    private final PermissionDao permissionDao;
 
     @Autowired
     private MailingListDao(MailingListTableDefinition table,
             PermissionService permissionService,
-            PermissionDao permissionDao,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST,
@@ -71,7 +69,6 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
-        this.permissionDao = permissionDao;
     }
 
     public static MailingListDao getInstance() {
@@ -83,8 +80,11 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
 
     @Override
     public void savePreRelationalData(MailingList existing, MailingList vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getEditPermission());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        vo.setEditPermission(editPermission);
     }
 
     @Override
@@ -133,10 +133,10 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
 
         if(existing != null) {
             if(!existing.getReadPermission().equals(ml.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(ml.getEditPermission())) {
-                permissionDao.permissionDeleted(existing.getEditPermission());
+                permissionService.permissionDeleted(existing.getEditPermission());
             }
         }
     }
@@ -153,14 +153,14 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
         ml.setEntries(query(MAILING_LIST_ENTRIES_SELECT, new Object[] { ml.getId() }, new EmailRecipientRowMapper()));
 
         //Populate permissions
-        ml.setReadPermission(permissionDao.get(ml.getReadPermission().getId()));
-        ml.setEditPermission(permissionDao.get(ml.getEditPermission().getId()));
+        ml.setReadPermission(permissionService.get(ml.getReadPermission().getId()));
+        ml.setEditPermission(permissionService.get(ml.getEditPermission().getId()));
     }
 
     @Override
     public void deletePostRelationalData(MailingList vo) {
         //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        permissionService.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
     }
 
     @Override

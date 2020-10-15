@@ -43,6 +43,7 @@ import com.serotonin.util.ILifecycle;
  * @author Matthew Lohbihler
  */
 abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycle {
+    public static final String DATA_SOURCE_EVENT_CONTEXT_KEY = "dataSource";
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
 
     /**
@@ -180,7 +181,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         DataSourceEventType type = getEventType(eventId);
 
         Map<String, Object> context = new HashMap<String, Object>();
-        context.put("dataSource", vo);
+        context.put(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
 
         Common.eventManager.raiseEvent(type, time, rtn, type.getAlarmLevel(), message, context);
         if(rtn) {

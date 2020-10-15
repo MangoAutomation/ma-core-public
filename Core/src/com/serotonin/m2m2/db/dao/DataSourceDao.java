@@ -52,7 +52,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.SerializationHelper;
@@ -73,20 +72,17 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
     });
 
     private final PermissionService permissionService;
-    private final PermissionDao permissionDao;
 
     @Autowired
     private DataSourceDao(
             DataSourceTableDefinition table,
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher,
-            PermissionDao permissionDao) {
+            ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_DATA_SOURCE, table,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
-        this.permissionDao = permissionDao;
     }
 
     /**
@@ -117,7 +113,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
             while(tries > 0) {
                 try {
                     withLockedRow(vo.getId(), (txStatus) -> {
-                        result.points = DataPointDao.getInstance().deleteDataPoints(vo.getId());
+                        DataPointDao.getInstance().deleteDataPoints(vo.getId());
                         deleteRelationalData(vo);
                         result.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
                         deletePostRelationalData(vo);
@@ -140,15 +136,12 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
                 AuditEventType.raiseDeletedEvent(this.typeName, vo);
             }
 
-            DataPointDao.getInstance().raiseDeletedEvents(result.points);
-
             return result.deleted > 0;
         }
         return false;
     }
 
     private class DataSourceDeletionResult {
-        private List<DataPointVO> points;
         private Integer deleted;
     }
 
@@ -287,17 +280,13 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
     }
 
     @Override
-    public void loadRelationalData(DataSourceVO vo) {
-        //Populate permissions
-        vo.setReadPermission(permissionDao.get(vo.getReadPermission().getId()));
-        vo.setEditPermission(permissionDao.get(vo.getEditPermission().getId()));
-        vo.getDefinition().loadRelationalData(vo);
-    }
-
-    @Override
     public void savePreRelationalData(DataSourceVO existing, DataSourceVO vo) {
-        permissionDao.permissionId(vo.getReadPermission());
-        permissionDao.permissionId(vo.getEditPermission());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        vo.setReadPermission(readPermission);
+
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        vo.setEditPermission(editPermission);
+
         vo.getDefinition().savePreRelationalData(existing, vo);
     }
 
@@ -306,13 +295,22 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
         vo.getDefinition().saveRelationalData(existing, vo);
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionDao.permissionDeleted(existing.getReadPermission());
+                permissionService.permissionDeleted(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionDao.permissionDeleted(existing.getEditPermission());
+                permissionService.permissionDeleted(existing.getEditPermission());
             }
         }
     }
+
+    @Override
+    public void loadRelationalData(DataSourceVO vo) {
+        //Populate permissions
+        vo.setReadPermission(permissionService.get(vo.getReadPermission().getId()));
+        vo.setEditPermission(permissionService.get(vo.getEditPermission().getId()));
+        vo.getDefinition().loadRelationalData(vo);
+    }
+
 
     @Override
     public void deleteRelationalData(DataSourceVO vo) {
@@ -326,7 +324,10 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
     @Override
     public void deletePostRelationalData(DataSourceVO vo) {
         //Clean permissions
-        permissionDao.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        MangoPermission readPermission = vo.getReadPermission();
+        MangoPermission editPermission = vo.getEditPermission();
+        permissionService.permissionDeleted(readPermission, editPermission);
+
         vo.getDefinition().deletePostRelationalData(vo);
     }
 
@@ -357,4 +358,14 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
         }
         return select;
     }
+
+    /**
+     * Get the read permission ID for in memory checks
+     * @param dataSourceId
+     * @return permission id or null
+     */
+    public Integer getReadPermissionId(int dataSourceId) {
+        return this.create.select(DataSourceTableDefinition.READ_PERMISSION).from(DataSourceTableDefinition.TABLE).where(this.table.getIdField().eq(dataSourceId)).fetchOneInto(Integer.class);
+    }
+
 }

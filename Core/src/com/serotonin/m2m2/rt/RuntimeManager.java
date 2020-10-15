@@ -98,6 +98,12 @@ public interface RuntimeManager extends ILifecycle {
     void startDataPoint(DataPointWithEventDetectors vo);
 
     /**
+     * Only to be used at startup as synchronization has been reduced for performance
+     * @param vo
+     */
+    void startDataPointStartup(DataPointWithEventDetectorsAndCache vo);
+
+    /**
      *
      * @param id
      */

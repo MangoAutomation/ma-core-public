@@ -16,6 +16,7 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
+import com.serotonin.m2m2.rt.DataPointWithEventDetectorsAndCache;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -336,6 +337,14 @@ public class MockRuntimeManager implements RuntimeManager {
             DataPointVO vo = DataPointDao.getInstance().get(id);
             vo.setEnabled(false);
             DataPointDao.getInstance().saveEnabledColumn(vo);
+        }
+    }
+
+    @Override
+    public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
+        if(useDatabase) {
+            vo.getDataPoint().setEnabled(true);
+            DataPointDao.getInstance().saveEnabledColumn(vo.getDataPoint());
         }
     }
 }

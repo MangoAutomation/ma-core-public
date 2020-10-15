@@ -301,9 +301,11 @@ CREATE TABLE events (
   ackTs bigint,
   ackUserId int,
   alternateAckSource longtext,
+  readPermissionId INT NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE events ADD CONSTRAINT eventsFk1 FOREIGN KEY (ackUserId) REFERENCES users(id);
+ALTER TABLE events ADD CONSTRAINT eventsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 CREATE INDEX events_performance1 ON events (activeTs ASC);
 CREATE INDEX events_performance2 ON events (rtnApplicable ASC, rtnTs ASC);
 CREATE INDEX events_performance3 ON events (typeName ASC, subTypeName ASC, typeRef1 ASC);

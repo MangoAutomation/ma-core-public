@@ -211,6 +211,10 @@ public class ModuleRegistry {
     //
     // Module event type special handling
     //
+    public static List<EventTypeDefinition> getEventTypeDefinitions() {
+        ensureEventTypeDefinitions();
+        return new ArrayList<>(EVENT_TYPE_DEFINITIONS.values());
+    }
     public static EventTypeDefinition getEventTypeDefinition(String eventTypeName) {
         ensureEventTypeDefinitions();
         return EVENT_TYPE_DEFINITIONS.get(eventTypeName);

@@ -143,8 +143,11 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
         catch (ClassCastException | IOException | JsonException e) {
             LOG.error(e.getMessage(), e);
         }
-        vo.setReadPermission(new MangoPermission(rs.getInt(readPermissionIndex)));
-        vo.setEditPermission(new MangoPermission(rs.getInt(editPermissionIndex)));
+
+        MangoPermission read = new MangoPermission(rs.getInt(readPermissionIndex));
+        vo.supplyReadPermission(() -> read);
+        MangoPermission edit = new MangoPermission(rs.getInt(editPermissionIndex));
+        vo.supplyEditPermission(() -> edit);
 
         return vo;
     }

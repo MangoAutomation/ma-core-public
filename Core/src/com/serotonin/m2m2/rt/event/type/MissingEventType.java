@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.rt.event.type;
 
+import java.util.Map;
+
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -57,7 +60,7 @@ public class MissingEventType extends EventType{
     public DuplicateHandling getDuplicateHandling() {
         return DuplicateHandling.IGNORE;
     }
-    
+
     @Override
     public int getReferenceId1() {
         return ref1;
@@ -73,4 +76,8 @@ public class MissingEventType extends EventType{
         return service.hasAdminRole(user);
     }
 
+    @Override
+    public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service) {
+        return MangoPermission.superadminOnly();
+    }
 }

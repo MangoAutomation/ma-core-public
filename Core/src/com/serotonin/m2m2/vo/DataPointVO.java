@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
@@ -17,6 +18,7 @@ import javax.measure.unit.Unit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -199,11 +201,11 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     @JsonProperty
     private int intervalLoggingSampleWindowSize;
     @JsonProperty
-    private MangoPermission readPermission = new MangoPermission();
+    private LazyField<MangoPermission> readPermission = new LazyField<>(new MangoPermission());
     @JsonProperty
-    private MangoPermission editPermission = new MangoPermission();
+    private LazyField<MangoPermission> editPermission = new LazyField<>(new MangoPermission());
     @JsonProperty
-    private MangoPermission setPermission = new MangoPermission();
+    private LazyField<MangoPermission> setPermission = new LazyField<>(new MangoPermission());
     @JsonProperty
     private JsonNode data;
 
@@ -225,7 +227,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      * Defaults to null to indicate that the relational data has not been loaded
      */
     @JsonProperty
-    volatile private Map<String, String> tags;
+    private LazyField<Map<String, String>> tags = new LazyField<>(new HashMap<>());
 
     public DataPointVO() { }
 
@@ -613,29 +615,41 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     @Override
     public MangoPermission getReadPermission() {
-        return readPermission;
+        return readPermission.get();
     }
 
     public void setReadPermission(MangoPermission readPermission) {
-        this.readPermission = readPermission;
+        this.readPermission.set(readPermission);
+    }
+
+    public void supplyReadPermission(Supplier<MangoPermission> readPermission) {
+        this.readPermission = new LazyField<MangoPermission>(readPermission);
     }
 
     @Override
     public MangoPermission getEditPermission() {
-        return editPermission;
+        return editPermission.get();
     }
 
     public void setEditPermission(MangoPermission editPermission) {
-        this.editPermission = editPermission;
+        this.editPermission.set(editPermission);
+    }
+
+    public void supplyEditPermission(Supplier<MangoPermission> editPermission) {
+        this.editPermission = new LazyField<MangoPermission>(editPermission);
     }
 
     @Override
     public MangoPermission getSetPermission() {
-        return setPermission;
+        return setPermission.get();
     }
 
     public void setSetPermission(MangoPermission setPermission) {
-        this.setPermission = setPermission;
+        this.setPermission.set(setPermission);
+    }
+
+    public void supplySetPermission(Supplier<MangoPermission> setPermission) {
+        this.setPermission = new LazyField<MangoPermission>(setPermission);
     }
 
     public JsonNode getData() {
@@ -689,13 +703,13 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             copy.setXid(xid);
             copy.setOverrideIntervalLoggingSamples(overrideIntervalLoggingSamples);
             copy.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
-            copy.setReadPermission(readPermission);
-            copy.setEditPermission(editPermission);
-            copy.setSetPermission(setPermission);
+            copy.setReadPermission(readPermission.get());
+            copy.setEditPermission(editPermission.get());
+            copy.setSetPermission(setPermission.get());
             copy.setPreventSetExtremeValues(preventSetExtremeValues);
             copy.setSetExtremeHighLimit(setExtremeHighLimit);
             copy.setSetExtremeLowLimit(setExtremeLowLimit);
-            copy.setTags(this.tags);
+            copy.setTags(this.tags.get());
 
             return copy;
         }
@@ -1260,6 +1274,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         // Ditto for purge period
         if (purgePeriod == 0)
             purgePeriod = 1;
+
     }
 
     private void setUnitsOnTextRenderer() {
@@ -1428,7 +1443,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      */
     @Override
     public Map<String, String> getTags() {
-        Map<String, String> tags = this.tags;
+        Map<String, String> tags = this.tags.get();
         if (tags == null) {
             return null;
         }
@@ -1443,7 +1458,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      */
     public void setTags(Map<String, String> tags) {
         if (tags == null) {
-            this.tags = null;
+            this.tags.set(null);
             return;
         }
 
@@ -1451,6 +1466,26 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         newTags.putAll(tags);
         newTags.remove(DataPointTagsDao.NAME_TAG_KEY);
         newTags.remove(DataPointTagsDao.DEVICE_TAG_KEY);
-        this.tags = newTags;
+        this.tags.set(newTags);
+    }
+
+    /**
+     * Note "name" and "device" keys are removed when setting the tags.  The original map
+     *  is not modified and may still contain "name" and/or "device"
+     *
+     * @param tags
+     */
+    public void supplyTags(Supplier<Map<String, String>> tags) {
+        this.tags = new LazyField<>(() -> {
+            Map<String, String> newTags = new HashMap<>();
+            Map<String, String> t = tags.get();
+            if (t == null) {
+                return null;
+            }
+            newTags.putAll(t);
+            newTags.remove(DataPointTagsDao.NAME_TAG_KEY);
+            newTags.remove(DataPointTagsDao.DEVICE_TAG_KEY);
+            return newTags;
+        });
     }
 }

@@ -4,7 +4,8 @@
 
 package com.infiniteautomation.mango.permission;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,10 +18,10 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.db.dao.PermissionDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -33,13 +34,13 @@ public class PermissionPersistenceTest extends MangoTestBase {
     @Test
     public void testAndPermission() {
 
-        PermissionDao dao = Common.getBean(PermissionDao.class);
+        PermissionService service = Common.getBean(PermissionService.class);
 
         //Create some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        Integer permissionId = dao.permissionId(MangoPermission.requireAllRoles(roles));
-        MangoPermission read = dao.get(permissionId);
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAllRoles(roles).getRoles());
+        MangoPermission read = service.get(permission.getId());
 
         assertEquals(1, read.getRoles().size());
         Iterator<Set<Role>> it = read.getRoles().iterator();
@@ -49,13 +50,13 @@ public class PermissionPersistenceTest extends MangoTestBase {
     @Test
     public void testOrPermission() {
 
-        PermissionDao dao = Common.getBean(PermissionDao.class);
+        PermissionService service = Common.getBean(PermissionService.class);
 
         //Create some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        Integer permissionId = dao.permissionId(MangoPermission.requireAnyRole(roles));
-        MangoPermission read = dao.get(permissionId);
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles).getRoles());
+        MangoPermission read = service.get(permission.getId());
 
         assertEquals(2, read.getRoles().size());
         Iterator<Set<Role>> it = read.getRoles().iterator();
@@ -67,7 +68,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
     @Test
     public void testComplexPermission() {
 
-        PermissionDao dao = Common.getBean(PermissionDao.class);
+        PermissionService service = Common.getBean(PermissionService.class);
 
         //Create some roles
         Set<Role> minterm1 = this.createRoles(1).stream().map(r -> r.getRole()).collect(Collectors.toSet());
@@ -75,13 +76,14 @@ public class PermissionPersistenceTest extends MangoTestBase {
         Set<Role> minterm3 = this.createRoles(3).stream().map(r -> r.getRole()).collect(Collectors.toSet());
 
         //insert the permission
-        Set<Set<Role>> permission = new HashSet<>();
-        permission.add(minterm1);
-        permission.add(minterm2);
-        permission.add(minterm3);
+        Set<Set<Role>> minterms = new HashSet<>();
+        minterms.add(minterm1);
+        minterms.add(minterm2);
+        minterms.add(minterm3);
 
-        Integer permissionId = dao.permissionId(new MangoPermission(permission));
-        MangoPermission read = dao.get(permissionId);
+        MangoPermission permission = service.findOrCreate(minterms);
+        MangoPermission read = service.get(permission.getId());
+
 
         assertEquals(3, read.getRoles().size());
         Iterator<Set<Role>> it = read.getRoles().iterator();
@@ -122,20 +124,20 @@ public class PermissionPersistenceTest extends MangoTestBase {
     @Test
     public void testModifyPermission() {
 
-        PermissionDao dao = Common.getBean(PermissionDao.class);
+        PermissionService service = Common.getBean(PermissionService.class);
 
         //insert some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        Integer permissionId = dao.permissionId(MangoPermission.requireAnyRole(roles));
-        MangoPermission read = dao.get(permissionId);
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles).getRoles());
+        MangoPermission read = service.get(permission.getId());
 
         assertEquals(2, read.getRoles().size());
         Iterator<Set<Role>> it = read.getRoles().iterator();
         Role toKeep = it.next().iterator().next();
 
-        permissionId = dao.permissionId(MangoPermission.requireAnyRole(toKeep));
-        read = dao.get(permissionId);
+        MangoPermission keep = service.findOrCreate(MangoPermission.requireAnyRole(toKeep).getRoles());
+        read = service.get(keep.getId());
         assertEquals(1, read.getRoles().size());
 
     }
@@ -147,14 +149,14 @@ public class PermissionPersistenceTest extends MangoTestBase {
      */
     @Test
     public void testOrphanedPermission() {
-        PermissionDao dao = Common.getBean(PermissionDao.class);
+        PermissionService service = Common.getBean(PermissionService.class);
 
         //insert some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
 
         //insert the permission
-        Integer permissionId = dao.permissionId(MangoPermission.requireAnyRole(roles));
-        MangoPermission read = dao.get(permissionId);
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles).getRoles());
+        MangoPermission read = service.get(permission.getId());
         assertEquals(2, read.getRoles().size());
 
         //Delete all roles in minterm
@@ -167,13 +169,13 @@ public class PermissionPersistenceTest extends MangoTestBase {
         Common.getBean(RoleDao.class).delete(term2It.next().getId());
 
         //Confirm that the permission has no roles
-        read = dao.get(permissionId);
+        read = service.get(permission.getId());
         assertEquals(0, read.getRoles().size());
 
         //Check for orphaned minterm mappings
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(Common.databaseProxy.getDataSource());
-        List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permissionId, new RowMapper<Integer>() {
+        List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permission.getId(), new RowMapper<Integer>() {
 
             @Override
             public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
