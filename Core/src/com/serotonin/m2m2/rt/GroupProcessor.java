@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.Semaphore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,36 +22,56 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class GroupProcessor<T,R> {
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    protected final LimitedConcurrencyExecutor executor;
+    protected final Executor executor;
     protected final int maxConcurrency;
+    protected final Semaphore semaphore;
 
-    /**
-     * @param priorityList
-     */
-    public GroupProcessor(ExecutorService executor, int maxConcurrency) {
-        this.executor = new LimitedConcurrencyExecutor(executor, maxConcurrency);
+    public GroupProcessor(Executor executor, int maxConcurrency) {
+        this.executor = executor;
         this.maxConcurrency = maxConcurrency;
+        this.semaphore = new Semaphore(maxConcurrency);
     }
 
     public List<R> process(List<T> items) {
-        List<CompletableFuture<R>> futures = new ArrayList<>(items.size());
-        for (T item : items) {
-            futures.add(executor.submit(() -> processItem(item)));
-        }
-
-        List<R> results = new ArrayList<>();
-        for (Future<R> f : futures) {
-            try {
-                results.add(f.get());
-            } catch (ExecutionException | CancellationException e) {
-                log.error("Item failed, continuing", e);
-            } catch (InterruptedException e) {
-                log.error("Interrupted, aborting immediately", e);
-                Thread.currentThread().interrupt();
-                throw new RuntimeException(e);
+        try {
+            List<CompletableFuture<R>> futures = new ArrayList<>(items.size());
+            for (T item : items) {
+                futures.add(submit(item));
             }
+
+            List<R> results = new ArrayList<>();
+            for (Future<R> f : futures) {
+                try {
+                    results.add(f.get());
+                } catch (ExecutionException | CancellationException e) {
+                    log.error("Item failed, continuing", e);
+                }
+            }
+            return results;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
         }
-        return results;
+    }
+
+    protected CompletableFuture<R> submit(T item) throws InterruptedException {
+        try {
+            semaphore.acquire();
+            CompletableFuture<R> future = new CompletableFuture<>();
+            executor.execute(() -> {
+                try {
+                    future.complete(processItem(item));
+                } catch (Exception ex) {
+                    future.completeExceptionally(ex);
+                } finally {
+                    semaphore.release();
+                }
+            });
+            return future;
+        } catch (RejectedExecutionException e) {
+            semaphore.release();
+            throw e;
+        }
     }
 
     protected abstract R processItem(T t) throws Exception;
