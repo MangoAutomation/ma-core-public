@@ -153,13 +153,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Initialize the prioritized data sources. Start the polling later.
         List<DataSourceVO> pollingRound = new ArrayList<>();
         int startupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
-        boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         ExecutorService executor = Common.getBean(ExecutorService.class);
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
             List<DataSourceVO> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
                 DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(
-                        useMetrics, executor, startupThreads, startPriority);
+                        executor, startupThreads, startPriority);
                 pollingRound.addAll(initializer.process(priorityList));
             }
         }
@@ -237,14 +236,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         int dataSourceShutdownThreads = Common.envProps.getInt("runtime.datasource.shutdownThreads", 1);
-        boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         ExecutorService executor = Common.getBean(ExecutorService.class);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
             List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
                 DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(
-                        useMetrics, executor, dataSourceShutdownThreads, priorities[i]);
+                        executor, dataSourceShutdownThreads, priorities[i]);
                 initializer.process(priorityList);
             }
         }
@@ -381,9 +379,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         //Startup multi threaded
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
-        boolean useMetrics = Common.envProps.getBoolean("runtime.datapoint.logStartupMetrics", false);
         ExecutorService executor = Common.getBean(ExecutorService.class);
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(useMetrics, executor, startupThreads, Common.databaseProxy.newPointValueDao());
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executor, startupThreads, Common.databaseProxy.newPointValueDao());
         pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.

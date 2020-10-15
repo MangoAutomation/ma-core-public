@@ -27,14 +27,15 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
 
     private final PointValueDao dao;
 
-    public DataPointGroupInitializer(boolean useMetrics, ExecutorService executor, int maxConcurrency, PointValueDao dao) {
-        super(useMetrics, executor, maxConcurrency);
+    public DataPointGroupInitializer(ExecutorService executor, int maxConcurrency, PointValueDao dao) {
+        super(executor, maxConcurrency);
         this.dao = dao;
     }
 
     public void initialize(List<DataPointWithEventDetectors> items, int groupSize) {
-        long startTs = Common.timer.currentTimeMillis();
-        if (useMetrics && log.isInfoEnabled()) {
+        long startTs = 0L;
+        if (log.isInfoEnabled()) {
+            startTs = Common.timer.currentTimeMillis();
             log.info("Initializing {} data points in {} threads",
                     items.size(), maxConcurrency);
         }
@@ -48,7 +49,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
         }
         process(subgroups);
 
-        if (useMetrics && log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info("Initialization of {} data points in {} threads took {} ms",
                     items.size(), maxConcurrency, Common.timer.currentTimeMillis() - startTs);
         }
@@ -56,7 +57,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
 
     @Override
     protected Void processItem(List<DataPointWithEventDetectors> subgroup) {
-        if (useMetrics && log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info("Initializing group of {} data points",
                     subgroup.size());
         }
@@ -99,7 +100,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
             }
         }
 
-        if (useMetrics && log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info("Successfully initialized {} of {} data points in group",
                     subgroup.size() - failedCount, subgroup.size());
         }

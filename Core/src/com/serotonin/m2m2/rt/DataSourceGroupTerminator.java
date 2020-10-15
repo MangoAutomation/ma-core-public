@@ -22,20 +22,21 @@ import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 public class DataSourceGroupTerminator extends GroupProcessor<DataSourceRT<?>, Void> {
     private final StartPriority startPriority;
 
-    public DataSourceGroupTerminator(boolean useMetrics, ExecutorService executor, int maxConcurrency, StartPriority startPriority) {
-        super(useMetrics, executor, maxConcurrency);
+    public DataSourceGroupTerminator(ExecutorService executor, int maxConcurrency, StartPriority startPriority) {
+        super(executor, maxConcurrency);
         this.startPriority = startPriority;
     }
 
     @Override
     public List<Void> process(List<DataSourceRT<?>> items) {
-        long startTs = Common.timer.currentTimeMillis();
-        if (useMetrics && log.isInfoEnabled()) {
+        long startTs = 0L;
+        if (log.isInfoEnabled()) {
+            startTs = Common.timer.currentTimeMillis();
             log.info("Terminating {} {} priority data sources in {} threads",
                     items.size(), startPriority, maxConcurrency);
         }
         List<Void> result = super.process(items);
-        if (useMetrics && log.isInfoEnabled()) {
+        if (log.isInfoEnabled()) {
             log.info("Termination of {} {} priority data sources in {} threads took {} ms",
                     items.size(), startPriority, maxConcurrency, Common.timer.currentTimeMillis() - startTs);
         }

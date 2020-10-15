@@ -20,15 +20,13 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class GroupProcessor<T,R> {
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    protected final boolean useMetrics;
     protected final LimitedConcurrencyExecutor executor;
     protected final int maxConcurrency;
 
     /**
      * @param priorityList
      */
-    public GroupProcessor(boolean useMetrics, ExecutorService executor, int maxConcurrency) {
-        this.useMetrics = useMetrics;
+    public GroupProcessor(ExecutorService executor, int maxConcurrency) {
         this.executor = new LimitedConcurrencyExecutor(executor, maxConcurrency);
         this.maxConcurrency = maxConcurrency;
     }
