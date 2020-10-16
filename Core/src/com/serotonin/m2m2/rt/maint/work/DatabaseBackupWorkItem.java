@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -278,7 +279,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
         File[] files = backupDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.toLowerCase().startsWith(lowerNameStart);
+                return name.toLowerCase(Locale.ROOT).startsWith(lowerNameStart);
             }
         });
         return files;

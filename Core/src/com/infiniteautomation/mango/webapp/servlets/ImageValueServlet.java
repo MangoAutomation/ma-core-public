@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.webapp.servlets;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Locale;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -52,7 +53,7 @@ public class ImageValueServlet extends HttpServlet {
         try {
             // Remove the / and the extension
             int dot = imageInfo.indexOf('.');
-            String extension = imageInfo.substring(dot+1, imageInfo.length()).toLowerCase();
+            String extension = imageInfo.substring(dot+1, imageInfo.length()).toLowerCase(Locale.ROOT);
             imageInfo = imageInfo.substring(1, dot);
 
 

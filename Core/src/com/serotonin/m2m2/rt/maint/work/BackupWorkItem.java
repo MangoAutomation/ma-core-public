@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
@@ -157,7 +158,7 @@ public class BackupWorkItem implements WorkItem {
                 File[] files = backupDir.listFiles(new FilenameFilter() {
                     @Override
                     public boolean accept(File dir, String name) {
-                        return name.toLowerCase().endsWith(".json");
+                        return name.toLowerCase(Locale.ROOT).endsWith(".json");
                     }
                 });
                 // Sort the files by date
