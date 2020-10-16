@@ -4,17 +4,22 @@
  */
 package com.serotonin.m2m2.db;
 
-import com.infiniteautomation.mango.util.NullOutputStream;
-import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.DaoUtils;
-import com.serotonin.db.spring.ConnectionCallbackVoid;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.*;
-import com.serotonin.m2m2.db.upgrade.DBUpgrade;
-import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.MissingResourceException;
+
+import javax.sql.DataSource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,16 +30,22 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import javax.sql.DataSource;
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.MissingResourceException;
+import com.infiniteautomation.mango.util.NullOutputStream;
+import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.DaoUtils;
+import com.serotonin.db.spring.ConnectionCallbackVoid;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.BaseDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
+import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.upgrade.DBUpgrade;
+import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
@@ -264,8 +275,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     @Override
     public String getDatabasePassword(String propertyPrefix) {
-        String input = Common.envProps.getString(propertyPrefix + "db.password");
-        return new DatabaseAccessUtils().decrypt(input);
+        return Common.envProps.getString(propertyPrefix + "db.password");
     }
 
     @Override
