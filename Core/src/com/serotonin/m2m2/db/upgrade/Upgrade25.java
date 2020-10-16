@@ -8,12 +8,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.util.DirectoryUtils;
 
 /**
  * 3.5.0 Schema Update
@@ -48,7 +48,7 @@ public class Upgrade25 extends DBUpgrade {
 
         File swaggerDirectory = Common.WEB.resolve("swagger").toFile();
         try {
-            DirectoryUtils.deleteDirectory(swaggerDirectory);
+            FileUtils.deleteDirectory(swaggerDirectory);
         } catch(Exception e) {
             LOG.error("Error deleting V1 swagger directory: " + e.getMessage(), e);
         }
