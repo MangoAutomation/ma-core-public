@@ -41,20 +41,19 @@ public class DBConvert {
         LOG.warn("Running database conversion from " + source.getType().name() + " to " + target.getType().name());
 
         // Create the connections
-        Connection sourceConn = source.getDataSource().getConnection();
-        sourceConn.setAutoCommit(true);
-        Connection targetConn = target.getDataSource().getConnection();
-        targetConn.setAutoCommit(false);
+        try (Connection sourceConn = source.getDataSource().getConnection()) {
+            sourceConn.setAutoCommit(true);
+            try (Connection targetConn = target.getDataSource().getConnection()) {
+                targetConn.setAutoCommit(false);
 
-        List<String> tableNames = getCoreTableNames();
-        for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
-            def.addConversionTableNames(tableNames);
+                List<String> tableNames = getCoreTableNames();
+                for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
+                    def.addConversionTableNames(tableNames);
 
-        for (String tableName : tableNames)
-            copyTable(sourceConn, targetConn, tableName);
-
-        sourceConn.close();
-        targetConn.close();
+                for (String tableName : tableNames)
+                    copyTable(sourceConn, targetConn, tableName);
+            }
+        }
 
         LOG.warn("Completed database conversion");
     }

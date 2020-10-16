@@ -4,7 +4,6 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.sql.Clob;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -60,11 +59,9 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-
 import net.jazdw.rql.parser.ASTNode;
 
 /**
@@ -348,41 +345,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         } else {
             return this.create.select(DSL.count(this.table.getIdAlias()));
         }
-    }
-
-    /**
-     * Helper to prepare a statement
-     *
-     * @param sql
-     * @param args
-     * @return
-     * @throws SQLException
-     */
-    public PreparedStatement createPreparedStatement(String sql, List<Object> args, boolean stream) throws SQLException {
-
-        PreparedStatement stmt;
-        if(stream){
-            if(this.databaseType == DatabaseType.MYSQL){
-                stmt = this.dataSource.getConnection().prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                stmt.setFetchSize(Integer.MIN_VALUE);
-            }else{
-                //TODO Choose settings for other types to stream
-                stmt = this.dataSource.getConnection().prepareStatement(sql);
-            }
-        }else{
-            stmt = this.dataSource.getConnection().prepareStatement(sql);
-            int fetchSize = Common.envProps.getInt("db.fetchSize", -1);
-            if(fetchSize > 0)
-                stmt.setFetchSize(fetchSize);
-        }
-
-        int index = 1;
-        for (Object o : args) {
-            stmt.setObject(index, o);
-            index++;
-        }
-
-        return stmt;
     }
 
     public AtomicIntegerMonitor getCountMonitor(){
