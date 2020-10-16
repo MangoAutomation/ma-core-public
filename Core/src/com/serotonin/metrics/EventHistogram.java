@@ -1,7 +1,5 @@
 package com.serotonin.metrics;
 
-import java.util.Arrays;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -9,14 +7,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * class), and maintains the counts in an array representing a histogram of the events. The expected use case for this
  * class is where there are a great many "hits" (i.e. recordings of events, or writes), and relatively fews reads. The
  * hit method is optimized for this (although the read method is pretty fast too).
- * 
+ *
  * This class is thread-safe, but not guaranteed to produce 100% accurate results in a heavily multi-threaded or
  * very busy environment. It is conceivable, for example, that a hit could be attributed to the next period if a
  * separate thread changes the current period before the first has a change to increment the period counter. Also,
  * since counts are stored in int arrays, and ints are not guaranteed to be thread-safe, discrepancies may occur in
  * the counts themselves as well. Overall though, this class will likely provide very good accuracy in a
  * high-performance, low footprint manner.
- * 
+ *
  * @author Matthew
  */
 public class EventHistogram {
@@ -43,16 +41,16 @@ public class EventHistogram {
         update();
         buckets[position]++;
     }
-    
+
     public void hitMultiple(int count){
         update();
         buckets[position] = buckets[position] + count;
     }
-    
+
     /**
      * Returns a snapshot of the event count array. The value at 0 is the oldest count. The value at length-1 is the
      * current count, which typically will be understated because the period will probably be incomplete.
-     * 
+     *
      * @return
      */
     public int[] getEventCounts() {
@@ -78,15 +76,4 @@ public class EventHistogram {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        Random random = new Random();
-        EventHistogram ec = new EventHistogram(1000, 60);
-
-        for (int i = 0; i < 1000; i++) {
-            ec.hit();
-            Thread.sleep(random.nextInt(100));
-        }
-
-        System.out.println(Arrays.toString(ec.getEventCounts()));
-    }
 }
