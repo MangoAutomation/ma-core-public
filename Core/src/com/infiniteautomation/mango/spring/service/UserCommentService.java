@@ -18,6 +18,8 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
+import com.serotonin.m2m2.vo.event.EventInstanceVO;
+import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.validation.StringValidation;
 
@@ -42,6 +44,30 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
         this.dataPointDao = dataPointDao;
         this.jsonDataDao = jsonDataDao;
         this.eventInstanceDao = eventInstanceDao;
+    }
+
+    @Override
+    public boolean hasCreatePermission(PermissionHolder user, UserCommentVO vo) {
+        switch(vo.getCommentType()) {
+            case UserCommentVO.TYPE_EVENT:
+                EventInstanceVO event = eventInstanceDao.get(vo.getReferenceId());
+                if(event != null) {
+                    return permissionService.hasPermission(user, event.getReadPermission());
+                }else {
+                    return permissionService.hasAdminRole(user);
+                }
+            case UserCommentVO.TYPE_POINT:
+                return permissionService.hasDataPointReadPermission(user, vo.getReferenceId());
+            case UserCommentVO.TYPE_JSON_DATA:
+                JsonDataVO json = jsonDataDao.get(vo.getReferenceId());
+                if(json != null) {
+                    return permissionService.hasPermission(user, json.getReadPermission());
+                }else {
+                    return permissionService.hasAdminRole(user);
+                }
+            default:
+                return permissionService.hasAdminRole(user);
+        }
     }
 
     @Override
@@ -121,9 +147,6 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
                     break;
             }
         }
-
-
-
         return result;
     }
 

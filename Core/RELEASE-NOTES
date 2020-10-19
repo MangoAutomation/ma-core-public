@@ -50,6 +50,7 @@
 * Add cache settings for users cache.users.size permissions cache.permission.size and roles cache.roles.size
 * Add env property to limit the number of IN query operands db.in.maxOperands for very large queries
 * Add env property to control backup location paths.backup
+* Only allow creating user comments if the User has read permission for the referenced item
 
 *Version 3.7.4*
 * Improve work item failure logging
