@@ -19,9 +19,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonTypeWriter;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * Uses either the legacy form of a String of CSV roles or the new Set<Set<String>> format
@@ -57,29 +55,28 @@ public class MangoPermissionConverter extends ImmutableClassConverter {
         writer.writeObject(outerRolesArray);
     }
 
-    //TODO Mango 4.0 improve performance
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
         Set<Set<Role>> roles = new HashSet<>();
-        RoleDao roleDao = Common.getBean(RoleDao.class);
+        PermissionService permissionService = Common.getBean(PermissionService.class);
         if(jsonValue instanceof JsonArray) {
             for(JsonValue val : (JsonArray)jsonValue) {
                 if(val instanceof JsonArray) {
                     Set<Role> inner = new HashSet<>();
                     roles.add(inner);
                     for(JsonValue v : (JsonArray)val) {
-                        RoleVO r = roleDao.getByXid(v.toString());
+                        Role r = permissionService.getRole(v.toString());
                         if(r != null) {
-                            inner.add(r.getRole());
+                            inner.add(r);
                         }else {
                             inner.add(new Role(Common.NEW_ID, v.toString()));
                         }
                     }
                 }else {
                     //Just a single string
-                    RoleVO r = roleDao.getByXid(val.toString());
+                    Role r = permissionService.getRole(val.toString());
                     if(r != null) {
-                        roles.add(Collections.singleton(r.getRole()));
+                        roles.add(Collections.singleton(r));
                     }else {
                         roles.add(Collections.singleton(new Role(Common.NEW_ID, val.toString())));
                     }
@@ -87,9 +84,9 @@ public class MangoPermissionConverter extends ImmutableClassConverter {
             }
         }else {
             for(String role : PermissionService.explodeLegacyPermissionGroups(jsonValue.toString())) {
-                RoleVO r = roleDao.getByXid(role);
+                Role r = permissionService.getRole(role);
                 if(r != null) {
-                    roles.add(Collections.singleton(r.getRole()));
+                    roles.add(Collections.singleton(r));
                 }else {
                     roles.add(Collections.singleton(new Role(Common.NEW_ID, role)));
                 }
