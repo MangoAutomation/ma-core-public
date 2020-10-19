@@ -613,8 +613,8 @@ public class ModuleRegistry {
     public static final CoreModule CORE_MODULE = new CoreModule(ModuleRegistry.CORE_MODULE_NAME,
             Common.getVersion(),
             new TranslatableMessage("modules.core.description"),
-            "Infinite Automation Systems, Inc.",
-            "https://www.infiniteautomation.com",
+            "Raxix IoT, LLC",
+            "https://radixiot.com/",
             null, -1, Common.isCoreSigned());
 
     /**
