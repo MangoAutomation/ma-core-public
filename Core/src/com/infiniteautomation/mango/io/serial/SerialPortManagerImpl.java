@@ -353,10 +353,8 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     @Override
     public void terminate() throws LifecycleException {
-
+        lock.writeLock().lock();
         try {
-            lock.writeLock().lock();
-
             // Close all the ports if they are open
             for (SerialPortIdentifier id : ownedPorts) {
                 try {
@@ -376,7 +374,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         } finally {
             lock.writeLock().unlock();
         }
-
     }
 
     @Override
