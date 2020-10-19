@@ -130,10 +130,7 @@ public class DataSourceEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        DataSourceVO ds = DataSourceDao.getInstance().get(dataSourceId);
-        if(ds == null)
-            return false;
-        return service.hasPermission(user, ds.getReadPermission());
+        return service.hasDataSourceReadPermission(user, dataSourceId);
     }
 
     @Override
