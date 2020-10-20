@@ -53,8 +53,8 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         this.vo = vo;
         queue = createPublishQueue(vo);
         attributesChangedQueue = createAttirbutesChangedQueue();
-        pointDisabledEventType = new PublisherEventType(getId(), POINT_DISABLED_EVENT);
-        queueSizeWarningEventType = new PublisherEventType(getId(), QUEUE_SIZE_WARNING_EVENT);
+        pointDisabledEventType = new PublisherEventType(this.getVo(), POINT_DISABLED_EVENT);
+        queueSizeWarningEventType = new PublisherEventType(this.getVo(), QUEUE_SIZE_WARNING_EVENT);
     }
 
     public int getId() {

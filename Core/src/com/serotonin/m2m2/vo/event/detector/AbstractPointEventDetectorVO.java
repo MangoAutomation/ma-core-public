@@ -59,8 +59,13 @@ public abstract class AbstractPointEventDetectorVO extends AbstractEventDetector
 
     @Override
     public EventTypeVO getEventType() {
-        return new EventTypeVO(new DataPointEventType(sourceId, id), getDescription(),
-                alarmLevel);
+        if(dataPoint != null) {
+            return new EventTypeVO(new DataPointEventType(dataPoint, this), getDescription(),
+                    alarmLevel);
+        }else {
+            return new EventTypeVO(new DataPointEventType(sourceId, id), getDescription(),
+                    alarmLevel);
+        }
     }
 
     @Override

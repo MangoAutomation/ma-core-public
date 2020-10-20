@@ -13,14 +13,16 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public class DataPointEventType extends EventType {
-    private int dataSourceId = -1;
+    private int dataSourceId = Common.NEW_ID;
     private int dataPointId;
     private int pointEventDetectorId;
     private DuplicateHandling duplicateHandling = DuplicateHandling.IGNORE;
@@ -29,15 +31,31 @@ public class DataPointEventType extends EventType {
         // Required for reflection.
     }
 
+    public DataPointEventType(DataPointVO dataPoint, AbstractPointEventDetectorVO eventDetector) {
+        this.dataPointId = dataPoint.getId();
+        this.pointEventDetectorId = eventDetector.getId();
+        supplyReference1(() -> {
+            return dataPoint;
+        });
+        supplyReference2(() -> {
+            return eventDetector;
+        });
+    }
+
     public DataPointEventType(int dataPointId, int pointEventDetectorId) {
         this.dataPointId = dataPointId;
         this.pointEventDetectorId = pointEventDetectorId;
+        supplyReference1(() -> {
+            return Common.getBean(DataPointDao.class).get(dataPointId);
+        });
+        supplyReference2(() -> {
+            return Common.getBean(EventDetectorDao.class).get(pointEventDetectorId);
+        });
     }
 
     public DataPointEventType(int dataSourceId, int dataPointId, int pointEventDetectorId, DuplicateHandling duplicateHandling){
+        this(dataPointId, pointEventDetectorId);
         this.dataSourceId = dataSourceId;
-        this.dataPointId = dataPointId;
-        this.pointEventDetectorId = pointEventDetectorId;
         this.duplicateHandling = duplicateHandling;
     }
 
@@ -53,10 +71,11 @@ public class DataPointEventType extends EventType {
 
     @Override
     public int getDataSourceId() {
-        if (dataSourceId == -1){
-            DataPointVO vo = DataPointDao.getInstance().get(dataPointId);
-            if(vo != null) //In case the point has been deleted
+        if (dataSourceId == Common.NEW_ID){
+            DataPointVO vo = (DataPointVO)getReference1();
+            if(vo != null) { //In case the point has been deleted
                 dataSourceId = vo.getDataSourceId();
+            }
         }
         return dataSourceId;
     }
@@ -148,16 +167,4 @@ public class DataPointEventType extends EventType {
             return MangoPermission.superadminOnly();
         }
     }
-
-    //TODO Mango 4.0 remove this and move into base class as a "source" to be set when the event is raised
-    // it is used to enhance the performance of the REST api's need for these
-    private DataPointVO dataPoint;
-    public DataPointVO getDataPoint() {
-        return dataPoint;
-    }
-
-    public void setDataPoint(DataPointVO dataPoint) {
-        this.dataPoint = dataPoint;
-    }
-
 }

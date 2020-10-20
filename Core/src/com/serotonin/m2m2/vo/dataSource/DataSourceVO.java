@@ -220,7 +220,7 @@ abstract public class DataSourceVO extends AbstractActionVO {
             AlarmLevels defaultAlarmLevel) {
         AlarmLevels alarmLevel = getAlarmLevel(dsSpecificEventTypeId, defaultAlarmLevel);
         return new EventTypeVO(
-                new DataSourceEventType(getId(), dsSpecificEventTypeId, alarmLevel, duplicateHandling),
+                new DataSourceEventType(this, dsSpecificEventTypeId, alarmLevel, duplicateHandling),
                 message, alarmLevel);
     }
 

@@ -29,7 +29,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
     }
 
     protected EventType getEventType() {
-        DataPointEventType et = new DataPointEventType(vo.getDataPoint().getId(), vo.getId());
+        DataPointEventType et = new DataPointEventType(vo.getDataPoint(), vo);
         if (!vo.isRtnApplicable())
             et.setDuplicateHandling(DuplicateHandling.ALLOW);
         return et;

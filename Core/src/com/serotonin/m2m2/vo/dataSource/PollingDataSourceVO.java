@@ -104,7 +104,7 @@ public abstract class PollingDataSourceVO extends DataSourceVO {
     private EventTypeVO createPollAbortedEventType(int eventId) {
         AlarmLevels alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
         return new EventTypeVO(
-                new DataSourceEventType(getId(), eventId, alarmLevel, DuplicateHandling.IGNORE),
+                new DataSourceEventType(this, eventId, alarmLevel, DuplicateHandling.IGNORE),
                 new TranslatableMessage("event.ds.pollAborted"),
                 alarmLevel);
     }

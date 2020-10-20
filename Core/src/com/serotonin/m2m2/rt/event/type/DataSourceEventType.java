@@ -13,6 +13,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -33,11 +34,30 @@ public class DataSourceEventType extends EventType {
         this(dataSourceId, dataSourceEventTypeId, AlarmLevels.URGENT, DuplicateHandling.IGNORE);
     }
 
+    public DataSourceEventType(DataSourceVO ds, int dataSourceEventTypeId, AlarmLevels alarmLevel, DuplicateHandling duplicateHandling) {
+        this.dataSourceId = ds.getId();
+        this.dataSourceEventTypeId = dataSourceEventTypeId;
+        this.alarmLevel = alarmLevel;
+        this.duplicateHandling = duplicateHandling;
+        supplyReference1(() -> {
+            return ds;
+        });
+        supplyReference2(() -> {
+            return null;
+        });
+    }
+
     public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, AlarmLevels alarmLevel, DuplicateHandling duplicateHandling) {
         this.dataSourceId = dataSourceId;
         this.dataSourceEventTypeId = dataSourceEventTypeId;
         this.alarmLevel = alarmLevel;
         this.duplicateHandling = duplicateHandling;
+        supplyReference1(() -> {
+            return Common.getBean(DataSourceDao.class).get(dataSourceId);
+        });
+        supplyReference2(() -> {
+            return null;
+        });
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -28,9 +29,20 @@ public class PublisherEventType extends EventType {
         // Required for reflection.
     }
 
+    public PublisherEventType(PublisherVO<?> pub, int publisherEventTypeId) {
+        this.publisherId = pub.getId();
+        this.publisherEventTypeId = publisherEventTypeId;
+        supplyReference1(() -> {
+            return pub;
+        });
+    }
+
     public PublisherEventType(int publisherId, int publisherEventTypeId) {
         this.publisherId = publisherId;
         this.publisherEventTypeId = publisherEventTypeId;
+        supplyReference1(() -> {
+            return Common.getBean(PublisherDao.class).get(publisherId);
+        });
     }
 
     @Override

@@ -6,11 +6,13 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -160,6 +162,40 @@ abstract public class EventType implements JsonSerializable {
      * @return whether this event type can be overridden with newer event instances.
      */
     abstract public DuplicateHandling getDuplicateHandling();
+
+    /**
+     * Stored reference1 object
+     */
+    protected LazyField<Object> reference1 = new LazyField<>();
+
+    public void setReference1(Object ref1) {
+        this.reference1.set(ref1);
+    }
+
+    public Object getReference1() {
+        return this.reference1.get();
+    }
+
+    public void supplyReference1(Supplier<Object> ref1Supplier) {
+        this.reference1 = new LazyField<>(ref1Supplier);
+    }
+
+    /**
+     * Stored reference2 object
+     */
+    protected LazyField<Object> reference2 = new LazyField<>();
+
+    public void setReference2(Object ref2) {
+        this.reference2.set(ref2);
+    }
+
+    public Object getReference2() {
+        return this.reference2.get();
+    }
+
+    public void supplyReference2(Supplier<Object> ref2Supplier) {
+        this.reference2 = new LazyField<>(ref2Supplier);
+    }
 
     abstract public int getReferenceId1();
 

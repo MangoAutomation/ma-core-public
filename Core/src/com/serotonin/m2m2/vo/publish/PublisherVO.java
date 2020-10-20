@@ -71,11 +71,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     public List<EventTypeVO> getEventTypes() {
         List<EventTypeVO> eventTypes = new ArrayList<>();
         eventTypes
-        .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.POINT_DISABLED_EVENT),
+        .add(new EventTypeVO(new PublisherEventType(this, PublisherRT.POINT_DISABLED_EVENT),
                 new TranslatableMessage("event.pb.pointMissing"),
                 getAlarmLevel(PublisherRT.POINT_DISABLED_EVENT, AlarmLevels.URGENT)));
         eventTypes
-        .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.QUEUE_SIZE_WARNING_EVENT),
+        .add(new EventTypeVO(new PublisherEventType(this, PublisherRT.QUEUE_SIZE_WARNING_EVENT),
                 new TranslatableMessage("event.pb.queueSize"),
                 getAlarmLevel(PublisherRT.QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT)));
 
