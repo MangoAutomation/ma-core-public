@@ -13,11 +13,10 @@ import java.util.stream.Collectors;
 
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.StringMangoScript;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Jared Wiltshire
@@ -86,10 +85,10 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
     }
 
     private void setScriptRoleXids(Set<String> xids) {
-        RoleDao roleDao = Common.getBean(RoleDao.class);
+        PermissionService permissionService = Common.getBean(PermissionService.class);
         this.scriptRoles = xids.stream().map(xid -> {
-            RoleVO vo = roleDao.getByXid(xid);
-            return vo != null ? vo.getRole() : null;
+            Role r = permissionService.getRole(xid);
+            return r != null ? r : null;
         }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 }
