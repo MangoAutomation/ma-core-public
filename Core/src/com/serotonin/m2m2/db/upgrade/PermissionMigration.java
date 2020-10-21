@@ -4,6 +4,8 @@
 
 package com.serotonin.m2m2.db.upgrade;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,7 +14,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -37,6 +41,63 @@ public interface PermissionMigration {
     Map<MangoPermission, MangoPermission> permissionCache();
     Map<Role, Role> roleCache();
 
+    /**
+     * Get an existing permission, will be null if not found
+     * @param id
+     * @return
+     */
+    default MangoPermission getExistingPermission(int id) {
+
+        ExtendedJdbcTemplate ejt = getJdbcTemplate();
+        return getTransactionTemplate().execute(tx -> {
+            //Make sure it exists at all (if no minterms exist we won't be able to tell it apart from the superadmin permission
+            int foundId = ejt.queryForInt("SELECT permissions.id FROM permissions WHERE permissions.id = ?", new Object[] {id}, -1);
+            if(foundId == -1) {
+                return null;
+            }
+
+            return ejt.query(
+                    "SELECT roles.id, roles.xid, permissionsMinterms.mintermId FROM permissionsMinterms " +
+                            "JOIN mintermsRoles ON permissionsMinterms.mintermId = mintermsRoles.mintermId " +
+                            "JOIN roles ON roles.id = mintermsRoles.roleId " +
+                            "WHERE permissionsMinterms.permissionId = ? " +
+                            "ORDER BY permissionsMinterms.permissionId ASC, permissionsMinterms.mintermId ASC", new Object[] {id}, new ResultSetExtractor<MangoPermission>() {
+
+                        int roleIdIndex = 1;
+                        int roleXidIndex = 2;
+                        int minterIdIndex = 3;
+                        @Override
+                        public MangoPermission extractData(ResultSet rs)
+                                throws SQLException, DataAccessException {
+                            if(rs.next()){
+                                Set<Set<Role>> roleSet = new HashSet<>();
+                                Set<Role> minTerm = new HashSet<>();
+                                roleSet.add(minTerm);
+                                minTerm.add(new Role(rs.getInt(roleIdIndex), rs.getString(roleXidIndex)));
+
+                                int mintermId = rs.getInt(minterIdIndex);
+                                while(rs.next()) {
+                                    if(rs.getInt(minterIdIndex) == mintermId) {
+                                        //Add to current minterm
+                                        minTerm.add(new Role(rs.getInt(roleIdIndex), rs.getString(roleXidIndex)));
+                                    }else {
+                                        //Add to next minterm
+                                        minTerm = new HashSet<>();
+                                        roleSet.add(minTerm);
+                                        minTerm.add(new Role(rs.getInt(roleIdIndex), rs.getString(roleXidIndex)));
+                                        mintermId = rs.getInt(minterIdIndex);
+                                    }
+                                }
+                                MangoPermission permission = new MangoPermission(id, roleSet);
+                                return permission;
+                            }else {
+                                return new MangoPermission(id);
+                            }
+                        }
+
+                    });
+        });
+    }
     default MangoPermission getOrCreatePermission(MangoPermission permission) {
         return permissionCache().computeIfAbsent(permission, this::getOrCreatePermissionNoCache);
     }
