@@ -3,6 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -14,13 +22,6 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Service for access to event handlers
@@ -68,8 +69,8 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     public ProcessResult validate(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, vo, user);
-        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
-        permissionService.validateVoRoles(result, "editPermission", user, false, null, vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, null, vo.getEditPermission());
 
         return result;
     }
@@ -78,8 +79,8 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, existing, vo, user);
-        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validateVoRoles(result, "editPermission", user, false, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
         return result;
     }
 

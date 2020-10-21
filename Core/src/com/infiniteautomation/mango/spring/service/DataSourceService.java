@@ -234,9 +234,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public ProcessResult validate(DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        boolean owner = user != null && permissionService.hasDataSourcePermission(user);
-        permissionService.validateVoRoles(response, "editPermission", user, owner, null, vo.getEditPermission());
-        permissionService.validateVoRoles(response, "readPermission", user, owner, null, vo.getReadPermission());
+        permissionService.validatePermission(response, "editPermission", user, null, vo.getEditPermission());
+        permissionService.validatePermission(response, "readPermission", user, null, vo.getReadPermission());
 
         //Allow module to define validation logic
         vo.getDefinition().validate(response, vo, user);
@@ -246,10 +245,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public ProcessResult validate(DataSourceVO existing, DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
-        boolean owner = user != null && permissionService.hasDataSourcePermission(user);
-        permissionService.validateVoRoles(response, "editPermission", user, owner, existing.getEditPermission(), vo.getEditPermission());
-        permissionService.validateVoRoles(response, "readPermission", user, owner, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(response, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(response, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
 
         //Allow module to define validation logic
         vo.getDefinition().validate(response, existing, vo, user);

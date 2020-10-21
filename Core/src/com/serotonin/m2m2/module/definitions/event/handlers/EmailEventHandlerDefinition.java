@@ -32,6 +32,7 @@ import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
+
 import freemarker.template.Template;
 
 /**
@@ -97,7 +98,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     public void validate(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
         if(vo.getScriptRoles() != null) {
-            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getRoles());
+            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, null, vo.getScriptRoles().getRoles());
         }else {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }
@@ -111,7 +112,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
             Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
-            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, false,
+            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser,
                     roles, vo.getScriptRoles().getRoles());
         }
     }

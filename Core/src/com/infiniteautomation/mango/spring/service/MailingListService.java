@@ -232,8 +232,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     @Override
     public ProcessResult validate(MailingList vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
-        permissionService.validateVoRoles(result, "editPermission", user, false, null, vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, null, vo.getEditPermission());
         return result;
     }
 
@@ -242,8 +242,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         ProcessResult result = commonValidation(vo, user);
 
         //Additional checks for existing list
-        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validateVoRoles(result, "editPermission", user, false, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
         return result;
     }
 

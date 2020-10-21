@@ -342,7 +342,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         //Validate roles
-        permissionService.validatePermissionHolderRoles(result, "roles", holder, false, null, vo.getRoles());
+        permissionService.validatePermissionHolderRoles(result, "roles", holder, null, vo.getRoles());
         return result;
     }
 
@@ -359,7 +359,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
         //Validate roles
         boolean savingSelf = holder instanceof User && ((User)holder).getId() == existing.getId();
-        permissionService.validatePermissionHolderRoles(result, "roles", holder, savingSelf, existing.getRoles(), vo.getRoles());
+        permissionService.validatePermissionHolderRoles(result, "roles", holder, existing.getRoles(), vo.getRoles());
 
         //Things we cannot do to ourselves
         if (savingSelf) {

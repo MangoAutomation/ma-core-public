@@ -57,7 +57,7 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
      */
     @Autowired
     public FileStoreService(FileStoreDao dao, PermissionService permissionService, UserFileStoreCreatePermissionDefinition createPermission,
-                            Environment env) {
+            Environment env) {
         super(dao, permissionService);
         this.createPermission = createPermission;
 
@@ -74,8 +74,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     public ProcessResult validate(FileStore vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         validateXid(result, vo);
-        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
-        permissionService.validateVoRoles(result, "writePermission", user, false, null, vo.getWritePermission());
+        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
+        permissionService.validatePermission(result, "writePermission", user, null, vo.getWritePermission());
         return result;
     }
 
@@ -83,8 +83,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreTabl
     public ProcessResult validate(FileStore existing, FileStore vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         validateXid(result, vo);
-        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validateVoRoles(result, "writePermission", user, false, existing.getWritePermission(), vo.getWritePermission());
+        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(result, "writePermission", user, existing.getWritePermission(), vo.getWritePermission());
         return result;
     }
 

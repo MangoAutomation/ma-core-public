@@ -600,12 +600,11 @@ public class PermissionService implements CachingService {
      * @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
-     * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
      * @param existingPermission - the currently saved permissions
      * @param newPermission - the new permissions to validate
      */
-    public void validateVoRoles(ProcessResult result, String contextKey, PermissionHolder holder,
-            boolean savedByOwner, MangoPermission existingPermission, MangoPermission newPermission) {
+    public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
+            MangoPermission existingPermission, MangoPermission newPermission) {
 
         if (holder == null) {
             result.addContextualMessage(contextKey, "validate.userRequired");
@@ -625,7 +624,7 @@ public class PermissionService implements CachingService {
         }
 
         // Ensure the user retains access to the object
-        if (!savedByOwner && !hasPermission(holder, newPermission)) {
+        if (!hasPermission(holder, newPermission)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
     }
@@ -643,12 +642,11 @@ public class PermissionService implements CachingService {
      * @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
-     * @param savedByOwner - is the saving user the owner of this item i.e. the user is saving themselves (use false if no owner is possible)
      * @param existingRoles - the currently saved permissions
      * @param newRoles - the new permissions to validate
      */
-    public void validatePermissionHolderRoles(ProcessResult result, String contextKey, PermissionHolder holder,
-            boolean savedByOwner, Set<Role> existingRoles, Set<Role> newRoles) {
+    public void validatePermissionHolderRoles(ProcessResult result, String contextKey,
+            PermissionHolder holder, Set<Role> existingRoles, Set<Role> newRoles) {
 
         if (holder == null) {
             result.addContextualMessage(contextKey, "validate.userRequired");
@@ -665,21 +663,11 @@ public class PermissionService implements CachingService {
             return;
         }
 
-        if (savedByOwner) {
-            // TODO Mango 4.0
-            // Should we allow users to add explicit roles to themselves that they currently inherit?
-            // Can they remove an explicit role from themselves if they still inherit it?
-
-            if (!Objects.equals(existingRoles, newRoles)) {
-                result.addContextualMessage(contextKey, "validate.role.modifyOwnRoles");
-            }
-        } else {
-            Set<Role> heldRoles = holder.getRoles();
-            if (!heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
-                Set<Role> inherited = getAllInheritedRoles(holder);
-                if (!inherited.containsAll(newRoles)) {
-                    result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
-                }
+        Set<Role> heldRoles = holder.getRoles();
+        if (!heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+            Set<Role> inherited = getAllInheritedRoles(holder);
+            if (!inherited.containsAll(newRoles)) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
             }
         }
     }

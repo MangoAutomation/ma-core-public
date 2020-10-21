@@ -73,7 +73,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         commonValidation(response, handler, user);
 
         if(handler.getScriptRoles() != null) {
-            permissionService.validatePermissionHolderRoles(response, "scriptRoles", user, false, null, handler.getScriptRoles());
+            permissionService.validatePermissionHolderRoles(response, "scriptRoles", user, null, handler.getScriptRoles());
         }else {
             response.addContextualMessage("scriptRoles", "validate.permission.null");
         }
@@ -107,7 +107,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
             response.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
             Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles();
-            permissionService.validatePermissionHolderRoles(response, "scriptRoles", user, false,
+            permissionService.validatePermissionHolderRoles(response, "scriptRoles", user,
                     roles, vo.getScriptRoles());
         }
     }

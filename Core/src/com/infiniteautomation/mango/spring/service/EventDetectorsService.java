@@ -97,8 +97,8 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     @Override
     public ProcessResult validate(AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        permissionService.validateVoRoles(response, "readPermission", user, false, null, vo.getReadPermission());
-        permissionService.validateVoRoles(response, "editPermission", user, false, null, vo.getEditPermission());
+        permissionService.validatePermission(response, "readPermission", user, null, vo.getReadPermission());
+        permissionService.validatePermission(response, "editPermission", user, null, vo.getEditPermission());
         vo.getDefinition().validate(response, vo, user);
         return response;
     }
@@ -106,8 +106,8 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     @Override
     public ProcessResult validate(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        permissionService.validateVoRoles(response, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validateVoRoles(response, "editPermission", user, false, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(response, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(response, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
 
         vo.getDefinition().validate(response, existing, vo, user);
         return response;
