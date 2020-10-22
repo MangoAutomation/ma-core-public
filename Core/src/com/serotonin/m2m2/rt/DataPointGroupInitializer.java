@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +98,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                 if(!failed) {
                     cache = latestValuesMap.get(dataPoint.getDataPoint().getId());
                     if(cache == null) {
-                        cache = new ArrayList<>();
+                        cache = Collections.emptyList();
                     }
                 }
                 DataPointWithEventDetectorsAndCache config = new DataPointWithEventDetectorsAndCache(dataPoint, cache);
