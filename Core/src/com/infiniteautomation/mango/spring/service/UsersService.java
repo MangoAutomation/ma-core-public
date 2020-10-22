@@ -367,6 +367,28 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             if (vo.isDisabled()) {
                 result.addContextualMessage("disabled", "users.validate.adminDisable");
             }
+
+            Set<Role> heldRoles = holder.getRoles();
+            if (!heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+                //Cannot add role you don't have
+                Set<Role> inherited = permissionService.getAllInheritedRoles(holder);
+                if (!inherited.containsAll(vo.getRoles())) {
+                    result.addContextualMessage("roles", "validate.role.invalidModification", PermissionService.implodeRoles(inherited));
+                }
+                //Cannot change roles as non superadmin
+                // TODO Mango 4.0
+                // Should we allow users to add explicit roles to themselves that they currently inherit?
+                // Can they remove an explicit role from themselves if they still inherit it?
+
+                if (!Objects.equals(existing.getRoles(), vo.getRoles())) {
+                    result.addContextualMessage("roles", "validate.role.modifyOwnRoles");
+                }
+            }else {
+                //Cannot remove superadmin from ourself
+                if(!vo.getRoles().contains(PermissionHolder.SUPERADMIN_ROLE)) {
+                    result.addContextualMessage("roles","users.validate.cannotRemoveSuperadminRole");
+                }
+            }
         }
 
         if(!Objects.equals(vo.getEmailVerified(), existing.getEmailVerified()) && !permissionService.hasAdminRole(holder)) {
