@@ -76,11 +76,13 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                 .max()
                 .orElse(0);
 
+        boolean failed = false;
         Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
         try {
             dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, false, maxCacheSize,
                     (pvt, i) -> latestValuesMap.computeIfAbsent(pvt.getId(), (k) -> new ArrayList<>()).add(pvt));
         } catch (Exception e) {
+            failed = true;
             log.warn("Failed to get latest point values for multiple points at once. " +
                     "Mango will fall back to retrieving latest point values per point which will take longer.", e);
         }
@@ -89,8 +91,15 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
         int failedCount = 0;
         for (DataPointWithEventDetectors dataPoint : subgroup) {
             try {
-                // can be null, gets passed to com.serotonin.m2m2.rt.dataImage.PointValueCache.PointValueCache
-                List<PointValueTime> cache = latestValuesMap.get(dataPoint.getDataPoint().getId());
+                // should only be submitted as null if we failed, gets passed to com.serotonin.m2m2.rt.dataImage.PointValueCache.PointValueCache
+                // if we didn't fail then we can assume there is no value in the database
+                List<PointValueTime> cache = null;
+                if(!failed) {
+                    cache = latestValuesMap.get(dataPoint.getDataPoint().getId());
+                    if(cache == null) {
+                        cache = new ArrayList<>();
+                    }
+                }
                 DataPointWithEventDetectorsAndCache config = new DataPointWithEventDetectorsAndCache(dataPoint, cache);
                 Common.runtimeManager.startDataPointStartup(config);
             } catch (Exception e) {
