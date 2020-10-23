@@ -21,6 +21,7 @@ import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
@@ -31,6 +32,7 @@ import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMult
  * @author Jared Wiltshire
  */
 @Configuration
+@EnableScheduling
 @EnableAsync
 public class MangoCommonConfiguration {
 

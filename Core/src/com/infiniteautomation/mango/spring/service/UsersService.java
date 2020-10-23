@@ -16,19 +16,21 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 
 import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import com.infiniteautomation.mango.cache.WeakValueCache;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -73,15 +75,15 @@ import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
 @Service
 public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> implements CachingService {
 
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
     private final SystemSettingsDao systemSettings;
     private final PasswordService passwordService;
     private final PermissionDefinition editSelfPermission;
     private final PermissionDefinition changeOwnUsernamePermission;
     private final UserCreatePermission createPermission;
     private final ApplicationEventPublisher eventPublisher;
-    private final ReadWriteLock cacheLock = new ReentrantReadWriteLock();
-    private final Map<Integer, User> userById;
-    private final Map<String, User> userByUsername;
+    private final WeakValueCache<String, User> userByUsername;
 
     @Autowired
     public UsersService(UserDao dao, PermissionService permissionService,
@@ -96,9 +98,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         this.changeOwnUsernamePermission = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
         this.createPermission = createPermission;
         this.eventPublisher = eventPublisher;
-
-        this.userById = new HashMap<>();
-        this.userByUsername = new HashMap<>();
+        this.userByUsername = new WeakValueCache<>();
     }
 
     @Override
@@ -113,30 +113,25 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                     event.getOriginalVo().getRole() :
                     event.getVo().getRole();
 
-            cacheLock.readLock().lock();
-            try {
-                for (User user : userByUsername.values()) {
-                    if (user.getRoles().contains(originalRole)) {
-                        Set<Role> updatedRoles = new HashSet<>(user.getRoles());
-                        if (event.getType() == DaoEventType.DELETE) {
-                            //Remove this role
-                            updatedRoles.remove(originalRole);
-                        } else if (event.getType() == DaoEventType.UPDATE) {
-                            //Replace this role
-                            updatedRoles.remove(originalRole);
-                            updatedRoles.add(event.getVo().getRole());
-                        }
-                        user.setRoles(Collections.unmodifiableSet(updatedRoles));
-
-                        // publish the event using the same user for originalVo, we aren't changing the XID
-                        // so it shouldn't matter
-                        DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, user);
-                        this.eventPublisher.publishEvent(userUpdatedEvent);
+            userByUsername.forEachValue(user -> {
+                if (user.getRoles().contains(originalRole)) {
+                    Set<Role> updatedRoles = new HashSet<>(user.getRoles());
+                    if (event.getType() == DaoEventType.DELETE) {
+                        //Remove this role
+                        updatedRoles.remove(originalRole);
+                    } else if (event.getType() == DaoEventType.UPDATE) {
+                        //Replace this role
+                        updatedRoles.remove(originalRole);
+                        updatedRoles.add(event.getVo().getRole());
                     }
+                    user.setRoles(Collections.unmodifiableSet(updatedRoles));
+
+                    // publish the event using the same user for originalVo, we aren't changing the XID
+                    // so it shouldn't matter
+                    DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, user);
+                    this.eventPublisher.publishEvent(userUpdatedEvent);
                 }
-            } finally {
-                cacheLock.readLock().unlock();
-            }
+            });
         }
     }
 
@@ -147,22 +142,19 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             return;
         }
 
-        cacheLock.writeLock().lock();
-        try {
-            if (event.getType() == DaoEventType.UPDATE) {
-                String originalUsername = event.getOriginalVo().getUsername().toLowerCase(Locale.ROOT);
-                String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+        if (event.getType() == DaoEventType.UPDATE) {
+            String originalUsername = event.getOriginalVo().getUsername().toLowerCase(Locale.ROOT);
+            String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+            if (!username.equals(originalUsername)) {
                 this.userByUsername.remove(originalUsername);
-                this.userByUsername.put(username, event.getVo());
-            } else if (event.getType() == DaoEventType.DELETE) {
-                String originalUsername = event.getVo().getUsername().toLowerCase(Locale.ROOT);
-                this.userByUsername.remove(originalUsername);
-            } else if (event.getType() == DaoEventType.CREATE) {
-                String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
-                this.userByUsername.put(username, event.getVo());
             }
-        } finally {
-            cacheLock.writeLock().unlock();
+            this.userByUsername.put(username, event.getVo());
+        } else if (event.getType() == DaoEventType.DELETE) {
+            String originalUsername = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+            this.userByUsername.remove(originalUsername);
+        } else if (event.getType() == DaoEventType.CREATE) {
+            String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+            this.userByUsername.put(username, event.getVo());
         }
     }
 
@@ -173,26 +165,11 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User get(String username) throws NotFoundException, PermissionException {
         Assert.notNull(username, "Username required");
 
-        User vo;
-        cacheLock.readLock().lock();
-        try {
-            String usernameLower = username.toLowerCase(Locale.ROOT);
-            vo = userByUsername.get(usernameLower);
-            if (vo == null) {
-                cacheLock.writeLock().lock();
-                try {
-                    vo = userByUsername.computeIfAbsent(usernameLower, dao::getByXid);
-                    if (vo == null) {
-                        throw new NotFoundException();
-                    }
-                } finally {
-                    cacheLock.writeLock().unlock();
-                }
-            }
-        } finally {
-            cacheLock.readLock().unlock();
+        String usernameLower = username.toLowerCase(Locale.ROOT);
+        User vo = userByUsername.computeIfAbsent(usernameLower, dao::getByXid);
+        if (vo == null) {
+            throw new NotFoundException();
         }
-
         PermissionHolder currentUser = Common.getUser();
         ensureReadPermission(currentUser, vo);
         return vo;
@@ -590,12 +567,24 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public void clearCaches() {
         PermissionHolder currentUser = Common.getUser();
         permissionService.ensureAdminRole(currentUser);
-        cacheLock.writeLock().lock();
-        try {
-            userByUsername.clear();
-        } finally {
-            cacheLock.writeLock().unlock();
-        }
+
+        // TODO Mango 4.0 Exposing this is potentially dangerous as users may not get their roles updated
+        userByUsername.clear();
+    }
+
+    @Scheduled(fixedDelay = 60000)
+    public void cleanupCache() {
+        userByUsername.cleanup();
+    }
+
+    public User getByIdViaCache(int id) {
+        return dao.doInTransaction((tx) -> {
+            String username = dao.getXidById(id);
+            if (username == null) {
+                throw new NotFoundException();
+            }
+            return get(username);
+        });
     }
 
 }

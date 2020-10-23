@@ -15,9 +15,6 @@ import java.util.function.Function;
 import javax.script.ScriptEngineManager;
 import javax.sql.DataSource;
 
-import com.serotonin.db.SpringConnectionProvider;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.impl.DefaultConfiguration;
@@ -52,16 +49,19 @@ import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.spring.session.MangoCachingSessionDataStore;
 import com.infiniteautomation.mango.spring.session.MangoJdbcSessionDataStore;
 import com.infiniteautomation.mango.spring.session.MangoSessionDataMap;
 import com.infiniteautomation.mango.spring.session.MangoSessionDataStore;
 import com.infiniteautomation.mango.spring.session.NullMangoSessionDataStore;
+import com.serotonin.db.SpringConnectionProvider;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -308,10 +308,11 @@ public class MangoRuntimeContextConfiguration {
     }
 
     @Bean
-    public MangoSessionDataStore sessionDataStore(@Value("${sessionCookie.persistent:true}") boolean persistentSessions, UserDao userDao, MangoSessionDataDao sessionDao,
-            ApplicationEventPublisher publisher) {
+    public MangoSessionDataStore sessionDataStore(@Value("${sessionCookie.persistent:true}") boolean persistentSessions,
+                                                  UsersService usersService, MangoSessionDataDao sessionDao,
+                                                  ApplicationEventPublisher publisher) {
         if(persistentSessions) {
-            return new MangoCachingSessionDataStore(new MangoSessionDataMap(), new MangoJdbcSessionDataStore(userDao, sessionDao, publisher));
+            return new MangoCachingSessionDataStore(new MangoSessionDataMap(), new MangoJdbcSessionDataStore(usersService, sessionDao, publisher));
         }else {
             return new NullMangoSessionDataStore();
         }

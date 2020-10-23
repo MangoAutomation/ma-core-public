@@ -18,9 +18,9 @@ import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.MangoSessionDataVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
@@ -31,13 +31,13 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
  */
 public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implements MangoSessionDataStore {
 
-    private final UserDao userDao;
+    private final UsersService userService;
     private final MangoSessionDataDao sessionDao;
     private final ApplicationEventPublisher eventPublisher;
 
-    public MangoJdbcSessionDataStore(UserDao userDao, MangoSessionDataDao sessionDao,
-            ApplicationEventPublisher publisher) {
-        this.userDao = userDao;
+    public MangoJdbcSessionDataStore(UsersService userService, MangoSessionDataDao sessionDao,
+                                     ApplicationEventPublisher publisher) {
+        this.userService = userService;
         this.sessionDao = sessionDao;
         this.eventPublisher = publisher;
     }
@@ -116,19 +116,14 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
         data.setLastSaved(vo.getLastSavedTime());
         data.setExpiry(vo.getExpiryTime());
 
-        if(vo.getUserId() > 0) {
-            userDao.doInTransaction((tx) -> {
-                User user = userDao.get(vo.getUserId());
-                if(user != null) {
-                    //TODO Mango 4.0 don't double get the user
-                    //Load from cache
-                    user = userDao.getByXid(user.getUsername());
-                    UsernamePasswordAuthenticationToken auth = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
-                    SecurityContextImpl impl = new SecurityContextImpl(auth);
-                    data.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, impl);
-                    this.eventPublisher.publishEvent(new SessionLoadedEvent(this, id, user));
-                }
+        if (vo.getUserId() > 0) {
+            User user = userService.getPermissionService().runAsSystemAdmin(() -> {
+                return userService.getByIdViaCache(vo.getUserId());
             });
+            UsernamePasswordAuthenticationToken auth = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
+            SecurityContextImpl impl = new SecurityContextImpl(auth);
+            data.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, impl);
+            this.eventPublisher.publishEvent(new SessionLoadedEvent(this, id, user));
         }
 
         return data;
