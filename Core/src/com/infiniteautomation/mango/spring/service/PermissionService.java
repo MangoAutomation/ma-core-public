@@ -7,7 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -251,36 +250,22 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * TODO Mango 4.0 rename method
-     *
-     * Does this user have any roles assigned to this permission?
-     * @param definition
-     * @param holder
-     * @return
-     */
-    public boolean isGrantedPermission(PermissionDefinition definition, PermissionHolder holder) {
-        return hasPermission(holder, definition.getPermission());
-    }
-
-    /**
-     * TODO Mango 4.0 rename method
-     *
      * Return all the granted system permissions a user has.  This is any PermissionDefinition that the user
      * has permission for.
      *
+     * THIS SHOULD NOT BE USED FOR AUTHORIZATION / ACCESS CONTROL.
+     *
      * @param holder
      * @return
      */
-    public Set<String> getGrantedPermissions(PermissionHolder holder) {
-        Set<String> grantedPermissions = new HashSet<>();
-        if(isValidPermissionHolder(holder)) {
-            for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-                if(hasAdminRole(holder) || hasPermission(holder, def.getValue().getPermission())) {
-                    grantedPermissions.add(def.getValue().getPermissionTypeName());
-                }
+    public Set<String> getSystemPermissions(PermissionHolder holder) {
+        Set<String> systemPermissions = new HashSet<>();
+        for (PermissionDefinition def : ModuleRegistry.getPermissionDefinitions().values()) {
+            if (hasPermission(holder, def.getPermission())) {
+                systemPermissions.add(def.getPermissionTypeName());
             }
         }
-        return grantedPermissions;
+        return systemPermissions;
     }
 
     /**

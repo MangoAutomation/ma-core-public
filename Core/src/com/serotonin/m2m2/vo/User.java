@@ -112,9 +112,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     private transient volatile LazyInitializer<ZoneId> _tz = new LazyInitializer<>();
     private transient LazyInitializer<Locale> localeObject = new LazyInitializer<>();
 
-    //System permissions that we have one or more roles in
-    private transient LazyInitializer<Set<String>> grantedPermissions = new LazyInitializer<>();
-
     //
     //Spring Security
     //
@@ -460,18 +457,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         this.sessionExpirationPeriodType = sessionExpirationPeriodType;
     }
 
-    public Set<String> getGrantedPermissions() {
-        return grantedPermissions.get(() -> {
-            //TODO Mango 4.0 see #1610
-            PermissionService service = Common.getBean(PermissionService.class);
-            return Collections.unmodifiableSet(service.getGrantedPermissions(this));
-        });
-    }
-
-    public void resetGrantedPermissions() {
-        this.grantedPermissions.reset();
-    }
-
     @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=<redacted>" + ", email=" + email + ", phone="
@@ -579,7 +564,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
-        this.grantedPermissions.reset();
         this.authorities.reset();
     }
 
@@ -602,7 +586,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
         _tz = new LazyInitializer<>();
         localeObject = new LazyInitializer<>();
-        grantedPermissions = new LazyInitializer<>();
         authorities = new LazyInitializer<>();
     }
 
