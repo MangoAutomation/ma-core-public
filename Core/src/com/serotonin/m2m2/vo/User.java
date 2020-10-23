@@ -103,7 +103,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     @JsonProperty
     private JsonNode data;
     @JsonProperty
-    private Set<Role> roles = Collections.unmodifiableSet(Collections.singleton(PermissionHolder.USER_ROLE));
+    private volatile Set<Role> roles = Collections.unmodifiableSet(Collections.singleton(PermissionHolder.USER_ROLE));
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here

@@ -16,6 +16,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 
 import javax.mail.internet.AddressException;
@@ -27,8 +29,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -60,16 +60,15 @@ import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
 
 /**
  * Service to access Users
- *
+ * <p>
  * NOTES:
- *  Users are cached by username
- *
- *  by using any variation of the get(String, user) methods you are returned
- *   a cached user, any modifications to this will result in changes to a session user
- *   to avoid this use the get(Integer, user) variations
+ * Users are cached by username
+ * <p>
+ * by using any variation of the get(String, user) methods you are returned
+ * a cached user, any modifications to this will result in changes to a session user
+ * to avoid this use the get(Integer, user) variations
  *
  * @author Terry Packer
- *
  */
 @Service
 public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> implements CachingService {
@@ -80,14 +79,16 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     private final PermissionDefinition changeOwnUsernamePermission;
     private final UserCreatePermission createPermission;
     private final ApplicationEventPublisher eventPublisher;
-    private final LoadingCache<String, User> userByUsername;
+    private final ReadWriteLock cacheLock = new ReentrantReadWriteLock();
+    private final Map<Integer, User> userById;
+    private final Map<String, User> userByUsername;
 
     @Autowired
     public UsersService(UserDao dao, PermissionService permissionService,
-            SystemSettingsDao systemSettings,
-            PasswordService passwordService,
-            UserCreatePermission createPermission,
-            ApplicationEventPublisher eventPublisher) {
+                        SystemSettingsDao systemSettings,
+                        PasswordService passwordService,
+                        UserCreatePermission createPermission,
+                        ApplicationEventPublisher eventPublisher) {
         super(dao, permissionService);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
@@ -96,9 +97,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         this.createPermission = createPermission;
         this.eventPublisher = eventPublisher;
 
-        this.userByUsername = Caffeine.newBuilder()
-                .maximumSize(Common.envProps.getLong("cache.users.size", 1000))
-                .build(this.dao::getByXid);
+        this.userById = new HashMap<>();
+        this.userByUsername = new HashMap<>();
     }
 
     @Override
@@ -111,55 +111,59 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         if (event.getType() == DaoEventType.DELETE || event.getType() == DaoEventType.UPDATE) {
             Role originalRole = event.getType() == DaoEventType.UPDATE ?
                     event.getOriginalVo().getRole() :
-                        event.getVo().getRole();
+                    event.getVo().getRole();
 
-                    // TODO Mango 4.0 this is only weakly consistent
-                    for (User user : this.userByUsername.asMap().values()) {
-                        if (user.getRoles().contains(originalRole)) {
-                            Set<Role> updatedRoles = new HashSet<>(user.getRoles());
-                            if (event.getType() == DaoEventType.DELETE) {
-                                //Remove this role
-                                updatedRoles.remove(originalRole);
-                            } else if (event.getType() == DaoEventType.UPDATE) {
-                                //Replace this role
-                                updatedRoles.remove(originalRole);
-                                updatedRoles.add(event.getVo().getRole());
-                            }
-                            user.setRoles(Collections.unmodifiableSet(updatedRoles));
-                            publishUserUpdated(user);
+            cacheLock.readLock().lock();
+            try {
+                for (User user : userByUsername.values()) {
+                    if (user.getRoles().contains(originalRole)) {
+                        Set<Role> updatedRoles = new HashSet<>(user.getRoles());
+                        if (event.getType() == DaoEventType.DELETE) {
+                            //Remove this role
+                            updatedRoles.remove(originalRole);
+                        } else if (event.getType() == DaoEventType.UPDATE) {
+                            //Replace this role
+                            updatedRoles.remove(originalRole);
+                            updatedRoles.add(event.getVo().getRole());
                         }
+                        user.setRoles(Collections.unmodifiableSet(updatedRoles));
+
+                        // publish the event using the same user for originalVo, we aren't changing the XID
+                        // so it shouldn't matter
+                        DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, user);
+                        this.eventPublisher.publishEvent(userUpdatedEvent);
                     }
+                }
+            } finally {
+                cacheLock.readLock().unlock();
+            }
         }
     }
 
     @EventListener
     protected void userUpdated(DaoEvent<? extends User> event) {
-        if (event.getType() == DaoEventType.UPDATE) {
-            String originalUsername = event.getOriginalVo().getUsername().toLowerCase(Locale.ROOT);
-            String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
-            this.userByUsername.invalidate(originalUsername);
-            this.userByUsername.put(username, event.getVo());
-        } else if (event.getType() == DaoEventType.DELETE) {
-            String originalUsername = event.getVo().getUsername().toLowerCase(Locale.ROOT);
-            this.userByUsername.invalidate(originalUsername);
+        // if this is a user update event from the handleRoleEvent method, ignore it, our cache is up to date
+        if (event.getType() == DaoEventType.UPDATE && event.getVo() == event.getOriginalVo()) {
+            return;
         }
-    }
 
-    private void publishUserUpdated(User user) {
-        User existing = dao.get(user.getId());
-        if (existing == null) {
-            // this is a temporary work around for when user is deleted while iterating cache entries
-            User fromCache = this.userByUsername.getIfPresent(user.getUsername());
-            if (fromCache != null) {
-                throw new IllegalStateException("User '" + user.getUsername() + "' was found in the user cache, but is not present in the database");
-            } else {
-                return;
+        cacheLock.writeLock().lock();
+        try {
+            if (event.getType() == DaoEventType.UPDATE) {
+                String originalUsername = event.getOriginalVo().getUsername().toLowerCase(Locale.ROOT);
+                String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+                this.userByUsername.remove(originalUsername);
+                this.userByUsername.put(username, event.getVo());
+            } else if (event.getType() == DaoEventType.DELETE) {
+                String originalUsername = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+                this.userByUsername.remove(originalUsername);
+            } else if (event.getType() == DaoEventType.CREATE) {
+                String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+                this.userByUsername.put(username, event.getVo());
             }
+        } finally {
+            cacheLock.writeLock().unlock();
         }
-
-        // Notify WebSockets and invalidate cache via listener userUpdated()
-        DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, existing);
-        this.eventPublisher.publishEvent(userUpdatedEvent);
     }
 
     /*
@@ -169,9 +173,25 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User get(String username) throws NotFoundException, PermissionException {
         Assert.notNull(username, "Username required");
 
-        User vo = userByUsername.get(username.toLowerCase(Locale.ROOT));
-        if(vo == null)
-            throw new NotFoundException();
+        User vo;
+        cacheLock.readLock().lock();
+        try {
+            String usernameLower = username.toLowerCase(Locale.ROOT);
+            vo = userByUsername.get(usernameLower);
+            if (vo == null) {
+                cacheLock.writeLock().lock();
+                try {
+                    vo = userByUsername.computeIfAbsent(usernameLower, dao::getByXid);
+                    if (vo == null) {
+                        throw new NotFoundException();
+                    }
+                } finally {
+                    cacheLock.writeLock().unlock();
+                }
+            }
+        } finally {
+            cacheLock.readLock().unlock();
+        }
 
         PermissionHolder currentUser = Common.getUser();
         ensureReadPermission(currentUser, vo);
@@ -179,15 +199,14 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     }
 
     /**
-     *
      * Get a user by their email address
      *
      * @param emailAddress
      * @return
      */
     public User getUserByEmail(String emailAddress) throws NotFoundException, PermissionException {
-        User vo =  dao.getUserByEmail(emailAddress);
-        if(vo == null)
+        User vo = dao.getUserByEmail(emailAddress);
+        if (vo == null)
             throw new NotFoundException();
 
         PermissionHolder currentUser = Common.getUser();
@@ -202,20 +221,20 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         ensureCreatePermission(currentUser, vo);
 
         //Ensure id is not set
-        if(vo.getId() != Common.NEW_ID) {
+        if (vo.getId() != Common.NEW_ID) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("id", "validate.invalidValue");
             throw new ValidationException(result);
         }
 
         //Generate an Xid if necessary
-        if(StringUtils.isEmpty(vo.getXid()))
+        if (StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
 
         ensureValid(vo, currentUser);
 
         //After validation we can set the created date if necessary
-        if(vo.getCreated() == null) {
+        if (vo.getCreated() == null) {
             vo.setCreated(new Date());
         }
 
@@ -233,7 +252,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         vo.setId(existing.getId());
 
         //Set the date created, it will be validated later
-        if(vo.getCreated() == null) {
+        if (vo.getCreated() == null) {
             vo.setCreated(existing.getCreated());
         }
 
@@ -275,7 +294,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     /**
      * Update the password for a user
      *
-     * @param user user to update password for
+     * @param user        user to update password for
      * @param newPassword plain text password
      * @throws ValidationException if password is not valid
      * @throws PermissionException if the current user does not have permission to edit this user
@@ -294,6 +313,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
     /**
      * Lock a user's password
+     *
      * @param username
      * @throws PermissionException
      * @throws NotFoundException
@@ -312,18 +332,18 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public ProcessResult validate(User vo, PermissionHolder holder) {
         ProcessResult result = commonValidation(vo, holder);
         //Must not have a date created set if we are non admin
-        if(vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
+        if (vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("created", "validate.invalidValue");
         }
 
-        if(vo.isSessionExpirationOverride()) {
-            if(!permissionService.hasAdminRole(holder)) {
+        if (vo.isSessionExpirationOverride()) {
+            if (!permissionService.hasAdminRole(holder)) {
                 result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
-            }else {
+            } else {
                 if (-1 == Common.TIME_PERIOD_CODES.getId(vo.getSessionExpirationPeriodType(), Common.TimePeriods.MILLISECONDS)) {
                     result.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
                 }
-                if(vo.getSessionExpirationPeriods() <= 0) {
+                if (vo.getSessionExpirationPeriods() <= 0) {
                     result.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
                 }
             }
@@ -339,14 +359,14 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         ProcessResult result = commonValidation(vo, holder);
 
         //Must not have a different date created set if we are non admin
-        if(vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
-            if(vo.getCreated().getTime() != existing.getCreated().getTime()) {
+        if (vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
+            if (vo.getCreated().getTime() != existing.getCreated().getTime()) {
                 result.addContextualMessage("created", "validate.invalidValue");
             }
         }
 
         //Validate roles
-        boolean savingSelf = holder instanceof User && ((User)holder).getId() == existing.getId();
+        boolean savingSelf = holder instanceof User && ((User) holder).getId() == existing.getId();
         permissionService.validatePermissionHolderRoles(result, "roles", holder, existing.getRoles(), vo.getRoles());
 
         //Things we cannot do to ourselves
@@ -371,31 +391,31 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                 if (!Objects.equals(existing.getRoles(), vo.getRoles())) {
                     result.addContextualMessage("roles", "validate.role.modifyOwnRoles");
                 }
-            }else {
+            } else {
                 //Cannot remove superadmin from ourself
-                if(!vo.getRoles().contains(PermissionHolder.SUPERADMIN_ROLE)) {
-                    result.addContextualMessage("roles","users.validate.cannotRemoveSuperadminRole");
+                if (!vo.getRoles().contains(PermissionHolder.SUPERADMIN_ROLE)) {
+                    result.addContextualMessage("roles", "users.validate.cannotRemoveSuperadminRole");
                 }
             }
         }
 
-        if(!Objects.equals(vo.getEmailVerified(), existing.getEmailVerified()) && !permissionService.hasAdminRole(holder)) {
+        if (!Objects.equals(vo.getEmailVerified(), existing.getEmailVerified()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("emailVerified", "validate.invalidValue");
         }
 
-        if(!Objects.equals(vo.getCreated(), existing.getCreated()) && !permissionService.hasAdminRole(holder)) {
+        if (!Objects.equals(vo.getCreated(), existing.getCreated()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("created", "validate.invalidValue");
         }
 
-        if(existing.isSessionExpirationOverride() != vo.isSessionExpirationOverride() && !permissionService.hasAdminRole(holder)) {
+        if (existing.isSessionExpirationOverride() != vo.isSessionExpirationOverride() && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
         }
 
-        if(existing.getSessionExpirationPeriods() != vo.getSessionExpirationPeriods() && !permissionService.hasAdminRole(holder)) {
+        if (existing.getSessionExpirationPeriods() != vo.getSessionExpirationPeriods() && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
         }
 
-        if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), vo.getSessionExpirationPeriodType()) && !permissionService.hasAdminRole(holder)) {
+        if (!StringUtils.equals(existing.getSessionExpirationPeriodType(), vo.getSessionExpirationPeriodType()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
         }
 
@@ -404,15 +424,15 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             if (m.matches()) {
                 String hashOrPassword = m.group(2);
                 //Can't use same one 2x
-                if(Common.checkPassword(hashOrPassword, existing.getPassword(), false)) {
+                if (Common.checkPassword(hashOrPassword, existing.getPassword(), false)) {
                     result.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
                 }
             }
         }
 
         //Ensure they can change the username if they try
-        if(!StringUtils.equals(existing.getUsername(), vo.getUsername())) {
-            if(!permissionService.hasPermission(holder, changeOwnUsernamePermission.getPermission())) {
+        if (!StringUtils.equals(existing.getUsername(), vo.getUsername())) {
+            if (!permissionService.hasPermission(holder, changeOwnUsernamePermission.getPermission())) {
                 result.addMessage("username", new TranslatableMessage("users.validate.cannotChangeOwnUsername"));
             }
         }
@@ -429,7 +449,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
         if (StringUtils.isBlank(vo.getEmail()))
             response.addMessage("email", new TranslatableMessage("validate.required"));
-        else if(!UserDao.getInstance().isEmailUnique(vo.getEmail(), vo.getId()))
+        else if (!UserDao.getInstance().isEmailUnique(vo.getEmail(), vo.getId()))
             response.addMessage("email", new TranslatableMessage("users.validate.emailUnique"));
 
         if (StringUtils.isBlank(vo.getPassword())) {
@@ -461,7 +481,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
         if (StringUtils.isBlank(vo.getName())) {
             response.addMessage("name", new TranslatableMessage("validate.required"));
-        }else if (StringValidation.isLengthGreaterThan(vo.getName(), 255)) {
+        } else if (StringValidation.isLengthGreaterThan(vo.getName(), 255)) {
             response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
         }
 
@@ -474,7 +494,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
 
 
-        if(vo.getReceiveAlarmEmails() == null) {
+        if (vo.getReceiveAlarmEmails() == null) {
             response.addMessage("receiveAlarmEmails", new TranslatableMessage("validate.required"));
         }
 
@@ -499,23 +519,23 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
             try {
                 ZoneId.of(timezone);
-            } catch (DateTimeException  e) {
+            } catch (DateTimeException e) {
                 response.addMessage("timezone", new TranslatableMessage("validate.invalidValue"));
             }
         }
 
         //Can't set email verified
-        if(vo.getEmailVerified() != null && !permissionService.hasAdminRole(holder)) {
+        if (vo.getEmailVerified() != null && !permissionService.hasAdminRole(holder)) {
             response.addContextualMessage("emailVerified", "validate.invalidValue");
         }
 
-        if(StringUtils.isNotEmpty(vo.getOrganization())) {
+        if (StringUtils.isNotEmpty(vo.getOrganization())) {
             if (StringValidation.isLengthGreaterThan(vo.getOrganization(), 80)) {
                 response.addMessage("organization", new TranslatableMessage("validate.notLongerThan", 80));
             }
         }
 
-        if(StringUtils.isNotEmpty(vo.getOrganizationalRole())) {
+        if (StringUtils.isNotEmpty(vo.getOrganizationalRole())) {
             if (StringValidation.isLengthGreaterThan(vo.getOrganizationalRole(), 80)) {
                 response.addMessage("organizationalRole", new TranslatableMessage("validate.notLongerThan", 80));
             }
@@ -570,7 +590,12 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public void clearCaches() {
         PermissionHolder currentUser = Common.getUser();
         permissionService.ensureAdminRole(currentUser);
-        userByUsername.invalidateAll();
+        cacheLock.writeLock().lock();
+        try {
+            userByUsername.clear();
+        } finally {
+            cacheLock.writeLock().unlock();
+        }
     }
 
 }
