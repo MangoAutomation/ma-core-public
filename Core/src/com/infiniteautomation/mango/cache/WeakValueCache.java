@@ -6,11 +6,12 @@ package com.infiniteautomation.mango.cache;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -22,25 +23,30 @@ import org.slf4j.LoggerFactory;
 public class WeakValueCache<K, V> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final Map<K, MapValueWeakReference> backingMap;
+    private final Map<K, V> strongReferences;
+    private final Map<K, MapValueWeakReference> weakReferences = new LinkedHashMap<>();
     private final ReferenceQueue<V> referenceQueue = new ReferenceQueue<>();
     private final ReadWriteLock cacheLock;
 
-    public WeakValueCache() {
-        this(new HashMap<>(), new ReentrantReadWriteLock());
+    public WeakValueCache(int capacity) {
+        this(capacity, new ReentrantReadWriteLock());
     }
 
-    public WeakValueCache(Map<K, MapValueWeakReference> backingMap, ReadWriteLock cacheLock) {
-        this.backingMap = backingMap;
+    public WeakValueCache(int capacity, ReadWriteLock cacheLock) {
+        this.strongReferences = new LRUMap<>(capacity);
         this.cacheLock = cacheLock;
     }
 
     public V put(K key, V value) {
         cacheLock.writeLock().lock();
         try {
-            MapValueWeakReference previous = backingMap.put(key, new MapValueWeakReference(key, value));
-            cleanupInternal();
-            return previous == null ? null : previous.get();
+            try {
+                strongReferences.put(key, value);
+                MapValueWeakReference previous = weakReferences.put(key, new MapValueWeakReference(key, value));
+                return previous == null ? null : previous.get();
+            } finally {
+                cleanupInternal();
+            }
         } finally {
             cacheLock.writeLock().unlock();
         }
@@ -49,9 +55,13 @@ public class WeakValueCache<K, V> {
     public V remove(K key) {
         cacheLock.writeLock().lock();
         try {
-            MapValueWeakReference previous = backingMap.remove(key);
-            cleanupInternal();
-            return previous == null ? null : previous.get();
+            try {
+                strongReferences.remove(key);
+                MapValueWeakReference previous = weakReferences.remove(key);
+                return previous == null ? null : previous.get();
+            } finally {
+                cleanupInternal();
+            }
         } finally {
             cacheLock.writeLock().unlock();
         }
@@ -79,14 +89,18 @@ public class WeakValueCache<K, V> {
         if (value == null) {
             cacheLock.writeLock().lock();
             try {
-                value = getInternal(key);
-                if (value == null) {
-                    value = mappingFunction.apply(key);
-                    if (value != null) {
-                        backingMap.put(key, new MapValueWeakReference(key, value));
+                try {
+                    value = getInternal(key);
+                    if (value == null) {
+                        value = mappingFunction.apply(key);
+                        if (value != null) {
+                            strongReferences.put(key, value);
+                            weakReferences.put(key, new MapValueWeakReference(key, value));
+                        }
                     }
+                } finally {
+                    cleanupInternal();
                 }
-                cleanupInternal();
             } finally {
                 cacheLock.writeLock().unlock();
             }
@@ -96,19 +110,19 @@ public class WeakValueCache<K, V> {
     }
 
     private V getInternal(K key) {
-        MapValueWeakReference ref = backingMap.get(key);
+        MapValueWeakReference ref = weakReferences.get(key);
         return ref == null ? null : ref.get();
     }
 
-    public void forEachValue(Consumer<? super V> consumer) {
+    public void forEach(BiConsumer<? super K, ? super V> action) {
         cacheLock.readLock().lock();
         try {
-            backingMap.values().forEach(v -> {
-                V value = v.get();
+            for (Entry<K, MapValueWeakReference> entry : weakReferences.entrySet()) {
+                V value = entry.getValue().get();
                 if (value != null) {
-                    consumer.accept(value);
+                    action.accept(entry.getKey(), value);
                 }
-            });
+            }
         } finally {
             cacheLock.readLock().unlock();
         }
@@ -117,8 +131,12 @@ public class WeakValueCache<K, V> {
     public void clear() {
         cacheLock.writeLock().lock();
         try {
-            backingMap.clear();
-            cleanupInternal();
+            try {
+                strongReferences.clear();
+                weakReferences.clear();
+            } finally {
+                cleanupInternal();
+            }
         } finally {
             cacheLock.writeLock().unlock();
         }
@@ -141,17 +159,17 @@ public class WeakValueCache<K, V> {
             MapValueWeakReference ref;
             while ((ref = (MapValueWeakReference) referenceQueue.poll()) != null) {
                 collectedEntries++;
-                if (backingMap.remove(ref.key, ref)) {
+                if (weakReferences.remove(ref.key, ref)) {
                     removedEntries++;
                 }
-                if (log.isInfoEnabled()) {
-                    log.info("Garbage collected {}", ref.key);
+                if (log.isTraceEnabled()) {
+                    log.trace("Garbage collected {}", ref.key);
                 }
             }
 
-            if (log.isInfoEnabled()) {
-                log.info("Garbage collected {} entries, removed {} entries, map size {}, keys {}",
-                        collectedEntries, removedEntries, backingMap.size(), backingMap.keySet());
+            if (log.isDebugEnabled()) {
+                log.debug("Garbage collected {} entries, removed {} entries, map size {}, keys {}",
+                        collectedEntries, removedEntries, weakReferences.size(), weakReferences.keySet());
             }
         } catch (Exception e) {
             log.error("Error cleaning up cache", e);
@@ -161,7 +179,7 @@ public class WeakValueCache<K, V> {
     public int size() {
         cacheLock.readLock().lock();
         try {
-            return backingMap.size();
+            return weakReferences.size();
         } finally {
             cacheLock.readLock().unlock();
         }

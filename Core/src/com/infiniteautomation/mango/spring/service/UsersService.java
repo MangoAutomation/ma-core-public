@@ -21,11 +21,10 @@ import java.util.regex.Matcher;
 import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -75,8 +74,6 @@ import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
 @Service
 public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> implements CachingService {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
     private final SystemSettingsDao systemSettings;
     private final PasswordService passwordService;
     private final PermissionDefinition editSelfPermission;
@@ -90,7 +87,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                         SystemSettingsDao systemSettings,
                         PasswordService passwordService,
                         UserCreatePermission createPermission,
-                        ApplicationEventPublisher eventPublisher) {
+                        ApplicationEventPublisher eventPublisher,
+                        Environment env) {
         super(dao, permissionService);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
@@ -98,7 +96,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         this.changeOwnUsernamePermission = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
         this.createPermission = createPermission;
         this.eventPublisher = eventPublisher;
-        this.userByUsername = new WeakValueCache<>();
+        this.userByUsername = new WeakValueCache<>(env.getProperty("cache.users.size", Integer.class, 1000));
     }
 
     @Override
@@ -113,7 +111,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                     event.getOriginalVo().getRole() :
                     event.getVo().getRole();
 
-            userByUsername.forEachValue(user -> {
+            userByUsername.forEach((username, user) -> {
                 if (user.getRoles().contains(originalRole)) {
                     Set<Role> updatedRoles = new HashSet<>(user.getRoles());
                     if (event.getType() == DaoEventType.DELETE) {
