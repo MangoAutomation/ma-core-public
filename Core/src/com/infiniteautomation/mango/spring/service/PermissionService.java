@@ -524,14 +524,17 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * Find or create a permission entry to match these minterms
-     * @param minterms
-     * @return
+     * Finds or creates a saved permission with minterms that match the desired permission.
+     * If the permission already has a non-null id it is assumed to have been saved already and is returned directly.
+     * @param permission
+     * @return saved permission with an ID
      */
-    public MangoPermission findOrCreate(Set<Set<Role>> minterms) {
-        MangoPermission input = new MangoPermission(minterms);
-        Integer id = permissionCacheInverse.computeIfAbsent(input, r -> permissionDao.permissionId(r.getRoles()));
-        return new MangoPermission(id, minterms);
+    public MangoPermission findOrCreate(MangoPermission permission) {
+        if (permission.getId() == null) {
+            Integer id = permissionCacheInverse.computeIfAbsent(permission, r -> permissionDao.permissionId(r.getRoles()));
+            return new MangoPermission(id, permission.getRoles());
+        }
+        return permission;
     }
 
     /**

@@ -201,10 +201,10 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
     @Override
     public void savePreRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
-        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission());
         vo.setEditPermission(editPermission);
 
         vo.getDefinition().savePreRelationalData(existing, vo);

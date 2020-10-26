@@ -233,7 +233,7 @@ public class EventDao extends BaseDao {
     }
 
     public void savePreRelationalData(EventInstance vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
     }
 

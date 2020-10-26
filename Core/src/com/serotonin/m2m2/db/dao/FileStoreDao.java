@@ -97,10 +97,10 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinit
 
     @Override
     public void savePreRelationalData(FileStore existing, FileStore vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
-        MangoPermission writePermission = permissionService.findOrCreate(vo.getWritePermission().getRoles());
+        MangoPermission writePermission = permissionService.findOrCreate(vo.getWritePermission());
         vo.setWritePermission(writePermission);
     }
 

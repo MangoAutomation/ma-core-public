@@ -259,7 +259,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
     @Override
     public void savePreRelationalData(EventInstanceVO existing, EventInstanceVO vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
     }
 

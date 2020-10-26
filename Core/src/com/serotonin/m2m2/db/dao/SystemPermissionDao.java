@@ -4,13 +4,13 @@
 
 package com.serotonin.m2m2.db.dao;
 
-import static com.serotonin.m2m2.db.dao.tables.SystemPermissionTable.SYSTEM_PERMISSIONS;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+
+import static com.serotonin.m2m2.db.dao.tables.SystemPermissionTable.SYSTEM_PERMISSIONS;
 /**
  *
  * @author Terry Packer
@@ -42,7 +42,7 @@ public class SystemPermissionDao extends BaseDao {
      * @return
      */
     public void insert(String permissionTypeName, MangoPermission permission) {
-        MangoPermission toInsert = permissionService.findOrCreate(permission.getRoles());
+        MangoPermission toInsert = permissionService.findOrCreate(permission);
         this.create.insertInto(SYSTEM_PERMISSIONS).columns(SYSTEM_PERMISSIONS.permissionId, SYSTEM_PERMISSIONS.permissionType).values(toInsert.getId(), permissionTypeName).execute();
     }
 
@@ -56,7 +56,7 @@ public class SystemPermissionDao extends BaseDao {
         if(!existing.equals(permission)) {
             permissionService.permissionDeleted(existing);
         }
-        MangoPermission toUpdate = permissionService.findOrCreate(permission.getRoles());
+        MangoPermission toUpdate = permissionService.findOrCreate(permission);
         this.create.update(SYSTEM_PERMISSIONS).set(SYSTEM_PERMISSIONS.permissionId, toUpdate.getId()).where(SYSTEM_PERMISSIONS.permissionType.eq(permissionTypeName)).execute();
     }
 

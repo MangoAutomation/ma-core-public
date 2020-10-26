@@ -668,13 +668,13 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     @Override
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
-        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission());
         vo.setEditPermission(editPermission);
 
-        MangoPermission setPermission = permissionService.findOrCreate(vo.getSetPermission().getRoles());
+        MangoPermission setPermission = permissionService.findOrCreate(vo.getSetPermission());
         vo.setSetPermission(setPermission);
     }
 

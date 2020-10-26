@@ -131,10 +131,10 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
 
     @Override
     public void savePreRelationalData(JsonDataVO existing, JsonDataVO vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
-        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission());
         vo.setEditPermission(editPermission);
     }
 

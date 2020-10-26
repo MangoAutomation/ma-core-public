@@ -281,10 +281,10 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
 
     @Override
     public void savePreRelationalData(DataSourceVO existing, DataSourceVO vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
-        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission());
         vo.setEditPermission(editPermission);
 
         vo.getDefinition().savePreRelationalData(existing, vo);

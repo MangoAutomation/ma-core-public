@@ -80,10 +80,10 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
 
     @Override
     public void savePreRelationalData(MailingList existing, MailingList vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
-        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission());
         vo.setEditPermission(editPermission);
     }
 

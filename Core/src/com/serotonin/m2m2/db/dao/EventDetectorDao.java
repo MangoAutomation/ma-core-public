@@ -157,10 +157,10 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     @Override
     public void savePreRelationalData(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo) {
-        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission().getRoles());
+        MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
-        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission().getRoles());
+        MangoPermission editPermission = permissionService.findOrCreate(vo.getEditPermission());
         vo.setEditPermission(editPermission);
 
         vo.getDefinition().savePreRelationalData(existing, vo);
