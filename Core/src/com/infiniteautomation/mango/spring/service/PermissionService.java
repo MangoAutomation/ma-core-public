@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.infiniteautomation.mango.cache.BidirectionalCache;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -64,7 +66,9 @@ public class PermissionService implements CachingService {
     //Cache of role xid to inheritance
     private final LoadingCache<String, RoleInheritance> roleHierarchyCache;
     //Cache of permissionId to MangoPermission
-    private final LoadingCache<Integer, MangoPermission> permissionCache;
+
+    private final BidirectionalCache<Integer, MangoPermission> permissionCache;
+    private final BidirectionalCache<MangoPermission, Integer> permissionCacheInverse;
 
     @Autowired
     public PermissionService(RoleDao roleDao,
@@ -72,7 +76,8 @@ public class PermissionService implements CachingService {
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     PermissionHolder systemSuperadmin,
     DataSourcePermissionDefinition dataSourcePermission,
-    EventsViewPermissionDefinition eventsView) {
+    EventsViewPermissionDefinition eventsView,
+                             Environment env) {
         this.roleDao = roleDao;
         this.permissionDao = permissionDao;
 
@@ -80,11 +85,10 @@ public class PermissionService implements CachingService {
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
         this.roleHierarchyCache = Caffeine.newBuilder()
-                .maximumSize(Common.envProps.getLong("cache.roles.size", 1000))
+                .maximumSize(env.getProperty("cache.roles.size", Long.class, 1000L))
                 .build(this::loadRoleInheritance);
-        this.permissionCache = Caffeine.newBuilder()
-                .maximumSize(Common.envProps.getLong("cache.permission.size", 1000))
-                .build(this::loadPermission);
+        this.permissionCache = new BidirectionalCache<>(env.getProperty("cache.permission.size", Integer.class, 1000));
+        this.permissionCacheInverse = this.permissionCache.inverse();
     }
 
     /**
@@ -395,7 +399,7 @@ public class PermissionService implements CachingService {
         if(permissionId == null) {
             return hasAdminRole(user);
         }else {
-            MangoPermission permission = permissionCache.get(permissionId);
+            MangoPermission permission = permissionCache.computeIfAbsent(permissionId, this::loadPermission);
             return hasPermission(user, permission);
         }
     }
@@ -414,7 +418,7 @@ public class PermissionService implements CachingService {
         if(permissionId == null) {
             return hasAdminRole(user);
         }else {
-            MangoPermission permission = permissionCache.get(permissionId);
+            MangoPermission permission = permissionCache.computeIfAbsent(permissionId, this::loadPermission);
             return hasPermission(user, permission);
         }
     }
@@ -511,7 +515,7 @@ public class PermissionService implements CachingService {
      * @throws NotFoundException if permission with this ID not found
      */
     public MangoPermission get(Integer id) throws NotFoundException {
-        MangoPermission permission = this.permissionCache.get(id);
+        MangoPermission permission = permissionCache.computeIfAbsent(id, this::loadPermission);
         if(permission == null) {
             throw new NotFoundException();
         }else {
@@ -525,17 +529,8 @@ public class PermissionService implements CachingService {
      * @return
      */
     public MangoPermission findOrCreate(Set<Set<Role>> minterms) {
-        // TODO Mango 4.0 this is only weakly consistent
-        for(MangoPermission p : permissionCache.asMap().values()) {
-            //TODO checking ID so we don't accidentally change it
-            // not sure if that is possible based on the permission.equals() method
-            if(p.getRoles().equals(minterms)) {
-                return p;
-            }
-        }
-
-        Integer id = permissionDao.permissionId(minterms);
-        //TODO Insert into cache here?
+        MangoPermission input = new MangoPermission(minterms);
+        Integer id = permissionCacheInverse.computeIfAbsent(input, r -> permissionDao.permissionId(r.getRoles()));
         return new MangoPermission(id, minterms);
     }
 
@@ -557,7 +552,7 @@ public class PermissionService implements CachingService {
      */
     public void permissionDeleted(Integer permissionId) {
         if(permissionDao.permissionDeleted(permissionId)) {
-            this.permissionCache.invalidate(permissionId);
+            this.permissionCache.remove(permissionId);
         }
     }
 
@@ -758,7 +753,7 @@ public class PermissionService implements CachingService {
                 //TODO Invalidate me
                 roleHierarchyCache.invalidateAll();
                 //TODO Mango 4.0 find and invalidate permissions that have this role
-                permissionCache.invalidateAll();
+                permissionCache.clear();
                 break;
             default:
                 break;
@@ -770,7 +765,7 @@ public class PermissionService implements CachingService {
         PermissionHolder currentUser = Common.getUser();
         ensureAdminRole(currentUser);
         this.roleHierarchyCache.invalidateAll();
-        this.permissionCache.invalidateAll();
+        this.permissionCache.clear();
     }
 
     /**

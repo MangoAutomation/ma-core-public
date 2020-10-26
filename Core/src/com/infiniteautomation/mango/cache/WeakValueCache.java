@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jared Wiltshire
  */
-public class WeakValueCache<K, V> {
+public class WeakValueCache<K, V> implements Cache<K,V> {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final Map<K, V> strongReferences;
@@ -37,6 +37,7 @@ public class WeakValueCache<K, V> {
         this.cacheLock = cacheLock;
     }
 
+    @Override
     public V put(K key, V value) {
         cacheLock.writeLock().lock();
         try {
@@ -52,6 +53,7 @@ public class WeakValueCache<K, V> {
         }
     }
 
+    @Override
     public V remove(K key) {
         cacheLock.writeLock().lock();
         try {
@@ -67,6 +69,7 @@ public class WeakValueCache<K, V> {
         }
     }
 
+    @Override
     public V get(K key) {
         cacheLock.readLock().lock();
         try {
@@ -76,6 +79,7 @@ public class WeakValueCache<K, V> {
         }
     }
 
+    @Override
     public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
         V value;
 
@@ -114,6 +118,7 @@ public class WeakValueCache<K, V> {
         return ref == null ? null : ref.get();
     }
 
+    @Override
     public void forEach(BiConsumer<? super K, ? super V> action) {
         cacheLock.readLock().lock();
         try {
@@ -128,6 +133,7 @@ public class WeakValueCache<K, V> {
         }
     }
 
+    @Override
     public void clear() {
         cacheLock.writeLock().lock();
         try {
@@ -176,6 +182,7 @@ public class WeakValueCache<K, V> {
         }
     }
 
+    @Override
     public int size() {
         cacheLock.readLock().lock();
         try {
