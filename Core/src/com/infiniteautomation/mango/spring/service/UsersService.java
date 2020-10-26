@@ -575,7 +575,11 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             if (username == null) {
                 throw new NotFoundException();
             }
-            return get(username);
+            User user = get(username);
+            if (user.getId() != id) {
+                throw new IllegalStateException("User was updated while retrieving from cache");
+            }
+            return user;
         });
     }
 
