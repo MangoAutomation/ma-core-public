@@ -4,9 +4,6 @@
 
 package com.infiniteautomation.mango.permission;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -25,6 +22,9 @@ import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  *
  * @author Terry Packer
@@ -39,7 +39,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         //Create some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        MangoPermission permission = service.findOrCreate(MangoPermission.requireAllRoles(roles).getRoles());
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAllRoles(roles));
         MangoPermission read = service.get(permission.getId());
 
         assertEquals(1, read.getRoles().size());
@@ -55,7 +55,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         //Create some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles).getRoles());
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles));
         MangoPermission read = service.get(permission.getId());
 
         assertEquals(2, read.getRoles().size());
@@ -81,7 +81,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         minterms.add(minterm2);
         minterms.add(minterm3);
 
-        MangoPermission permission = service.findOrCreate(minterms);
+        MangoPermission permission = service.findOrCreate(new MangoPermission(minterms));
         MangoPermission read = service.get(permission.getId());
 
 
@@ -129,14 +129,14 @@ public class PermissionPersistenceTest extends MangoTestBase {
         //insert some roles
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         //insert the permission
-        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles).getRoles());
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles));
         MangoPermission read = service.get(permission.getId());
 
         assertEquals(2, read.getRoles().size());
         Iterator<Set<Role>> it = read.getRoles().iterator();
         Role toKeep = it.next().iterator().next();
 
-        MangoPermission keep = service.findOrCreate(MangoPermission.requireAnyRole(toKeep).getRoles());
+        MangoPermission keep = service.findOrCreate(MangoPermission.requireAnyRole(toKeep));
         read = service.get(keep.getId());
         assertEquals(1, read.getRoles().size());
 
@@ -155,7 +155,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         Set<Role> roles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
 
         //insert the permission
-        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles).getRoles());
+        MangoPermission permission = service.findOrCreate(MangoPermission.requireAnyRole(roles));
         MangoPermission read = service.get(permission.getId());
         assertEquals(2, read.getRoles().size());
 
