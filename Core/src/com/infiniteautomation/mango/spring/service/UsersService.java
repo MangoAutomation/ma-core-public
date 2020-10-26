@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -568,11 +567,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
         // TODO Mango 4.0 Exposing this is potentially dangerous as users may not get their roles updated
         userByUsername.clear();
-    }
-
-    @Scheduled(fixedDelay = 60000)
-    public void cleanupCache() {
-        userByUsername.cleanup();
     }
 
     public User getByIdViaCache(int id) {
