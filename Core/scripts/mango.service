@@ -16,5 +16,8 @@ RestartSec=5s
 User=mango
 NoNewPrivileges=true
 
+# Needed for ping command
+#AmbientCapabilities=CAP_NET_RAW
+
 [Install]
 WantedBy=multi-user.target
