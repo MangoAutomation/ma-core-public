@@ -129,7 +129,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     @Override
     public String getXid() {
-        return "N/A";
+        return username;
     }
     /**
      * Used for various display purposes.
