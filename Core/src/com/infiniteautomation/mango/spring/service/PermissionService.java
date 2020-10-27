@@ -515,11 +515,12 @@ public class PermissionService implements CachingService {
      * @throws NotFoundException if permission with this ID not found
      */
     public MangoPermission get(Integer id) throws NotFoundException {
+        Objects.requireNonNull(id);
         MangoPermission permission = permissionCache.computeIfAbsent(id, this::loadPermission);
-        if(permission == null) {
+        if (permission == null) {
             throw new NotFoundException();
-        }else {
-            return permission;
+        } else {
+            return permission.withId(id);
         }
     }
 

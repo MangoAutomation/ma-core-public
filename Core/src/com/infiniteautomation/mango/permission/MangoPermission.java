@@ -17,11 +17,12 @@ import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Container for a set of roles that apply to a permission such as 'permissionDatasource' or  'permissions.user.editSelf'
- *   or a specific VO permission such as data point set permission.
+ * or a specific VO permission such as data point set permission.
  *
- *  @author Terry Packer
- *  @author Jared Wiltshire
+ * <p>Note: The id field is not considered in the {@link #hashCode()} and {@link #equals(java.lang.Object)} methods.</p>
  *
+ * @author Terry Packer
+ * @author Jared Wiltshire
  */
 public final class MangoPermission {
 
@@ -38,17 +39,23 @@ public final class MangoPermission {
     }
 
     /**
-     * Creates a permission that only superadmins have access to
+     * Creates a placeholder permission that just contains an id, used while loading VO objects from DB.
+     * The permission contains an empty set of permissions so if any access control checks are performed against this
+     * permission (this should not occur) only the superadmin will be granted access.
      */
     public MangoPermission(int id) {
         this(id, Collections.emptySet());
     }
 
     /**
-     * @param readPermission
+     * Return a new permission with the same roles but with a new ID.
+     * @param id
+     * @param permission
      */
-    public MangoPermission(MangoPermission permission) {
-        this(permission.getId(), permission.getRoles());
+    public MangoPermission(int id, MangoPermission permission) {
+        this.id = id;
+        // roles are already validated
+        this.roles = permission.getRoles();
     }
 
     /**
@@ -59,6 +66,7 @@ public final class MangoPermission {
         this(null, minterms);
     }
 
+    // TODO Mango 4.0 review the usage of this constructor and make it private
     public MangoPermission(Integer id, Set<Set<Role>> minterms) {
         this.id = id;
 
@@ -82,6 +90,14 @@ public final class MangoPermission {
                 .collect(Collectors.toSet()));
     }
 
+    /**
+     * Return a new permission with the same roles but with a new ID.
+     * @param id
+     * @return
+     */
+    public MangoPermission withId(Integer id) {
+        return new MangoPermission(id, this);
+    }
 
     public Set<Set<Role>> getRoles() {
         return roles;
