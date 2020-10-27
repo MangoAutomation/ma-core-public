@@ -3,14 +3,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static com.serotonin.m2m2.db.dao.tables.MintermMappingTable.MINTERMS_MAPPING;
-import static com.serotonin.m2m2.db.dao.tables.MintermTable.MINTERMS;
-import static com.serotonin.m2m2.db.dao.tables.PermissionMappingTable.PERMISSIONS_MAPPING;
-import static com.serotonin.m2m2.db.dao.tables.PermissionTable.PERMISSIONS;
-import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.default_;
-import static org.jooq.impl.DSL.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -33,6 +25,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.vo.role.Role;
+
+import static com.serotonin.m2m2.db.dao.tables.MintermMappingTable.MINTERMS_MAPPING;
+import static com.serotonin.m2m2.db.dao.tables.MintermTable.MINTERMS;
+import static com.serotonin.m2m2.db.dao.tables.PermissionMappingTable.PERMISSIONS_MAPPING;
+import static com.serotonin.m2m2.db.dao.tables.PermissionTable.PERMISSIONS;
+import static org.jooq.impl.DSL.*;
 
 /**
  * NOTE: Permissions are cached, usage of tjos dao should be limited to within the PermissionService
@@ -121,10 +119,14 @@ public class PermissionDao extends BaseDao {
      * @return
      */
     public Integer permissionId(Set<Set<Role>> minterms) {
-        return new TransactionTemplate(getTransactionManager(),
-                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW)).execute(txStatus -> {
-                    return getOrInsertPermission(minterms);
-                });
+        // We need to always do this in a new transaction as this ends up in the cache. Otherwise if we are in a
+        // nested transaction the permission ID will end up in the cache before the transaction is committed. The
+        // caveats of this are:
+        // a) if the outer transaction is rolled back we may be left with a dangling permission that is not used
+        // b) the permission may get deleted before the outer transaction is committed
+        TransactionTemplate txTemplate = new TransactionTemplate(getTransactionManager(),
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+        return txTemplate.execute(txStatus -> getOrInsertPermission(minterms));
     }
 
     private Integer getOrInsertPermission(Set<Set<Role>> minterms) {
