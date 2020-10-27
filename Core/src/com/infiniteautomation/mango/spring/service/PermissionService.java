@@ -533,7 +533,7 @@ public class PermissionService implements CachingService {
     public MangoPermission findOrCreate(MangoPermission permission) {
         if (permission.getId() == null) {
             Integer id = permissionCacheInverse.computeIfAbsent(permission, r -> permissionDao.permissionId(r.getRoles()));
-            return new MangoPermission(id, permission.getRoles());
+            return permission.withId(id);
         }
         return permission;
     }
