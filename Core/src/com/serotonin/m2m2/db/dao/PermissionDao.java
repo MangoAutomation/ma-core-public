@@ -26,6 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
@@ -118,9 +121,10 @@ public class PermissionDao extends BaseDao {
      * @return
      */
     public Integer permissionId(Set<Set<Role>> minterms) {
-        return getTransactionTemplate().execute(txStatus -> {
-            return getOrInsertPermission(minterms);
-        });
+        return new TransactionTemplate(getTransactionManager(),
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW)).execute(txStatus -> {
+                    return getOrInsertPermission(minterms);
+                });
     }
 
     private Integer getOrInsertPermission(Set<Set<Role>> minterms) {
