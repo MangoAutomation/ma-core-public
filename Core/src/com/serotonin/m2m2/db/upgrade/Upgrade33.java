@@ -4,9 +4,12 @@
 package com.serotonin.m2m2.db.upgrade;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -42,6 +45,11 @@ public class Upgrade33 extends DBUpgrade implements PermissionMigration {
             }), out);
 
             //Upgrade all permissions
+            final int batchSize = Common.envProps.getInt("db.in.maxOperands", 1000);
+            final String update = "UPDATE events SET readPermissionId=? WHERE id=?";
+            final List<Object[]> batchArgs = new ArrayList<>();
+            final AtomicInteger currentBatchSize = new AtomicInteger();
+
             ejt.query("SELECT id, typeName, typeRef1 FROM events", rs -> {
                 int eventId = rs.getInt(1);
                 String typeName = rs.getString(2);
@@ -81,8 +89,18 @@ public class Upgrade33 extends DBUpgrade implements PermissionMigration {
                     readPermissionId = superadmin.getId();
                 }
 
-                ejt.update("UPDATE events SET readPermissionId=? WHERE id=?", readPermissionId, eventId);
+                batchArgs.add(new Object[]{readPermissionId, eventId});
+                if(currentBatchSize.incrementAndGet() >= batchSize) {
+                    ejt.batchUpdate(update, batchArgs);
+                    batchArgs.clear();
+                    currentBatchSize.set(0);
+                }
             });
+
+            //Finish the batch
+            if(currentBatchSize.get() > 0) {
+                ejt.batchUpdate(update, batchArgs);
+            }
 
             //Make NON-NULL
             HashMap<String, String[]> scripts = new HashMap<>();
