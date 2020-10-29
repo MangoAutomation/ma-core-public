@@ -117,7 +117,7 @@ public class Common {
         System.setProperty("ma.logs", LOGS_PATH.toString());
     }
 
-    public static final Path OVERRIDES = MA_HOME_PATH.resolve(Constants.DIR_OVERRIDES);
+    public static final Path OVERRIDES = MA_HOME_PATH.resolve(envProps.getString("paths.overrides", Constants.DIR_OVERRIDES));
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
