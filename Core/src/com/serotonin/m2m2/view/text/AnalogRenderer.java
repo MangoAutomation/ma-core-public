@@ -13,7 +13,6 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 import javax.measure.unit.Unit;
-import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -139,8 +138,7 @@ public class AnalogRenderer extends ConvertingRenderer {
         if(StringUtils.isEmpty(s))
             return new NumericValue(0);
         else if(s.startsWith("0x") || s.startsWith("0X")) {
-            byte[] values = DatatypeConverter.parseHexBinary(s.substring(2));
-            return new NumericValue(new BigInteger(1, values).longValue());
+            return new NumericValue(new BigInteger(s.substring(2), 16).longValue());
         }else
             return DataValue.stringToValue(s, dataType);
     }
