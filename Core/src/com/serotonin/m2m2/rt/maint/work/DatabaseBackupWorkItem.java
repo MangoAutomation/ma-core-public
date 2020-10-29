@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -52,6 +54,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
     private volatile boolean cancelled = false;
     private volatile boolean failed = false;
     private String filename;
+    private final CompletableFuture<Void> completed = new CompletableFuture<Void>();
 
     /**
      * Statically Schedule a Timer Task that will run this work item.
@@ -92,14 +95,23 @@ public class DatabaseBackupWorkItem implements WorkItem {
     }
 
     /**
+     * To know when the task is completed
+     * @return
+     */
+    public Future<Void> getCompletableFuture() {
+        return completed;
+    }
+
+    /**
      * Queue a backup for execution
      *
      * @param backupLocation
      */
-    public static void queueBackup(String backupLocation) {
+    public static Future<Void> queueBackup(String backupLocation) {
         DatabaseBackupWorkItem item = new DatabaseBackupWorkItem();
         item.backupLocation = backupLocation;
         Common.backgroundProcessing.addWorkItem(item);
+        return item.getCompletableFuture();
     }
 
     @Override
@@ -206,6 +218,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 backupFailed(fullFilePath, e.getMessage());
             }finally{
                 finished = true;
+                completed.complete(null);
             }
         }
     }
@@ -533,12 +546,9 @@ public class DatabaseBackupWorkItem implements WorkItem {
         return Common.defaultTaskQueueSize;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-     */
     @Override
     public void rejected(RejectedTaskReason reason) {
-        //No Special handling
+        this.completed.completeExceptionally(new RuntimeException(reason.getDescription()));
     }
 
     /**

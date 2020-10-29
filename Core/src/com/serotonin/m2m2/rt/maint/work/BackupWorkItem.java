@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
 import org.apache.commons.logging.Log;
@@ -46,6 +48,7 @@ public class BackupWorkItem implements WorkItem {
     private volatile boolean cancelled = false;
     private volatile boolean failed = false;
     private String filename;
+    private final CompletableFuture<Void> completed = new CompletableFuture<Void>();
 
     /**
      * Statically Schedule a Timer Task that will run this work item.
@@ -88,13 +91,22 @@ public class BackupWorkItem implements WorkItem {
     }
 
     /**
+     * Future to determine when the process is complete
+     * @return
+     */
+    public Future<Void> getCompletableFuture() {
+        return completed;
+    }
+
+    /**
      * Queue a backup for execution
      * @param backupLocation
      */
-    public static void queueBackup(String backupLocation){
+    public static Future<Void> queueBackup(String backupLocation){
         BackupWorkItem item = new BackupWorkItem();
         item.backupLocation = backupLocation;
         Common.backgroundProcessing.addWorkItem(item);
+        return item.getCompletableFuture();
     }
 
     @Override
@@ -181,6 +193,7 @@ public class BackupWorkItem implements WorkItem {
                                 "event.backup.failure", fullFilePath, e.getMessage()));
             } finally {
                 this.finished = true;
+                this.completed.complete(null);
                 LOG.info("Finished backup WorkItem.");
             }
         }
@@ -264,7 +277,9 @@ public class BackupWorkItem implements WorkItem {
     }
 
     @Override
-    public void rejected(RejectedTaskReason reason) { }
+    public void rejected(RejectedTaskReason reason) {
+        this.completed.completeExceptionally(new RuntimeException(reason.getDescription()));
+    }
 
     public void cancel(){
         this.cancelled = true;

@@ -15,7 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -372,6 +374,8 @@ public class ModulesService implements ModuleNotificationListener {
                     return;
                 }
 
+                Future<Void> backupComplete = null;
+                Future<Void> databaseBackupComplete = null;
                 if (backup) {
                     // Run the backup.
                     LOG.info("UpgradeDownloader: " + UpgradeState.BACKUP);
@@ -381,10 +385,13 @@ public class ModulesService implements ModuleNotificationListener {
                     // Do the backups. They run async, so this returns immediately. The shutdown will
                     // wait for the
                     // background processes to finish though.
-                    BackupWorkItem.queueBackup(
+                    backupComplete = BackupWorkItem.queueBackup(
                             SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
-                    DatabaseBackupWorkItem.queueBackup(SystemSettingsDao.instance
+                    databaseBackupComplete = DatabaseBackupWorkItem.queueBackup(SystemSettingsDao.instance
                             .getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
+                }else {
+                    backupComplete = CompletableFuture.completedFuture(null);
+                    databaseBackupComplete = CompletableFuture.completedFuture(null);
                 }
 
                 LOG.info("UpgradeDownloader: " + UpgradeState.DOWNLOAD);
@@ -532,6 +539,18 @@ public class ModulesService implements ModuleNotificationListener {
                     for (ModuleNotificationListener listener : listeners)
                         listener.upgradeStateChanged(UpgradeState.CANCELLED);
                     return;
+                }
+
+                //Wait for backups before we shutdown
+                try{
+                    backupComplete.get();
+                }catch(Exception e) {
+                    LOG.error("Configuration Backup failed", e);
+                }
+                try {
+                    databaseBackupComplete.get();
+                }catch(Exception e) {
+                    LOG.error("Database Backup failed", e);
                 }
 
                 if (restart) {
