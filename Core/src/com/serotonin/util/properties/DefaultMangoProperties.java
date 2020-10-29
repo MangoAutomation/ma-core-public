@@ -68,7 +68,7 @@ public class DefaultMangoProperties implements MangoProperties {
 
     public static Properties loadFromResources(String resourceName, ClassLoader cl) throws IOException {
         Properties properties = new Properties();
-        ArrayList<URL> resources = Collections.list(cl.getResources("env.properties"));
+        ArrayList<URL> resources = Collections.list(cl.getResources(resourceName));
         for (URL resource : resources) {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8))) {
                 properties.load(reader);
