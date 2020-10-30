@@ -220,7 +220,7 @@ public class PermissionDao extends BaseDao {
     /**
      * Clean up references from an unlinked permission
      */
-    public void permissionUnlinked() {
+    private void permissionUnlinked() {
         //Clean up minterms that are orphaned (i.e. belong to no permission)
         create.deleteFrom(MINTERMS).where(
                 MINTERMS.id.in(
@@ -230,19 +230,25 @@ public class PermissionDao extends BaseDao {
     }
 
     /**
-     * A vo with a permission was deleted, attempt to delete it and clean up
-     *  if other VOs reference this permission it will not be deleted
-     * @param permissions
+     * Attempt to delete a permission, will not succeed if another object references the permission (via foreign key).
+     * @param permissionId
+     * @return true if the permission was deleted
      */
-    public boolean permissionDeleted(Integer id) {
-        try{
-            if(create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(id)).execute() > 0) {
-                permissionUnlinked();
-                return true;
-            }
-        }catch(Exception e) {
-            //permission still in use
+    public boolean deletePermission(Integer permissionId) {
+        TransactionTemplate txTemplate = new TransactionTemplate(getTransactionManager(),
+                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
+
+        try {
+            txTemplate.execute(txStatus -> {
+                if (create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(permissionId)).execute() > 0) {
+                    permissionUnlinked();
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            return false;
         }
-        return false;
+
+        return true;
     }
 }

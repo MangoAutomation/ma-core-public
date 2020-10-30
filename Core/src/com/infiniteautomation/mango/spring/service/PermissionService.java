@@ -539,25 +539,30 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * A vo with a permission was deleted, attempt to delete it and clean up
-     *  if other VOs reference this permission it will not be deleted
-     * @param permission
+     * Attempt to delete permissions, if other VOs reference the permission it will not be deleted
+     *
+     * @param permissions
      */
     public void permissionDeleted(MangoPermission... permissions) {
-        for(MangoPermission permission : permissions) {
+        for (MangoPermission permission : permissions) {
             this.permissionDeleted(permission.getId());
         }
     }
 
     /**
-     * Delete permission from system by ID, if other VOs
-     *  reference this permission it will not be deleted
+     * Attempt to delete permission from system by ID, if other VOs reference this permission it will not be deleted
+     *
      * @param permissionId
      */
     public void permissionDeleted(Integer permissionId) {
-        if(permissionDao.permissionDeleted(permissionId)) {
-            this.permissionCache.remove(permissionId);
-        }
+        permissionCache.compute(permissionId, (id, perm) -> {
+            if (permissionDao.deletePermission(id)) {
+                // remove cache entry if it exists
+                return null;
+            }
+            // keep cache entry if it exists
+            return perm;
+        });
     }
 
     /**
@@ -566,10 +571,8 @@ public class PermissionService implements CachingService {
      * @return
      */
     private MangoPermission loadPermission(Integer id) {
-        //TODO Mango 4.0 throw NotFoundException?
         return permissionDao.get(id);
     }
-
 
     /**
      * Validate a permission.  This will validate that:
