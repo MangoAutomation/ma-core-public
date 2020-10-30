@@ -63,4 +63,28 @@ public class BidirectionalCacheTest {
         assertNull(inverse.get("one"));
         assertEquals(2, (long) inverse.get("two"));
     }
+
+    @Test
+    public void insertDuplicate() {
+        BidirectionalCache<Integer, String> cache = new BidirectionalCache<>(2);
+        BidirectionalCache<String, Integer> inverse = cache.inverse();
+        cache.put(1, "one");
+        cache.put(1, "one");
+        assertEquals(1, cache.size());
+        assertEquals(1, inverse.size());
+        assertEquals("one", cache.get(1));
+        assertEquals(1, (long) inverse.get("one"));
+    }
+
+    @Test
+    public void insertDuplicateInverse() {
+        BidirectionalCache<Integer, String> cache = new BidirectionalCache<>(2);
+        BidirectionalCache<String, Integer> inverse = cache.inverse();
+        inverse.put("one", 1);
+        inverse.put("one", 1);
+        assertEquals(1, cache.size());
+        assertEquals(1, inverse.size());
+        assertEquals("one", cache.get(1));
+        assertEquals(1, (long) inverse.get("one"));
+    }
 }
