@@ -545,7 +545,7 @@ public class PermissionService implements CachingService {
      */
     public void deletePermissions(MangoPermission... permissions) {
         for (MangoPermission permission : permissions) {
-            this.deletePermissions(permission.getId());
+            this.deletePermissionId(permission.getId());
         }
     }
 
@@ -554,7 +554,7 @@ public class PermissionService implements CachingService {
      *
      * @param permissionId
      */
-    public void deletePermissions(Integer permissionId) {
+    public void deletePermissionId(Integer permissionId) {
         permissionCache.compute(permissionId, (id, perm) -> {
             if (permissionDao.deletePermission(id)) {
                 // remove cache entry if it exists

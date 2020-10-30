@@ -387,7 +387,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         }
 
         for(Integer id : permissionIds) {
-            permissionService.deletePermissions(id);
+            permissionService.deletePermissionId(id);
         }
 
         //Audit Events/Dao events
