@@ -142,10 +142,10 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
     public void saveRelationalData(JsonDataVO existing, JsonDataVO vo) {
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionService.permissionDeleted(existing.getReadPermission());
+                permissionService.deletePermissions(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionService.permissionDeleted(existing.getEditPermission());
+                permissionService.deletePermissions(existing.getEditPermission());
             }
         }
     }
@@ -160,7 +160,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
     @Override
     public void deletePostRelationalData(JsonDataVO vo) {
         // Clean permissions
-        permissionService.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        permissionService.deletePermissions(vo.getReadPermission(), vo.getEditPermission());
     }
 
     @Override

@@ -241,10 +241,10 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
             vo.getDefinition().saveRelationalData(existing, vo);
 
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionService.permissionDeleted(existing.getReadPermission());
+                permissionService.deletePermissions(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionService.permissionDeleted(existing.getEditPermission());
+                permissionService.deletePermissions(existing.getEditPermission());
             }
         }
     }
@@ -273,7 +273,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         //Clean permissions
         MangoPermission readPermission = vo.getReadPermission();
         MangoPermission editPermission = vo.getEditPermission();
-        permissionService.permissionDeleted(readPermission, editPermission);
+        permissionService.deletePermissions(readPermission, editPermission);
     }
 
     @Override

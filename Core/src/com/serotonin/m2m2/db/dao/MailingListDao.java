@@ -133,10 +133,10 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
 
         if(existing != null) {
             if(!existing.getReadPermission().equals(ml.getReadPermission())) {
-                permissionService.permissionDeleted(existing.getReadPermission());
+                permissionService.deletePermissions(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(ml.getEditPermission())) {
-                permissionService.permissionDeleted(existing.getEditPermission());
+                permissionService.deletePermissions(existing.getEditPermission());
             }
         }
     }
@@ -160,7 +160,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
     @Override
     public void deletePostRelationalData(MailingList vo) {
         //Clean permissions
-        permissionService.permissionDeleted(vo.getReadPermission(), vo.getEditPermission());
+        permissionService.deletePermissions(vo.getReadPermission(), vo.getEditPermission());
     }
 
     @Override

@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -84,6 +82,8 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
+
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 /**
  *
@@ -387,7 +387,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         }
 
         for(Integer id : permissionIds) {
-            permissionService.permissionDeleted(id);
+            permissionService.deletePermissions(id);
         }
 
         //Audit Events/Dao events
@@ -701,13 +701,13 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionService.permissionDeleted(existing.getReadPermission());
+                permissionService.deletePermissions(existing.getReadPermission());
             }
             if(!existing.getEditPermission().equals(vo.getEditPermission())) {
-                permissionService.permissionDeleted(existing.getEditPermission());
+                permissionService.deletePermissions(existing.getEditPermission());
             }
             if(!existing.getSetPermission().equals(vo.getSetPermission())) {
-                permissionService.permissionDeleted(existing.getSetPermission());
+                permissionService.deletePermissions(existing.getSetPermission());
             }
         }
     }
@@ -764,7 +764,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         MangoPermission readPermission = vo.getReadPermission();
         MangoPermission editPermission = vo.getEditPermission();
         MangoPermission setPermission = vo.getSetPermission();
-        permissionService.permissionDeleted(readPermission, editPermission, setPermission);
+        permissionService.deletePermissions(readPermission, editPermission, setPermission);
     }
 
     @Override

@@ -54,7 +54,7 @@ public class SystemPermissionDao extends BaseDao {
      */
     public void update(String permissionTypeName, MangoPermission existing, MangoPermission permission) {
         if(!existing.equals(permission)) {
-            permissionService.permissionDeleted(existing);
+            permissionService.deletePermissions(existing);
         }
         MangoPermission toUpdate = permissionService.findOrCreate(permission);
         this.create.update(SYSTEM_PERMISSIONS).set(SYSTEM_PERMISSIONS.permissionId, toUpdate.getId()).where(SYSTEM_PERMISSIONS.permissionType.eq(permissionTypeName)).execute();

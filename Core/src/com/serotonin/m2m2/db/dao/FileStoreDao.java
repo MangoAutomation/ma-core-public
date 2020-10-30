@@ -108,10 +108,10 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinit
     public void saveRelationalData(FileStore existing, FileStore vo) {
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionService.permissionDeleted(existing.getReadPermission());
+                permissionService.deletePermissions(existing.getReadPermission());
             }
             if(!existing.getWritePermission().equals(vo.getWritePermission())) {
-                permissionService.permissionDeleted(existing.getWritePermission());
+                permissionService.deletePermissions(existing.getWritePermission());
             }
         }
     }
@@ -126,7 +126,7 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinit
     @Override
     public void deletePostRelationalData(FileStore vo) {
         //Clean permissions
-        permissionService.permissionDeleted(vo.getReadPermission(), vo.getWritePermission());
+        permissionService.deletePermissions(vo.getReadPermission(), vo.getWritePermission());
     }
 
     @Override

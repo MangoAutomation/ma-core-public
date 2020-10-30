@@ -254,7 +254,7 @@ public class EventDao extends BaseDao {
 
     public void deletePostRelationalData(EventInstance vo) {
         MangoPermission readPermission = vo.getReadPermission();
-        permissionService.permissionDeleted(readPermission);
+        permissionService.deletePermissions(readPermission);
     }
 
     public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {

@@ -267,7 +267,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     public void saveRelationalData(EventInstanceVO existing, EventInstanceVO vo) {
         if(existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
-                permissionService.permissionDeleted(existing.getReadPermission());
+                permissionService.deletePermissions(existing.getReadPermission());
             }
         }
     }
@@ -286,7 +286,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     @Override
     public void deletePostRelationalData(EventInstanceVO vo) {
         MangoPermission readPermission = vo.getReadPermission();
-        permissionService.permissionDeleted(readPermission);
+        permissionService.deletePermissions(readPermission);
     }
 
     private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //
