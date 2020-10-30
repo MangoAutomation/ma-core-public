@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -77,40 +78,6 @@ public class WeakValueCache<K, V> implements Cache<K,V> {
         } finally {
             cacheLock.readLock().unlock();
         }
-    }
-
-    @Override
-    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-        V value;
-
-        cacheLock.readLock().lock();
-        try {
-            value = getInternal(key);
-        } finally {
-            cacheLock.readLock().unlock();
-        }
-
-        if (value == null) {
-            cacheLock.writeLock().lock();
-            try {
-                try {
-                    value = getInternal(key);
-                    if (value == null) {
-                        value = mappingFunction.apply(key);
-                        if (value != null) {
-                            strongReferences.put(key, value);
-                            weakReferences.put(key, new MapValueWeakReference(key, value));
-                        }
-                    }
-                } finally {
-                    cleanupInternal();
-                }
-            } finally {
-                cacheLock.writeLock().unlock();
-            }
-        }
-
-        return value;
     }
 
     private V getInternal(K key) {
@@ -189,6 +156,105 @@ public class WeakValueCache<K, V> implements Cache<K,V> {
             return weakReferences.size();
         } finally {
             cacheLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean containsKey(K key) {
+        return get(key) != null;
+    }
+
+    @Override
+    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+        cacheLock.readLock().lock();
+        try {
+            V value = getInternal(key);
+            if (value != null) {
+                return value;
+            }
+        } finally {
+            cacheLock.readLock().unlock();
+        }
+
+        cacheLock.writeLock().lock();
+        try {
+            try {
+                V oldValue = getInternal(key);
+                if (oldValue != null) {
+                    return oldValue;
+                }
+                V newValue = mappingFunction.apply(key);
+                if (newValue != null) {
+                    strongReferences.put(key, newValue);
+                    weakReferences.put(key, new MapValueWeakReference(key, newValue));
+                }
+                return newValue;
+            } finally {
+                cleanupInternal();
+            }
+        } finally {
+            cacheLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        cacheLock.readLock().lock();
+        try {
+            V value = getInternal(key);
+            if (value == null) {
+                return null;
+            }
+        } finally {
+            cacheLock.readLock().unlock();
+        }
+
+        cacheLock.writeLock().lock();
+        try {
+            try {
+                V oldValue = getInternal(key);
+                if (oldValue == null) {
+                    return null;
+                }
+                V newValue = remappingFunction.apply(key, oldValue);
+                if (newValue == null) {
+                    strongReferences.remove(key);
+                    weakReferences.remove(key);
+                } else {
+                    strongReferences.put(key, newValue);
+                    weakReferences.put(key, new MapValueWeakReference(key, newValue));
+                }
+                return newValue;
+            } finally {
+                cleanupInternal();
+            }
+        } finally {
+            cacheLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        cacheLock.writeLock().lock();
+        try {
+            try {
+                V oldValue = getInternal(key);
+                V newValue = remappingFunction.apply(key, oldValue);
+                if (newValue == null) {
+                    if (oldValue != null) {
+                        strongReferences.remove(key);
+                        weakReferences.remove(key);
+                    }
+                } else {
+                    strongReferences.put(key, newValue);
+                    weakReferences.put(key, new MapValueWeakReference(key, newValue));
+                }
+                return newValue;
+            } finally {
+                cleanupInternal();
+            }
+        } finally {
+            cacheLock.writeLock().unlock();
         }
     }
 

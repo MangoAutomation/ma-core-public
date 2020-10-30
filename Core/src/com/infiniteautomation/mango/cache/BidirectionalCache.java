@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 
@@ -88,36 +89,6 @@ public class BidirectionalCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
-        V value;
-
-        lock.readLock().lock();
-        try {
-            value = forward.get(key);
-        } finally {
-            lock.readLock().unlock();
-        }
-
-        if (value == null) {
-            lock.writeLock().lock();
-            try {
-                value = forward.get(key);
-                if (value == null) {
-                    value = mappingFunction.apply(key);
-                    if (value != null) {
-                        reverse.put(value, key);
-                        forward.put(key, value);
-                    }
-                }
-            } finally {
-                lock.writeLock().unlock();
-            }
-        }
-
-        return value;
-    }
-
-    @Override
     public void forEach(BiConsumer<? super K, ? super V> action) {
         Objects.requireNonNull(action);
         lock.readLock().lock();
@@ -136,6 +107,98 @@ public class BidirectionalCache<K, V> implements Cache<K, V> {
         try {
             forward.clear();
             reverse.clear();
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean containsKey(K key) {
+        lock.readLock().lock();
+        try {
+            return forward.containsKey(key);
+        } finally {
+            lock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public V computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+        lock.readLock().lock();
+        try {
+            V value = forward.get(key);
+            if (value != null) {
+                return value;
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        lock.writeLock().lock();
+        try {
+            V oldValue = forward.get(key);
+            if (oldValue != null) {
+                return oldValue;
+            }
+            V newValue = mappingFunction.apply(key);
+            if (newValue != null) {
+                reverse.put(newValue, key);
+                forward.put(key, newValue);
+            }
+            return newValue;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public V computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        lock.readLock().lock();
+        try {
+            V value = forward.get(key);
+            if (value == null) {
+                return null;
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        lock.writeLock().lock();
+        try {
+            V oldValue = forward.get(key);
+            if (oldValue == null) {
+                return null;
+            }
+            V newValue = remappingFunction.apply(key, oldValue);
+            if (newValue == null) {
+                reverse.remove(oldValue);
+                forward.remove(key);
+            } else {
+                reverse.put(newValue, key);
+                forward.put(key, newValue);
+            }
+            return newValue;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public V compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        lock.writeLock().lock();
+        try {
+            V oldValue = forward.get(key);
+            V newValue = remappingFunction.apply(key, oldValue);
+            if (newValue == null) {
+                if (oldValue != null) {
+                    reverse.remove(oldValue);
+                    forward.remove(key);
+                }
+            } else {
+                reverse.put(newValue, key);
+                forward.put(key, newValue);
+            }
+            return newValue;
         } finally {
             lock.writeLock().unlock();
         }
