@@ -235,20 +235,15 @@ public class PermissionDao extends BaseDao {
      * @return true if the permission was deleted
      */
     public boolean deletePermission(Integer permissionId) {
-        TransactionTemplate txTemplate = new TransactionTemplate(getTransactionManager(),
-                new DefaultTransactionDefinition(TransactionDefinition.PROPAGATION_REQUIRES_NEW));
-
         try {
-            txTemplate.execute(txStatus -> {
+            doInTransaction(txStatus -> {
                 if (create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(permissionId)).execute() > 0) {
                     permissionUnlinked();
                 }
-                return null;
             });
         } catch (Exception e) {
             return false;
         }
-
         return true;
     }
 }
