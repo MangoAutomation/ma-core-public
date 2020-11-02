@@ -7,6 +7,7 @@ package com.serotonin.m2m2;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.CopyOption;
@@ -122,7 +123,7 @@ public class Common {
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
 
-    private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")).normalize());
+    private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", System.getProperty("java.io.tmpdir"))).normalize());
     private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
     private static final Path BACKUP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.backup", "backup")).normalize());
 
@@ -817,7 +818,7 @@ public class Common {
         try {
             return Files.createDirectories(input);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
