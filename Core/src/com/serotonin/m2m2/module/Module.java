@@ -4,6 +4,22 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.core.OrderComparator;
+
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.util.exception.ModuleUpgradeException;
 import com.serotonin.m2m2.Common;
@@ -15,16 +31,6 @@ import com.serotonin.m2m2.module.ModuleRegistry.CoreModule;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.util.license.ModuleLicense;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.core.OrderComparator;
-
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
 
 /**
  * All information regarding a module required by the core.
@@ -144,8 +150,7 @@ public class Module {
      * @return absolute path to the module's data directory
      */
     public Path moduleDataPath() {
-        String location = Common.envProps.getString(MODULE_DATA_ENV_PROP, MODULE_DATA_ENV_PROP_DEFAULT);
-        Path dataPath = Common.MA_HOME_PATH.resolve(location).resolve(name);
+        Path dataPath = Common.getModuleDataPath().resolve(name);
 
         try {
             Files.createDirectories(dataPath);

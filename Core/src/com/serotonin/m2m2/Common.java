@@ -71,6 +71,7 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -126,6 +127,7 @@ public class Common {
     private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", System.getProperty("java.io.tmpdir"))).normalize());
     private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
     private static final Path BACKUP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.backup", "backup")).normalize());
+    private static final Path MODULE_DATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString(Module.MODULE_DATA_ENV_PROP, Module.MODULE_DATA_ENV_PROP_DEFAULT)).normalize());
 
     public static final int NEW_ID = -1;
 
@@ -458,6 +460,10 @@ public class Common {
 
     public static Path getBackupPath() {
         return BACKUP_PATH;
+    }
+
+    public static Path getModuleDataPath() {
+        return MODULE_DATA_PATH;
     }
 
     public static CronTimerTrigger getCronTrigger(int periodType, int delaySeconds) {
