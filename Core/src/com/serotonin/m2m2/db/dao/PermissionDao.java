@@ -235,15 +235,15 @@ public class PermissionDao extends BaseDao {
      * @return true if the permission was deleted
      */
     public boolean deletePermission(Integer permissionId) {
-        try {
-            doInTransaction(txStatus -> {
+        return doInTransaction(txStatus -> {
+            try {
                 if (create.deleteFrom(PERMISSIONS).where(PERMISSIONS.id.eq(permissionId)).execute() > 0) {
                     permissionUnlinked();
                 }
-            });
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
+            } catch (Exception e) {
+                return false;
+            }
+            return true;
+        });
     }
 }
