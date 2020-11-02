@@ -10,6 +10,9 @@
     <artifactId>docker-image</artifactId>
     <name>Mango Docker image</name>
     <packaging>pom</packaging>
+    <properties>
+        <docker.repository>ghcr.io/infiniteautomation/mango</docker.repository>
+    </properties>
     <build>
         <plugins>
             <plugin>
@@ -52,7 +55,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <repository>ghcr.io/infiniteautomation/mango</repository>
+                    <repository>${docker.repository}</repository>
                     <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
                     <tag>nightly</tag>
                     <buildArgs>
