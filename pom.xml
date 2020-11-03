@@ -28,8 +28,7 @@
         <asm.version>7.2</asm.version>
         <spotbugs.version>4.0.2</spotbugs.version>
         <jetty.alpn.version>2.0.10</jetty.alpn.version>
-        <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}
-        </service.loader.directory>
+        <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
     </properties>
     <organization>
@@ -118,33 +117,6 @@
             </modules>
         </profile>
         <profile>
-            <!-- Profile to release to maven.mangoautomation.net via the release plugin -->
-            <id>releases</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.5.1</version>
-                        <executions>
-                            <execution>
-                                <id>default-deploy</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>deploy</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <serverId>ias-releases</serverId>
-                            <nexusUrl>https://maven.mangoautomation.net/</nexusUrl>
-                            <skipStaging>true</skipStaging>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
             <id>commit-package-json</id>
             <build>
                 <pluginManagement>
@@ -182,54 +154,6 @@
             </build>
         </profile>
     </profiles>
-    <repositories>
-        <repository>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>ias-snapshots</id>
-            <name>Mango Dependencies</name>
-            <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
-        </repository>
-        <repository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>ias-releases</id>
-            <name>Mango Dependencies</name>
-            <url>https://maven.mangoautomation.net/repository/ias-release/</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <id>ias-snapshots</id>
-            <name>Mango Dependencies</name>
-            <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
-        </pluginRepository>
-        <pluginRepository>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>ias-releases</id>
-            <name>Mango Dependencies</name>
-            <url>https://maven.mangoautomation.net/repository/ias-release/</url>
-        </pluginRepository>
-    </pluginRepositories>
     <build>
         <directory>maven-target</directory>
         <sourceDirectory>src</sourceDirectory>
@@ -456,12 +380,12 @@
     </scm>
     <distributionManagement>
         <snapshotRepository>
-            <id>ias-snapshots</id>
-            <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/infiniteautomation/ma-core-public</url>
         </snapshotRepository>
         <repository>
-            <id>ias-releases</id>
-            <url>https://maven.mangoautomation.net/repository/ias-release/</url>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/infiniteautomation/ma-core-public</url>
         </repository>
     </distributionManagement>
 </project>
