@@ -44,20 +44,21 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>push-version</id>
+                        <id>tag-nightly</id>
                         <goals>
                             <goal>tag</goal>
                             <goal>push</goal>
                         </goals>
                         <configuration>
-                            <tag>${project.version}</tag>
+                            <tag>nightly</tag>
+                            <skipDockerInfo>true</skipDockerInfo>
                         </configuration>
                     </execution>
                 </executions>
                 <configuration>
                     <repository>${docker.repository}</repository>
                     <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-                    <tag>nightly</tag>
+                    <tag>${project.version}</tag>
                     <buildArgs>
                         <BUNDLE_ZIP>maven-target/dependency/mango-bundle-${project.version}.zip</BUNDLE_ZIP>
                     </buildArgs>
