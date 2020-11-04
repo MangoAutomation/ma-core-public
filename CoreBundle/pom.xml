@@ -361,13 +361,13 @@
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>mangoNoSqlDatabase</artifactId>
+            <artifactId>mango-nosql-database</artifactId>
             <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>mqttClientDataSource</artifactId>
+            <artifactId>mqtt-client-ds</artifactId>
             <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
@@ -409,7 +409,7 @@
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>cloudConnect</artifactId>
+            <artifactId>cloud-connect</artifactId>
             <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
