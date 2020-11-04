@@ -380,21 +380,34 @@
     </scm>
     <distributionManagement>
         <snapshotRepository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/infiniteautomation/ma-core-public</url>
+            <id>ias-snapshots</id>
+            <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
         </snapshotRepository>
         <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/infiniteautomation/ma-core-public</url>
+            <id>ias-releases</id>
+            <url>https://maven.mangoautomation.net/repository/ias-release/</url>
         </repository>
     </distributionManagement>
     <repositories>
         <repository>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
-            <id>github</id>
-            <name>Github</name>
-            <url>https://maven.pkg.github.com/infiniteautomation/ma-core-public</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>ias-snapshots</id>
+            <url>https://maven.mangoautomation.net/repository/ias-snapshot/</url>
+        </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>ias-releases</id>
+            <url>https://maven.mangoautomation.net/repository/ias-release/</url>
         </repository>
     </repositories>
 </project>
