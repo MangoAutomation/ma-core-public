@@ -21,9 +21,12 @@ import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -68,6 +71,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
+import com.serotonin.util.properties.EnvPropertiesWatcher;
+import com.serotonin.util.properties.MangoProperties;
 
 /**
  *
@@ -79,7 +84,7 @@ import com.serotonin.provider.Providers;
         "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
         "com.serotonin.m2m2.db.dao" //DAOs
 })
-public class MangoRuntimeContextConfiguration {
+public class MangoRuntimeContextConfiguration implements ApplicationContextAware {
     public static final String CONTEXT_ID = "runtimeContext";
     private static final CompletableFuture<ApplicationContext> RUNTIME_CONTEXT_FUTURE = new CompletableFuture<>();
     private static final CompletableFuture<WebApplicationContext> ROOT_WEB_CONTEXT_FUTURE = new CompletableFuture<>();
@@ -372,5 +377,16 @@ public class MangoRuntimeContextConfiguration {
         }
 
         return configuration;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) applicationContext;
+        context.register(EnvPropertiesWatcher.class);
+    }
+
+    @Bean
+    public MangoProperties mangoProperties() {
+        return Providers.get(MangoProperties.class);
     }
 }

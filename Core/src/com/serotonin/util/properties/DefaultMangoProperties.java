@@ -6,8 +6,12 @@ package com.serotonin.util.properties;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
@@ -32,12 +36,34 @@ import java.util.regex.Pattern;
  */
 public class DefaultMangoProperties implements MangoProperties {
 
-    protected final Properties properties;
+    private final Path envPropertiesPath;
+    protected volatile Properties properties;
 
     private static final Pattern INTERPOLATION_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
 
-    public DefaultMangoProperties(Properties properties) {
+    public DefaultMangoProperties(Path envPropertiesPath) {
+        this.envPropertiesPath = envPropertiesPath;
+        reload();
+    }
+
+    void reload() {
+        // Load the environment properties
+        Properties properties;
+        try {
+            properties = DefaultMangoProperties.loadFromResources("env.properties");
+            if (Files.isReadable(envPropertiesPath)) {
+                try (Reader reader = Files.newBufferedReader(envPropertiesPath)) {
+                    properties.load(reader);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         this.properties = properties;
+    }
+
+    Path getEnvPropertiesPath() {
+        return envPropertiesPath;
     }
 
     @Override
@@ -64,6 +90,10 @@ public class DefaultMangoProperties implements MangoProperties {
         }
         matcher.appendTail(result);
         return result.toString();
+    }
+
+    public static Properties loadFromResources(String resourceName) throws IOException {
+        return loadFromResources(resourceName, DefaultMangoProperties.class.getClassLoader());
     }
 
     public static Properties loadFromResources(String resourceName, ClassLoader cl) throws IOException {
