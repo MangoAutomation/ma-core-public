@@ -53,7 +53,7 @@ public class EnvPropertiesWatcher {
 
     @PostConstruct
     protected synchronized void init() {
-        if (mangoProperties != null) {
+        if (mangoProperties != null && mangoProperties.getBoolean("properties.reloading", true)) {
             Path path = mangoProperties.getEnvPropertiesPath();
             Path parent = path.getParent();
             try {
