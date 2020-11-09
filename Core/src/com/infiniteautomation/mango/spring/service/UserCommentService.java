@@ -116,6 +116,8 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
         ProcessResult result = new ProcessResult();
         if (StringUtils.isBlank(vo.getXid()))
             result.addContextualMessage("xid", "validate.required");
+        else if (StringUtils.isBlank(vo.getComment()))
+            result.addContextualMessage("commentText", "validate.required");
         else if (StringValidation.isLengthGreaterThan(vo.getXid(), 100))
             result.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 100));
         else if (!isXidUnique(vo.getXid(), vo.getId()))
