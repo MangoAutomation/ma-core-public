@@ -41,12 +41,21 @@ public class DefaultMangoProperties implements MangoProperties {
 
     private static final Pattern INTERPOLATION_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
 
+    public DefaultMangoProperties(Properties properties) {
+        this.envPropertiesPath = null;
+        this.properties = properties;
+    }
+
     public DefaultMangoProperties(Path envPropertiesPath) {
         this.envPropertiesPath = envPropertiesPath;
         reload();
     }
 
     void reload() {
+        if (envPropertiesPath == null) {
+            throw new UnsupportedOperationException();
+        }
+
         // Load the environment properties
         Properties properties;
         try {
