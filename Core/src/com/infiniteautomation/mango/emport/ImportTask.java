@@ -6,7 +6,9 @@ package com.infiniteautomation.mango.emport;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -243,6 +245,8 @@ public class ImportTask extends ProgressiveTask {
                         // may resolved the problem.
                         importerIndex++;
                     }
+                    //Import new detectors in case an event handler needs them
+                    processUpdatedDetectors(eventDetectorPoints);
                 }
                 catch (Exception e) {
                     // Uh oh...
@@ -259,9 +263,14 @@ public class ImportTask extends ProgressiveTask {
                 for (ImportItem importItem : importItems) {
                     if (!importItem.isComplete()) {
                         importItem.importNext(importContext, user);
+                        processUpdatedDetectors(eventDetectorPoints);
                         return;
+                    }else {
+                        processUpdatedDetectors(eventDetectorPoints);
                     }
                 }
+
+                //Ensure all detectors that can be, are imported
                 processUpdatedDetectors(eventDetectorPoints);
                 completed = true;
             }
@@ -284,11 +293,22 @@ public class ImportTask extends ProgressiveTask {
         }
     }
 
+    /**
+     * Since detectors can be attached to a data point we will import them in bulk here.  This will
+     *  remove any fully imported detectors and their container after there are no more detectors to import 
+     *  for that point.
+     * @param eventDetectorMap
+     */
     private void processUpdatedDetectors(Map<String, DataPointWithEventDetectors> eventDetectorMap) {
-        for(DataPointWithEventDetectors dp : eventDetectorMap.values()) {
+        Iterator<String> it = eventDetectorMap.keySet().iterator();
+        while(it.hasNext()) {
+            String key = it.next();
+            DataPointWithEventDetectors dp = eventDetectorMap.get(key);
             //The content of the event detectors lists may have duplicates and the DataPointVO may be out of date,
             // but we can assume that all the event detectors for a point will exist in this list.
-            for(AbstractPointEventDetectorVO ed : dp.getEventDetectors()) {
+            ListIterator<AbstractPointEventDetectorVO> listIt = dp.getEventDetectors().listIterator();
+            while(listIt.hasNext()) {
+                AbstractPointEventDetectorVO ed = listIt.next();
                 try {
                     if(ed.isNew()) {
                         eventDetectorService.insertAndReload(ed, false);
@@ -300,13 +320,17 @@ public class ImportTask extends ProgressiveTask {
 
                     //Reload into the RT
                     dataPointService.reloadDataPoint(dp.getDataPoint().getXid());
-
+                    listIt.remove();
                 }catch(ValidationException e) {
                     importContext.copyValidationMessages(e.getValidationResult(), "emport.eventDetector.prefix", ed.getXid());
                 }catch(Exception e) {
                     addException(e);
                     LOG.error("Event detector import failed.", e);
                 }
+            }
+
+            if(dp.getEventDetectors().size() == 0) {
+                it.remove();
             }
         }
 
