@@ -14,9 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * <p>We can potentially replace the regex code with {@linkplain org.springframework.util.PropertyPlaceholderHelper} or
@@ -39,23 +38,12 @@ public class DefaultMangoProperties implements MangoProperties {
     private final Path envPropertiesPath;
     protected volatile Properties properties;
 
-    private static final Pattern INTERPOLATION_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
-
-    public DefaultMangoProperties(Properties properties) {
-        this.envPropertiesPath = null;
-        this.properties = properties;
-    }
-
     public DefaultMangoProperties(Path envPropertiesPath) {
-        this.envPropertiesPath = envPropertiesPath;
+        this.envPropertiesPath = Objects.requireNonNull(envPropertiesPath);
         reload();
     }
 
     void reload() {
-        if (envPropertiesPath == null) {
-            throw new UnsupportedOperationException();
-        }
-
         // Load the environment properties
         Properties properties;
         try {
@@ -82,23 +70,6 @@ public class DefaultMangoProperties implements MangoProperties {
             value = properties.getProperty(key);
         }
         return interpolateProperty(value);
-    }
-
-    private String interpolateProperty(String value) {
-        if (value == null) return value;
-
-        Matcher matcher = INTERPOLATION_PATTERN.matcher(value);
-        StringBuffer result = new StringBuffer();
-        while (matcher.find()) {
-            String interpolatedKey = matcher.group(1);
-            String interpolatedValue = getString(interpolatedKey);
-            if (interpolatedValue == null) {
-                throw new IllegalStateException("Property has no value: " + interpolatedKey);
-            }
-            matcher.appendReplacement(result, Matcher.quoteReplacement(interpolatedValue));
-        }
-        matcher.appendTail(result);
-        return result.toString();
     }
 
     public static Properties loadFromResources(String resourceName) throws IOException {

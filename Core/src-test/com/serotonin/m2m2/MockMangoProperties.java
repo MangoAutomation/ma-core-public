@@ -7,21 +7,23 @@ package com.serotonin.m2m2;
 import java.util.Properties;
 
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.util.properties.DefaultMangoProperties;
+import com.serotonin.util.properties.MangoProperties;
 
 /**
  * Dummy implementation of properties for use in testing.
  *
  * @author Terry Packer
  */
-public class MockMangoProperties extends DefaultMangoProperties {
+public class MockMangoProperties implements MangoProperties {
+
+    private final Properties properties;
 
     public MockMangoProperties() {
         this(new Properties());
     }
 
     public MockMangoProperties(Properties properties) {
-        super(properties);
+        this.properties = properties;
 
         setProperty("web.openBrowserOnStartup", "false");
 
@@ -46,5 +48,14 @@ public class MockMangoProperties extends DefaultMangoProperties {
 
     public void setProperty(String key, String value) {
         this.properties.setProperty(key, value);
+    }
+
+    @Override
+    public String getString(String key) {
+        String value = System.getProperty(key);
+        if (value == null) {
+            value = properties.getProperty(key);
+        }
+        return interpolateProperty(value);
     }
 }

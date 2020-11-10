@@ -5,6 +5,8 @@
 package com.serotonin.util.properties;
 
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,7 +16,25 @@ import org.apache.commons.lang3.StringUtils;
  */
 public interface MangoProperties {
 
+    static final Pattern INTERPOLATION_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
+
     public String getString(String key);
+
+    public default String interpolateProperty(String value) {
+        if (value == null) return value;
+        Matcher matcher = INTERPOLATION_PATTERN.matcher(value);
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String interpolatedKey = matcher.group(1);
+            String interpolatedValue = getString(interpolatedKey);
+            if (interpolatedValue == null) {
+                throw new IllegalStateException("Property has no value: " + interpolatedKey);
+            }
+            matcher.appendReplacement(result, Matcher.quoteReplacement(interpolatedValue));
+        }
+        matcher.appendTail(result);
+        return result.toString();
+    }
 
     public default String getString(String key, String defaultValue) {
         String value = getString(key);
