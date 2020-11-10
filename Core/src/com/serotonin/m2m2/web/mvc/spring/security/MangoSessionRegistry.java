@@ -23,7 +23,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
-import com.infiniteautomation.mango.spring.session.MangoSessionDataStore;
+import com.infiniteautomation.mango.webapp.session.MangoSessionDataStore;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;

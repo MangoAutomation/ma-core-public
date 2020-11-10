@@ -1,8 +1,8 @@
-/**
- * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2020 Infinite Automation Systems Inc. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.session;
+package com.infiniteautomation.mango.webapp.session;
 
 import org.eclipse.jetty.server.session.SessionContext;
 import org.eclipse.jetty.server.session.SessionData;
@@ -13,6 +13,10 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
+ * TODO Mango 4.0 Set configurable limit on the cache, it is currently unbounded.
+ * We may not even need this L2 cache or the CachingSessionDataStore, there is already a L1 cache which stores
+ * the sessions in a map.
+ *
  * L2 cache for JDBC session store
  *
  * @author Terry Packer

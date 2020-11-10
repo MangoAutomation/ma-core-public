@@ -1,8 +1,8 @@
-/**
- * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2020 Infinite Automation Systems Inc. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.session;
+package com.infiniteautomation.mango.webapp.session;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,12 +10,16 @@ import java.util.Set;
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionContext;
 import org.eclipse.jetty.server.session.SessionData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
 import com.infiniteautomation.mango.spring.service.UsersService;
@@ -29,12 +33,15 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
  *
  * @author Terry Packer
  */
+@Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implements MangoSessionDataStore {
 
     private final UsersService userService;
     private final MangoSessionDataDao sessionDao;
     private final ApplicationEventPublisher eventPublisher;
 
+    @Autowired
     public MangoJdbcSessionDataStore(UsersService userService, MangoSessionDataDao sessionDao,
                                      ApplicationEventPublisher publisher) {
         this.userService = userService;

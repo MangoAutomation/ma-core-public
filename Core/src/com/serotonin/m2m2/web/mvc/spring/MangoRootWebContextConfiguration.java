@@ -7,15 +7,21 @@ package com.serotonin.m2m2.web.mvc.spring;
 import java.nio.charset.StandardCharsets;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
-import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.infiniteautomation.mango.webapp.WebAppPackage;
+import com.infiniteautomation.mango.webapp.session.MangoCachingSessionDataStore;
+import com.infiniteautomation.mango.webapp.session.MangoJdbcSessionDataStore;
+import com.infiniteautomation.mango.webapp.session.MangoSessionDataMap;
+import com.infiniteautomation.mango.webapp.session.MangoSessionDataStore;
+import com.infiniteautomation.mango.webapp.session.NullMangoSessionDataStore;
 import com.serotonin.m2m2.i18n.TranslatedMessageSource;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 
@@ -46,5 +52,17 @@ public class MangoRootWebContextConfiguration {
         commonsMultipartResolver.setDefaultEncoding(StandardCharsets.UTF_8.name());
         commonsMultipartResolver.setMaxUploadSize(fileUploadMaxSize);
         return commonsMultipartResolver;
+    }
+
+    @Bean
+    @Primary
+    public MangoSessionDataStore sessionDataStore(@Value("${sessionCookie.persistent:true}") boolean persistentSessions,
+                                                  ApplicationContext applicationContext) {
+        if (persistentSessions) {
+            MangoSessionDataStore delegate = applicationContext.getBean(MangoJdbcSessionDataStore.class);
+            return new MangoCachingSessionDataStore(new MangoSessionDataMap(), delegate);
+        } else {
+            return new NullMangoSessionDataStore();
+        }
     }
 }

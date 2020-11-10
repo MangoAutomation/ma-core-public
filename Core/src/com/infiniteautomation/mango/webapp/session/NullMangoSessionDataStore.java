@@ -1,8 +1,8 @@
-/**
- * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2020 Infinite Automation Systems Inc. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.session;
+package com.infiniteautomation.mango.webapp.session;
 
 import org.eclipse.jetty.server.session.NullSessionDataStore;
 import org.eclipse.jetty.server.session.SessionContext;
@@ -14,10 +14,6 @@ import com.serotonin.m2m2.vo.MangoSessionDataVO;
  * @author Terry Packer
  */
 public class NullMangoSessionDataStore extends NullSessionDataStore implements MangoSessionDataStore {
-
-    public NullMangoSessionDataStore() {
-
-    }
 
     @Override
     public void initialize(SessionContext context) throws Exception {

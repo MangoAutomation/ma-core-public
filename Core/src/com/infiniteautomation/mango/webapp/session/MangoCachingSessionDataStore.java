@@ -1,8 +1,8 @@
-/**
- * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2020 Infinite Automation Systems Inc. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.session;
+package com.infiniteautomation.mango.webapp.session;
 
 import org.eclipse.jetty.server.session.CachingSessionDataStore;
 import org.eclipse.jetty.server.session.SessionContext;
@@ -25,6 +25,7 @@ public class MangoCachingSessionDataStore extends CachingSessionDataStore implem
 
     @Override
     public boolean deleteSessionsForUser(int id) {
+        // TODO Mango 4.0 this does not remove sessions from either L1 cache (DefaultSessionCache) or L2 cache (SessionDataMap)
         return delegate.deleteSessionsForUser(id);
     }
 

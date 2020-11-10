@@ -29,8 +29,7 @@ import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
  *
  * Context hierarchy looks like this:
  * <pre>
- * runtimeContext -> rootWebContext -> jspDispatcherContext
- *                                  -> rootRestDispatcherContext -> restV3DispatcherContext
+ * runtimeContext -> rootWebContext -> rootRestDispatcherContext -> restV3DispatcherContext
  * </pre>
  *
  * @author Terry Packer

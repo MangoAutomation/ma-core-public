@@ -1,8 +1,8 @@
-/**
- * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2020 Infinite Automation Systems Inc. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.session;
+package com.infiniteautomation.mango.webapp.session;
 
 import org.eclipse.jetty.server.session.SessionContext;
 import org.eclipse.jetty.server.session.SessionDataStore;
@@ -10,12 +10,14 @@ import org.eclipse.jetty.server.session.SessionDataStore;
 import com.serotonin.m2m2.vo.MangoSessionDataVO;
 
 /**
+ * TODO Mango 4.0 remove all the methods which are used only for testing
  *
  * @author Terry Packer
  */
 public interface MangoSessionDataStore extends SessionDataStore {
 
     /**
+     * TODO Mango 4.0 do we even need to do this?
      * Delete all stored sessions for this user
      * @param id
      */
