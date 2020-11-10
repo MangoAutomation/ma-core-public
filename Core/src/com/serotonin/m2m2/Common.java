@@ -105,8 +105,9 @@ public class Common {
      */
     public static final Path MA_HOME_PATH;
     static {
-        // ma.home is always set by com.serotonin.m2m2.Main
-        MA_HOME_PATH = Paths.get(System.getProperty("ma.home")).toAbsolutePath().normalize();
+        // ma.home should always set by com.serotonin.m2m2.Main, use current work directory otherwise (e.g. tests)
+        String maHome = System.getProperty("ma.home");
+        MA_HOME_PATH = Paths.get(maHome == null ? "." : maHome).toAbsolutePath().normalize();
     }
 
     public static final MangoProperties envProps = Providers.get(MangoProperties.class);
