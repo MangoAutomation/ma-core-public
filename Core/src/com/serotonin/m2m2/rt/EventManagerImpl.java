@@ -975,8 +975,12 @@ public class EventManagerImpl implements EventManager {
             if (!vo.isDisabled()) {
                 if (rts == null)
                     rts = new ArrayList<>();
-                EventHandlerDefinition<AbstractEventHandlerVO> definition = vo.getDefinition();
-                rts.add(definition.createRuntime(vo));
+                try {
+                    EventHandlerDefinition<AbstractEventHandlerVO> definition = vo.getDefinition();
+                    rts.add(definition.createRuntime(vo));
+                } catch (Exception e) {
+                    log.error("Error creating event handler runtime", e);
+                }
             }
         }
         if (rts != null)
