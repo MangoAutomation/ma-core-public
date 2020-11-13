@@ -199,20 +199,20 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
         @Override
         public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
-            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());
+            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getSeriesId());
             quantizer.firstValue(value, index, bookend);
         }
 
         @Override
         public void row(IdPointValueTime value, int index) throws QueryCancelledException {
-            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());
+            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getSeriesId());
             quantizer.row(value, index);
 
         }
 
         @Override
         public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
-            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());
+            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getSeriesId());
             quantizer.lastValue(value, index, bookend);
         }
 

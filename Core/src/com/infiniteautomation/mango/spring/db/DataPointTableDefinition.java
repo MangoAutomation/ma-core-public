@@ -58,6 +58,7 @@ public class DataPointTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("dataTypeId"), SQLDataType.INTEGER));
         fields.add(DSL.field(DSL.name("settable"), SQLDataType.CHAR(1)));
         fields.add(DSL.field(DSL.name("jsonData"), SQLDataType.CLOB));
+        fields.add(DSL.field(DSL.name("seriesId"), SQLDataType.INTEGER));
         fields.add(DSL.field(DSL.name("readPermissionId"), SQLDataType.INTEGER.nullable(false)));
         fields.add(DSL.field(DSL.name("editPermissionId"), SQLDataType.INTEGER.nullable(false)));
         fields.add(DSL.field(DSL.name("setPermissionId"), SQLDataType.INTEGER.nullable(false)));

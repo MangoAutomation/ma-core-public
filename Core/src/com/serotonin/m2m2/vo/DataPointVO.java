@@ -209,6 +209,9 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     @JsonProperty
     private JsonNode data;
 
+    @JsonProperty
+    private int seriesId = Common.NEW_ID;
+
     //
     //
     // Convenience data from data source
@@ -660,8 +663,24 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         this.data = data;
     }
 
-    /* ############################## */
+    /**
+     * Get the current series Id for our data.  Common.NEW_ID means
+     *  generate new series ID on insert of this point
+     * @return
+     */
+    public int getSeriesId() {
+        return seriesId;
+    }
 
+    /**
+     * Get the series id for where we store our data
+     * @param seriesId
+     */
+    public void setSeriesId(int seriesId) {
+        this.seriesId = seriesId;
+    }
+
+    /* ############################## */
     @Override
     public DataPointVO copy() {
         try {

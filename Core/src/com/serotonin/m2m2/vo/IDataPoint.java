@@ -28,6 +28,8 @@ public interface IDataPoint {
 
     String getDeviceName();
 
+    int getSeriesId();
+
     /**
      * Returns a map of the tag keys and values. Will not contain "name" or "device" keys.
      * @return

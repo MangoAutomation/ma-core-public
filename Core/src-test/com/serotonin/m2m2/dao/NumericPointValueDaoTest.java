@@ -21,7 +21,7 @@ import com.serotonin.m2m2.vo.IDataPoint;
  */
 public class NumericPointValueDaoTest extends MangoTestBase {
 
-    private NumericPointValueDaoTestHelper helper;
+    protected NumericPointValueDaoTestHelper helper;
 
     @Override
     @Before
@@ -31,6 +31,7 @@ public class NumericPointValueDaoTest extends MangoTestBase {
         this.helper = new NumericPointValueDaoTestHelper((DataPointVO)vos.get(0), (DataPointVO)vos.get(1), (DataPointVO)vos.get(2), Common.databaseProxy.newPointValueDao());
         this.helper.before();
     }
+
     @Override
     @After
     public void after() {

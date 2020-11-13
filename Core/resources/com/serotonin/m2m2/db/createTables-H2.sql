@@ -230,6 +230,13 @@ ALTER TABLE dataSources
 ALTER TABLE dataSources
     ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
 
+-- Time series table
+CREATE TABLE timeSeries
+(
+    id INT NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (id)
+);
+
 --
 -- Data Points
 CREATE TABLE dataPoints
@@ -256,6 +263,7 @@ CREATE TABLE dataPoints
     dataTypeId                INT          NOT NULL,
     settable                  CHAR(1),
     jsonData                  LONGTEXT,
+    seriesId                  INT          NOT NULL,
     readPermissionId          INT          NOT NULL,
     editPermissionId          INT          NOT NULL,
     setPermissionId           INT          NOT NULL,
@@ -271,6 +279,9 @@ ALTER TABLE dataPoints
     ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
 ALTER TABLE dataPoints
     ADD CONSTRAINT dataPointsFk4 FOREIGN KEY (setPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
+ALTER TABLE dataPoints
+    ADD CONSTRAINT dataPointsFk5 FOREIGN KEY (seriesId) REFERENCES timeSeries (id);
+
 CREATE INDEX pointNameIndex ON dataPoints (name ASC);
 CREATE INDEX deviceNameNameIdIndex ON dataPoints (deviceName ASC, name ASC, id ASC);
 CREATE INDEX enabledIndex ON dataPoints (enabled ASC);
@@ -293,6 +304,8 @@ CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
 --
 --
 -- Point Values (historical data)
+--  the dataPointId column refers to the series id of the data point,
+--  which is not necessarily the data point id
 --
 CREATE TABLE pointValues
 (
