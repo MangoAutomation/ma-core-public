@@ -16,16 +16,16 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnno
 
     private static final long serialVersionUID = 1L;
     private final TranslatableMessage sourceMessage;
-    
+
     /**
-     * @param id
+     * @param seriesId
      * @param value
      * @param time
      * @param sourceMessage
      */
-    public AnnotatedIdPointValueTime(int id, DataValue value, long time,
+    public AnnotatedIdPointValueTime(int seriesId, DataValue value, long time,
             TranslatableMessage sourceMessage) {
-        super(id, value, time);
+        super(seriesId, value, time);
         this.sourceMessage = sourceMessage;
     }
 

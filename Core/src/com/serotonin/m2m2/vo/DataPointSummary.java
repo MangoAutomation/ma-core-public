@@ -24,6 +24,7 @@ public class DataPointSummary implements IDataPoint {
     private MangoPermission editPermission;
     private MangoPermission setPermission;
     private Map<String, String> tags;
+    private int seriesId;
 
     public DataPointSummary() {
         // no op
@@ -38,6 +39,7 @@ public class DataPointSummary implements IDataPoint {
         readPermission = vo.getReadPermission();
         setPermission = vo.getSetPermission();
         tags = vo.getTags();
+        seriesId = vo.getSeriesId();
     }
 
     @Override
@@ -115,6 +117,15 @@ public class DataPointSummary implements IDataPoint {
     @Override
     public Map<String, String> getTags() {
         return tags;
+    }
+
+    @Override
+    public int getSeriesId() {
+        return seriesId;
+    }
+
+    public void setSeriesId(int seriesId) {
+        this.seriesId = seriesId;
     }
 
     @Override

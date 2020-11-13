@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -52,6 +54,7 @@ import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.db.TimeSeriesTable;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -82,8 +85,6 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
-
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 /**
  *
@@ -306,6 +307,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 List<DataPointVO> batch = new ArrayList<>();
                 List<Integer> pointIds = new ArrayList<>();
                 Set<Integer> permissionIds = new HashSet<>();
+                Set<Integer> seriesIds = new HashSet<>();
                 int batchSize = getInBatchSize();
 
                 while (rs.next()) {
@@ -320,6 +322,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                         loadRelationalData(row);
                         batch.add(row);
                         pointIds.add(row.getId());
+                        seriesIds.add(row.getSeriesId());
 
                     }catch (Exception e) {
                         if (e.getCause() instanceof ModuleNotLoadedException) {
@@ -338,15 +341,16 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
                     //Check if time to batch
                     if(batch.size() == batchSize) {
-                        deleteBatch(batch, pointIds, permissionIds);
+                        deleteBatch(batch, pointIds, permissionIds, seriesIds);
                         batch.clear();
                         pointIds.clear();
                         permissionIds.clear();
+                        seriesIds.clear();
                     }
 
                 }
                 if(batch.size() > 0) {
-                    deleteBatch(batch, pointIds, permissionIds);
+                    deleteBatch(batch, pointIds, permissionIds, seriesIds);
                 }
                 return null;
             }
@@ -354,12 +358,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     }
 
     /**
+     * Delete a batch of data points in bulk (for performance)
+     *
      * @param batch
-     * @param pointIds
+     * @param ids
      * @param permissionIds
+     * @param seriesIds
      */
     protected void deleteBatch(List<DataPointVO> batch, List<Integer> ids,
-            Set<Integer> permissionIds) {
+            Set<Integer> permissionIds, Set<Integer> seriesIds) {
         //delete event handler mappings
         create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
         .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
@@ -388,6 +395,17 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         for(Integer id : permissionIds) {
             permissionService.deletePermissionId(id);
+        }
+
+        //Try to delete the timeSeries.id row
+        for(Integer seriesId : seriesIds) {
+            try {
+                this.create.deleteFrom(TimeSeriesTable.TIME_SERIES)
+                .where(TimeSeriesTable.TIME_SERIES.ID.eq(seriesId))
+                .execute();
+            }catch(Exception e) {
+                //Probably in use by another point (2 points on the same series)
+            }
         }
 
         //Audit Events/Dao events
@@ -434,7 +452,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 this.table.getAlias("deviceName"),
                 this.table.getAlias("readPermissionId"),
                 this.table.getAlias("editPermissionId"),
-                this.table.getAlias("setPermissionId"))
+                this.table.getAlias("setPermissionId"),
+                this.table.getAlias("seriesId"))
                 .from(this.table.getTableAsAlias()), null).where(this.table.getXidAlias().eq(xid)).limit(1);
 
         String sql = query.getSQL();
@@ -451,6 +470,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                         summary.setReadPermission(permissionService.get(rs.getInt(6)));
                         summary.setEditPermission(permissionService.get(rs.getInt(7)));
                         summary.setSetPermission(permissionService.get(rs.getInt(8)));
+                        summary.setSeriesId(rs.getInt(9));
                         return summary;
                     }else {
                         return null;
@@ -601,6 +621,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 vo.getPointLocator().getDataTypeId(),
                 boolToChar(vo.getPointLocator().isSettable()),
                 convertData(vo.getData()),
+                vo.getSeriesId(),
                 vo.getReadPermission().getId(),
                 vo.getEditPermission().getId(),
                 vo.getSetPermission().getId()
@@ -647,6 +668,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             rs.getString(++i);
 
             dp.setData(extractData(rs.getClob(++i)));
+            dp.setSeriesId(rs.getInt(++i));
 
             MangoPermission read = new MangoPermission(rs.getInt(++i));
             dp.supplyReadPermission(() -> read);
@@ -666,8 +688,26 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         }
     }
 
+    /**
+     * Get the next available series id
+     * @return
+     */
+    public int getNextSeriesId() {
+        return this.create.insertInto(TimeSeriesTable.TIME_SERIES)
+                .defaultValues()
+                .returningResult(TimeSeriesTable.TIME_SERIES.ID)
+                .fetchOne()
+                .into(int.class);
+    }
+
     @Override
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
+        //Shall we generate a new series ID?
+        if(vo.getSeriesId() == Common.NEW_ID) {
+            int seriesId = getNextSeriesId();
+            vo.setSeriesId(seriesId);
+        }
+
         MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
         vo.setReadPermission(readPermission);
 
@@ -765,6 +805,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         MangoPermission editPermission = vo.getEditPermission();
         MangoPermission setPermission = vo.getSetPermission();
         permissionService.deletePermissions(readPermission, editPermission, setPermission);
+
+        //Try to delete the timeSeries.id row
+        try {
+            this.create.deleteFrom(TimeSeriesTable.TIME_SERIES)
+            .where(TimeSeriesTable.TIME_SERIES.ID.eq(vo.getSeriesId()))
+            .execute();
+        }catch(Exception e) {
+            //Probably in use by another point (2 points on the same series)
+        }
     }
 
     @Override
