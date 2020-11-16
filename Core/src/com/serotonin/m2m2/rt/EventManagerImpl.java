@@ -175,10 +175,7 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        if (autoAckMessage == null) {
-            List<EventHandlerRT<?>> handlers = getHandlersForType(evt.getEventType());
-            evt.setHandlers(handlers);
-        }
+        loadHandlers(evt);
 
         // Get id from database by inserting event immediately.
         //Check to see if we are Not Logging these
@@ -448,6 +445,11 @@ public class EventManagerImpl implements EventManager {
         evt.setAcknowledgedTimestamp(time);
         evt.setAlternateAckSource(alternateAckSource);
 
+        // invoke event handlers
+        for (EventHandlerRT<?> handler : evt.getHandlers()) {
+            handler.eventAcknowledged(evt);
+        }
+
         List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
@@ -496,6 +498,8 @@ public class EventManagerImpl implements EventManager {
 
             // only ack the event if it exists and is not already acknowledged
             if (dbEvent != null && !dbEvent.isAcknowledged()) {
+                loadHandlers(dbEvent);
+
                 boolean acked = acknowledgeEvent(dbEvent, time, user, alternateAckSource);
 
                 // unlikely case that someone else ackd the event at the same time
@@ -969,26 +973,23 @@ public class EventManagerImpl implements EventManager {
         return null;
     }
 
-    private List<EventHandlerRT<?>> getHandlersForType(EventType type) {
-        List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(type);
+    private void loadHandlers(EventInstance event) {
+        List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(event.getEventType());
+        if (!vos.isEmpty()) {
+            List<EventHandlerRT<?>> rts = vos.stream()
+                    .map(vo -> {
+                        try {
+                            return vo.getDefinition().createRuntime(vo);
+                        } catch (Exception e) {
+                            log.error("Error creating event handler runtime", e);
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
 
-        if (vos.isEmpty()) {
-            return Collections.emptyList();
+            event.setHandlers(Collections.unmodifiableList(rts));
         }
-
-        List<EventHandlerRT<?>> rts = vos.stream()
-                .map(vo -> {
-                    try {
-                        return vo.getDefinition().createRuntime(vo);
-                    } catch (Exception e) {
-                        log.error("Error creating event handler runtime", e);
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        return Collections.unmodifiableList(rts);
     }
 
     /**

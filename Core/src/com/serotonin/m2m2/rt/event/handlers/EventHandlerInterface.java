@@ -19,6 +19,8 @@ public interface EventHandlerInterface {
      */
     void eventRaised(EventInstance evt);
 
+    default void eventAcknowledged(EventInstance evt) {}
+
     /**
      * Called when the event is considered inactive.
      *
