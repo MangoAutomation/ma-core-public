@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -445,6 +446,10 @@ public class EventManagerImpl implements EventManager {
         }
         evt.setAcknowledgedTimestamp(time);
         evt.setAlternateAckSource(alternateAckSource);
+
+        setHandlers(evt);
+        for (EventHandlerRT<?> h : evt.getHandlers())
+            h.eventAcknowledged(evt);
 
         List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
@@ -983,8 +988,7 @@ public class EventManagerImpl implements EventManager {
                 }
             }
         }
-        if (rts != null)
-            evt.setHandlers(rts);
+        evt.setHandlers(rts == null ? Collections.emptyList() : rts);
     }
 
     /**
