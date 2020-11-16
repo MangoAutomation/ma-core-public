@@ -21,12 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
@@ -69,7 +69,7 @@ public class EventManagerImpl implements EventManager {
     private UserEventListener userEventMulticaster = null;
     private MailingListService mailingListService;
     private AuditEventDao auditEventDao;
-    private EventHandlerDao eventHandlerDao;
+    private EventHandlerService eventHandlerService;
     private PermissionService permissionService;
 
     /**
@@ -175,7 +175,7 @@ public class EventManagerImpl implements EventManager {
         }
 
         if (autoAckMessage == null)
-            setHandlers(evt);
+            loadHandlers(evt);
 
         // Get id from database by inserting event immediately.
         //Check to see if we are Not Logging these
@@ -447,9 +447,8 @@ public class EventManagerImpl implements EventManager {
         evt.setAcknowledgedTimestamp(time);
         evt.setAlternateAckSource(alternateAckSource);
 
-        setHandlers(evt);
-        for (EventHandlerRT<?> h : evt.getHandlers())
-            h.eventAcknowledged(evt);
+        loadHandlers(evt);
+        handleAcknowledgedEvent(evt);
 
         List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
@@ -808,7 +807,7 @@ public class EventManagerImpl implements EventManager {
         userDao = Common.getBean(UserDao.class);
         mailingListService = Common.getBean(MailingListService.class);
         auditEventDao = Common.getBean(AuditEventDao.class);
-        eventHandlerDao = Common.getBean(EventHandlerDao.class);
+        eventHandlerService = Common.getBean(EventHandlerService.class);
 
         // Get all active events from the database.
         activeEventsLock.writeLock().lock();
@@ -973,22 +972,27 @@ public class EventManagerImpl implements EventManager {
         return null;
     }
 
-    private void setHandlers(EventInstance evt) {
-        List<AbstractEventHandlerVO> vos = eventHandlerDao.getEventHandlers(evt.getEventType());
-        List<EventHandlerRT<?>> rts = null;
-        for (AbstractEventHandlerVO vo : vos) {
-            if (!vo.isDisabled()) {
-                if (rts == null)
-                    rts = new ArrayList<>();
-                try {
-                    EventHandlerDefinition<AbstractEventHandlerVO> definition = vo.getDefinition();
-                    rts.add(definition.createRuntime(vo));
-                } catch (Exception e) {
-                    log.error("Error creating event handler runtime", e);
+    private void loadHandlers(EventInstance evt) {
+        List<AbstractEventHandlerVO> vos = permissionService.runAsSystemAdmin(() -> {
+            return eventHandlerService.getEventHandlers(evt.getEventType());
+        });
+        List<EventHandlerRT<?>> rts;
+        if (vos.isEmpty()) {
+            rts = Collections.emptyList();
+        } else {
+            rts = new ArrayList<>(vos.size());
+            for (AbstractEventHandlerVO vo : vos) {
+                if (!vo.isDisabled()) {
+                    try {
+                        EventHandlerDefinition<AbstractEventHandlerVO> definition = vo.getDefinition();
+                        rts.add(definition.createRuntime(vo));
+                    } catch (Exception e) {
+                        log.error("Error creating event handler runtime", e);
+                    }
                 }
             }
         }
-        evt.setHandlers(rts == null ? Collections.emptyList() : rts);
+        evt.setHandlers(rts);
     }
 
     /**
@@ -1000,20 +1004,18 @@ public class EventManagerImpl implements EventManager {
      * which is configured on each user or on a mailing list
      */
     private void handleRaiseEvent(EventInstance evt, Set<String> defaultAddresses) {
-        if (evt.getHandlers() != null) {
-            for (EventHandlerRT<?> h : evt.getHandlers()) {
-                h.eventRaised(evt);
+        for (EventHandlerRT<?> h : evt.getHandlers()) {
+            h.eventRaised(evt);
 
-                // If this is an email handler, remove any addresses to which it
-                // was sent from the default addresses
-                // so that the default users do not receive multiple
-                // notifications.
-                if (h instanceof EmailHandlerRT) {
-                    EmailHandlerRT eh = (EmailHandlerRT)h;
-                    if(eh.getActiveRecipients() != null) {
-                        for (String addr : eh.getActiveRecipients())
-                            defaultAddresses.remove(addr);
-                    }
+            // If this is an email handler, remove any addresses to which it
+            // was sent from the default addresses
+            // so that the default users do not receive multiple
+            // notifications.
+            if (h instanceof EmailHandlerRT) {
+                EmailHandlerRT eh = (EmailHandlerRT)h;
+                if(eh.getActiveRecipients() != null) {
+                    for (String addr : eh.getActiveRecipients())
+                        defaultAddresses.remove(addr);
                 }
             }
         }
@@ -1024,13 +1026,17 @@ public class EventManagerImpl implements EventManager {
         }
     }
 
-    private void handleInactiveEvent(EventInstance evt) {
-        if (evt.getHandlers() != null) {
-            for (EventHandlerRT<?> h : evt.getHandlers())
-                h.eventInactive(evt);
+    private void handleAcknowledgedEvent(EventInstance evt) {
+        for (EventHandlerRT<?> h : evt.getHandlers()) {
+            h.eventAcknowledged(evt);
         }
     }
 
+    private void handleInactiveEvent(EventInstance evt) {
+        for (EventHandlerRT<?> h : evt.getHandlers()) {
+            h.eventInactive(evt);
+        }
+    }
 
     class EventNotifyWorkItem implements WorkItem {
         private static final String prefix = "EVENT_EVENT_NOTIFY-";

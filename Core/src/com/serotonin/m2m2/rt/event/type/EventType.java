@@ -6,9 +6,8 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -311,20 +310,19 @@ abstract public class EventType implements JsonSerializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj instanceof EventType) {
-            EventType other = (EventType)obj;
-            if(     this.getReferenceId1() == other.getReferenceId1() &&
-                    this.getReferenceId2() == other.getReferenceId2() &&
-                    StringUtils.equals(this.getEventType(), other.getEventType()) &&
-                    StringUtils.equals(this.getEventSubtype(), other.getEventSubtype()))
-                return true;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EventType)) return false;
+        EventType that = (EventType) o;
+        return getReferenceId1() == that.getReferenceId1() &&
+                getReferenceId2() == that.getReferenceId2() &&
+                Objects.equals(getEventType(), that.getEventType()) &&
+                Objects.equals(getEventSubtype(), that.getEventSubtype());
+    }
 
-        }
-        return false;
+    @Override
+    public int hashCode() {
+        return Objects.hash(getEventType(), getEventSubtype(), getReferenceId1(), getReferenceId2());
     }
 
 }
