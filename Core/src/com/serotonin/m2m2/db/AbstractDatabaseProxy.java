@@ -128,7 +128,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
             //Ensure the modules are upgraded/installed after the core schema is updated
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
-                def.newInstallationCheck(ejt);
+                try {
+                    def.newInstallationCheck(ejt);
+                } catch (Exception e) {
+                    log.error("Module " + def.getModule().getName() + " new installation check failed", e);
+                }
             }
 
             // Check if we are using NoSQL
