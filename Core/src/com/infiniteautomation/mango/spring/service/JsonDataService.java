@@ -6,13 +6,17 @@ package com.infiniteautomation.mango.spring.service;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -32,11 +36,14 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTableDefinition, JsonDataDao> {
 
     private final JsonDataCreatePermissionDefinition createPermission;
+    private final ObjectMapper mapper;
 
     @Autowired
-    public JsonDataService(JsonDataDao dao, PermissionService permissionService, JsonDataCreatePermissionDefinition createPermission) {
+    public JsonDataService(JsonDataDao dao, PermissionService permissionService, JsonDataCreatePermissionDefinition createPermission,
+                           @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper) {
         super(dao, permissionService);
         this.createPermission = createPermission;
+        this.mapper = mapper;
     }
 
     @Override
@@ -127,6 +134,11 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
     public JsonNode getDataAtPointer(String xid, String pointer) {
         JsonNode data = this.get(xid).getJsonData();
         return getUsingPointer(data, pointer);
+    }
+
+    public void setDataAtPointer(String xid, String pointer, String data) throws JsonProcessingException {
+        JsonNode node = mapper.readTree(data);
+        setDataAtPointer(xid, pointer, node);
     }
 
     /**
