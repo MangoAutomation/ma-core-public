@@ -528,7 +528,8 @@ public class Common {
                 return plaintext;
 
             if (User.BCRYPT_ALGORITHM.equals(alg)) {
-                return BCrypt.hashpw(plaintext, BCrypt.gensalt());
+                int log2Rounds = envProps.getInt("security.bcrypt.log2Rounds", 10);
+                return BCrypt.hashpw(plaintext, BCrypt.gensalt(log2Rounds));
             }
 
             MessageDigest md = MessageDigest.getInstance(alg);
