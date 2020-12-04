@@ -70,11 +70,6 @@ for f in "$MA_HOME"/m2m2-core-*.zip; do
 	fi
 done
 
-# Delete Range.class if it exists
-if [ -e "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
-	rm -f "$MA_HOME"/classes/org/jfree/data/Range.class
-fi
-
 # Construct the Java classpath
 MA_CP="$MA_HOME/lib/*"
 
