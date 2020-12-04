@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -22,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -182,8 +182,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         return vo;
     }
 
-    @Async
-    public CompletableFuture<Integer> acknowledgeMany(ConditionSortLimit conditions, TranslatableMessage message) {
+    public int acknowledgeMany(ConditionSortLimit conditions, TranslatableMessage message) {
         // only users can ack events as it stores user id in events table
         User user = (User) Common.getUser();
         AtomicInteger total = new AtomicInteger();
@@ -210,8 +209,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         } finally {
             ackManyLock.unlock();
         }
-
-        return CompletableFuture.completedFuture(total.get());
+        return total.get();
     }
 
     public List<PeriodCounts> countQuery(ConditionSortLimit conditions, List<Date> periodBoundaries) {
