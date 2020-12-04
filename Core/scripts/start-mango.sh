@@ -76,11 +76,7 @@ if [ -e "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
 fi
 
 # Construct the Java classpath
-MA_CP="$MA_HOME/overrides/classes"
-MA_CP="$MA_CP:$MA_HOME/classes"
-MA_CP="$MA_CP:$MA_HOME/overrides/properties"
-MA_CP="$MA_CP:$MA_HOME/overrides/lib/*"
-MA_CP="$MA_CP:$MA_HOME/lib/*"
+MA_CP="$MA_HOME/lib/*"
 
 # Only log error messages to stdout and dont include the date
 # Avoids duplicating too much information in the systemd log and syslog
