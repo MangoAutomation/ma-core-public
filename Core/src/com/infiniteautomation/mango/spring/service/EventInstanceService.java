@@ -13,9 +13,16 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -45,6 +52,10 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceTableDefinition, EventInstanceDao> {
 
     private final DataPointDao dataPointDao;
+    /**
+     * Lock used to protect access to acknowledging many events at once
+     */
+    private final Lock ackManyLock = new ReentrantLock();
 
     @Autowired
     public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao) {
@@ -169,6 +180,38 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         ensureEditPermission(user, vo);
         Common.eventManager.acknowledgeEventById(id, System.currentTimeMillis(), user, message);
         return vo;
+    }
+
+    @Async
+    public CompletableFuture<Integer> acknowledgeMany(ConditionSortLimit conditions, TranslatableMessage message) {
+        // only users can ack events as it stores user id in events table
+        User user = (User) Common.getUser();
+        AtomicInteger total = new AtomicInteger();
+        long ackTimestamp = Common.timer.currentTimeMillis();
+
+        try {
+            if (!ackManyLock.tryLock(10, TimeUnit.SECONDS)) {
+                throw new TranslatableRuntimeException(new TranslatableMessage("events.acknowledgeManyFailed"));
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+
+        try {
+            customizedQuery(conditions, (EventInstanceVO vo, int index) -> {
+                if (hasEditPermission(user, vo)) {
+                    EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), ackTimestamp, user, message);
+                    if (event != null && event.isAcknowledged()) {
+                        total.incrementAndGet();
+                    }
+                }
+            });
+        } finally {
+            ackManyLock.unlock();
+        }
+
+        return CompletableFuture.completedFuture(total.get());
     }
 
     public List<PeriodCounts> countQuery(ConditionSortLimit conditions, List<Date> periodBoundaries) {
