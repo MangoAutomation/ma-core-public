@@ -15,7 +15,6 @@
                 <include>RELEASE-NOTES</include>
                 <include>licenseTypes.xml</include>
                 <include>web/**</include>
-                <include>classes/**</include>
             </includes>
         </fileSet>
         <fileSet>

@@ -23,10 +23,8 @@
                 <include>LICENSE</include>
                 <include>licenseTypes.xml</include>
                 <include>RELEASE-NOTES</include>
-                <include>classes/**</include>
                 <include>ftl/**</include>
                 <include>web/**</include>
-                <include>overrides/classes/Readme.txt</include>
                 <include>overrides/properties/Readme.txt</include>
             </includes>
             <excludes>

@@ -77,6 +77,10 @@
                 <directory>resources</directory>
             </resource>
             <resource>
+                <!-- TODO Mango 4.0 move all files in module classes directories into resources directory -->
+                <directory>classes</directory>
+            </resource>
+            <resource>
                 <directory>${project.basedir}</directory>
                 <includes>
                     <include>module.properties</include>
