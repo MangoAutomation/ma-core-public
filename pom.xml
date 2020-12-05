@@ -44,69 +44,8 @@
     </modules>
     <profiles>
         <profile>
-            <id>ma-core-private</id>
-            <modules>
-                <module>../ma-core-private</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>ma-modules-public</id>
-            <modules>
-                <module>../ma-modules-public</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>ma-modules-private</id>
-            <modules>
-                <module>../ma-modules-private</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>ma-modules-proprietary</id>
-            <modules>
-                <module>../ma-modules-proprietary</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>ma-dashboards</id>
-            <modules>
-                <module>../ma-dashboards</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>dashboards</id>
-            <modules>
-                <module>../dashboards</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>stallion</id>
-            <modules>
-                <module>../stallion</module>
-            </modules>
-        </profile>
-        <profile>
             <id>core-zip</id>
             <modules>
-                <module>CoreBundle</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>core-bundle</id>
-            <modules>
-                <module>../ma-core-private</module>
-                <module>../ma-modules-public</module>
-                <module>../ma-modules-private</module>
-                <module>../ma-modules-proprietary</module>
-                <module>../ma-dashboards</module>
-                <module>CoreBundle</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>core-bundle-public</id>
-            <modules>
-                <module>../ma-modules-public</module>
-                <module>../ma-dashboards</module>
                 <module>CoreBundle</module>
             </modules>
         </profile>
