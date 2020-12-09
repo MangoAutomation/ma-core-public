@@ -46,23 +46,14 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class FileStoreService extends AbstractVOService<FileStore, FileStoreTableDefinition, FileStoreDao> {
 
     private final UserFileStoreCreatePermissionDefinition createPermission;
-    private final Path fileStoreRoot;
+    private final Path fileStoreRoot = Common.getFileStorePath();;
 
     public static final Pattern INVALID_XID_CHARACTERS = Pattern.compile("[./\\\\]");
 
-    /**
-     * @param dao
-     * @param permissionService
-     * @param createPermissionDefinition
-     */
     @Autowired
-    public FileStoreService(FileStoreDao dao, PermissionService permissionService, UserFileStoreCreatePermissionDefinition createPermission,
-            Environment env) {
+    public FileStoreService(FileStoreDao dao, PermissionService permissionService, UserFileStoreCreatePermissionDefinition createPermission) {
         super(dao, permissionService);
         this.createPermission = createPermission;
-
-        String location = env.getProperty(FileStoreDefinition.FILE_STORE_LOCATION_ENV_PROPERTY, FileStoreDefinition.ROOT);
-        this.fileStoreRoot = Common.MA_HOME_PATH.resolve(location).toAbsolutePath().normalize();
     }
 
     @Override

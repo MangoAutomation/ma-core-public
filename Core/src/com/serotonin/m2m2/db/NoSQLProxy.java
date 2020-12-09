@@ -37,7 +37,7 @@ abstract public class NoSQLProxy extends ModuleElementDefinition {
      */
     public static String getDatabasePath() {
         String location = Common.envProps.getString("db.nosql.location", "databases");
-        return Common.MA_HOME_PATH.resolve(location).normalize().toString();
+        return Common.MA_DATA_PATH.resolve(location).normalize().toString();
     }
 
     /**

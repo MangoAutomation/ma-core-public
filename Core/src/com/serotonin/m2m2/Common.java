@@ -112,23 +112,27 @@ public class Common {
 
     public static final MangoProperties envProps = Providers.get(MangoProperties.class);
 
+    public static final Path MA_DATA_PATH = createDirectories(MA_HOME_PATH
+            .resolve(envProps.getString("paths.data")).normalize());
+
     private static final Path LOGS_PATH;
     static {
         // ma.logs needs to be set before calling org.apache.commons.logging.LogFactory.getLog(Class)
         String logsValue = envProps.getString("paths.logs", "logs");
-        LOGS_PATH = createDirectories(MA_HOME_PATH.resolve(logsValue).normalize());
+        LOGS_PATH = createDirectories(MA_DATA_PATH.resolve(logsValue).normalize());
         System.setProperty("ma.logs", LOGS_PATH.toString());
     }
 
-    public static final Path OVERRIDES = MA_HOME_PATH.resolve(envProps.getString("paths.overrides", Constants.DIR_OVERRIDES));
+    public static final Path OVERRIDES = MA_DATA_PATH.resolve(envProps.getString("paths.overrides", Constants.DIR_OVERRIDES));
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
 
-    private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", System.getProperty("java.io.tmpdir"))).normalize());
-    private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
-    private static final Path BACKUP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.backup", "backup")).normalize());
-    private static final Path MODULE_DATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString(Module.MODULE_DATA_ENV_PROP, Module.MODULE_DATA_ENV_PROP_DEFAULT)).normalize());
+    private static final Path TEMP_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("paths.temp", System.getProperty("java.io.tmpdir"))).normalize());
+    private static final Path FILEDATA_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
+    private static final Path BACKUP_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("paths.backup", "backup")).normalize());
+    private static final Path MODULE_DATA_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString(Module.MODULE_DATA_ENV_PROP, Module.MODULE_DATA_ENV_PROP_DEFAULT)).normalize());
+    private static final Path FILE_STORE_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("filestore.location", "filestore")).normalize());
 
     public static final int NEW_ID = -1;
 
@@ -362,11 +366,7 @@ public class Common {
     }
 
     /**
-     * Returns the length of time in milliseconds that the
-     *
-     * @param timePeriod
-     * @param numberOfPeriods
-     * @return
+     * Returns the length of time in milliseconds
      */
     public static long getMillis(int periodType, int periods) {
         return getPeriod(periodType, periods).toDurationFrom(null).getMillis();
@@ -465,6 +465,10 @@ public class Common {
 
     public static Path getModuleDataPath() {
         return MODULE_DATA_PATH;
+    }
+
+    public static Path getFileStorePath() {
+        return FILE_STORE_PATH;
     }
 
     public static CronTimerTrigger getCronTrigger(int periodType, int delaySeconds) {

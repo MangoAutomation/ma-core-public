@@ -107,7 +107,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     public static Path getDbPathFromUrl(String url) {
         String [] jdbcParts = url.split("jdbc:h2:");
         String [] commandParts = jdbcParts[1].split(";");
-        return Common.MA_HOME_PATH.resolve(Paths.get(commandParts[0])).normalize();
+        return Common.MA_DATA_PATH.resolve(Paths.get(commandParts[0])).normalize();
     }
 
     /**

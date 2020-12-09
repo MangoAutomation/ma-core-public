@@ -224,13 +224,8 @@ public class DiskUsageMonitoringService {
             }
         }
 
-        //Volume information for filestore partition
-        String location = Common.envProps.getString(FileStoreDefinition.FILE_STORE_LOCATION_ENV_PROPERTY);
-        if (location == null || location.isEmpty()) {
-            location = FileStoreDefinition.ROOT;
-        }
         try{
-            Path fileStorePath = Common.MA_HOME_PATH.resolve(location);
+            Path fileStorePath = Common.getFileStorePath();
             if (Files.isDirectory(fileStorePath)) {
                 FileStore store = Files.getFileStore(fileStorePath);
                 filestorePartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));

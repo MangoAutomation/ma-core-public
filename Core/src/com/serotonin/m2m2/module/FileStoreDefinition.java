@@ -25,8 +25,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     protected static final Log LOG = LogFactory.getLog(FileStoreDefinition.class);
 
     //Root directory within core
-    public static final String ROOT = "filestore";
-    public static final String FILE_STORE_LOCATION_ENV_PROPERTY = "filestore.location";
+    private static final Path FILE_STORE_PATH = Common.getFileStorePath();
 
     /**
      * The translation for the name of the store
@@ -57,11 +56,9 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     /**
      * Get the root of this filestore
      * @return
-     * @throws IOException
      */
     public Path getRootPath() {
-        String location = Common.envProps.getString(FILE_STORE_LOCATION_ENV_PROPERTY, ROOT);
-        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName()).toAbsolutePath().normalize();
+        return FILE_STORE_PATH.resolve(getStoreName()).normalize();
     }
 
     public void ensureExists() throws IOException {
