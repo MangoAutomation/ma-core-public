@@ -156,6 +156,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Security.addProvider(new BouncyCastleProvider());
 
         Providers.add(MangoProperties.class, this.properties);
+        // TODO Mango 4.0 set ma.home before initializing Common so that test data does not pollute the development environment
         Common.setModuleClassLoader(MockMangoLifecycle.class.getClassLoader());
 
         Providers.add(ITimedLicenseRegistrar.class, new MockTimedLicenseRegistrar());

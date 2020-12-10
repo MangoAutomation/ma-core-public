@@ -4,9 +4,12 @@
  */
 package com.serotonin.m2m2;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Properties;
 
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.util.properties.DefaultMangoProperties;
 import com.serotonin.util.properties.MangoProperties;
 
 /**
@@ -19,17 +22,14 @@ public class MockMangoProperties implements MangoProperties {
     private final Properties properties;
 
     public MockMangoProperties() {
-        this(new Properties());
-    }
+        try {
+            this.properties = DefaultMangoProperties.loadFromResources("env.properties");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
-    public MockMangoProperties(Properties properties) {
-        this.properties = properties;
-
+        // change/set properties for testing
         setProperty("web.openBrowserOnStartup", "false");
-
-        //Fill in all default values for properties
-        setProperty("db.update.log.dir", "");
-        setProperty("security.hashAlgorithm", User.BCRYPT_ALGORITHM);
 
         //Test injection property types
         setProperty("test.injectedStringArray", "ONE,TWO,THREE");
