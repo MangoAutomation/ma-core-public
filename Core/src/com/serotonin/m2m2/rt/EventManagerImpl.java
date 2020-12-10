@@ -146,21 +146,21 @@ public class EventManagerImpl implements EventManager {
                 return;
         }
 
+        EventInstance evt = new EventInstance(type, time, rtnApplicable,
+                alarmLevel, message, context);
+        evt.setReadPermission(type.getEventPermission(context, permissionService));
+
         // Determine if the event should be suppressed (automatically acknowledged and handlers dont run)
         TranslatableMessage autoAckMessage = null;
         for (EventManagerListenerDefinition l : listeners) {
             try {
-                autoAckMessage = l.autoAckEventWithMessage(type);
+                autoAckMessage = l.autoAckEventWithMessage(evt);
             } catch (Exception e) {
                 log.warn("Error in event manager listener, continuing", e);
             }
             if (autoAckMessage != null)
                 break;
         }
-
-        EventInstance evt = new EventInstance(type, time, rtnApplicable,
-                alarmLevel, message, context);
-        evt.setReadPermission(type.getEventPermission(context, permissionService));
 
         for (EventManagerListenerDefinition l : listeners) {
             try {

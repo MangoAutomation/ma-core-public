@@ -18,11 +18,10 @@ abstract public class EventManagerListenerDefinition extends ModuleElementDefini
     /**
      * Provides both notification of a new event, and the opportunity to automatically acknowledge it.
      *
-     * @param eventType
-     *            the type of event being raised.
+     * @param event the event being raised.
      * @return the message with which to acknowledge the event, or null if it should not be acknowledged.
      */
-    public TranslatableMessage autoAckEventWithMessage(EventType eventType) {
+    public TranslatableMessage autoAckEventWithMessage(EventInstance event) {
         return null;
     }
 
@@ -33,7 +32,7 @@ abstract public class EventManagerListenerDefinition extends ModuleElementDefini
      *
      * This runs after the duplicate/recent checks but before the event is saved to the database.
      *
-     * @param event
+     * @param event the event being raised.
      * @return the new event or null to ignore/drop the event completely
      */
     public EventInstance modifyEvent(EventInstance event) {
