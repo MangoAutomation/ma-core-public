@@ -24,9 +24,6 @@ import com.serotonin.m2m2.vo.FileStore;
 public abstract class FileStoreDefinition extends ModuleElementDefinition {
     protected static final Log LOG = LogFactory.getLog(FileStoreDefinition.class);
 
-    //Root directory within core
-    private static final Path FILE_STORE_PATH = Common.getFileStorePath();
-
     /**
      * The translation for the name of the store
      * @return
@@ -58,7 +55,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @return
      */
     public Path getRootPath() {
-        return FILE_STORE_PATH.resolve(getStoreName()).normalize();
+        return Common.getFileStorePath().resolve(getStoreName()).normalize();
     }
 
     public void ensureExists() throws IOException {
