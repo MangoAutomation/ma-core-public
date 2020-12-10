@@ -423,7 +423,7 @@ public class EventManagerImpl implements EventManager {
      * Added to allow Acknowledge Events to be fired
      * @param evt
      * @param time
-     * @param userId
+     * @param ackUser the user that acknowledged the event, or null if acknowledged by system (e.g. EventManagerListenerDefinition)
      * @param alternateAckSource
      */
     private boolean acknowledgeEvent(EventInstance evt, long time, User ackUser, TranslatableMessage alternateAckSource) {
@@ -431,7 +431,7 @@ public class EventManagerImpl implements EventManager {
         if(ackUser != null)
             acked = eventDao.ackEvent(evt.getId(), time, ackUser.getId(), alternateAckSource);
         else
-            acked = eventDao.ackEvent(evt.getId(), time, 0, alternateAckSource);
+            acked = eventDao.ackEvent(evt.getId(), time, null, alternateAckSource);
 
         // event was already acknowledged or doesn't exist
         if (!acked) {

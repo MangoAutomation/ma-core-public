@@ -407,11 +407,11 @@ public class EventDao extends BaseDao {
      * Acknowledge an event
      * @param eventId
      * @param time
-     * @param userId
+     * @param userId the ID of the user that acknowledged the event, or null if acknowledged by system (e.g. EventManagerListenerDefinition)
      * @param alternateAckSource
      * @return
      */
-    public boolean ackEvent(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
+    public boolean ackEvent(int eventId, long time, Integer userId, TranslatableMessage alternateAckSource) {
         Map<Field<?>, Object> values = new LinkedHashMap<>();
         values.put(this.table.getField("ackTs"), time);
         values.put(this.table.getField("ackUserId"), userId);
