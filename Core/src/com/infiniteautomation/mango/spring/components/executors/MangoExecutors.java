@@ -18,6 +18,8 @@ import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.concurrent.DelegatingSecurityContextExecutorService;
 import org.springframework.security.concurrent.DelegatingSecurityContextScheduledExecutorService;
 import org.springframework.stereotype.Component;
@@ -34,15 +36,7 @@ import com.serotonin.m2m2.Common;
 public final class MangoExecutors {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private final ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r, "Mango shared scheduled executor");
-            thread.setDaemon(true);
-            thread.setContextClassLoader(Common.getModuleClassLoader());
-            return thread;
-        }
-    });
+    private final ScheduledExecutorService scheduledExecutor;
 
     private final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
         @Override
@@ -65,10 +59,24 @@ public final class MangoExecutors {
         return converter;
     });
 
+    @Autowired
+    public MangoExecutors(Environment env) {
+        int scheduledThreadPoolSize = env.getProperty("executors.scheduled.corePoolSize", Integer.class, 1);
+        this.scheduledExecutor = new ScheduledThreadPoolExecutor(scheduledThreadPoolSize, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = new Thread(r, "Mango shared scheduled executor");
+                thread.setDaemon(true);
+                thread.setContextClassLoader(Common.getModuleClassLoader());
+                return thread;
+            }
+        });
+    }
+
     @PreDestroy
     private void destroy() {
         if (log.isInfoEnabled()) {
-            log.info("Shutting down shared executor and scheduled exectutor");
+            log.info("Shutting down shared executor and scheduled executor");
         }
 
         scheduledExecutor.shutdown();
