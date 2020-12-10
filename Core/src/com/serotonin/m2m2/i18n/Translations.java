@@ -11,11 +11,7 @@ import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -110,10 +106,10 @@ public class Translations {
             classLoader = Thread.currentThread().getContextClassLoader();
         }
 
-        Enumeration<URL> urls = classLoader.getResources(name + ".properties");
-        while (urls.hasMoreElements()) {
-            URL url = urls.nextElement();
-
+        List<URL> urls = Collections.list(classLoader.getResources(name + ".properties"));
+        // iterate urls in reverse so that those on the classpath first take priority
+        Collections.reverse(urls);
+        for (URL url : urls) {
             Properties props = new Properties();
 
             Charset charset = StandardCharsets.UTF_8;
