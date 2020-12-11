@@ -32,6 +32,8 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
+import com.serotonin.util.properties.MangoProperties;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.core.config.ConfigurationSource;
@@ -44,6 +46,8 @@ import org.junit.BeforeClass;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -52,12 +56,6 @@ import static org.junit.Assert.fail;
 /**
  *
  * Base Class for all JUnit Tests
- *
- * To enable the in-memory H2 database's web console
- *   use the correct constructor OR supply the system propertites:
- *
- *   mango.test.enableH2Web=true
- *   mango.test.h2WebPort=<port>
  *
  *   Add any modules to load prior to the @Before method
  *
@@ -70,36 +68,25 @@ public class MangoTestBase {
 
     protected static MockMangoLifecycle lifecycle;
     protected static List<Module> modules = new ArrayList<>();
+    protected static MockMangoProperties properties;
+    protected static Path dataDirectory;
 
     protected SimulationTimer timer;
-    protected long testTime = 0l; //time during test
-
-    protected boolean enableH2Web;
-    protected int h2WebPort;
-
-    public MangoTestBase() {
-        enableH2Web = false;
-        h2WebPort = 9001;
-        String prop = System.getProperty("mango.test.enableH2Web");
-        if(prop != null)
-            enableH2Web = Boolean.parseBoolean(prop);
-        else
-            enableH2Web = false;
-
-        prop = System.getProperty("mango.test.h2WebPort");
-        if(prop != null)
-            h2WebPort = Integer.parseInt(prop);
-        else
-            h2WebPort = 9001;
-    }
+    protected long testTime = 0L; //time during test
 
     @BeforeClass
-    public static void staticSetup() throws IOException{
+    public static void staticSetup() throws IOException {
+        dataDirectory = Files.createTempDirectory("MangoTestBase");
+
         //Configure Log4j2
         try (InputStream is = ClassLoader.getSystemResource("test-log4j2.xml").openStream()) {
             ConfigurationSource source = new ConfigurationSource(is);
             Configurator.initialize(null, source);
         }
+
+        properties = new MockMangoProperties();
+        properties.setProperty("paths.data", dataDirectory.toString());
+        Providers.add(MangoProperties.class, properties);
 
         addModule("BaseTest", new MockDataSourceDefinition());
     }
@@ -155,25 +142,14 @@ public class MangoTestBase {
     }
 
     @AfterClass
-    public static void staticTearDown() {
+    public static void staticTearDown() throws IOException {
         if(lifecycle != null) {
             lifecycle.terminate(TerminationReason.SHUTDOWN);
         }
-    }
 
-    //Helper Methods
-    /**
-     * Delete this file or if a directory all files and directories within
-     * @param f
-     * @throws IOException
-     */
-    public static void delete(File f) throws IOException {
-        if (f.isDirectory()) {
-            for (File c : f.listFiles())
-                delete(c);
+        if (dataDirectory != null) {
+            FileUtils.deleteDirectory(dataDirectory.toFile());
         }
-        if (f.exists() && !f.delete())
-            throw new FileNotFoundException("Failed to delete file: " + f);
     }
 
     /**
@@ -335,7 +311,7 @@ public class MangoTestBase {
     /**
      * Create users with password=password and supplied permissions
      * @param count
-     * @param permissions
+     * @param roles
      * @return
      */
     protected List<User> createUsers(int count, Role... roles){
@@ -553,6 +529,6 @@ public class MangoTestBase {
      * @return
      */
     protected MockMangoLifecycle getLifecycle() {
-        return new MockMangoLifecycle(modules, enableH2Web, h2WebPort);
+        return new MockMangoLifecycle(modules);
     }
 }

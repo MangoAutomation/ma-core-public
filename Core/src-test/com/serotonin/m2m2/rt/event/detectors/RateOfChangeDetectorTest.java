@@ -646,7 +646,6 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      *
      * @param rocThreshold
      * @param resetThreshold
-     * @param rocThresholdPeriods
      * @param rocThresholdPeriodType
      * @param useAbsoluteValue
      * @param calculationMode
@@ -714,8 +713,6 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
     /**
      * Save a value and ensure the event detector has received the event
-     * @param id
-     * @param value
      */
     private void ensureSetPointValue(DataPointRT rt, PointValueTime value) {
         ConfirmedDataPointListener l = new ConfirmedDataPointListener();
@@ -749,7 +746,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Override
     protected MockMangoLifecycle getLifecycle() {
         RuntimeManagerMockMangoLifecycle lifecycle =
-                new RuntimeManagerMockMangoLifecycle(modules, enableH2Web, h2WebPort);
+                new RuntimeManagerMockMangoLifecycle(modules);
         return lifecycle;
     }
 
@@ -757,12 +754,9 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
         /**
          * @param modules
-         * @param enableWebConsole
-         * @param webPort
          */
-        public RuntimeManagerMockMangoLifecycle(List<Module> modules, boolean enableWebConsole,
-                int webPort) {
-            super(modules, enableWebConsole, webPort);
+        public RuntimeManagerMockMangoLifecycle(List<Module> modules) {
+            super(modules);
         }
 
         @Override

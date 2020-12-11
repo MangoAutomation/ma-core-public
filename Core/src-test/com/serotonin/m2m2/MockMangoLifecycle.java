@@ -77,14 +77,11 @@ import freemarker.template.DefaultObjectWrapper;
 public class MockMangoLifecycle implements IMangoLifecycle {
 
     static Log LOG = LogFactory.getLog(MockMangoLifecycle.class);
-    protected boolean enableWebConsole;
-    protected int webPort;
     protected List<Module> modules;
     private final List<Runnable> STARTUP_TASKS = new ArrayList<>();
     private final List<Runnable> SHUTDOWN_TASKS = new ArrayList<>();
 
     //Members to use for non defaults
-    protected MangoProperties properties;
     protected TimerProvider<AbstractTimer> timer;
     protected EventManager eventManager;
     protected DatabaseProxy db;
@@ -92,28 +89,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
 
-    Path tempPath;
-    Path filedataPath;
-    Path logsPath;
-    Path filestorePath;
-    Path moduleDataPath;
-
-    /**
-     * Create a default lifecycle with an H2 web console on port 9001
-     *   to view the in-memory database.
-     */
     public MockMangoLifecycle(List<Module> modules) {
-        this(modules, false, 9001);
-    }
-
-    public MockMangoLifecycle(List<Module> modules, boolean enableWebConsole, int webPort) {
-        this(modules, null, enableWebConsole, webPort);
-    }
-
-    public MockMangoLifecycle(List<Module> modules, MangoProperties properties, boolean enableWebConsole, int webPort) {
-        this.enableWebConsole = enableWebConsole;
-        this.properties = properties;
-        this.webPort = webPort;
         this.modules = modules;
     }
 
@@ -134,29 +110,8 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             fail(e.getMessage());
         }
 
-        // create temporary paths for data
-        try {
-            tempPath = Files.createTempDirectory("mango-mock-temp-").toAbsolutePath();
-            filedataPath = Files.createTempDirectory("mango-mock-filedata-").toAbsolutePath();
-            logsPath = Files.createTempDirectory("mango-mock-logs-").toAbsolutePath();
-            filestorePath = Files.createTempDirectory("mango-mock-filestore-").toAbsolutePath();
-            moduleDataPath = Files.createTempDirectory("mango-mock-moduleData-").toAbsolutePath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        if(this.properties == null) {
-            this.properties = new MockMangoProperties();
-        }
-
-        if(this.properties instanceof MockMangoProperties) {
-            setDefaultEnvProps((MockMangoProperties)this.properties);
-        }
-
         Security.addProvider(new BouncyCastleProvider());
 
-        Providers.add(MangoProperties.class, this.properties);
-        // TODO Mango 4.0 set ma.home before initializing Common so that test data does not pollute the development environment
         Common.setModuleClassLoader(MockMangoLifecycle.class.getClassLoader());
 
         Providers.add(ITimedLicenseRegistrar.class, new MockTimedLicenseRegistrar());
@@ -331,46 +286,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             }
             Common.serialPortManager.joinTermination();
         }
-
-        Exception failed = null;
-        if (tempPath != null) {
-            try {
-                FileUtils.deleteDirectory(tempPath.toFile());
-            } catch (IOException e) {
-                failed = e;
-            }
-        }
-        if (filedataPath != null) {
-            try {
-                FileUtils.deleteDirectory(filedataPath.toFile());
-            } catch (IOException e) {
-                failed = e;
-            }
-        }
-        if (logsPath != null) {
-            try {
-                FileUtils.deleteDirectory(logsPath.toFile());
-            } catch (IOException e) {
-                failed = e;
-            }
-        }
-        if (filestorePath != null) {
-            try {
-                FileUtils.deleteDirectory(filestorePath.toFile());
-            } catch (IOException e) {
-                failed = e;
-            }
-        }
-        if (moduleDataPath != null) {
-            try {
-                FileUtils.deleteDirectory(moduleDataPath.toFile());
-            } catch (IOException e) {
-                failed = e;
-            }
-        }
-        if (failed != null) {
-            throw new RuntimeException(failed);
-        }
     }
 
     @Override
@@ -433,30 +348,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             return this.timer;
     }
 
-    protected void setDefaultEnvProps(MockMangoProperties props) {
-        if(props.getString("paths.temp") == null) {
-            props.setProperty("paths.temp", tempPath.toString());
-        }
-        if(props.getString("paths.filedata") == null) {
-            props.setProperty("paths.filedata", filedataPath.toString());
-        }
-
-        if(props.getString("filestore.location") == null) {
-            props.setProperty("filestore.location", filestorePath.toString());
-        }
-        if(props.getString("moduleData.location") == null) {
-            props.setProperty("moduleData.location", moduleDataPath.toString());
-        }
-        if(props.getString("paths.logs") == null) {
-            props.setProperty("paths.logs", logsPath.toString());
-        }
-
-    }
-
-    public void setEnvProps(MockMangoProperties props) {
-        this.properties = props;
-    }
-
     protected EventManager getEventManager() {
         if(this.eventManager == null)
             return new MockEventManager(false);
@@ -465,8 +356,11 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     protected DatabaseProxy getDatabaseProxy() {
-        if(this.db == null)
+        if(this.db == null) {
+            boolean enableWebConsole = Common.envProps.getBoolean("db.web.start");
+            int webPort = Common.envProps.getInt("db.web.port");
             return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
+        }
         else
             return this.db;
     }
@@ -490,18 +384,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             return new MockBackgroundProcessing(Providers.get(TimerProvider.class).getTimer());
         else
             return this.backgroundProcessing;
-    }
-
-    public boolean isEnableWebConsole() {
-        return enableWebConsole;
-    }
-
-    public void setEnableWebConsole(boolean enableWebConsole) {
-        this.enableWebConsole = enableWebConsole;
-    }
-
-    public void setWebPort(int webPort) {
-        this.webPort = webPort;
     }
 
     public void setTimer(TimerProvider<AbstractTimer> timer) {
@@ -549,10 +431,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     public TerminationReason getTerminationReason() {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    public MangoProperties getProperties() {
-        return properties;
     }
 
 }

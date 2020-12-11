@@ -64,19 +64,16 @@ public class JsscSerialPortInputStreamTest extends MangoTestBase {
     
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        return new SerialPortTestLifecycle(modules, enableH2Web, h2WebPort);
+        return new SerialPortTestLifecycle(modules);
     }
     
     class SerialPortTestLifecycle extends MockMangoLifecycle {
 
         /**
          * @param modules
-         * @param enableWebConsole
-         * @param webPort
          */
-        public SerialPortTestLifecycle(List<Module> modules, boolean enableWebConsole,
-                int webPort) {
-            super(modules, enableWebConsole, webPort);
+        public SerialPortTestLifecycle(List<Module> modules) {
+            super(modules);
         }
         
         @Override

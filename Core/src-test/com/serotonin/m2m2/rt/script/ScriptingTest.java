@@ -435,7 +435,7 @@ public class ScriptingTest extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        return new MockMangoLifecycle(modules, enableH2Web, h2WebPort) {
+        return new MockMangoLifecycle(modules) {
             @Override
             protected RuntimeManager getRuntimeManager() {
                 return new ScriptTestRuntimeManager();

@@ -45,7 +45,7 @@ public class MySQLDatabaseUpgradeTest {
             return;
 
         //Dummy for registering the insert user startup task
-        Providers.add(IMangoLifecycle.class, new MockMangoLifecycle(null, false, 0));
+        Providers.add(IMangoLifecycle.class, new MockMangoLifecycle(null));
 
         //Setup MySQL db properties
 

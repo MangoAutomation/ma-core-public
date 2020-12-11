@@ -183,7 +183,7 @@ public class EmailHandlerRTTest extends MangoTestBase {
         return mockLifecycle;
     }
 
-    private final MockMangoLifecycle mockLifecycle = new MockMangoLifecycle(modules, enableH2Web, h2WebPort) {
+    private final MockMangoLifecycle mockLifecycle = new MockMangoLifecycle(modules) {
         @Override
         protected BackgroundProcessing getBackgroundProcessing() {
             return new MockBackgroundProcessing() {

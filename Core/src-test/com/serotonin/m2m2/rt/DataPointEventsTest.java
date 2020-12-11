@@ -95,7 +95,7 @@ public class DataPointEventsTest extends MangoTestBase {
     @Override
     protected MockMangoLifecycle getLifecycle() {
         RuntimeManagerMockMangoLifecycle lifecycle =
-                new RuntimeManagerMockMangoLifecycle(modules, enableH2Web, h2WebPort);
+                new RuntimeManagerMockMangoLifecycle(modules);
         return lifecycle;
     }
 
@@ -103,12 +103,9 @@ public class DataPointEventsTest extends MangoTestBase {
 
         /**
          * @param modules
-         * @param enableWebConsole
-         * @param webPort
          */
-        public RuntimeManagerMockMangoLifecycle(List<Module> modules, boolean enableWebConsole,
-                int webPort) {
-            super(modules, enableWebConsole, webPort);
+        public RuntimeManagerMockMangoLifecycle(List<Module> modules) {
+            super(modules);
         }
 
         @Override

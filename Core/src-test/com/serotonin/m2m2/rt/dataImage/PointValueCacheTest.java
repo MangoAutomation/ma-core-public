@@ -153,19 +153,16 @@ public class PointValueCacheTest extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        return new DataPointRtMockMangoLifecycle(modules, enableH2Web, h2WebPort);
+        return new DataPointRtMockMangoLifecycle(modules);
     }
 
     class DataPointRtMockMangoLifecycle extends MockMangoLifecycle {
 
         /**
          * @param modules
-         * @param enableWebConsole
-         * @param webPort
          */
-        public DataPointRtMockMangoLifecycle(List<Module> modules, boolean enableWebConsole,
-                int webPort) {
-            super(modules, enableWebConsole, webPort);
+        public DataPointRtMockMangoLifecycle(List<Module> modules) {
+            super(modules);
         }
 
         @Override

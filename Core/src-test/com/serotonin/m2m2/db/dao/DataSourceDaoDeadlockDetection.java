@@ -509,7 +509,9 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
 
-        lifecycle.setDb(new H2InMemoryDatabaseProxyNoLocking(this.enableH2Web, this.h2WebPort));
+        boolean enableWebConsole = Common.envProps.getBoolean("db.web.start");
+        int webPort = Common.envProps.getInt("db.web.port");
+        lifecycle.setDb(new H2InMemoryDatabaseProxyNoLocking(enableWebConsole, webPort));
 
         return lifecycle;
     }
