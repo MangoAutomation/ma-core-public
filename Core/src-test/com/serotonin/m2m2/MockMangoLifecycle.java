@@ -23,7 +23,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-import org.apache.commons.io.FileUtils;
+import com.serotonin.m2m2.module.*;
+import com.serotonin.m2m2.module.Module;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -37,10 +38,6 @@ import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
-import com.serotonin.m2m2.module.EventManagerListenerDefinition;
-import com.serotonin.m2m2.module.Module;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
 import com.serotonin.m2m2.module.license.ITimedLicenseRegistrar;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -60,7 +57,6 @@ import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.LifecycleException;
-import com.serotonin.util.properties.MangoProperties;
 
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
@@ -236,23 +232,23 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             List<TemplateLoader> loaders = new ArrayList<>();
 
             // Add the overrides directory.
-            File override = Common.OVERRIDES.resolve(Constants.DIR_FTL).toFile();
-            if (override.exists())
-                loaders.add(new FileTemplateLoader(override));
-
-            // Add the default template dir
-            loaders.add(new FileTemplateLoader(baseTemplateDir));
-
-            // Add template dirs defined by modules.
-            for (Module module : ModuleRegistry.getModules()) {
-                if (module.getEmailTemplateDirs() != null) {
-                    for(String templateDir : module.getEmailTemplateDirs()) {
-                        loaders.add(0, new FileTemplateLoader(module.modulePath().resolve(templateDir).toFile()));
-                    }
-                }
+            Path override = Common.OVERRIDES.resolve(Constants.DIR_FTL);
+            if (Files.isDirectory(override)) {
+                loaders.add(new FileTemplateLoader(override.toFile()));
             }
 
-            cfg.setTemplateLoader(new MultiTemplateLoader(loaders.toArray(new TemplateLoader[loaders.size()])));
+            // Add the default template dir
+            Path ftlDirectory = Common.MA_HOME_PATH.resolve(Constants.DIR_FTL);
+            if (Files.isDirectory(ftlDirectory)) {
+                loaders.add(new FileTemplateLoader(ftlDirectory.toFile()));
+            }
+
+            // Add template loaders defined by modules.
+            for (FreemarkerTemplateLoaderDefinition def : ModuleRegistry.getDefinitions(FreemarkerTemplateLoaderDefinition.class)) {
+                loaders.add(0, def.getTemplateLoader());
+            }
+
+            cfg.setTemplateLoader(new MultiTemplateLoader(loaders.toArray(new TemplateLoader[0])));
         }
         catch (IOException e) {
             throw new RuntimeException("Exception defining Freemarker template directory", e);

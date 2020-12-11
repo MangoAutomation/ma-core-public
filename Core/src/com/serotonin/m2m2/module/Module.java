@@ -425,11 +425,4 @@ public class Module {
         return locales;
     }
 
-    public List<String> getEmailTemplateDirs() {
-        return emailTemplateDirs;
-    }
-
-    public void setEmailTemplateDirs(List<String> emailTemplates) {
-        this.emailTemplateDirs = emailTemplates;
-    }
 }
