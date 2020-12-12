@@ -35,4 +35,9 @@ public class MangoTestModule extends Module {
     public Path modulePath() {
         return Paths.get(".");
     }
+
+    @Override
+    public Path resourcesPath() {
+        return modulePath().resolve("file-resources");
+    }
 }
