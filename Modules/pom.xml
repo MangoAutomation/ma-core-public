@@ -70,6 +70,26 @@
                 <yarnRunPhase>generate-resources</yarnRunPhase>
             </properties>
         </profile>
+        <profile>
+            <id>store-upload</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.infiniteautomation</groupId>
+                        <artifactId>mango-store-maven-plugin</artifactId>
+                        <version>1.0.1</version>
+                        <executions>
+                            <execution>
+                                <id>mango-store-upload</id>
+                                <goals>
+                                    <goal>upload</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
     <build>
         <resources>

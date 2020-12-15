@@ -357,4 +357,10 @@
             <url>https://maven.mangoautomation.net/repository/ias-release/</url>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>ias-releases</id>
+            <url>https://maven.mangoautomation.net/repository/ias-release/</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
