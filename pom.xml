@@ -29,7 +29,7 @@
         <spotbugs.version>4.0.2</spotbugs.version>
         <jetty.alpn.version>2.0.10</jetty.alpn.version>
         <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
-        <mango.store.pugin.version>1.0.3</mango.store.pugin.version>
+        <mango.store.pugin.version>1.0.2</mango.store.pugin.version>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
     </properties>
     <organization>
