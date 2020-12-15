@@ -82,7 +82,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
         boolean failed = false;
         Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
         try {
-            dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, false, maxCacheSize,
+            dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize,
                     (pvt, i) -> latestValuesMap.computeIfAbsent(pvt.getId(), (k) -> new ArrayList<>()).add(pvt));
         } catch (Exception e) {
             failed = true;
