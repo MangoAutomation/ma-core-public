@@ -360,6 +360,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>ias-releases</id>
+            <snapshots><enabled>false</enabled></snapshots>
             <url>https://maven.mangoautomation.net/repository/ias-release/</url>
         </pluginRepository>
     </pluginRepositories>
