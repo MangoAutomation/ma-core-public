@@ -8,33 +8,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mango-bundle</artifactId>
-    <name>Mango Core Release Bundle</name>
+    <name>Mango Core bundle</name>
     <packaging>pom</packaging>
-    <profiles>
-        <profile>
-            <id>store-upload</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.infiniteautomation</groupId>
-                        <artifactId>mango-store-maven-plugin</artifactId>
-                        <version>1.0.1</version>
-                        <executions>
-                            <execution>
-                                <id>mango-store-upload</id>
-                                <goals>
-                                    <goal>upload</goal>
-                                </goals>
-                                <configuration>
-                                    <page>core</page>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
     <build>
         <plugins>
             <plugin>
