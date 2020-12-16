@@ -117,14 +117,16 @@ public class NumericPointValueDaoTestHelper {
         this.series2EndTs = time;
     }
 
+    public PointValueDao getDao() {
+        return dao;
+    }
+
     /**
      * Call after every test
      */
     public void after() {
         this.dao.deleteAllPointDataWithoutCount();
     }
-
-
 
     /* Latest Multiple w/ callback Test Methods */
     public void testLatestExceptionInCallback () {
