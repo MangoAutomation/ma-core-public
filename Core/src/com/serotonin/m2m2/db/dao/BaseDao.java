@@ -77,15 +77,18 @@ public class BaseDao extends DaoUtils {
     }
 
     public static TranslatableMessage readTranslatableMessage(ResultSet rs, int columnIndex) throws SQLException {
-        String s = rs.getString(columnIndex);
-        if (s == null)
+        String columnValue = rs.getString(columnIndex);
+        return readTranslatableMessage(columnValue);
+    }
+
+    public static TranslatableMessage readTranslatableMessage(String columnValue) {
+        if (columnValue == null)
             return null;
 
         try {
-            return TranslatableMessage.deserialize(s);
-        }
-        catch (TranslatableMessageParseException e) {
-            return new TranslatableMessage("common.default", rs.getString(columnIndex));
+            return TranslatableMessage.deserialize(columnValue);
+        } catch (TranslatableMessageParseException e) {
+            return new TranslatableMessage("common.default", columnValue);
         }
     }
 }

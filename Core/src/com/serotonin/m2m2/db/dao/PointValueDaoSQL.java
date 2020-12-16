@@ -21,11 +21,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.ResultQuery;
+import org.jooq.Select;
+import org.jooq.SelectOnConditionStep;
+import org.jooq.Table;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
@@ -50,6 +59,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
+import com.serotonin.m2m2.db.dao.tables.PointValueAnnotationRecord;
+import com.serotonin.m2m2.db.dao.tables.PointValueRecord;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -70,6 +81,9 @@ import com.serotonin.metrics.EventHistogram;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
+
+import static com.serotonin.m2m2.db.dao.tables.PointValueAnnotationTable.POINT_VALUE_ANNOTATIONS;
+import static com.serotonin.m2m2.db.dao.tables.PointValueTable.POINT_VALUES;
 
 public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
@@ -463,22 +477,80 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
     }
 
+    public IdPointValueTime mapRecord(Record record) {
+        PointValueRecord pvRecord = record.into(POINT_VALUES);
+        PointValueAnnotationRecord pvaRecord = record.into(POINT_VALUE_ANNOTATIONS);
+
+        int dataPointId = pvRecord.get(POINT_VALUES.dataPointId);
+        long timestamp = pvRecord.get(POINT_VALUES.ts);
+        DataValue value = createDataValue(pvRecord, pvaRecord);
+
+        TranslatableMessage sourceMessage = readTranslatableMessage(pvaRecord.get(POINT_VALUE_ANNOTATIONS.sourceMessage));
+        if (sourceMessage != null) {
+            return new AnnotatedIdPointValueTime(dataPointId, value, timestamp, sourceMessage);
+        }
+        return new IdPointValueTime(dataPointId, value, timestamp);
+    }
+
+    public SelectOnConditionStep<Record> baseQuery() {
+        return this.create.select(POINT_VALUES.fields())
+                .select(POINT_VALUE_ANNOTATIONS.fields())
+                .from(POINT_VALUES)
+                .leftJoin(POINT_VALUE_ANNOTATIONS)
+                .on(POINT_VALUES.id.eq(POINT_VALUE_ANNOTATIONS.pointValueId));
+    }
+
     @Override
-    public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback){
-        if(vos.size() == 0)
-            return;
-        if(orderById) {
-            //Limit results of each data point to size limit, i.e. loop over all points and query with limit
-            MutableInt counter = new MutableInt(0);
-            for(DataPointVO vo: vos) {
-                LatestSinglePointValuesPreparedStatementCreator c = new LatestSinglePointValuesPreparedStatementCreator(
-                        vo, before, limit, callback, counter);
-                ejt.execute(c,c);
+    public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
+        if (vos.size() == 0) return;
+
+        Integer[] dataPointIds = vos.stream().map(DataPointVO::getId).toArray(Integer[]::new);
+        ResultQuery<Record> result;
+
+        if (orderById) {
+            if (limit == null) {
+                result = baseQuery()
+                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
+                        .and(POINT_VALUES.ts.lt(before))
+                        .orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc());
+            } else {
+                Table<PointValueRecord> pvAlias = POINT_VALUES.as("pv");
+                Field<Long> idAlias = pvAlias.field(POINT_VALUES.id);
+                Field<Integer> dataPointIdAlias = pvAlias.field(POINT_VALUES.dataPointId);
+                Field<Long> tsAlias = pvAlias.field(POINT_VALUES.ts);
+
+                Select<Record1<Long>> subQuery = this.create.select(idAlias)
+                        .from(pvAlias)
+                        .where(dataPointIdAlias.eq(POINT_VALUES.dataPointId))
+                        .and(tsAlias.lt(before))
+                        .orderBy(tsAlias.desc())
+                        .limit(limit);
+
+                result = baseQuery()
+                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
+                        .and(POINT_VALUES.id.in(subQuery))
+                        .orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc());
             }
-        }else {
-            //Limit total results to limit
-            LatestMultiplePointsValuesPreparedStatementCreator lmpvpsc = new LatestMultiplePointsValuesPreparedStatementCreator(vos, before, limit, callback);
-            ejt.execute(lmpvpsc, lmpvpsc);
+        } else {
+            if (limit == null) {
+                result = baseQuery()
+                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
+                        .and(POINT_VALUES.ts.lt(before))
+                        .orderBy(POINT_VALUES.ts.desc());
+            } else {
+                result = baseQuery()
+                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
+                        .and(POINT_VALUES.ts.lt(before))
+                        .orderBy(POINT_VALUES.ts.desc())
+                        .limit(limit);
+            }
+        }
+
+        AtomicInteger count = new AtomicInteger();
+        try (Stream<Record> stream = result.fetchSize(100).stream()) {
+            stream.map(this::mapRecord).forEach(pvt -> {
+                callback.row(pvt, count.getAndIncrement());
+            });
         }
     }
 
@@ -903,6 +975,38 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
         return value;
     }
+
+    DataValue createDataValue(PointValueRecord pvRecord, PointValueAnnotationRecord pvaRecord) {
+        int dataType = pvRecord.get(POINT_VALUES.dataType);
+        switch (dataType) {
+            case (DataTypes.NUMERIC): {
+                Double doubleValue = pvRecord.get(POINT_VALUES.pointValue);
+                return new NumericValue(doubleValue);
+            }
+            case (DataTypes.BINARY): {
+                boolean booleanValue = pvRecord.get(POINT_VALUES.pointValue) == 1;
+                return new BinaryValue(booleanValue);
+            }
+            case (DataTypes.MULTISTATE): {
+                int intValue = (int) Math.round(pvRecord.get(POINT_VALUES.pointValue));
+                return new MultistateValue(intValue);
+            }
+            case (DataTypes.ALPHANUMERIC): {
+                String shortTextValue = pvaRecord.get(POINT_VALUE_ANNOTATIONS.textPointValueShort);
+                if (shortTextValue != null) {
+                    return new AlphanumericValue(shortTextValue);
+                }
+                String longTextValue = pvaRecord.get(POINT_VALUE_ANNOTATIONS.textPointValueLong);
+                return new AlphanumericValue(longTextValue);
+            }
+            case (DataTypes.IMAGE):
+                String shortTextValue = pvaRecord.get(POINT_VALUE_ANNOTATIONS.textPointValueShort);
+                int intValue = (int) Math.round(pvRecord.get(POINT_VALUES.pointValue));
+                return new ImageValue(Integer.parseInt(shortTextValue), intValue);
+        }
+        return null;
+    }
+
 
     //
     //
