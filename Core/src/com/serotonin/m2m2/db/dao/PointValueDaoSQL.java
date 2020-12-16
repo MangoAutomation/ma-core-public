@@ -393,43 +393,41 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         Integer[] dataPointIds = vos.stream().map(DataPointVO::getId).toArray(Integer[]::new);
         ResultQuery<Record> result;
 
-        if (orderById) {
-            if (limit == null) {
-                result = baseQuery()
-                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
-                        .and(POINT_VALUES.ts.lt(before))
-                        .orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc());
-            } else {
-                Table<PointValueRecord> pvAlias = POINT_VALUES.as("pv");
-                Field<Long> idAlias = pvAlias.field(POINT_VALUES.id);
-                Field<Integer> dataPointIdAlias = pvAlias.field(POINT_VALUES.dataPointId);
-                Field<Long> tsAlias = pvAlias.field(POINT_VALUES.ts);
+        if (orderById && limit != null) {
+            Table<PointValueRecord> pvAlias = POINT_VALUES.as("pv");
+            Field<Long> idAlias = pvAlias.field(POINT_VALUES.id);
+            Field<Integer> dataPointIdAlias = pvAlias.field(POINT_VALUES.dataPointId);
+            Field<Long> tsAlias = pvAlias.field(POINT_VALUES.ts);
 
-                Select<Record1<Long>> subQuery = this.create.select(idAlias)
-                        .from(pvAlias)
-                        .where(dataPointIdAlias.eq(POINT_VALUES.dataPointId))
-                        .and(tsAlias.lt(before))
-                        .orderBy(tsAlias.desc())
-                        .limit(limit);
-
-                result = baseQuery()
-                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
-                        .and(POINT_VALUES.id.in(subQuery))
-                        .orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc());
+            Condition subQueryCondition = dataPointIdAlias.eq(POINT_VALUES.dataPointId);
+            if (before != Long.MAX_VALUE) {
+                subQueryCondition = subQueryCondition.and(tsAlias.lt(before));
             }
+
+            Select<Record1<Long>> subQuery = this.create.select(idAlias)
+                    .from(pvAlias)
+                    .where(subQueryCondition)
+                    .orderBy(tsAlias.desc())
+                    .limit(limit);
+
+            result = baseQuery()
+                    .where(POINT_VALUES.dataPointId.in(dataPointIds))
+                    .and(POINT_VALUES.id.in(subQuery))
+                    .orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc());
         } else {
-            if (limit == null) {
-                result = baseQuery()
-                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
-                        .and(POINT_VALUES.ts.lt(before))
-                        .orderBy(POINT_VALUES.ts.desc());
-            } else {
-                result = baseQuery()
-                        .where(POINT_VALUES.dataPointId.in(dataPointIds))
-                        .and(POINT_VALUES.ts.lt(before))
-                        .orderBy(POINT_VALUES.ts.desc())
-                        .limit(limit);
+            Condition condition = POINT_VALUES.dataPointId.in(dataPointIds);
+            if (before != Long.MAX_VALUE) {
+                condition = condition.and(POINT_VALUES.ts.lt(before));
             }
+
+            SelectConditionStep<Record> conditionStep = baseQuery()
+                    .where(condition);
+
+            SelectLimitStep<Record> limitStep = orderById ?
+                    conditionStep.orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc()) :
+                    conditionStep.orderBy(POINT_VALUES.ts.desc());
+
+            result = limit == null ? limitStep : limitStep.limit(limit);
         }
 
         AtomicInteger count = new AtomicInteger();
