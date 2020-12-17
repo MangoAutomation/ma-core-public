@@ -29,15 +29,13 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
-import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.ResultQuery;
-import org.jooq.Select;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectLimitPercentStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectOnConditionStep;
-import org.jooq.Table;
+import org.jooq.SelectUnionStep;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
@@ -390,30 +388,25 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
         if (vos.size() == 0) return;
 
-        Integer[] dataPointIds = vos.stream().map(DataPointVO::getId).toArray(Integer[]::new);
+        Integer[] dataPointIds = vos.stream().mapToInt(DataPointVO::getId).sorted().boxed().toArray(Integer[]::new);
         ResultQuery<Record> result;
 
         if (orderById && limit != null) {
-            Table<PointValueRecord> pvAlias = POINT_VALUES.as("pv");
-            Field<Long> idAlias = pvAlias.field(POINT_VALUES.id);
-            Field<Integer> dataPointIdAlias = pvAlias.field(POINT_VALUES.dataPointId);
-            Field<Long> tsAlias = pvAlias.field(POINT_VALUES.ts);
+            SelectUnionStep<Record> union = null;
+            for (int dataPointId : dataPointIds) {
+                Condition condition = POINT_VALUES.dataPointId.eq(dataPointId);
+                if (before != Long.MAX_VALUE) {
+                    condition = condition.and(POINT_VALUES.ts.lt(before));
+                }
 
-            Condition subQueryCondition = dataPointIdAlias.eq(POINT_VALUES.dataPointId);
-            if (before != Long.MAX_VALUE) {
-                subQueryCondition = subQueryCondition.and(tsAlias.lt(before));
+                SelectLimitPercentStep<Record> r = baseQuery()
+                        .where(condition)
+                        .orderBy(POINT_VALUES.ts.desc())
+                        .limit(limit);
+
+                union = union == null ? r : union.unionAll(r);
             }
-
-            Select<Record1<Long>> subQuery = this.create.select(idAlias)
-                    .from(pvAlias)
-                    .where(subQueryCondition)
-                    .orderBy(tsAlias.desc())
-                    .limit(limit);
-
-            result = baseQuery()
-                    .where(POINT_VALUES.dataPointId.in(dataPointIds))
-                    .and(POINT_VALUES.id.in(subQuery))
-                    .orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc());
+            result = union;
         } else {
             Condition condition = POINT_VALUES.dataPointId.in(dataPointIds);
             if (before != Long.MAX_VALUE) {
