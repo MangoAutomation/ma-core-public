@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -90,7 +91,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
     private static final Log LOG = LogFactory.getLog(PointValueDao.class);
 
-    private static final List<UnsavedPointValue> UNSAVED_POINT_VALUES = new ArrayList<>();
+    private static final ConcurrentLinkedQueue<UnsavedPointValue> UNSAVED_POINT_VALUES = new ConcurrentLinkedQueue<>();
 
     private static final String POINT_VALUE_INSERT_START = "insert into pointValues (dataPointId, dataType, pointValue, ts) values ";
     private static final String POINT_VALUE_INSERT_VALUES = "(?,?,?,?)";
@@ -158,9 +159,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
         catch (ConcurrencyFailureException e) {
             // Still failed to insert after all of the retries. Store the data
-            synchronized (UNSAVED_POINT_VALUES) {
-                UNSAVED_POINT_VALUES.add(new UnsavedPointValue(vo, pointValue, source));
-            }
+            UNSAVED_POINT_VALUES.add(new UnsavedPointValue(vo, pointValue, source));
             return -1;
         }
 
@@ -189,13 +188,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     private void clearUnsavedPointValues() {
-        if (!UNSAVED_POINT_VALUES.isEmpty()) {
-            synchronized (UNSAVED_POINT_VALUES) {
-                while (!UNSAVED_POINT_VALUES.isEmpty()) {
-                    UnsavedPointValue data = UNSAVED_POINT_VALUES.remove(0);
-                    savePointValueImpl(data.getVO(), data.getPointValue(), data.getSource(), false);
-                }
-            }
+        UnsavedPointValue data;
+        while ((data = UNSAVED_POINT_VALUES.poll()) != null) {
+            savePointValueImpl(data.getVO(), data.getPointValue(), data.getSource(), false);
         }
     }
 
