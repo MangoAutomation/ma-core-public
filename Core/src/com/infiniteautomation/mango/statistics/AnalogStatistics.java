@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
- * 
+ *
  * @author Matthew Lohbihler
  */
 package com.infiniteautomation.mango.statistics;
@@ -14,16 +14,16 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 /**
  * Enhanced statistics using Rollups Discussion document
- * 
+ *
  * @author Matthew Lohbihler, Terry Packer
  */
 public class AnalogStatistics implements StatisticsGenerator {
-    
+
     // Configuration values.
     private final long periodStart;
     private final long periodEnd;
     private boolean done = false;
-    
+
     // Calculated values.
     private Double minimumValue = Double.NaN;
     private Long minimumTime;
@@ -106,7 +106,7 @@ public class AnalogStatistics implements StatisticsGenerator {
         if(done)
             throw new ShouldNeverHappenException("Should not call done() more than once.");
         done = true;
-        
+
         updateAverage(Double.NaN, periodEnd);
         // Average will not be NaN when we have at least one value in period AND an end value
         // OR more than 1 value in the period
@@ -145,7 +145,7 @@ public class AnalogStatistics implements StatisticsGenerator {
                 // be divided by the total duration of the period.
                 if (average.isNaN())
                     average = 0D;
-                average = average + ( latestValue * (double)duration);
+                average = average + ( latestValue * duration);
                 totalDuration += duration;
             }
         }
@@ -227,20 +227,20 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     @Override
     public String toString() {
-        return "{minimumValue: " + minimumValue + 
-                ", minimumTime: " + minimumTime + 
-                ", maximumValue: " + maximumValue + 
-                ", maximumTime: " + maximumTime + 
-                ", average: " + average + 
-                ", sum: " + sum + 
-                ", count: " + count + 
-                ", delta: " + delta + 
-                ", integral: " + integral + 
+        return "{minimumValue: " + minimumValue +
+                ", minimumTime: " + minimumTime +
+                ", maximumValue: " + maximumValue +
+                ", maximumTime: " + maximumTime +
+                ", average: " + average +
+                ", sum: " + sum +
+                ", count: " + count +
+                ", delta: " + delta +
+                ", integral: " + integral +
                 ", startValue: " + startValue +
-                ", firstValue: " + firstValue + 
-                ", firstTime: " + firstTime + 
-                ", lastValue: " + lastValue + 
-                ", lastTime: " + lastTime + 
+                ", firstValue: " + firstValue +
+                ", firstTime: " + firstTime +
+                ", lastValue: " + lastValue +
+                ", lastTime: " + lastTime +
                 ", periodStartTime: " + periodStart
                 + ", periodEndTime: " + periodEnd + "}";
     }
