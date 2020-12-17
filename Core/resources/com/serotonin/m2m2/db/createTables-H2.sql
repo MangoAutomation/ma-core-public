@@ -9,8 +9,8 @@
 CREATE TABLE "systemSettings"
 (
     -- test comment
-    "settingName"  varchar(64) NOT NULL,
-    "settingValue" longtext,
+    "settingName"  VARCHAR(64) NOT NULL,
+    "settingValue" LONGTEXT,
     PRIMARY KEY ("settingName")
 );
 
@@ -20,10 +20,10 @@ CREATE TABLE "systemSettings"
 --
 CREATE TABLE "roles"
 (
-    "id"   int          not null auto_increment,
-    "xid"  varchar(100) not null,
-    "name" varchar(255) not null,
-    primary key ("id")
+    "id"   INT          NOT NULL AUTO_INCREMENT,
+    "xid"  VARCHAR(100) NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    PRIMARY KEY ("id")
 );
 ALTER TABLE "roles"
     ADD CONSTRAINT "rolesUn1" UNIQUE ("xid");
@@ -47,14 +47,14 @@ ALTER TABLE "roleInheritance"
 -- Permissions
 CREATE TABLE "minterms"
 (
-    "id" int(11) NOT NULL AUTO_INCREMENT,
+    "id" INT(11) NOT NULL AUTO_INCREMENT,
     PRIMARY KEY ("id")
 );
 
 CREATE TABLE "mintermsRoles"
 (
-    "mintermId" int(11) NOT NULL,
-    "roleId"    int(11) NOT NULL
+    "mintermId" INT(11) NOT NULL,
+    "roleId"    INT(11) NOT NULL
 );
 ALTER TABLE "mintermsRoles"
     ADD CONSTRAINT "mintermsRolesIdx1" UNIQUE ("mintermId", "roleId");
@@ -67,14 +67,14 @@ CREATE INDEX "mintermsRolesFk2Idx" ON "mintermsRoles" ("roleId" ASC);
 
 CREATE TABLE "permissions"
 (
-    "id" int(11) NOT NULL AUTO_INCREMENT,
+    "id" INT(11) NOT NULL AUTO_INCREMENT,
     PRIMARY KEY ("id")
 );
 
 CREATE TABLE "permissionsMinterms"
 (
-    "permissionId" int(11) NOT NULL,
-    "mintermId"    int(11) NOT NULL
+    "permissionId" INT(11) NOT NULL,
+    "mintermId"    INT(11) NOT NULL
 );
 ALTER TABLE "permissionsMinterms"
     ADD CONSTRAINT "permissionsMintermsIdx1" UNIQUE ("permissionId", "mintermId");
@@ -102,31 +102,31 @@ ALTER TABLE "systemPermissions"
 -- Users
 CREATE TABLE "users"
 (
-    "id"                          int          NOT NULL auto_increment,
-    "username"                    varchar(40)  NOT NULL,
-    "password"                    varchar(255) NOT NULL,
-    "email"                       varchar(255),
-    "phone"                       varchar(40),
-    "disabled"                    char(1)      NOT NULL,
-    "lastLogin"                   bigint,
-    "homeUrl"                     varchar(255),
-    "receiveAlarmEmails"          int          NOT NULL,
-    "receiveOwnAuditEvents"       char(1)      NOT NULL,
-    "timezone"                    varchar(50),
-    "muted"                       char(1),
-    "name"                        varchar(255),
-    "locale"                      varchar(50),
-    "tokenVersion"                int          NOT NULL,
-    "passwordVersion"             int          NOT NULL,
-    "passwordChangeTimestamp"     bigint       NOT NULL,
-    "sessionExpirationOverride"   char(1),
-    "sessionExpirationPeriods"    int,
-    "sessionExpirationPeriodType" varchar(25),
-    "organization"                varchar(80),
-    "organizationalRole"          varchar(80),
-    "createdTs"                   bigint       NOT NULL,
-    "emailVerifiedTs"             bigint,
-    "data"                        longtext,
+    "id"                          INT          NOT NULL AUTO_INCREMENT,
+    "username"                    VARCHAR(40)  NOT NULL,
+    "password"                    VARCHAR(255) NOT NULL,
+    "email"                       VARCHAR(255),
+    "phone"                       VARCHAR(40),
+    "disabled"                    CHAR(1)      NOT NULL,
+    "lastLogin"                   BIGINT,
+    "homeUrl"                     VARCHAR(255),
+    "receiveAlarmEmails"          INT          NOT NULL,
+    "receiveOwnAuditEvents"       CHAR(1)      NOT NULL,
+    "timezone"                    VARCHAR(50),
+    "muted"                       CHAR(1),
+    "name"                        VARCHAR(255),
+    "locale"                      VARCHAR(50),
+    "tokenVersion"                INT          NOT NULL,
+    "passwordVersion"             INT          NOT NULL,
+    "passwordChangeTimestamp"     BIGINT       NOT NULL,
+    "sessionExpirationOverride"   CHAR(1),
+    "sessionExpirationPeriods"    INT,
+    "sessionExpirationPeriodType" VARCHAR(25),
+    "organization"                VARCHAR(80),
+    "organizationalRole"          VARCHAR(80),
+    "createdTs"                   BIGINT       NOT NULL,
+    "emailVerifiedTs"             BIGINT,
+    "data"                        LONGTEXT,
     PRIMARY KEY ("id")
 );
 ALTER TABLE "users"
@@ -140,8 +140,8 @@ ALTER TABLE "users"
 --
 CREATE TABLE "userRoleMappings"
 (
-    "roleId" int not null,
-    "userId" int not null
+    "roleId" INT NOT NULL,
+    "userId" INT NOT NULL
 );
 ALTER TABLE "userRoleMappings"
     ADD CONSTRAINT "userRoleMappingsFk1" FOREIGN KEY ("roleId") REFERENCES "roles" ("id") ON DELETE CASCADE;
@@ -153,13 +153,13 @@ ALTER TABLE "userRoleMappings"
 
 CREATE TABLE "userComments"
 (
-    "id"          int           NOT NULL auto_increment,
-    "xid"         varchar(100)  NOT NULL,
-    "userId"      int,
-    "commentType" int           NOT NULL,
-    "typeKey"     int           NOT NULL,
-    "ts"          bigint        NOT NULL,
-    "commentText" varchar(1024) NOT NULL,
+    "id"          INT           NOT NULL AUTO_INCREMENT,
+    "xid"         VARCHAR(100)  NOT NULL,
+    "userId"      INT,
+    "commentType" INT           NOT NULL,
+    "typeKey"     INT           NOT NULL,
+    "ts"          BIGINT        NOT NULL,
+    "commentText" VARCHAR(1024) NOT NULL,
     PRIMARY KEY ("id")
 );
 ALTER TABLE "userComments"
@@ -172,9 +172,9 @@ CREATE INDEX "userComments_performance1" ON "userComments" ("commentType" ASC, "
 -- Mailing lists
 CREATE TABLE "mailingLists"
 (
-    "id"                 int          NOT NULL auto_increment,
-    "xid"                varchar(100) NOT NULL,
-    "name"               varchar(255) NOT NULL,
+    "id"                 INT          NOT NULL AUTO_INCREMENT,
+    "xid"                VARCHAR(100) NOT NULL,
+    "name"               VARCHAR(255) NOT NULL,
     "receiveAlarmEmails" INT          NOT NULL,
     "readPermissionId"   INT          NOT NULL,
     "editPermissionId"   INT          NOT NULL,
@@ -189,8 +189,8 @@ ALTER TABLE "mailingLists"
 
 CREATE TABLE "mailingListInactive"
 (
-    "mailingListId"    int NOT NULL,
-    "inactiveInterval" int NOT NULL
+    "mailingListId"    INT NOT NULL,
+    "inactiveInterval" INT NOT NULL
 );
 ALTER TABLE "mailingListInactive"
     ADD CONSTRAINT "mailingListInactiveFk1" FOREIGN KEY ("mailingListId")
@@ -198,10 +198,10 @@ ALTER TABLE "mailingListInactive"
 
 CREATE TABLE "mailingListMembers"
 (
-    "mailingListId" int NOT NULL,
-    "typeId"        int NOT NULL,
-    "userId"        int,
-    "address"       varchar(255)
+    "mailingListId" INT NOT NULL,
+    "typeId"        INT NOT NULL,
+    "userId"        INT,
+    "address"       VARCHAR(255)
 );
 ALTER TABLE "mailingListMembers"
     ADD CONSTRAINT "mailingListMembersFk1" FOREIGN KEY ("mailingListId")
@@ -212,13 +212,13 @@ ALTER TABLE "mailingListMembers"
 -- Data Sources
 CREATE TABLE "dataSources"
 (
-    "id"               int          NOT NULL auto_increment,
-    "xid"              varchar(100) NOT NULL,
-    "name"             varchar(255) NOT NULL,
-    "dataSourceType"   varchar(40)  NOT NULL,
-    "data"             longblob     NOT NULL,
-    "jsonData"         longtext,
-    "rtdata"           longblob,
+    "id"               INT          NOT NULL AUTO_INCREMENT,
+    "xid"              VARCHAR(100) NOT NULL,
+    "name"             VARCHAR(255) NOT NULL,
+    "dataSourceType"   VARCHAR(40)  NOT NULL,
+    "data"             LONGBLOB     NOT NULL,
+    "jsonData"         LONGTEXT,
+    "rtdata"           LONGBLOB,
     "readPermissionId" INT          NOT NULL,
     "editPermissionId" INT          NOT NULL,
     PRIMARY KEY ("id")
@@ -235,28 +235,28 @@ ALTER TABLE "dataSources"
 -- Data Points
 CREATE TABLE "dataPoints"
 (
-    "id"                        int          NOT NULL auto_increment,
-    "xid"                       varchar(100) NOT NULL,
-    "dataSourceId"              int          NOT NULL,
-    "name"                      varchar(255),
-    "deviceName"                varchar(255),
-    "enabled"                   char(1),
-    "loggingType"               int,
-    "intervalLoggingPeriodType" int,
-    "intervalLoggingPeriod"     int,
-    "intervalLoggingType"       int,
-    "tolerance"                 double,
-    "purgeOverride"             char(1),
-    "purgeType"                 int,
-    "purgePeriod"               int,
-    "defaultCacheSize"          int,
-    "discardExtremeValues"      char(1),
-    "engineeringUnits"          int,
-    "data"                      longblob     NOT NULL,
-    "rollup"                    int,
-    "dataTypeId"                int          not null,
-    "settable"                  char(1),
-    "jsonData"                  longtext,
+    "id"                        INT          NOT NULL AUTO_INCREMENT,
+    "xid"                       VARCHAR(100) NOT NULL,
+    "dataSourceId"              INT          NOT NULL,
+    "name"                      VARCHAR(255),
+    "deviceName"                VARCHAR(255),
+    "enabled"                   CHAR(1),
+    "loggingType"               INT,
+    "intervalLoggingPeriodType" INT,
+    "intervalLoggingPeriod"     INT,
+    "intervalLoggingType"       INT,
+    "tolerance"                 DOUBLE,
+    "purgeOverride"             CHAR(1),
+    "purgeType"                 INT,
+    "purgePeriod"               INT,
+    "defaultCacheSize"          INT,
+    "discardExtremeValues"      CHAR(1),
+    "engineeringUnits"          INT,
+    "data"                      LONGBLOB     NOT NULL,
+    "rollup"                    INT,
+    "dataTypeId"                INT          NOT NULL,
+    "settable"                  CHAR(1),
+    "jsonData"                  LONGTEXT,
     "readPermissionId"          INT          NOT NULL,
     "editPermissionId"          INT          NOT NULL,
     "setPermissionId"           INT          NOT NULL,
@@ -272,10 +272,10 @@ ALTER TABLE "dataPoints"
     ADD CONSTRAINT "dataPointsFk3" FOREIGN KEY ("editPermissionId") REFERENCES "permissions" ("id") ON DELETE RESTRICT;
 ALTER TABLE "dataPoints"
     ADD CONSTRAINT "dataPointsFk4" FOREIGN KEY ("setPermissionId") REFERENCES "permissions" ("id") ON DELETE RESTRICT;
-CREATE INDEX "pointNameIndex" on "dataPoints" ("name" ASC);
+CREATE INDEX "pointNameIndex" ON "dataPoints" ("name" ASC);
 CREATE INDEX "deviceNameNameIdIndex" ON "dataPoints" ("deviceName" ASC, "name" ASC, "id" ASC);
-CREATE INDEX "enabledIndex" on "dataPoints" ("enabled" ASC);
-CREATE INDEX "xidNameIndex" on "dataPoints" ("xid" ASC, "name" ASC);
+CREATE INDEX "enabledIndex" ON "dataPoints" ("enabled" ASC);
+CREATE INDEX "xidNameIndex" ON "dataPoints" ("xid" ASC, "name" ASC);
 CREATE INDEX "dataSourceIdFkIndex" ON "dataPoints" ("dataSourceId" ASC);
 
 -- Data point tags
@@ -297,21 +297,21 @@ CREATE INDEX "dataPointTagsIndex1" ON "dataPointTags" ("tagKey" ASC, "tagValue" 
 --
 CREATE TABLE "pointValues"
 (
-    "id"          bigint NOT NULL auto_increment,
-    "dataPointId" int    NOT NULL,
-    "dataType"    int    NOT NULL,
-    "pointValue"  double,
-    "ts"          bigint NOT NULL,
+    "id"          BIGINT NOT NULL AUTO_INCREMENT,
+    "dataPointId" INT    NOT NULL,
+    "dataType"    INT    NOT NULL,
+    "pointValue"  DOUBLE,
+    "ts"          BIGINT NOT NULL,
     PRIMARY KEY ("id")
 );
-CREATE index "pointValuesIdx1" on "pointValues" ("dataPointId", "ts");
+CREATE INDEX "pointValuesIdx1" ON "pointValues" ("dataPointId", "ts");
 
 CREATE TABLE "pointValueAnnotations"
 (
-    "pointValueId"        bigint NOT NULL,
-    "textPointValueShort" varchar(128),
-    "textPointValueLong"  longtext,
-    "sourceMessage"       longtext,
+    "pointValueId"        BIGINT NOT NULL,
+    "textPointValueShort" VARCHAR(128),
+    "textPointValueLong"  LONGTEXT,
+    "sourceMessage"       LONGTEXT,
     PRIMARY KEY ("pointValueId")
 );
 
@@ -321,13 +321,13 @@ CREATE TABLE "pointValueAnnotations"
 --
 CREATE TABLE "eventDetectors"
 (
-    "id"               int          NOT NULL auto_increment,
-    "xid"              varchar(100) NOT NULL,
-    "sourceTypeName"   varchar(32)  NOT NULL,
-    "typeName"         varchar(32)  NOT NULL,
-    "dataPointId"      int,
-    "data"             longtext     NOT NULL,
-    "jsonData"         longtext,
+    "id"               INT          NOT NULL AUTO_INCREMENT,
+    "xid"              VARCHAR(100) NOT NULL,
+    "sourceTypeName"   VARCHAR(32)  NOT NULL,
+    "typeName"         VARCHAR(32)  NOT NULL,
+    "dataPointId"      INT,
+    "data"             LONGTEXT     NOT NULL,
+    "jsonData"         LONGTEXT,
     "readPermissionId" INT          NOT NULL,
     "editPermissionId" INT          NOT NULL,
     PRIMARY KEY ("id")
@@ -347,20 +347,20 @@ ALTER TABLE "eventDetectors"
 --
 CREATE TABLE "events"
 (
-    "id"                 int         NOT NULL auto_increment,
-    "typeName"           varchar(32) NOT NULL,
-    "subtypeName"        varchar(32),
-    "typeRef1"           int         NOT NULL,
-    "typeRef2"           int         NOT NULL,
-    "activeTs"           bigint      NOT NULL,
-    "rtnApplicable"      char(1)     NOT NULL,
-    "rtnTs"              bigint,
-    "rtnCause"           int,
-    "alarmLevel"         int         NOT NULL,
-    "message"            longtext,
-    "ackTs"              bigint,
-    "ackUserId"          int,
-    "alternateAckSource" longtext,
+    "id"                 INT         NOT NULL AUTO_INCREMENT,
+    "typeName"           VARCHAR(32) NOT NULL,
+    "subtypeName"        VARCHAR(32),
+    "typeRef1"           INT         NOT NULL,
+    "typeRef2"           INT         NOT NULL,
+    "activeTs"           BIGINT      NOT NULL,
+    "rtnApplicable"      CHAR(1)     NOT NULL,
+    "rtnTs"              BIGINT,
+    "rtnCause"           INT,
+    "alarmLevel"         INT         NOT NULL,
+    "message"            LONGTEXT,
+    "ackTs"              BIGINT,
+    "ackUserId"          INT,
+    "alternateAckSource" LONGTEXT,
     "readPermissionId"   INT         NOT NULL,
     PRIMARY KEY ("id")
 );
@@ -378,13 +378,13 @@ CREATE INDEX "events_performance3" ON "events" ("typeName" ASC, "subtypeName" AS
 --
 CREATE TABLE "eventHandlers"
 (
-    "id"               int          NOT NULL auto_increment,
-    "xid"              varchar(100) NOT NULL,
-    "alias"            varchar(255) NOT NULL,
-    "eventHandlerType" varchar(40)  NOT NULL,
+    "id"               INT          NOT NULL AUTO_INCREMENT,
+    "xid"              VARCHAR(100) NOT NULL,
+    "alias"            VARCHAR(255) NOT NULL,
+    "eventHandlerType" VARCHAR(40)  NOT NULL,
     "readPermissionId" INT          NOT NULL,
     "editPermissionId" INT          NOT NULL,
-    "data"             longblob     NOT NULL,
+    "data"             LONGBLOB     NOT NULL,
     PRIMARY KEY ("id")
 );
 ALTER TABLE "eventHandlers"
@@ -397,13 +397,13 @@ ALTER TABLE "eventHandlers"
 
 CREATE TABLE "eventHandlersMapping"
 (
-    "eventHandlerId"   int         not null,
+    "eventHandlerId"   INT         NOT NULL,
 
     -- Event type, see events
-    "eventTypeName"    varchar(32) NOT NULL,
-    "eventSubtypeName" varchar(32) NOT NULL DEFAULT '',
-    "eventTypeRef1"    int         NOT NULL,
-    "eventTypeRef2"    int         NOT NULL
+    "eventTypeName"    VARCHAR(32) NOT NULL,
+    "eventSubtypeName" VARCHAR(32) NOT NULL DEFAULT '',
+    "eventTypeRef1"    INT         NOT NULL,
+    "eventTypeRef2"    INT         NOT NULL
 );
 ALTER TABLE "eventHandlersMapping"
     ADD CONSTRAINT "eventHandlersFk1" FOREIGN KEY ("eventHandlerId") REFERENCES "eventHandlers" ("id") ON DELETE CASCADE;
@@ -418,15 +418,15 @@ ALTER TABLE "eventHandlersMapping"
 --
 CREATE TABLE "audit"
 (
-    "id"         int         NOT NULL auto_increment,
-    "typeName"   varchar(32) NOT NULL,
-    "alarmLevel" int         NOT NULL,
-    "userId"     int         NOT NULL,
-    "changeType" int         NOT NULL,
-    "objectId"   int         NOT NULL,
-    "ts"         bigint      NOT NULL,
-    "context"    longtext,
-    "message"    varchar(255),
+    "id"         INT         NOT NULL AUTO_INCREMENT,
+    "typeName"   VARCHAR(32) NOT NULL,
+    "alarmLevel" INT         NOT NULL,
+    "userId"     INT         NOT NULL,
+    "changeType" INT         NOT NULL,
+    "objectId"   INT         NOT NULL,
+    "ts"         BIGINT      NOT NULL,
+    "context"    LONGTEXT,
+    "message"    VARCHAR(255),
     PRIMARY KEY ("id")
 );
 CREATE INDEX "tsIndex" ON "audit" ("ts" ASC);
@@ -439,11 +439,11 @@ CREATE INDEX "alarmLevelIndex" ON "audit" ("alarmLevel" ASC);
 --
 CREATE TABLE "publishers"
 (
-    "id"            int          NOT NULL auto_increment,
-    "xid"           varchar(100) NOT NULL,
-    "publisherType" varchar(40)  NOT NULL,
-    "data"          longblob     NOT NULL,
-    "rtdata"        longblob,
+    "id"            INT          NOT NULL AUTO_INCREMENT,
+    "xid"           VARCHAR(100) NOT NULL,
+    "publisherType" VARCHAR(40)  NOT NULL,
+    "data"          LONGBLOB     NOT NULL,
+    "rtdata"        LONGBLOB,
     PRIMARY KEY ("id")
 );
 ALTER TABLE "publishers"
@@ -455,14 +455,14 @@ ALTER TABLE "publishers"
 --
 CREATE TABLE "jsonData"
 (
-    "id"               int          not null auto_increment,
-    "xid"              varchar(100) not null,
-    "name"             varchar(255) not null,
-    "publicData"       char(1),
-    "data"             longtext,
+    "id"               INT          NOT NULL AUTO_INCREMENT,
+    "xid"              VARCHAR(100) NOT NULL,
+    "name"             VARCHAR(255) NOT NULL,
+    "publicData"       CHAR(1),
+    "data"             LONGTEXT,
     "readPermissionId" INT          NOT NULL,
     "editPermissionId" INT          NOT NULL,
-    primary key ("id")
+    PRIMARY KEY ("id")
 );
 ALTER TABLE "jsonData"
     ADD CONSTRAINT "jsonDataUn1" UNIQUE ("xid");
@@ -477,8 +477,8 @@ ALTER TABLE "jsonData"
 --  Thirty character restriction is from the store
 CREATE TABLE "installedModules"
 (
-    "name"    varchar(30)  not null,
-    "version" varchar(255) not null
+    "name"    VARCHAR(30)  NOT NULL,
+    "version" VARCHAR(255) NOT NULL
 );
 ALTER TABLE "installedModules"
     ADD CONSTRAINT "installModulesUn1" UNIQUE ("name");
@@ -489,9 +489,9 @@ ALTER TABLE "installedModules"
 --
 CREATE TABLE "fileStores"
 (
-    "id"                int          not null auto_increment,
-    "xid"               varchar(100) not null,
-    "name"              varchar(255) not null,
+    "id"                INT          NOT NULL AUTO_INCREMENT,
+    "xid"               VARCHAR(100) NOT NULL,
+    "name"              VARCHAR(255) NOT NULL,
     "readPermissionId"  INT          NOT NULL,
     "writePermissionId" INT          NOT NULL,
     PRIMARY KEY ("id")
@@ -521,7 +521,7 @@ CREATE TABLE "mangoSessionData"
     "expiryTime"     BIGINT,
     "maxInterval"    BIGINT,
     "userId"         INT,
-    primary key ("sessionId", "contextPath", "virtualHost")
+    PRIMARY KEY ("sessionId", "contextPath", "virtualHost")
 );
 CREATE INDEX "mangoSessionDataExpiryIndex" ON "mangoSessionData" ("expiryTime");
 CREATE INDEX "mangoSessionDataSessionIndex" ON "mangoSessionData" ("sessionId", "contextPath");
