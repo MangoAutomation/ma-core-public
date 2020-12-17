@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +29,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.ResultQuery;
 import org.jooq.SelectConditionStep;
@@ -37,6 +37,7 @@ import org.jooq.SelectLimitPercentStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectOnConditionStep;
 import org.jooq.SelectUnionStep;
+import org.jooq.impl.DSL;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
@@ -52,6 +53,9 @@ import org.springframework.jdbc.support.JdbcUtils;
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
+import com.infiniteautomation.mango.db.tables.PointValues;
+import com.infiniteautomation.mango.db.tables.records.PointValueAnnotationsRecord;
+import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -61,8 +65,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
-import com.serotonin.m2m2.db.dao.tables.PointValueAnnotationRecord;
-import com.serotonin.m2m2.db.dao.tables.PointValueRecord;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -84,8 +86,8 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
 
-import static com.serotonin.m2m2.db.dao.tables.PointValueAnnotationTable.POINT_VALUE_ANNOTATIONS;
-import static com.serotonin.m2m2.db.dao.tables.PointValueTable.POINT_VALUES;
+import static com.infiniteautomation.mango.db.tables.PointValues.POINTVALUES;
+import static com.infiniteautomation.mango.db.tables.PointValueAnnotations.POINTVALUEANNOTATIONS;
 
 public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
@@ -96,9 +98,6 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     private static final String POINT_VALUE_INSERT_START = "insert into pointValues (dataPointId, dataType, pointValue, ts) values ";
     private static final String POINT_VALUE_INSERT_VALUES = "(?,?,?,?)";
     private static final int POINT_VALUE_INSERT_VALUES_COUNT = 4;
-    private static final String POINT_VALUE_INSERT = POINT_VALUE_INSERT_START + POINT_VALUE_INSERT_VALUES;
-    private static final String POINT_VALUE_ANNOTATION_INSERT = "insert into pointValueAnnotations "
-            + "(pointValueId, textPointValueShort, textPointValueLong, sourceMessage) values (?,?,?,?)";
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
@@ -222,7 +221,15 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
     private long savePointValueImpl(DataPointVO vo, int dataType, double dvalue, long time, String svalue,
             SetPointSource source) {
-        long id = doInsertLong(POINT_VALUE_INSERT, vo.getId(), dataType, dvalue, time);
+
+        long id = this.create.insertInto(POINTVALUES)
+                .set(POINTVALUES.dataPointId, vo.getId())
+                .set(POINTVALUES.dataType, dataType)
+                .set(POINTVALUES.pointValue, dvalue)
+                .set(POINTVALUES.ts, time)
+                .returningResult(POINTVALUES.id)
+                .fetchOne()
+                .value1();
 
         if (svalue == null && dataType == DataTypes.IMAGE)
             svalue = Long.toString(id);
@@ -242,9 +249,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     shortString = svalue;
             }
 
-            ejt.update(POINT_VALUE_ANNOTATION_INSERT, //
-                    new Object[] { id, shortString, longString, writeTranslatableMessage(sourceMessage) }, //
-                    new int[] { Types.INTEGER, Types.VARCHAR, Types.CLOB, Types.CLOB });
+            this.create.insertInto(POINTVALUEANNOTATIONS)
+                    .set(POINTVALUEANNOTATIONS.pointValueId, id)
+                    .set(POINTVALUEANNOTATIONS.textPointValueShort, shortString)
+                    .set(POINTVALUEANNOTATIONS.textPointValueLong, longString)
+                    .set(POINTVALUEANNOTATIONS.sourceMessage, writeTranslatableMessage(sourceMessage));
         }
 
         return id;
@@ -263,72 +272,88 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     //
     // Single point
     //
+
+    private PointValueTime getPointValueAt(DataPointVO vo, Field<Long> time) {
+        return baseQuery()
+                .where(POINTVALUES.dataPointId.eq(vo.getId()))
+                .and(POINTVALUES.ts.eq(time))
+                .limit(1)
+                .fetchOne(this::mapRecord);
+    }
+
     @Override
     public PointValueTime getLatestPointValue(DataPointVO vo) {
-
-        long maxTs = ejt.queryForLong("select max(ts) from pointValues where dataPointId=?",
-                new Object[] { vo.getId() }, 0);
-        if (maxTs == 0)
-            return null;
-        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { vo.getId(),
-                maxTs });
+        Field<Long> ts = this.create.select(DSL.max(POINTVALUES.ts))
+                .from(POINTVALUES)
+                .where(POINTVALUES.dataPointId.eq(vo.getId()))
+                .asField();;
+        return getPointValueAt(vo, ts);
     }
 
     private PointValueTime getPointValue(long id) {
-        return pointValueQuery(POINT_VALUE_SELECT + " where pv.id=?", new Object[] { id });
+        return baseQuery().where(POINTVALUES.id.eq(id))
+                .limit(1)
+                .fetchOne(this::mapRecord);
     }
 
     @Override
     public PointValueTime getPointValueBefore(DataPointVO vo, long time) {
-        Long valueTime = queryForObject("select max(ts) from pointValues where dataPointId=? and ts<?", new Object[] {
-                vo.getId(), time }, Long.class, null);
-        if (valueTime == null)
-            return null;
-        return getPointValueAt(vo, valueTime);
+        Field<Long> ts = this.create.select(DSL.max(POINTVALUES.ts))
+                .from(POINTVALUES)
+                .where(POINTVALUES.dataPointId.eq(vo.getId()))
+                .and(POINTVALUES.ts.lt(time))
+                .asField();
+        return getPointValueAt(vo, ts);
     }
 
     @Override
     public PointValueTime getPointValueAt(DataPointVO vo, long time) {
-        return pointValueQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts=?", new Object[] { vo.getId(),
-                time });
+        return getPointValueAt(vo, DSL.val(time));
     }
 
     @Override
     public PointValueTime getPointValueAfter(DataPointVO vo, long time) {
-        Long valueTime = queryForObject("select min(ts) from pointValues where dataPointId=? and ts>=?", new Object[] {
-                vo.getId(), time }, Long.class, null);
-        if (valueTime == null)
-            return null;
-        return getPointValueAt(vo, valueTime);
-    }
-
-    private PointValueTime pointValueQuery(String sql, Object[] params) {
-        List<PointValueTime> result = pointValuesQuery(sql, params, 1);
-        if (result.size() == 0)
-            return null;
-        return result.get(0);
+        Field<Long> ts = this.create.select(DSL.min(POINTVALUES.ts))
+                .from(POINTVALUES)
+                .where(POINTVALUES.dataPointId.eq(vo.getId()))
+                .and(POINTVALUES.ts.ge(time))
+                .asField();
+        return getPointValueAt(vo, ts);
     }
 
     //
     //
     // Values lists
     //
+
     @Override
     public List<PointValueTime> getPointValues(DataPointVO vo, long since) {
-        return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? order by ts",
-                new Object[] { vo.getId(), since }, 0);
+        return baseQuery()
+                .where(POINTVALUES.dataPointId.eq(vo.getId()))
+                .and(POINTVALUES.ts.ge(since))
+                .orderBy(POINTVALUES.ts)
+                .fetch(this::mapRecord);
     }
 
     @Override
     public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
-        return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
-                new Object[] { vo.getId(), from, to }, 0);
+        return baseQuery()
+                .where(POINTVALUES.dataPointId.eq(vo.getId()))
+                .and(POINTVALUES.ts.ge(from))
+                .and(POINTVALUES.ts.lt(to))
+                .orderBy(POINTVALUES.ts)
+                .fetch(this::mapRecord);
     }
 
     @Override
     public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, int limit) {
-        return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? and pv.ts >= ? and pv.ts<? order by ts",
-                new Object[] { vo.getId(), from, to }, limit);
+        return baseQuery()
+                .where(POINTVALUES.dataPointId.eq(vo.getId()))
+                .and(POINTVALUES.ts.ge(from))
+                .and(POINTVALUES.ts.lt(to))
+                .orderBy(POINTVALUES.ts)
+                .limit(limit)
+                .fetch(this::mapRecord);
     }
 
     @Override
@@ -357,14 +382,15 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     public IdPointValueTime mapRecord(Record record) {
-        PointValueRecord pvRecord = record.into(POINT_VALUES);
-        PointValueAnnotationRecord pvaRecord = record.into(POINT_VALUE_ANNOTATIONS);
 
-        int dataPointId = pvRecord.get(POINT_VALUES.dataPointId);
-        long timestamp = pvRecord.get(POINT_VALUES.ts);
+        PointValuesRecord pvRecord = record.into(POINTVALUES);
+        PointValueAnnotationsRecord pvaRecord = record.into(POINTVALUEANNOTATIONS);
+
+        int dataPointId = pvRecord.get(POINTVALUES.dataPointId);
+        long timestamp = pvRecord.get(POINTVALUES.ts);
         DataValue value = createDataValue(pvRecord, pvaRecord);
 
-        TranslatableMessage sourceMessage = readTranslatableMessage(pvaRecord.get(POINT_VALUE_ANNOTATIONS.sourceMessage));
+        TranslatableMessage sourceMessage = readTranslatableMessage(pvaRecord.get(POINTVALUEANNOTATIONS.sourceMessage));
         if (sourceMessage != null) {
             return new AnnotatedIdPointValueTime(dataPointId, value, timestamp, sourceMessage);
         }
@@ -372,11 +398,11 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     }
 
     public SelectOnConditionStep<Record> baseQuery() {
-        return this.create.select(POINT_VALUES.fields())
-                .select(POINT_VALUE_ANNOTATIONS.fields())
-                .from(POINT_VALUES)
-                .leftJoin(POINT_VALUE_ANNOTATIONS)
-                .on(POINT_VALUES.id.eq(POINT_VALUE_ANNOTATIONS.pointValueId));
+        return this.create.select(POINTVALUES.fields())
+                .select(POINTVALUEANNOTATIONS.fields())
+                .from(POINTVALUES)
+                .leftJoin(POINTVALUEANNOTATIONS)
+                .on(POINTVALUES.id.eq(POINTVALUEANNOTATIONS.pointValueId));
     }
 
     @Override
@@ -389,31 +415,31 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         if (orderById && limit != null) {
             SelectUnionStep<Record> union = null;
             for (int dataPointId : dataPointIds) {
-                Condition condition = POINT_VALUES.dataPointId.eq(dataPointId);
+                Condition condition = POINTVALUES.dataPointId.eq(dataPointId);
                 if (before != Long.MAX_VALUE) {
-                    condition = condition.and(POINT_VALUES.ts.lt(before));
+                    condition = condition.and(POINTVALUES.ts.lt(before));
                 }
 
                 SelectLimitPercentStep<Record> r = baseQuery()
                         .where(condition)
-                        .orderBy(POINT_VALUES.ts.desc())
+                        .orderBy(POINTVALUES.ts.desc())
                         .limit(limit);
 
                 union = union == null ? r : union.unionAll(r);
             }
             result = union;
         } else {
-            Condition condition = POINT_VALUES.dataPointId.in(dataPointIds);
+            Condition condition = POINTVALUES.dataPointId.in(dataPointIds);
             if (before != Long.MAX_VALUE) {
-                condition = condition.and(POINT_VALUES.ts.lt(before));
+                condition = condition.and(POINTVALUES.ts.lt(before));
             }
 
             SelectConditionStep<Record> conditionStep = baseQuery()
                     .where(condition);
 
             SelectLimitStep<Record> limitStep = orderById ?
-                    conditionStep.orderBy(POINT_VALUES.dataPointId.asc(), POINT_VALUES.ts.desc()) :
-                    conditionStep.orderBy(POINT_VALUES.ts.desc());
+                    conditionStep.orderBy(POINTVALUES.dataPointId.asc(), POINTVALUES.ts.desc()) :
+                    conditionStep.orderBy(POINTVALUES.ts.desc());
 
             result = limit == null ? limitStep : limitStep.limit(limit);
         }
@@ -841,32 +867,32 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         return value;
     }
 
-    DataValue createDataValue(PointValueRecord pvRecord, PointValueAnnotationRecord pvaRecord) {
-        int dataType = pvRecord.get(POINT_VALUES.dataType);
+    DataValue createDataValue(PointValuesRecord pvRecord, PointValueAnnotationsRecord pvaRecord) {
+        int dataType = pvRecord.get(POINTVALUES.dataType);
         switch (dataType) {
             case (DataTypes.NUMERIC): {
-                Double doubleValue = pvRecord.get(POINT_VALUES.pointValue);
+                Double doubleValue = pvRecord.get(POINTVALUES.pointValue);
                 return new NumericValue(doubleValue);
             }
             case (DataTypes.BINARY): {
-                boolean booleanValue = pvRecord.get(POINT_VALUES.pointValue) == 1;
+                boolean booleanValue = pvRecord.get(POINTVALUES.pointValue) == 1;
                 return new BinaryValue(booleanValue);
             }
             case (DataTypes.MULTISTATE): {
-                int intValue = (int) Math.round(pvRecord.get(POINT_VALUES.pointValue));
+                int intValue = (int) Math.round(pvRecord.get(POINTVALUES.pointValue));
                 return new MultistateValue(intValue);
             }
             case (DataTypes.ALPHANUMERIC): {
-                String shortTextValue = pvaRecord.get(POINT_VALUE_ANNOTATIONS.textPointValueShort);
+                String shortTextValue = pvaRecord.get(POINTVALUEANNOTATIONS.textPointValueShort);
                 if (shortTextValue != null) {
                     return new AlphanumericValue(shortTextValue);
                 }
-                String longTextValue = pvaRecord.get(POINT_VALUE_ANNOTATIONS.textPointValueLong);
+                String longTextValue = pvaRecord.get(POINTVALUEANNOTATIONS.textPointValueLong);
                 return new AlphanumericValue(longTextValue);
             }
             case (DataTypes.IMAGE):
-                String shortTextValue = pvaRecord.get(POINT_VALUE_ANNOTATIONS.textPointValueShort);
-                int intValue = (int) Math.round(pvRecord.get(POINT_VALUES.pointValue));
+                String shortTextValue = pvaRecord.get(POINTVALUEANNOTATIONS.textPointValueShort);
+                int intValue = (int) Math.round(pvRecord.get(POINTVALUES.pointValue));
                 return new ImageValue(Integer.parseInt(shortTextValue), intValue);
         }
         return null;
