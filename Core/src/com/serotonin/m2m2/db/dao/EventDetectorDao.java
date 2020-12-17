@@ -45,8 +45,8 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.tables.MintermMappingTable;
-import com.serotonin.m2m2.db.dao.tables.PermissionMappingTable;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -226,20 +226,20 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 
-            Table<?> mintermsGranted = this.create.select(MintermMappingTable.MINTERMS_MAPPING.mintermId)
-                    .from(MintermMappingTable.MINTERMS_MAPPING)
-                    .groupBy(MintermMappingTable.MINTERMS_MAPPING.mintermId)
+            Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMSROLES.mintermId)
+                    .from(MintermsRoles.MINTERMSROLES)
+                    .groupBy(MintermsRoles.MINTERMSROLES.mintermId)
                     .having(DSL.count().eq(DSL.count(
                             DSL.case_().when(roleIdsIn, DSL.inline(1))
                             .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
 
-            Table<?> permissionsGranted = this.create.selectDistinct(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId)
-                    .from(PermissionMappingTable.PERMISSIONS_MAPPING)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermMappingTable.MINTERMS_MAPPING.mintermId).eq(PermissionMappingTable.PERMISSIONS_MAPPING.mintermId))
+            Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONSMINTERMS.permissionId)
+                    .from(PermissionsMinterms.PERMISSIONSMINTERMS)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermsRoles.MINTERMSROLES.mintermId).eq(PermissionsMinterms.PERMISSIONSMINTERMS.mintermId))
                     .asTable("permissionsGranted");
 
             select = select.join(permissionsGranted).on(
-                    permissionsGranted.field(PermissionMappingTable.PERMISSIONS_MAPPING.permissionId).in(
+                    permissionsGranted.field(PermissionsMinterms.PERMISSIONSMINTERMS.permissionId).in(
                             EventDetectorTableDefinition.READ_PERMISSION_ALIAS));
 
         }

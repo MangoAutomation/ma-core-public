@@ -26,10 +26,10 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.vo.role.Role;
 
-import static com.serotonin.m2m2.db.dao.tables.MintermMappingTable.MINTERMS_MAPPING;
-import static com.serotonin.m2m2.db.dao.tables.MintermTable.MINTERMS;
-import static com.serotonin.m2m2.db.dao.tables.PermissionMappingTable.PERMISSIONS_MAPPING;
-import static com.serotonin.m2m2.db.dao.tables.PermissionTable.PERMISSIONS;
+import static com.infiniteautomation.mango.db.tables.MintermsRoles.MINTERMSROLES;
+import static com.infiniteautomation.mango.db.tables.Minterms.MINTERMS;
+import static com.infiniteautomation.mango.db.tables.PermissionsMinterms.PERMISSIONSMINTERMS;
+import static com.infiniteautomation.mango.db.tables.Permissions.PERMISSIONS;
 import static org.jooq.impl.DSL.*;
 
 /**
@@ -62,13 +62,13 @@ public class PermissionDao extends BaseDao {
         List<Field<?>> fields = new ArrayList<>();
         fields.add(roleTable.getAlias("id"));
         fields.add(roleTable.getAlias("xid"));
-        fields.add(PERMISSIONS_MAPPING.mintermId);
+        fields.add(PERMISSIONSMINTERMS.mintermId);
 
-        SelectSeekStep2<Record, Integer, Integer> select = create.select(fields).from(PERMISSIONS_MAPPING)
-                .join(MINTERMS_MAPPING).on(PERMISSIONS_MAPPING.mintermId.eq(MINTERMS_MAPPING.mintermId))
-                .join(roleTable.getTableAsAlias()).on(roleTable.getAlias("id").eq(MINTERMS_MAPPING.roleId))
-                .where(PERMISSIONS_MAPPING.permissionId.eq(id))
-                .orderBy(PERMISSIONS_MAPPING.permissionId.asc(), PERMISSIONS_MAPPING.mintermId.asc());
+        SelectSeekStep2<Record, Integer, Integer> select = create.select(fields).from(PERMISSIONSMINTERMS)
+                .join(MINTERMSROLES).on(PERMISSIONSMINTERMS.mintermId.eq(MINTERMSROLES.mintermId))
+                .join(roleTable.getTableAsAlias()).on(roleTable.getAlias("id").eq(MINTERMSROLES.roleId))
+                .where(PERMISSIONSMINTERMS.permissionId.eq(id))
+                .orderBy(PERMISSIONSMINTERMS.permissionId.asc(), PERMISSIONSMINTERMS.mintermId.asc());
 
         String sql = select.getSQL();
         List<Object> arguments = select.getBindValues();
@@ -138,14 +138,14 @@ public class PermissionDao extends BaseDao {
         Integer permissionId;
         if(minterms.isEmpty()) {
             permissionId = create.select(PERMISSIONS.id).from(PERMISSIONS)
-                    .leftJoin(PERMISSIONS_MAPPING).on(PERMISSIONS.id.eq(PERMISSIONS_MAPPING.permissionId))
-                    .where(PERMISSIONS_MAPPING.permissionId.isNull()).limit(1).fetchOne(0, Integer.class);
+                    .leftJoin(PERMISSIONSMINTERMS).on(PERMISSIONS.id.eq(PERMISSIONSMINTERMS.permissionId))
+                    .where(PERMISSIONSMINTERMS.permissionId.isNull()).limit(1).fetchOne(0, Integer.class);
         }else {
-            permissionId = create.select(PERMISSIONS_MAPPING.permissionId)
-                    .from(PERMISSIONS_MAPPING)
-                    .groupBy(PERMISSIONS_MAPPING.permissionId)
-                    .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
-                            count(PERMISSIONS_MAPPING.permissionId).equal(mintermIds.size()))
+            permissionId = create.select(PERMISSIONSMINTERMS.permissionId)
+                    .from(PERMISSIONSMINTERMS)
+                    .groupBy(PERMISSIONSMINTERMS.permissionId)
+                    .having(count(when(PERMISSIONSMINTERMS.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
+                            count(PERMISSIONSMINTERMS.permissionId).equal(mintermIds.size()))
                     .limit(1)
                     .fetchOne(0, Integer.class);
         }
@@ -160,8 +160,8 @@ public class PermissionDao extends BaseDao {
             int permissionIdFinal = permissionId;
             create.batch(
                     mintermIds.stream()
-                    .map(id -> create.insertInto(PERMISSIONS_MAPPING)
-                            .columns(PERMISSIONS_MAPPING.permissionId, PERMISSIONS_MAPPING.mintermId)
+                    .map(id -> create.insertInto(PERMISSIONSMINTERMS)
+                            .columns(PERMISSIONSMINTERMS.permissionId, PERMISSIONSMINTERMS.mintermId)
                             .values(permissionIdFinal, id))
                     .collect(Collectors.toList()))
             .execute();
@@ -179,11 +179,11 @@ public class PermissionDao extends BaseDao {
                 .map(Role::getId)
                 .collect(Collectors.toSet());
 
-        Integer mintermId = create.select(MINTERMS_MAPPING.mintermId)
-                .from(MINTERMS_MAPPING)
-                .groupBy(MINTERMS_MAPPING.mintermId)
-                .having(count(when(MINTERMS_MAPPING.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()),
-                        count(MINTERMS_MAPPING.roleId).equal(roleIds.size()))
+        Integer mintermId = create.select(MINTERMSROLES.mintermId)
+                .from(MINTERMSROLES)
+                .groupBy(MINTERMSROLES.mintermId)
+                .having(count(when(MINTERMSROLES.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()),
+                        count(MINTERMSROLES.roleId).equal(roleIds.size()))
                 .limit(1)
                 .fetchOne(0, Integer.class);
 
@@ -197,8 +197,8 @@ public class PermissionDao extends BaseDao {
             int mintermIdFinal = mintermId;
             create.batch(
                     roleIds.stream()
-                    .map(id -> create.insertInto(MINTERMS_MAPPING)
-                            .columns(MINTERMS_MAPPING.mintermId, MINTERMS_MAPPING.roleId)
+                    .map(id -> create.insertInto(MINTERMSROLES)
+                            .columns(MINTERMSROLES.mintermId, MINTERMSROLES.roleId)
                             .values(mintermIdFinal, id))
                     .collect(Collectors.toList()))
             .execute();
@@ -212,8 +212,8 @@ public class PermissionDao extends BaseDao {
         create.deleteFrom(MINTERMS).where(
                 MINTERMS.id.in(
                         create.select(MINTERMS.id).from(MINTERMS)
-                        .leftJoin(MINTERMS_MAPPING).on(MINTERMS_MAPPING.mintermId.eq(MINTERMS.id))
-                        .where(MINTERMS_MAPPING.mintermId.isNull()))).execute();
+                        .leftJoin(MINTERMSROLES).on(MINTERMSROLES.mintermId.eq(MINTERMS.id))
+                        .where(MINTERMSROLES.mintermId.isNull()))).execute();
 
     }
 
@@ -225,8 +225,8 @@ public class PermissionDao extends BaseDao {
         create.deleteFrom(MINTERMS).where(
                 MINTERMS.id.in(
                         create.select(MINTERMS.id).from(MINTERMS)
-                        .leftJoin(PERMISSIONS_MAPPING).on(PERMISSIONS_MAPPING.mintermId.eq(MINTERMS.id))
-                        .where(PERMISSIONS_MAPPING.permissionId.isNull()))).execute();
+                        .leftJoin(PERMISSIONSMINTERMS).on(PERMISSIONSMINTERMS.mintermId.eq(MINTERMS.id))
+                        .where(PERMISSIONSMINTERMS.permissionId.isNull()))).execute();
     }
 
     /**
