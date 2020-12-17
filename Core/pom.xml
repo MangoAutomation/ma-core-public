@@ -134,6 +134,78 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>${jooq.version}</version>
+                <executions>
+                    <execution>
+                        <id>jooq-codegen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <generator>
+                                <database>
+                                    <name>org.jooq.meta.extensions.ddl.DDLDatabase</name>
+                                    <properties>
+                                        <property>
+                                            <key>scripts</key>
+                                            <value>resources/com/serotonin/m2m2/db/createTables-H2.sql</value>
+                                        </property>
+                                    </properties>
+                                </database>
+                                <generate>
+                                    <fluentSetters>true</fluentSetters>
+                                </generate>
+                                <target>
+                                    <packageName>com.infiniteautomation.mango.db</packageName>
+                                    <directory>${project.build.directory}/generated-sources/db</directory>
+                                </target>
+                                <strategy>
+                                    <matchers>
+                                        <tables>
+                                            <table>
+                                                <tableClass>
+                                                    <transform>UPPER_FIRST_LETTER</transform>
+                                                </tableClass>
+                                                <recordClass>
+                                                    <transform>UPPER_FIRST_LETTER</transform>
+                                                    <expression>$0Record</expression>
+                                                </recordClass>
+                                            </table>
+                                        </tables>
+                                        <fields>
+                                            <field>
+                                                <fieldIdentifier>
+                                                    <transform>LOWER_FIRST_LETTER</transform>
+                                                </fieldIdentifier>
+                                                <fieldMember>
+                                                    <transform>LOWER_FIRST_LETTER</transform>
+                                                </fieldMember>
+                                                <fieldGetter>
+                                                    <transform>AS_IS</transform>
+                                                </fieldGetter>
+                                                <fieldSetter>
+                                                    <transform>AS_IS</transform>
+                                                </fieldSetter>
+                                            </field>
+                                        </fields>
+                                    </matchers>
+                                </strategy>
+                            </generator>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-meta-extensions</artifactId>
+                        <version>${jooq.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -584,7 +656,7 @@
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>3.13.1</version>
+            <version>${jooq.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
