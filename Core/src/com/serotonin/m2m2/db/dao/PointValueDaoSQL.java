@@ -91,7 +91,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
     private static final Log LOG = LogFactory.getLog(PointValueDao.class);
 
-    private static final ConcurrentLinkedQueue<UnsavedPointValue> UNSAVED_POINT_VALUES = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<UnsavedPointValue> unsavedPointValues = new ConcurrentLinkedQueue<>();
 
     private static final String POINT_VALUE_INSERT_START = "insert into pointValues (dataPointId, dataType, pointValue, ts) values ";
     private static final String POINT_VALUE_INSERT_VALUES = "(?,?,?,?)";
@@ -159,7 +159,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
         catch (ConcurrencyFailureException e) {
             // Still failed to insert after all of the retries. Store the data
-            UNSAVED_POINT_VALUES.add(new UnsavedPointValue(vo, pointValue, source));
+            unsavedPointValues.add(new UnsavedPointValue(vo, pointValue, source));
             return -1;
         }
 
@@ -189,7 +189,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
     private void clearUnsavedPointValues() {
         UnsavedPointValue data;
-        while ((data = UNSAVED_POINT_VALUES.poll()) != null) {
+        while ((data = unsavedPointValues.poll()) != null) {
             savePointValueImpl(data.getVO(), data.getPointValue(), data.getSource(), false);
         }
     }
