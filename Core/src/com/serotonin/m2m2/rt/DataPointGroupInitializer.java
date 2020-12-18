@@ -57,11 +57,12 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
     }
 
     @Override
-    protected Void processItem(List<DataPointWithEventDetectors> subgroup) {
+    protected Void processItem(List<DataPointWithEventDetectors> subgroup, int itemId) {
         long startTs = 0L;
         if (log.isInfoEnabled()) {
             startTs = Common.timer.currentTimeMillis();
-            log.info("Initializing group of {} data points",
+            log.info("Initializing group {} of {} data points",
+                    itemId,
                     subgroup.size());
         }
 
@@ -129,8 +130,8 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
         }
 
         if (log.isInfoEnabled()) {
-            log.info("Successfully initialized {} of {} data points in group in {} ms",
-                    subgroup.size() - failedCount, subgroup.size(), Common.timer.currentTimeMillis() - startTs);
+            log.info("Group {} successfully initialized {} of {} data points in {} ms",
+                    itemId, subgroup.size() - failedCount, subgroup.size(), Common.timer.currentTimeMillis() - startTs);
         }
         return null;
     }

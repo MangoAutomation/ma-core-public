@@ -44,7 +44,7 @@ public class DataSourceGroupTerminator extends GroupProcessor<DataSourceRT<?>, V
     }
 
     @Override
-    protected Void processItem(DataSourceRT<?> dataSourceRT) {
+    protected Void processItem(DataSourceRT<?> dataSourceRT, int itemId) {
         Common.runtimeManager.stopDataSourceShutdown(dataSourceRT.getId());
         return null;
     }

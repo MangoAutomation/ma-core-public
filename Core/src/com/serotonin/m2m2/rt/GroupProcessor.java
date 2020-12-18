@@ -35,8 +35,10 @@ public abstract class GroupProcessor<T,R> {
     public List<R> process(List<T> items) {
         try {
             List<CompletableFuture<R>> futures = new ArrayList<>(items.size());
+            int itemId = 0;
             for (T item : items) {
-                futures.add(submit(item));
+                futures.add(submit(item, itemId));
+                itemId++;
             }
 
             List<R> results = new ArrayList<>();
@@ -54,13 +56,13 @@ public abstract class GroupProcessor<T,R> {
         }
     }
 
-    protected CompletableFuture<R> submit(T item) throws InterruptedException {
+    protected CompletableFuture<R> submit(T item, int itemId) throws InterruptedException {
         try {
             semaphore.acquire();
             CompletableFuture<R> future = new CompletableFuture<>();
             executor.execute(() -> {
                 try {
-                    future.complete(processItem(item));
+                    future.complete(processItem(item, itemId));
                 } catch (Exception ex) {
                     future.completeExceptionally(ex);
                 } finally {
@@ -74,5 +76,5 @@ public abstract class GroupProcessor<T,R> {
         }
     }
 
-    protected abstract R processItem(T t) throws Exception;
+    protected abstract R processItem(T t, int itemId) throws Exception;
 }
