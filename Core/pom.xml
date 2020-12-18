@@ -15,8 +15,6 @@
     <properties>
         <webDirectory>${project.basedir}/web</webDirectory>
         <service.loader.directory>${project.build.outputDirectory}/META-INF/services/core</service.loader.directory>
-        <jooq.codegen.packageName>com.infiniteautomation.mango.db</jooq.codegen.packageName>
-        <jooq.codegen.importScript>${project.basedir}/resources/com/serotonin/m2m2/db/createTables-H2.sql</jooq.codegen.importScript>
     </properties>
     <build>
         <resources>
@@ -137,8 +135,12 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.jooq</groupId>
-                <artifactId>jooq-codegen-maven</artifactId>
+                <groupId>com.infiniteautomation</groupId>
+                <artifactId>mango-jooq-maven-plugin</artifactId>
+                <configuration>
+                    <packageName>com.infiniteautomation.mango.db</packageName>
+                    <importScript>resources/com/serotonin/m2m2/db/createTables-H2.sql</importScript>
+                </configuration>
             </plugin>
         </plugins>
         <pluginManagement>

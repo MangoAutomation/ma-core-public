@@ -4,13 +4,13 @@
 
 package com.serotonin.m2m2.db.dao;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import static com.infiniteautomation.mango.db.tables.SystemPermissions.SYSTEM_PERMISSIONS;
 
-import static com.infiniteautomation.mango.db.tables.SystemPermissions.SYSTEMPERMISSIONS;
 /**
  *
  * @author Terry Packer
@@ -27,7 +27,7 @@ public class SystemPermissionDao extends BaseDao {
 
     public MangoPermission get(String permissionType) {
         //TODO Mango 4.0 use a join
-        Integer id = this.create.select(SYSTEMPERMISSIONS.permissionId).from(SYSTEMPERMISSIONS).where(SYSTEMPERMISSIONS.permissionType.eq(permissionType)).limit(1).fetchOne(0, Integer.class);
+        Integer id = this.create.select(SYSTEM_PERMISSIONS.permissionId).from(SYSTEM_PERMISSIONS).where(SYSTEM_PERMISSIONS.permissionType.eq(permissionType)).limit(1).fetchOne(0, Integer.class);
         if(id != null) {
             return permissionService.get(id);
         }else {
@@ -43,7 +43,7 @@ public class SystemPermissionDao extends BaseDao {
      */
     public void insert(String permissionTypeName, MangoPermission permission) {
         MangoPermission toInsert = permissionService.findOrCreate(permission);
-        this.create.insertInto(SYSTEMPERMISSIONS).columns(SYSTEMPERMISSIONS.permissionId, SYSTEMPERMISSIONS.permissionType).values(toInsert.getId(), permissionTypeName).execute();
+        this.create.insertInto(SYSTEM_PERMISSIONS).columns(SYSTEM_PERMISSIONS.permissionId, SYSTEM_PERMISSIONS.permissionType).values(toInsert.getId(), permissionTypeName).execute();
     }
 
     /**
@@ -57,7 +57,7 @@ public class SystemPermissionDao extends BaseDao {
             permissionService.deletePermissions(existing);
         }
         MangoPermission toUpdate = permissionService.findOrCreate(permission);
-        this.create.update(SYSTEMPERMISSIONS).set(SYSTEMPERMISSIONS.permissionId, toUpdate.getId()).where(SYSTEMPERMISSIONS.permissionType.eq(permissionTypeName)).execute();
+        this.create.update(SYSTEM_PERMISSIONS).set(SYSTEM_PERMISSIONS.permissionId, toUpdate.getId()).where(SYSTEM_PERMISSIONS.permissionType.eq(permissionTypeName)).execute();
     }
 
 }

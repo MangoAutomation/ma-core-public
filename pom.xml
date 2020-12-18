@@ -32,8 +32,6 @@
         <mango.store.pugin.version>1.0.2</mango.store.pugin.version>
         <jooq.version>3.14.4</jooq.version>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
-        <jooq.codegen.packageName>com.infiniteautomation.mango.db</jooq.codegen.packageName>
-        <jooq.codegen.importScript>resources/com/serotonin/m2m2/db/createTables-H2.sql</jooq.codegen.importScript>
     </properties>
     <organization>
         <name>Radix IoT, LLC</name>
@@ -251,9 +249,9 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.jooq</groupId>
-                    <artifactId>jooq-codegen-maven</artifactId>
-                    <version>${jooq.version}</version>
+                    <groupId>com.infiniteautomation</groupId>
+                    <artifactId>mango-jooq-maven-plugin</artifactId>
+                    <version>1.0.0</version>
                     <executions>
                         <execution>
                             <id>jooq-codegen</id>
@@ -261,76 +259,8 @@
                             <goals>
                                 <goal>generate</goal>
                             </goals>
-                            <configuration>
-                                <generator>
-                                    <database>
-                                        <name>org.jooq.meta.extensions.ddl.DDLDatabase</name>
-                                        <properties>
-                                            <property>
-                                                <key>scripts</key>
-                                                <value>${jooq.codegen.importScript}</value>
-                                            </property>
-                                        </properties>
-                                        <includePrimaryKeys>false</includePrimaryKeys>
-                                        <includeUniqueKeys>false</includeUniqueKeys>
-                                        <includeForeignKeys>false</includeForeignKeys>
-                                        <includeCheckConstraints>false</includeCheckConstraints>
-                                        <includeSystemCheckConstraints>false</includeSystemCheckConstraints>
-                                        <includeIndexes>false</includeIndexes>
-                                        <includeSystemIndexes>false</includeSystemIndexes>
-                                    </database>
-                                    <generate>
-                                        <fluentSetters>true</fluentSetters>
-                                        <globalObjectReferences>false</globalObjectReferences>
-                                        <globalCatalogReferences>false</globalCatalogReferences>
-                                        <globalSchemaReferences>false</globalSchemaReferences>
-                                    </generate>
-                                    <target>
-                                        <packageName>${jooq.codegen.packageName}</packageName>
-                                        <directory>${project.build.directory}/generated-sources/db</directory>
-                                    </target>
-                                    <strategy>
-                                        <matchers>
-                                            <tables>
-                                                <table>
-                                                    <tableClass>
-                                                        <transform>UPPER_FIRST_LETTER</transform>
-                                                    </tableClass>
-                                                    <recordClass>
-                                                        <transform>UPPER_FIRST_LETTER</transform>
-                                                        <expression>$0Record</expression>
-                                                    </recordClass>
-                                                </table>
-                                            </tables>
-                                            <fields>
-                                                <field>
-                                                    <fieldIdentifier>
-                                                        <transform>LOWER_FIRST_LETTER</transform>
-                                                    </fieldIdentifier>
-                                                    <fieldMember>
-                                                        <transform>LOWER_FIRST_LETTER</transform>
-                                                    </fieldMember>
-                                                    <fieldGetter>
-                                                        <transform>AS_IS</transform>
-                                                    </fieldGetter>
-                                                    <fieldSetter>
-                                                        <transform>AS_IS</transform>
-                                                    </fieldSetter>
-                                                </field>
-                                            </fields>
-                                        </matchers>
-                                    </strategy>
-                                </generator>
-                            </configuration>
                         </execution>
                     </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.jooq</groupId>
-                            <artifactId>jooq-meta-extensions</artifactId>
-                            <version>${jooq.version}</version>
-                        </dependency>
-                    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>

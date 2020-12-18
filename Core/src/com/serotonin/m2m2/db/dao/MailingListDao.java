@@ -171,20 +171,20 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 
-            Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMSROLES.mintermId)
-                    .from(MintermsRoles.MINTERMSROLES)
-                    .groupBy(MintermsRoles.MINTERMSROLES.mintermId)
+            Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
+                    .from(MintermsRoles.MINTERMS_ROLES)
+                    .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .having(DSL.count().eq(DSL.count(
                             DSL.case_().when(roleIdsIn, DSL.inline(1))
                             .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
 
-            Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONSMINTERMS.permissionId)
-                    .from(PermissionsMinterms.PERMISSIONSMINTERMS)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermsRoles.MINTERMSROLES.mintermId).eq(PermissionsMinterms.PERMISSIONSMINTERMS.mintermId))
+            Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
+                    .from(PermissionsMinterms.PERMISSIONS_MINTERMS)
+                    .join(mintermsGranted).on(mintermsGranted.field(MintermsRoles.MINTERMS_ROLES.mintermId).eq(PermissionsMinterms.PERMISSIONS_MINTERMS.mintermId))
                     .asTable("permissionsGranted");
 
             select = select.join(permissionsGranted).on(
-                    permissionsGranted.field(PermissionsMinterms.PERMISSIONSMINTERMS.permissionId).in(
+                    permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
                             MailingListTableDefinition.READ_PERMISSION_ALIAS));
 
         }
