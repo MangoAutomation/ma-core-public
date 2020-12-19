@@ -252,7 +252,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                     .set(POINT_VALUE_ANNOTATIONS.pointValueId, id)
                     .set(POINT_VALUE_ANNOTATIONS.textPointValueShort, shortString)
                     .set(POINT_VALUE_ANNOTATIONS.textPointValueLong, longString)
-                    .set(POINT_VALUE_ANNOTATIONS.sourceMessage, writeTranslatableMessage(sourceMessage));
+                    .set(POINT_VALUE_ANNOTATIONS.sourceMessage, writeTranslatableMessage(sourceMessage))
+                    .execute();
         }
 
         return id;
