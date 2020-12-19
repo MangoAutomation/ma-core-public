@@ -858,7 +858,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             value = new AlphanumericValue(s);
             break;
             case (DataTypes.IMAGE):
-                value = new ImageValue(Integer.parseInt(rs.getString(firstParameter + 2)), rs.getInt(firstParameter + 1));
+                value = new ImageValue(Long.parseLong(rs.getString(firstParameter + 2)), rs.getInt(firstParameter + 1));
             break;
             default:
                 value = null;
@@ -892,7 +892,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             case (DataTypes.IMAGE):
                 String shortTextValue = pvaRecord.get(POINT_VALUE_ANNOTATIONS.textPointValueShort);
                 int intValue = (int) Math.round(pvRecord.get(POINT_VALUES.pointValue));
-                return new ImageValue(Integer.parseInt(shortTextValue), intValue);
+                return new ImageValue(Long.parseLong(shortTextValue), intValue);
         }
         return null;
     }
