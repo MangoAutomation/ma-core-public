@@ -66,66 +66,50 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                     subgroup.size());
         }
 
+        //Bulk request the latest values
+        List<DataPointVO> queryPoints = subgroup.stream()
+                .map(DataPointWithEventDetectors::getDataPoint)
+                .collect(Collectors.toList());
+
+        // Find the maximum cache size for all point in the datasource
+        // This number of values will be retrieved for all points in the datasource
+        // If even one point has a high cache size this *may* cause issues
+        int maxCacheSize = queryPoints.stream()
+                .map(DataPointVO::getDefaultCacheSize)
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0);
+
+        boolean failed = false;
+        Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
+        try {
+            dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize,
+                    (pvt, i) -> latestValuesMap.computeIfAbsent(pvt.getId(), (k) -> new ArrayList<>()).add(pvt));
+        } catch (Exception e) {
+            failed = true;
+            log.warn("Failed to get latest point values for multiple points at once. " +
+                    "Mango will fall back to retrieving latest point values per point which will take longer.", e);
+        }
+
+        //Now start them
         int failedCount = 0;
-
-        if(Common.envProps.getBoolean("runtime.datapoint.loadLatestValues", true)) {
-
-            //Bulk request the latest values
-            List<DataPointVO> queryPoints = subgroup.stream()
-                    .map(DataPointWithEventDetectors::getDataPoint)
-                    .collect(Collectors.toList());
-
-            // Find the maximum cache size for all point in the datasource
-            // This number of values will be retrieved for all points in the datasource
-            // If even one point has a high cache size this *may* cause issues
-            int maxCacheSize = queryPoints.stream()
-                    .map(DataPointVO::getDefaultCacheSize)
-                    .mapToInt(Integer::intValue)
-                    .max()
-                    .orElse(0);
-
-            boolean failed = false;
-            Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
+        for (DataPointWithEventDetectors dataPoint : subgroup) {
             try {
-                dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize,
-                        (pvt, i) -> latestValuesMap.computeIfAbsent(pvt.getId(), (k) -> new ArrayList<>()).add(pvt));
-            } catch (Exception e) {
-                failed = true;
-                log.warn("Failed to get latest point values for multiple points at once. " +
-                        "Mango will fall back to retrieving latest point values per point which will take longer.", e);
-            }
-
-            //Now start them
-            for (DataPointWithEventDetectors dataPoint : subgroup) {
-                try {
-                    // should only be submitted as null if we failed, gets passed to com.serotonin.m2m2.rt.dataImage.PointValueCache.PointValueCache
-                    // if we didn't fail then we can assume there is no value in the database
-                    List<PointValueTime> cache = null;
-                    if(!failed) {
-                        cache = latestValuesMap.get(dataPoint.getDataPoint().getId());
-                        if(cache == null) {
-                            cache = Collections.emptyList();
-                        }
+                // should only be submitted as null if we failed, gets passed to com.serotonin.m2m2.rt.dataImage.PointValueCache.PointValueCache
+                // if we didn't fail then we can assume there is no value in the database
+                List<PointValueTime> cache = null;
+                if(!failed) {
+                    cache = latestValuesMap.get(dataPoint.getDataPoint().getId());
+                    if(cache == null) {
+                        cache = Collections.emptyList();
                     }
-                    DataPointWithEventDetectorsAndCache config = new DataPointWithEventDetectorsAndCache(dataPoint, cache);
-                    Common.runtimeManager.startDataPointStartup(config);
-                } catch (Exception e) {
-                    //Ensure only 1 can fail at a time
-                    failedCount++;
-                    log.error("Failed to start data point", e);
                 }
-            }
-        }else {
-            //Now start them without initial values
-            for (DataPointWithEventDetectors dataPoint : subgroup) {
-                try {
-                    DataPointWithEventDetectorsAndCache config = new DataPointWithEventDetectorsAndCache(dataPoint, Collections.emptyList());
-                    Common.runtimeManager.startDataPointStartup(config);
-                } catch (Exception e) {
-                    //Ensure only 1 can fail at a time
-                    failedCount++;
-                    log.error("Failed to start data point", e);
-                }
+                DataPointWithEventDetectorsAndCache config = new DataPointWithEventDetectorsAndCache(dataPoint, cache);
+                Common.runtimeManager.startDataPointStartup(config);
+            } catch (Exception e) {
+                //Ensure only 1 can fail at a time
+                failedCount++;
+                log.error("Failed to start data point", e);
             }
         }
 
