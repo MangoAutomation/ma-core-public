@@ -139,7 +139,7 @@ public class MangoSessionHandler extends SessionHandler {
 
         @Override
         public int getMaxAge() {
-            return sessionListener.getTimeoutSeconds();
+            return env.getProperty("sessionCookie.maxAge", Integer.class);
         }
     }
 }

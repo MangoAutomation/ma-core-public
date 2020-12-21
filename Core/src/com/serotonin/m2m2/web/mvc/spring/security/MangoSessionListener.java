@@ -104,7 +104,4 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
                 SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
     }
 
-    public int getTimeoutSeconds() {
-        return timeoutSeconds;
-    }
 }
