@@ -23,13 +23,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
-import com.serotonin.m2m2.module.*;
-import com.serotonin.m2m2.module.Module;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
@@ -38,6 +39,11 @@ import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
+import com.serotonin.m2m2.module.EventManagerListenerDefinition;
+import com.serotonin.m2m2.module.FreemarkerTemplateLoaderDefinition;
+import com.serotonin.m2m2.module.Module;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
 import com.serotonin.m2m2.module.license.ITimedLicenseRegistrar;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -97,112 +103,123 @@ public class MockMangoLifecycle implements IMangoLifecycle {
      */
     public void initialize() throws InterruptedException, ExecutionException {
 
-        //See if we have any translations to load
+        // set the authentication for the main thread's security context, enables the use of services requiring a user in the
+        // module lifecycle hooks
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(new PreAuthenticatedAuthenticationToken(PermissionHolder.SYSTEM_SUPERADMIN, null));
         try {
-            ClassLoader prevCl = Thread.currentThread().getContextClassLoader();
-            ClassLoader urlCl = URLClassLoader.newInstance(new URL[]{Paths.get("classes").toUri().toURL()}, prevCl);
-            Thread.currentThread().setContextClassLoader(urlCl);
-        } catch (MalformedURLException e) {
-            fail(e.getMessage());
-        }
 
-        Security.addProvider(new BouncyCastleProvider());
-
-        Common.setModuleClassLoader(MockMangoLifecycle.class.getClassLoader());
-
-        Providers.add(ITimedLicenseRegistrar.class, new MockTimedLicenseRegistrar());
-
-        Providers.add(ICoreLicense.class, new TestLicenseDefinition());
-        Providers.add(IMangoLifecycle.class, this);
-
-        //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
-        Common.free = false;
-
-        //Add in modules
-        for(Module module : modules) {
-            ModuleRegistry.addModule(module);
-        }
-
-        //Startup a simulation timer provider
-        Providers.add(TimerProvider.class, getSimulationTimerProvider());
-
-        Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
-        Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
-        Common.JSON_CONTEXT.addResolver(new MailingListRecipientResolver(), MailingListRecipient.class);
-        Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);
-        Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);
-
-        for (Module module : ModuleRegistry.getModules()) {
-            module.preInitialize();
-        }
-
-        freemarkerInitialize();
-
-        //TODO This must be done only once because we have a static
-        // final referece to the PointValueDao in the PointValueCache class
-        // and so if you try to restart the database it doesn't get the new connection
-        // for each new test.
-        //Start the Database so we can use Daos (Base Dao requires this)
-        if(Common.databaseProxy == null) {
-            Common.databaseProxy = getDatabaseProxy();
-        }
-
-        if(Common.databaseProxy != null)
-            Common.databaseProxy.initialize(null);
-
-        //Setup the Spring Context
-        springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
-
-        //Ensure we start with the proper timer
-        Common.backgroundProcessing = getBackgroundProcessing();
-        Common.backgroundProcessing.initialize(false);
-
-        for (Module module : ModuleRegistry.getModules()) {
-            module.postDatabase();
-        }
-
-        //Utilities
-        //So we can add users etc.
-        EventType.initialize();
-        SystemEventType.initialize();
-        AuditEventType.initialize();
-
-        //Do this last as Event Types have listeners
-        for (SystemSettingsListenerDefinition def : ModuleRegistry.getSystemSettingListenerDefinitions())
-            def.registerListener();
-
-        //Event Manager
-        Common.eventManager = getEventManager();
-        Common.eventManager.initialize(false);
-        for (EventManagerListenerDefinition def : ModuleRegistry.getDefinitions(EventManagerListenerDefinition.class))
-            Common.eventManager.addListener(def);
-
-        for (Module module : ModuleRegistry.getModules()) {
-            module.postEventManager();
-        }
-
-        Common.runtimeManager = getRuntimeManager();
-        Common.runtimeManager.initialize(false);
-
-        if(Common.serialPortManager == null) {
-            Common.serialPortManager = getSerialPortManager();
-            try{
-                Common.serialPortManager.initialize(false);
-            }catch(Exception e){
+            //See if we have any translations to load
+            try {
+                ClassLoader prevCl = Thread.currentThread().getContextClassLoader();
+                ClassLoader urlCl = URLClassLoader.newInstance(new URL[]{Paths.get("classes").toUri().toURL()}, prevCl);
+                Thread.currentThread().setContextClassLoader(urlCl);
+            } catch (MalformedURLException e) {
                 fail(e.getMessage());
             }
-        }
 
-        for (Module module : ModuleRegistry.getModules()) {
-            module.postInitialize();
-        }
+            Security.addProvider(new BouncyCastleProvider());
 
-        for (Runnable task : STARTUP_TASKS){
-            try{
-                task.run();
-            }catch(Exception e){
-                fail(e.getMessage());
+            Common.setModuleClassLoader(MockMangoLifecycle.class.getClassLoader());
+
+            Providers.add(ITimedLicenseRegistrar.class, new MockTimedLicenseRegistrar());
+
+            Providers.add(ICoreLicense.class, new TestLicenseDefinition());
+            Providers.add(IMangoLifecycle.class, this);
+
+            //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
+            Common.free = false;
+
+            //Add in modules
+            for(Module module : modules) {
+                ModuleRegistry.addModule(module);
             }
+
+            //Startup a simulation timer provider
+            Providers.add(TimerProvider.class, getSimulationTimerProvider());
+
+            Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
+            Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
+            Common.JSON_CONTEXT.addResolver(new MailingListRecipientResolver(), MailingListRecipient.class);
+            Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);
+            Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);
+
+            for (Module module : ModuleRegistry.getModules()) {
+                module.preInitialize();
+            }
+
+            freemarkerInitialize();
+
+            //TODO This must be done only once because we have a static
+            // final referece to the PointValueDao in the PointValueCache class
+            // and so if you try to restart the database it doesn't get the new connection
+            // for each new test.
+            //Start the Database so we can use Daos (Base Dao requires this)
+            if(Common.databaseProxy == null) {
+                Common.databaseProxy = getDatabaseProxy();
+            }
+
+            if(Common.databaseProxy != null)
+                Common.databaseProxy.initialize(null);
+
+            //Setup the Spring Context
+            springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
+
+            //Ensure we start with the proper timer
+            Common.backgroundProcessing = getBackgroundProcessing();
+            Common.backgroundProcessing.initialize(false);
+
+            for (Module module : ModuleRegistry.getModules()) {
+                module.postDatabase();
+            }
+
+            //Utilities
+            //So we can add users etc.
+            EventType.initialize();
+            SystemEventType.initialize();
+            AuditEventType.initialize();
+
+            //Do this last as Event Types have listeners
+            for (SystemSettingsListenerDefinition def : ModuleRegistry.getSystemSettingListenerDefinitions())
+                def.registerListener();
+
+            //Event Manager
+            Common.eventManager = getEventManager();
+            Common.eventManager.initialize(false);
+            for (EventManagerListenerDefinition def : ModuleRegistry.getDefinitions(EventManagerListenerDefinition.class))
+                Common.eventManager.addListener(def);
+
+            for (Module module : ModuleRegistry.getModules()) {
+                module.postEventManager();
+            }
+
+            Common.runtimeManager = getRuntimeManager();
+            Common.runtimeManager.initialize(false);
+
+            if(Common.serialPortManager == null) {
+                Common.serialPortManager = getSerialPortManager();
+                try{
+                    Common.serialPortManager.initialize(false);
+                }catch(Exception e){
+                    fail(e.getMessage());
+                }
+            }
+
+            for (Module module : ModuleRegistry.getModules()) {
+                module.postInitialize();
+            }
+
+            for (Runnable task : STARTUP_TASKS){
+                try{
+                    task.run();
+                }catch(Exception e){
+                    fail(e.getMessage());
+                }
+            }
+        }finally {
+            //Since we are single threaded we clear this after init
+            // the real lifecycle keeps it in the 'main' thread
+            securityContext.setAuthentication(null);
         }
 
     }
