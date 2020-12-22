@@ -21,7 +21,6 @@ import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
-import org.jooq.SelectHavingStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectSeekStep1;
 import org.jooq.Table;
@@ -465,45 +464,54 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     public void countDataPointEventsByTag(List<String> tags, long after, Integer limit,
             MappedRowCallback<AlarmPointTagCount> callback) {
 
+        Events events = Events.EVENTS.as("evt");
+        DataPoints dataPoints = DataPoints.DATA_POINTS.as("dp");
+        Name tagsAlias = DSL.name("tags");
+        DataPointTags dataPointTags = DataPointTags.DATA_POINT_TAGS.as(tagsAlias);
+
+        List<Field<?>> joinSelectFields = new ArrayList<>();
+        joinSelectFields.add(dataPointTags.dataPointId);
+
+
         List<Field<String>> tagFields = new ArrayList<>();
         for(String tag : tags) {
-            tagFields.add(DSL.field(DataPointTags.DATA_POINT_TAGS.getQualifiedName().append(tag), SQLDataType.VARCHAR(255).nullable(false)));
+            Field<String> tagField = DSL.field(tagsAlias.append(tag), SQLDataType.VARCHAR(255).nullable(false));
+            tagFields.add(tagField);
+            joinSelectFields.add(DSL.max(DSL.case_().when(dataPointTags.tagKey.eq(tag), dataPointTags.tagValue)).as(tag));
         }
+
+        Table<?> joinSelectTable = this.create.select(joinSelectFields).from(dataPointTags)
+                .groupBy(dataPointTags.dataPointId).asTable(dataPointTags);
 
         //Outer Select
         List<Field<?>> outerSelectFields = new ArrayList<>();
         outerSelectFields.addAll(tagFields);
-        outerSelectFields.add(DataPoints.DATA_POINTS.xid);
-        outerSelectFields.add(DataPoints.DATA_POINTS.name);
-        outerSelectFields.add(DataPoints.DATA_POINTS.deviceName);
-        outerSelectFields.add(Events.EVENTS.alarmLevel);
-        outerSelectFields.add(DSL.field(Events.EVENTS.getQualifiedName().append("count")));
+        outerSelectFields.add(dataPoints.xid);
+        outerSelectFields.add(dataPoints.name);
+        outerSelectFields.add(dataPoints.deviceName);
+        outerSelectFields.add(events.message);
+        outerSelectFields.add(events.alarmLevel);
+        outerSelectFields.add(DSL.field(events.getQualifiedName().append("count")));
 
         //Inner Select
         List<Field<?>> innerSelectFields = new ArrayList<>();
-        Field<?> count = DSL.count(Events.EVENTS.typeRef1).as("count");
-        innerSelectFields.add(Events.EVENTS.typeRef1);
-        innerSelectFields.add(DSL.max(Events.EVENTS.alarmLevel).as(Events.EVENTS.alarmLevel));
+        Field<?> count = DSL.count(events.typeRef1).as("count");
+        innerSelectFields.add(events.typeRef1);
+        innerSelectFields.add(events.message);
+        innerSelectFields.add(DSL.max(events.alarmLevel).as(events.alarmLevel));
         innerSelectFields.add(count);
 
-        SelectHavingStep<Record> innerSelect = this.create.select(innerSelectFields)
-                .from(Events.EVENTS)
-                .where(Events.EVENTS.typeName.eq("DATA_POINT"), Events.EVENTS.activeTs.greaterOrEqual(after))
-                .groupBy(Events.EVENTS.typeRef1, Events.EVENTS.alarmLevel);
+        Table<?> innerSelectTable = this.create.select(innerSelectFields)
+                .from(events)
+                .where(events.typeName.eq("DATA_POINT"), events.activeTs.greaterOrEqual(after))
+                .groupBy(events.typeRef1, events.typeRef2, events.alarmLevel).asTable(events);
 
-        List<Field<?>> joinSelectFields = new ArrayList<>();
-        joinSelectFields.add(DataPointTags.DATA_POINT_TAGS.dataPointId);
-        for(int i=0; i<tags.size(); i++) {
-            Field<String> tagField = tagFields.get(i);
-            String tag = tags.get(i);
-            joinSelectFields.add(DSL.max(DSL.case_().when(tagField.eq(tag), DataPointTags.DATA_POINT_TAGS.tagValue)));
-        }
-        SelectHavingStep<Record> joinSelect = this.create.select().from(DataPointTags.DATA_POINT_TAGS).groupBy(DataPointTags.DATA_POINT_TAGS.dataPointId);
+        SelectSeekStep1<Record, ?> query = this.create.select(outerSelectFields).from(innerSelectTable)
+                .leftJoin(dataPoints).on(dataPoints.id.eq(events.typeRef1))
+                .leftOuterJoin(joinSelectTable)
+                .on(dataPointTags.dataPointId.eq(dataPoints.id))
+                .orderBy(count.desc());
 
-        SelectSeekStep1<Record, ?> query = this.create.select(outerSelectFields).from(innerSelect)
-                .leftOuterJoin(joinSelect)
-                .on(DataPointTags.DATA_POINT_TAGS.dataPointId.eq(DataPoints.DATA_POINTS.id))
-                .orderBy(count);
         Select<?> select;
         if(limit != null) {
             select = query.limit(limit);
@@ -521,33 +529,35 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
                 int rowNum = 0;
                 while (rs.next()) {
                     String xid,name,deviceName;
+                    TranslatableMessage message;
                     AlarmLevels level;
                     int count;
-                    String tagName = null;
+                    Map<String,String> tagMap = new HashMap<>();
                     int columnIndex = 1;
                     try {
                         //Find the tag this is for
-                        for(int i=0; i<tags.size(); i++) {
-                            tagName = rs.getString(columnIndex);
-                            if(!rs.wasNull()) {
-                                break;
-                            }
+                        for(String tag : tags) {
+                            String tagValue = rs.getString(columnIndex);
                             columnIndex++;
+                            if(rs.wasNull()) {
+                                tagMap.put(tag, null);
+                            }else {
+                                tagMap.put(tag, tagValue);
+                            }
                         }
 
                         xid = rs.getString(columnIndex++);
                         name = rs.getString(columnIndex++);
                         deviceName = rs.getString(columnIndex++);
+                        message =  BaseDao.readTranslatableMessage(rs, columnIndex++);
                         level = AlarmLevels.fromValue(rs.getInt(columnIndex++));
                         count = rs.getInt(columnIndex++);
 
-                        callback.row(new AlarmPointTagCount(xid, name, deviceName, level, count, tagName), rowNum);
+                        callback.row(new AlarmPointTagCount(xid, name, deviceName, message, level, count, tagMap), rowNum);
 
                     }catch(Exception e) {
                         throw new SQLException(e);
                     }
-
-
                 }
                 return null;
             }

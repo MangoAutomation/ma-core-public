@@ -298,6 +298,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     }
 
     public static class AlarmCounts extends HashMap<AlarmLevels, Integer> {
+
+        private static final long serialVersionUID = 1L;
+
         public AlarmCounts() {
             for (AlarmLevels level : AlarmLevels.values()) {
                 if (level != AlarmLevels.DO_NOT_LOG && level != AlarmLevels.IGNORE) {
@@ -329,9 +332,10 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         private final String xid;
         private final String name;
         private final String deviceName;
+        private final TranslatableMessage message;
         private final AlarmLevels level;
         private final int count;
-        private final String tag;
+        private final Map<String,String> tags;
         /**
          * @param xid
          * @param name
@@ -340,15 +344,17 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
          * @param count
          * @param tag
          */
-        public AlarmPointTagCount(String xid, String name, String deviceName, AlarmLevels level,
-                int count, String tag) {
+        public AlarmPointTagCount(String xid, String name, String deviceName,
+                TranslatableMessage message, AlarmLevels level,
+                int count, Map<String,String> tags) {
             super();
             this.xid = xid;
             this.name = name;
             this.deviceName = deviceName;
+            this.message = message;
             this.level = level;
             this.count = count;
-            this.tag = tag;
+            this.tags = tags;
         }
         public String getXid() {
             return xid;
@@ -359,17 +365,19 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         public String getDeviceName() {
             return deviceName;
         }
+        public TranslatableMessage getMessage() {
+            return message;
+        }
         public AlarmLevels getLevel() {
             return level;
         }
         public int getCount() {
             return count;
         }
-        public String getTag() {
-            return tag;
+        public Map<String,String> getTags() {
+            return tags;
         }
     }
-
 
     @Override
     public ProcessResult validate(EventInstanceVO vo, PermissionHolder user) {
