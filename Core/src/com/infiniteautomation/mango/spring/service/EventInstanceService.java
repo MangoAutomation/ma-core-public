@@ -13,14 +13,11 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +26,8 @@ import org.springframework.util.Assert;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
@@ -309,6 +308,65 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
         public void increment(AlarmLevels level) {
             this.computeIfPresent(level, (l, count) -> ++count);
+        }
+    }
+
+    /**
+     * Count events for a set of tags
+     *
+     * @param tags
+     * @param after
+     * @param limit
+     * @param callback
+     */
+    public void countDataPointEventsByTag(List<String> tags, Date after, Integer limit, MappedRowCallback<AlarmPointTagCount> callback) {
+        long afterTs = after == null ? Common.timer.currentTimeMillis() : after.getTime();
+        List<String> queryTags = tags == null ? Collections.emptyList() : tags;
+        this.dao.countDataPointEventsByTag(queryTags, afterTs, limit, callback);
+    }
+
+    public static class AlarmPointTagCount {
+        private final String xid;
+        private final String name;
+        private final String deviceName;
+        private final AlarmLevels level;
+        private final int count;
+        private final String tag;
+        /**
+         * @param xid
+         * @param name
+         * @param deviceName
+         * @param level
+         * @param count
+         * @param tag
+         */
+        public AlarmPointTagCount(String xid, String name, String deviceName, AlarmLevels level,
+                int count, String tag) {
+            super();
+            this.xid = xid;
+            this.name = name;
+            this.deviceName = deviceName;
+            this.level = level;
+            this.count = count;
+            this.tag = tag;
+        }
+        public String getXid() {
+            return xid;
+        }
+        public String getName() {
+            return name;
+        }
+        public String getDeviceName() {
+            return deviceName;
+        }
+        public AlarmLevels getLevel() {
+            return level;
+        }
+        public int getCount() {
+            return count;
+        }
+        public String getTag() {
+            return tag;
         }
     }
 

@@ -20,12 +20,18 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectHavingStep;
 import org.jooq.SelectJoinStep;
+import org.jooq.SelectSeekStep1;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -35,18 +41,23 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.db.tables.DataPointTags;
+import com.infiniteautomation.mango.db.tables.DataPoints;
+import com.infiniteautomation.mango.db.tables.Events;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
+import com.infiniteautomation.mango.spring.service.EventInstanceService.AlarmPointTagCount;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -439,5 +450,107 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     @Override
     public boolean isXidUnique(String xid, int excludeId) {
         return true;
+    }
+
+    /**
+     * Count events per data point tag
+     *
+     * TODO Mango 4.0 Permissions?
+     *
+     * @param tags - tags to group counts by
+     * @param after - events >= this timestamp
+     * @param limit - can be null
+     * @param callback
+     */
+    public void countDataPointEventsByTag(List<String> tags, long after, Integer limit,
+            MappedRowCallback<AlarmPointTagCount> callback) {
+
+        List<Field<String>> tagFields = new ArrayList<>();
+        for(String tag : tags) {
+            tagFields.add(DSL.field(DataPointTags.DATA_POINT_TAGS.getQualifiedName().append(tag), SQLDataType.VARCHAR(255).nullable(false)));
+        }
+
+        //Outer Select
+        List<Field<?>> outerSelectFields = new ArrayList<>();
+        outerSelectFields.addAll(tagFields);
+        outerSelectFields.add(DataPoints.DATA_POINTS.xid);
+        outerSelectFields.add(DataPoints.DATA_POINTS.name);
+        outerSelectFields.add(DataPoints.DATA_POINTS.deviceName);
+        outerSelectFields.add(Events.EVENTS.alarmLevel);
+        outerSelectFields.add(DSL.field(Events.EVENTS.getQualifiedName().append("count")));
+
+        //Inner Select
+        List<Field<?>> innerSelectFields = new ArrayList<>();
+        Field<?> count = DSL.count(Events.EVENTS.typeRef1).as("count");
+        innerSelectFields.add(Events.EVENTS.typeRef1);
+        innerSelectFields.add(DSL.max(Events.EVENTS.alarmLevel).as(Events.EVENTS.alarmLevel));
+        innerSelectFields.add(count);
+
+        SelectHavingStep<Record> innerSelect = this.create.select(innerSelectFields)
+                .from(Events.EVENTS)
+                .where(Events.EVENTS.typeName.eq("DATA_POINT"), Events.EVENTS.activeTs.greaterOrEqual(after))
+                .groupBy(Events.EVENTS.typeRef1, Events.EVENTS.alarmLevel);
+
+        List<Field<?>> joinSelectFields = new ArrayList<>();
+        joinSelectFields.add(DataPointTags.DATA_POINT_TAGS.dataPointId);
+        for(int i=0; i<tags.size(); i++) {
+            Field<String> tagField = tagFields.get(i);
+            String tag = tags.get(i);
+            joinSelectFields.add(DSL.max(DSL.case_().when(tagField.eq(tag), DataPointTags.DATA_POINT_TAGS.tagValue)));
+        }
+        SelectHavingStep<Record> joinSelect = this.create.select().from(DataPointTags.DATA_POINT_TAGS).groupBy(DataPointTags.DATA_POINT_TAGS.dataPointId);
+
+        SelectSeekStep1<Record, ?> query = this.create.select(outerSelectFields).from(innerSelect)
+                .leftOuterJoin(joinSelect)
+                .on(DataPointTags.DATA_POINT_TAGS.dataPointId.eq(DataPoints.DATA_POINTS.id))
+                .orderBy(count);
+        Select<?> select;
+        if(limit != null) {
+            select = query.limit(limit);
+        }else {
+            select = query;
+        }
+        String sql = select.getSQL();
+        List<Object> arguments = select.getBindValues();
+        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+
+        this.query(sql, argumentsArray, new ResultSetExtractor<Void>() {
+
+            @Override
+            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
+                int rowNum = 0;
+                while (rs.next()) {
+                    String xid,name,deviceName;
+                    AlarmLevels level;
+                    int count;
+                    String tagName = null;
+                    int columnIndex = 1;
+                    try {
+                        //Find the tag this is for
+                        for(int i=0; i<tags.size(); i++) {
+                            tagName = rs.getString(columnIndex);
+                            if(!rs.wasNull()) {
+                                break;
+                            }
+                            columnIndex++;
+                        }
+
+                        xid = rs.getString(columnIndex++);
+                        name = rs.getString(columnIndex++);
+                        deviceName = rs.getString(columnIndex++);
+                        level = AlarmLevels.fromValue(rs.getInt(columnIndex++));
+                        count = rs.getInt(columnIndex++);
+
+                        callback.row(new AlarmPointTagCount(xid, name, deviceName, level, count, tagName), rowNum);
+
+                    }catch(Exception e) {
+                        throw new SQLException(e);
+                    }
+
+
+                }
+                return null;
+            }
+        });
     }
 }
