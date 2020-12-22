@@ -126,11 +126,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         return pointLocator.getConfigurationDescription();
     }
 
-    @Override
-    public boolean isNew() {
-        return id == Common.NEW_ID;
-    }
-
     //
     //
     // Properties
@@ -275,36 +270,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     public void setDeviceName(String deviceName) {
         this.deviceName = deviceName;
-    }
-
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    @Override
-    public String getXid() {
-        return xid;
-    }
-
-    @Override
-    public void setXid(String xid) {
-        this.xid = xid;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
     }
 
     @SuppressWarnings("unchecked")
