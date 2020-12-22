@@ -275,7 +275,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
     private PointValueTime getPointValueAt(DataPointVO vo, Field<Long> time) {
         return baseQuery()
-                .where(POINT_VALUES.dataPointId.eq(vo.getId()))
+                .where(POINT_VALUES.dataPointId.eq(vo.getSeriesId()))
                 .and(POINT_VALUES.ts.eq(time))
                 .limit(1)
                 .fetchOne(this::mapRecord);
@@ -409,13 +409,13 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
         if (vos.size() == 0) return;
 
-        Integer[] dataPointIds = vos.stream().mapToInt(DataPointVO::getId).sorted().boxed().toArray(Integer[]::new);
+        Integer[] seriesIds = vos.stream().mapToInt(DataPointVO::getSeriesId).sorted().boxed().toArray(Integer[]::new);
         ResultQuery<Record> result;
 
         if (orderById && limit != null) {
             SelectUnionStep<Record> union = null;
-            for (int dataPointId : dataPointIds) {
-                Condition condition = POINT_VALUES.dataPointId.eq(dataPointId);
+            for (int seriesId : seriesIds) {
+                Condition condition = POINT_VALUES.dataPointId.eq(seriesId);
                 if (before != Long.MAX_VALUE) {
                     condition = condition.and(POINT_VALUES.ts.lt(before));
                 }
@@ -429,7 +429,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             }
             result = union;
         } else {
-            Condition condition = POINT_VALUES.dataPointId.in(dataPointIds);
+            Condition condition = POINT_VALUES.dataPointId.in(seriesIds);
             if (before != Long.MAX_VALUE) {
                 condition = condition.and(POINT_VALUES.ts.lt(before));
             }
