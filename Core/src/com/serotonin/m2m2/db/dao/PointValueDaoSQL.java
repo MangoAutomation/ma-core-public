@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.sql.DataSource;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,6 +51,7 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
@@ -97,6 +100,14 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     private static final String POINT_VALUE_INSERT_START = "insert into pointValues (dataPointId, dataType, pointValue, ts) values ";
     private static final String POINT_VALUE_INSERT_VALUES = "(?,?,?,?)";
     private static final int POINT_VALUE_INSERT_VALUES_COUNT = 4;
+
+    public PointValueDaoSQL() {
+        super();
+    }
+
+    public PointValueDaoSQL(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType) {
+        super(dataSource, transactionManager, databaseType);
+    }
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.

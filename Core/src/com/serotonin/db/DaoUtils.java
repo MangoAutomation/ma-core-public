@@ -17,7 +17,8 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
-import org.jooq.conf.RenderNameStyle;
+import org.jooq.conf.RenderNameCase;
+import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
@@ -51,10 +52,10 @@ public class DaoUtils implements TransactionCapable {
     protected final DatabaseType databaseType;
     protected final DSLContext create;
 
-    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager) {
+    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType) {
         this.dataSource = dataSource;
         this.transactionManager = transactionManager;
-        this.databaseType = Common.databaseProxy.getType();
+        this.databaseType = databaseType;
         this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
         this.metricsThreshold = Common.envProps.getLong("db.metricsThreshold", 0L);
 
@@ -66,7 +67,7 @@ public class DaoUtils implements TransactionCapable {
 
         configuration.settings().setExecuteLogging(this.useMetrics);
         if (this.useMetrics) {
-            configuration.set(() -> new StopWatchListener());
+            configuration.set(StopWatchListener::new);
         }
 
         switch(this.databaseType) {
@@ -75,7 +76,9 @@ public class DaoUtils implements TransactionCapable {
                 break;
             case H2:
                 configuration.set(SQLDialect.H2);
-                configuration.settings().setRenderNameStyle(RenderNameStyle.UPPER);
+                configuration.settings()
+                        .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
+                        .withRenderNameCase(RenderNameCase.AS_IS);
                 break;
             case MYSQL:
                 configuration.set(SQLDialect.MYSQL);
@@ -121,14 +124,14 @@ public class DaoUtils implements TransactionCapable {
     }
 
     protected List<StringStringPair> createStringStringPairs(ResultSet rs) throws SQLException {
-        List<StringStringPair> result = new ArrayList<StringStringPair>();
+        List<StringStringPair> result = new ArrayList<>();
         while (rs.next())
             result.add(new StringStringPair(rs.getString(1), rs.getString(2)));
         return result;
     }
 
     protected List<IntStringPair> createIntStringPairs(ResultSet rs) throws SQLException {
-        List<IntStringPair> result = new ArrayList<IntStringPair>();
+        List<IntStringPair> result = new ArrayList<>();
         while (rs.next())
             result.add(new IntStringPair(rs.getInt(1), rs.getString(2)));
         return result;
@@ -140,7 +143,7 @@ public class DaoUtils implements TransactionCapable {
      * Bad practice, should be using prepared statements. This is being used to do WHERE x IN(a,b,c)
      */
     @Deprecated
-    protected String createDelimitedList(Collection<?> values, String delimeter, String quote) {
+    protected String createDelimitedList(Collection<?> values, String delimiter, String quote) {
         StringBuilder sb = new StringBuilder();
         Iterator<?> iterator = values.iterator();
         boolean first = true;
@@ -148,7 +151,7 @@ public class DaoUtils implements TransactionCapable {
             if (first)
                 first = false;
             else
-                sb.append(delimeter);
+                sb.append(delimiter);
 
             if (quote != null)
                 sb.append(quote);
@@ -162,9 +165,10 @@ public class DaoUtils implements TransactionCapable {
     }
 
     protected int[] batchUpdate(String sql, final Object[][] args) {
-        final List<ArgPreparedStatementSetter> apsss = new ArrayList<ArgPreparedStatementSetter>(args.length);
-        for (int i = 0; i < args.length; i++)
-            apsss.add(new ArgPreparedStatementSetter(args[i]));
+        final List<ArgPreparedStatementSetter> statements = new ArrayList<>(args.length);
+        for (Object[] arg : args) {
+            statements.add(new ArgPreparedStatementSetter(arg));
+        }
 
         try {
             return ejt.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -175,13 +179,13 @@ public class DaoUtils implements TransactionCapable {
 
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    (apsss.get(i)).setValues(ps);
+                    (statements.get(i)).setValues(ps);
                 }
             });
         }
         finally {
             for (int i = 0; i < args.length; i++)
-                (apsss.get(i)).cleanupParameters();
+                (statements.get(i)).cleanupParameters();
         }
     }
 
