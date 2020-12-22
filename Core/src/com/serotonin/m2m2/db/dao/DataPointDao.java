@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.infiniteautomation.mango.db.tables.TimeSeries;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
@@ -54,7 +55,6 @@ import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.db.TimeSeriesTable;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -142,7 +142,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     /**
      * Get data points for a data source, no permissions checks are done by this method.
      * @param dataSourceId
-     * @param includeRelationalData
      * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
@@ -400,8 +399,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         //Try to delete the timeSeries.id row
         for(Integer seriesId : seriesIds) {
             try {
-                this.create.deleteFrom(TimeSeriesTable.TIME_SERIES)
-                .where(TimeSeriesTable.TIME_SERIES.ID.eq(seriesId))
+                this.create.deleteFrom(TimeSeries.TIME_SERIES)
+                .where(TimeSeries.TIME_SERIES.id.eq(seriesId))
                 .execute();
             }catch(Exception e) {
                 //Probably in use by another point (2 points on the same series)
@@ -689,13 +688,13 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     }
 
     /**
-     * Get the next available series id
-     * @return
+     * Inserts a new time series.
+     * @return series id for the new time series
      */
-    public int getNextSeriesId() {
-        return this.create.insertInto(TimeSeriesTable.TIME_SERIES)
+    public int insertNewTimeSeries() {
+        return this.create.insertInto(TimeSeries.TIME_SERIES)
                 .defaultValues()
-                .returningResult(TimeSeriesTable.TIME_SERIES.ID)
+                .returningResult(TimeSeries.TIME_SERIES.id)
                 .fetchOne()
                 .into(int.class);
     }
@@ -704,7 +703,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
         //Shall we generate a new series ID?
         if(vo.getSeriesId() == Common.NEW_ID) {
-            int seriesId = getNextSeriesId();
+            int seriesId = insertNewTimeSeries();
             vo.setSeriesId(seriesId);
         }
 
@@ -808,8 +807,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
         //Try to delete the timeSeries.id row
         try {
-            this.create.deleteFrom(TimeSeriesTable.TIME_SERIES)
-            .where(TimeSeriesTable.TIME_SERIES.ID.eq(vo.getSeriesId()))
+            this.create.deleteFrom(TimeSeries.TIME_SERIES)
+            .where(TimeSeries.TIME_SERIES.id.eq(vo.getSeriesId()))
             .execute();
         }catch(Exception e) {
             //Probably in use by another point (2 points on the same series)

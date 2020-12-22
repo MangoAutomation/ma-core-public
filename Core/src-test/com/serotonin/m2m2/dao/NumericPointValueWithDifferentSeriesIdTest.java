@@ -32,7 +32,7 @@ public class NumericPointValueWithDifferentSeriesIdTest extends NumericPointValu
         DataPointDao dao = Common.getBean(DataPointDao.class);
         for(IDataPoint point : points) {
             DataPointVO vo = (DataPointVO)point;
-            vo.setSeriesId(dao.getNextSeriesId());
+            vo.setSeriesId(dao.insertNewTimeSeries());
             service.getPermissionService().runAsSystemAdmin(() -> {
                 try {
                     service.update(vo.getId(), vo);
