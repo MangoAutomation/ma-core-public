@@ -303,7 +303,11 @@ public class SystemSettingsDao extends BaseDao {
         String value = getValue(key, null);
         if (value == null)
             return defaultValue;
-        return charToBool(value);
+        return parseBoolean(value);
+    }
+
+    public static boolean parseBoolean(String settingValue) {
+        return "Y".equals(settingValue);
     }
 
     /**

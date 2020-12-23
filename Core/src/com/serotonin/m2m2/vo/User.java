@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.spring.service.PasswordService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
@@ -109,14 +110,14 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
     //
-    private transient volatile LazyInitializer<ZoneId> _tz = new LazyInitializer<>();
-    private transient LazyInitializer<Locale> localeObject = new LazyInitializer<>();
+    private transient LazyInitializer<ZoneId> _tz;
+    private transient LazyInitializer<Locale> localeObject;
 
     //
     //Spring Security
     //
-    private transient LazyInitializer<Set<GrantedAuthority>> authorities = new LazyInitializer<>();
-    private Long nextPasswordExpire;
+    private transient LazyInitializer<Set<GrantedAuthority>> authorities;
+    private transient LazyInitializer<PasswordService> passwordService;
 
     public User() {
         this.name = "";
@@ -125,6 +126,8 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
         this.tokenVersion = 1;
         this.passwordVersion = 1;
+
+        this.initializeTransients();
     }
 
     @Override
@@ -425,7 +428,8 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return this.nextPasswordExpire == null || this.nextPasswordExpire > Common.timer.currentTimeMillis();
+        PasswordService passwordService = this.passwordService.get(() -> Common.getBean(PasswordService.class));
+        return !passwordService.passwordExpired(this);
     }
 
     @Override
@@ -577,16 +581,16 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         return this.disabled;
     }
 
-    public void setNextPasswordExpire(Long nextPasswordExpire) {
-        this.nextPasswordExpire = nextPasswordExpire;
-    }
-
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+        this.initializeTransients();
+    }
 
-        _tz = new LazyInitializer<>();
-        localeObject = new LazyInitializer<>();
-        authorities = new LazyInitializer<>();
+    private void initializeTransients() {
+        this._tz = new LazyInitializer<>();
+        this.localeObject = new LazyInitializer<>();
+        this.authorities = new LazyInitializer<>();
+        this.passwordService = new LazyInitializer<>();
     }
 
     Set<Role> readLegacyPermissions(String permissionName, Set<Role> existing, JsonObject jsonObject) throws TranslatableJsonException {

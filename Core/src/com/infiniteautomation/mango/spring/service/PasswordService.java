@@ -12,7 +12,6 @@ import org.passay.EnglishCharacterData;
 import org.passay.LengthRule;
 import org.passay.MessageResolver;
 import org.passay.PasswordData;
-import org.passay.PasswordGenerator;
 import org.passay.PasswordValidator;
 import org.passay.Rule;
 import org.passay.RuleResult;
@@ -20,107 +19,99 @@ import org.passay.RuleResultDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 
 /**
- * 
  * Class to validate passwords against the system settings defined rules.
- * 
+ * <p>
  * Possible Rules:
- *  minimum required upper case characters
- *  minimum required lower case characters
- *  minimum required digit characters
- *  minimum required special characters
- *  minimum length
- *  maximum length
- * @author Terry Packer
+ * minimum required upper case characters
+ * minimum required lower case characters
+ * minimum required digit characters
+ * minimum required special characters
+ * minimum length
+ * maximum length
  *
+ * @author Terry Packer
  */
 @Service
 public class PasswordService implements SystemSettingsListener {
 
-    // Settings
-    private CharacterRule upperCaseCountRule;
-    private CharacterRule lowerCaseCountRule;
-    private CharacterRule digitCountRule;
-    private CharacterRule specialCountRule;
-    private LengthRule lengthRule;
+    private volatile int upperCaseCount;
+    private volatile int lowerCaseCount;
+    private volatile int digitCount;
+    private volatile int specialCount;
+    private volatile int lengthMin;
+    private volatile int lengthMax;
+    private volatile boolean expirationEnabled;
+    private volatile int expirationPeriodType;
+    private volatile int expirationPeriods;
+
+    private final LazyInitSupplier<List<Rule>> rules = new LazyInitSupplier<>(this::createRules);
 
     @Autowired
     public PasswordService(SystemSettingsDao dao) {
-        int upperCaseCount = dao.getIntValue(SystemSettingsDao.PASSWORD_UPPER_CASE_COUNT);
-        if (upperCaseCount > 0) {
-            this.upperCaseCountRule =
-                    new CharacterRule(EnglishCharacterData.UpperCase, upperCaseCount);
-        }
-        int lowerCaseCount = dao.getIntValue(SystemSettingsDao.PASSWORD_LOWER_CASE_COUNT);
-        if (lowerCaseCount > 0) {
-            this.lowerCaseCountRule =
-                    new CharacterRule(EnglishCharacterData.LowerCase, lowerCaseCount);
-        }
-        int digitCount = dao.getIntValue(SystemSettingsDao.PASSWORD_DIGIT_COUNT);
-        if (digitCount > 0) {
-            this.digitCountRule = new CharacterRule(EnglishCharacterData.Digit, digitCount);
-        }
-        int specialCount = dao.getIntValue(SystemSettingsDao.PASSWORD_SPECIAL_COUNT);
-        if (specialCount > 0) {
-            this.specialCountRule = new CharacterRule(EnglishCharacterData.Special, specialCount);
-        }
-        this.lengthRule = new LengthRule(dao.getIntValue(SystemSettingsDao.PASSWORD_LENGTH_MIN),
-                dao.getIntValue(SystemSettingsDao.PASSWORD_LENGTH_MAX));
+        this.upperCaseCount = dao.getIntValue(SystemSettingsDao.PASSWORD_UPPER_CASE_COUNT);
+        this.lowerCaseCount = dao.getIntValue(SystemSettingsDao.PASSWORD_LOWER_CASE_COUNT);
+        this.digitCount = dao.getIntValue(SystemSettingsDao.PASSWORD_DIGIT_COUNT);
+        this.specialCount = dao.getIntValue(SystemSettingsDao.PASSWORD_SPECIAL_COUNT);
+        this.lengthMin = dao.getIntValue(SystemSettingsDao.PASSWORD_LENGTH_MIN);
+        this.lengthMax = dao.getIntValue(SystemSettingsDao.PASSWORD_LENGTH_MAX);
+        this.expirationEnabled = dao.getBooleanValue(SystemSettingsDao.PASSWORD_EXPIRATION_ENABLED);
+        this.expirationPeriodType = dao.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE);
+        this.expirationPeriods = dao.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
     }
 
     /**
      * Validate a freetext password against the set of rules defined
-     *  in the system settings
+     * in the system settings
+     *
      * @param password
      * @throws PasswordInvalidException
      */
-    public void validatePassword(String password)
-            throws PasswordInvalidException {
-        List<CharacterRule> charRules = getCharacterRules();
-        List<Rule> rules = new ArrayList<>(charRules);
-        rules.add(getLengthRule());
-        PasswordValidator validator = new PasswordValidator(rules);
+    public void validatePassword(String password) throws PasswordInvalidException {
+        PasswordValidator validator = new PasswordValidator(rules.get());
         RuleResult result = validator.validate(new PasswordData(password));
         if (!result.isValid()) {
             MangoPassayMessageResolver resolver = new MangoPassayMessageResolver();
-            result.getDetails().stream().forEach(detail -> {resolver.resolve(detail);});
+            result.getDetails().forEach(resolver::resolve);
             throw new PasswordInvalidException(resolver.getMessages());
         }
     }
 
-    public String generatePassword(int length) {
-        PasswordGenerator generator = new PasswordGenerator();
-        generator.generatePassword(length, getCharacterRules());
-        return null;
+    public boolean passwordExpired(User user) {
+        if (expirationEnabled) {
+            long expiration = user.getPasswordChangeTimestamp() + Common.getMillis(expirationPeriodType, expirationPeriods);
+            return Common.timer.currentTimeMillis() >= expiration;
+        }
+        return false;
     }
 
-    private Rule getLengthRule() {
-        return this.lengthRule;
-    }
+    private List<Rule> createRules() {
+        int upperCaseCount = this.upperCaseCount;
+        int lowerCaseCount = this.lowerCaseCount;
+        int digitCount = this.digitCount;
+        int specialCount = this.specialCount;
 
-    /**
-     * Get the list of all character requirements
-     * 
-     * @return
-     */
-    private List<CharacterRule> getCharacterRules() {
-        List<CharacterRule> rules = new ArrayList<>();
-        if (this.lowerCaseCountRule != null) {
-            rules.add(this.lowerCaseCountRule);
+        List<Rule> rules = new ArrayList<>();
+        if (upperCaseCount > 0) {
+            rules.add(new CharacterRule(EnglishCharacterData.UpperCase, upperCaseCount));
         }
-        if (this.upperCaseCountRule != null) {
-            rules.add(this.upperCaseCountRule);
+        if (lowerCaseCount > 0) {
+            rules.add(new CharacterRule(EnglishCharacterData.LowerCase, lowerCaseCount));
         }
-        if (this.digitCountRule != null) {
-            rules.add(this.digitCountRule);
+        if (digitCount > 0) {
+            rules.add(new CharacterRule(EnglishCharacterData.Digit, digitCount));
         }
-        if (this.specialCountRule != null) {
-            rules.add(this.specialCountRule);
+        if (specialCount > 0) {
+            rules.add(new CharacterRule(EnglishCharacterData.Special, specialCount));
         }
+        rules.add(new LengthRule(lengthMin, lengthMax));
         return rules;
     }
 
@@ -128,54 +119,47 @@ public class PasswordService implements SystemSettingsListener {
     public void systemSettingsSaved(String key, String oldValue, String newValue) {
         switch (key) {
             case SystemSettingsDao.PASSWORD_UPPER_CASE_COUNT:
-                Integer upperCaseCount = Integer.parseInt(newValue);
-                if(upperCaseCount > 0) {
-                    this.upperCaseCountRule = new CharacterRule(EnglishCharacterData.UpperCase, upperCaseCount);
-                }else {
-                    this.upperCaseCountRule = null;
-                }
+                this.upperCaseCount = Integer.parseInt(newValue);
                 break;
             case SystemSettingsDao.PASSWORD_LOWER_CASE_COUNT:
-                Integer lowerCaseCount = Integer.parseInt(newValue);
-                if(lowerCaseCount > 0) {
-                    this.lowerCaseCountRule = new CharacterRule(EnglishCharacterData.LowerCase, lowerCaseCount);
-                }else {
-                    this.lowerCaseCountRule = null;
-                }
+                this.lowerCaseCount = Integer.parseInt(newValue);
                 break;
             case SystemSettingsDao.PASSWORD_DIGIT_COUNT:
-                Integer digitCount = Integer.parseInt(newValue);
-                if(digitCount > 0) {
-                    this.digitCountRule = new CharacterRule(EnglishCharacterData.Digit, digitCount);
-                }else {
-                    this.digitCountRule = null;
-                }
+                this.digitCount = Integer.parseInt(newValue);
                 break;
             case SystemSettingsDao.PASSWORD_SPECIAL_COUNT:
-                Integer specialCount = Integer.parseInt(newValue);
-                if(specialCount > 0) {
-                    this.specialCountRule = new CharacterRule(EnglishCharacterData.Special, specialCount);
-                }else {
-                    this.specialCountRule = null;
-                }
+                this.specialCount = Integer.parseInt(newValue);
                 break;
             case SystemSettingsDao.PASSWORD_LENGTH_MIN:
-                this.lengthRule = new LengthRule(Integer.parseInt(newValue),
-                        this.lengthRule.getMaximumLength());
+                this.lengthMin = Integer.parseInt(newValue);
                 break;
             case SystemSettingsDao.PASSWORD_LENGTH_MAX:
-                this.lengthRule = new LengthRule(this.lengthRule.getMinimumLength(),
-                        Integer.parseInt(newValue));
+                this.lengthMax = Integer.parseInt(newValue);
+                break;
+            case SystemSettingsDao.PASSWORD_EXPIRATION_ENABLED:
+                this.expirationEnabled = SystemSettingsDao.parseBoolean(newValue);
+                break;
+            case SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE:
+                this.expirationPeriodType = Integer.parseInt(newValue);
+                break;
+            case SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS:
+                this.expirationPeriods = Integer.parseInt(newValue);
                 break;
         }
+        this.rules.reset();
     }
 
     @Override
     public List<String> getKeys() {
         return Arrays.asList(SystemSettingsDao.PASSWORD_UPPER_CASE_COUNT,
-                SystemSettingsDao.PASSWORD_LOWER_CASE_COUNT, SystemSettingsDao.PASSWORD_DIGIT_COUNT,
-                SystemSettingsDao.PASSWORD_SPECIAL_COUNT, SystemSettingsDao.PASSWORD_LENGTH_MIN,
-                SystemSettingsDao.PASSWORD_LENGTH_MAX);
+                SystemSettingsDao.PASSWORD_LOWER_CASE_COUNT,
+                SystemSettingsDao.PASSWORD_DIGIT_COUNT,
+                SystemSettingsDao.PASSWORD_SPECIAL_COUNT,
+                SystemSettingsDao.PASSWORD_LENGTH_MIN,
+                SystemSettingsDao.PASSWORD_LENGTH_MAX,
+                SystemSettingsDao.PASSWORD_EXPIRATION_ENABLED,
+                SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE,
+                SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
     }
 
     public static final class MangoPassayMessageResolver implements MessageResolver {
@@ -186,7 +170,7 @@ public class PasswordService implements SystemSettingsListener {
         private static final String INSUFFICIENT_SPECIAL = "INSUFFICIENT_SPECIAL";
         private static final String TOO_SHORT = "TOO_SHORT";
         private static final String TOO_LONG = "TOO_LONG";
-        
+
         private final List<TranslatableMessage> messages;
 
         public MangoPassayMessageResolver() {
@@ -195,7 +179,7 @@ public class PasswordService implements SystemSettingsListener {
 
         @Override
         public String resolve(RuleResultDetail detail) {
-            switch(detail.getErrorCode()) {
+            switch (detail.getErrorCode()) {
                 case INSUFFICIENT_LOWERCASE:
                     this.messages.add(new TranslatableMessage("validate.password.insufficientLowercase", detail.getValues()));
                     return INSUFFICIENT_LOWERCASE;
@@ -218,7 +202,7 @@ public class PasswordService implements SystemSettingsListener {
                     return "Unsupported password error code: " + detail.getErrorCode();
             }
         }
-        
+
         public List<TranslatableMessage> getMessages() {
             return messages;
         }
@@ -226,18 +210,18 @@ public class PasswordService implements SystemSettingsListener {
 
     /**
      * Exception container for messages as to why a password is invalid
-     * @author Terry Packer
      *
+     * @author Terry Packer
      */
     public static class PasswordInvalidException extends Exception {
 
         private static final long serialVersionUID = 1L;
         private final List<TranslatableMessage> messages;
-        
+
         public PasswordInvalidException(List<TranslatableMessage> messages) {
             this.messages = messages;
         }
-        
+
         public List<TranslatableMessage> getMessages() {
             return messages;
         }

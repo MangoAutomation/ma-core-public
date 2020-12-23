@@ -256,16 +256,6 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             }
             user.setEmailVerified(emailVerified);
             user.setData(extractData(rs.getClob(++i)));
-
-            //TODO Mango 4.0 performance improve this by adding SystemSettingsListener?
-            //  if the setting is changed then it won't be reflected the cached user
-            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.PASSWORD_EXPIRATION_ENABLED)) {
-                int resetPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE);
-                int resetPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
-                long nextExpiration = user.getPasswordChangeTimestamp() + Common.getMillis(resetPeriodType, resetPeriods);
-                user.setNextPasswordExpire(nextExpiration);
-            }
-
             return user;
         }
     }
