@@ -139,7 +139,17 @@
                 <artifactId>mango-jooq-maven-plugin</artifactId>
                 <configuration>
                     <packageName>com.infiniteautomation.mango.db</packageName>
-                    <importScript>resources/com/serotonin/m2m2/db/createTables-H2.sql</importScript>
+                    <scriptImports>
+                        <scriptImport>
+                            <generateTables>true</generateTables>
+                            <fileSet>
+                                <directory>resources</directory>
+                                <includes>
+                                    <include>**/createTables-H2.sql</include>
+                                </includes>
+                            </fileSet>
+                        </scriptImport>
+                    </scriptImports>
                 </configuration>
             </plugin>
         </plugins>

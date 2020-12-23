@@ -155,7 +155,50 @@
                                 <outputDirectory>${MA_HOME}/web/modules/</outputDirectory>
                             </configuration>
                         </execution>
+                        <execution>
+                            <id>unpack-sql</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>unpack</goal>
+                            </goals>
+                            <configuration>
+                                <artifactItems>
+                                    <artifactItem>
+                                        <groupId>com.infiniteautomation</groupId>
+                                        <artifactId>mango</artifactId>
+                                        <version>${project.version}</version>
+                                        <includes>com/serotonin/m2m2/db/*.sql</includes>
+                                    </artifactItem>
+                                </artifactItems>
+                            </configuration>
+                        </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>com.infiniteautomation</groupId>
+                    <artifactId>mango-jooq-maven-plugin</artifactId>
+                    <configuration>
+                        <scriptImports>
+                            <scriptImport>
+                                <generateTables>false</generateTables>
+                                <fileSet>
+                                    <directory>${project.build.directory}/dependency</directory>
+                                    <includes>
+                                        <include>**/createTables-H2.sql</include>
+                                    </includes>
+                                </fileSet>
+                            </scriptImport>
+                            <scriptImport>
+                                <generateTables>true</generateTables>
+                                <fileSet>
+                                    <directory>resources</directory>
+                                    <includes>
+                                        <include>**/createTables-H2.sql</include>
+                                    </includes>
+                                </fileSet>
+                            </scriptImport>
+                        </scriptImports>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>com.github.eirslett</groupId>
