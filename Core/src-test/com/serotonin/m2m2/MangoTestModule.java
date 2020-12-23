@@ -26,14 +26,10 @@ public class MangoTestModule extends Module {
                 "IAS", "https://www.infiniteautomation.com", null, 1, false);
         this.addDefinition(new MockEventTypeDefinition());
     }
-    @Override
-    public Path moduleDataPath() {
-        return Paths.get("./web/data");
-    }
-    
+
     @Override
     public Path modulePath() {
-        return Paths.get(".");
+        return Paths.get(".").toAbsolutePath().normalize();
     }
 
     @Override
