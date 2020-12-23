@@ -481,9 +481,13 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
             joinSelectFields.add(DSL.max(DSL.case_().when(dataPointTags.tagKey.eq(entry.getKey()), dataPointTags.tagValue)).as(entry.getKey()));
             if(tagConditions == null) {
                 //First condition
-                tagConditions = tagField.eq(entry.getValue());
+                if(entry.getValue() != null) {
+                    tagConditions = tagField.eq(entry.getValue());
+                }
             }else {
-                tagConditions = tagConditions.and(tagField.eq(entry.getValue()));
+                if(entry.getValue() != null) {
+                    tagConditions = tagConditions.and(tagField.eq(entry.getValue()));
+                }
             }
         }
 
