@@ -322,9 +322,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * @param limit
      * @param callback
      */
-    public void countDataPointEventsByTag(List<String> tags, Date after, Integer limit, MappedRowCallback<AlarmPointTagCount> callback) {
+    public void countDataPointEventsByTag(Map<String, String> tags, Date after, Integer limit, MappedRowCallback<AlarmPointTagCount> callback) {
         long afterTs = after == null ? Common.timer.currentTimeMillis() : after.getTime();
-        List<String> queryTags = tags == null ? Collections.emptyList() : tags;
+        Map<String, String> queryTags = tags == null ? Collections.emptyMap() : tags;
         this.dao.countDataPointEventsByTag(queryTags, afterTs, limit, callback);
     }
 

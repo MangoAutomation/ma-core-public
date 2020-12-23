@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -461,7 +462,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
      * @param limit - can be null
      * @param callback
      */
-    public void countDataPointEventsByTag(List<String> tags, long after, Integer limit,
+    public void countDataPointEventsByTag(Map<String, String> tags, long after, Integer limit,
             MappedRowCallback<AlarmPointTagCount> callback) {
 
         Events events = Events.EVENTS.as("evt");
@@ -472,12 +473,18 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         List<Field<?>> joinSelectFields = new ArrayList<>();
         joinSelectFields.add(dataPointTags.dataPointId);
 
-
+        Condition tagConditions = tags.size() == 0 ? DSL.trueCondition() : null;
         List<Field<String>> tagFields = new ArrayList<>();
-        for(String tag : tags) {
-            Field<String> tagField = DSL.field(tagsAlias.append(tag), SQLDataType.VARCHAR(255).nullable(false));
+        for(Entry<String, String> entry : tags.entrySet()) {
+            Field<String> tagField = DSL.field(tagsAlias.append(entry.getKey()), SQLDataType.VARCHAR(255).nullable(false));
             tagFields.add(tagField);
-            joinSelectFields.add(DSL.max(DSL.case_().when(dataPointTags.tagKey.eq(tag), dataPointTags.tagValue)).as(tag));
+            joinSelectFields.add(DSL.max(DSL.case_().when(dataPointTags.tagKey.eq(entry.getKey()), dataPointTags.tagValue)).as(entry.getKey()));
+            if(tagConditions == null) {
+                //First condition
+                tagConditions = tagField.eq(entry.getValue());
+            }else {
+                tagConditions = tagConditions.and(tagField.eq(entry.getValue()));
+            }
         }
 
         Table<?> joinSelectTable = this.create.select(joinSelectFields).from(dataPointTags)
@@ -504,12 +511,13 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         Table<?> innerSelectTable = this.create.select(innerSelectFields)
                 .from(events)
                 .where(events.typeName.eq("DATA_POINT"), events.activeTs.greaterOrEqual(after))
-                .groupBy(events.typeRef1, events.typeRef2, events.alarmLevel).asTable(events);
+                .groupBy(events.typeRef1, events.typeRef2, events.message, events.alarmLevel).asTable(events);
 
         SelectSeekStep1<Record, ?> query = this.create.select(outerSelectFields).from(innerSelectTable)
                 .leftJoin(dataPoints).on(dataPoints.id.eq(events.typeRef1))
                 .leftOuterJoin(joinSelectTable)
                 .on(dataPointTags.dataPointId.eq(dataPoints.id))
+                .where(tagConditions)
                 .orderBy(count.desc());
 
         Select<?> select;
@@ -536,7 +544,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
                     int columnIndex = 1;
                     try {
                         //Find the tag this is for
-                        for(String tag : tags) {
+                        for(String tag : tags.keySet()) {
                             String tagValue = rs.getString(columnIndex);
                             columnIndex++;
                             if(rs.wasNull()) {
