@@ -52,6 +52,8 @@
 * Add env property to control backup location paths.backup
 * Only allow creating user comments if the User has read permission for the referenced item
 * Upgrade log4j to 2.13.2
+* You can now set log4j properties via your env.properties file
+* You can now access env properties in log4j2.xml configuration files using syntax ${mango:property.name}
 
 *Version 3.7.4*
 * Improve work item failure logging
