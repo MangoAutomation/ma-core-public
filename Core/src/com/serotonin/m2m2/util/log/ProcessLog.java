@@ -100,7 +100,7 @@ public class ProcessLog implements Closeable {
     }
     
     /**
-     * Construct a rolling Process Log in the {ma.home}/logs
+     * Construct a rolling Process Log in the ${paths.logs}
      * Name: prefix + id + ".log"
      * 
      * @param prefix
@@ -118,7 +118,7 @@ public class ProcessLog implements Closeable {
     }
     
     /**
-     * Create a non-rolling Process Log in the {ma.home}/logs
+     * Create a non-rolling Process Log in ${paths.logs}
      * 
      * Name: prefix + id + ".log"
      * 

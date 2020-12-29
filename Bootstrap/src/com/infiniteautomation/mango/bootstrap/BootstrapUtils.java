@@ -38,7 +38,8 @@ public class BootstrapUtils {
 
     public static Path maHome() {
         String[] possibleMaHomes = new String[] {
-                System.getProperty("ma.home"),
+                System.getProperty("mango.paths.home"),
+                System.getenv("mango_paths_home"),
                 "..", // double click jar file
                 "." // run java -jar boot/ma-bootstrap.jar from MA_HOME
         };
@@ -57,13 +58,13 @@ public class BootstrapUtils {
         }
 
         if (maHome == null) {
-            throw new RuntimeException("Can't find MA_HOME, please set a Java system property -Dma.home=\"path\\to\\mango\"");
+            throw new RuntimeException("Can't find install directory, please set a Java system property -Dmango.paths.home=\"path\\to\\mango\"");
         }
 
         Path maHomeAbs = maHome.toAbsolutePath().normalize();
 
         // ensure Mango Core can find Mango home
-        System.setProperty("ma.home", maHomeAbs.toString());
+        System.setProperty("mango.paths.home", maHomeAbs.toString());
 
         return maHomeAbs;
     }

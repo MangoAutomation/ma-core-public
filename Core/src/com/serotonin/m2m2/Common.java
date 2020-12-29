@@ -102,7 +102,7 @@ public class Common {
     public static final MangoProperties envProps = Providers.get(MangoProperties.class);
 
     /**
-     * <p>The Mango Automation installation directory. This is specified by the ma.home system property or the MA_HOME environment variable.
+     * <p>The Mango Automation installation directory. This is specified by the mango.paths.home system property or the mango_paths_home environment variable.
      * If neither is set the current working directory is used.</p>
      */
     public static final Path MA_HOME_PATH = Paths.get(envProps.getString("paths.home", "")).toAbsolutePath().normalize();

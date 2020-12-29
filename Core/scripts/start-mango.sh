@@ -85,7 +85,7 @@ fi
 
 CLASSPATH="$MA_CP" \
 "$EXECJAVA" $MA_JAVA_OPTS -server \
-	"-Dma.home=$MA_HOME" \
+	"-Dmango.paths.home=$MA_HOME" \
 	com.serotonin.m2m2.Main &
 
 PID=$!

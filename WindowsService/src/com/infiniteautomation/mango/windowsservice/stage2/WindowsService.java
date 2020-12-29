@@ -82,7 +82,7 @@ public class WindowsService extends Win32Service {
         String defaultCommand = String.join(" ", new String[] {
                 "\"" + javaExe + "\"",
                 javaOptions,
-                "-Dma.home=\"" + maHome + "\"",
+                "-Dmango.paths.home=\"" + maHome + "\"",
                 "-jar \"" + jarFile + "\"",
                 "init"
         });
