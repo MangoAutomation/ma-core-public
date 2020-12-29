@@ -8,6 +8,7 @@ import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.lookup.StrLookup;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.properties.MangoProperties;
 
@@ -25,7 +26,18 @@ public class MangoLookup implements StrLookup {
 
     @Override
     public String lookup(String key) {
-        return mangoProperties.getString(key);
+        String value = mangoProperties.getString(key);
+
+        // result path values against proper absolute paths
+        if (key.equals("paths.home")) {
+            return Common.MA_HOME_PATH.toString();
+        } else if (key.equals("paths.data")) {
+            return Common.MA_DATA_PATH.toString();
+        } else if (key.startsWith("paths.")) {
+            return Common.MA_DATA_PATH.resolve(value).normalize().toString();
+        }
+
+        return value;
     }
 
     @Override
