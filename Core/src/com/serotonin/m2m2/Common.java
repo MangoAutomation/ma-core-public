@@ -108,7 +108,7 @@ public class Common {
     public static final Path MA_HOME_PATH = Paths.get(envProps.getString("paths.home", "")).toAbsolutePath().normalize();
 
     public static final Path MA_DATA_PATH = createDirectories(MA_HOME_PATH
-            .resolve(envProps.getString("paths.data")).normalize());
+            .resolve(envProps.getString("paths.data", "")).normalize());
 
     private static final Path LOGS_PATH = createDirectories(MA_DATA_PATH
             .resolve(envProps.getString("paths.logs", "logs")).normalize());
