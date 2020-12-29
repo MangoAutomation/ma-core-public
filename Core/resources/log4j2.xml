@@ -21,15 +21,12 @@
     
 -->
 <Configuration packages="com.serotonin.m2m2.rt.console">
-    <Properties>
-        <Property name="MA_LOG4J_STDOUT_PATTERN">%-5p %d{ISO8601} (%C.%M:%L) - %m%n</Property>
-    </Properties>
 	<Appenders>
 		<Console name="stdout" target="SYSTEM_OUT">
-			<PatternLayout pattern="${env:MA_LOG4J_STDOUT_PATTERN}"/>
+			<PatternLayout pattern="${mango:appender.stdout.pattern}"/>
 		</Console>
 		<RollingRandomAccessFile name="logfile" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.ma.log" fileName="${sys:ma.logs}/ma.log">
-			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m%n"/>
+			<PatternLayout pattern="${mango:appender.logfile.pattern}"/>
 			<Policies>
 				<OnStartupTriggeringPolicy />
 				<TimeBasedTriggeringPolicy />
@@ -43,7 +40,7 @@
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
 		<MangoFrontendAppender name="frontend">
-			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m%n"/>
+			<PatternLayout pattern="${mango:appender.frontend.pattern}"/>
 		</MangoFrontendAppender>
 		<!-- IasTsdb Logging -->
 		<RollingRandomAccessFile name="corruption" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log" fileName="${sys:ma.logs}/iastsdb-corruption.log">
@@ -108,15 +105,13 @@
         <AsyncLogger includeLocation="false" name="script" level="trace" additivity="false">
             <AppenderRef ref="script" />
         </AsyncLogger>
-	
-		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2" level="info"/>
-		<AsyncLogger includeLocation="true" name="com.infiniteautomation" level="info"/>
-        <AsyncLogger includeLocation="true" name="org.eclipse.jetty" level="warn"/>
-        <AsyncLogger includeLocation="true" name="org.eclipse.jetty.util.thread" level="info"/>
-		<AsyncRoot includeLocation="true" level="error">
-			<AppenderRef ref="logfile"/>
-			<AppenderRef ref="stdout" level="${env:MA_LOG4J_STDOUT_LEVEL}" />
-			<AppenderRef ref="frontend" />
+
+		<AsyncLogger name="com.serotonin.m2m2" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
+		<AsyncLogger name="com.infiniteautomation" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
+		<AsyncRoot includeLocation="${mango:logger.root.includeLocation}" level="${mango:logger.root.level}">
+			<AppenderRef ref="logfile" level="${mango:appender.logfile.level}" />
+			<AppenderRef ref="stdout" level="${mango:appender.stdout.level}" />
+			<AppenderRef ref="frontend" level="${mango:appender.frontend.level}" />
 		</AsyncRoot>
 	</Loggers>
 </Configuration>
