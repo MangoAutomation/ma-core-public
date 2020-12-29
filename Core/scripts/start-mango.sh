@@ -73,11 +73,6 @@ done
 # Construct the Java classpath
 MA_CP="$MA_HOME/lib/*"
 
-# Only log error messages to stdout and dont include the date
-# Avoids duplicating too much information in the systemd log and syslog
-MA_LOG4J_STDOUT_LEVEL=error
-MA_LOG4J_STDOUT_PATTERN='%-5p (%C.%M:%L) - %m %n'
-
 if [ -e "$MA_HOME/overrides/start-options.sh" ]; then
 	. "$MA_HOME/overrides/start-options.sh"
 fi
@@ -87,9 +82,6 @@ if [ -n "$MA_JAVA_OPTS" ]; then
 else
 	echo "Starting Mango Automation"
 fi
-
-export MA_LOG4J_STDOUT_LEVEL
-export MA_LOG4J_STDOUT_PATTERN
 
 CLASSPATH="$MA_CP" \
 "$EXECJAVA" $MA_JAVA_OPTS -server \
