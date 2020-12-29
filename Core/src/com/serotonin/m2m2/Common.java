@@ -99,29 +99,19 @@ public class Common {
     // Note the start time of the application.
     public static final long START_TIME = ManagementFactory.getRuntimeMXBean().getStartTime();
 
+    public static final MangoProperties envProps = Providers.get(MangoProperties.class);
+
     /**
      * <p>The Mango Automation installation directory. This is specified by the ma.home system property or the MA_HOME environment variable.
      * If neither is set the current working directory is used.</p>
      */
-    public static final Path MA_HOME_PATH;
-    static {
-        // ma.home should always set by com.serotonin.m2m2.Main, use current work directory otherwise (e.g. tests)
-        String maHome = System.getProperty("ma.home");
-        MA_HOME_PATH = Paths.get(maHome == null ? "." : maHome).toAbsolutePath().normalize();
-    }
-
-    public static final MangoProperties envProps = Providers.get(MangoProperties.class);
+    public static final Path MA_HOME_PATH = Paths.get(envProps.getString("paths.home", "")).toAbsolutePath().normalize();
 
     public static final Path MA_DATA_PATH = createDirectories(MA_HOME_PATH
             .resolve(envProps.getString("paths.data")).normalize());
 
-    private static final Path LOGS_PATH;
-    static {
-        // ma.logs needs to be set before calling org.apache.commons.logging.LogFactory.getLog(Class)
-        String logsValue = envProps.getString("paths.logs", "logs");
-        LOGS_PATH = createDirectories(MA_DATA_PATH.resolve(logsValue).normalize());
-        System.setProperty("ma.logs", LOGS_PATH.toString());
-    }
+    private static final Path LOGS_PATH = createDirectories(MA_DATA_PATH
+            .resolve(envProps.getString("paths.logs", "logs")).normalize());
 
     public static final Path OVERRIDES = MA_DATA_PATH.resolve(envProps.getString("paths.overrides", Constants.DIR_OVERRIDES));
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);

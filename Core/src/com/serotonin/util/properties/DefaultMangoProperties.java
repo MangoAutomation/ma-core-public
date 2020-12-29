@@ -35,13 +35,18 @@ import org.apache.commons.text.StringSubstitutor;
  */
 public class DefaultMangoProperties implements MangoProperties {
 
-    private final Map<String, String> environment = MangoProperties.loadFromEnvironment();
     private final StringSubstitutor interpolator = createInterpolator();
     private final Path envPropertiesPath;
+    private final Map<String, String> environment;
     protected volatile Properties properties;
 
     public DefaultMangoProperties(Path envPropertiesPath) {
+        this(envPropertiesPath, MangoProperties.loadFromEnvironment());
+    }
+
+    public DefaultMangoProperties(Path envPropertiesPath, Map<String, String> environment) {
         this.envPropertiesPath = Objects.requireNonNull(envPropertiesPath);
+        this.environment = environment;
         reload();
     }
 
