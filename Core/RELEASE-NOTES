@@ -54,6 +54,8 @@
 * Upgrade log4j to 2.13.2
 * You can now set log4j properties via your env.properties file
 * You can now access env properties in log4j2.xml configuration files using syntax ${mango:property.name}
+* You can now set env properties via Java system properties prefixed with "mango."
+* You can now set env properties via environment variables prefixed with "mango_" and with dots replaced with underscores
 
 *Version 3.7.4*
 * Improve work item failure logging

@@ -1,42 +1,54 @@
 /**
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- *
  */
 package com.serotonin.util.properties;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 
 /**
- *
  * @author Terry Packer
  */
 public interface MangoProperties {
 
-    static final Pattern INTERPOLATION_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
+    String SYSTEM_ENVIRONMENT_PREFIX = "mango_";
+    String SYSTEM_PROPERTIES_PREFIX = "mango.";
 
-    public String getString(String key);
+    /**
+     * Get the raw (un-interpolated) property value
+     */
+    String getProperty(String key);
 
-    public default String interpolateProperty(String value) {
-        if (value == null) return value;
-        Matcher matcher = INTERPOLATION_PATTERN.matcher(value);
-        StringBuffer result = new StringBuffer();
-        while (matcher.find()) {
-            String interpolatedKey = matcher.group(1);
-            String interpolatedValue = getString(interpolatedKey);
-            if (interpolatedValue == null) {
-                throw new IllegalStateException("Property has no value: " + interpolatedKey);
-            }
-            matcher.appendReplacement(result, Matcher.quoteReplacement(interpolatedValue));
+    /**
+     * Should interpolate the value using the {@link StringSubstitutor} returned by {@link #createInterpolator()}
+     */
+    String interpolateProperty(String value);
+
+    /**
+     * Retrieve the interpolated property value by key.
+     */
+    default String getString(String key) {
+        String value = getProperty(key);
+        if (value == null) {
+            return null;
         }
-        matcher.appendTail(result);
-        return result.toString();
+        return interpolateProperty(value);
     }
 
-    public default String getString(String key, String defaultValue) {
+    default String getString(String key, String defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value)) {
             return defaultValue;
@@ -44,12 +56,56 @@ public interface MangoProperties {
         return value;
     }
 
+    default StringSubstitutor createInterpolator() {
+        return new StringSubstitutor(this::getProperty)
+                .setEnableSubstitutionInVariables(true)
+                .setValueDelimiterMatcher(null);
+    }
+
+    static Map<String, String> loadFromEnvironment() {
+        Map<String, String> values = new HashMap<>();
+        for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (key.toLowerCase(Locale.ROOT).startsWith(SYSTEM_ENVIRONMENT_PREFIX)) {
+                String propertyKey = key.substring(SYSTEM_ENVIRONMENT_PREFIX.length());
+                String replacedKey = String.join(".", propertyKey.split("_"));
+                values.put(replacedKey, value);
+            }
+        }
+        for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+            if (entry.getKey() instanceof String && entry.getValue() instanceof String) {
+                String key = (String) entry.getKey();
+                String value = (String) entry.getValue();
+                if (key.startsWith(SYSTEM_PROPERTIES_PREFIX)) {
+                    values.put(key.substring(SYSTEM_PROPERTIES_PREFIX.length()), value);
+                }
+            }
+        }
+        return values;
+    }
+
+    static Properties loadFromResources(String resourceName) throws IOException {
+        return loadFromResources(resourceName, DefaultMangoProperties.class.getClassLoader());
+    }
+
+    static Properties loadFromResources(String resourceName, ClassLoader cl) throws IOException {
+        Properties properties = new Properties();
+        ArrayList<URL> resources = Collections.list(cl.getResources(resourceName));
+        for (URL resource : resources) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8))) {
+                properties.load(reader);
+            }
+        }
+        return properties;
+    }
+
     /**
      * Splits on comma and trims results, does not remove empty entries.
      * Returns an empty array if the property is not defined or if it is set to an empty string.
      */
-    public default String[] getStringArray(String key) {
-        return this.getStringArray(key, "\\s*,\\s*", new String[] {});
+    default String[] getStringArray(String key) {
+        return this.getStringArray(key, "\\s*,\\s*", new String[]{});
     }
 
     /**
@@ -57,7 +113,7 @@ public interface MangoProperties {
      * Default is only returned if the property is not defined at all (i.e. commented out).
      * A property defined as an empty string will return an empty array.
      */
-    public default String[] getStringArray(String key, String[] defaultValue) {
+    default String[] getStringArray(String key, String[] defaultValue) {
         return this.getStringArray(key, "\\s*,\\s*", defaultValue);
     }
 
@@ -66,21 +122,21 @@ public interface MangoProperties {
      * Default is only returned if the property is not defined at all (i.e. commented out).
      * A property defined as an empty string will return an empty array.
      */
-    public default String[] getStringArray(String key, String delimiter, String[] defaultValue) {
+    default String[] getStringArray(String key, String delimiter, String[] defaultValue) {
         String value = getString(key);
         if (value == null)
             return defaultValue;
         if (value.isEmpty()) {
-            return new String[] {};
+            return new String[]{};
         }
         return value.split(delimiter);
     }
 
-    public default int getInt(String key) {
+    default int getInt(String key) {
         return Integer.parseInt(getString(key));
     }
 
-    public default int getInt(String key, int defaultValue) {
+    default int getInt(String key, int defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value)) {
             return defaultValue;
@@ -88,11 +144,11 @@ public interface MangoProperties {
         return Integer.parseInt(value);
     }
 
-    public default long getLong(String key) {
+    default long getLong(String key) {
         return Long.parseLong(getString(key));
     }
 
-    public default long getLong(String key, long defaultValue) {
+    default long getLong(String key, long defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value)) {
             return defaultValue;
@@ -100,11 +156,11 @@ public interface MangoProperties {
         return Long.parseLong(value);
     }
 
-    public default boolean getBoolean(String key) {
+    default boolean getBoolean(String key) {
         return "true".equalsIgnoreCase(getString(key));
     }
 
-    public default boolean getBoolean(String key, boolean defaultValue) {
+    default boolean getBoolean(String key, boolean defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value)) {
             return defaultValue;
@@ -112,11 +168,11 @@ public interface MangoProperties {
         return "true".equalsIgnoreCase(value);
     }
 
-    public default double getDouble(String key) {
+    default double getDouble(String key) {
         return Double.parseDouble(getString(key));
     }
 
-    public default double getDouble(String key, double defaultValue) {
+    default double getDouble(String key, double defaultValue) {
         String value = getString(key);
         if (StringUtils.isBlank(value)) {
             return defaultValue;
@@ -124,7 +180,7 @@ public interface MangoProperties {
         return Double.parseDouble(value);
     }
 
-    public default String getStringAllowEmpty(String key, String defaultValue) {
+    default String getStringAllowEmpty(String key, String defaultValue) {
         String value = getString(key);
         if (value == null) {
             return defaultValue;
@@ -132,7 +188,7 @@ public interface MangoProperties {
         return value;
     }
 
-    public default TimeUnit getTimeUnitValue(String key, TimeUnit defaultValue) {
+    default TimeUnit getTimeUnitValue(String key, TimeUnit defaultValue) {
         String value = this.getString(key);
         if (value == null) {
             return defaultValue;

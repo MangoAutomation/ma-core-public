@@ -1,6 +1,5 @@
 /**
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- *
  */
 package com.serotonin.m2m2;
 
@@ -8,8 +7,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Properties;
 
-import com.serotonin.m2m2.vo.User;
-import com.serotonin.util.properties.DefaultMangoProperties;
+import org.apache.commons.text.StringSubstitutor;
+
 import com.serotonin.util.properties.MangoProperties;
 
 /**
@@ -19,11 +18,13 @@ import com.serotonin.util.properties.MangoProperties;
  */
 public class MockMangoProperties implements MangoProperties {
 
+    private final StringSubstitutor interpolator = createInterpolator();
     private final Properties properties;
 
     public MockMangoProperties() {
         try {
-            this.properties = DefaultMangoProperties.loadFromResources("env.properties");
+            this.properties = MangoProperties.loadFromResources("env.properties");
+            this.properties.putAll(MangoProperties.loadFromEnvironment());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -34,8 +35,8 @@ public class MockMangoProperties implements MangoProperties {
         //Test injection property types
         setProperty("test.injectedStringArray", "ONE,TWO,THREE");
         setProperty("test.injectedIntegerArray", "1,2,3");
-        setProperty("test.injectedBoolean","true");
-        setProperty("test.injectedString","Testing String");
+        setProperty("test.injectedBoolean", "true");
+        setProperty("test.injectedString", "Testing String");
         setProperty("test.injectedInteger", "1");
         setProperty("test.injectedEmptyStringArray", "");
 
@@ -51,11 +52,12 @@ public class MockMangoProperties implements MangoProperties {
     }
 
     @Override
-    public String getString(String key) {
-        String value = System.getProperty(key);
-        if (value == null) {
-            value = properties.getProperty(key);
-        }
-        return interpolateProperty(value);
+    public String getProperty(String key) {
+        return properties.getProperty(key);
+    }
+
+    @Override
+    public String interpolateProperty(String value) {
+        return interpolator.replace(value);
     }
 }
