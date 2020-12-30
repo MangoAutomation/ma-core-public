@@ -78,15 +78,15 @@ public class MangoTestBase {
     public static void staticSetup() throws IOException {
         dataDirectory = Files.createTempDirectory("MangoTestBase");
 
+        properties = new MockMangoProperties();
+        properties.setProperty("paths.data", dataDirectory.toString());
+        Providers.add(MangoProperties.class, properties);
+
         //Configure Log4j2
         try (InputStream is = ClassLoader.getSystemResource("test-log4j2.xml").openStream()) {
             ConfigurationSource source = new ConfigurationSource(is);
             Configurator.initialize(null, source);
         }
-
-        properties = new MockMangoProperties();
-        properties.setProperty("paths.data", dataDirectory.toString());
-        Providers.add(MangoProperties.class, properties);
 
         addModule("BaseTest", new MockDataSourceDefinition());
     }
