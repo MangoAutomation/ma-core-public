@@ -213,6 +213,13 @@ public class RQLToCondition {
                 property = property.substring(1);
             }
 
+            //Confirm property exists:
+            Field<Object> sortField = getField(property);
+            if(sortField == null) {
+                List<String> properties = Stream.concat(fieldMapping.keySet().stream(), subSelectMapping.keySet().stream()).collect(Collectors.toList());
+                throw new RQLVisitException(String.format("Unknown sort property '%s', valid properties are %s", property, properties));
+            }
+
             SortField<Object> field = getField(property).sort(descending ? SortOrder.DESC : SortOrder.ASC);
             fields.add(field);
         }
