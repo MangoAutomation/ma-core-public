@@ -17,7 +17,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
+import net.jazdw.rql.parser.ASTNode;
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -315,17 +317,20 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     }
 
     /**
-     * Count events for a set of tags
-     *
-     * @param tags
-     * @param after
-     * @param limit
-     * @param callback
+     * Count events for a set of tags and rql on events and data points
      */
-    public void countDataPointEventsByTag(Map<String, String> tags, Date after, Integer limit, MappedRowCallback<AlarmPointTagCount> callback) {
-        long afterTs = after == null ? Common.timer.currentTimeMillis() : after.getTime();
-        Map<String, String> queryTags = tags == null ? Collections.emptyMap() : tags;
-        this.dao.countDataPointEventsByTag(queryTags, afterTs, limit, callback);
+    public int countDataPointEventCountsByRQL(ASTNode rql, Long from, Long to) {
+        PermissionHolder user = Common.getUser();
+        return this.dao.countDataPointEventCountsByRQL(dao.rqlToCondition(rql, null, null, null), from, to, user);
+    }
+
+    /**
+     * Query events for a set of tags
+     *
+     */
+    public void queryDataPointEventCountsByRQL(ASTNode rql, Long from, Long to, MappedRowCallback<AlarmPointTagCount> callback) {
+        PermissionHolder user = Common.getUser();
+        this.dao.queryDataPointEventCountsByRQL(dao.rqlToCondition(rql, null, null, null), from, to, user, callback);
     }
 
     public static class AlarmPointTagCount {
@@ -342,7 +347,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
          * @param deviceName
          * @param level
          * @param count
-         * @param tag
+         * @param tags
          */
         public AlarmPointTagCount(String xid, String name, String deviceName,
                 TranslatableMessage message, AlarmLevels level,
