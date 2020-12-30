@@ -25,9 +25,6 @@
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
-		<MangoFrontendAppender name="frontend">
-			<PatternLayout pattern="${mango:appender.frontend.pattern}"/>
-		</MangoFrontendAppender>
 		<!-- IasTsdb Logging -->
 		<RollingRandomAccessFile name="corruption" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log.gz" fileName="${mango:paths.logs}/iastsdb-corruption.log">
 			<PatternLayout pattern="%m"/>
@@ -103,7 +100,6 @@
 		<AsyncRoot includeLocation="${mango:logger.root.includeLocation}" level="${mango:logger.root.level}">
 			<AppenderRef ref="logfile" level="${mango:appender.logfile.level}" />
 			<AppenderRef ref="stdout" level="${mango:appender.stdout.level}" />
-			<AppenderRef ref="frontend" level="${mango:appender.frontend.level}" />
 		</AsyncRoot>
 	</Loggers>
 </Configuration>
