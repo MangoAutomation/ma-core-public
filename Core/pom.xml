@@ -364,11 +364,15 @@
             <artifactId>spring-context-support</artifactId>
             <version>${springVersion}</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-indexer</artifactId>
-            <version>${springVersion}</version>
-        </dependency>
+<!--
+spring-context-indexer does not work with Springfox 2.9.2 (for generating Swagger definitions). Looks like it will work
+with Springfox 3.
+-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework</groupId>-->
+<!--            <artifactId>spring-context-indexer</artifactId>-->
+<!--            <version>${springVersion}</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
