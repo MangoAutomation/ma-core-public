@@ -7,17 +7,21 @@
 		<Console name="stdout" target="SYSTEM_OUT">
 			<PatternLayout pattern="${mango:appender.stdout.pattern}"/>
 		</Console>
-		<RollingRandomAccessFile name="logfile" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.ma.log" fileName="${mango:paths.logs}/ma.log">
+		<RollingRandomAccessFile name="logfile" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.ma.log.gz" fileName="${mango:paths.logs}/ma.log">
 			<PatternLayout pattern="${mango:appender.logfile.pattern}"/>
 			<Policies>
 				<OnStartupTriggeringPolicy />
 				<TimeBasedTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="5MB"/>
+				<SizeBasedTriggeringPolicy size="${mango:appender.logfile.size}"/>
 			</Policies>
-			<DefaultRolloverStrategy>
+			<DefaultRolloverStrategy fileIndex="nomax">
 				<Delete basePath="${mango:paths.logs}" >
-					<IfFileName regex=".*.ma.log" />
-					<IfAccumulatedFileCount exceeds="20"/>
+					<IfFileName glob="*.ma.{log,log.gz}" />
+					<IfAny>
+						<IfLastModified age="${mango:appender.logfile.delete.age}" />
+						<IfAccumulatedFileSize exceeds="${mango:appender.logfile.delete.size}" />
+						<IfAccumulatedFileCount exceeds="${mango:appender.logfile.delete.count}" />
+					</IfAny>
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
@@ -25,51 +29,57 @@
 			<PatternLayout pattern="${mango:appender.frontend.pattern}"/>
 		</MangoFrontendAppender>
 		<!-- IasTsdb Logging -->
-		<RollingRandomAccessFile name="corruption" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log" fileName="${mango:paths.logs}/iastsdb-corruption.log">
+		<RollingRandomAccessFile name="corruption" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log.gz" fileName="${mango:paths.logs}/iastsdb-corruption.log">
 			<PatternLayout pattern="%m"/>
 			<Policies>
 				<SizeBasedTriggeringPolicy size="5MB"/>
 			</Policies>
-			<DefaultRolloverStrategy>
+			<DefaultRolloverStrategy fileIndex="nomax">
 				<Delete basePath="${mango:paths.logs}" >
-					<IfFileName regex=".*.iastsdb-corruption.log" />
+					<IfFileName glob="*.iastsdb-corruption.{log,log.gz}" />
 					<IfAccumulatedFileCount exceeds="20"/>
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
-		<RollingRandomAccessFile name="compression" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.iastsdb-compression.log" fileName="${mango:paths.logs}/iastsdb-compression.log">
+		<RollingRandomAccessFile name="compression" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.iastsdb-compression.log.gz" fileName="${mango:paths.logs}/iastsdb-compression.log">
 			<PatternLayout pattern="%m"/>
 			<Policies>
 				<SizeBasedTriggeringPolicy size="5MB"/>
 			</Policies>
-			<DefaultRolloverStrategy>
+			<DefaultRolloverStrategy fileIndex="nomax">
 				<Delete basePath="${mango:paths.logs}" >
-					<IfFileName regex=".*.iastsdb-compression.log" />
+					<IfFileName glob="*.iastsdb-compression.{log,log.gz}" />
 					<IfAccumulatedFileCount exceeds="20"/>
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
-		<RollingRandomAccessFile name="reverser" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.iastsdb-reverse.log" fileName="${mango:paths.logs}/iastsdb-reverse.log">
+		<RollingRandomAccessFile name="reverser" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.iastsdb-reverse.log.gz" fileName="${mango:paths.logs}/iastsdb-reverse.log">
 			<PatternLayout pattern="%m"/>
 			<Policies>
 				<SizeBasedTriggeringPolicy size="5MB"/>
 			</Policies>
-			<DefaultRolloverStrategy>
+			<DefaultRolloverStrategy fileIndex="nomax">
 				<Delete basePath="logs" >
-					<IfFileName regex=".*.iastsdb-reverse.log" />
+					<IfFileName glob="*.iastsdb-reverse.{log,log.gz}" />
 					<IfAccumulatedFileCount exceeds="20"/>
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
-        <RollingRandomAccessFile name="script" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.script.log" fileName="${mango:paths.logs}/script.log">
+        <RollingRandomAccessFile name="script" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.script.log.gz" fileName="${mango:paths.logs}/script.log">
             <PatternLayout pattern="${mango:appender.script.pattern}"/>
             <Policies>
-                <SizeBasedTriggeringPolicy size="5MB"/>
+				<OnStartupTriggeringPolicy />
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="${mango:appender.script.size}"/>
             </Policies>
-            <DefaultRolloverStrategy>
+            <DefaultRolloverStrategy fileIndex="nomax">
                 <Delete basePath="${mango:paths.logs}" >
-                    <IfFileName regex=".*.script.log" />
-                    <IfAccumulatedFileCount exceeds="20"/>
+					<IfFileName glob="*.script.{log,log.gz}" />
+					<IfAny>
+						<IfLastModified age="${mango:appender.script.delete.age}" />
+						<IfAccumulatedFileSize exceeds="${mango:appender.script.delete.size}" />
+						<IfAccumulatedFileCount exceeds="${mango:appender.script.delete.count}" />
+					</IfAny>
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingRandomAccessFile>

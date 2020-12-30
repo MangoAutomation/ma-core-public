@@ -58,6 +58,9 @@
 * You can now set env properties via environment variables prefixed with "mango_" and with dots replaced with underscores
 * Add properties to env.properties to control the logging levels and patterns when using the built in log4j2.xml file
 * User configured log4j2.xml files using the property "${sys:ma.logs}" should be modified to use "${mango:paths.logs}" instead
+* Enable compression of rolled over log files using gzip
+* Old log files are now deleted after 30 days, or 1GB of files are accumulated, or after 1000 files are created. This is configurable via env.properties.
+* Active log file size is now capped at 100MB before rolling over. This is configurable via env.properties.
 
 *Version 3.7.4*
 * Improve work item failure logging
