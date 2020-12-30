@@ -84,7 +84,7 @@
 		<AsyncLogger name="com.infiniteautomation.tsdb.reverser" level="info" additivity="false">
 		  <AppenderRef ref="reverser"/>
 		</AsyncLogger>
-        <AsyncLogger includeLocation="false" name="script" level="trace" additivity="false">
+        <AsyncLogger name="script" includeLocation="${mango:logger.script.includeLocation}" level="${mango:logger.script.level}" additivity="false">
             <AppenderRef ref="script" level="${mango:appender.script.level}" />
         </AsyncLogger>
 
