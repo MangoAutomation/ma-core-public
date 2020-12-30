@@ -321,7 +321,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public int countDataPointEventCountsByRQL(ASTNode rql, Long from, Long to) {
         PermissionHolder user = Common.getUser();
-        return this.dao.countDataPointEventCountsByRQL(dao.rqlToCondition(rql, null, null, null), from, to, user);
+        return this.dao.countDataPointEventCountsByRQL(rql, from, to, user);
     }
 
     /**
@@ -330,7 +330,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public void queryDataPointEventCountsByRQL(ASTNode rql, Long from, Long to, MappedRowCallback<AlarmPointTagCount> callback) {
         PermissionHolder user = Common.getUser();
-        this.dao.queryDataPointEventCountsByRQL(dao.rqlToCondition(rql, null, null, null), from, to, user, callback);
+        this.dao.queryDataPointEventCountsByRQL(rql, from, to, user, callback);
     }
 
     public static class AlarmPointTagCount {

@@ -425,18 +425,19 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
     /**
      *
-     * @param conditions
+     * @param rql
      * @param from - all events >= this time (can be null)
      * @param to - all events < this time (can be null)
      * @param user
      * @param callback
      */
-    public void queryDataPointEventCountsByRQL(ConditionSortLimit conditions,
+    public void queryDataPointEventCountsByRQL(ASTNode rql,
             Long from,
             Long to,
             PermissionHolder user,
             MappedRowCallback<AlarmPointTagCount> callback) {
 
+        ConditionSortLimit conditions =  rqlToDataPointEventCountCondition(rql);
         Map<String, Name> tags;
         if(conditions instanceof  ConditionSortLimitWithTagKeys) {
             ConditionSortLimitWithTagKeys tagConditionSortLimit = (ConditionSortLimitWithTagKeys)conditions;
@@ -507,18 +508,37 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
 
     /**
      * Count the event counts using the conditions
-     * @param conditions
+     * @param rql
      * @param from
      * @param to
      * @param user
      * @return
      */
-    public int countDataPointEventCountsByRQL(ConditionSortLimit conditions,
+    public int countDataPointEventCountsByRQL(ASTNode rql,
         Long from,
         Long to,
         PermissionHolder user) {
+        ConditionSortLimit conditions =  rqlToDataPointEventCountCondition(rql);
         final Select<?> query = createDataPointEventCountsQuery(conditions, from, to, true, user);
         return query.fetchOneInto(Integer.class);
+    }
+
+    private ConditionSortLimit rqlToDataPointEventCountCondition(ASTNode rql) {
+        //Setup Mappings
+        DataPoints dataPoints = DataPoints.DATA_POINTS.as("dp");
+        Events events = Events.EVENTS.as("evt");
+
+        Map<String, Field<?>> fieldMap = new HashMap<>();
+        fieldMap.put("xid", dataPoints.xid);
+        fieldMap.put("name", dataPoints.name);
+        fieldMap.put("deviceName", dataPoints.deviceName);
+        fieldMap.put("message", events.message);
+        fieldMap.put("alarmLevel", events.alarmLevel);
+        fieldMap.put("count", DSL.field(events.getQualifiedName().append("count")));
+
+        RQLToConditionWithTagKeys rqlToCondition = new RQLToConditionWithTagKeys(fieldMap, this.valueConverterMap);
+        ConditionSortLimit conditions = rqlToCondition.visit(rql);
+        return conditions;
     }
 
     /**
