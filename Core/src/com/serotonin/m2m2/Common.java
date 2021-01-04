@@ -21,11 +21,13 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -91,6 +93,9 @@ import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.util.properties.MangoProperties;
 
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 
 public class Common {
@@ -905,5 +910,46 @@ public class Common {
     }
     public static <Q extends Quantity> Unit<Q> KIBI(Unit<Q> unit) {
         return unit.transform(KIBI_CONVERTER);
+    }
+
+    /**
+     * Recursively finds all Freemarker template files in configured loader paths. Only supports FileTemplateLoader.
+     * @return Set of paths to the Freemarker templates, relative to the Freemarker loader base directories
+     */
+    public static Set<Path> getFreemarkerTemplates() {
+        Set<Path> templatePaths = new HashSet<>();
+
+        TemplateLoader loader = Common.freemarkerConfiguration.getTemplateLoader();
+        if (loader instanceof MultiTemplateLoader) {
+            MultiTemplateLoader multiTemplateLoader = (MultiTemplateLoader) loader;
+            for (int i = 0; i < multiTemplateLoader.getTemplateLoaderCount(); i++) {
+                TemplateLoader childLoader = multiTemplateLoader.getTemplateLoader(i);
+                if (childLoader instanceof FileTemplateLoader) {
+                    FileTemplateLoader fileTemplateLoader = (FileTemplateLoader) childLoader;
+                    Path baseDir = fileTemplateLoader.getBaseDirectory().toPath();
+                    if (Files.isDirectory(baseDir)) {
+                        listRecursive(baseDir)
+                                .filter(p -> p.getFileName().toString().endsWith(".ftl"))
+                                .map(baseDir::relativize)
+                                .forEach(templatePaths::add);
+                    }
+                }
+            }
+        }
+
+        return templatePaths;
+    }
+
+    /**
+     * Recursively lists all files in a directory
+     * @param baseDir
+     * @return
+     */
+    public static Stream<Path> listRecursive(Path baseDir) {
+        try {
+            return Files.isDirectory(baseDir) ? Files.list(baseDir).flatMap(Common::listRecursive) : Stream.of(baseDir);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
