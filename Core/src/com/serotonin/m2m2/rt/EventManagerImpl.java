@@ -4,22 +4,6 @@
  */
 package com.serotonin.m2m2.rt;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
@@ -30,11 +14,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.EventInstance;
-import com.serotonin.m2m2.rt.event.ReturnCause;
-import com.serotonin.m2m2.rt.event.UserEventListener;
-import com.serotonin.m2m2.rt.event.UserEventMulticaster;
+import com.serotonin.m2m2.rt.event.*;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
@@ -47,12 +27,21 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.RejectedTaskReason;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * @author Matthew Lohbihler
  */
 public class EventManagerImpl implements EventManager {
-    private final Log log = LogFactory.getLog(EventManagerImpl.class);
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private static final int RECENT_EVENT_PERIOD = 1000 * 60 * 10; // 10
     // minutes.
 
@@ -90,7 +79,7 @@ public class EventManagerImpl implements EventManager {
     /**
      * Check the state of the EventManager
      *  useful if you are a task that may run before/after the RUNNING state
-     * @return
+     * @return state of event manager
      */
     @Override
     public int getState(){
@@ -173,13 +162,14 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        if (autoAckMessage == null)
-            setHandlers(evt);
-
         // Get id from database by inserting event immediately.
         //Check to see if we are Not Logging these
         if(alarmLevel != AlarmLevels.DO_NOT_LOG){
             eventDao.saveEvent(evt);
+        }
+
+        if (autoAckMessage == null) {
+            setHandlers(evt);
         }
 
         // Create user alarm records for all applicable users
@@ -227,12 +217,7 @@ public class EventManagerImpl implements EventManager {
         }
 
         if (evt.isRtnApplicable()){
-            activeEventsLock.writeLock().lock();
-            try{
-                activeEvents.add(evt);
-            }finally{
-                activeEventsLock.writeLock().unlock();
-            }
+            addActive(evt);
         }else if (evt.getEventType().isRateLimited()) {
             recentEventsLock.writeLock().lock();
             try{
@@ -342,38 +327,49 @@ public class EventManagerImpl implements EventManager {
 
         // Loop in case of multiples
         while (evt != null) {
-            evt.returnToNormal(time, cause);
+            try{
+                if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG) {
+                    eventDao.saveEvent(evt);
+                }
 
-            List<Integer> userIdsToNotify = new ArrayList<>();
-            for (User user : activeUsers) {
-                // Do not create an event for this user if the event type says the
-                // user should be skipped.
-                if (type.excludeUser(user))
-                    continue;
+                evt.returnToNormal(time, cause);
 
-                if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
-                    if (permissionService.hasEventTypePermission(user, type)) {
-                        userIdsToNotify.add(user.getId());
+                List<Integer> userIdsToNotify = new ArrayList<>();
+                for (User user : activeUsers) {
+                    // Do not create an event for this user if the event type says the
+                    // user should be skipped.
+                    if (type.excludeUser(user))
+                        continue;
+
+                    if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
+                        if (permissionService.hasEventTypePermission(user, type)) {
+                            userIdsToNotify.add(user.getId());
+                        }
                     }
                 }
+
+                if(multicaster != null && Common.backgroundProcessing != null)
+                    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, true, false, false));
+
+                resetHighestAlarmLevel(time);
+
+                // Call inactiveEvent handlers.
+                handleInactiveEvent(evt);
+
+                if (log.isTraceEnabled()) {
+                    log.trace("Event returned to normal: type=" + type);
+                }
+
+                // Check for another
+                evt = remove(type);
+
+            }catch(Exception e) {
+                log.error("Failed to RTN event {} {}", evt, e);
+                //Add event back in and give up since there is a problem here
+                addActive(evt);
+                evt = null;
             }
-
-            if(multicaster != null && Common.backgroundProcessing != null)
-                Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, true, false, false));
-
-            resetHighestAlarmLevel(time);
-            if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
-                eventDao.saveEvent(evt);
-
-            // Call inactiveEvent handlers.
-            handleInactiveEvent(evt);
-
-            // Check for another
-            evt = remove(type);
         }
-
-        if (log.isTraceEnabled())
-            log.trace("Event returned to normal: type=" + type);
     }
 
     /**
@@ -474,7 +470,7 @@ public class EventManagerImpl implements EventManager {
      *
      * @param eventId
      * @param time
-     * @param userId
+     * @param user
      * @param alternateAckSource
      * @return the EventInstance for the ID if found, null otherwise
      */
@@ -594,9 +590,9 @@ public class EventManagerImpl implements EventManager {
     }
 
     /**
-     * Purge Events before time with a given type
+     * Purge Events before time with a Level
      * @param time
-     * @param typeName
+     * @param alarmLevel
      * @return
      */
     @Override
@@ -928,7 +924,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * To access all active events quickly
-     * @param type
      * @return
      */
     @Override
@@ -943,6 +938,18 @@ public class EventManagerImpl implements EventManager {
         return result;
     }
 
+    /**
+     * Add event to active list
+     * @param evt
+     */
+    private void addActive(EventInstance evt) {
+        activeEventsLock.writeLock().lock();
+        try{
+            activeEvents.add(evt);
+        }finally{
+            activeEventsLock.writeLock().unlock();
+        }
+    }
     /**
      * Finds and removes the first event instance with the given type. Returns
      * null if there is none.
