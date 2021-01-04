@@ -9,6 +9,7 @@ import org.apache.logging.log4j.core.config.plugins.Plugin;
 import org.apache.logging.log4j.core.lookup.StrLookup;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.provider.ProviderNotFoundException;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.properties.MangoProperties;
 
@@ -21,11 +22,21 @@ public class MangoLookup implements StrLookup {
     private final MangoProperties mangoProperties;
 
     public MangoLookup() {
-        this.mangoProperties = Providers.get(MangoProperties.class);
+        this.mangoProperties = getProperties();
+    }
+
+    private MangoProperties getProperties() {
+        try {
+            return Providers.get(MangoProperties.class);
+        } catch (ProviderNotFoundException e) {
+            return null;
+        }
     }
 
     @Override
     public String lookup(String key) {
+        if (mangoProperties == null) return null;
+
         String value = mangoProperties.getString(key);
 
         // result path values against proper absolute paths
