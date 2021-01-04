@@ -17,9 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
 
-import net.jazdw.rql.parser.ASTNode;
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,6 +42,8 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -338,26 +338,26 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         private final String name;
         private final String deviceName;
         private final TranslatableMessage message;
-        private final AlarmLevels level;
+        private final AlarmLevels alarmLevel;
         private final int count;
         private final Map<String,String> tags;
         /**
          * @param xid
          * @param name
          * @param deviceName
-         * @param level
+         * @param alarmLevel
          * @param count
          * @param tags
          */
         public AlarmPointTagCount(String xid, String name, String deviceName,
-                TranslatableMessage message, AlarmLevels level,
+                TranslatableMessage message, AlarmLevels alarmLevel,
                 int count, Map<String,String> tags) {
             super();
             this.xid = xid;
             this.name = name;
             this.deviceName = deviceName;
             this.message = message;
-            this.level = level;
+            this.alarmLevel = alarmLevel;
             this.count = count;
             this.tags = tags;
         }
@@ -373,8 +373,8 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         public TranslatableMessage getMessage() {
             return message;
         }
-        public AlarmLevels getLevel() {
-            return level;
+        public AlarmLevels getAlarmLevel() {
+            return alarmLevel;
         }
         public int getCount() {
             return count;
