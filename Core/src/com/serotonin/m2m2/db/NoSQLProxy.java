@@ -29,6 +29,11 @@ abstract public class NoSQLProxy extends ModuleElementDefinition {
         return new PointValueDaoMetrics(this.createPointValueDao());
     }
 
+    /**
+     * Is this proxy enabled, override as necessary
+     * @return state of proxy for use
+     */
+    public boolean isEnabled() { return true; }
 
     /**
      * Helper to get the database directory

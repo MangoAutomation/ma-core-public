@@ -135,11 +135,14 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 }
             }
 
-            // Check if we are using NoSQL
-            NoSQLProxy proxy = ModuleRegistry.getDefinition(NoSQLProxy.class);
-            if (proxy != null) {
-                noSQLProxy = proxy;
-                noSQLProxy.initialize();
+            // Check if we are using NoSQL and use the first enabled proxy
+            List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
+            for(NoSQLProxy proxy : proxies) {
+                if (proxy.isEnabled()) {
+                    noSQLProxy = proxy;
+                    noSQLProxy.initialize();
+                    break;
+                }
             }
         }
         catch (CannotGetJdbcConnectionException e) {
