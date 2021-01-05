@@ -7,7 +7,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>mango-zip</artifactId>
+    <artifactId>core-zip</artifactId>
     <name>Mango Core zip (no modules)</name>
     <packaging>pom</packaging>
     <profiles>
