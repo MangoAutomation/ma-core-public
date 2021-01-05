@@ -6,7 +6,6 @@ package com.serotonin.m2m2;
 
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -239,11 +238,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     private void freemarkerInitialize() {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
-        File baseTemplateDir = Common.MA_HOME_PATH.resolve(Constants.DIR_FTL).toFile();
-        if(!baseTemplateDir.exists()) {
-            LOG.info("Not initializing Freemarker, this test is not running in Core source tree.  Requires ./ftl directory to initialize.");
-            return;
-        }
 
         try {
             List<TemplateLoader> loaders = new ArrayList<>();
@@ -262,16 +256,19 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
             // Add template loaders defined by modules.
             for (FreemarkerTemplateLoaderDefinition def : ModuleRegistry.getDefinitions(FreemarkerTemplateLoaderDefinition.class)) {
-                loaders.add(0, def.getTemplateLoader());
+                try {
+                    loaders.add(0, def.getTemplateLoader());
+                } catch (IOException e) {
+                    LOG.error("Error getting FTL template loader for module " + def.getModule().getName(), e);
+                }
             }
 
             cfg.setTemplateLoader(new MultiTemplateLoader(loaders.toArray(new TemplateLoader[0])));
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Exception defining Freemarker template directory", e);
+        } catch (IOException e) {
+            LOG.error("Exception defining Freemarker template directory: " + e.getMessage(), e);
         }
 
-        cfg.setObjectWrapper(new DefaultObjectWrapper());
+        cfg.setObjectWrapper(new DefaultObjectWrapper(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS));
         Common.freemarkerConfiguration = cfg;
     }
 
