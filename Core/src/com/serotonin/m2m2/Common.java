@@ -430,7 +430,8 @@ public class Common {
      * Get the current user from the Spring Security context (stored in a ThreadLocal). This is usually an instance
      * of {@link User} for users that are logged in and have a HTTP session. However it may also be an instance of
      * {@link SystemSuperadmin} or {@link Anonymous}
-     * @return
+     * @return the current user
+     * @throws PermissionException if there is no user in the context
      */
     public static PermissionHolder getUser() throws PermissionException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
