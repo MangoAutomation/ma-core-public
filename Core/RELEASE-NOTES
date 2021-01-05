@@ -51,13 +51,14 @@
 * Add env property to limit the number of IN query operands db.in.maxOperands for very large queries
 * Add env property to control backup location paths.backup
 * Only allow creating user comments if the User has read permission for the referenced item
+* You can now set env properties via Java system properties prefixed with "mango."
+* You can now set env properties via environment variables prefixed with "mango_" and with dots replaced with underscores
 * Upgrade log4j to 2.13.2
 * You can now set log4j2 properties via your env.properties file, the properties should start with "log4j2."
 * You can now access env properties in log4j2.xml configuration files using syntax ${mango:property.name}
-* You can now set env properties via Java system properties prefixed with "mango."
-* You can now set env properties via environment variables prefixed with "mango_" and with dots replaced with underscores
 * Add properties to env.properties to control the logging levels and patterns when using the built in log4j2.xml file
 * User configured log4j2.xml files using the property "${sys:ma.logs}" should be modified to use "${mango:paths.logs}" instead
+* If you have configured a log4j2.xml file in overrides, you should specify its location via the env property "log4j2.configurationFile"
 * Enable compression of rolled over log files using gzip
 * Old log files are now deleted after 30 days, or 1GB of files are accumulated, or after 1000 files are created. This is configurable via env.properties.
 * Active log file size is now capped at 100MB before rolling over. This is configurable via env.properties.
@@ -65,6 +66,7 @@
 * The location of the env.properties can now be specified via an environment variable "mango_config" or via Java system property "mango.config"
 * The env.properties file is now created on startup if it does not exist, it will be created with all properties commented out
 * Mango will now fail to start if the env.properties file has POSIX "others" read/write permissions. You must manually adjust the permissions on your env.properties file so it is not readable or writable by "others".
+* $MA_HOME/overrides/classes and $MA_HOME/overrides/properties are no longer added to the classpath via the default start up scripts.
 
 *Version 3.7.4*
 * Improve work item failure logging
