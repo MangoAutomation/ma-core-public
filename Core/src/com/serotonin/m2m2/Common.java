@@ -86,6 +86,8 @@ import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.PermissionHolder.Anonymous;
+import com.serotonin.m2m2.vo.permission.PermissionHolder.SystemSuperadmin;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.provider.Providers;
 import com.serotonin.timer.AbstractTimer;
@@ -424,12 +426,10 @@ public class Common {
         return new TranslatableMessage("common.tp.description", periods, new TranslatableMessage(periodKey));
     }
 
-    // Get the user of the current HTTP request or the background context
     /**
-     * Get a User from the http context and if not from there try the background context
-     *  Ideally we will know what context to use but this may not be possible in which case
-     *  this method is helpful.  Note that there may be a permission holder in the background context,
-     *  in which case this method will return null and you should use @see Common.getBackgroundContextPermissionHolder()
+     * Get the current user from the Spring Security context (stored in a ThreadLocal). This is usually an instance
+     * of {@link User} for users that are logged in and have a HTTP session. However it may also be an instance of
+     * {@link SystemSuperadmin} or {@link Anonymous}
      * @return
      */
     public static PermissionHolder getUser() throws PermissionException {
