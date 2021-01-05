@@ -61,6 +61,10 @@
 * Enable compression of rolled over log files using gzip
 * Old log files are now deleted after 30 days, or 1GB of files are accumulated, or after 1000 files are created. This is configurable via env.properties.
 * Active log file size is now capped at 100MB before rolling over. This is configurable via env.properties.
+* The default location of the env.properties file is now $MA_HOME/env.properties, Mango will still fall back to the old location at $MA_HOME/overrides/properties/env.properties
+* The location of the env.properties can now be specified via an environment variable "mango_config" or via Java system property "mango.config"
+* The env.properties file is now created on startup if it does not exist, it will be created with all properties commented out
+* Mango will now fail to start if the env.properties file has POSIX "others" read/write permissions. You must manually adjust the permissions on your env.properties file so it is not readable or writable by "others".
 
 *Version 3.7.4*
 * Improve work item failure logging
