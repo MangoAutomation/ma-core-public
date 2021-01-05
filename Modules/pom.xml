@@ -151,22 +151,26 @@
                                 <outputDirectory>${MA_HOME}/web/modules/</outputDirectory>
                             </configuration>
                         </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <!-- Used to output .sql files from Mango core so they can be used by mango-jooq-maven-plugin -->
+                    <!-- See https://maven.apache.org/plugins/maven-remote-resources-plugin/examples/sharing-resources.html -->
+                    <artifactId>maven-remote-resources-plugin</artifactId>
+                    <configuration>
+                        <resourceBundles>
+                            <resourceBundle>com.infiniteautomation:mango:${project.version}</resourceBundle>
+                        </resourceBundles>
+                        <attachToMain>false</attachToMain>
+                        <attachToTest>false</attachToTest>
+                    </configuration>
+                    <executions>
                         <execution>
-                            <id>unpack-sql</id>
-                            <phase>none</phase>
+                            <!-- default phase is generate-resources, but we need to run this before mango-jooq-maven-plugin -->
+                            <phase>generate-sources</phase>
                             <goals>
-                                <goal>unpack</goal>
+                                <goal>process</goal>
                             </goals>
-                            <configuration>
-                                <artifactItems>
-                                    <artifactItem>
-                                        <groupId>com.infiniteautomation</groupId>
-                                        <artifactId>mango</artifactId>
-                                        <version>${project.version}</version>
-                                        <includes>com/serotonin/m2m2/db/*.sql</includes>
-                                    </artifactItem>
-                                </artifactItems>
-                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
@@ -178,7 +182,7 @@
                             <scriptImport>
                                 <generateTables>false</generateTables>
                                 <fileSet>
-                                    <directory>${project.build.directory}/dependency</directory>
+                                    <directory>${project.build.directory}/maven-shared-archive-resources</directory>
                                     <includes>
                                         <include>**/createTables-H2.sql</include>
                                     </includes>

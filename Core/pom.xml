@@ -165,6 +165,24 @@
                     </scriptImports>
                 </configuration>
             </plugin>
+            <plugin>
+                <!-- Used to output .sql files from Mango core so they can be used by mango-jooq-maven-plugin -->
+                <!-- See https://maven.apache.org/plugins/maven-remote-resources-plugin/examples/sharing-resources.html -->
+                <artifactId>maven-remote-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <resourcesDirectory>${basedir}/resources</resourcesDirectory>
+                    <includes>
+                        <include>**/*.sql</include>
+                    </includes>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
