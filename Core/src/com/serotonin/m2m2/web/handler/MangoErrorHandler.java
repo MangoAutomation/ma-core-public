@@ -9,7 +9,6 @@ import java.io.IOException;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
@@ -69,7 +68,6 @@ public class MangoErrorHandler extends ErrorHandler {
                     if(th instanceof NestedServletException)
                         th = th.getCause();
 
-                    HttpSession sesh = baseRequest.getSession(false);
                     String uri;
 
                     //We are handling this here
@@ -94,17 +92,12 @@ public class MangoErrorHandler extends ErrorHandler {
                             request.setAttribute(WebAttributes.ACCESS_DENIED_403, th);
                             response.sendRedirect(uri);
                         }else{
-                            // Redirect to Error URI
-                            if(sesh != null)
-                                sesh.setAttribute(Common.SESSION_USER_EXCEPTION, th);
                             uri = DefaultPagesDefinition.getErrorUri(baseRequest, response);
                             response.sendRedirect(uri);
                         }
                     }else{
                         //Resource/Rest Request
                         baseRequest.setHandled(true);
-                        if(sesh != null)
-                            sesh.setAttribute(Common.SESSION_USER_EXCEPTION, th.getCause());
                     }
                 }
                 break;

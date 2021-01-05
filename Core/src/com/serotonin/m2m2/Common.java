@@ -101,8 +101,6 @@ import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 
 public class Common {
-    public static final String SESSION_USER_EXCEPTION  = "MANGO_USER_LAST_EXCEPTION";
-
     // Note the start time of the application.
     public static final long START_TIME = ManagementFactory.getRuntimeMXBean().getStartTime();
 
