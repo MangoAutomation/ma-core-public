@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
 
@@ -99,7 +99,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                 // if we didn't fail then we can assume there is no value in the database
                 List<PointValueTime> cache = null;
                 if(!failed) {
-                    cache = latestValuesMap.get(dataPoint.getDataPoint().getId());
+                    cache = latestValuesMap.get(dataPoint.getDataPoint().getSeriesId());
                     if(cache == null) {
                         cache = Collections.emptyList();
                     }
