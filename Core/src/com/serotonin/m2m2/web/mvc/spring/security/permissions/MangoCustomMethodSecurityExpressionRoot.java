@@ -1,6 +1,5 @@
 /**
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- *
  */
 package com.serotonin.m2m2.web.mvc.spring.security.permissions;
 
@@ -11,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -18,18 +18,16 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Class to define Custom Spring EL Expressions for use in @PreAuthorize and @PostAuthorize annotations
  *
- *
  * @author Terry Packer
  */
 public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionRoot
-implements MethodSecurityExpressionOperations {
+        implements MethodSecurityExpressionOperations {
 
     private final PermissionService permissionService;
 
@@ -38,123 +36,142 @@ implements MethodSecurityExpressionOperations {
         this.permissionService = permissionService;
     }
 
-    /**
-     * @return true if the user has the superadmin permission and is not disabled
-     */
-    public boolean hasAdminPermission() {
-        Object principal = this.getPrincipal();
-
-        if (principal instanceof User) {
-            User user = (User) this.getPrincipal();
-            return permissionService.hasAdminRole(user);
+    private <T> T checkNull(T item) {
+        if (item == null) {
+            throw new NotFoundException();
         }
-
-        // principal is probably a string "anonymousUser"
-
-        return false;
+        return item;
     }
 
     /**
      * Is this User an admin?
-     * @return
+     *
+     * @return true if user is superadmin
      */
-    @Deprecated
     public boolean isAdmin() {
-        return this.hasAdminPermission();
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
+            return false;
+        }
+
+        PermissionHolder user = (PermissionHolder) this.getPrincipal();
+        return permissionService.hasAdminRole(user);
     }
 
     /**
-     * Does this User have data source permission?
+     * Does this User have data source permission? Analogous to isGrantedPermission('permissionDatasource')
+     *
      * @return
      */
-    public boolean hasDataSourcePermission(){
-        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
+    public boolean hasDataSourcePermission() {
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
+            return false;
+        }
+
+        PermissionHolder user = (PermissionHolder) this.getPrincipal();
         return permissionService.hasDataSourcePermission(user);
     }
 
     /**
      * Does this User have edit access for this data source
+     *
      * @param xid
      * @return
      */
-    public boolean hasDataSourceXidPermission(String xid){
-        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
-        if(permissionService.hasAdminRole(user))
-            return true;
-        DataSourceVO dsvo = DataSourceDao.getInstance().getByXid(xid);
-        if((dsvo == null)||(!permissionService.hasPermission(user, dsvo.getEditPermission())))
+    public boolean hasDataSourceXidPermission(String xid) {
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
             return false;
-        return true;
+        }
+
+        PermissionHolder user = (PermissionHolder) this.getPrincipal();
+        DataSourceVO dsvo = checkNull(DataSourceDao.getInstance().getByXid(xid));
+        return permissionService.hasPermission(user, dsvo.getEditPermission());
     }
 
     /**
      * Checks if a user is granted a permission
+     *
      * @param permissionName System setting key for the granted permission
      * @return
      */
     public boolean isGrantedPermission(String permissionName) {
-        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(permissionName);
-        if(def == null) {
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
             return false;
-        }else {
-            return permissionService.hasPermission((PermissionHolder) this.getPrincipal(), def.getPermission());
         }
+
+        PermissionDefinition def = checkNull(ModuleRegistry.getPermissionDefinition(permissionName));
+        return permissionService.hasPermission((PermissionHolder) this.getPrincipal(), def.getPermission());
     }
 
     /**
      * Does a user have data point read permissions?
-     * @param vo
+     *
+     * @param xid
      * @return
      */
-    public boolean hasDataPointXidReadPermission(String xid){
-        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
-        DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
+    public boolean hasDataPointXidReadPermission(String xid) {
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
+            return false;
+        }
 
-        return (vo != null) && permissionService.hasPermission(user, vo.getReadPermission());
+        PermissionHolder user = (PermissionHolder) this.getPrincipal();
+        DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
+        return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
      * Does the user have read permissions to every data point in the list?
+     *
      * @param xids
      * @return
      */
-    public boolean hasDataPointXidsReadPermission(String[] xids){
-        User user =  (User) this.getPrincipal();
-        for(String xid : xids){
-            DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-            if((vo == null)||(!permissionService.hasPermission(user, vo.getReadPermission())))
-                return false;
+    public boolean hasDataPointXidsReadPermission(String[] xids) {
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
+            return false;
+        }
 
+        PermissionHolder user = (PermissionHolder) this.getPrincipal();
+        for (String xid : xids) {
+            DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
+            if (!permissionService.hasPermission(user, vo.getReadPermission()))
+                return false;
         }
         return true;
     }
 
     /**
      * Does a user have data point set permissions?
-     * @param vo
+     *
+     * @param xid
      * @return
      */
-    public boolean hasDataPointXidSetPermission(String xid){
-        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
-        DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
+    public boolean hasDataPointXidSetPermission(String xid) {
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
+            return false;
+        }
 
-        return (vo != null) && permissionService.hasPermission(user, vo.getSetPermission());
+        PermissionHolder user = (PermissionHolder) this.getPrincipal();
+        DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
+        return permissionService.hasPermission(user, vo.getSetPermission());
     }
 
     /**
-     * TODO Throw NotFoundRestException instead?
      * Does the user have read permissions to every data point in the list?
+     *
      * @param xids
      * @return
      */
-    public boolean hasDataPointXidsSetPermission(String[] xids){
-        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
-        for(String xid : xids){
-            DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-            if((vo == null)||(!permissionService.hasPermission(user, vo.getSetPermission())))
-                return false;
-
+    public boolean hasDataPointXidsSetPermission(String[] xids) {
+        if (!(this.getPrincipal() instanceof PermissionHolder)) {
+            return false;
         }
+
+        PermissionHolder user = (PermissionHolder) this.getPrincipal();
+        for (String xid : xids) {
+            DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
+            if (!permissionService.hasPermission(user, vo.getSetPermission()))
+                return false;
+        }
+
         return true;
     }
 
