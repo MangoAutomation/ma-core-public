@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
@@ -20,25 +21,28 @@ import org.springframework.stereotype.Component;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 
 /**
- * @author Jared Wiltshire
+ * <p>This handles requests where the user is not authenticated. See also {@link MangoAccessDeniedHandler} which handles requests where the user is authenticated but does not have access.</p>
  *
+ * @author Jared Wiltshire
  */
 @Component
 public class MangoAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
     final RequestMatcher browserHtmlRequestMatcher;
+    final Environment env;
 
     @Autowired
-    public MangoAuthenticationEntryPoint(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
+    public MangoAuthenticationEntryPoint(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, Environment env) {
         // this URL is not actually used
         super("/login.htm");
 
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
+        this.env = env;
     }
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
-        if (browserHtmlRequestMatcher.matches(request)) {
+        if (!env.getProperty("rest.disableErrorRedirects", Boolean.class, false) && browserHtmlRequestMatcher.matches(request)) {
             super.commence(request, response, authException);
         } else {
             response.sendError(HttpStatus.UNAUTHORIZED.value(), authException.getMessage());

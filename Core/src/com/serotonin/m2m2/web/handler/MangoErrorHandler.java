@@ -1,106 +1,45 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- *
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.web.handler;
 
 import java.io.IOException;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.springframework.security.web.WebAttributes;
-import org.springframework.web.util.NestedServletException;
+import org.springframework.web.servlet.DispatcherServlet;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
-import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.BrowserRequestMatcher;
 
 /**
- * Handle and process some of the basic responses that modules may want to
- * override
+ * Handles calls to {@link HttpServletResponse#sendError(int)} and exceptions that are thrown outside of the Spring {@link DispatcherServlet}
  *
  * @author Terry Packer
+ * @author Jared Wiltshire
  */
 public class MangoErrorHandler extends ErrorHandler {
 
-    private final String ACCESS_DENIED = "/unauthorized.htm";
-
     @Override
-    protected void generateAcceptableResponse(Request baseRequest, HttpServletRequest request,
-            HttpServletResponse response, int code, String message, String mimeType) throws IOException {
-
-        //If this response is already comitted we won't bother to handle this
-        if(response.isCommitted()) {
-            return;
-        }
-        
-        //The cases we need to handle
-        // 1) - Not found redirects to not found URI
-        // 2) - Exception redirects to error URI
-        // 3) - Unauthorized redirects to unauthorized URI
-        // 4) - Other ?
-
-        switch (code) {
-            case 404:
-                if(BrowserRequestMatcher.INSTANCE.matches(request)){
-                    //Forward to Not Found URI
-                    String uri = DefaultPagesDefinition.getNotFoundUri(request, response);
+    public void doError(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            if (!Common.envProps.getBoolean("rest.disableErrorRedirects", false) && BrowserRequestMatcher.INSTANCE.matches(request)) {
+                String uri;
+                if (response.getStatus() == 404) {
+                    uri = DefaultPagesDefinition.getNotFoundUri(request, response);
+                } else {
+                    uri = DefaultPagesDefinition.getErrorUri(baseRequest, response);
+                }
+                if (uri != null) {
                     response.sendRedirect(uri);
-                }else{
-                    //Resource/Rest Request
-                    baseRequest.setHandled(true);
                 }
-
-                break;
-            default:
-                //Catch All unhandled Responses with errors
-                Throwable th = (Throwable)request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-                //Does this require handling
-                if(th != null){
-
-                    if(th instanceof NestedServletException)
-                        th = th.getCause();
-
-                    String uri;
-
-                    //We are handling this here
-                    baseRequest.setHandled(true);
-
-                    //We need to do something
-                    if(BrowserRequestMatcher.INSTANCE.matches(request)){
-                        //TODO There is no longer a way to get a PermissionException here due to the PermissionExceptionFilter.
-                        // However, there is no User in the Security Context at this point which means we cannot successfully do a forward...
-                        // need to understand how this is happening.
-                        //
-                        //
-                        //Are we a PermissionException
-                        if(th instanceof PermissionException){
-                            PermissionHolder user = Common.getUser();
-                            if(user instanceof User) {
-                                uri = DefaultPagesDefinition.getUnauthorizedUri(request, response, (User)user);
-                            }else {
-                                uri = ACCESS_DENIED;
-                            }
-                            // Put exception into request scope (perhaps of use to a view)
-                            request.setAttribute(WebAttributes.ACCESS_DENIED_403, th);
-                            response.sendRedirect(uri);
-                        }else{
-                            uri = DefaultPagesDefinition.getErrorUri(baseRequest, response);
-                            response.sendRedirect(uri);
-                        }
-                    }else{
-                        //Resource/Rest Request
-                        baseRequest.setHandled(true);
-                    }
-                }
-                break;
+            }
+        } finally {
+            baseRequest.setHandled(true);
         }
     }
 }

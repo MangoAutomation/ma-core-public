@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
@@ -205,7 +205,6 @@ public class MangoSecurityConfiguration {
     @Autowired RequestCache requestCache;
     @Autowired CsrfTokenRepository csrfTokenRepository;
     @Autowired SwitchUserFilter switchUserFilter;
-    @Autowired PermissionExceptionFilter permissionExceptionFilter;
     @Autowired SessionRegistry sessionRegistry;
     @Autowired SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
     @Autowired JsonLoginConfigurer jsonLoginConfigurer;
@@ -293,8 +292,6 @@ public class MangoSecurityConfiguration {
             //http.exceptionHandling()
             //.authenticationEntryPoint(authenticationEntryPoint)
             //.accessDeniedHandler(accessDeniedHandler);
-
-            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             // can we enable token and basic auth for this proxy?
             http.httpBasic().disable();
@@ -394,8 +391,6 @@ public class MangoSecurityConfiguration {
             http.exceptionHandling()
             .authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler);
-
-            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             if (basicAuthenticationEnabled) {
                 http.httpBasic()
@@ -514,7 +509,6 @@ public class MangoSecurityConfiguration {
             .accessDeniedHandler(accessDeniedHandler);
 
             http.addFilterAfter(switchUserFilter, FilterSecurityInterceptor.class);
-            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
                 http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null)), ExceptionTranslationFilter.class);
