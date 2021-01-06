@@ -13,7 +13,7 @@ import org.springframework.security.config.annotation.method.configuration.Globa
  *
  * @author Jared Wiltshire
  */
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @Configuration
 public class MangoMethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
 
