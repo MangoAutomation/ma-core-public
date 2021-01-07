@@ -49,28 +49,21 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
 
-        log.warn("Denying access to Mango resource " + request.getRequestURI() + " to IP " + request.getRemoteAddr());
+        PermissionHolder user = Common.getUser();
+        if (log.isWarnEnabled()) {
+            log.warn(String.format("Access denied to resource %s, for user %s, IP address %s", request.getRequestURI(), user.getPermissionHolderName(), request.getRemoteAddr()));
+        }
 
-        if (!response.isCommitted()) {
-            if (!env.getProperty("rest.disableErrorRedirects", Boolean.class, false) && browserHtmlRequestMatcher.matches(request)) {
-                // browser HTML request
-                String accessDeniedUrl = null;
-
-                PermissionHolder user = Common.getUser();
-                if (user instanceof User) {
-                    log.warn("Denied user is " + user.getPermissionHolderName());
-                    accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, (User) user);
-                } else {
-                    log.warn("Denied permission holder is " + user.getPermissionHolderName());
-                }
-
+        if (!env.getProperty("rest.disableErrorRedirects", Boolean.class, false) && browserHtmlRequestMatcher.matches(request)) {
+            if (user instanceof User) {
+                String accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, (User) user);
                 if (accessDeniedUrl != null) {
                     // redirect to error page.
                     response.sendRedirect(accessDeniedUrl);
                     return;
                 }
             }
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
         }
+        response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
     }
 }
