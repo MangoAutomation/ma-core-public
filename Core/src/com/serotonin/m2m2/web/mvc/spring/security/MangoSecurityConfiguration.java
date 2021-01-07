@@ -21,11 +21,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationTrustResolver;
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -65,12 +66,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
-import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoMethodSecurityExpressionHandler;
-import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEvaluator;
 
 /**
  * @author Jared Wiltshire
@@ -80,13 +78,6 @@ import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEva
 public class MangoSecurityConfiguration {
 
     public static final String IS_PROXY_REQUEST_ATTRIBUTE = "MANGO_IS_PROXY_REQUEST";
-
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(PermissionService permissionService) {
-        MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler(permissionService);
-        expressionHandler.setPermissionEvaluator(new MangoPermissionEvaluator());
-        return expressionHandler;
-    }
 
     //TODO Inject a list of Auth providers
     //TODO annotated the MangoTokenAuthenticationProvider to enable/disable creation
@@ -105,6 +96,11 @@ public class MangoSecurityConfiguration {
         }
 
         auth.authenticationEventPublisher(authenticationEventPublisher);
+    }
+
+    @Bean
+    public AuthenticationTrustResolver trustResolver() {
+        return new AuthenticationTrustResolverImpl();
     }
 
     @Bean

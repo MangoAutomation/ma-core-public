@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- *
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.web.mvc.spring.security.permissions;
 
@@ -9,6 +8,7 @@ import java.io.Serializable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
 
 /**
  * Expand Spring EL For Pre/Post Auth Permissions Expressions
@@ -18,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
  * 
  * @author Terry Packer
  */
+@Component
 public class MangoPermissionEvaluator implements PermissionEvaluator {
 
 	@Override
