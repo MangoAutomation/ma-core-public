@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * This class proaction that can be actived via the REST system-action endpoint.
@@ -38,7 +38,7 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
      * @param input
      * @return
      */
-    public SystemActionTask getTask(final User user, final JsonNode input)
+    public SystemActionTask getTask(final PermissionHolder user, final JsonNode input)
             throws ValidationException, AccessDeniedException {
         this.hasTaskPermission(user);
         this.validate(input);
@@ -51,7 +51,7 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
      * @param user
      * @throws AccessDeniedException
      */
-    protected void hasTaskPermission(User user) throws AccessDeniedException {
+    protected void hasTaskPermission(PermissionHolder user) throws AccessDeniedException {
         PermissionDefinition permission = getPermissionDefinition();
         if(permission == null)
             return;

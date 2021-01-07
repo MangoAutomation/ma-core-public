@@ -25,7 +25,6 @@ import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDef
 import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -141,7 +140,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
      * @param user
      * @return
      */
-    public DataSourceDefinition<DataSourceVO> getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
+    public DataSourceDefinition<DataSourceVO> getDefinition(String dataSourceType, PermissionHolder user) throws NotFoundException, PermissionException {
         permissionService.ensureDataSourcePermission(user);
         DataSourceDefinition<DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
