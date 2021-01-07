@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
@@ -54,9 +56,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
-import freemarker.template.TemplateException;
 
-import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
+import freemarker.template.TemplateException;
 
 /**
  * Service to access Users
@@ -411,6 +412,16 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
+        Set<Role> inherited = permissionService.getAllInheritedRoles(holder);
+        //No user can have the anonymous role
+        if(inherited.contains(PermissionHolder.ANONYMOUS_ROLE)) {
+            result.addMessage("roles", new TranslatableMessage("users.validate.cannotHaveAnonymousRole"));
+        }
+
+        //Every user must have the user role
+        if(!inherited.contains(PermissionHolder.USER_ROLE)) {
+            result.addMessage("roles", new TranslatableMessage("users.validate.mustHaveUserRole"));
+        }
         return result;
     }
 
@@ -514,6 +525,9 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                 response.addMessage("organizationalRole", new TranslatableMessage("validate.notLongerThan", 80));
             }
         }
+
+
+
 
         return response;
     }
