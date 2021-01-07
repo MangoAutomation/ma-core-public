@@ -30,7 +30,7 @@ public class RequireAuthenticationInterceptor extends HandlerInterceptorAdapter 
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if (handler instanceof HandlerMethod) {
             HandlerMethod method = (HandlerMethod) handler;
-            if (!method.hasMethodAnnotation(AnonymousAccessAllowed.class)) {
+            if (!method.hasMethodAnnotation(AnonymousAccess.class)) {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth == null || trustResolver.isAnonymous(auth)) {
                     throw new AccessDeniedException("Anonymous access is not allowed");

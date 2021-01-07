@@ -69,6 +69,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
+import com.serotonin.m2m2.web.mvc.spring.security.permissions.RequireAuthenticationInterceptor;
 
 /**
  * @author Jared Wiltshire
@@ -338,34 +339,10 @@ public class MangoSecurityConfiguration {
             //Set the anonymous principle for unauthenticated requests
             http.anonymous().principal(PermissionHolder.ANONYMOUS);
 
-            ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authRequests = http.authorizeRequests();
-            authRequests.antMatchers(HttpMethod.OPTIONS).permitAll()
-            .antMatchers("/rest/*/login/**").denyAll()
-            .antMatchers("/rest/*/logout/**").denyAll()
-            .antMatchers(HttpMethod.POST, "/rest/*/login/su").denyAll()
-            .antMatchers(HttpMethod.POST, "/rest/*/login/exit-su").denyAll()
-            .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
-            .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
-            .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
-            .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
-            .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
-            .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
-            .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
-            .antMatchers("/rest/*/email-verification/public/**").permitAll(); //For public user registration
-
-            if (!swaggerApiDocsProtected) {
-                // add exceptions for the REST swagger endpoints
-                authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
-            } else {
-                authRequests.antMatchers("/swagger-resources/**").authenticated();
-            }
-
-            authRequests.requestMatchers(restRequestMatcher).authenticated()
-            .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
-            .antMatchers("/modules/**").denyAll()
-            .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
-
-            authRequests.anyRequest().permitAll(); // default to permit all
+            configureUrlSecurity(http.authorizeRequests()
+                    .antMatchers(HttpMethod.OPTIONS).permitAll()
+                    .antMatchers("/rest/*/login/**").denyAll()
+                    .antMatchers("/rest/*/logout/**").denyAll());
 
             http.csrf().disable();
             // After testing, we found that only the Spring Form POST submission is rendered un-usable without CSRF being enabled.  It
@@ -442,33 +419,9 @@ public class MangoSecurityConfiguration {
             //Set the anonymous principle for unauthenticated requests
             http.anonymous().principal(PermissionHolder.ANONYMOUS);
 
-            ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authRequests = http.authorizeRequests();
-            authRequests.antMatchers(HttpMethod.OPTIONS).permitAll()
-            .antMatchers("/rest/*/login").permitAll()
-            .antMatchers("/rest/*/exception/**").permitAll() //For exception info for a user's session...
-            .antMatchers(HttpMethod.POST, "/rest/*/login/su").hasRole("ADMIN")
-            .antMatchers(HttpMethod.GET, "/rest/*/translations/public/**").permitAll() //For public translations
-            .antMatchers(HttpMethod.GET, "/rest/*/json-data/public/**").permitAll() //For public json-data
-            .antMatchers(HttpMethod.GET, "/rest/*/modules/angularjs-modules/public/**").permitAll() //For public angularjs modules
-            .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
-            .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
-            .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
-            .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
-            .antMatchers("/rest/*/email-verification/public/**").permitAll(); //For public user registration
-
-            if (!swaggerApiDocsProtected) {
-                // add exceptions for the REST swagger endpoints
-                authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
-            } else {
-                authRequests.antMatchers("/swagger-resources/**").authenticated();
-            }
-
-            authRequests.requestMatchers(restRequestMatcher).authenticated()
-            .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
-            .antMatchers("/modules/**").denyAll()
-            .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
-
-            authRequests.anyRequest().permitAll(); // default to permit all
+            configureUrlSecurity(http.authorizeRequests()
+                    .antMatchers(HttpMethod.OPTIONS).permitAll()
+                    .antMatchers(HttpMethod.POST, "/rest/*/login/su").hasRole("ADMIN"));
 
             http.csrf()
             .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
@@ -537,6 +490,25 @@ public class MangoSecurityConfiguration {
         } else {
             hsts.disable();
         }
+    }
+
+    /**
+     * Default is to permit all, {@link RequireAuthenticationInterceptor} is used to ensure REST API is protected
+     */
+    private void configureUrlSecurity(ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authRequests) {
+        if (swaggerApiDocsProtected) {
+            // add exceptions for the REST swagger endpoints
+            authRequests.antMatchers("/rest/*" + swagger2Endpoint).authenticated()
+                    .antMatchers("/swagger-resources/**").authenticated();
+        }
+
+        authRequests
+                .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
+                .antMatchers("/modules/**").denyAll()
+                .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
+
+        // default is to permit all
+        authRequests.anyRequest().permitAll();
     }
 
     /**
