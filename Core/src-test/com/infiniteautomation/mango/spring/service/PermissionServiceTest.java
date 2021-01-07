@@ -3,6 +3,19 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.google.common.collect.Sets;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.Common;
@@ -18,14 +31,6 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Terry Packer
@@ -62,7 +67,7 @@ public class PermissionServiceTest extends MangoTestBase {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
-        return (MockDataSourceVO) permissionService.runAsSystemAdmin(() -> dataSourceService.insert(dsVo));
+        return (MockDataSourceVO) dataSourceService.insert(dsVo);
     }
 
     DataPointVO createDataPoint() {
@@ -85,18 +90,14 @@ public class PermissionServiceTest extends MangoTestBase {
         point.setReadPermission(MangoPermission.requireAnyRole(readRoles));
         point.setSetPermission(MangoPermission.requireAnyRole(setRoles));
         point.setPointLocator(new MockPointLocatorVO());
-        return permissionService.runAsSystemAdmin(() -> {
-            dataPointService.insert(point);
-            return point;
-        });
+        dataPointService.insert(point);
+        return point;
     }
 
     Role randomRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, UUID.randomUUID().toString(), "Random permission");
-        return permissionService.runAsSystemAdmin(() -> {
-            roleService.insert(vo);
-            return new Role(vo);
-        });
+        roleService.insert(vo);
+        return new Role(vo);
     }
 
     Set<Role> randomRoles(int size) {
@@ -174,10 +175,8 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureAdminRoleOK() {
         User testUser = this.createTestUser();
         testUser.setRoles(Collections.singleton(roleService.getSuperadminRole()));
-        permissionService.runAsSystemAdmin(() -> {
-            usersService.update(testUser.getUsername(), testUser);
-            permissionService.ensureAdminRole(testUser);
-        });
+        usersService.update(testUser.getUsername(), testUser);
+        permissionService.ensureAdminRole(testUser);
     }
 
     @Test(expected = PermissionException.class)
@@ -190,10 +189,8 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureDataSourcePermissionOK() {
         User testUser = this.createTestUser();
         testUser.setRoles(Collections.singleton(roleService.getSuperadminRole()));
-        permissionService.runAsSystemAdmin(() -> {
-            usersService.update(testUser.getUsername(), testUser);
-            permissionService.ensureDataSourcePermission(testUser);
-        });
+        usersService.update(testUser.getUsername(), testUser);
+        permissionService.ensureDataSourcePermission(testUser);
     }
 
     @Test(expected = PermissionException.class)

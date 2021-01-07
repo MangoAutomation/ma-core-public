@@ -31,20 +31,18 @@ public class NumericPointValueWithDifferentSeriesIdTest extends NumericPointValu
         DataPointService service = Common.getBean(DataPointService.class);
         DataPointDao dao = Common.getBean(DataPointDao.class);
         for(IDataPoint point : points) {
-            DataPointVO vo = (DataPointVO)point;
+            DataPointVO vo = (DataPointVO) point;
             vo.setSeriesId(dao.insertNewTimeSeries());
-            service.getPermissionService().runAsSystemAdmin(() -> {
-                try {
-                    service.update(vo.getId(), vo);
-                } catch(ValidationException e) {
-                    String failureMessage = "";
-                    for(ProcessMessage m : e.getValidationResult().getMessages()){
-                        String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                        failureMessage += messagePart;
-                    }
-                    fail(failureMessage);
+            try {
+                service.update(vo.getId(), vo);
+            } catch (ValidationException e) {
+                String failureMessage = "";
+                for (ProcessMessage m : e.getValidationResult().getMessages()) {
+                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                    failureMessage += messagePart;
                 }
-            });
+                fail(failureMessage);
+            }
         }
 
         return points;

@@ -210,12 +210,10 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
         try {
             // see if a different user is already using this address
-            permissionService.runAsSystemAdmin(() -> {
-                User existingUser = this.usersService.getUserByEmail(emailAddress);
-                if (userToUpdate == null || existingUser.getId() != userToUpdate.getId()) {
-                    throw new EmailAddressInUseException(existingUser);
-                }
-            });
+            User existingUser = this.usersService.getUserByEmail(emailAddress);
+            if (userToUpdate == null || existingUser.getId() != userToUpdate.getId()) {
+                throw new EmailAddressInUseException(existingUser);
+            }
         } catch(NotFoundException e) {
             // no existing user using this email address, proceed
         }
@@ -259,18 +257,15 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
         // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
         // generating the token.
-        return permissionService.runAsSystemAdmin(() -> {
-            int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
-            User existing = this.usersService.get(userId);
-            this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
+        int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
+        User existing = this.usersService.get(userId);
+        this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
 
 
-            User updated = (User) existing.copy();
-            updated.setEmail(verifiedEmail);
-            updated.setEmailVerified(token.getBody().getIssuedAt());
-
-            return this.usersService.update(existing, updated);
-        });
+        User updated = (User) existing.copy();
+        updated.setEmail(verifiedEmail);
+        updated.setEmailVerified(token.getBody().getIssuedAt());
+        return this.usersService.update(existing, updated);
     }
 
     /**
@@ -290,15 +285,12 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         this.verifyNoClaim(token, USER_ID_CLAIM);
         this.verifyNoClaim(token, USERNAME_CLAIM);
 
-        User created = this.permissionService.runAsSystemAdmin(() -> {
-            //Totally new user
-            newUser.setRoles(Collections.emptySet());
-            newUser.setEmail(verifiedEmail);
-            newUser.setDisabled(true); //Ensure we are disabled
-            newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
-
-            return this.usersService.insert(newUser);
-        });
+        //Totally new user
+        newUser.setRoles(Collections.emptySet());
+        newUser.setEmail(verifiedEmail);
+        newUser.setDisabled(true); //Ensure we are disabled
+        newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
+        User created = this.usersService.insert(newUser);
 
         //Raise an event upon successful insertion
         SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_NEW_USER_REGISTERED);

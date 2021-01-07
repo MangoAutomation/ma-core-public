@@ -114,20 +114,20 @@ public class EventManagerImpl implements EventManager {
     public void raiseEvent(EventType type, long time, boolean rtnApplicable,
             AlarmLevels alarmLevel, TranslatableMessage message,
             Map<String, Object> context) {
-        if(state != RUNNING)
+        if (state != RUNNING)
             return;
 
         long nowTimestamp = Common.timer.currentTimeMillis();
-        if(time > nowTimestamp) {
+        if (time > nowTimestamp) {
             log.warn("Raising event in the future! type=" + type +
                     ", message='" + message.translate(Common.getTranslations()) +
                     "' now=" + new Date(nowTimestamp) +
                     " event=" + new Date(time) +
                     " deltaMs=" + (time - nowTimestamp)
-                    );
+            );
         }
 
-        if(alarmLevel == AlarmLevels.IGNORE)
+        if (alarmLevel == AlarmLevels.IGNORE)
             return;
 
         // Check if there is an event for this type already active.
@@ -178,7 +178,7 @@ public class EventManagerImpl implements EventManager {
 
         // Get id from database by inserting event immediately.
         //Check to see if we are Not Logging these
-        if(alarmLevel != AlarmLevels.DO_NOT_LOG){
+        if (alarmLevel != AlarmLevels.DO_NOT_LOG) {
             eventDao.saveEvent(evt);
         }
 
@@ -203,46 +203,44 @@ public class EventManagerImpl implements EventManager {
                     emailUsers.add(user.getEmail());
 
                 //Notify All User Event Listeners of the new event
-                if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
+                if ((alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
                     userIdsToNotify.add(user.getId());
                 }
             }
         }
 
-        if(multicaster != null)
+        if (multicaster != null)
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
         // add email addresses for mailing lists which have been configured to receive events over a certain level
-        mailingListService.getPermissionService().runAsSystemAdmin(() -> {
-            emailUsers.addAll(mailingListService.getAlarmAddresses(alarmLevel, time,
-                    RecipientListEntryType.MAILING_LIST,
-                    RecipientListEntryType.ADDRESS,
-                    RecipientListEntryType.USER));
-        });
+        emailUsers.addAll(mailingListService.getAlarmAddresses(alarmLevel, time,
+                RecipientListEntryType.MAILING_LIST,
+                RecipientListEntryType.ADDRESS,
+                RecipientListEntryType.USER));
 
         //No Audit or Do Not Log events are User Events
-        if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
+        if ((eventUserIds.size() > 0) && (alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
             if (autoAckMessage == null)
                 lastAlarmTimestamp = Common.timer.currentTimeMillis();
         }
 
-        if (evt.isRtnApplicable()){
+        if (evt.isRtnApplicable()) {
             activeEventsLock.writeLock().lock();
-            try{
+            try {
                 activeEvents.add(evt);
-            }finally{
+            } finally {
                 activeEventsLock.writeLock().unlock();
             }
-        }else if (evt.getEventType().isRateLimited()) {
+        } else if (evt.getEventType().isRateLimited()) {
             recentEventsLock.writeLock().lock();
-            try{
+            try {
                 recentEvents.add(evt);
-            }finally{
+            } finally {
                 recentEventsLock.writeLock().unlock();
             }
         }
 
-        if ((autoAckMessage != null)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)))
+        if ((autoAckMessage != null) && (alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)))
             this.acknowledgeEvent(evt, time, null, autoAckMessage);
         else {
             if (evt.isRtnApplicable()) {

@@ -131,14 +131,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
         if(vo.getActiveRecipients() != null && !vo.getActiveRecipients().isEmpty()) {
             // Get the email addresses to send to
-            permissionService.runAsSystemAdmin(()->{
-                activeRecipients = mailingListService.getActiveRecipients(
-                        vo.getActiveRecipients(),
-                        evt.getActiveTimestamp(),
-                        RecipientListEntryType.MAILING_LIST,
-                        RecipientListEntryType.ADDRESS,
-                        RecipientListEntryType.USER);
-            });
+            activeRecipients = mailingListService.getActiveRecipients(
+                    vo.getActiveRecipients(),
+                    evt.getActiveTimestamp(),
+                    RecipientListEntryType.MAILING_LIST,
+                    RecipientListEntryType.ADDRESS,
+                    RecipientListEntryType.USER);
         }
         // Send an email to the active recipients.
         sendEmail(evt, NotificationType.ACTIVE, activeRecipients);
@@ -146,14 +144,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         // If an inactive notification is to be sent, save the active recipients.
         if (vo.isSendInactive()) {
             if (vo.isInactiveOverride() && vo.getInactiveRecipients() != null && !vo.getInactiveRecipients().isEmpty()) {
-                permissionService.runAsSystemAdmin(()->{
-                    inactiveRecipients = mailingListService.getActiveRecipients(
-                            vo.getInactiveRecipients(),
-                            evt.getActiveTimestamp(),
-                            RecipientListEntryType.MAILING_LIST,
-                            RecipientListEntryType.ADDRESS,
-                            RecipientListEntryType.USER);
-                });
+                inactiveRecipients = mailingListService.getActiveRecipients(
+                        vo.getInactiveRecipients(),
+                        evt.getActiveTimestamp(),
+                        RecipientListEntryType.MAILING_LIST,
+                        RecipientListEntryType.ADDRESS,
+                        RecipientListEntryType.USER);
             }else if(!vo.isInactiveOverride()) {
                 inactiveRecipients = activeRecipients;
             }
@@ -175,14 +171,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         Set<String> addresses;
         if(vo.getEscalationRecipients() != null && !vo.getEscalationRecipients().isEmpty()) {
             // Get the email addresses to send to
-            addresses = permissionService.runAsSystemAdmin(()->{
-                return mailingListService.getActiveRecipients(
-                        vo.getEscalationRecipients(),
-                        fireTime,
-                        RecipientListEntryType.MAILING_LIST,
-                        RecipientListEntryType.ADDRESS,
-                        RecipientListEntryType.USER);
-            });
+            addresses = mailingListService.getActiveRecipients(
+                    vo.getEscalationRecipients(),
+                    fireTime,
+                    RecipientListEntryType.MAILING_LIST,
+                    RecipientListEntryType.ADDRESS,
+                    RecipientListEntryType.USER);
         }else {
             addresses = new HashSet<>();
         }

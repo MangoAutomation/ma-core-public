@@ -94,85 +94,75 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
     @Test
     public void testCreate() {
         runTest(() -> {
-            getService().permissionService.runAsSystemAdmin(() -> {
-                VO vo = insertNewVO(readUser);
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-            });
+            VO vo = insertNewVO(readUser);
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
         });
     }
 
     @Test
     public void testUpdate() {
         runTest(() -> {
-            getService().permissionService.runAsSystemAdmin(() -> {
-                VO vo = insertNewVO(readUser);
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
+            VO vo = insertNewVO(readUser);
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
 
-                VO updated = updateVO(vo);
-                service.update(vo.getId(), updated);
-                fromDb = service.get(vo.getId());
-                assertVoEqual(updated, fromDb);
-            });
+            VO updated = updateVO(vo);
+            service.update(vo.getId(), updated);
+            fromDb = service.get(vo.getId());
+            assertVoEqual(updated, fromDb);
         });
     }
 
     @Test(expected = NotFoundException.class)
     public void testDelete() {
         runTest(() -> {
-            getService().permissionService.runAsSystemAdmin(() -> {
-                VO vo = insertNewVO(readUser);
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                service.delete(vo.getId());
-                service.get(vo.getId());
-            });
+            VO vo = insertNewVO(readUser);
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getId());
+            service.get(vo.getId());
         });
     }
 
     @Test
     public void testCount() {
         runTest(() -> {
-            getService().permissionService.runAsSystemAdmin(() -> {
-                List<VO> all = service.dao.getAll();
-                for(VO vo : all) {
-                    service.delete(vo.getId());
-                }
+            List<VO> all = service.dao.getAll();
+            for (VO vo : all) {
+                service.delete(vo.getId());
+            }
 
-                List<VO> vos = new ArrayList<>();
-                for(int i=0; i<5; i++) {
-                    vos.add(insertNewVO(readUser));
-                }
-                assertEquals(5, service.dao.count());
-            });
+            List<VO> vos = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                vos.add(insertNewVO(readUser));
+            }
+            assertEquals(5, service.dao.count());
         });
     }
 
     @Test
     public void testGetAll() {
         runTest(() -> {
-            getService().permissionService.runAsSystemAdmin(() -> {
-                List<VO> all = service.dao.getAll();
-                for(VO vo : all) {
-                    service.delete(vo.getId());
-                }
-                List<VO> vos = new ArrayList<>();
-                for(int i=0; i<5; i++) {
-                    vos.add(insertNewVO(readUser));
-                }
-                all = service.dao.getAll();
-                for(VO vo : all) {
-                    VO expected = null;
-                    for(VO e : vos) {
-                        if(e.getId() == vo.getId()) {
-                            expected = e;
-                        }
+            List<VO> all = service.dao.getAll();
+            for (VO vo : all) {
+                service.delete(vo.getId());
+            }
+            List<VO> vos = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                vos.add(insertNewVO(readUser));
+            }
+            all = service.dao.getAll();
+            for (VO vo : all) {
+                VO expected = null;
+                for (VO e : vos) {
+                    if (e.getId() == vo.getId()) {
+                        expected = e;
                     }
-                    assertNotNull("Didn't find expected VO", expected);
-                    assertVoEqual(expected, vo);
                 }
-            });
+                assertNotNull("Didn't find expected VO", expected);
+                assertVoEqual(expected, vo);
+            }
         });
     }
 
@@ -213,30 +203,29 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
         roleService = Common.getBean(RoleService.class);
 
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
-        getService().permissionService.runAsSystemAdmin(() -> {
-            //Add some roles
-            RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
-            roleService.insert(temp);
-            readRole = new Role(temp);
 
-            temp = new RoleVO(Common.NEW_ID, "edit-role", "Role to allow editing.");
-            roleService.insert(temp);
-            editRole = new Role(temp);
+        //Add some roles
+        RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
+        roleService.insert(temp);
+        readRole = new Role(temp);
 
-            temp = new RoleVO(Common.NEW_ID, "set-role", "Role to allow setting.");
-            roleService.insert(temp);
-            setRole = new Role(temp);
+        temp = new RoleVO(Common.NEW_ID, "edit-role", "Role to allow editing.");
+        roleService.insert(temp);
+        editRole = new Role(temp);
 
-            temp = new RoleVO(Common.NEW_ID, "delete-role", "Role to allow deleting.");
-            roleService.insert(temp);
-            deleteRole = new Role(temp);
+        temp = new RoleVO(Common.NEW_ID, "set-role", "Role to allow setting.");
+        roleService.insert(temp);
+        setRole = new Role(temp);
 
-            readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
-            editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
-            setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
-            deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
-            allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);
-        });
+        temp = new RoleVO(Common.NEW_ID, "delete-role", "Role to allow deleting.");
+        roleService.insert(temp);
+        deleteRole = new Role(temp);
+
+        readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
+        editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
+        setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
+        deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
+        allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);
     }
 
     @FunctionalInterface

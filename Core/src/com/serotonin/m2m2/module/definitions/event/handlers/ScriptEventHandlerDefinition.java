@@ -65,7 +65,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
 
     @Override
     public EventHandlerRT<ScriptEventHandlerVO> createRuntime(ScriptEventHandlerVO vo) {
-        return permissionService.runAsSystemAdmin(() -> createRuntimeInternal(vo));
+        return createRuntimeInternal(vo);
     }
 
     @Override

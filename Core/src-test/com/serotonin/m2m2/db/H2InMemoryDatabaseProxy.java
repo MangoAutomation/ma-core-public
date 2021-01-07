@@ -409,7 +409,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
 
-        runScript(new String[] {"DROP ALL OBJECTS;"}, null);
+        runScript(new String[]{"DROP ALL OBJECTS;"}, null);
         runScript(H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql"), null);
 
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
@@ -428,9 +428,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         }
 
         //clear all caches in services
-        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-            Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream().forEach(s -> s.clearCaches());
-        });
+        Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream().forEach(s -> s.clearCaches());
     }
 
     @Override

@@ -124,9 +124,7 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
         data.setExpiry(vo.getExpiryTime());
 
         if (vo.getUserId() > 0) {
-            User user = userService.getPermissionService().runAsSystemAdmin(() -> {
-                return userService.getByIdViaCache(vo.getUserId());
-            });
+            User user = userService.getByIdViaCache(vo.getUserId());
             UsernamePasswordAuthenticationToken auth = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
             SecurityContextImpl impl = new SecurityContextImpl(auth);
             data.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, impl);

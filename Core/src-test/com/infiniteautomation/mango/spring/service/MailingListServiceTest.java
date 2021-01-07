@@ -61,11 +61,9 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                MailingList fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-            });
+            service.insert(vo);
+            MailingList fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
 
             getService().permissionService.runAs(readUser, () -> {
                 service.update(vo.getXid(), vo);
@@ -79,11 +77,9 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                MailingList fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-            });
+            service.insert(vo);
+            MailingList fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
 
             getService().permissionService.runAs(readUser, () -> {
                 vo.setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()));
@@ -99,9 +95,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             Role role = new Role(10000, "new-role");
             Set<Role> editRoles = Collections.singleton(role);
             vo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-            });
+            service.insert(vo);
         }, "editPermission");
     }
 
@@ -111,13 +105,11 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                roleService.delete(editRole.getXid());
-                vo.setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()));
-                MailingList fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-            });
+            service.insert(vo);
+            roleService.delete(editRole.getXid());
+            vo.setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()));
+            MailingList fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
         });
     }
 
@@ -152,12 +144,10 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     public void testRecursiveMailingListsAreInvalid() {
         runTest(() -> {
             MailingList vo = newVO(readUser);
-            MailingList saved = getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                MailingList fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                return fromDb;
-            });
+            service.insert(vo);
+            MailingList fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            MailingList saved = fromDb;
 
             MailingList recursive = newVO(readUser);
             List<MailingListRecipient> entries = new ArrayList<>();
@@ -165,9 +155,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             ml.setMailingListId(saved.getId());
             entries.add(ml);
             recursive.setEntries(entries);
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(recursive);
-            });
+            service.insert(recursive);
         }, "recipients[0]");
     }
 

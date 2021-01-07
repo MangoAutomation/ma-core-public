@@ -203,13 +203,11 @@ public class BackupWorkItem implements WorkItem {
      * Get a JSON Backup
      * @return
      */
-    public String getBackup(){
-        return Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-            Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);
-            StringWriter stringWriter = new StringWriter();
-            Common.getBean(EmportService.class).export(data, stringWriter, 3);
-            return stringWriter.toString();
-        });
+    public String getBackup() {
+        Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);
+        StringWriter stringWriter = new StringWriter();
+        Common.getBean(EmportService.class).export(data, stringWriter, 3);
+        return stringWriter.toString();
     }
 
     /**

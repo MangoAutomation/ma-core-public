@@ -44,7 +44,7 @@ public class MangoUserDetailsService implements UserDetailsService {
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
-            return permissionService.runAsSystemAdmin(() -> usersService.get(username));
+            return usersService.get(username);
         } catch (NotFoundException e) {
             throw new UsernameNotFoundException(username);
         }

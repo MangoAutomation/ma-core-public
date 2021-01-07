@@ -80,26 +80,24 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 @Override
                 public void run() {
                     try {
-                        permissionService.runAsSystemAdmin(() -> {
-                            for(int i=0; i<numDataSources; i++) {
-                                //Create data source
-                                MockDataSourceVO ds = new MockDataSourceVO();
-                                ds.setName(Common.generateXid("Mock "));
+                        for (int i = 0; i < numDataSources; i++) {
+                            //Create data source
+                            MockDataSourceVO ds = new MockDataSourceVO();
+                            ds.setName(Common.generateXid("Mock "));
 
-                                dataSourceService.insert(ds);
+                            dataSourceService.insert(ds);
 
-                                //Create and save point
-                                DataPointVO dp = createMockDataPoint(ds, new MockPointLocatorVO());
+                            //Create and save point
+                            DataPointVO dp = createMockDataPoint(ds, new MockPointLocatorVO());
 
-                                //Delete point
-                                dataPointService.delete(dp);
+                            //Delete point
+                            dataPointService.delete(dp);
 
-                                //Delete data source
-                                dataSourceService.delete(ds);
+                            //Delete data source
+                            dataSourceService.delete(ds);
 
-                                successes.getAndIncrement();
-                            }
-                        });
+                            successes.getAndIncrement();
+                        }
                     }catch(Exception e){
                         e.printStackTrace();
                         failure.setValue(e);
@@ -142,22 +140,20 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 @Override
                 public void run() {
                     try {
-                        permissionService.runAsSystemAdmin(() -> {
-                            for(int i=0; i<numDataSources; i++) {
-                                //Create data source
-                                MockDataSourceVO ds = new MockDataSourceVO();
-                                ds.setName(Common.generateXid("Mock "));
+                        for (int i = 0; i < numDataSources; i++) {
+                            //Create data source
+                            MockDataSourceVO ds = new MockDataSourceVO();
+                            ds.setName(Common.generateXid("Mock "));
 
-                                dataSourceService.insert(ds);
+                            dataSourceService.insert(ds);
 
-                                //Create and save point
-                                createMockDataPoint(ds, new MockPointLocatorVO());
+                            //Create and save point
+                            createMockDataPoint(ds, new MockPointLocatorVO());
 
-                                //Delete data source
-                                dataSourceService.delete(ds);
-                                successes.getAndIncrement();
-                            }
-                        });
+                            //Delete data source
+                            dataSourceService.delete(ds);
+                            successes.getAndIncrement();
+                        }
                     }catch(Exception e){
                         e.printStackTrace();
                         failure.setValue(e);
@@ -196,20 +192,18 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 @Override
                 public void run() {
                     try {
-                        permissionService.runAsSystemAdmin(() -> {
-                            for(int i=0; i<numDataSources; i++) {
-                                //Create data source
-                                MockDataSourceVO ds = new MockDataSourceVO();
-                                ds.setName(Common.generateXid("Mock "));
+                        for (int i = 0; i < numDataSources; i++) {
+                            //Create data source
+                            MockDataSourceVO ds = new MockDataSourceVO();
+                            ds.setName(Common.generateXid("Mock "));
 
-                                dataSourceService.insert(ds);
+                            dataSourceService.insert(ds);
 
-                                //Create and save point
-                                createMockDataPoint(ds, new MockPointLocatorVO());
+                            //Create and save point
+                            createMockDataPoint(ds, new MockPointLocatorVO());
 
-                                successes.getAndIncrement();
-                            }
-                        });
+                            successes.getAndIncrement();
+                        }
                     }catch(Exception e){
                         e.printStackTrace();
                         failure.setValue(e);
@@ -254,40 +248,38 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 @Override
                 public void run() {
                     try {
-                        permissionService.runAsSystemAdmin(() -> {
-                            for(int i=0; i<numDataSources; i++) {
+                        for (int i = 0; i < numDataSources; i++) {
 
-                                //Insert an event handler
-                                EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
-                                ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
-                                eh.setDefinition(new ProcessEventHandlerDefinition());
-                                eh.setName(Common.generateXid("Handler "));
-                                eh.setActiveProcessCommand("ls");
+                            //Insert an event handler
+                            EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
+                            ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
+                            eh.setDefinition(new ProcessEventHandlerDefinition());
+                            eh.setName(Common.generateXid("Handler "));
+                            eh.setActiveProcessCommand("ls");
 
-                                permissionService.runAsSystemAdmin(() -> {eventHandlerService.insert(eh);});
+                            eventHandlerService.insert(eh);
 
-                                ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                                ejt.setDataSource(dataSource);
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+                            ejt.setDataSource(dataSource);
 
-                                //Get event handler
-                                AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
+                            //Get event handler
+                            AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
 
-                                //Create data source
-                                MockDataSourceVO ds = new MockDataSourceVO();
-                                ds.setName(Common.generateXid("Mock "));
+                            //Create data source
+                            MockDataSourceVO ds = new MockDataSourceVO();
+                            ds.setName(Common.generateXid("Mock "));
 
-                                DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
-                                dataSourceService.insert(ds);
+                            DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+                            dataSourceService.insert(ds);
 
-                                //Insert a mapping
-                                myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
-                                eventHandlerService.update(eh.getXid(), myEventHandler);
+                            //Insert a mapping
+                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            eventHandlerService.update(eh.getXid(), myEventHandler);
 
-                                dataSourceService.delete(ds);
+                            dataSourceService.delete(ds);
 
-                                successes.getAndIncrement();
-                            }
-                        });
+                            successes.getAndIncrement();
+                        }
                     }catch(Exception e){
                         e.printStackTrace();
                         failure.setValue(e);
@@ -304,40 +296,38 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 @Override
                 public void run() {
                     try {
-                        permissionService.runAsSystemAdmin(() -> {
-                            for(int i=0; i<numDataSources; i++) {
-                                ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                                ejt.setDataSource(dataSource);
+                        for (int i = 0; i < numDataSources; i++) {
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+                            ejt.setDataSource(dataSource);
 
-                                //Insert an event handler
-                                EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
-                                ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
-                                eh.setDefinition(new ProcessEventHandlerDefinition());
-                                eh.setName(Common.generateXid("Handler "));
-                                eh.setActiveProcessCommand("ls");
+                            //Insert an event handler
+                            EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
+                            ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
+                            eh.setDefinition(new ProcessEventHandlerDefinition());
+                            eh.setName(Common.generateXid("Handler "));
+                            eh.setActiveProcessCommand("ls");
 
-                                permissionService.runAsSystemAdmin(() -> {eventHandlerService.insert(eh);});
+                            eventHandlerService.insert(eh);
 
-                                //Get event handler
-                                AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
+                            //Get event handler
+                            AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
 
-                                //Create data source
-                                MockDataSourceVO ds = new MockDataSourceVO();
-                                ds.setName(Common.generateXid("Mock "));
+                            //Create data source
+                            MockDataSourceVO ds = new MockDataSourceVO();
+                            ds.setName(Common.generateXid("Mock "));
 
-                                DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
-                                dataSourceService.insert(ds);
+                            DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+                            dataSourceService.insert(ds);
 
-                                //Insert a mapping
-                                myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
-                                eventHandlerService.update(eh.getXid(), myEventHandler);
+                            //Insert a mapping
+                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            eventHandlerService.update(eh.getXid(), myEventHandler);
 
-                                ds.setXid(ds.getXid() + 1);
-                                dataSourceService.update(ds.getId(), ds);
+                            ds.setXid(ds.getXid() + 1);
+                            dataSourceService.update(ds.getId(), ds);
 
-                                successes.getAndIncrement();
-                            }
-                        });
+                            successes.getAndIncrement();
+                        }
                     }catch(Exception e){
                         e.printStackTrace();
                         failure.setValue(e);
@@ -375,7 +365,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
         for(int i=0; i<roleCount; i++) {
             RoleVO role = new RoleVO(Common.NEW_ID, Common.generateXid("ROLE_"), "Role " + i);
             roleVOs.add(role);
-            permissionService.runAsSystemAdmin(() -> {roleService.insert(role);});
+            roleService.insert(role);
             roles.add(role.getRole());
         }
 
@@ -396,45 +386,43 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 @Override
                 public void run() {
                     try {
-                        permissionService.runAsSystemAdmin(() -> {
-                            for(int i=0; i<numDataSources; i++) {
+                        for (int i = 0; i < numDataSources; i++) {
 
-                                //Insert an event handler
-                                EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
-                                ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
-                                eh.setDefinition(new ProcessEventHandlerDefinition());
-                                eh.setName(Common.generateXid("Handler "));
-                                eh.setActiveProcessCommand("ls");
+                            //Insert an event handler
+                            EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
+                            ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
+                            eh.setDefinition(new ProcessEventHandlerDefinition());
+                            eh.setName(Common.generateXid("Handler "));
+                            eh.setActiveProcessCommand("ls");
 
-                                permissionService.runAsSystemAdmin(() -> {eventHandlerService.insert(eh);});
+                            eventHandlerService.insert(eh);
 
-                                ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                                ejt.setDataSource(dataSource);
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+                            ejt.setDataSource(dataSource);
 
-                                //Get event handler
-                                AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
+                            //Get event handler
+                            AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
 
-                                //Create data source
-                                MockDataSourceVO ds = new MockDataSourceVO();
-                                ds.setName(Common.generateXid("Mock "));
+                            //Create data source
+                            MockDataSourceVO ds = new MockDataSourceVO();
+                            ds.setName(Common.generateXid("Mock "));
 
-                                DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
-                                dataSourceService.insert(ds);
+                            DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+                            dataSourceService.insert(ds);
 
-                                //Insert a mapping
-                                myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
-                                eventHandlerService.update(eh.getXid(), myEventHandler);
+                            //Insert a mapping
+                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            eventHandlerService.update(eh.getXid(), myEventHandler);
 
-                                new TransactionTemplate(transactionManager).execute((status) -> {
-                                    //The order of these statements matters for deadlock, we must always lock groups of tables in the same order
-                                    ejt.update("DELETE FROM dataSources WHERE id=?", new Object[] {ds.getId()});
-                                    ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {EventType.EventTypeNames.DATA_SOURCE, ds.getId()});
+                            new TransactionTemplate(transactionManager).execute((status) -> {
+                                //The order of these statements matters for deadlock, we must always lock groups of tables in the same order
+                                ejt.update("DELETE FROM dataSources WHERE id=?", new Object[]{ds.getId()});
+                                ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[]{EventType.EventTypeNames.DATA_SOURCE, ds.getId()});
 
-                                    return null;
-                                });
-                                successes.getAndIncrement();
-                            }
-                        });
+                                return null;
+                            });
+                            successes.getAndIncrement();
+                        }
                     }catch(Exception e){
                         e.printStackTrace();
                         failure.setValue(e);
@@ -451,41 +439,39 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 @Override
                 public void run() {
                     try {
-                        permissionService.runAsSystemAdmin(() -> {
-                            for(int i=0; i<numDataSources; i++) {
-                                ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                                ejt.setDataSource(dataSource);
+                        for (int i = 0; i < numDataSources; i++) {
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+                            ejt.setDataSource(dataSource);
 
-                                //Insert an event handler
-                                EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
-                                ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
-                                eh.setDefinition(new ProcessEventHandlerDefinition());
-                                eh.setName(Common.generateXid("Handler "));
-                                eh.setActiveProcessCommand("ls");
+                            //Insert an event handler
+                            EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
+                            ProcessEventHandlerVO eh = new ProcessEventHandlerVO();
+                            eh.setDefinition(new ProcessEventHandlerDefinition());
+                            eh.setName(Common.generateXid("Handler "));
+                            eh.setActiveProcessCommand("ls");
 
-                                permissionService.runAsSystemAdmin(() -> {eventHandlerService.insert(eh);});
+                            eventHandlerService.insert(eh);
 
-                                //Get event handler
-                                AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
+                            //Get event handler
+                            AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
 
-                                //Create data source
-                                MockDataSourceVO ds = new MockDataSourceVO();
-                                ds.setName(Common.generateXid("Mock "));
+                            //Create data source
+                            MockDataSourceVO ds = new MockDataSourceVO();
+                            ds.setName(Common.generateXid("Mock "));
 
-                                DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
-                                dataSourceService.insert(ds);
+                            DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+                            dataSourceService.insert(ds);
 
-                                //Insert a mapping
-                                myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
-                                eventHandlerService.update(eh.getXid(), myEventHandler);
+                            //Insert a mapping
+                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            eventHandlerService.update(eh.getXid(), myEventHandler);
 
-                                new TransactionTemplate(transactionManager).execute((status) -> {
-                                    ejt.update("UPDATE dataSources SET xid=? WHERE id=?", new Object[] {ds.getXid() + "1", ds.getId()});
-                                    return null;
-                                });
-                                successes.getAndIncrement();
-                            }
-                        });
+                            new TransactionTemplate(transactionManager).execute((status) -> {
+                                ejt.update("UPDATE dataSources SET xid=? WHERE id=?", new Object[]{ds.getXid() + "1", ds.getId()});
+                                return null;
+                            });
+                            successes.getAndIncrement();
+                        }
                     }catch(Exception e){
                         e.printStackTrace();
                         failure.setValue(e);

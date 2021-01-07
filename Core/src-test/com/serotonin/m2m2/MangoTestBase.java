@@ -41,7 +41,6 @@ import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
@@ -218,33 +217,31 @@ public class MangoTestBase {
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
 
-        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-            ImportTask task = new ImportTask(jo,
-                    Common.getTranslations(),
-                    Common.getBean(RoleService.class),
-                    Common.getBean(UsersService.class),
-                    Common.getBean(MailingListService.class),
-                    Common.getBean(DataSourceService.class),
-                    Common.getBean(DataPointService.class),
-                    Common.getBean(PublisherService.class),
-                    Common.getBean(EventHandlerService.class),
-                    Common.getBean(JsonDataService.class),
-                    Common.getBean(EventDetectorsService.class),
-                    Common.getBean(SystemPermissionService.class),
-                    null, false);
-            task.run(Common.timer.currentTimeMillis());
-            if(task.getResponse().getHasMessages()){
-                for(ProcessMessage message : task.getResponse().getMessages()){
-                    switch(message.getLevel()) {
-                        case error:
-                        case warning:
-                            fail(message.toString(Common.getTranslations()));
-                        case info:
-                            LOG.info(message.toString(Common.getTranslations()));
-                    }
+        ImportTask task = new ImportTask(jo,
+                Common.getTranslations(),
+                Common.getBean(RoleService.class),
+                Common.getBean(UsersService.class),
+                Common.getBean(MailingListService.class),
+                Common.getBean(DataSourceService.class),
+                Common.getBean(DataPointService.class),
+                Common.getBean(PublisherService.class),
+                Common.getBean(EventHandlerService.class),
+                Common.getBean(JsonDataService.class),
+                Common.getBean(EventDetectorsService.class),
+                Common.getBean(SystemPermissionService.class),
+                null, false);
+        task.run(Common.timer.currentTimeMillis());
+        if (task.getResponse().getHasMessages()) {
+            for (ProcessMessage message : task.getResponse().getMessages()) {
+                switch (message.getLevel()) {
+                    case error:
+                    case warning:
+                        fail(message.toString(Common.getTranslations()));
+                    case info:
+                        LOG.info(message.toString(Common.getTranslations()));
                 }
             }
-        });
+        }
     }
 
     /**
@@ -317,9 +314,7 @@ public class MangoTestBase {
     protected RoleVO createRole(String xid, String name, Role... inherited) {
         RoleService service = Common.getBean(RoleService.class);
         RoleVO role = new RoleVO(Common.NEW_ID, xid, name, new HashSet<>(Arrays.asList(inherited)));
-        return service.getPermissionService().runAsSystemAdmin(() -> {
-            return service.insert(role);
-        });
+        return service.insert(role);
     }
 
     /**
@@ -376,9 +371,7 @@ public class MangoTestBase {
         user.setDisabled(false);
         UsersService service = Common.getBean(UsersService.class);
 
-        return service.getPermissionService().runAsSystemAdmin(() -> {
-            return service.insert(user);
-        });
+        return service.insert(user);
     }
 
     protected MockDataSourceVO createMockDataSource() {
@@ -402,19 +395,17 @@ public class MangoTestBase {
         vo.setReadPermission(readPermission);
         vo.setEditPermission(editPermission);
 
-        return (MockDataSourceVO) service.getPermissionService().runAsSystemAdmin(() -> {
-            try {
-                return service.insert(vo);
-            }catch(ValidationException e) {
-                String failureMessage = "";
-                for(ProcessMessage m : e.getValidationResult().getMessages()){
-                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                    failureMessage += messagePart;
-                }
-                fail(failureMessage);
-                return null;
+        try {
+            return (MockDataSourceVO) service.insert(vo);
+        } catch (ValidationException e) {
+            String failureMessage = "";
+            for (ProcessMessage m : e.getValidationResult().getMessages()) {
+                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                failureMessage += messagePart;
             }
-        });
+            fail(failureMessage);
+            return null;
+        }
     }
 
     protected List<IDataPoint> createMockDataPoints(int count) {
@@ -486,19 +477,17 @@ public class MangoTestBase {
         dp.setReadPermission(readPermission);
         dp.setSetPermission(setPermission);
 
-        return service.getPermissionService().runAsSystemAdmin(() -> {
-            try {
-                return service.insert(dp);
-            } catch(ValidationException e) {
-                String failureMessage = "";
-                for(ProcessMessage m : e.getValidationResult().getMessages()){
-                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                    failureMessage += messagePart;
-                }
-                fail(failureMessage);
-                return null;
+        try {
+            return service.insert(dp);
+        } catch (ValidationException e) {
+            String failureMessage = "";
+            for (ProcessMessage m : e.getValidationResult().getMessages()) {
+                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                failureMessage += messagePart;
             }
-        });
+            fail(failureMessage);
+            return null;
+        }
     }
 
     /**

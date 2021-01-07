@@ -46,13 +46,9 @@ public class LazyFieldJsonTest extends MangoTestBase {
         RoleService roleService = Common.getBean(RoleService.class);
         PermissionService permissionService = Common.getBean(PermissionService.class);
 
-        Role role1 = permissionService.runAsSystemAdmin(() -> {
-            return roleService.insert(new RoleVO(Common.NEW_ID, "XID-1", "Role 1")).getRole();
-        });
+        Role role1 = roleService.insert(new RoleVO(Common.NEW_ID, "XID-1", "Role 1")).getRole();
 
-        Role role2 = permissionService.runAsSystemAdmin(() -> {
-            return roleService.insert(new RoleVO(Common.NEW_ID, "XID-2", "Role 2")).getRole();
-        });
+        Role role2 = roleService.insert(new RoleVO(Common.NEW_ID, "XID-2", "Role 2")).getRole();
 
         LazyField<MangoPermission> permission = new LazyField<>(() -> MangoPermission.builder().minterm(role1, role2).build());
 
@@ -77,7 +73,7 @@ public class LazyFieldJsonTest extends MangoTestBase {
             context.getReader().readInto(lazyType, readPermission, root);
 
             assertEquals(permission.get(), readPermission.get());
-        }catch (IOException | JsonException e) {
+        } catch (IOException | JsonException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -89,13 +85,9 @@ public class LazyFieldJsonTest extends MangoTestBase {
         RoleService roleService = Common.getBean(RoleService.class);
         PermissionService permissionService = Common.getBean(PermissionService.class);
 
-        Role role1 = permissionService.runAsSystemAdmin(() -> {
-            return roleService.insert(new RoleVO(Common.NEW_ID, "XID-1", "Role 1")).getRole();
-        });
+        Role role1 = roleService.insert(new RoleVO(Common.NEW_ID, "XID-1", "Role 1")).getRole();
 
-        Role role2 = permissionService.runAsSystemAdmin(() -> {
-            return roleService.insert(new RoleVO(Common.NEW_ID, "XID-2", "Role 2")).getRole();
-        });
+        Role role2 = roleService.insert(new RoleVO(Common.NEW_ID, "XID-2", "Role 2")).getRole();
 
         LazyContainer container = new LazyContainer();
         container.supplyPermission(() -> MangoPermission.builder().minterm(role1, role2).build());
@@ -120,7 +112,7 @@ public class LazyFieldJsonTest extends MangoTestBase {
             context.getReader().readInto(readContainer, root);
 
             assertEquals(container.getPermission(), readContainer.getPermission());
-        }catch (IOException | JsonException e) {
+        } catch (IOException | JsonException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }

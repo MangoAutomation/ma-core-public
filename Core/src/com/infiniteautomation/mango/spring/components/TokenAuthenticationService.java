@@ -106,15 +106,12 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
         if (username == null) {
             throw new NotFoundException();
         }
-        return this.permissionService.runAsSystemAdmin(() -> {
-            User user = this.usersService.get(username);
-            Integer userId = user.getId();
-            this.verifyClaim(token, USER_ID_CLAIM, userId);
+        User user = this.usersService.get(username);
+        Integer userId = user.getId();
+        this.verifyClaim(token, USER_ID_CLAIM, userId);
 
-            Integer tokenVersion = user.getTokenVersion();
-            this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, tokenVersion);
-
-            return user;
-        });
+        Integer tokenVersion = user.getTokenVersion();
+        this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, tokenVersion);
+        return user;
     }
 }

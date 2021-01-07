@@ -68,21 +68,22 @@ public class PublisherAuditTest extends MangoTestBase {
             AuditEventService service = Common.getBean(AuditEventService.class);
             AuditEventTableDefinition table = Common.getBean(AuditEventTableDefinition.class);
             Condition conditions = DSL.and(table.getAlias("typeName").eq(AuditEventType.TYPE_PUBLISHER), table.getAlias("objectId").eq(vo.getId()));
-            Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-                ConditionSortLimit c = new ConditionSortLimit(conditions, Arrays.asList(table.getAlias("id").asc()), null, null);
-                service.customizedQuery(
-                        c,
-                        (evt, index) -> {
-                            events.add(evt);
-                        });
-            });
-            if(events.size() == 2) {
+            ConditionSortLimit c = new ConditionSortLimit(conditions, Arrays.asList(table.getAlias("id").asc()), null, null);
+            service.customizedQuery(
+                    c,
+                    (evt, index) -> {
+                        events.add(evt);
+                    });
+            if (events.size() == 2) {
                 break;
-            }else {
+            } else {
                 events.clear();
             }
-            retries --;
-            try { Thread.sleep(500); }catch(InterruptedException e) { }
+            retries--;
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+            }
         }
 
         Assert.assertEquals(2, events.size());

@@ -92,24 +92,6 @@ public class PermissionService implements CachingService {
         this.permissionCacheInverse = this.permissionCache.inverse();
     }
 
-    /**
-     * Run a command as superadmin
-     * @param command
-     */
-    public void runAsSystemAdmin(Runnable command) {
-        runAs(systemSuperadmin, command);
-    }
-
-    /**
-     * Run a command as superadmin and return a result
-     * @param <T>
-     * @param command
-     * @return
-     */
-    public <T> T runAsSystemAdmin(Supplier<T> command) {
-        return runAs(systemSuperadmin, command);
-    }
-
     public void runAs(PermissionHolder user, Runnable command) {
         SecurityContext original = SecurityContextHolder.getContext();
         try {

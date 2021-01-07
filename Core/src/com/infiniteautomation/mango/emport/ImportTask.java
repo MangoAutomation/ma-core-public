@@ -20,7 +20,6 @@ import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
@@ -191,7 +190,7 @@ public class ImportTask extends ProgressiveTask {
 
     @Override
     protected void runImpl() {
-        Common.getBean(PermissionService.class).runAsSystemAdmin(this::runImplAsAdmin);
+        this.runImplAsAdmin();
     }
 
     protected void runImplAsAdmin() {

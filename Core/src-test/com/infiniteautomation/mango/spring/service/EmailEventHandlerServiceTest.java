@@ -73,16 +73,14 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             EmailEventHandlerVO vo = newVO(readUser);
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                roleService.delete(editRole.getId());
-                roleService.delete(readRole.getId());
-                EmailEventHandlerVO updated = (EmailEventHandlerVO) service.get(fromDb.getId());
-                fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
-                assertVoEqual(fromDb, updated);
-            });
+            service.insert(vo);
+            EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            roleService.delete(editRole.getId());
+            roleService.delete(readRole.getId());
+            EmailEventHandlerVO updated = (EmailEventHandlerVO) service.get(fromDb.getId());
+            fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
+            assertVoEqual(fromDb, updated);
         });
     }
 
@@ -93,14 +91,12 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             EmailEventHandlerVO vo = newVO(readUser);
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.update(vo.getXid(), vo);
-                EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                service.delete(vo.getId());
+            service.update(vo.getXid(), vo);
+            EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getId());
 
-                service.get(vo.getId());
-            });
+            service.get(vo.getId());
         });
     }
 
@@ -177,15 +173,13 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     }
 
     void addRoleToCreatePermission(Role vo) {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(EventHandlerCreatePermission.PERMISSION);
-            Set<Set<Role>> roleSet = def.getPermission().getRoles();
-            Set<Set<Role>> newRoles = new HashSet<>();
-            newRoles.add(Collections.singleton(vo));
-            for(Set<Role> roles : roleSet) {
-                newRoles.add(new HashSet<>(roles));
-            }
-            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
-        });
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(EventHandlerCreatePermission.PERMISSION);
+        Set<Set<Role>> roleSet = def.getPermission().getRoles();
+        Set<Set<Role>> newRoles = new HashSet<>();
+        newRoles.add(Collections.singleton(vo));
+        for (Set<Role> roles : roleSet) {
+            newRoles.add(new HashSet<>(roles));
+        }
+        Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
     }
 }

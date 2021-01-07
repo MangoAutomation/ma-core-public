@@ -58,9 +58,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUserReadRole() {
         runTest(() -> {
             User vo = newVO(editUser);
-            User saved = getService().permissionService.runAsSystemAdmin(() -> {
-                return service.insert(vo);
-            });
+            User saved = service.insert(vo);
             getService().permissionService.runAs(saved, () -> {
                 User fromDb = service.get(saved.getId());
                 assertVoEqual(saved, fromDb);
@@ -90,9 +88,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             addRoleToEditSelfPermission(readRole);
             User vo = newVO(editUser);
-            User saved = getService().permissionService.runAsSystemAdmin(() -> {
-                return service.insert(vo);
-            });
+            User saved = service.insert(vo);
             getService().permissionService.runAs(vo, () -> {
                 saved.setName("I edited myself");
                 service.update(saved.getUsername(), saved);
@@ -106,9 +102,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUserEditRoleDefaultUser() {
         runTest(() -> {
             User vo = newVO(editUser);
-            User saved = getService().permissionService.runAsSystemAdmin(() -> {
-                return service.insert(vo);
-            });
+            User saved = service.insert(vo);
 
             //Ensure the ability to edit self
             List<Role> myRoles = saved.getRoles().stream().collect(Collectors.toList());
@@ -200,7 +194,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             User vo = newVO(readUser);
             vo.setRoles(Collections.singleton(readRole));
-            User saved = getService().permissionService.runAsSystemAdmin(() -> service.insert(vo));
+            User saved = service.insert(vo);
 
             //Ensure the ability to edit self
             List<Role> myRoles = new ArrayList<>(saved.getRoles());
@@ -220,22 +214,20 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             User vo = newVO(readUser);
             vo.setRoles(Collections.singleton(readRole));
-            getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                User fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                roleService.delete(readRole.getId());
-                //Remove the read role from the local copy
-                Set<Role> roles = new HashSet<>(fromDb.getRoles());
-                roles.remove(readRole);
-                fromDb.setRoles(roles);
-                //Check database
-                User updated = service.get(fromDb.getId());
-                assertVoEqual(fromDb, updated);
-                //Check cache
-                updated = service.get(fromDb.getUsername());
-                assertVoEqual(fromDb, updated);
-            });
+            service.insert(vo);
+            User fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            roleService.delete(readRole.getId());
+            //Remove the read role from the local copy
+            Set<Role> roles = new HashSet<>(fromDb.getRoles());
+            roles.remove(readRole);
+            fromDb.setRoles(roles);
+            //Check database
+            User updated = service.get(fromDb.getId());
+            assertVoEqual(fromDb, updated);
+            //Check cache
+            updated = service.get(fromDb.getUsername());
+            assertVoEqual(fromDb, updated);
         });
     }
 
@@ -243,19 +235,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Override
     public void testDelete() {
         runTest(() -> {
-            getService().permissionService.runAsSystemAdmin(() -> {
-                User vo = insertNewVO(readUser);
-                vo.setRoles(Collections.singleton(readRole));
-                service.update(vo.getUsername(), vo);
-                User fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                service.delete(vo.getId());
+            User vo = insertNewVO(readUser);
+            vo.setRoles(Collections.singleton(readRole));
+            service.update(vo.getUsername(), vo);
+            User fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getId());
 
-                //Ensure the mappings are gone
-                assertEquals(0, getDao().getUserRoles(vo).size());
+            //Ensure the mappings are gone
+            assertEquals(0, getDao().getUserRoles(vo).size());
 
-                service.get(vo.getId());
-            });
+            service.get(vo.getId());
         });
     }
 
@@ -265,10 +255,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             User vo = newVO(readUser);
 
             vo.setRoles(Collections.singleton(readRole));
-            User saved = getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                return service.get(vo.getId());
-            });
+            service.insert(vo);
+            User saved = service.get(vo.getId());
             getService().permissionService.runAs(saved, () -> {
                 saved.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
                 service.update(saved.getUsername(), saved);
@@ -278,13 +266,11 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Test
     public void testChangeUsernameAsAdmin() {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            User vo = newVO(readUser);
-            service.insert(vo);
-            vo = service.get(vo.getId());
-            vo.setUsername(UUID.randomUUID().toString());
-            service.update(vo.getId(), vo);
-        });
+        User vo = newVO(readUser);
+        service.insert(vo);
+        vo = service.get(vo.getId());
+        vo.setUsername(UUID.randomUUID().toString());
+        service.update(vo.getId(), vo);
     }
 
     @Test
@@ -292,27 +278,23 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             removeRoleFromEditSelfPermission(PermissionHolder.USER_ROLE);
             addRoleToEditSelfPermission(readRole);
-            getService().permissionService.runAsSystemAdmin(() -> {
-                PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
+            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
 
-                Set<Set<Role>> roleSet = def.getPermission().getRoles();
-                Set<Set<Role>> newRoles = new HashSet<>();
-                newRoles.add(Collections.singleton(editRole));
-                for(Set<Role> roles : roleSet) {
-                    if(roles.contains(PermissionHolder.USER_ROLE)) {
-                        continue; //skip the user role
-                    }
-                    newRoles.add(roles);
+            Set<Set<Role>> roleSet = def.getPermission().getRoles();
+            Set<Set<Role>> newRoles = new HashSet<>();
+            newRoles.add(Collections.singleton(editRole));
+            for (Set<Role> roles : roleSet) {
+                if (roles.contains(PermissionHolder.USER_ROLE)) {
+                    continue; //skip the user role
                 }
-                Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
-            });
+                newRoles.add(roles);
+            }
+            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
 
             User vo = newVO(readUser);
             vo.setRoles(Collections.singleton(readRole));
-            User saved = getService().permissionService.runAsSystemAdmin(() -> {
-                service.insert(vo);
-                return service.get(vo.getId());
-            });
+            service.insert(vo);
+            User saved = service.get(vo.getId());
 
             getService().permissionService.runAs(saved, () -> {
                 saved.setUsername(UUID.randomUUID().toString());
@@ -324,26 +306,22 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testChangeUsernameWithPermission() {
 
         //Add read role to change username permission
-        getService().permissionService.runAsSystemAdmin(() -> {
-            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
-            Set<Set<Role>> roleSet = def.getPermission().getRoles();
-            Set<Set<Role>> newRoles = new HashSet<>();
-            newRoles.add(Collections.singleton(readRole));
-            for(Set<Role> roles : roleSet) {
-                newRoles.add(new HashSet<>(roles));
-            }
-            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
-        });
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
+        Set<Set<Role>> roleSet = def.getPermission().getRoles();
+        Set<Set<Role>> newRoles = new HashSet<>();
+        newRoles.add(Collections.singleton(readRole));
+        for (Set<Role> roles : roleSet) {
+            newRoles.add(new HashSet<>(roles));
+        }
+        Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
 
         //Ensure they can edit self
         addRoleToEditSelfPermission(readRole);
 
         User vo = newVO(readUser);
         vo.setRoles(Collections.singleton(readRole));
-        User saved = getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-            return service.get(vo.getId());
-        });
+        service.insert(vo);
+        User saved = service.get(vo.getId());
 
         getService().permissionService.runAs(saved, () -> {
             saved.setUsername(UUID.randomUUID().toString());
@@ -352,24 +330,20 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     void addRoleToEditSelfPermission(Role vo) {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-            Set<Set<Role>> roleSet = def.getPermission().getRoles();
-            Set<Set<Role>> newRoles = new HashSet<>();
-            newRoles.add(Collections.singleton(vo));
-            for(Set<Role> roles : roleSet) {
-                newRoles.add(new HashSet<>(roles));
-            }
-            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
-        });
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
+        Set<Set<Role>> roleSet = def.getPermission().getRoles();
+        Set<Set<Role>> newRoles = new HashSet<>();
+        newRoles.add(Collections.singleton(vo));
+        for (Set<Role> roles : roleSet) {
+            newRoles.add(new HashSet<>(roles));
+        }
+        Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
     }
 
     void removeRoleFromEditSelfPermission(Role vo) {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-            MangoPermission permission = def.getPermission();
-            Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.withoutRole(vo).getRoles()), def);
-        });
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
+        MangoPermission permission = def.getPermission();
+        Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.withoutRole(vo).getRoles()), def);
     }
 
     @Override
@@ -460,41 +434,33 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Test
     public void testUsernameUnique() {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            User user = insertNewVO(readUser);
-            assertFalse(getDao().isUsernameUnique(user.getUsername(), Common.NEW_ID));
-            assertTrue(getDao().isUsernameUnique(user.getUsername(), user.getId()));
-        });
+        User user = insertNewVO(readUser);
+        assertFalse(getDao().isUsernameUnique(user.getUsername(), Common.NEW_ID));
+        assertTrue(getDao().isUsernameUnique(user.getUsername(), user.getId()));
     }
 
     @Test
     public void testEmailUnique() {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            User user = insertNewVO(readUser);
-            assertFalse(getDao().isEmailUnique(user.getEmail(), Common.NEW_ID));
-            assertTrue(getDao().isEmailUnique(user.getEmail(), user.getId()));
-        });
+        User user = insertNewVO(readUser);
+        assertFalse(getDao().isEmailUnique(user.getEmail(), Common.NEW_ID));
+        assertTrue(getDao().isEmailUnique(user.getEmail(), user.getId()));
     }
 
     @Test
     public void getUserByEmail() {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            User user = insertNewVO(readUser);
-            User dbUser = service.getUserByEmail(user.getEmail());
-            assertVoEqual(user, dbUser);
-        });
+        User user = insertNewVO(readUser);
+        User dbUser = service.getUserByEmail(user.getEmail());
+        assertVoEqual(user, dbUser);
     }
 
     @Test
     public void getDisabledUsers() {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            User user = insertNewVO(readUser);
-            user.setDisabled(true);
-            service.update(user.getId(), user);
-            List<User> active = getDao().getActiveUsers();
-            List<User> all = getDao().getAll();
-            assertEquals(all.size() - 1, active.size());
-        });
+        User user = insertNewVO(readUser);
+        user.setDisabled(true);
+        service.update(user.getId(), user);
+        List<User> active = getDao().getActiveUsers();
+        List<User> all = getDao().getAll();
+        assertEquals(all.size() - 1, active.size());
     }
 
     @Override

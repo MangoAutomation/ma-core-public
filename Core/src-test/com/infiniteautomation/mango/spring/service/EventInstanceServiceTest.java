@@ -175,9 +175,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
     public void testQueryReadPermissionEnforcement() {
         EventInstanceVO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
-        EventInstanceVO saved = getService().permissionService.runAsSystemAdmin(() -> {
-            return service.insert(vo);
-        });
+        EventInstanceVO saved = service.insert(vo);
         getService().permissionService.runAs(readUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();

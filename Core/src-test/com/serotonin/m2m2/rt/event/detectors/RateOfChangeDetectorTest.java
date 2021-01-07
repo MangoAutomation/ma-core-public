@@ -661,10 +661,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dsVo.setEnabled(true);
         dsVo.setUpdatePeriods(1);
         dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
-        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-            validate(dsVo);
-            Common.runtimeManager.insertDataSource(dsVo);
-        });
+        validate(dsVo);
+        Common.runtimeManager.insertDataSource(dsVo);
 
         //Create point locator
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
@@ -684,7 +682,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         rocVo.setDefinition(new RateOfChangeDetectorDefinition());
         rocVo.setRateOfChangeThreshold(rocThreshold);
         rocVo.setRateOfChangeThresholdPeriodType(rocThresholdPeriodType);
-        if(resetThreshold != null) {
+        if (resetThreshold != null) {
             rocVo.setUseResetThreshold(true);
             rocVo.setResetThreshold(resetThreshold);
         }
@@ -698,12 +696,10 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         validate(rocVo);
 
         DataPointService service = Common.getBean(DataPointService.class);
-        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-            validate(dpVo);
-            service.insert(dpVo);
-            rocVo.setSourceId(dpVo.getId());
-            EventDetectorDao.getInstance().insert(rocVo);
-        });
+        validate(dpVo);
+        service.insert(dpVo);
+        rocVo.setSourceId(dpVo.getId());
+        EventDetectorDao.getInstance().insert(rocVo);
 
         List<AbstractPointEventDetectorVO> eventDetectors = new ArrayList<>();
         eventDetectors.add(rocVo);
