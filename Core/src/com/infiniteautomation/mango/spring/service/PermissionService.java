@@ -44,6 +44,7 @@ import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDef
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.OwnedResource;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -805,6 +806,27 @@ public class PermissionService implements CachingService {
         }
 
         return roles;
+    }
+
+    /**
+     * Does this user have access to owned resource
+     * @param user the user to test
+     * @param resource the owned resource
+     * @return true if user has access to resource.
+     */
+    public boolean hasAccessToResource(PermissionHolder user, OwnedResource resource) {
+        return isValidPermissionHolder(user) && (resource.isOwnedBy(user) || hasAdminRole(user));
+    }
+
+    /**
+     * Ensure user has access to owned resource
+     *
+     * @param holder
+     */
+    public void ensureAccessToResource(PermissionHolder holder, OwnedResource resource) throws PermissionException {
+        if (!hasAccessToResource(holder, resource)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.userDoesNotOwnResource", holder.getPermissionHolderName()), holder);
+        }
     }
 
     private static final class RoleInheritance {
