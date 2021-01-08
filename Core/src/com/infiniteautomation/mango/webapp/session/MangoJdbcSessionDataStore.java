@@ -17,10 +17,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
 import com.infiniteautomation.mango.spring.service.UsersService;
@@ -30,6 +28,7 @@ import com.serotonin.m2m2.vo.MangoSessionDataVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  *
@@ -42,13 +41,15 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
     private final UsersService userService;
     private final MangoSessionDataDao sessionDao;
     private final ApplicationEventPublisher eventPublisher;
+    private final RunAs runAs;
 
     @Autowired
     public MangoJdbcSessionDataStore(UsersService userService, MangoSessionDataDao sessionDao,
-                                     ApplicationEventPublisher publisher) {
+                                     ApplicationEventPublisher publisher, RunAs runAs) {
         this.userService = userService;
         this.sessionDao = sessionDao;
         this.eventPublisher = publisher;
+        this.runAs = runAs;
     }
 
     @Override
@@ -126,16 +127,7 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
         data.setExpiry(vo.getExpiryTime());
 
         if (vo.getUserId() > 0) {
-            User user;
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            Assert.isNull(securityContext.getAuthentication(), "Should be null when retrieving session"); // TODO
-            securityContext.setAuthentication(new PreAuthenticatedAuthenticationToken(PermissionHolder.SYSTEM_SUPERADMIN, null));
-            try {
-                user = userService.getByIdViaCache(vo.getUserId());
-            } finally {
-                SecurityContextHolder.clearContext();
-            }
-
+            User user = runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> userService.getByIdViaCache(vo.getUserId()));
             SecurityContext sessionContext = SecurityContextHolder.createEmptyContext();
             sessionContext.setAuthentication(MangoPasswordAuthenticationProvider.createAuthenticatedToken(user));
             data.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, sessionContext);

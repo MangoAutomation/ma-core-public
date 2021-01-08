@@ -166,7 +166,7 @@ public abstract class Task {
             Thread.currentThread().setName(originalName + " --> " + name);
         }
 
-        Assert.isNull(SecurityContextHolder.getContext().getAuthentication());
+        Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication must be null");
         SecurityContextHolder.setContext(this.delegateSecurityContext);
         try {
             if (completeBeforeCancel) {

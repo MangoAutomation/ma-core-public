@@ -549,7 +549,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
         @Override
         public void run() {
-            Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication should be null");
+            Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication must be null");
             SecurityContextHolder.setContext(this.delegateSecurityContext);
             try {
                 item.execute();

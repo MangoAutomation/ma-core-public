@@ -18,14 +18,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -37,6 +33,7 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.IpAddressAuthenticationRateException;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.UsernameAuthenticationRateException;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  * @author Jared Wiltshire
@@ -47,7 +44,8 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
 
     private static final Log log = LogFactory.getLog(MangoAuthenticationFailureHandler.class);
 
-    RequestMatcher browserHtmlRequestMatcher;
+    private final RequestMatcher browserHtmlRequestMatcher;
+    private final RunAs runAs;
 
     /**
      * Stores a boolean to indicate if an attack by an IP was already logged, stops the logs being flooded.
@@ -62,7 +60,8 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
     private final Cache<String, Boolean> rateLimitUsernameLogged;
 
     @Autowired
-    public MangoAuthenticationFailureHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
+    public MangoAuthenticationFailureHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, RunAs runAs) {
+        this.runAs = runAs;
         this.setAllowSessionCreation(false);
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
 
@@ -147,14 +146,10 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
         }
 
         //Raise the event
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Assert.isNull(securityContext.getAuthentication(), "Should be null on authentication failure"); // TODO
-        securityContext.setAuthentication(new PreAuthenticatedAuthenticationToken(PermissionHolder.SYSTEM_SUPERADMIN, null));
-        try {
+        runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+            // need permission to access com.infiniteautomation.mango.spring.service.MailingListService.getAlarmAddresses
             SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_FAILED_USER_LOGIN), Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.failedLogin", username, ipAddress));
-        } finally {
-            SecurityContextHolder.clearContext();
-        }
+        });
     }
 
     private void logException(HttpServletRequest request, AuthenticationException exception) {

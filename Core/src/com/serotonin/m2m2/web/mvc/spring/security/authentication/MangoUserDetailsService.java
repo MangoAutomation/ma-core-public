@@ -12,15 +12,10 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.vo.User;
@@ -37,25 +32,20 @@ import com.serotonin.m2m2.vo.role.Role;
 public class MangoUserDetailsService implements UserDetailsService {
 
     private final UsersService usersService;
-    private final PermissionService permissionService;
+    private final RunAs runAs;
 
     @Autowired
-    public MangoUserDetailsService(UsersService usersService, PermissionService permissionService) {
+    public MangoUserDetailsService(UsersService usersService, RunAs runAs) {
         this.usersService = usersService;
-        this.permissionService = permissionService;
+        this.runAs = runAs;
     }
 
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
-        SecurityContext securityContext = SecurityContextHolder.getContext();
-        Assert.isNull(securityContext.getAuthentication(), "Should be null when authenticating"); // TODO
-        securityContext.setAuthentication(new PreAuthenticatedAuthenticationToken(PermissionHolder.SYSTEM_SUPERADMIN, null));
         try {
-            return usersService.get(username);
+            return runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> usersService.get(username));
         } catch (NotFoundException e) {
             throw new UsernameNotFoundException(username);
-        } finally {
-            SecurityContextHolder.clearContext();
         }
     }
 
