@@ -487,6 +487,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
                         TranslatableMessage message;
                         AlarmLevels level;
                         int count;
+                        Long activeTs,rtnTs;
                         Map<String,String> tagMap = new HashMap<>();
                         int columnIndex = 1;
                         try {
@@ -507,8 +508,12 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
                             message =  BaseDao.readTranslatableMessage(rs, columnIndex++);
                             level = AlarmLevels.fromValue(rs.getInt(columnIndex++));
                             count = rs.getInt(columnIndex++);
-
-                            callback.row(new AlarmPointTagCount(xid, name, deviceName, message, level, count, tagMap), rowNum);
+                            activeTs = rs.getLong(columnIndex++);
+                            rtnTs = rs.getLong(columnIndex++);
+                            if(rs.wasNull()) {
+                                rtnTs = null;
+                            }
+                            callback.row(new AlarmPointTagCount(xid, name, deviceName, message, level, count, activeTs, rtnTs, tagMap), rowNum);
 
                         }catch(Exception e) {
                             throw new SQLException(e);
@@ -553,6 +558,8 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         fieldMap.put("message", events.message);
         fieldMap.put("alarmLevel", events.alarmLevel);
         fieldMap.put("count", DSL.field(events.getQualifiedName().append("count")));
+        fieldMap.put("latestActive", events.activeTs);
+        fieldMap.put("latestRtn", events.rtnTs);
 
         RQLToConditionWithTagKeys rqlToCondition = new RQLToConditionWithTagKeys(fieldMap, this.valueConverterMap);
         ConditionSortLimit conditions = rqlToCondition.visit(rql);
@@ -613,6 +620,8 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
             outerSelectFields.add(events.message);
             outerSelectFields.add(events.alarmLevel);
             outerSelectFields.add(DSL.field(events.getQualifiedName().append("count")));
+            outerSelectFields.add(events.activeTs);
+            outerSelectFields.add(events.rtnTs);
         }
 
         //Inner Select
@@ -622,6 +631,8 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         innerSelectFields.add(DSL.max(events.alarmLevel).as(events.alarmLevel));
         Field<?> count = DSL.count(events.typeRef1).as("count");
         innerSelectFields.add(count);
+        innerSelectFields.add(DSL.max(events.activeTs).as(events.activeTs));
+        innerSelectFields.add(DSL.max(events.rtnTs).as(events.rtnTs));
 
         Condition eventsConditions = events.typeName.eq("DATA_POINT");
         if(from != null){

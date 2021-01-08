@@ -340,6 +340,8 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         private final TranslatableMessage message;
         private final AlarmLevels alarmLevel;
         private final int count;
+        private final Long latestActiveTs;
+        private final Long latestRtnTs;
         private final Map<String,String> tags;
         /**
          * @param xid
@@ -347,11 +349,13 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
          * @param deviceName
          * @param alarmLevel
          * @param count
+         * @param latestActiveTs
+         * @param latestRtnTs
          * @param tags
          */
         public AlarmPointTagCount(String xid, String name, String deviceName,
                 TranslatableMessage message, AlarmLevels alarmLevel,
-                int count, Map<String,String> tags) {
+                int count, Long latestActiveTs, Long latestRtnTs, Map<String,String> tags) {
             super();
             this.xid = xid;
             this.name = name;
@@ -359,6 +363,8 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             this.message = message;
             this.alarmLevel = alarmLevel;
             this.count = count;
+            this.latestActiveTs = latestActiveTs;
+            this.latestRtnTs = latestRtnTs;
             this.tags = tags;
         }
         public String getXid() {
@@ -379,6 +385,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         public int getCount() {
             return count;
         }
+        public Long getLatestActiveTs() { return latestActiveTs; }
+        public Long getLatestRtnTs() { return latestRtnTs; }
+
         public Map<String,String> getTags() {
             return tags;
         }
