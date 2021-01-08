@@ -399,7 +399,10 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                 }else{
                     c.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
                 }
-                c.rejected(ex);
+                //Execute rejection in thread pool
+                execute(() -> {
+                    c.rejected(ex);
+                });
             }
         }
 
@@ -425,7 +428,10 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
         @Override
         public void add(OrderedTaskCollection c, Executor ex) {
             c.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
-            c.rejected(ex);
+            //Execute rejection in thread pool
+            execute(() -> {
+                c.rejected(ex);
+            });
         }
         @Override
         public OrderedTaskCollection poll() {
@@ -474,10 +480,16 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                     OrderedTaskCollection t = this.poll();
                     if(info.queueSizeLimit > 0){
                         t.setRejectedReason(RejectedTaskReason.TASK_QUEUE_FULL);
-                        t.rejected(ex);
+                        //Execute rejection in thread pool
+                        execute(() -> {
+                            t.rejected(ex);
+                        });
                     }else{
                         t.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
-                        t.rejected(ex);
+                        //Execute rejection in thread pool
+                        execute(() -> {
+                            t.rejected(ex);
+                        });
                     }
                 }
                 try {
