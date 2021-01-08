@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.serotonin.m2m2.web.mvc.spring.security.authentication;
+package com.infiniteautomation.mango.spring.components;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;

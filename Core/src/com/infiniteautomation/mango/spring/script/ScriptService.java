@@ -42,7 +42,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ScriptBindingsDefinition;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
+import com.infiniteautomation.mango.spring.components.RunAs;
 
 /**
  * @author Jared Wiltshire
