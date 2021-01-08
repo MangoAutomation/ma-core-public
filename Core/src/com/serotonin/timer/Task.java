@@ -8,6 +8,10 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.Assert;
+
 
 /**
  * @author Terry Packer
@@ -74,14 +78,14 @@ public abstract class Task {
 
     private final ReadWriteLock cancelLock = new ReentrantReadWriteLock();
 
+    private final SecurityContext delegateSecurityContext;
+
     /**
      * Create a non-ordered Task
      * @param name
      */
     public Task(String name){
-    	this.name = name;
-    	this.id = null;
-    	this.queueSize = 0;
+    	this(name, null, 0);
     }
 
     /**
@@ -94,6 +98,7 @@ public abstract class Task {
     	this.name = name;
     	this.id = id;
     	this.queueSize = queueSize;
+    	this.delegateSecurityContext = SecurityContextHolder.getContext();
     }
 
 
@@ -153,17 +158,17 @@ public abstract class Task {
     final public void runTask(long runtime) {
     	//System.out.println("Task: " + this.hashCode() + " scheduled: " + runtime + " now: " + System.currentTimeMillis() + " Running");
 
-        String originalName = null;
+        // This uses roughly the same code as in NamedRunnable to rename
+        // the thread for the duration of the task execution.
+        String originalName = Thread.currentThread().getName();
+        if (!StringUtils.isBlank(name)) {
+            // Append the given name to the original name.
+            Thread.currentThread().setName(originalName + " --> " + name);
+        }
+
+        Assert.isNull(SecurityContextHolder.getContext().getAuthentication());
+        SecurityContextHolder.setContext(this.delegateSecurityContext);
         try {
-            if (!StringUtils.isBlank(name)) {
-                // This uses roughly the same code as in NamedRunnable to rename
-                // the thread for the duration of the task execution.
-                originalName = Thread.currentThread().getName();
-
-                // Append the given name to the original name.
-                Thread.currentThread().setName(originalName + " --> " + name);
-            }
-
             if (completeBeforeCancel) {
                 cancelLock.readLock().lock();
                 try {
@@ -179,14 +184,25 @@ public abstract class Task {
                 run(runtime);
         }
         finally {
-            if (originalName != null)
-                // Return the name to its original.
-                Thread.currentThread().setName(originalName);
+            SecurityContextHolder.clearContext();
+
+            // Return the name to its original.
+            Thread.currentThread().setName(originalName);
         }
     }
 
     public boolean isCancelled() {
         return state == CANCELLED;
+    }
+
+    public void rejectedAsDelegate(RejectedTaskReason reason) {
+        Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication should be null");
+        SecurityContextHolder.setContext(this.delegateSecurityContext);
+        try {
+            rejected(reason);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
     }
 
     /**

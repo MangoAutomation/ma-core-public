@@ -98,13 +98,13 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 		if(r instanceof TaskWrapper){
 			TaskWrapper wrapper = (TaskWrapper)r;
 			RejectedTaskReason reason = new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask(), e);
-			wrapper.getTask().rejected(reason);
+			wrapper.getTask().rejectedAsDelegate(reason);
 			this.rejectedTask(reason);
 		}else if (r instanceof OrderedTaskCollection){
 			//Pool must be full since the entire collection was rejected
 			TaskWrapper wrapper = ((OrderedTaskCollection)r).getWrapper();
 			RejectedTaskReason reason = new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.getExecutionTime(), wrapper.getTask(), e);
-			wrapper.getTask().rejected(reason);
+			wrapper.getTask().rejectedAsDelegate(reason);
 			this.rejectedTask(reason);
 		}else{
 			log.fatal("SHOULD NOT HAPPEN: " + r.toString());

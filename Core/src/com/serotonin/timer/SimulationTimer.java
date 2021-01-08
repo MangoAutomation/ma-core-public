@@ -228,6 +228,6 @@ public class SimulationTimer extends AbstractTimer {
      * @param e
      */
     void taskRejected(long executionTime, TimerTask task, RejectedExecutionException e) {
-        task.rejected(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, executionTime, task, this.executorService));
+        task.rejectedAsDelegate(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, executionTime, task, this.executorService));
     }
 }

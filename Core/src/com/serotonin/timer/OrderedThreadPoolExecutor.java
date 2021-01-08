@@ -244,7 +244,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
         }else if(r instanceof TaskWrapper){
             TaskWrapper wrapper = (TaskWrapper)r;
-            wrapper.task.rejected(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.executionTime, wrapper.task, e));
+            wrapper.task.rejectedAsDelegate(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, wrapper.executionTime, wrapper.task, e));
         }else{
             if(this.handler != null){
                 //Pass it along
@@ -344,7 +344,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
         public void rejected(Executor e){
             this.dependencyQueue.getInfo().rejections++;
-            this.wrapper.task.rejected(new RejectedTaskReason(this.rejectedReason, wrapper.executionTime, wrapper.task, e));
+            this.wrapper.task.rejectedAsDelegate(new RejectedTaskReason(this.rejectedReason, wrapper.executionTime, wrapper.task, e));
         }
 
         @Override

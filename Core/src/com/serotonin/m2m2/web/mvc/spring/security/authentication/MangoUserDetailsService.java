@@ -12,9 +12,13 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
@@ -43,10 +47,15 @@ public class MangoUserDetailsService implements UserDetailsService {
 
     @Override
     public User loadUserByUsername(String username) throws UsernameNotFoundException {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Assert.isNull(securityContext.getAuthentication(), "Should be null when authenticating"); // TODO
+        securityContext.setAuthentication(new PreAuthenticatedAuthenticationToken(PermissionHolder.SYSTEM_SUPERADMIN, null));
         try {
             return usersService.get(username);
         } catch (NotFoundException e) {
             throw new UsernameNotFoundException(username);
+        } finally {
+            SecurityContextHolder.clearContext();
         }
     }
 

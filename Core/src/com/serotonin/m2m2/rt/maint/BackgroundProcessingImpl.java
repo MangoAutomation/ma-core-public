@@ -19,6 +19,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.util.WorkItemInfo;
 import com.serotonin.ShouldNeverHappenException;
@@ -493,9 +496,6 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         final WorkItem item;
         final TaskRejectionHandler rejectionHandler;
 
-        /**
-         * @param name
-         */
         public RejectableWorkItemRunnable(WorkItem item, TaskRejectionHandler rejectionHandler) {
             super(item.getDescription(), item.getTaskId(), item.getQueueSize());
             this.item = item;
@@ -534,34 +534,40 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
     /**
      * Helper class to get more info on Work Items while queued up
-     * @author Terry Packer
      *
+     * @author Terry Packer
      */
-    public class WorkItemRunnable implements Runnable{
+    public class WorkItemRunnable implements Runnable {
 
-        public WorkItemRunnable(WorkItem item){
+        private final WorkItem item;
+        private final SecurityContext delegateSecurityContext;
+
+        public WorkItemRunnable(WorkItem item) {
             this.item = item;
+            this.delegateSecurityContext = SecurityContextHolder.getContext();
         }
-        WorkItem item;
 
         @Override
         public void run() {
+            Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication should be null");
+            SecurityContextHolder.setContext(this.delegateSecurityContext);
             try {
                 item.execute();
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
                 String message = "Error in work item ";
-                if(item.getDescription() != null) {
+                if (item.getDescription() != null) {
                     message += item.getDescription();
                 }
-                if(item.getTaskId() != null) {
+                if (item.getTaskId() != null) {
                     message += " with id " + item.getTaskId();
                 }
                 log.error(message, t);
+            } finally {
+                SecurityContextHolder.clearContext();
             }
         }
 
-        public WorkItem getWorkItem(){
+        public WorkItem getWorkItem() {
             return this.item;
         }
 
@@ -569,6 +575,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         public String toString() {
             return item.getDescription();
         }
+
         public Class<?> getWorkItemClass() {
             return item.getClass();
         }

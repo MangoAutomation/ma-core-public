@@ -22,9 +22,14 @@ import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutorService;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Beans which are instantiated per configuration (i.e. cannot be shared) but are configured the same.
@@ -50,7 +55,11 @@ public class MangoCommonConfiguration {
 
     @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
     public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
-        return new PropagatingEventMulticaster(context, eventMulticasterRegistry, ForkJoinPool.commonPool());
+        // always want event listeners executed as system superadmin
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Assert.state(securityContext.getAuthentication().getPrincipal() == PermissionHolder.SYSTEM_SUPERADMIN, "Should be system superadmin");
+        DelegatingSecurityContextExecutorService delegating = new DelegatingSecurityContextExecutorService(ForkJoinPool.commonPool(), securityContext);
+        return new PropagatingEventMulticaster(context, eventMulticasterRegistry, delegating);
     }
 
     /**
