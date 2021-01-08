@@ -11,12 +11,13 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility {
 
     @Autowired
-    public RuntimeManagerScriptTestUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService) {
-        super(service, dataPointService, dataSourceService);
+    public RuntimeManagerScriptTestUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService, RunAs runAs) {
+        super(service, dataPointService, dataSourceService, runAs);
     }
 
     /**

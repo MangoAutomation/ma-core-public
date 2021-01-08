@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.service.DataPointService;
@@ -22,12 +23,19 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  *
  * @author Terry Packer
  */
 public class DataPointQueryPermissionTest extends MangoTestBase {
+    private RunAs runAs;
+
+    @Before
+    public void init() {
+        this.runAs = Common.getBean(RunAs.class);
+    }
 
     @Test
     public void testEmptyPermission() {
@@ -36,7 +44,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         Set<Role> readRoles = this.createRoles(2).stream().map(r -> r.getRole()).collect(Collectors.toSet());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {
@@ -70,7 +78,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {
@@ -107,7 +115,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         List<IDataPoint> points = this.createMockDataPoints(5, false, MangoPermission.requireAllRoles(readRoles), new MangoPermission());
         List<IDataPoint> unreadable = this.createMockDataPoints(5, false, new MangoPermission(), new MangoPermission());
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {
@@ -149,7 +157,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
             roleDao.delete(role.getId());
         }
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {
@@ -192,7 +200,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         readRoles.remove(role);
 
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {
@@ -235,7 +243,7 @@ public class DataPointQueryPermissionTest extends MangoTestBase {
         readRoles.remove(role);
 
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {

@@ -23,6 +23,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -86,7 +87,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         VO vo = newVO(editUser);
-        getService().permissionService.runAs(editUser, () -> {
+        runAs.runAs(editUser, () -> {
             service.insert(vo);
         });
     }
@@ -98,7 +99,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             addRoleToCreatePermission(editRole);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
         });
@@ -110,7 +111,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(editUser);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
             });
@@ -124,7 +125,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
             service.insert(vo);
 
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
             });
@@ -147,7 +148,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
@@ -166,7 +167,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
@@ -183,7 +184,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.update(fromDb.getId(), fromDb);
@@ -200,7 +201,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.update(fromDb.getId(), fromDb);
@@ -226,7 +227,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
@@ -245,7 +246,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
@@ -261,10 +262,11 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             addRoleToCreatePermission(editRole);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            VO newVO = getService().permissionService.runAs(systemSuperadmin, () -> {
+            // TODO is this runAs needed?
+            VO newVO = runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
                 return service.insert(vo);
             });
-            getService().permissionService.runAs(readUser, () ->{
+            runAs.runAs(readUser, () ->{
                 service.delete(newVO.getId());
             });
         });
@@ -275,7 +277,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         runTest(() -> {
             VO vo = newVO(readUser);
             service.insert(vo);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.delete(vo.getId());
             });
         });
@@ -287,7 +289,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(editUser);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 service.get(vo.getId());
             });
         });
@@ -300,7 +302,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.update(fromDb.getId(), fromDb);
@@ -370,7 +372,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(editUser);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
                 int count = getService().customizedCount(conditions);
                 assertEquals(0, count);
@@ -380,7 +382,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(editUser);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
             service.insert(vo);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
                 int count = getService().customizedCount(conditions);
                 assertEquals(2, count);
@@ -394,7 +396,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(editUser);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
             service.insert(vo);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
                 int count = getService().customizedCount(conditions);
                 assertEquals(0, count);
@@ -404,7 +406,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(readUser);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), readRole), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
                 int count = getService().customizedCount(conditions);
                 assertEquals(0, count);
@@ -417,7 +419,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
         VO saved = service.insert(vo);
-        getService().permissionService.runAs(readUser, () -> {
+        runAs.runAs(readUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {
@@ -425,7 +427,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             });
             assertEquals(0, count.get());
         });
-        getService().permissionService.runAs(editUser, () -> {
+        runAs.runAs(editUser, () -> {
             Condition c = getDao().getTable().getNameAlias().eq(saved.getName());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
@@ -442,7 +444,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         VO vo = newVO(editUser);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
         service.insert(vo);
-        getService().permissionService.runAs(editUser, () -> {
+        runAs.runAs(editUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {
@@ -454,7 +456,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         VO readable = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), readable);
         VO savedReadable = service.insert(readable);
-        getService().permissionService.runAs(editUser, () -> {
+        runAs.runAs(editUser, () -> {
             Condition c = getDao().getTable().getNameAlias().eq(savedReadable.getName());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();

@@ -3,23 +3,16 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -90,74 +83,6 @@ public class PermissionService implements CachingService {
                 .build(this::loadRoleInheritance);
         this.permissionCache = new BidirectionalCache<>(env.getProperty("cache.permission.size", Integer.class, 1000));
         this.permissionCacheInverse = this.permissionCache.inverse();
-    }
-
-    public void runAs(PermissionHolder user, Runnable command) {
-        SecurityContext original = SecurityContextHolder.getContext();
-        try {
-            SecurityContextHolder.setContext(newSecurityContext(user));
-            command.run();
-        } finally {
-            SecurityContextHolder.setContext(original);
-        }
-    }
-
-    public <T> T runAs(PermissionHolder user, Supplier<T> command) {
-        SecurityContext original = SecurityContextHolder.getContext();
-        try {
-            SecurityContextHolder.setContext(newSecurityContext(user));
-            return command.get();
-        } finally {
-            SecurityContextHolder.setContext(original);
-        }
-    }
-
-    public <T> T runAsCallable(PermissionHolder user, Callable<T> command) throws Exception {
-        SecurityContext original = SecurityContextHolder.getContext();
-        try {
-            SecurityContextHolder.setContext(newSecurityContext(user));
-            return command.call();
-        } finally {
-            SecurityContextHolder.setContext(original);
-        }
-    }
-
-    /**
-     * Creates a proxy object for the supplied instance where every method invoked is run as the supplied user.
-     * The returned proxy object will implement all interfaces of the supplied instance.
-     *
-     * @param <T> must be an interface
-     * @param user
-     * @param instance
-     * @return
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T runAsProxy(PermissionHolder user, T instance) {
-        Class<?> clazz = instance.getClass();
-        SecurityContext runAsContext = newSecurityContext(user);
-
-        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), (proxy, method, args) -> {
-            SecurityContext original = SecurityContextHolder.getContext();
-            try {
-                SecurityContextHolder.setContext(runAsContext);
-                return method.invoke(instance, args);
-            } catch (InvocationTargetException e) {
-                throw e.getCause();
-            } finally {
-                SecurityContextHolder.setContext(original);
-            }
-        });
-    }
-
-    /**
-     * Creates a new security context for the supplied user
-     * @param user
-     * @return
-     */
-    private SecurityContext newSecurityContext(PermissionHolder user) {
-        SecurityContext newContext = SecurityContextHolder.createEmptyContext();
-        newContext.setAuthentication(new PreAuthenticatedAuthenticationToken(user, null));
-        return newContext;
     }
 
     /**

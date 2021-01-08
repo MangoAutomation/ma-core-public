@@ -21,6 +21,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -164,7 +165,8 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
         runTest(() -> {
             EventInstanceVO vo = newVO(editUser);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            getService().permissionService.runAs(systemSuperadmin, () -> {
+            // TODO is this runAs needed?
+            runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
                 service.insert(vo);
             });
         });
@@ -176,7 +178,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
         EventInstanceVO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
         EventInstanceVO saved = service.insert(vo);
-        getService().permissionService.runAs(readUser, () -> {
+        runAs.runAs(readUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {
@@ -184,7 +186,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
             });
             assertEquals(0, count.get());
         });
-        getService().permissionService.runAs(editUser, () -> {
+        runAs.runAs(editUser, () -> {
             Condition c = getDao().getTable().getIdAlias().eq(saved.getId());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();

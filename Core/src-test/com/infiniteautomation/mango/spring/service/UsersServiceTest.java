@@ -59,7 +59,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             User vo = newVO(editUser);
             User saved = service.insert(vo);
-            getService().permissionService.runAs(saved, () -> {
+            runAs.runAs(saved, () -> {
                 User fromDb = service.get(saved.getId());
                 assertVoEqual(saved, fromDb);
             });
@@ -73,7 +73,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             User vo = newVO(editUser);
             addRoleToCreatePermission(editRole);
             vo.setRoles(Collections.singleton(editRole));
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
         });
@@ -89,7 +89,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             addRoleToEditSelfPermission(readRole);
             User vo = newVO(editUser);
             User saved = service.insert(vo);
-            getService().permissionService.runAs(vo, () -> {
+            runAs.runAs(vo, () -> {
                 saved.setName("I edited myself");
                 service.update(saved.getUsername(), saved);
                 User updated = service.get(vo.getId());
@@ -108,7 +108,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             List<Role> myRoles = saved.getRoles().stream().collect(Collectors.toList());
             addRoleToEditSelfPermission(myRoles.get(0));
 
-            getService().permissionService.runAs(saved, () -> {
+            runAs.runAs(saved, () -> {
                 saved.setName("I edited myself");
                 service.update(saved.getUsername(), saved);
                 User updated = service.get(saved.getId());
@@ -123,7 +123,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             addRoleToEditSelfPermission(editRole);
             removeRoleFromEditSelfPermission(PermissionHolder.USER_ROLE);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 User toUpdate = service.get(readUser.getId());
                 toUpdate.setName("I edited myself");
                 toUpdate.setPassword("");
@@ -200,7 +200,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             List<Role> myRoles = new ArrayList<>(saved.getRoles());
             addRoleToEditSelfPermission(myRoles.get(0));
 
-            getService().permissionService.runAs(saved, () -> {
+            runAs.runAs(saved, () -> {
                 myRoles.add(editRole);
                 saved.setRoles(new HashSet<>(myRoles));
                 service.update(saved.getUsername(), saved);
@@ -257,7 +257,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             vo.setRoles(Collections.singleton(readRole));
             service.insert(vo);
             User saved = service.get(vo.getId());
-            getService().permissionService.runAs(saved, () -> {
+            runAs.runAs(saved, () -> {
                 saved.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
                 service.update(saved.getUsername(), saved);
             });
@@ -296,7 +296,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             service.insert(vo);
             User saved = service.get(vo.getId());
 
-            getService().permissionService.runAs(saved, () -> {
+            runAs.runAs(saved, () -> {
                 saved.setUsername(UUID.randomUUID().toString());
                 service.update(saved.getId(), saved);
             });
@@ -323,7 +323,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         service.insert(vo);
         User saved = service.get(vo.getId());
 
-        getService().permissionService.runAs(saved, () -> {
+        runAs.runAs(saved, () -> {
             saved.setUsername(UUID.randomUUID().toString());
             service.update(saved.getId(), saved);
         });

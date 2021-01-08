@@ -81,6 +81,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
@@ -114,11 +115,13 @@ public class MangoJavaScriptService {
 
     private final PermissionService permissionService;
     private final DataPointService dataPointService;
+    private final RunAs runAs;
 
     @Autowired
-    public MangoJavaScriptService(PermissionService permissionService, DataPointService dataPointService) {
+    public MangoJavaScriptService(PermissionService permissionService, DataPointService dataPointService, RunAs runAs) {
         this.dataPointService = dataPointService;
         this.permissionService = permissionService;
+        this.runAs = runAs;
     }
 
     /**
@@ -244,7 +247,7 @@ public class MangoJavaScriptService {
                 script.initialize(vo.getContext());
 
                 long time = Common.timer.currentTimeMillis();
-                permissionService.runAsCallable(vo.getPermissions(), () -> {
+                runAs.runAsCallable(vo.getPermissions(), () -> {
                     if(vo.getResultDataTypeId() != null) {
                         script.execute(time, time, vo.getResultDataTypeId());
                         //Convert the UNCHANGED value
@@ -311,7 +314,7 @@ public class MangoJavaScriptService {
                 script.initialize(vo.getContext());
 
                 long time = Common.timer.currentTimeMillis();
-                permissionService.runAsCallable(script.getPermissionHolder(), () -> {
+                runAs.runAsCallable(script.getPermissionHolder(), () -> {
                     if(vo.getResultDataTypeId() != null) {
                         script.execute(time, time, vo.getResultDataTypeId());
                     }else {
@@ -477,7 +480,7 @@ public class MangoJavaScriptService {
      */
     public void execute(CompiledMangoJavaScript script, long runtime, long timestamp) throws ScriptError, ScriptPermissionsException {
         try {
-            permissionService.runAsCallable(script.getPermissionHolder(), () -> {
+            runAs.runAsCallable(script.getPermissionHolder(), () -> {
                 script.getResult().reset();
 
                 //Setup the wrapper context
@@ -523,7 +526,7 @@ public class MangoJavaScriptService {
      */
     public void execute(CompiledMangoJavaScript script, long runtime, long timestamp, Integer resultDataTypeId) throws ScriptError, ResultTypeException, ScriptPermissionsException {
         try {
-            permissionService.runAsCallable(script.getPermissionHolder(), () -> {
+            runAs.runAsCallable(script.getPermissionHolder(), () -> {
                 execute(script, runtime, timestamp);
 
                 Object ts = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get(MangoJavaScriptService.TIMESTAMP_CONTEXT_KEY);

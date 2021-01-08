@@ -32,6 +32,7 @@ import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 import freemarker.template.Template;
 
@@ -53,6 +54,8 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     PermissionService service;
     @Autowired
     MailingListService mailingListService;
+    @Autowired
+    RunAs runAs;
 
     @Override
     public String getEventHandlerTypeName() {
@@ -168,7 +171,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
 
         if(!StringUtils.isEmpty(vo.getScript())) {
             MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
-            service.getPermissionService().runAs(vo.getScriptRoles(), () -> {
+            runAs.runAs(vo.getScriptRoles(), () -> {
                 try {
                     service.compile(vo.getScript(), true);
                 } catch(ScriptError e) {

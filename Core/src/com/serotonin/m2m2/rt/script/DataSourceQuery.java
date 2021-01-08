@@ -22,6 +22,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -39,13 +40,15 @@ public class DataSourceQuery extends ScriptUtility {
 
     private ScriptEngine engine;
     private ScriptPointValueSetter setter;
-    private RQLParser parser = new RQLParser();
+    private final RQLParser parser = new RQLParser();
     private final DataSourceService dataSourceService;
+    private final RunAs runAs;
 
     @Autowired
-    public DataSourceQuery(MangoJavaScriptService javaScriptService, PermissionService permissionService, DataSourceService service) {
+    public DataSourceQuery(MangoJavaScriptService javaScriptService, PermissionService permissionService, DataSourceService service, RunAs runAs) {
         super(javaScriptService, permissionService);
         this.dataSourceService = service;
+        this.runAs = runAs;
     }
 
     @Override
@@ -63,7 +66,7 @@ public class DataSourceQuery extends ScriptUtility {
     public List<DataSourceWrapper> query(String query){
         ASTNode root = parser.parse(query);
         List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();
-        permissionService.runAs(permissions, () -> {
+        runAs.runAs(permissions, () -> {
             dataSourceService.customizedQuery(root, (ds, index) -> {
                 List<DataPointWrapper> points = getPointsForSource(ds);
                 results.add(new DataSourceWrapper(ds, points));

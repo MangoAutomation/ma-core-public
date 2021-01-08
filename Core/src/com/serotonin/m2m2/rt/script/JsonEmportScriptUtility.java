@@ -43,6 +43,7 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -50,18 +51,20 @@ import net.jazdw.rql.parser.RQLParser;
 public class JsonEmportScriptUtility extends ScriptUtility {
     public static String CONTEXT_KEY = "JsonEmport";
 
-    private RQLParser parser = new RQLParser();;
+    private final RQLParser parser = new RQLParser();;
     private List<JsonImportExclusion> importExclusions;
     protected boolean importDuringValidation = false;
     private final DataSourceService dataSourceService;
     private final DataPointDao dataPointDao;
+    private final RunAs runAs;
 
     @Autowired
     public JsonEmportScriptUtility(MangoJavaScriptService service, PermissionService permissionService,
-            DataSourceService dataSourceService, DataPointDao dataPointDao) {
+                                   DataSourceService dataSourceService, DataPointDao dataPointDao, RunAs runAs) {
         super(service, permissionService);
         this.dataSourceService = dataSourceService;
         this.dataPointDao = dataPointDao;
+        this.runAs = runAs;
     }
 
     @Override
@@ -81,7 +84,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String getFullConfiguration(int prettyIndent) {
         EmportService service = Common.getBean(EmportService.class);
-        return permissionService.runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
                 service.export(ConfigurationExportData.createExportDataMap(null), stringWriter, prettyIndent);
@@ -97,7 +100,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getConfiguration(String type, int prettyIndent) {
-        return permissionService.runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try {
                 Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
                 StringWriter stringWriter = new StringWriter();
@@ -129,7 +132,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
             data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
         }
-        return permissionService.runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
                 EmportService service = Common.getBean(EmportService.class);
@@ -150,7 +153,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         if(permissionService.hasAdminRole(permissions)) {
             List<DataSourceVO> dataSources = new ArrayList<>();
             ASTNode root = parser.parse(query);
-            permissionService.runAs(permissions, () -> {
+            runAs.runAs(permissions, () -> {
                 dataSourceService.customizedQuery(root, (ds, index) -> {
                     dataSources.add(ds);
                 });
@@ -158,7 +161,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
             data.put(ConfigurationExportData.DATA_SOURCES, dataSources);
         }
-        return permissionService.runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
                 EmportService service = Common.getBean(EmportService.class);
@@ -178,7 +181,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             if(importExclusions != null)
                 doExclusions(jo);
             ScriptImportTask sit = new ScriptImportTask(jo);
-            permissionService.runAs(permissions, () -> {
+            runAs.runAs(permissions, () -> {
                 sit.run(Common.timer.currentTimeMillis());
             });
         }
@@ -192,7 +195,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             if(importExclusions != null)
                 doExclusions(jo);
             ScriptImportTask sit = new ScriptImportTask(jo);
-            permissionService.runAs(permissions, () -> {
+            runAs.runAs(permissions, () -> {
                 sit.run(Common.timer.currentTimeMillis());
             });
             return sit.getMessages();

@@ -22,6 +22,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  * @author Terry Packer
@@ -39,12 +40,14 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     private final DataSourceService dataSourceService;
     private final DataPointService dataPointService;
+    private final RunAs runAs;
 
     @Autowired
-    public RuntimeManagerScriptUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService) {
+    public RuntimeManagerScriptUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService, RunAs runAs) {
         super(service, dataPointService.getPermissionService());
         this.dataSourceService = dataSourceService;
         this.dataPointService = dataPointService;
+        this.runAs = runAs;
     }
 
     @Override
@@ -137,7 +140,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enableDataSource(String xid) {
-        return dataSourceService.getPermissionService().runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try {
                 DataSourceVO vo = dataSourceService.get(xid);
                 if(!vo.isEnabled()) {
@@ -163,7 +166,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disableDataSource(String xid){
-        return dataSourceService.getPermissionService().runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try {
                 DataSourceVO vo = dataSourceService.get(xid);
                 if(vo.isEnabled()) {
@@ -212,7 +215,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enableDataPoint(String xid){
-        return dataSourceService.getPermissionService().runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try {
                 if(dataPointService.setDataPointState(xid, true, false)) {
                     return OPERATION_SUCCESSFUL;
@@ -231,7 +234,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disableDataPoint(String xid){
-        return dataSourceService.getPermissionService().runAs(permissions, () -> {
+        return runAs.runAs(permissions, () -> {
             try {
                 if(dataPointService.setDataPointState(xid, false, false)) {
                     return OPERATION_SUCCESSFUL;

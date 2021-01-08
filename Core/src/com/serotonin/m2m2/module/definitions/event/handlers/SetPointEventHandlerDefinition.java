@@ -30,6 +30,7 @@ import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  * @author Terry Packer
@@ -48,6 +49,8 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     RoleDao roleDao;
     @Autowired
     PermissionService service;
+    @Autowired
+    RunAs runAs;
 
     @Override
     public String getEventHandlerTypeName() {
@@ -157,7 +160,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
             if(StringUtils.isEmpty(vo.getActiveScript())) {
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
             }else {
-                javaScriptService.getPermissionService().runAs(vo.getScriptRoles(), () -> {
+                runAs.runAs(vo.getScriptRoles(), () -> {
                     try {
                         javaScriptService.compile(vo.getActiveScript(), true);
                     } catch(ScriptError e) {
@@ -196,7 +199,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
             if(StringUtils.isEmpty(vo.getInactiveScript())) {
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
             }else {
-                javaScriptService.getPermissionService().runAs(vo.getScriptRoles(), () -> {
+                runAs.runAs(vo.getScriptRoles(), () -> {
                     try {
                         javaScriptService.compile(vo.getInactiveScript(), true);
                     } catch(ScriptError e) {

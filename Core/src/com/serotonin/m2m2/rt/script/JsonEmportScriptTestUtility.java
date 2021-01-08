@@ -15,13 +15,14 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 
     @Autowired
     public JsonEmportScriptTestUtility(MangoJavaScriptService service, PermissionService permissionService,
-            DataSourceService dataSourceService, DataPointDao dataPointDao) {
-        super(service, permissionService, dataSourceService, dataPointDao);
+            DataSourceService dataSourceService, DataPointDao dataPointDao, RunAs runAs) {
+        super(service, permissionService, dataSourceService, dataPointDao, runAs);
     }
 
     @Override

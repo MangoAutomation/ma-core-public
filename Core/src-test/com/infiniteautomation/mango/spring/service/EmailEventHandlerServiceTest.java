@@ -47,7 +47,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         EmailEventHandlerVO vo = newVO(editUser);
-        getService().permissionService.runAs(editUser, () -> {
+        runAs.runAs(editUser, () -> {
             service.insert(vo);
         });
     }
@@ -61,7 +61,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
         });
@@ -109,7 +109,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
         }, "scriptRoles");
@@ -124,7 +124,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
             vo.setScriptRoles(permissions);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 EmailEventHandlerVO fromDb = (EmailEventHandlerVO)service.insert(vo);
                 ScriptPermissions newPermissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
                 fromDb.setScriptRoles(newPermissions);

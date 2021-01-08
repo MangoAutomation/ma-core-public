@@ -154,14 +154,12 @@ public class CompiledMangoJavaScript {
      */
     public void compile(String script, boolean wrapInFunction) throws ScriptError {
         MutableObject<ScriptError> error = new MutableObject<>();
-        this.service.getPermissionService().runAs(permissionHolder, () -> {
-            try{
-                this.compiledScript = service.compile(script, wrapInFunction);
-                this.wrapInFunction = wrapInFunction;
-            }catch(ScriptError e) {
-                error.setValue(e);
-            }
-        });
+        try{
+            this.compiledScript = service.compile(script, wrapInFunction);
+            this.wrapInFunction = wrapInFunction;
+        }catch(ScriptError e) {
+            error.setValue(e);
+        }
         if(error.getValue() != null) {
             throw error.getValue();
         }

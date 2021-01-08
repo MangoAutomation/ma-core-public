@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -27,12 +28,20 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  *
  * @author Terry Packer
  */
 public class DataPointPermissionTest extends MangoTestBase {
+
+    private RunAs runAs;
+
+    @Before
+    public void init() {
+        this.runAs = Common.getBean(RunAs.class);
+    }
 
     /**
      * Update permission ensure no orphaned minterms or permissions exist
@@ -87,7 +96,7 @@ public class DataPointPermissionTest extends MangoTestBase {
         List<IDataPoint> points = this.createMockDataPoints(1, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission());
 
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {
@@ -151,7 +160,7 @@ public class DataPointPermissionTest extends MangoTestBase {
         List<IDataPoint> points = this.createMockDataPoints(2, false, MangoPermission.requireAnyRole(readRoles), new MangoPermission());
 
         DataPointService service = Common.getBean(DataPointService.class);
-        service.getPermissionService().runAs(new PermissionHolder() {
+        runAs.runAs(new PermissionHolder() {
 
             @Override
             public String getPermissionHolderName() {

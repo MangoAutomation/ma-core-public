@@ -90,7 +90,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         SetPointEventHandlerVO vo = newVO(editUser);
-        getService().permissionService.runAs(editUser, () -> {
+        runAs.runAs(editUser, () -> {
             service.insert(vo);
         });
     }
@@ -104,7 +104,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
         });
@@ -151,7 +151,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
         }, "scriptRoles");
@@ -166,7 +166,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
             vo.setScriptRoles(permissions);
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO)service.insert(vo);
                 ScriptPermissions newPermissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
                 fromDb.setScriptRoles(newPermissions);

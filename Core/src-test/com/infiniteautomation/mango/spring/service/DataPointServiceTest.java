@@ -53,7 +53,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
         });
@@ -63,7 +63,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Override
     public void testUserCanDelete() {
         runTest(() -> {
-            getService().permissionService.runAs(editUser, () -> {
+            runAs.runAs(editUser, () -> {
                 DataPointVO vo = newVO(readUser);
                 addRoleToCreatePermission(editRole, vo);
                 setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
@@ -84,7 +84,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             vo.setSetPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 fromDb.setName("read user edited me");
@@ -104,7 +104,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
             vo.setSetPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 fromDb.setName("read user edited me");
@@ -140,7 +140,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 fromDb.setName("read user edited me");
@@ -158,7 +158,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             vo.setSetPermission(null);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 fromDb.setName("read user edited me");
@@ -182,7 +182,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 fromDb.setName("read user edited me");
@@ -201,7 +201,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
@@ -222,7 +222,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             service.insert(vo);
-            getService().permissionService.runAs(readUser, () -> {
+            runAs.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);

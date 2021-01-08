@@ -42,6 +42,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ScriptBindingsDefinition;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  * @author Jared Wiltshire
@@ -54,10 +55,11 @@ public class ScriptService {
     final List<ScriptEngineDefinition> engineDefinitions;
     final List<ScriptBindingsDefinition> bindingsDefinitions;
     final Map<String, ScriptEngineFactory> factories;
+    final RunAs runAs;
 
     @Autowired
     public ScriptService(ScriptEngineManager manager, PermissionService permissionService, List<ScriptEngineDefinition> engineDefinitions,
-            List<ScriptBindingsDefinition> bindingsDefinitions) {
+                         List<ScriptBindingsDefinition> bindingsDefinitions, RunAs runAs) {
         this.manager = manager;
         this.permissionService = permissionService;
         this.engineDefinitions = engineDefinitions;
@@ -65,6 +67,7 @@ public class ScriptService {
 
         this.factories = manager.getEngineFactories().stream()
                 .collect(Collectors.toMap(ScriptEngineFactory::getEngineName, Function.identity()));
+        this.runAs = runAs;
     }
 
     private ScriptEngineFactory getFactoryByName(String engineName) {
@@ -175,7 +178,7 @@ public class ScriptService {
             }
         }
 
-        return this.permissionService.runAs(script, () -> {
+        return this.runAs.runAs(script, () -> {
             try {
                 Object value;
                 if (script instanceof CompiledMangoScript) {
@@ -232,7 +235,7 @@ public class ScriptService {
 
         ScriptEngineDefinition engineDefinition = scriptAndEngine.engineDefinition;
 
-        T runAsInstance = permissionService.runAsProxy(script, instance);
+        T runAsInstance = runAs.runAsProxy(script, instance);
         if (engineDefinition.singleThreadedAccess()) {
             return synchronizedProxy(scriptAndEngine.synchronizationObject, runAsInstance);
         }

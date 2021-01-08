@@ -23,7 +23,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -51,18 +50,17 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
      */
     private final RateLimiter<String> usernameRateLimiter;
     private final UsersService usersService;
-    private final PermissionService permissionService;
+    private final RunAs runAs;
 
     @Autowired
     public MangoPasswordAuthenticationProvider(
             UserDetailsService userDetailsService,
             UserDetailsChecker userDetailsChecker,
-            UsersService usersService,
-            PermissionService permissionService) {
+            UsersService usersService, RunAs runAs) {
         this.userDetailsService = userDetailsService;
         this.userDetailsChecker = userDetailsChecker;
         this.usersService = usersService;
-        this.permissionService = permissionService;
+        this.runAs = runAs;
 
         if (Common.envProps.getBoolean("rateLimit.authentication.ip.enabled", true)) {
             this.ipRateLimiter = new RateLimiter<>(
@@ -144,7 +142,7 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
                     throw new PasswordChangeException(new TranslatableMessage("rest.exception.samePassword"));
                 }
                 final String password = newPassword;
-                permissionService.runAs(user, () -> {
+                runAs.runAs(user, () -> {
                     try {
                         usersService.updatePassword(user, password);
                     } catch (ValidationException e) {

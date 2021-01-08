@@ -29,9 +29,9 @@ import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.RunAs;
 
 /**
  * @author Terry Packer
@@ -39,6 +39,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition, DAO extends AbstractBasicDao<VO, TABLE>, SERVICE extends AbstractBasicVOService<VO,TABLE,DAO>> extends MangoTestBase {
 
+    protected RunAs runAs;
     protected SERVICE service;
     protected DAO dao;
 
@@ -47,9 +48,6 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
     abstract void assertVoEqual(VO expected, VO actual);
 
     protected RoleService roleService;
-
-    protected PermissionHolder systemSuperadmin;
-    protected PermissionHolder systemUser;
 
     protected User readUser;
     protected User editUser;
@@ -78,6 +76,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
 
     @Before
     public void setupServiceTest() {
+        this.runAs = Common.getBean(RunAs.class);
         setupRoles();
         service = getService();
         dao = getDao();
@@ -201,8 +200,6 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
 
     void setupRoles() {
         roleService = Common.getBean(RoleService.class);
-
-        systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
 
         //Add some roles
         RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
