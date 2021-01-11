@@ -32,6 +32,9 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -65,6 +68,7 @@ import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.provider.Providers;
@@ -93,8 +97,11 @@ public class MangoTestBase {
     protected SimulationTimer timer;
     protected long testTime = 0L; //time during test
 
+
     @BeforeClass
     public static void staticSetup() throws IOException {
+        setSuperadminAuthentication();
+
         dataDirectory = Files.createTempDirectory("MangoTestBase");
 
         properties = new MockMangoProperties();
@@ -533,5 +540,10 @@ public class MangoTestBase {
      */
     protected MockMangoLifecycle getLifecycle() {
         return new MockMangoLifecycle(modules);
+    }
+
+    public static void setSuperadminAuthentication() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(new PreAuthenticatedAuthenticationToken(PermissionHolder.SYSTEM_SUPERADMIN, null));
     }
 }
