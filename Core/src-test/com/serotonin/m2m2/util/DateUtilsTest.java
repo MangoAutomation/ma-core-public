@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
 
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
 import org.joda.time.DateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,10 +30,6 @@ public class DateUtilsTest {
 
         //Setup Mango properties Provider as we indirectly access Common
         Providers.add(MangoProperties.class, new MockMangoProperties());
-
-        //Configure Log4j2
-        ConfigurationSource source = new ConfigurationSource(ClassLoader.getSystemResource("test-log4j2.xml").openStream());
-        Configurator.initialize(null, source);
     }
 
     @Test

@@ -4,9 +4,48 @@
  */
 package com.serotonin.m2m2;
 
+import static org.junit.Assert.fail;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.service.*;
+import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.spring.service.DataSourceService;
+import com.infiniteautomation.mango.spring.service.EventDetectorsService;
+import com.infiniteautomation.mango.spring.service.EventHandlerService;
+import com.infiniteautomation.mango.spring.service.JsonDataService;
+import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.PublisherService;
+import com.infiniteautomation.mango.spring.service.RoleService;
+import com.infiniteautomation.mango.spring.service.SystemPermissionService;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -33,25 +72,6 @@ import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
 import com.serotonin.util.properties.MangoProperties;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.logging.log4j.core.config.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-
-import static org.junit.Assert.fail;
 
 /**
  *
@@ -81,12 +101,6 @@ public class MangoTestBase {
         properties = new MockMangoProperties();
         properties.setProperty("paths.data", dataDirectory.toString());
         Providers.add(MangoProperties.class, properties);
-
-        //Configure Log4j2
-        try (InputStream is = ClassLoader.getSystemResource("test-log4j2.xml").openStream()) {
-            ConfigurationSource source = new ConfigurationSource(is);
-            Configurator.initialize(null, source);
-        }
 
         addModule("BaseTest", new MockDataSourceDefinition());
     }

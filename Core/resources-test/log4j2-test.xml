@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+  -->
+<Configuration>
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <AsyncRoot includeLocation="true" level="error">
+            <AppenderRef ref="stdout"/>
+        </AsyncRoot>
+    </Loggers>
+</Configuration>
