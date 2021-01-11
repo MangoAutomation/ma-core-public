@@ -7,7 +7,7 @@ StartLimitIntervalSec=0
 # JAVA_HOME should be set in /etc/environment
 EnvironmentFile=/etc/environment
 # only log errors to stdout, don't include date
-Environment=mango_appender_stdout_level=error "mango_appender_stdout_pattern=%-5p (%C.%M:%L) - %m %n"
+Environment=mango_appender_stdout_level=error "mango_appender_stdout_pattern=%%-5p (%%C.%%M:%%L) - %%m %%n"
 Type=forking
 WorkingDirectory=/opt/mango
 PIDFile=/opt/mango/bin/ma.pid
