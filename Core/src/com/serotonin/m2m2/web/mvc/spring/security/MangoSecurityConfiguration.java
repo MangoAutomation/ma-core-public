@@ -332,9 +332,8 @@ public class MangoSecurityConfiguration {
             //.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             //.sessionFixation().none();
 
-            // stops authentication being stored in the session
-            http.securityContext().disable();
-            // .securityContextRepository(new NullSecurityContextRepository())
+            // required for async dispatches
+            http.securityContext().securityContextRepository(new StatelessSecurityContextRepository());
 
             //Set the anonymous principle for unauthenticated requests
             http.anonymous().principal(PermissionHolder.ANONYMOUS);
@@ -391,6 +390,7 @@ public class MangoSecurityConfiguration {
                 http.cors().configurationSource(corsConfigurationSource.get());
             }
         }
+
     }
 
     @Configuration
@@ -552,4 +552,5 @@ public class MangoSecurityConfiguration {
             }
         }
     }
+
 }
