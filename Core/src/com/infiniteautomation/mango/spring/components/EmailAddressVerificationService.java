@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2019  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.infiniteautomation.mango.spring.components;
 
@@ -35,6 +35,8 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
@@ -45,7 +47,6 @@ import io.jsonwebtoken.JwtBuilder;
  * Service to verify email addresses belong to a user
  *
  * @author Terry Packer
- *
  */
 @Service
 public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
@@ -66,17 +67,19 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     private final PublicUrlService publicUrlService;
     private final SystemSettingsDao systemSettings;
     private final PermissionService permissionService;
+    private final RunAs runAs;
 
     @Autowired
     public EmailAddressVerificationService(
             UsersService usersService,
             PublicUrlService publicUrlService,
             SystemSettingsDao systemSettings,
-            PermissionService permissionService) {
+            PermissionService permissionService, RunAs runAs) {
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.systemSettings = systemSettings;
         this.permissionService = permissionService;
+        this.runAs = runAs;
     }
 
     @Override
@@ -112,6 +115,10 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      * Reset the keys, invalidating existing tokens
      */
     public void resetKeys() {
+        PermissionHolder user = Common.getUser();
+        if (!permissionService.hasAdminRole(user)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.mustBeAdmin"), user);
+        }
         this.generateNewKeyPair();
     }
 
@@ -119,9 +126,8 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      * Verify an email address by sending the address a verification token which must then be submitted back to this service.
      *
      * @param emailAddress
-     * @param userToUpdate Optional, may be null
+     * @param userToUpdate   Optional, may be null
      * @param expirationDate Optional, may be null
-     * @param permissionHolder
      * @return The generated token
      * @throws TemplateException
      * @throws IOException
@@ -166,6 +172,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         try {
             uri = this.generateEmailVerificationUrl(token);
         } catch (Exception e) {
+            // dont care, continue without URI
         }
 
         Translations translations = userToUpdate != null ? userToUpdate.getTranslations() : Common.getTranslations();
@@ -188,13 +195,11 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
     /**
      * Generate an email verification token
+     *
      * @param emailAddress
-     * @param userToUpdate Optional, may be null
+     * @param userToUpdate   Optional, may be null
      * @param expirationDate Optional, may be null
      * @return
-     * @throws IOException
-     * @throws TemplateException
-     * @throws AddressException
      */
     public String generateToken(String emailAddress, User userToUpdate, Date expirationDate) {
         if (userToUpdate == null) {
@@ -205,18 +210,20 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
         if (expirationDate == null) {
             int expiryDuration = this.systemSettings.getIntValue(EXPIRY_SYSTEM_SETTING);
-            expirationDate = new Date(verificationTime + expiryDuration * 1000);
+            expirationDate = new Date(verificationTime + expiryDuration * 1000L);
         }
 
-        try {
-            // see if a different user is already using this address
-            User existingUser = this.usersService.getUserByEmail(emailAddress);
-            if (userToUpdate == null || existingUser.getId() != userToUpdate.getId()) {
-                throw new EmailAddressInUseException(existingUser);
+        runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+            try {
+                // see if a different user is already using this address
+                User existingUser = this.usersService.getUserByEmail(emailAddress);
+                if (userToUpdate == null || existingUser.getId() != userToUpdate.getId()) {
+                    throw new EmailAddressInUseException(existingUser);
+                }
+            } catch (NotFoundException e) {
+                // no existing user using this email address, proceed
             }
-        } catch(NotFoundException e) {
-            // no existing user using this email address, proceed
-        }
+        });
 
         JwtBuilder builder = this.newToken(emailAddress, expirationDate);
         builder.setIssuedAt(new Date(verificationTime));
@@ -231,6 +238,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
     /**
      * Generate the URI for email verification
+     *
      * @param token
      * @return
      * @throws UnknownHostException
@@ -248,6 +256,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
     /**
      * Verify an email address token for an existing user. Updates the user's email address with the one that was verified.
+     *
      * @param tokenString
      * @return
      */
@@ -257,22 +266,23 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
         // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
         // generating the token.
-        int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
-        User existing = this.usersService.get(userId);
-        this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
+        return runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+            int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
+            User existing = this.usersService.get(userId);
+            this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
 
-
-        User updated = (User) existing.copy();
-        updated.setEmail(verifiedEmail);
-        updated.setEmailVerified(token.getBody().getIssuedAt());
-        return this.usersService.update(existing, updated);
+            User updated = (User) existing.copy();
+            updated.setEmail(verifiedEmail);
+            updated.setEmailVerified(token.getBody().getIssuedAt());
+            return this.usersService.update(existing, updated);
+        });
     }
 
     /**
      * Verify an email address token and create a new disabled user with the verified email address.
+     *
      * @param tokenString
      * @param newUser
-     * @param permissionHolder
      * @return
      * @throws ValidationException
      */
@@ -290,26 +300,29 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         newUser.setEmail(verifiedEmail);
         newUser.setDisabled(true); //Ensure we are disabled
         newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
-        User created = this.usersService.insert(newUser);
 
-        //Raise an event upon successful insertion
-        SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_NEW_USER_REGISTERED);
-        TranslatableMessage message = new TranslatableMessage("event.newUserRegistered", created.getUsername(), created.getEmail());
-        SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
-        return created;
+        return runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+            User created = this.usersService.insert(newUser);
+
+            //Raise an event upon successful insertion
+            SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_NEW_USER_REGISTERED);
+            TranslatableMessage message = new TranslatableMessage("event.newUserRegistered", created.getUsername(), created.getEmail());
+            SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
+            return created;
+        });
     }
 
-    public void ensurePublicRegistrationEnabled() {
+    private void ensurePublicRegistrationEnabled() {
         if (!systemSettings.getBooleanValue(SystemSettingsDao.USERS_PUBLIC_REGISTRATION_ENABLED)) {
             throw new FeatureDisabledException(new TranslatableMessage("users.publicRegistration.disabled"));
         }
     }
 
-    public static class EmailAddressInUseException extends TranslatableRuntimeException {
+    public static final class EmailAddressInUseException extends TranslatableRuntimeException {
         private static final long serialVersionUID = 1L;
         private final User existingUser;
 
-        public EmailAddressInUseException(User existingUser) {
+        private EmailAddressInUseException(User existingUser) {
             super(new TranslatableMessage("users.emailAddressInUse", existingUser.getUsername()));
             this.existingUser = existingUser;
         }
