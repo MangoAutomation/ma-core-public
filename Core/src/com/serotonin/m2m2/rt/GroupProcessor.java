@@ -6,7 +6,6 @@ package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -45,7 +44,7 @@ public abstract class GroupProcessor<T,R> {
             for (Future<R> f : futures) {
                 try {
                     results.add(f.get());
-                } catch (ExecutionException | CancellationException e) {
+                } catch (ExecutionException e) {
                     log.error("Item failed, continuing", e);
                 }
             }
@@ -63,7 +62,7 @@ public abstract class GroupProcessor<T,R> {
             executor.execute(() -> {
                 try {
                     future.complete(processItem(item, itemId));
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     future.completeExceptionally(ex);
                 } finally {
                     semaphore.release();
