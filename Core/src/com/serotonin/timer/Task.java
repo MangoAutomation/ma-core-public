@@ -10,7 +10,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.Assert;
 
 
 /**
@@ -200,12 +199,17 @@ public abstract class Task {
     }
 
     public void rejectedAsDelegate(RejectedTaskReason reason) {
-        Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication should be null");
+        SecurityContext original = SecurityContextHolder.getContext();
         SecurityContextHolder.setContext(this.delegateSecurityContext);
         try {
             rejected(reason);
         } finally {
-            SecurityContextHolder.clearContext();
+            SecurityContext emptyContext = SecurityContextHolder.createEmptyContext();
+            if (emptyContext.equals(original)) {
+                SecurityContextHolder.clearContext();
+            } else {
+                SecurityContextHolder.setContext(original);
+            }
         }
     }
 
