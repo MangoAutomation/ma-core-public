@@ -36,16 +36,18 @@ public abstract class GroupProcessor<T,R> {
             List<CompletableFuture<R>> futures = new ArrayList<>(items.size());
             int itemId = 0;
             for (T item : items) {
-                futures.add(submit(item, itemId));
-                itemId++;
+                futures.add(submit(item, itemId++));
             }
 
             List<R> results = new ArrayList<>();
-            for (Future<R> f : futures) {
+            for (int i = 0; i < futures.size(); i++) {
+                Future<R> f = futures.get(i);
                 try {
                     results.add(f.get());
                 } catch (ExecutionException e) {
-                    log.error("Item failed, continuing", e);
+                    if (log.isErrorEnabled()) {
+                        log.error("Item failed, continuing. Item: {}", items.get(i), e);
+                    }
                 }
             }
             return results;
