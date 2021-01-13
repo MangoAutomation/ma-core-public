@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.concurrent.DelegatingSecurityContextCallable;
 import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,11 +18,12 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.webapp.session.MangoJdbcSessionDataStore;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
- * See also {@link DelegatingSecurityContextRunnable}
+ * Based on {@link DelegatingSecurityContextRunnable} and {@link DelegatingSecurityContextCallable}.
  */
 @Component
 public class RunAsImpl implements RunAs {
@@ -87,6 +89,7 @@ public class RunAsImpl implements RunAs {
 
     /**
      * Creates a new security context for the supplied user
+     *
      * @param user
      * @return
      */
@@ -96,6 +99,11 @@ public class RunAsImpl implements RunAs {
         return newContext;
     }
 
+    /**
+     * Enforces that the current user is a superadmin, unless the authentication is null.
+     * This exception is currently required for {@link MangoJdbcSessionDataStore} for example which runs in a Jetty
+     * thread before the SecurityContext is populated.
+     */
     private SecurityContext getOriginalContext() {
         SecurityContext original = SecurityContextHolder.getContext();
         if (original.getAuthentication() == null) {
