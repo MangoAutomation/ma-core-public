@@ -166,7 +166,7 @@ public abstract class Task {
             Thread.currentThread().setName(originalName + " --> " + name);
         }
 
-        Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication must be null");
+        SecurityContext original = SecurityContextHolder.getContext();
         SecurityContextHolder.setContext(this.delegateSecurityContext);
         try {
             if (completeBeforeCancel) {
@@ -182,9 +182,13 @@ public abstract class Task {
             else
                 // Ok, go ahead and run the thingy.
                 run(runtime);
-        }
-        finally {
-            SecurityContextHolder.clearContext();
+        } finally {
+            SecurityContext emptyContext = SecurityContextHolder.createEmptyContext();
+            if (emptyContext.equals(original)) {
+                SecurityContextHolder.clearContext();
+            } else {
+                SecurityContextHolder.setContext(original);
+            }
 
             // Return the name to its original.
             Thread.currentThread().setName(originalName);

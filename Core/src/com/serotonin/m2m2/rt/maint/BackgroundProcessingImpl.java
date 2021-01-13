@@ -21,7 +21,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.util.WorkItemInfo;
 import com.serotonin.ShouldNeverHappenException;
@@ -549,7 +548,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
         @Override
         public void run() {
-            Assert.isNull(SecurityContextHolder.getContext().getAuthentication(), "Authentication must be null");
+            SecurityContext original = SecurityContextHolder.getContext();
             SecurityContextHolder.setContext(this.delegateSecurityContext);
             try {
                 item.execute();
@@ -563,7 +562,12 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
                 }
                 log.error(message, t);
             } finally {
-                SecurityContextHolder.clearContext();
+                SecurityContext emptyContext = SecurityContextHolder.createEmptyContext();
+                if (emptyContext.equals(original)) {
+                    SecurityContextHolder.clearContext();
+                } else {
+                    SecurityContextHolder.setContext(original);
+                }
             }
         }
 
