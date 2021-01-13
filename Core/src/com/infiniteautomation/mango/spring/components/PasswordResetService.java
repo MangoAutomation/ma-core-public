@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.mail.internet.AddressException;
@@ -21,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -28,6 +30,8 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
@@ -54,18 +58,18 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     private final PermissionService permissionService;
     private final UsersService usersService;
     private final PublicUrlService publicUrlService;
+    private final RunAs runAs;
 
     @Autowired
     public PasswordResetService(
             PermissionService permissionService,
             UsersService usersService,
-            PublicUrlService publicUrlService) {
+            PublicUrlService publicUrlService, RunAs runAs) {
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
+        this.runAs = runAs;
     }
-
-
 
     @Override
     protected String tokenType() {
@@ -77,8 +81,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        User user = this.usersService.get(username);
-
+        User user = this.runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> this.usersService.get(username));
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
 
@@ -105,24 +108,40 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     }
 
     public void resetKeys() {
+        PermissionHolder user = Common.getUser();
+        if (!permissionService.hasAdminRole(user)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.mustBeAdmin"), user);
+        }
         this.generateNewKeyPair();
     }
 
-    public String generateToken(User user) {
-        return this.generateToken(user, null);
+    public String generateToken(String username, boolean lockPassword, boolean sendEmail) {
+        return this.generateToken(username, null, lockPassword, sendEmail);
     }
 
-    public String generateToken(User user, Date expirationDate) {
+    public String generateToken(String username, Date expirationDate, boolean lockPassword, boolean sendEmail) {
+        PermissionHolder currentUser = Common.getUser();
+        User user = usersService.get(username);
+        usersService.ensureEditPermission(currentUser, user);
+
+        if (lockPassword) {
+            usersService.lockPassword(user.getUsername());
+        }
+
         if (expirationDate == null) {
             int expiryDuration = SystemSettingsDao.instance.getIntValue(EXPIRY_SYSTEM_SETTING);
-            expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000);
+            expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000L);
         }
 
         JwtBuilder builder = this.newToken(user.getUsername(), expirationDate)
                 .claim(USER_ID_CLAIM, user.getId())
                 .claim(USER_PASSWORD_VERSION_CLAIM, user.getPasswordVersion());
 
-        return this.sign(builder);
+        String token = this.sign(builder);
+        if (sendEmail) {
+            sendEmail(user, token);
+        }
+        return token;
     }
 
     public URI generateResetUrl(String token) throws UnknownHostException {
@@ -141,20 +160,25 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         // we copy the user so that when we set the new password it doesn't modify the cached instance
         User updated = (User) existing.copy();
         updated.setPlainTextPassword(newPassword);
-        this.usersService.update(existing, updated);
-        return updated;
+        return runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> usersService.update(existing, updated));
     }
 
-    public void sendEmail(User user) throws TemplateException, IOException, AddressException {
-        String token = this.generateToken(user);
-        this.sendEmail(user, token);
+    public void sendEmail(String username, String email) {
+        User user = runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> usersService.get(username));
+
+        String providedEmail = email.toLowerCase(Locale.ROOT);
+        String userEmail = user.getEmail().toLowerCase(Locale.ROOT);
+        if (providedEmail.equals(userEmail) && !user.isDisabled()) {
+            runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> generateToken(username, false, true));
+        }
     }
 
-    public void sendEmail(User user, String token) throws TemplateException, IOException, AddressException {
+    private void sendEmail(User user, String token) {
         URI uri = null;
         try {
             uri = this.generateResetUrl(token);
         } catch (Exception e) {
+            // dont care
         }
 
         Translations translations = Translations.getTranslations(user.getLocaleObject());
@@ -169,8 +193,12 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         model.put("expiration", expiration);
 
         TranslatableMessage subject = new TranslatableMessage("ftl.passwordReset.subject", user.getUsername());
-        MangoEmailContent content = new MangoEmailContent("passwordReset", model, translations, subject.translate(translations), StandardCharsets.UTF_8);
 
-        EmailWorkItem.queueEmail(user.getEmail(), content);
+        try {
+            MangoEmailContent content = new MangoEmailContent("passwordReset", model, translations, subject.translate(translations), StandardCharsets.UTF_8);
+            EmailWorkItem.queueEmail(user.getEmail(), content);
+        } catch (TemplateException | IOException | AddressException e) {
+            log.error("Couldn't send password reset email", e);
+        }
     }
 }
