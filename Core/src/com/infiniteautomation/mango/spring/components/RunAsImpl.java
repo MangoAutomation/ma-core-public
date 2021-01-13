@@ -18,8 +18,6 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.webapp.session.MangoJdbcSessionDataStore;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -99,18 +97,8 @@ public class RunAsImpl implements RunAs {
         return newContext;
     }
 
-    /**
-     * Enforces that the current user is a superadmin, unless the authentication is null.
-     * This exception is currently required for {@link MangoJdbcSessionDataStore} for example which runs in a Jetty
-     * thread before the SecurityContext is populated.
-     */
     private SecurityContext getOriginalContext() {
-        SecurityContext original = SecurityContextHolder.getContext();
-        if (original.getAuthentication() == null) {
-            return original;
-        }
-        permissionService.ensureAdminRole(Common.getUser());
-        return original;
+        return SecurityContextHolder.getContext();
     }
 
     private void restoreSecurityContext(SecurityContext original) {
