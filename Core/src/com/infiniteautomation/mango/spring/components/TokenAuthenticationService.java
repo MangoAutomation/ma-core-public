@@ -15,9 +15,13 @@ import com.infiniteautomation.mango.spring.events.AuthTokensRevokedEvent;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -40,15 +44,19 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     private final PermissionService permissionService;
     private final UsersService usersService;
     private final ApplicationContext context;
+    private final RunAs runAs;
+    private final UserDao userDao;
 
     @Autowired
     public TokenAuthenticationService(
             PermissionService permissionService,
             UsersService usersService,
-            ApplicationContext context) {
+            ApplicationContext context, RunAs runAs, UserDao userDao) {
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.context = context;
+        this.runAs = runAs;
+        this.userDao = userDao;
     }
 
     @Override
@@ -74,6 +82,10 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     }
 
     public void resetKeys() {
+        PermissionHolder user = Common.getUser();
+        if (!permissionService.hasAdminRole(user)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.mustBeAdmin"), user);
+        }
         this.generateNewKeyPair();
         this.context.publishEvent(new AuthTokensRevokedEvent(this));
     }
@@ -83,6 +95,9 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     }
 
     public String generateToken(User user, Date expiry) {
+        PermissionHolder currentUser = Common.getUser();
+        usersService.ensureEditPermission(currentUser, user);
+
         if (expiry == null) {
             expiry = new Date(System.currentTimeMillis() + DEFAULT_EXPIRY);
         }
@@ -95,7 +110,9 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     }
 
     public void revokeTokens(User user) {
-        UserDao.getInstance().revokeTokens(user);
+        PermissionHolder currentUser = Common.getUser();
+        usersService.ensureEditPermission(currentUser, user);
+        userDao.revokeTokens(user);
     }
 
     @Override
@@ -106,7 +123,7 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
         if (username == null) {
             throw new NotFoundException();
         }
-        User user = this.usersService.get(username);
+        User user = this.runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> this.usersService.get(username));
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
 
