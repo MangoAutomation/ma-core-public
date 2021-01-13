@@ -63,13 +63,13 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Override
     public void testUserCanDelete() {
         runTest(() -> {
+            DataPointVO vo = newVO(readUser);
+            addRoleToCreatePermission(editRole, vo);
+            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+            vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
+            service.insert(vo);
             runAs.runAs(editUser, () -> {
-                DataPointVO vo = newVO(readUser);
-                addRoleToCreatePermission(editRole, vo);
-                setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-                setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-                vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
-                vo = service.insert(vo);
                 service.delete(vo.getId());
             });
         });
