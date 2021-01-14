@@ -428,7 +428,13 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         }
 
         //clear all caches in services
-        Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream().forEach(s -> s.clearCaches());
+        Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()
+                .filter(s -> !(s instanceof PermissionService))
+                .forEach(CachingService::clearCaches);
+
+        // We clear the permission service cache afterwards as every call to clearCaches() on another service will
+        // repopulate the role hierarchy cache
+        Common.getRuntimeContext().getBean(PermissionService.class).clearCaches();
     }
 
     @Override
