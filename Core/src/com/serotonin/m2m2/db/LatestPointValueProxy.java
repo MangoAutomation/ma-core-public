@@ -31,4 +31,7 @@ public abstract class LatestPointValueProxy extends ModuleElementDefinition {
     public void postDatabase(Version previousVersion, Version current) {
         initialize();
     }
+
+    @Override
+    public void postRuntimeManagerTerminate(boolean uninstall) { shutdown(); }
 }
