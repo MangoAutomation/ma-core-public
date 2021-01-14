@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.infiniteautomation.mango.spring;
 
@@ -380,9 +380,9 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public RuntimeManager runtimeManager(ExecutorService executorService, RunAs runAs, DataSourceDao dataSourceDao,
+    public RuntimeManager runtimeManager(RunAs runAs, ExecutorService executorService, DataSourceDao dataSourceDao,
                                          PublisherDao publisherDao, DataPointDao dataPointDao) {
-        return new RuntimeManagerImpl(executorService, runAs, dataSourceDao, publisherDao, dataPointDao);
+        return runAs.runAsProxy(PermissionHolder.SYSTEM_SUPERADMIN, new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao));
     }
 
     @Bean

@@ -19,7 +19,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 
-import com.infiniteautomation.mango.spring.components.RunAs;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -72,7 +71,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
     private final List<PublisherRT<?>> runningPublishers = new CopyOnWriteArrayList<PublisherRT<?>>();
 
     private final ExecutorService executorService;
-    private final RunAs runAs;
     private final DataSourceDao dataSourceDao;
     private final PublisherDao publisherDao;
     private final DataPointDao dataPointDao;
@@ -91,9 +89,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
      */
     private int state = PRE_INITIALIZE;
 
-    public RuntimeManagerImpl(ExecutorService executorService, RunAs runAs, DataSourceDao dataSourceDao, PublisherDao publisherDao, DataPointDao dataPointDao) {
+    public RuntimeManagerImpl(ExecutorService executorService, DataSourceDao dataSourceDao, PublisherDao publisherDao, DataPointDao dataPointDao) {
         this.executorService = executorService;
-        this.runAs = runAs;
         this.dataSourceDao = dataSourceDao;
         this.publisherDao = publisherDao;
         this.dataPointDao = dataPointDao;
@@ -506,8 +503,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     /**
      * Only to be used at startup as synchronization has been reduced for performance
-     * @param vo
-     * @param latestValue
      */
     @Override
     public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
