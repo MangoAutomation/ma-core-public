@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.infiniteautomation.mango.db.tables.PointValueAnnotations.POINT_VALUE_ANNOTATIONS;
+import static com.infiniteautomation.mango.db.tables.PointValues.POINT_VALUES;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,10 +91,7 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
 
-import static com.infiniteautomation.mango.db.tables.PointValues.POINT_VALUES;
-import static com.infiniteautomation.mango.db.tables.PointValueAnnotations.POINT_VALUE_ANNOTATIONS;
-
-public class PointValueDaoSQL extends BaseDao implements PointValueDao {
+public class PointValueDaoSQL extends BaseDao implements PointValueDao, LatestPointValueDao {
 
     private static final Log LOG = LogFactory.getLog(PointValueDao.class);
 
@@ -380,6 +380,23 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         }
         return pointValuesQuery(POINT_VALUE_SELECT + " where pv.dataPointId=? order by pv.ts desc",
                 new Object[] { vo.getSeriesId() }, limit);
+    }
+
+    @Override
+    public List<PointValueTime> expandCachedPointValues(DataPointVO vo, int size, List<PointValueTime> existing) {
+        //TODO Mango 4.0 implement me
+        return existing;
+    }
+
+    @Override
+    public void updateLatestPointValues(DataPointVO vo, List<PointValueTime> values) {
+        //Do nothing we store this in the point value table with no optimizations yet
+    }
+
+    @Override
+    public Map<Integer, List<PointValueTime>> getLatestPointValues(List<DataPointVO> vos, int size) {
+        //TODO Mango 4.0 implement me
+        return null;
     }
 
     @Override

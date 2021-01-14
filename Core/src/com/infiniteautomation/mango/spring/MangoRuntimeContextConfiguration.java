@@ -62,6 +62,7 @@ import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.LatestPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -392,5 +393,10 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     PointValueDao pointValueDao() {
         return Common.databaseProxy.newPointValueDao();
+    }
+
+    @Bean
+    LatestPointValueDao latestPointValueDao() {
+        return Common.databaseProxy.getLatestPointValueProxy().getDao();
     }
 }

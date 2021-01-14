@@ -57,6 +57,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     private final Log log = LogFactory.getLog(AbstractDatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
+    private LatestPointValueProxy latestValueProxy;
     private Boolean useMetrics;
     private PlatformTransactionManager transactionManager;
 
@@ -141,6 +142,16 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 if (proxy.isEnabled()) {
                     noSQLProxy = proxy;
                     noSQLProxy.initialize();
+                    break;
+                }
+            }
+
+            //Check to see if we are using the latest values store
+            List<LatestPointValueProxy> latestValueProxies = ModuleRegistry.getDefinitions(LatestPointValueProxy.class);
+            for(LatestPointValueProxy proxy : latestValueProxies) {
+                if (proxy.isEnabled()) {
+                    latestValueProxy = proxy;
+                    //Defer initialization until post spring context init
                     break;
                 }
             }
@@ -306,6 +317,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public NoSQLProxy getNoSQLProxy() {
         return noSQLProxy;
+    }
+
+    @Override
+    public LatestPointValueProxy getLatestPointValueProxy() {
+        return latestValueProxy;
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.LatestPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -388,7 +389,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         //Startup multi threaded
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, Common.databaseProxy.newPointValueDao());
+        LatestPointValueDao latestPointValueDao = Common.databaseProxy.getLatestPointValueProxy().getDao();
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService startupThreads, latestPointValueDao);
         pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.
@@ -503,6 +505,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     /**
      * Only to be used at startup as synchronization has been reduced for performance
+     * @param vo
      */
     @Override
     public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {

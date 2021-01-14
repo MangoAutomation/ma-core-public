@@ -111,9 +111,13 @@ public interface DatabaseProxy {
 
     String getDatabasePassword(String propertyPrefix);
 
-    void setNoSQLProxy(NoSQLProxy proxy);
-
     PointValueDao newPointValueDao();
+
+    /**
+     * TODO Mango 4.0 Remove this method (only used in testing and not necessary)
+     * @param proxy
+     */
+    public void setNoSQLProxy(NoSQLProxy proxy);
 
     /**
      * Allow access to the NoSQL Proxy
@@ -121,5 +125,11 @@ public interface DatabaseProxy {
      * @return
      */
     NoSQLProxy getNoSQLProxy();
+
+    /**
+     * Get the latest value proxy
+     * @return
+     */
+    LatestPointValueProxy getLatestPointValueProxy();
 
 }

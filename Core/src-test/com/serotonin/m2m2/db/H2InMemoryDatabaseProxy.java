@@ -27,7 +27,6 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.spring.service.CachingService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
@@ -57,6 +56,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
     protected NoSQLProxy noSQLProxy;
+    protected LatestPointValueProxy latestPointValueProxy;
     protected MockPointValueDao mockPointValueDao;
     protected boolean initialized = false;
     protected boolean initWebConsole = false;
@@ -398,6 +398,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public NoSQLProxy getNoSQLProxy() {
         return noSQLProxy;
+    }
+
+    @Override
+    public LatestPointValueProxy getLatestPointValueProxy() {
+        return latestPointValueProxy;
     }
 
     /**
