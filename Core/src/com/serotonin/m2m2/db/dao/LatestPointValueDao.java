@@ -40,5 +40,5 @@ public interface LatestPointValueDao {
      * @param size - size of all lists
      * @return - Map of Ids to list where list is never null
      */
-    public @NotNull Map<Integer, List<PointValueTime>> getLatestPointValues(List<DataPointVO> vos, int size);
+    public @NotNull Map<Integer, List<PointValueTime>> getLatestPointValues(List<DataPointVO> vos, Integer size);
 }
