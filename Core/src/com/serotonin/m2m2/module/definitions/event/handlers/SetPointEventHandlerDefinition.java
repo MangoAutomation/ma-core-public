@@ -160,13 +160,11 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
             if(StringUtils.isEmpty(vo.getActiveScript())) {
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
             }else {
-                runAs.runAs(vo.getScriptRoles(), () -> {
-                    try {
-                        javaScriptService.compile(vo.getActiveScript(), true);
-                    } catch(ScriptError e) {
-                        response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
-                    }
-                });
+                try {
+                    javaScriptService.compile(vo.getActiveScript(), true);
+                } catch(ScriptError e) {
+                    response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+                }
             }
         }
 
@@ -199,13 +197,11 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
             if(StringUtils.isEmpty(vo.getInactiveScript())) {
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
             }else {
-                runAs.runAs(vo.getScriptRoles(), () -> {
-                    try {
-                        javaScriptService.compile(vo.getInactiveScript(), true);
-                    } catch(ScriptError e) {
-                        response.addContextualMessage("inactiveScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
-                    }
-                });
+                try {
+                    javaScriptService.compile(vo.getInactiveScript(), true);
+                } catch(ScriptError e) {
+                    response.addContextualMessage("inactiveScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+                }
             }
         }
 

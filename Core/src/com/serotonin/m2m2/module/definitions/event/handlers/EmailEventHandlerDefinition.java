@@ -171,13 +171,11 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
 
         if(!StringUtils.isEmpty(vo.getScript())) {
             MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
-            runAs.runAs(vo.getScriptRoles(), () -> {
-                try {
-                    service.compile(vo.getScript(), true);
-                } catch(ScriptError e) {
-                    result.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
-                }
-            });
+            try {
+                service.compile(vo.getScript(), true);
+            } catch(ScriptError e) {
+                result.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+            }
         }
 
         if(!EmailEventHandlerVO.SUBJECT_INCLUDE_CODES.isValidId(vo.getSubject()))
