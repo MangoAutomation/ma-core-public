@@ -151,7 +151,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             for(LatestPointValueProxy proxy : latestValueProxies) {
                 if (proxy.isEnabled()) {
                     latestValueProxy = proxy;
-                    //Defer initialization until post spring context init
+                    //Defer initialization until post spring context init via module element definition lifecycle
                     break;
                 }
             }
