@@ -396,7 +396,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    LatestPointValueDao latestPointValueDao() {
-        return Common.databaseProxy.getLatestPointValueProxy().getDao();
-    }
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    LatestPointValueDao latestPointValueDao() { return Common.databaseProxy.getLatestPointValueProxy().getDao(); }
+
 }
