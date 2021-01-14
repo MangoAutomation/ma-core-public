@@ -51,6 +51,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.db.SpringConnectionProvider;
@@ -58,10 +59,15 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
@@ -371,6 +377,12 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     @Bean
     public MangoProperties mangoProperties() {
         return Providers.get(MangoProperties.class);
+    }
+
+    @Bean
+    public RuntimeManager runtimeManager(ExecutorService executorService, RunAs runAs, DataSourceDao dataSourceDao,
+                                         PublisherDao publisherDao, DataPointDao dataPointDao) {
+        return new RuntimeManagerImpl(executorService, runAs, dataSourceDao, publisherDao, dataPointDao);
     }
 
     @Bean

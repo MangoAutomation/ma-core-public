@@ -20,7 +20,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -94,24 +93,12 @@ public class DataPointEventsTest extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        RuntimeManagerMockMangoLifecycle lifecycle =
-                new RuntimeManagerMockMangoLifecycle(modules);
-        return lifecycle;
+        return new MockMangoLifecycle(modules) {
+            @Override
+            protected RuntimeManager getRuntimeManager() {
+                return Common.getBean(RuntimeManagerImpl.class);
+            }
+        };
     }
 
-    class RuntimeManagerMockMangoLifecycle extends MockMangoLifecycle {
-
-        /**
-         * @param modules
-         */
-        public RuntimeManagerMockMangoLifecycle(List<Module> modules) {
-            super(modules);
-        }
-
-        @Override
-        protected RuntimeManager getRuntimeManager() {
-            return new RuntimeManagerImpl();
-        }
-
-    }
 }

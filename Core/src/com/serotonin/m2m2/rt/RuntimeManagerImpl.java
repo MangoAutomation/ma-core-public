@@ -1,6 +1,5 @@
 /*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.rt;
 
@@ -20,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.util.Assert;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -71,6 +71,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
      */
     private final List<PublisherRT<?>> runningPublishers = new CopyOnWriteArrayList<PublisherRT<?>>();
 
+    private final ExecutorService executorService;
+    private final RunAs runAs;
+    private final DataSourceDao dataSourceDao;
+    private final PublisherDao publisherDao;
+    private final DataPointDao dataPointDao;
+
     private TranslatableMessage stateMessage = new TranslatableMessage("startup.state.runtimeManagerInitialize");
 
     /**
@@ -84,6 +90,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
      *
      */
     private int state = PRE_INITIALIZE;
+
+    public RuntimeManagerImpl(ExecutorService executorService, RunAs runAs, DataSourceDao dataSourceDao, PublisherDao publisherDao, DataPointDao dataPointDao) {
+        this.executorService = executorService;
+        this.runAs = runAs;
+        this.dataSourceDao = dataSourceDao;
+        this.publisherDao = publisherDao;
+        this.dataPointDao = dataPointDao;
+    }
 
     @Override
     public int getState(){
@@ -131,13 +145,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
         List<DataSourceVO> configs = null;
-        configs = DataSourceDao.getInstance().getAll();
+        configs = dataSourceDao.getAll();
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO>>();
         for (DataSourceVO config : configs) {
             if (config.isEnabled()) {
                 if (safe) {
                     config.setEnabled(false);
-                    DataSourceDao.getInstance().update(config.getId(), config);
+                    dataSourceDao.update(config.getId(), config);
                 }
                 else if (config.getDefinition() != null) {
                     List<DataSourceVO> priorityList = priorityMap.get(config.getDefinition().getStartPriority());
@@ -153,12 +167,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Initialize the prioritized data sources. Start the polling later.
         List<DataSourceVO> pollingRound = new ArrayList<>();
         int startupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
-        ExecutorService executor = Common.getBean(ExecutorService.class);
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
             List<DataSourceVO> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
                 DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(
-                        executor, startupThreads, startPriority);
+                        executorService, startupThreads, startPriority);
                 pollingRound.addAll(initializer.process(priorityList));
             }
         }
@@ -173,14 +186,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Start the publishers that are enabled
         long pubStart = Common.timer.currentTimeMillis();
-        List<PublisherVO<? extends PublishedPointVO>> publishers = PublisherDao.getInstance().getAll();
+        List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getAll();
         LOG.info("Starting " + publishers.size() + " Publishers...");
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
             LOG.info("Starting publisher: " + vo.getName());
             if (vo.isEnabled()) {
                 if (safe) {
                     vo.setEnabled(false);
-                    PublisherDao.getInstance().update(vo.getId(), vo);
+                    publisherDao.update(vo.getId(), vo);
                 }
                 else
                     startPublisher(vo);
@@ -236,13 +249,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         int dataSourceShutdownThreads = Common.envProps.getInt("runtime.datasource.shutdownThreads", 1);
-        ExecutorService executor = Common.getBean(ExecutorService.class);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
             List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
                 DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(
-                        executor, dataSourceShutdownThreads, priorities[i]);
+                        executorService, dataSourceShutdownThreads, priorities[i]);
                 initializer.process(priorityList);
             }
         }
@@ -305,13 +317,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public DataSourceVO getDataSource(int dataSourceId) {
-        return DataSourceDao.getInstance().get(dataSourceId);
+        return dataSourceDao.get(dataSourceId);
     }
 
     @Override
     public void deleteDataSource(int dataSourceId) {
         stopDataSource(dataSourceId);
-        DataSourceDao.getInstance().delete(dataSourceId);
+        dataSourceDao.delete(dataSourceId);
         Common.eventManager.cancelEventsForDataSource(dataSourceId);
     }
 
@@ -319,7 +331,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public void insertDataSource(DataSourceVO vo) {
 
         // In this case it is new data source, we need to save to the database first so that it has a proper id.
-        DataSourceDao.getInstance().insert(vo);
+        dataSourceDao.insert(vo);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -333,7 +345,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // If the data source is running, stop it.
         stopDataSource(vo.getId());
 
-        DataSourceDao.getInstance().update(existing, vo);
+        dataSourceDao.update(existing, vo);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -374,13 +386,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         // Add the enabled points to the data source.
-        List<DataPointWithEventDetectors> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
+        List<DataPointWithEventDetectors> dataSourcePoints = dataPointDao.getDataPointsForDataSourceStart(vo.getId());
 
         //Startup multi threaded
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
-        ExecutorService executor = Common.getBean(ExecutorService.class);
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executor, startupThreads, Common.databaseProxy.newPointValueDao());
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, Common.databaseProxy.newPointValueDao());
         pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.
@@ -571,7 +582,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                         , e);
                 //TODO Fire Alarm to warn user.
                 dataPoint.getVO().setEnabled(false);
-                DataPointDao.getInstance().saveEnabledColumn(dataPoint.getVO());
+                dataPointDao.saveEnabledColumn(dataPoint.getVO());
                 stopDataPoint(dataPoint.getId()); //Stop it
             }
         }
@@ -820,13 +831,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
-        return PublisherDao.getInstance().get(publisherId);
+        return publisherDao.get(publisherId);
     }
 
     @Override
     public void deletePublisher(int publisherId) {
         stopPublisher(publisherId);
-        PublisherDao.getInstance().delete(publisherId);
+        publisherDao.delete(publisherId);
         Common.eventManager.cancelEventsForPublisher(publisherId);
     }
 
@@ -837,9 +848,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // In case this is a new publisher, we need to save to the database first so that it has a proper id.
         if(vo.getId() == Common.NEW_ID) {
-            PublisherDao.getInstance().insert(vo);
+            publisherDao.insert(vo);
         }else {
-            PublisherDao.getInstance().update(vo.getId(), vo);
+            publisherDao.update(vo.getId(), vo);
         }
 
         // If the publisher is enabled, start it.

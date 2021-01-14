@@ -19,7 +19,6 @@ import org.junit.Test;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
@@ -29,7 +28,6 @@ import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -741,29 +739,17 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        RuntimeManagerMockMangoLifecycle lifecycle =
-                new RuntimeManagerMockMangoLifecycle(modules);
-        return lifecycle;
-    }
+        return new MockMangoLifecycle(modules) {
+            @Override
+            protected RuntimeManager getRuntimeManager() {
+                return Common.getBean(RuntimeManagerImpl.class);
+            }
 
-    class RuntimeManagerMockMangoLifecycle extends MockMangoLifecycle {
-
-        /**
-         * @param modules
-         */
-        public RuntimeManagerMockMangoLifecycle(List<Module> modules) {
-            super(modules);
-        }
-
-        @Override
-        protected RuntimeManager getRuntimeManager() {
-            return new RuntimeManagerImpl();
-        }
-
-        @Override
-        protected EventManager getEventManager() {
-            return new SimpleEventManager();
-        }
+            @Override
+            protected EventManager getEventManager() {
+                return new SimpleEventManager();
+            }
+        };
     }
 
     class SimpleEventManager extends MockEventManager {
