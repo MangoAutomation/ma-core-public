@@ -102,9 +102,8 @@ public class PointValueCache {
         while (newCache.size() > maxSize)
             newCache.remove(newCache.size() - 1);
 
-        if(logValue) {
-            latestDao.updateLatestPointValues(vo, newCache);
-        }
+        //Update cache store
+        latestDao.updateLatestPointValues(vo, newCache);
 
         cache.set(newCache);
     }
