@@ -394,7 +394,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao, LatestPo
     }
 
     @Override
-    public Map<Integer, List<PointValueTime>> getLatestPointValues(List<DataPointVO> vos, int size) {
+    public Map<Integer, List<PointValueTime>> getLatestPointValues(List<DataPointVO> vos, Integer size) {
         //TODO Mango 4.0 implement me
         return null;
     }
