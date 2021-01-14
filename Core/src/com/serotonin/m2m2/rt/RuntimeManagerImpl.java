@@ -255,7 +255,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             if (priorityList != null) {
                 DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(
                         executorService, dataSourceShutdownThreads, priorities[i]);
-                initializer.process(priorityList);
+                initializer.process((List<DataSourceRT<?>>) priorityList);
             }
         }
 

@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
@@ -86,6 +87,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     protected RuntimeManager runtimeManager;
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
+    protected ApplicationContext runtimeContext;
 
     public MockMangoLifecycle(List<Module> modules) {
         this.modules = modules;
@@ -152,7 +154,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             Common.databaseProxy.initialize(null);
 
         //Setup the Spring Context
-        springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
+        this.runtimeContext = springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
 
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
@@ -263,12 +265,12 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     @Override
     public void terminate(TerminationReason reason) {
-        //        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
-        //        try {
-        //            proxy.clean();
-        //        } catch (Exception e) {
-        //            throw new ShouldNeverHappenException(e);
-        //        }
+        ConfigurableApplicationContext runtimeContext = (ConfigurableApplicationContext) this.runtimeContext;
+        // can be null if the lifecycle didn't start completely
+        if (runtimeContext != null) {
+            runtimeContext.close();
+        }
+
         if(Common.databaseProxy != null)
             Common.databaseProxy.terminate(true);
 
