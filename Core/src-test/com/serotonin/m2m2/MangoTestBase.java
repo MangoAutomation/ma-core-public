@@ -126,9 +126,6 @@ public class MangoTestBase {
             for (Module module : ModuleRegistry.getModules()) {
                 module.postDatabase();
             }
-
-            //TODO Mango 4.0 this won't work as the state of the RTM will not all re-init.
-            Common.runtimeManager.initialize(false);
         }
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
         this.timer = provider.getSimulationTimer();
@@ -140,8 +137,6 @@ public class MangoTestBase {
 
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
         provider.reset();
-        Common.runtimeManager.terminate();
-        Common.runtimeManager.joinTermination();
 
         for (Module module : ModuleRegistry.getModules()) {
             module.postRuntimeManagerTerminate(false);

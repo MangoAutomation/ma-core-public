@@ -265,6 +265,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     @Override
     public void terminate(TerminationReason reason) {
+        Common.runtimeManager.terminate();
+        Common.runtimeManager.joinTermination();
+
         ConfigurableApplicationContext runtimeContext = (ConfigurableApplicationContext) this.runtimeContext;
         // can be null if the lifecycle didn't start completely
         if (runtimeContext != null) {
