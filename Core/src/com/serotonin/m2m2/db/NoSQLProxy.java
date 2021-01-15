@@ -40,7 +40,7 @@ abstract public class NoSQLProxy extends ModuleElementDefinition {
      *
      * @return Absolute path to databases directory ending in a slash
      */
-    public static String getDatabasePath() {
+    public String getDatabasePath() {
         String location = Common.envProps.getString("db.nosql.location", "databases");
         return Common.MA_DATA_PATH.resolve(location).normalize().toString();
     }

@@ -29,9 +29,7 @@ import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.PollableMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.NoSQLProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
 /**
@@ -203,10 +201,12 @@ public class DiskUsageMonitoringService {
         }
         //Volume information for NoSQL partition
         try {
-            FileStore store = Files.getFileStore(Paths.get(NoSQLProxy.getDatabasePath()).toAbsolutePath());
-            noSqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
-            noSqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
-            noSqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
+            if(Common.databaseProxy.getNoSQLProxy() != null) {
+                FileStore store = Files.getFileStore(Paths.get(Common.databaseProxy.getNoSQLProxy().getDatabasePath()).toAbsolutePath());
+                noSqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
+                noSqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
+                noSqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
+            }
         }catch(Exception e) {
             log.error("Unable to get NoSQL partition usage", e);
         }
