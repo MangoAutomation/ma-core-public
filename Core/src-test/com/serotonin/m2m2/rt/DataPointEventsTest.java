@@ -96,7 +96,7 @@ public class DataPointEventsTest extends MangoTestBase {
         return new MockMangoLifecycle(modules) {
             @Override
             protected RuntimeManager getRuntimeManager() {
-                return Common.getBean(RuntimeManagerImpl.class);
+                return Common.getBean(RuntimeManager.class);
             }
         };
     }

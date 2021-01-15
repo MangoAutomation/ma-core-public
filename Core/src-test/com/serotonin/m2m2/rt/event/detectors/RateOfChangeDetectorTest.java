@@ -31,7 +31,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
-import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -742,7 +741,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         return new MockMangoLifecycle(modules) {
             @Override
             protected RuntimeManager getRuntimeManager() {
-                return Common.getBean(RuntimeManagerImpl.class);
+                return Common.getBean(RuntimeManager.class);
             }
 
             @Override
