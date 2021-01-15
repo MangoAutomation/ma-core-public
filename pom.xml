@@ -10,9 +10,9 @@
         <jettyVersion>9.4.35.v20201120</jettyVersion>
         <springVersion>5.2.12.RELEASE</springVersion>
         <springSecurityVersion>5.4.2</springSecurityVersion>
-        <log4jVersion>2.13.3</log4jVersion>
+        <log4jVersion>2.14.0</log4jVersion>
         <slf4jVersion>1.8.0-beta4</slf4jVersion>
-        <jacksonVersion>2.10.5</jacksonVersion>
+        <jacksonVersion>2.12.1</jacksonVersion>
         <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
         <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}
         </noSnapshotVer>
@@ -22,11 +22,11 @@
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <buildNumber>${maven.build.timestamp}</buildNumber>
         <buildTimestamp>${maven.build.timestamp}</buildTimestamp>
-        <bouncyCastleVersion>1.62</bouncyCastleVersion>
-        <jna.version>5.5.0</jna.version>
-        <junitVersion>4.12</junitVersion>
+        <bouncyCastleVersion>1.68</bouncyCastleVersion>
+        <jna.version>5.6.0</jna.version>
+        <junitVersion>4.13.1</junitVersion>
         <asm.version>7.2</asm.version>
-        <spotbugs.version>4.0.6</spotbugs.version>
+        <spotbugs.version>4.2.0</spotbugs.version>
         <jetty.alpn.version>2.0.10</jetty.alpn.version>
         <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
         <mango.store.pugin.version>1.1.0</mango.store.pugin.version>
@@ -71,7 +71,6 @@
                         <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-scm-plugin</artifactId>
-                            <version>1.11.1</version>
                             <configuration>
                                 <includes>package.json,pom.xml</includes>
                                 <message>[maven-release-plugin] ${project.name}-v${project.version}</message>
@@ -156,7 +155,7 @@
                         <dependency>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-scm-plugin</artifactId>
-                            <version>1.9.5</version>
+                            <version>1.11.2</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -205,7 +204,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-scm-plugin</artifactId>
-                    <version>1.9.5</version>
+                    <version>1.11.2</version>
                     <configuration>
                         <connectionType>developerConnection</connectionType>
                         <scmVersion>main</scmVersion>
@@ -220,7 +219,7 @@
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
-                    <version>4.0.0</version>
+                    <version>${spotbugs.version}</version>
                     <dependencies>
                         <dependency>
                             <groupId>com.github.spotbugs</groupId>
@@ -328,12 +327,12 @@
                     <dependency>
                         <groupId>org.apache.maven.doxia</groupId>
                         <artifactId>doxia-core</artifactId>
-                        <version>1.6</version>
+                        <version>1.9.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.apache.maven.doxia</groupId>
                         <artifactId>doxia-site-renderer</artifactId>
-                        <version>1.6</version>
+                        <version>1.9.2</version>
                     </dependency>
                 </dependencies>
             </plugin>
