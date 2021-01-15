@@ -382,6 +382,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     @Bean
     public RuntimeManager runtimeManager(RunAs runAs, ExecutorService executorService, DataSourceDao dataSourceDao,
                                          PublisherDao publisherDao, DataPointDao dataPointDao) {
+        // we proxy all calls to RuntimeManager so that all datasource tasks and publisher tasks are run as the system superadmin
         return runAs.runAsProxy(PermissionHolder.SYSTEM_SUPERADMIN, new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao));
     }
 
