@@ -390,7 +390,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
         LatestPointValueDao latestPointValueDao = Common.databaseProxy.getLatestPointValueProxy().getDao();
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService startupThreads, latestPointValueDao);
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, latestPointValueDao);
         pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.
