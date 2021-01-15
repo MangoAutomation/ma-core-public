@@ -124,6 +124,13 @@ public class MockEventManager extends EventManagerImpl {
     }
 
     @Override
+    public void cancelEventsForDataPoints(List<Integer> pointIds) {
+        if(useDatabase) {
+            super.cancelEventsForDataPoints(pointIds);
+        }
+    }
+
+    @Override
     public void cancelEventsForDataSource(int dataSourceId) {
         if(useDatabase) {
             super.cancelEventsForDataSource(dataSourceId);

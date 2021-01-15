@@ -381,7 +381,7 @@ public class EventManagerImpl implements EventManager {
      * @param time
      * @param inactiveCause
      */
-    private void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
+    protected void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
         List<User> activeUsers = userDao.getActiveUsers();
 
         List<Integer> eventIds = new ArrayList<>();

@@ -160,11 +160,24 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         // The database exists, so let's make its schema version matches the application version.
         DBUpgrade.checkUpgrade();
 
-        // Check if we are using NoSQL
-        NoSQLProxy proxy = ModuleRegistry.getDefinition(NoSQLProxy.class);
-        if (proxy != null) {
-            noSQLProxy = proxy;
-            noSQLProxy.initialize();
+        // Check if we are using NoSQL and use the first enabled proxy
+        List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
+        for(NoSQLProxy proxy : proxies) {
+            if (proxy.isEnabled()) {
+                noSQLProxy = proxy;
+                noSQLProxy.initialize();
+                break;
+            }
+        }
+
+        //Check to see if we are using the latest values store
+        List<PointValueCacheProxy> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheProxy.class);
+        for(PointValueCacheProxy proxy : latestValueProxies) {
+            if (proxy.isEnabled()) {
+                pointValueCacheProxy = proxy;
+                //Defer initialization until post spring context init via module element definition lifecycle
+                break;
+            }
         }
 
         initialized = true;
