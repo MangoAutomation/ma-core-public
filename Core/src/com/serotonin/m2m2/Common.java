@@ -52,6 +52,12 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.async.AsyncLoggerConfig;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
@@ -950,5 +956,30 @@ public class Common {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public static void configureLoggerLevel(String loggerName, Level logLevel) {
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        org.apache.logging.log4j.core.config.Configuration config = context.getConfiguration();
+        LoggerConfig rootLogger = config.getRootLogger();
+        LoggerConfig loggerConfig;
+        if (rootLogger instanceof AsyncLoggerConfig) {
+            loggerConfig = AsyncLoggerConfig.createLogger(true, logLevel, loggerName,
+                    Boolean.toString(rootLogger.isIncludeLocation()),
+                    new AppenderRef[0], null, config, null);
+        } else {
+            loggerConfig = LoggerConfig.createLogger(true, logLevel, loggerName,
+                    Boolean.toString(rootLogger.isIncludeLocation()),
+                    new AppenderRef[0], null, config, null);
+        }
+        config.addLogger(loggerName, loggerConfig);
+        context.updateLoggers();
+    }
+
+    public static void removeLoggerConfig(String loggerName) {
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        org.apache.logging.log4j.core.config.Configuration config = context.getConfiguration();
+        config.removeLogger(loggerName);
+        context.updateLoggers();
     }
 }
