@@ -106,7 +106,7 @@ public class ProcessLog implements Closeable {
      * @param prefix
      * @param id
      * @param logLevel
-     * @param includeLocation
+     * @param includeLocationInfo
      * @param fileSize
      * @param maxFiles
      */
@@ -125,7 +125,7 @@ public class ProcessLog implements Closeable {
      * @param prefix
      * @param id
      * @param logLevel
-     * @param includeLocation
+     * @param includeLocationInfo
      * @param out
      * @param deleteExisting
      */

@@ -27,6 +27,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.spring.service.CachingService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;

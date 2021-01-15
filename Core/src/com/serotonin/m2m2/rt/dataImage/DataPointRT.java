@@ -81,7 +81,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private double toleranceOrigin;
 
     /**
-     * @param vo
+     * @param dp
      * @param pointLocator
      * @param dsVo
      * @param initialCache
@@ -111,10 +111,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     /**
      * To allow simulation of points using a timer implementation
+     *
      * @param vo
      * @param pointLocator
-     * @param Data Source
-     * @param initial cache
+     * @param dsVo
+     * @param initialCache
      * @param timer
      */
     public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {

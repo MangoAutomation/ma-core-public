@@ -206,7 +206,8 @@ public interface PointValueDao {
     /**
      * Delete startTime <= values < endTime
      * @param vo
-     * @param time
+     * @param startTime
+     * @param endTime
      * @return
      */
     public long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime);
@@ -315,7 +316,7 @@ public interface PointValueDao {
 
     /**
      * Delete all data point values at a time
-     * @param dataPointId
+     * @param vo
      * @param ts
      * @return
      */

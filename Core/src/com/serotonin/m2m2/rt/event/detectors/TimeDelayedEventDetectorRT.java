@@ -71,14 +71,12 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
     /**
      * Change the state of the event, raise using the supplied timestamp if necessary
-     * @param state
      * @param timestamp
      */
     protected abstract void setEventActive(long timestamp);
 
     /**
      * Change the state of the event, rtn using the supplied timestamp if necessary
-     * @param state
      * @param timestamp
      */
     protected abstract void setEventInactive(long timestamp);
