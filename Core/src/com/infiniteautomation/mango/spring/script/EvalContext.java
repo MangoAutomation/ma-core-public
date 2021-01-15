@@ -9,7 +9,7 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.jdt.annotation.NonNull;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import com.google.common.io.CharStreams;
 
