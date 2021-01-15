@@ -25,8 +25,10 @@ import org.springframework.security.concurrent.DelegatingSecurityContextSchedule
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.exceptionHandling.MangoUncaughtExceptionHandler;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Creates executors and shuts them down
@@ -37,6 +39,8 @@ public final class MangoExecutors {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final ScheduledExecutorService scheduledExecutor;
+    private final ScheduledExecutorService delegatingScheduledExecutor;
+    private final ScheduledExecutorService superadminScheduledExecutor;
 
     private final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
         @Override
@@ -47,6 +51,8 @@ public final class MangoExecutors {
             return thread;
         }
     });
+    private final ExecutorService delegatingExecutor;
+    private final ExecutorService superadminExecutor;
 
     private volatile Thread futureConverterThread;
     private final LazyInitSupplier<FutureConverter> futureConverter = new LazyInitSupplier<>(() -> {
@@ -60,8 +66,9 @@ public final class MangoExecutors {
     });
 
     @Autowired
-    public MangoExecutors(Environment env) {
+    public MangoExecutors(Environment env, RunAs runAs) {
         int scheduledThreadPoolSize = env.getProperty("executors.scheduled.corePoolSize", Integer.class, 1);
+
         this.scheduledExecutor = new ScheduledThreadPoolExecutor(scheduledThreadPoolSize, new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -71,6 +78,11 @@ public final class MangoExecutors {
                 return thread;
             }
         });
+
+        this.delegatingExecutor = new DelegatingSecurityContextExecutorService(executor);
+        this.superadminExecutor = runAs.executorService(PermissionHolder.SYSTEM_SUPERADMIN, executor);
+        this.delegatingScheduledExecutor = new DelegatingSecurityContextScheduledExecutorService(scheduledExecutor);
+        this.superadminScheduledExecutor = runAs.scheduledExecutorService(PermissionHolder.SYSTEM_SUPERADMIN, scheduledExecutor);
     }
 
     @PreDestroy
@@ -139,13 +151,20 @@ public final class MangoExecutors {
     }
 
     public ScheduledExecutorService getScheduledExecutor() {
-        return new DelegatingSecurityContextScheduledExecutorService(scheduledExecutor);
+        return this.delegatingScheduledExecutor;
     }
 
     public ExecutorService getExecutor() {
-        return new DelegatingSecurityContextExecutorService(executor);
+        return this.delegatingExecutor;
     }
 
+    public ScheduledExecutorService getSuperadminScheduledExecutor() {
+        return this.superadminScheduledExecutor;
+    }
+
+    public ExecutorService getSuperadminExecutor() {
+        return this.superadminExecutor;
+    }
 
     public <T> CompletableFuture<T> makeCompletable(Future<T> future) {
         return futureConverter.get().submit(future, 0, null);

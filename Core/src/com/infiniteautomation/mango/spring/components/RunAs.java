@@ -5,6 +5,8 @@
 package com.infiniteautomation.mango.spring.components;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -27,4 +29,8 @@ public interface RunAs {
      */
     @SuppressWarnings("unchecked")
     <T> T runAsProxy(PermissionHolder user, T instance);
+
+    ExecutorService executorService(PermissionHolder user, ExecutorService executorService);
+
+    ScheduledExecutorService scheduledExecutorService(PermissionHolder user, ScheduledExecutorService executorService);
 }
