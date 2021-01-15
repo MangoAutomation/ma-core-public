@@ -12,18 +12,21 @@ import java.util.Map;
 
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.sun.istack.NotNull;
 
-public interface LatestPointValueDao {
+
+/**
+ * Access to persistent storage of data point caches.
+ */
+public interface PointValueCacheDao {
 
     /**
-     * Merge the cache for a data point in time descending order
+     * Expand the cache for a data point, get new values from the point value dao and merge them in time descending order
      * @param vo
      * @param size - size of list to return
      * @param existing - current cache (DO NOT MODIFY)
      * @return - values or empty list never null
      */
-    public @NotNull List<PointValueTime> expandCachedPointValues(DataPointVO vo, int size, List<PointValueTime> existing);
+    public List<PointValueTime> expandPointValueCache(DataPointVO vo, int size, List<PointValueTime> existing);
 
     /**
      * Update the list of latest point values, should represent the current point's cache and
@@ -31,14 +34,15 @@ public interface LatestPointValueDao {
      * @param vo
      * @param values
      */
-    public void updateLatestPointValues(DataPointVO vo, List<PointValueTime> values);
+    public void updatePointValueCache(DataPointVO vo, List<PointValueTime> values);
 
     /**
      * Get the latest values for a group of data points in time descending order
      *
      * @param vos
-     * @param size - size of all lists
+     * @param size - size of all lists, may be ignored if store contains only the cache store.  If overlaid onto
+     *             a PointValueDao then this is required and will be used.
      * @return - Map of Ids to list where list is never null
      */
-    public @NotNull Map<Integer, List<PointValueTime>> getLatestPointValues(List<DataPointVO> vos, Integer size);
+    public Map<Integer, List<PointValueTime>> getPointValueCaches(List<DataPointVO> vos, Integer size);
 }

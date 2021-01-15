@@ -35,6 +35,7 @@ import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockPointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
@@ -57,7 +58,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
     protected NoSQLProxy noSQLProxy;
-    protected LatestPointValueProxy latestPointValueProxy;
+    protected PointValueCacheProxy pointValueCacheProxy;
     protected MockPointValueDao mockPointValueDao;
     protected boolean initialized = false;
     protected boolean initWebConsole = false;
@@ -402,8 +403,13 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public LatestPointValueProxy getLatestPointValueProxy() {
-        return latestPointValueProxy;
+    public PointValueCacheProxy getPointValueCacheProxy() {
+        return pointValueCacheProxy;
+    }
+
+    @Override
+    public PointValueCacheDao getPointValueCacheDao() {
+        return pointValueCacheProxy.getDao();
     }
 
     /**

@@ -22,6 +22,8 @@ import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -80,13 +82,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      */
     private double toleranceOrigin;
 
-    /**
-     * @param dp
-     * @param pointLocator
-     * @param dsVo
-     * @param initialCache
-     */
-    public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache) {
+    public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
         this.vo = dp.getDataPoint();
         this.detectors = new ArrayList<PointEventDetectorRT<?>>();
         for (AbstractPointEventDetectorVO ped : dp.getEventDetectors()) {
@@ -95,7 +91,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
         this.dsVo = dsVo;
         this.pointLocator = pointLocator;
-        this.valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache);
+        this.valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache, dao, pointValueCacheDao);
 
         if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
             averagingValues = new ArrayList<IValueTime>();
@@ -116,10 +112,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param pointLocator
      * @param dsVo
      * @param initialCache
+     * @param dao
+     * @param pointValueCacheDao
      * @param timer
      */
-    public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
-        this(vo, pointLocator, dsVo, initialCache);
+    public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao, AbstractTimer timer) {
+        this(vo, pointLocator, dsVo, initialCache, dao, pointValueCacheDao);
         this.timer = timer;
     }
 

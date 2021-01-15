@@ -8,10 +8,13 @@
 package com.serotonin.m2m2.db;
 
 import com.github.zafarkhaja.semver.Version;
-import com.serotonin.m2m2.db.dao.LatestPointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 
-public abstract class LatestPointValueProxy extends ModuleElementDefinition {
+/**
+ * Interface for proxy manager of persistent access and storege of data point caches.
+ */
+public abstract class PointValueCacheProxy extends ModuleElementDefinition {
 
     /**
      * Are we enabled in this configuration? Override as necessary
@@ -21,11 +24,21 @@ public abstract class LatestPointValueProxy extends ModuleElementDefinition {
         return true;
     }
 
+    /**
+     * Initialize the proxy and all necessary resources
+     */
     protected abstract void initialize();
 
+    /**
+     * Terminate the proxy and all necessary resources
+     */
     public abstract void shutdown();
 
-    public abstract LatestPointValueDao getDao();
+    /**
+     * Get the dao to access the persistsent store
+     * @return
+     */
+    public abstract PointValueCacheDao getDao();
 
     @Override
     public void postDatabase(Version previousVersion, Version current) {

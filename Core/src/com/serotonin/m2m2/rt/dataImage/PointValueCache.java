@@ -9,8 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.infiniteautomation.mango.util.LazyField;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.LatestPointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -31,9 +30,9 @@ public class PointValueCache {
     //This would not be the advised thing to do if we were to be deleting any data through here
     // as some properties of the delete are system settings that can be changed
     // However, since we're only querying, it should be more efficient to have only one static final reference
-    protected static final PointValueDao dao = Common.databaseProxy.newPointValueDao();
+    private final PointValueDao dao;
 
-    protected static final LatestPointValueDao latestDao = Common.databaseProxy.getLatestPointValueProxy().getDao();
+    private final PointValueCacheDao pointValueCacheDao;
 
     /**
      * IMPORTANT: The list object should never be written to! The implementation here is for performance. Never call
@@ -42,9 +41,12 @@ public class PointValueCache {
      */
     private final LazyField<List<PointValueTime>> cache;
 
-    public PointValueCache(DataPointVO vo, int defaultSize, List<PointValueTime> cache) {
+    public PointValueCache(DataPointVO vo, int defaultSize, List<PointValueTime> cache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
         this.vo = vo;
         this.defaultSize = defaultSize;
+        this.dao = dao;
+        this.pointValueCacheDao = pointValueCacheDao;
+
         this.cache = new LazyField<>(() -> {
             List<PointValueTime> newCache;
             if (cache == null) {
@@ -103,7 +105,7 @@ public class PointValueCache {
             newCache.remove(newCache.size() - 1);
 
         //Update cache store
-        latestDao.updateLatestPointValues(vo, newCache);
+        pointValueCacheDao.updatePointValueCache(vo, newCache);
 
         cache.set(newCache);
     }
@@ -155,7 +157,7 @@ public class PointValueCache {
             maxSize = size;
 
             //TODO Mango 4.0 deal with this oddity
-            if(latestDao instanceof PointValueDao) {
+            if(pointValueCacheDao instanceof PointValueDao) {
                 if (size == 1) {
                     PointValueTime pvt = dao.getLatestPointValue(vo);
                     if (pvt != null) {
@@ -190,7 +192,7 @@ public class PointValueCache {
                     return nc;
                 }
             }else {
-                return latestDao.expandCachedPointValues(vo, size, existing);
+                return pointValueCacheDao.expandPointValueCache(vo, size, existing);
             }
         }else {
             return existing;

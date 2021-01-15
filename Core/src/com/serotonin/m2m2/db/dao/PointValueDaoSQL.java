@@ -91,7 +91,7 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.CollectionUtils;
 import com.serotonin.util.queue.ObjectQueue;
 
-public class PointValueDaoSQL extends BaseDao implements PointValueDao, LatestPointValueDao {
+public class PointValueDaoSQL extends BaseDao implements PointValueDao, PointValueCacheDao {
 
     private static final Log LOG = LogFactory.getLog(PointValueDao.class);
 
@@ -383,18 +383,18 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao, LatestPo
     }
 
     @Override
-    public List<PointValueTime> expandCachedPointValues(DataPointVO vo, int size, List<PointValueTime> existing) {
+    public List<PointValueTime> expandPointValueCache(DataPointVO vo, int size, List<PointValueTime> existing) {
         //TODO Mango 4.0 implement me
         return existing;
     }
 
     @Override
-    public void updateLatestPointValues(DataPointVO vo, List<PointValueTime> values) {
+    public void updatePointValueCache(DataPointVO vo, List<PointValueTime> values) {
         //Do nothing we store this in the point value table with no optimizations yet
     }
 
     @Override
-    public Map<Integer, List<PointValueTime>> getLatestPointValues(List<DataPointVO> vos, Integer size) {
+    public Map<Integer, List<PointValueTime>> getPointValueCaches(List<DataPointVO> vos, Integer size) {
         //TODO Mango 4.0 implement me
         return null;
     }

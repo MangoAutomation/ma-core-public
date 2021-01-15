@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.LatestPointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
@@ -26,9 +26,9 @@ import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
  */
 public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWithEventDetectors>, Void> {
 
-    private final LatestPointValueDao dao;
+    private final PointValueCacheDao dao;
 
-    public DataPointGroupInitializer(ExecutorService executor, int maxConcurrency, LatestPointValueDao dao) {
+    public DataPointGroupInitializer(ExecutorService executor, int maxConcurrency, PointValueCacheDao dao) {
         super(executor, maxConcurrency);
         this.dao = dao;
     }
@@ -83,7 +83,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
         boolean failed = false;
         Map<Integer, List<PointValueTime>> latestValuesMap;
         try {
-            latestValuesMap = dao.getLatestPointValues(queryPoints, maxCacheSize);
+            latestValuesMap = dao.getPointValueCaches(queryPoints, maxCacheSize);
         } catch (Exception e) {
             latestValuesMap = new HashMap<>();
             failed = true;

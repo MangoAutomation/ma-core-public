@@ -37,6 +37,7 @@ import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.BaseDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
@@ -57,7 +58,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     private final Log log = LogFactory.getLog(AbstractDatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
-    private LatestPointValueProxy latestValueProxy;
+    private PointValueCacheProxy pointValueCacheProxy;
     private Boolean useMetrics;
     private PlatformTransactionManager transactionManager;
 
@@ -147,10 +148,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             }
 
             //Check to see if we are using the latest values store
-            List<LatestPointValueProxy> latestValueProxies = ModuleRegistry.getDefinitions(LatestPointValueProxy.class);
-            for(LatestPointValueProxy proxy : latestValueProxies) {
+            List<PointValueCacheProxy> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheProxy.class);
+            for(PointValueCacheProxy proxy : latestValueProxies) {
                 if (proxy.isEnabled()) {
-                    latestValueProxy = proxy;
+                    pointValueCacheProxy = proxy;
                     //Defer initialization until post spring context init via module element definition lifecycle
                     break;
                 }
@@ -320,9 +321,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public LatestPointValueProxy getLatestPointValueProxy() {
-        return latestValueProxy;
+    public PointValueCacheProxy getPointValueCacheProxy() {
+        return pointValueCacheProxy;
     }
+
+    @Override
+    public PointValueCacheDao getPointValueCacheDao() { return pointValueCacheProxy.getDao(); }
 
     @Override
     public PlatformTransactionManager getTransactionManager() {

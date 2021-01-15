@@ -202,7 +202,8 @@ public class CompiledMangoJavaScript {
                             }
                             //Generate some fake event detectors
                             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpvo, new ArrayList<>());
-                            dprt = new DataPointRT(dp, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(dpvo.getDataSourceId()), null);
+                            dprt = new DataPointRT(dp, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(dpvo.getDataSourceId()),
+                                    null, Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
                             dprt.resetValues(); //otherwise variable.value will be empty
                         }else {
                             throw new DataPointStateException(variable.getDataPointId(), new TranslatableMessage(

@@ -159,13 +159,13 @@ public interface RuntimeManager extends ILifecycle {
     long purgeDataPointValues(DataPointVO vo);
 
     /**
-     * @param id
+     * @param vo
      */
     boolean purgeDataPointValuesWithoutCount(DataPointVO vo);
 
     /**
      * Purge a value at a given time
-     * @param dataPointId
+     * @param vo
      * @param ts
      * @param dao to aid in performance of high frequency calls
      * @return
@@ -178,7 +178,7 @@ public interface RuntimeManager extends ILifecycle {
 
     /**
      * Purge values before a given time
-     * @param dataPointId
+     * @param vo
      * @param before
      * @return true if any data was deleted
      */
