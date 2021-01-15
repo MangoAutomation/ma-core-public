@@ -691,10 +691,9 @@ with Springfox 3.
             <version>${jna.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jdt</groupId>
-            <artifactId>org.eclipse.jdt.annotation</artifactId>
-            <version>2.2.600</version>
-            <scope>provided</scope>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId>
+            <version>3.9.1</version>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>

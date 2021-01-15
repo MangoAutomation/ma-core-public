@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
