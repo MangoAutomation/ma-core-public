@@ -344,20 +344,32 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     /**
-     * Add a mapping for an existing event handler for an event type and if it already exists replace it
+     * Add a mapping for an existing event handler for an event type,
+     *   this assumes that no mapping already exists.  Either this is from a new event detector
+     *   or the mappings have been removed for this event detector prior to calling
      * @param eventHandlerXid
      * @param type
      */
     public void saveEventHandlerMapping(String eventHandlerXid, EventType type) {
         Integer id = getIdByXid(eventHandlerXid);
         Objects.requireNonNull(id, "Event Handler with xid: " + eventHandlerXid + " does not exist, can't create mapping.");
+        saveEventHandlerMapping(id, type);
+    }
+
+    /**
+     * Add a mapping for an existing event handler for an event type,
+     *   this assumes that no mapping already exists.  If this is possibly a
+     *   duplicate mapping one should use addEventHandlerMappingIfMissing()
+     * @param eventHandlerId
+     * @param type
+     */
+    public void saveEventHandlerMapping(int eventHandlerId, EventType type) {
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus arg0) {
-                deleteEventHandlerMapping(id, type);
                 ejt.doInsert(
                         "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                        new Object[] {id, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                        new Object[] {eventHandlerId, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
                                 type.getReferenceId1(), type.getReferenceId2()},
                         new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                 Types.INTEGER});

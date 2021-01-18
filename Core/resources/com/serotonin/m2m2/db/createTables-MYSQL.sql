@@ -353,7 +353,7 @@ CREATE TABLE eventHandlersMapping (
   eventSubtypeName varchar(32) NOT NULL DEFAULT '',
   eventTypeRef1 int NOT NULL,
   eventTypeRef2 int NOT NULL
-);
+)engine=InnoDB;
 ALTER TABLE eventHandlersMapping ADD CONSTRAINT eventHandlersFk1 FOREIGN KEY (eventHandlerId) REFERENCES eventHandlers(id) ON DELETE CASCADE;
 ALTER TABLE eventHandlersMapping ADD CONSTRAINT handlerMappingUniqueness UNIQUE(eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2);
 

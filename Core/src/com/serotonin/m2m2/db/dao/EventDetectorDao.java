@@ -169,14 +169,25 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     @Override
     public void saveRelationalData(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo) {
         EventTypeVO et = vo.getEventType();
+        EventHandlerDao eventHandlerDao = EventHandlerDao.getInstance();
         if(vo.getAddedEventHandlers() != null) {
-            for(AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers())
-                EventHandlerDao.getInstance().addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
+            if(existing != null) {
+                for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
+                    eventHandlerDao.addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
+                }
+            }else {
+                for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
+                    eventHandlerDao.saveEventHandlerMapping(ehVo.getId(), et.getEventType());
+                }
+            }
         }else if(vo.getEventHandlerXids() != null) {
-            //Remove all mappings
-            EventHandlerDao.getInstance().deleteEventHandlerMappings(et.getEventType());
+            //Remove all mappings if we are updating the detector
+            if(existing != null ) {
+                eventHandlerDao.deleteEventHandlerMappings(et.getEventType());
+            }
+            //Add mappings
             for(String xid : vo.getEventHandlerXids()) {
-                EventHandlerDao.getInstance().saveEventHandlerMapping(xid, et.getEventType());
+                eventHandlerDao.saveEventHandlerMapping(xid, et.getEventType());
             }
         }
         if(existing != null) {
