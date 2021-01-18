@@ -68,7 +68,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 import com.serotonin.m2m2.web.mvc.spring.security.permissions.RequireAuthenticationInterceptor;
 
 /**
@@ -80,14 +79,10 @@ public class MangoSecurityConfiguration {
 
     public static final String IS_PROXY_REQUEST_ATTRIBUTE = "MANGO_IS_PROXY_REQUEST";
 
-    //TODO Inject a list of Auth providers
-    //TODO annotated the MangoTokenAuthenticationProvider to enable/disable creation
     @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
-            MangoUserDetailsService userDetails,
             List<AuthenticationProvider> authProviders,
-            AuthenticationEventPublisher authenticationEventPublisher
-            ) throws Exception {
+            AuthenticationEventPublisher authenticationEventPublisher) throws Exception {
 
         // causes DaoAuthenticationProvider to be added which we don't want
         //auth.userDetailsService(userDetails);
