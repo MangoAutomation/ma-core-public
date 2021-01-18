@@ -67,7 +67,7 @@
 * The env.properties file is now created on startup if it does not exist, it will be created with all properties commented out
 * Mango will now fail to start if the env.properties file has POSIX "others" read/write permissions. You must manually adjust the permissions on your env.properties file so it is not readable or writable by "others".
 * $MA_HOME/overrides/classes and $MA_HOME/overrides/properties are no longer added to the classpath via the default start up scripts.
-* Support Oauth2 and OpenID Connect authentication via Spring Security (configurable via env.properties)
+* Support OAuth2 and OpenID Connect authentication via Spring Security (configurable via env.properties)
 
 *Version 3.7.4*
 * Improve work item failure logging
