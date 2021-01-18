@@ -9,7 +9,6 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -31,11 +30,8 @@ import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 @ConditionalOnProperty("${authentication.oauth2.enabled}")
 public class OAuth2Configuration {
 
-    @Autowired
-    Environment env;
-
     @Bean
-    public ClientRegistrationRepository clientRegistrationRepository() {
+    public ClientRegistrationRepository clientRegistrationRepository(Environment env) {
         return new InMemoryClientRegistrationRepository(Arrays.stream(env.getRequiredProperty("oauth2.client.registrationIds", String[].class))
                 .map(registrationId -> {
                     ClientRegistration.Builder builder = null;
@@ -56,7 +52,7 @@ public class OAuth2Configuration {
                     builder.redirectUri("{baseUrl}/{action}/oauth2/code/{registrationId}");
 
                     // load provider defaults first
-                    PropertyMapper providerMapper = new PropertyMapper("oauth2.client.provider." + providerId + ".");
+                    PropertyMapper providerMapper = new PropertyMapper(env, "oauth2.client.provider." + providerId + ".");
                     providerMapper.map("authorizationUri", builder::authorizationUri);
                     providerMapper.map("tokenUri", builder::tokenUri);
                     providerMapper.map("jwkSetUri", builder::jwkSetUri);
@@ -70,7 +66,7 @@ public class OAuth2Configuration {
                     providerMapper.map("clientName", builder::clientName);
 
                     // load registration properties
-                    PropertyMapper registrationMapper = new PropertyMapper("oauth2.client.registration." + registrationId + ".");
+                    PropertyMapper registrationMapper = new PropertyMapper(env, "oauth2.client.registration." + registrationId + ".");
                     registrationMapper.map("clientId", builder::clientId);
                     registrationMapper.map("clientSecret", builder::clientSecret);
                     registrationMapper.map("clientAuthenticationMethod", ClientAuthenticationMethod.class, builder::clientAuthenticationMethod);
@@ -94,10 +90,12 @@ public class OAuth2Configuration {
         return new AuthenticatedPrincipalOAuth2AuthorizedClientRepository(authorizedClientService);
     }
 
-    private class PropertyMapper {
+    static class PropertyMapper {
+        final Environment env;
         final String prefix;
 
-        PropertyMapper(String prefix) {
+        PropertyMapper(Environment env, String prefix) {
+            this.env = env;
             this.prefix = prefix;
         }
 
