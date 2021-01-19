@@ -28,7 +28,6 @@ import com.infiniteautomation.mango.exceptionHandling.MangoUncaughtExceptionHand
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Creates executors and shuts them down
@@ -80,9 +79,9 @@ public final class MangoExecutors {
         });
 
         this.delegatingExecutor = new DelegatingSecurityContextExecutorService(executor);
-        this.superadminExecutor = runAs.executorService(PermissionHolder.SYSTEM_SUPERADMIN, executor);
+        this.superadminExecutor = runAs.executorService(runAs.systemSuperadmin(), executor);
         this.delegatingScheduledExecutor = new DelegatingSecurityContextScheduledExecutorService(scheduledExecutor);
-        this.superadminScheduledExecutor = runAs.scheduledExecutorService(PermissionHolder.SYSTEM_SUPERADMIN, scheduledExecutor);
+        this.superadminScheduledExecutor = runAs.scheduledExecutorService(runAs.systemSuperadmin(), scheduledExecutor);
     }
 
     @PreDestroy

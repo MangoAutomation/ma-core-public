@@ -4,6 +4,8 @@
 
 package com.infiniteautomation.mango.spring.components;
 
+import static com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.Callable;
@@ -12,6 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.concurrent.DelegatingSecurityContextCallable;
 import org.springframework.security.concurrent.DelegatingSecurityContextExecutorService;
 import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
@@ -31,10 +34,13 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class RunAsImpl implements RunAs {
 
     private final PermissionService permissionService;
+    private final PermissionHolder superadmin;
 
     @Autowired
-    public RunAsImpl(PermissionService permissionService) {
+    public RunAsImpl(PermissionService permissionService,
+                     @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder superadmin) {
         this.permissionService = permissionService;
+        this.superadmin = superadmin;
     }
 
     @Override
@@ -97,6 +103,11 @@ public class RunAsImpl implements RunAs {
     @Override
     public ScheduledExecutorService scheduledExecutorService(PermissionHolder user, ScheduledExecutorService executorService) {
         return new DelegatingSecurityContextScheduledExecutorService(executorService, newSecurityContext(user));
+    }
+
+    @Override
+    public PermissionHolder systemSuperadmin() {
+        return superadmin;
     }
 
     /**

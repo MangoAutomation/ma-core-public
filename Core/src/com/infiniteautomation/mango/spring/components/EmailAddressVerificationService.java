@@ -213,7 +213,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             expirationDate = new Date(verificationTime + expiryDuration * 1000L);
         }
 
-        runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+        runAs.runAs(runAs.systemSuperadmin(), () -> {
             try {
                 // see if a different user is already using this address
                 User existingUser = this.usersService.getUserByEmail(emailAddress);
@@ -266,7 +266,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
         // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
         // generating the token.
-        return runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+        return runAs.runAs(runAs.systemSuperadmin(), () -> {
             int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
             User existing = this.usersService.get(userId);
             this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
@@ -301,7 +301,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         newUser.setDisabled(true); //Ensure we are disabled
         newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
 
-        return runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+        return runAs.runAs(runAs.systemSuperadmin(), () -> {
             User created = this.usersService.insert(newUser);
 
             //Raise an event upon successful insertion

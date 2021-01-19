@@ -22,6 +22,7 @@ import org.jooq.tools.StopWatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -381,9 +382,10 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     @Bean
     public RuntimeManager runtimeManager(RunAs runAs, ExecutorService executorService, DataSourceDao dataSourceDao,
-                                         PublisherDao publisherDao, DataPointDao dataPointDao) {
+                                         PublisherDao publisherDao, DataPointDao dataPointDao,
+                                         @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder superadmin) {
         // we proxy all calls to RuntimeManager so that all datasource tasks and publisher tasks are run as the system superadmin
-        return runAs.runAsProxy(PermissionHolder.SYSTEM_SUPERADMIN, new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao));
+        return runAs.runAsProxy(superadmin, new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao));
     }
 
     @Bean

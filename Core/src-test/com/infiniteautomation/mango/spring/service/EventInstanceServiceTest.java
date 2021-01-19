@@ -21,7 +21,6 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -166,7 +165,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
             EventInstanceVO vo = newVO(editUser);
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             // TODO is this runAs needed?
-            runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+            runAs.runAs(runAs.systemSuperadmin(), () -> {
                 service.insert(vo);
             });
         });

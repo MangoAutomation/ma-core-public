@@ -33,4 +33,6 @@ public interface RunAs {
     ExecutorService executorService(PermissionHolder user, ExecutorService executorService);
 
     ScheduledExecutorService scheduledExecutorService(PermissionHolder user, ScheduledExecutorService executorService);
+
+    PermissionHolder systemSuperadmin();
 }

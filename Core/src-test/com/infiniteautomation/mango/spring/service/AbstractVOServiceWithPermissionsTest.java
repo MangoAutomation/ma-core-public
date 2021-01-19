@@ -23,7 +23,6 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -263,7 +262,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
             // TODO is this runAs needed?
-            VO newVO = runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+            VO newVO = runAs.runAs(runAs.systemSuperadmin(), () -> {
                 return service.insert(vo);
             });
             runAs.runAs(readUser, () ->{

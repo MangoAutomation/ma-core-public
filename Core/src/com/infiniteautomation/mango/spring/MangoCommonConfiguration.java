@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring;
 
+import static com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -54,10 +57,11 @@ public class MangoCommonConfiguration {
     }
 
     @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
-    public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
+    public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry,
+                                                        @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder superadmin) {
         // always want event listeners executed as system superadmin
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        Assert.state(securityContext.getAuthentication().getPrincipal() == PermissionHolder.SYSTEM_SUPERADMIN, "Should be system superadmin");
+        Assert.state(securityContext.getAuthentication().getPrincipal() == superadmin, "Should be system superadmin");
         DelegatingSecurityContextExecutorService delegating = new DelegatingSecurityContextExecutorService(ForkJoinPool.commonPool(), securityContext);
         return new PropagatingEventMulticaster(context, eventMulticasterRegistry, delegating);
     }

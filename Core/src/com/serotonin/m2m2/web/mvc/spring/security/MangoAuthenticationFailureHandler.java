@@ -31,7 +31,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.IpAddressAuthenticationRateException;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.UsernameAuthenticationRateException;
 
@@ -127,7 +126,7 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
         if (exception instanceof BadCredentialsException) {
             String ipAddress = request.getRemoteAddr();
             //Raise the event
-            runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+            runAs.runAs(runAs.systemSuperadmin(), () -> {
                 // need permission to access com.infiniteautomation.mango.spring.service.MailingListService.getAlarmAddresses
                 SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_FAILED_USER_LOGIN), Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.failedLogin", username, ipAddress));
             });

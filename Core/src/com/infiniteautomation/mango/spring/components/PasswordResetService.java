@@ -81,7 +81,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        User user = this.runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> this.usersService.get(username));
+        User user = this.runAs.runAs(runAs.systemSuperadmin(), () -> this.usersService.get(username));
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
 
@@ -160,16 +160,16 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         // we copy the user so that when we set the new password it doesn't modify the cached instance
         User updated = (User) existing.copy();
         updated.setPlainTextPassword(newPassword);
-        return runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> usersService.update(existing, updated));
+        return runAs.runAs(runAs.systemSuperadmin(), () -> usersService.update(existing, updated));
     }
 
     public void sendEmail(String username, String email) {
-        User user = runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> usersService.get(username));
+        User user = runAs.runAs(runAs.systemSuperadmin(), () -> usersService.get(username));
 
         String providedEmail = email.toLowerCase(Locale.ROOT);
         String userEmail = user.getEmail().toLowerCase(Locale.ROOT);
         if (providedEmail.equals(userEmail) && !user.isDisabled()) {
-            runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> generateToken(username, false, true));
+            runAs.runAs(runAs.systemSuperadmin(), () -> generateToken(username, false, true));
         }
     }
 
