@@ -49,7 +49,7 @@ public class OAuth2Configuration {
                     }
 
                     // set URL to redirect back to Mango
-                    builder.redirectUri("{baseUrl}/{action}/oauth2/code/{registrationId}");
+                    builder.redirectUri("{baseUrl}/oauth2/callback/{registrationId}");
 
                     // load provider defaults first
                     PropertyMapper providerMapper = new PropertyMapper(env, "oauth2.client.provider." + providerId + ".");

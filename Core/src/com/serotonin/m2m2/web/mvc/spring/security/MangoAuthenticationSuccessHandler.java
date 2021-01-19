@@ -64,10 +64,11 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        User user = (User) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        User user = principal instanceof User ? (User) principal : null;
 
         //Set the per-user session timeout
-        if(user.isSessionExpirationOverride()) {
+        if(user != null && user.isSessionExpirationOverride()) {
             HttpSession session = request.getSession(false);
             if (session != null) {
                 session.setMaxInactiveInterval((int)(Common.getMillis(Common.TIME_PERIOD_CODES.getId(user.getSessionExpirationPeriodType()), user.getSessionExpirationPeriods())/1000L));

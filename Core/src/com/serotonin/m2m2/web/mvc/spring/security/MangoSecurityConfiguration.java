@@ -28,7 +28,6 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -469,8 +468,11 @@ public class MangoSecurityConfiguration {
             }
 
             if (env.getRequiredProperty("authentication.oauth2.enabled", Boolean.class)) {
-                http.oauth2Login(Customizer.withDefaults());
-                http.oauth2Client();
+                http.oauth2Login()
+                        .authorizationEndpoint().baseUri("/oauth2/authorization").and()
+                        .redirectionEndpoint().baseUri("/oauth2/callback/{registrationId}").and()
+                        .successHandler(authenticationSuccessHandler)
+                        .failureHandler(authenticationFailureHandler);
             }
         }
     }
