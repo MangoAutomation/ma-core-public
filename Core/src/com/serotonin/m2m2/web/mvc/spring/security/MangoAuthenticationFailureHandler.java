@@ -4,18 +4,18 @@
 package com.serotonin.m2m2.web.mvc.spring.security;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
@@ -26,6 +26,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
@@ -33,7 +34,6 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.IpAddressAuthenticationRateException;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.UsernameAuthenticationRateException;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 /**
  * @author Jared Wiltshire
@@ -82,42 +82,30 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
             throws IOException, ServletException {
 
+        String username = this.getUsername(request);
         if (log.isWarnEnabled()) {
-            this.logException(request, exception);
+            this.logException(request, exception, username);
         }
 
-        saveExceptionImpl(request, exception);
+        saveExceptionImpl(request, exception, username);
 
         if (browserHtmlRequestMatcher.matches(request)) {
+            String baseUri;
             if (exception instanceof CredentialsExpiredException) {
-                String uri = DefaultPagesDefinition.getPasswordResetUri();
-                uri = UriComponentsBuilder.fromUriString(uri).build().toUriString();
-                this.getRedirectStrategy().sendRedirect(request, response, uri);
-                return;
-            }
-
-            String uri;
-
-            String referrer = request.getHeader(HttpHeaders.REFERER);
-            String referrerPath = null;
-
-            if (referrer != null) {
-                referrerPath = UriComponentsBuilder.fromUriString(referrer).build().getPath();
-            }
-
-            // redirect back to the referrer for browser requests, stops logins at /login.htm being directed back to /ui/login everytime
-            if (referrerPath != null) {
-                uri = referrerPath;
+                baseUri = DefaultPagesDefinition.getPasswordResetUri();
             } else {
-                uri = DefaultPagesDefinition.getLoginUri(request, response);
+                baseUri = DefaultPagesDefinition.getLoginUri(request, response);
             }
 
-            uri = UriComponentsBuilder.fromUriString(uri)
-                    .build()
+            String uri = UriComponentsBuilder.fromUriString(baseUri)
+                    .queryParamIfPresent("username", Optional.ofNullable(username))
+                    .queryParam("error", exception.getMessage()) // TODO Mango 4.0 user friendly translated message
                     .toUriString();
 
-            log.debug("Redirecting to " + uri);
-            this.getRedirectStrategy().sendRedirect(request, response, uri);
+            if (log.isDebugEnabled()) {
+                log.debug("Redirecting to " + uri);
+            }
+            getRedirectStrategy().sendRedirect(request, response, uri);
         } else {
             // forward the request on to its usual destination (e.g. /rest/v1/login) so the correct response is returned
             request.getRequestDispatcher(request.getRequestURI()).forward(request, response);
@@ -127,33 +115,26 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
     private String getUsername(HttpServletRequest request) {
         String username = (String) request.getAttribute(JsonUsernamePasswordAuthenticationFilter.USERNAME_ATTRIBUTE);
         if (username == null) {
+            // form based login
             username = request.getParameter("username");
         }
         return username;
     }
 
-    protected void saveExceptionImpl(HttpServletRequest request, AuthenticationException exception) {
-        String username = this.getUsername(request);
-        String ipAddress = request.getRemoteAddr();
-
+    protected void saveExceptionImpl(HttpServletRequest request, AuthenticationException exception, String username) {
         request.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
 
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
-            //Store for use in the Controller
-            session.setAttribute("username", username);
+        if (exception instanceof BadCredentialsException) {
+            String ipAddress = request.getRemoteAddr();
+            //Raise the event
+            runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+                // need permission to access com.infiniteautomation.mango.spring.service.MailingListService.getAlarmAddresses
+                SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_FAILED_USER_LOGIN), Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.failedLogin", username, ipAddress));
+            });
         }
-
-        //Raise the event
-        runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
-            // need permission to access com.infiniteautomation.mango.spring.service.MailingListService.getAlarmAddresses
-            SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_FAILED_USER_LOGIN), Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.failedLogin", username, ipAddress));
-        });
     }
 
-    private void logException(HttpServletRequest request, AuthenticationException exception) {
-        String username = this.getUsername(request);
+    private void logException(HttpServletRequest request, AuthenticationException exception, String username) {
         String ipAddress = request.getRemoteAddr();
 
         if (exception instanceof IpAddressAuthenticationRateException) {
@@ -166,8 +147,10 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
                 rateLimitUsernameLogged.put(username, Boolean.TRUE);
                 log.warn("Possible brute force attack, authentication attempt rate limit exceeded against username " + username);
             }
-        } else {
+        } else if (exception instanceof BadCredentialsException) {
             log.warn("Failed login attempt on user '" + username + "' from IP " + ipAddress);
+        } else {
+            log.warn("Error while authenticating IP " + ipAddress, exception);
         }
     }
 }
