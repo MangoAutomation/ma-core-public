@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -123,7 +125,7 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
     protected void saveExceptionImpl(HttpServletRequest request, AuthenticationException exception, String username) {
         request.setAttribute(WebAttributes.AUTHENTICATION_EXCEPTION, exception);
 
-        if (exception instanceof BadCredentialsException) {
+        if (exception instanceof BadCredentialsException || exception instanceof DisabledException || exception instanceof LockedException) {
             String ipAddress = request.getRemoteAddr();
             //Raise the event
             runAs.runAs(runAs.systemSuperadmin(), () -> {
@@ -146,7 +148,7 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
                 rateLimitUsernameLogged.put(username, Boolean.TRUE);
                 log.warn("Possible brute force attack, authentication attempt rate limit exceeded against username " + username);
             }
-        } else if (exception instanceof BadCredentialsException) {
+        } else if (exception instanceof BadCredentialsException || exception instanceof DisabledException || exception instanceof LockedException) {
             log.warn("Failed login attempt on user '" + username + "' from IP " + ipAddress);
         } else {
             log.warn("Error while authenticating IP " + ipAddress, exception);
