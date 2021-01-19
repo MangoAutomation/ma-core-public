@@ -36,7 +36,7 @@ import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MissingClaimException;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.crypto.EllipticCurveProvider;
+import io.jsonwebtoken.security.Keys;
 
 /**
  * @author Jared Wiltshire
@@ -48,28 +48,35 @@ public abstract class JwtSignerVerifier<T> {
     public static final String MISSING_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was not present.";
 
     private KeyPair keyPair;
-    private final JwtParser parser;
+    private JwtParser parser;
 
     protected final Log log;
 
     protected JwtSignerVerifier() {
         this.log = LogFactory.getLog(this.getClass());
-        this.parser = Jwts.parser().require(TOKEN_TYPE_CLAIM, this.tokenType());
     }
 
     @PostConstruct
-    protected synchronized void postConstruct() {
-        this.keyPair = this.loadKeyPair();
-        if (this.keyPair == null) {
+    private synchronized void postConstruct() {
+        KeyPair keyPair = this.loadKeyPair();
+        if (keyPair == null) {
             this.generateNewKeyPair();
         } else {
-            this.parser.setSigningKey(this.keyPair.getPublic());
+            this.parser = Jwts.parserBuilder()
+                    .require(TOKEN_TYPE_CLAIM, this.tokenType())
+                    .setSigningKey(keyPair.getPublic())
+                    .build();
+            this.keyPair = keyPair;
         }
     }
 
     protected synchronized final void generateNewKeyPair() {
-        this.keyPair = EllipticCurveProvider.generateKeyPair(SignatureAlgorithm.ES512);
-        this.parser.setSigningKey(this.keyPair.getPublic());
+        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.ES512);
+        this.parser = Jwts.parserBuilder()
+                .require(TOKEN_TYPE_CLAIM, this.tokenType())
+                .setSigningKey(keyPair.getPublic())
+                .build();
+        this.keyPair = keyPair;
         this.saveKeyPair(this.keyPair);
     }
 
@@ -88,7 +95,6 @@ public abstract class JwtSignerVerifier<T> {
         String token = builder.claim(TOKEN_TYPE_CLAIM, this.tokenType())
                 .signWith(SignatureAlgorithm.ES512, keyPair.getPrivate())
                 .compact();
-
 
         if (log.isDebugEnabled()) {
             log.debug("Created JWT token: " + printToken(token));
