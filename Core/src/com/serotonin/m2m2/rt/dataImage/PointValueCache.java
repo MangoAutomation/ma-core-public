@@ -206,12 +206,22 @@ public class PointValueCache {
         return cache.get();
     }
 
+    /**
+     * Completely reset cache using point value store, place
+     *   into cache store
+     */
     public void reset() {
         List<PointValueTime> nc = dao.getLatestPointValues(vo, defaultSize);
         maxSize = defaultSize;
         cache.set(nc);
+        pointValueCacheDao.updatePointValueCache(vo, cache.get());
     }
 
+    /**
+     * Trim current cache of values < before, update cache store with new cache
+     *  and reload any necessary data from point value store
+     * @param before
+     */
     public void reset(long before) {
         List<PointValueTime> c = cache.get();
         List<PointValueTime> nc = new ArrayList<PointValueTime>(c.size());
@@ -220,6 +230,8 @@ public class PointValueCache {
         while(iter.hasNext())
             if(iter.next().getTime() < before)
                 iter.remove();
+
+        pointValueCacheDao.updatePointValueCache(vo, nc);
 
         if(nc.size() < defaultSize) {
             maxSize = 0;
