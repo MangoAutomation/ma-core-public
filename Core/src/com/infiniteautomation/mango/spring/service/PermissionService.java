@@ -107,6 +107,28 @@ public class PermissionService implements CachingService {
     }
 
     /**
+     * Can be used to check if the user has the "user" role i.e. the permission holder is not anonymous
+     * @param user the user to check
+     * @return true if user has the "user" role
+     */
+    public boolean hasUserRole(PermissionHolder user) {
+        if (!isValidPermissionHolder(user)) return false;
+        Set<Role> heldRoles = getAllInheritedRoles(user);
+        return heldRoles.contains(PermissionHolder.USER_ROLE);
+    }
+
+    /**
+     * Can be used to ensure the user has the "user" role i.e. the permission holder is not anonymous
+     * @param user the user to check
+     * @throws PermissionException if user does not have the "user" role
+     */
+    public void ensureUserRole(PermissionHolder user) throws PermissionException {
+        if (!hasUserRole(user)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
+    }
+
+    /**
      * Does this permission holder have access based on the permission's role logic?
      * @param user
      * @param permission
