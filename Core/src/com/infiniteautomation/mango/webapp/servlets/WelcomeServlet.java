@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -31,10 +30,7 @@ public class WelcomeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         PermissionHolder user = Common.getUser();
-        if(!(user instanceof User)) {
-            user = null;
-        }
-        String uri = DefaultPagesDefinition.getDefaultUri(req, resp, (User)user);
+        String uri = DefaultPagesDefinition.getDefaultUri(req, resp, user.getUser());
         resp.sendRedirect(uri);
     }
 

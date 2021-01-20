@@ -183,6 +183,11 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
         return true;
     }
 
+    public boolean hasMangoUser() {
+        Object principal = this.getPrincipal();
+        return principal instanceof PermissionHolder && ((PermissionHolder) principal).getUser() != null;
+    }
+
     private Object filterObject;
 
     @Override

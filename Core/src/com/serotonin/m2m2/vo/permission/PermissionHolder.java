@@ -3,12 +3,15 @@
  */
 package com.serotonin.m2m2.vo.permission;
 
-import com.serotonin.m2m2.vo.role.Role;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Something that holds permissions, typically a user. Could however in the future be groups, data source scripts etc.
@@ -70,6 +73,14 @@ public interface PermissionHolder {
      * @return
      */
     Set<Role> getRoles();
+
+    /**
+     * Some permission holders have a corresponding User in the Mango database. Return the user if this is the case.
+     * @return user if present, otherwise null
+     */
+    default @Nullable User getUser() {
+        return this instanceof User ? (User) this : null;
+    }
 
     /**
      * @author Jared Wiltshire
