@@ -238,13 +238,13 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         // set the email verified date to null if the email was changed but the date was not
-        Date emailVerified = vo.getEmailVerified();
-        if (emailVerified == null || emailVerified.equals(existing.getEmailVerified())) {
+        Date emailVerified = vo.getEmailVerifiedDate();
+        if (emailVerified == null || emailVerified.equals(existing.getEmailVerifiedDate())) {
             boolean emailChanged = !existing.getEmail().equals(vo.getEmail());
             if (emailChanged) {
-                vo.setEmailVerified(null);
+                vo.setEmailVerifiedDate(null);
             } else {
-                vo.setEmailVerified(existing.getEmailVerified());
+                vo.setEmailVerifiedDate(existing.getEmailVerifiedDate());
             }
         }
 
@@ -374,7 +374,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
-        if (!Objects.equals(vo.getEmailVerified(), existing.getEmailVerified()) && !permissionService.hasAdminRole(holder)) {
+        if (!Objects.equals(vo.getEmailVerifiedDate(), existing.getEmailVerifiedDate()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("emailVerified", "validate.invalidValue");
         }
 
@@ -510,7 +510,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         //Can't set email verified
-        if (vo.getEmailVerified() != null && !permissionService.hasAdminRole(holder)) {
+        if (vo.getEmailVerifiedDate() != null && !permissionService.hasAdminRole(holder)) {
             response.addContextualMessage("emailVerified", "validate.invalidValue");
         }
 

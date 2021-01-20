@@ -395,7 +395,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         assertEquals(expected.getOrganization(), actual.getOrganization());
         assertEquals(expected.getOrganizationalRole(), actual.getOrganizationalRole());
         assertEquals(expected.getCreated().getTime(), actual.getCreated().getTime());
-        assertEquals(expected.getEmailVerified(), actual.getEmailVerified());
+        assertEquals(expected.getEmailVerifiedDate(), actual.getEmailVerifiedDate());
         assertEquals(expected.getData(), actual.getData());
         assertRoles(expected.getRoles(), actual.getRoles());
 

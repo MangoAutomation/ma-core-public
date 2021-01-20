@@ -273,7 +273,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
             User updated = (User) existing.copy();
             updated.setEmail(verifiedEmail);
-            updated.setEmailVerified(token.getBody().getIssuedAt());
+            updated.setEmailVerifiedDate(token.getBody().getIssuedAt());
             return this.usersService.update(existing, updated);
         });
     }
@@ -299,7 +299,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         newUser.setRoles(Collections.emptySet());
         newUser.setEmail(verifiedEmail);
         newUser.setDisabled(true); //Ensure we are disabled
-        newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
+        newUser.setEmailVerifiedDate(new Date(Common.timer.currentTimeMillis()));
 
         return runAs.runAs(runAs.systemSuperadmin(), () -> {
             User created = this.usersService.insert(newUser);

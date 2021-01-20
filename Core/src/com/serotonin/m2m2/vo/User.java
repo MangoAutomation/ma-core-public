@@ -387,15 +387,15 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         this.created = created;
     }
 
-    public Date getEmailVerified() {
+    public Date getEmailVerifiedDate() {
         return emailVerified;
     }
 
-    public Long getEmailVerifiedTs() {
+    public Long getEmailVerifiedTimestamp() {
         return emailVerified == null ? null : emailVerified.getTime();
     }
 
-    public void setEmailVerified(Date emailVerified) {
+    public void setEmailVerifiedDate(Date emailVerified) {
         this.emailVerified = emailVerified;
     }
 

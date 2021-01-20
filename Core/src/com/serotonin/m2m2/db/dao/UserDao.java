@@ -254,7 +254,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             if (rs.wasNull()) {
                 emailVerified = null;
             }
-            user.setEmailVerified(emailVerified);
+            user.setEmailVerifiedDate(emailVerified);
             user.setData(extractData(rs.getClob(++i)));
             return user;
         }
@@ -470,7 +470,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
                 vo.getOrganization(),
                 vo.getOrganizationalRole(),
                 vo.getCreatedTs(),
-                vo.getEmailVerifiedTs(),
+                vo.getEmailVerifiedTimestamp(),
                 convertData(vo.getData())
         };
     }
