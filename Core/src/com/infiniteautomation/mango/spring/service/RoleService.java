@@ -3,6 +3,15 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+
+import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -14,17 +23,9 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
 
 /**
  * @author Terry Packer
- *
  */
 @Service
 public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, RoleDao> {
@@ -49,13 +50,13 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     public RoleVO delete(RoleVO vo)
             throws PermissionException, NotFoundException {
         //Cannot delete the 'user' or 'superadmin' roles
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
+        if (StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
             PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterSuperadminRole"), user);
-        }else if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
+        } else if (StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
             PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterUserRole"), user);
-        }else if(StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
+        } else if (StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
             PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterAnonymousRole"), user);
         }
@@ -70,41 +71,58 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     @Override
     public ProcessResult validate(RoleVO existing, RoleVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        if(!StringUtils.equals(existing.getXid(), vo.getXid())) {
+        if (!StringUtils.equals(existing.getXid(), vo.getXid())) {
             result.addContextualMessage("xid", "validate.role.cannotChangeXid");
         }
         return result;
+    }
+
+    public @NonNull RoleVO getOrInsert(@NonNull String xid) {
+        return getOrInsert(xid, xid);
+    }
+
+    public @NonNull RoleVO getOrInsert(@NonNull String xid, @NonNull String name) {
+        permissionService.ensureAdminRole(Common.getUser());
+        return dao.doInTransaction(tx -> {
+            RoleVO role;
+            try {
+                role = get(xid);
+            } catch (NotFoundException e) {
+                role = insert(new RoleVO(Common.NEW_ID, xid, name));
+            }
+            return role;
+        });
     }
 
     public ProcessResult commonValidation(RoleVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
 
         //Don't allow the use of role 'user' or 'superadmin'
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
+        if (StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterSuperadminRole");
         }
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
+        if (StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterUserRole");
         }
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
+        if (StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterAnonymousRole");
         }
 
         //Don't allow spaces in the XID
         Matcher matcher = Functions.WHITESPACE_PATTERN.matcher(vo.getXid());
-        if(matcher.find()) {
+        if (matcher.find()) {
             result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
         }
 
         //Ensure inherited roles exist and they are not us and there are no loops
-        if(vo.getInherited() != null) {
+        if (vo.getInherited() != null) {
             Set<Role> used = new HashSet<>();
             used.add(vo.getRole());
-            for(Role role : vo.getInherited()) {
-                if(dao.getXidById(role.getId()) == null) {
+            for (Role role : vo.getInherited()) {
+                if (dao.getXidById(role.getId()) == null) {
                     result.addContextualMessage("inherited", "validate.role.notFound", role.getXid());
                 }
-                if(recursivelyCheckForUsedRoles(role, used)) {
+                if (recursivelyCheckForUsedRoles(role, used)) {
                     result.addContextualMessage("inherited", "validate.role.inheritanceLoop", role.getXid());
                     break;
                 }
@@ -112,19 +130,21 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         }
         return result;
     }
+
     /**
      * Make sure no role is re-used in its hierarchy
+     *
      * @param role
      * @param used
      * @return - true is role was already used somewhere in its inheritance
      */
     private boolean recursivelyCheckForUsedRoles(Role role, Set<Role> used) {
-        if(!used.add(role)) {
+        if (!used.add(role)) {
             return true;
         }
         Set<Role> inheritance = dao.getFlatInheritance(role);
-        for(Role inherited : inheritance) {
-            if(!used.add(inherited)) {
+        for (Role inherited : inheritance) {
+            if (!used.add(inherited)) {
                 return true;
             }
             recursivelyCheckForUsedRoles(role, used);
@@ -134,6 +154,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     /**
      * Get the superadmin role
+     *
      * @return
      */
     public Role getSuperadminRole() {
@@ -142,6 +163,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     /**
      * Get the default user role
+     *
      * @return
      */
     public Role getUserRole() {
@@ -150,6 +172,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     /**
      * Get the default anonymous role
+     *
      * @return
      */
     public Role getAnonymousRole() {
