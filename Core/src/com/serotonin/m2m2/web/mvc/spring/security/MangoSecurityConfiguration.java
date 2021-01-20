@@ -477,7 +477,9 @@ public class MangoSecurityConfiguration {
                         .authorizationEndpoint().baseUri("/oauth2/authorization").and()
                         .redirectionEndpoint().baseUri("/oauth2/callback/{registrationId}").and()
                         .successHandler(authenticationSuccessHandler)
-                        .failureHandler(authenticationFailureHandler);
+                        .failureHandler(authenticationFailureHandler)
+                        // disable login page generation, not actually used
+                        .loginPage("/login-oauth");
             }
         }
     }
