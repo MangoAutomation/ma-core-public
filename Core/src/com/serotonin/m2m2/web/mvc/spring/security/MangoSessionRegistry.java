@@ -74,6 +74,8 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
 
 
     /**
+     * TODO Mango 4.0 this method does not work for OAuth authenticated users.
+     *
      * Expires the http sessions for a user.
      * The sessions are located by the user's id (the session registry stores Users in a Map, User.equals() and User.hashCode() only compare the id).
      * Note that if you wish to keep the current http session active you should register a new session and set the security context. See UserRestController.
