@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 
 /**
  * <p>This handles requests where the user is not authenticated. See also {@link MangoAccessDeniedHandler} which handles requests where the user is authenticated but does not have access.</p>
@@ -29,14 +29,16 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 public class MangoAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
     final RequestMatcher browserHtmlRequestMatcher;
     final Environment env;
+    final PageResolver pageResolver;
 
     @Autowired
-    public MangoAuthenticationEntryPoint(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, Environment env) {
+    public MangoAuthenticationEntryPoint(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, Environment env, PageResolver pageResolver) {
         // this URL is not actually used
         super("/login.htm");
 
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
         this.env = env;
+        this.pageResolver = pageResolver;
     }
 
     @Override
@@ -51,6 +53,6 @@ public class MangoAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPo
 
     @Override
     protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
-        return DefaultPagesDefinition.getLoginUri(request, response);
+        return pageResolver.getLoginUri(request, response);
     }
 }

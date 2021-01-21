@@ -18,9 +18,9 @@ import org.springframework.security.web.session.SessionInformationExpiredStrateg
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 
 /**
  * @author Jared Wiltshire
@@ -28,12 +28,14 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 @Component
 public class MangoExpiredSessionStrategy implements SessionInformationExpiredStrategy {
 
-    private RequestMatcher browserHtmlRequestMatcher;
+    private final RequestMatcher browserHtmlRequestMatcher;
     private final Log log = LogFactory.getLog(MangoExpiredSessionStrategy.class);
+    private final PageResolver pageResolver;
 
     @Autowired
-    public MangoExpiredSessionStrategy(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
+    public MangoExpiredSessionStrategy(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, PageResolver pageResolver) {
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
+        this.pageResolver = pageResolver;
     }
 
     @Override
@@ -48,7 +50,7 @@ public class MangoExpiredSessionStrategy implements SessionInformationExpiredStr
         if (response.isCommitted()) return;
 
         if (this.browserHtmlRequestMatcher.matches(request)) {
-            String loginUri = DefaultPagesDefinition.getLoginUri(request, response);
+            String loginUri = pageResolver.getLoginUri(request, response);
             response.sendRedirect(loginUri);
         } else {
             TranslatableMessage message = new TranslatableMessage("rest.exception.sessionExpired");

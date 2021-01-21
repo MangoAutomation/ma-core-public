@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.m2m2.Common;
@@ -27,7 +28,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -59,16 +59,18 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     private final UsersService usersService;
     private final PublicUrlService publicUrlService;
     private final RunAs runAs;
+    private final PageResolver pageResolver;
 
     @Autowired
     public PasswordResetService(
             PermissionService permissionService,
             UsersService usersService,
-            PublicUrlService publicUrlService, RunAs runAs) {
+            PublicUrlService publicUrlService, RunAs runAs, PageResolver pageResolver) {
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.runAs = runAs;
+        this.pageResolver = pageResolver;
     }
 
     @Override
@@ -146,12 +148,12 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
 
     public URI generateResetUrl(String token) throws UnknownHostException {
         UriComponentsBuilder builder = this.publicUrlService.getUriComponentsBuilder();
-        String resetPage = DefaultPagesDefinition.getPasswordResetUri();
+        String resetPage = pageResolver.getPasswordResetUri();
         return builder.path(resetPage).queryParam(PASSWORD_RESET_PAGE_TOKEN_PARAMETER, token).build().toUri();
     }
 
     public URI generateRelativeResetUrl(String token) {
-        String resetPage = DefaultPagesDefinition.getPasswordResetUri();
+        String resetPage = pageResolver.getPasswordResetUri();
         return UriComponentsBuilder.fromPath(resetPage).queryParam(PASSWORD_RESET_PAGE_TOKEN_PARAMETER, token).build().toUri();
     }
 

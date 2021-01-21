@@ -11,9 +11,12 @@ import org.eclipse.jetty.util.resource.PathResource;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 
+import com.infiniteautomation.mango.webapp.session.MangoInitializer;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.web.handler.MangoErrorHandler;
 
+/**
+ * We can probably move this logic to {@link MangoInitializer}
+ */
 public class OverridingWebAppContext extends WebAppContext {
 
     public OverridingWebAppContext() {
@@ -63,9 +66,6 @@ public class OverridingWebAppContext extends WebAppContext {
         this.setAttribute("javax.servlet.context.tempdir", tempDirPath.getAbsolutePath());
         this.setPersistTempDirectory(true);
         this.setTempDirectory(tempDirPath);
-
-        //Setup error handling
-        this.setErrorHandler(new MangoErrorHandler());
 
         this.getAliasChecks().clear();
         this.addAliasCheck(new ApproveNonExistentDirectoryAliases());

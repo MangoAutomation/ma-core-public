@@ -29,9 +29,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.infiniteautomation.mango.spring.components.RunAs;
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.IpAddressAuthenticationRateException;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.UsernameAuthenticationRateException;
@@ -47,6 +47,7 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
 
     private final RequestMatcher browserHtmlRequestMatcher;
     private final RunAs runAs;
+    private final PageResolver pageResolver;
 
     /**
      * Stores a boolean to indicate if an attack by an IP was already logged, stops the logs being flooded.
@@ -61,8 +62,9 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
     private final Cache<String, Boolean> rateLimitUsernameLogged;
 
     @Autowired
-    public MangoAuthenticationFailureHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, RunAs runAs) {
+    public MangoAuthenticationFailureHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, RunAs runAs, PageResolver pageResolver) {
         this.runAs = runAs;
+        this.pageResolver = pageResolver;
         this.setAllowSessionCreation(false);
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
 
@@ -93,9 +95,9 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
         if (browserHtmlRequestMatcher.matches(request)) {
             String baseUri;
             if (exception instanceof CredentialsExpiredException) {
-                baseUri = DefaultPagesDefinition.getPasswordResetUri();
+                baseUri = pageResolver.getPasswordResetUri();
             } else {
-                baseUri = DefaultPagesDefinition.getLoginUri(request, response);
+                baseUri = pageResolver.getLoginUri(request, response);
             }
 
             String uri = UriComponentsBuilder.fromUriString(baseUri)

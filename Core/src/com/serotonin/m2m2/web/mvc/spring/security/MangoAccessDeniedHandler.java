@@ -20,8 +20,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -35,11 +35,13 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class MangoAccessDeniedHandler implements AccessDeniedHandler {
     final RequestMatcher browserHtmlRequestMatcher;
     final Environment env;
+    final PageResolver pageResolver;
 
     @Autowired
-    public MangoAccessDeniedHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, Environment env) {
+    public MangoAccessDeniedHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, Environment env, PageResolver pageResolver) {
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
         this.env = env;
+        this.pageResolver = pageResolver;
     }
 
     private final Log log = LogFactory.getLog(MangoAccessDeniedHandler.class);
@@ -54,7 +56,7 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
         }
 
         if (!env.getProperty("rest.disableErrorRedirects", Boolean.class, false) && browserHtmlRequestMatcher.matches(request)) {
-            String accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, user.getUser());
+            String accessDeniedUrl = pageResolver.getUnauthorizedUri(request, response, user.getUser());
             if (accessDeniedUrl != null) {
                 // redirect to error page.
                 response.sendRedirect(accessDeniedUrl);

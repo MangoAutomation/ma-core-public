@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.FeatureDisabledException;
@@ -31,7 +32,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
@@ -68,18 +68,20 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     private final SystemSettingsDao systemSettings;
     private final PermissionService permissionService;
     private final RunAs runAs;
+    private final PageResolver pageResolver;
 
     @Autowired
     public EmailAddressVerificationService(
             UsersService usersService,
             PublicUrlService publicUrlService,
             SystemSettingsDao systemSettings,
-            PermissionService permissionService, RunAs runAs) {
+            PermissionService permissionService, RunAs runAs, PageResolver pageResolver) {
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.systemSettings = systemSettings;
         this.permissionService = permissionService;
         this.runAs = runAs;
+        this.pageResolver = pageResolver;
     }
 
     @Override
@@ -245,12 +247,12 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      */
     public URI generateEmailVerificationUrl(String token) throws UnknownHostException {
         UriComponentsBuilder builder = this.publicUrlService.getUriComponentsBuilder();
-        String verificationPage = DefaultPagesDefinition.getEmailVerificationUri();
+        String verificationPage = pageResolver.getEmailVerificationUri();
         return builder.path(verificationPage).queryParam(EMAIL_VERIFICATION_PAGE_TOKEN_PARAMETER, token).build().toUri();
     }
 
     public URI generateRelativeEmailVerificationUrl(String token) {
-        String verificationPage = DefaultPagesDefinition.getEmailVerificationUri();
+        String verificationPage = pageResolver.getEmailVerificationUri();
         return UriComponentsBuilder.fromPath(verificationPage).queryParam(EMAIL_VERIFICATION_PAGE_TOKEN_PARAMETER, token).build().toUri();
     }
 

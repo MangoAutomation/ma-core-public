@@ -18,7 +18,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 
 /**
  * @author Jared Wiltshire
@@ -28,10 +28,12 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 public class MangoLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
     private final RequestMatcher browserHtmlRequestMatcher;
     private final RequestMatcher restLogoutRequestMatcher;
+    private final PageResolver pageResolver;
     
     @Autowired
-    public MangoLogoutSuccessHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
+    public MangoLogoutSuccessHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher, PageResolver pageResolver) {
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
+        this.pageResolver = pageResolver;
         this.restLogoutRequestMatcher = new AntPathRequestMatcher("/rest/*/logout", "POST");
     }
     
@@ -53,7 +55,7 @@ public class MangoLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
         String url = super.determineTargetUrl(request, response);
         if (url == null || url.equals(this.getDefaultTargetUrl())) {
-            return DefaultPagesDefinition.getLoginUri(request, response);
+            return pageResolver.getLoginUri(request, response);
         }
         return url;
     }

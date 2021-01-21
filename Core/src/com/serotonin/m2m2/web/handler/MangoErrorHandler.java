@@ -12,8 +12,8 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.web.mvc.spring.security.BrowserRequestMatcher;
 
 /**
@@ -24,15 +24,21 @@ import com.serotonin.m2m2.web.mvc.spring.security.BrowserRequestMatcher;
  */
 public class MangoErrorHandler extends ErrorHandler {
 
+    private final PageResolver pageResolver;
+
+    public MangoErrorHandler(PageResolver pageResolver) {
+        this.pageResolver = pageResolver;
+    }
+
     @Override
     public void doError(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            if (!Common.envProps.getBoolean("rest.disableErrorRedirects", false) && BrowserRequestMatcher.INSTANCE.matches(request)) {
+            if (pageResolver != null && !Common.envProps.getBoolean("rest.disableErrorRedirects", false) && BrowserRequestMatcher.INSTANCE.matches(request)) {
                 String uri;
                 if (response.getStatus() == 404) {
-                    uri = DefaultPagesDefinition.getNotFoundUri(request, response);
+                    uri = pageResolver.getNotFoundUri(request, response);
                 } else {
-                    uri = DefaultPagesDefinition.getErrorUri(baseRequest, response);
+                    uri = pageResolver.getErrorUri(baseRequest, response);
                 }
                 if (uri != null) {
                     response.sendRedirect(uri);

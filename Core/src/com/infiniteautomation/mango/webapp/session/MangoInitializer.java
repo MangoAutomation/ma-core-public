@@ -15,6 +15,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.WebApplicationInitializer;
 
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
+import com.serotonin.m2m2.web.handler.MangoErrorHandler;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**
@@ -28,12 +30,15 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 public class MangoInitializer implements WebApplicationInitializer {
     private final MangoSessionListener sessionListener;
     private final MangoSessionHandler sessionHandler;
+    private final PageResolver pageResolver;
 
     @Autowired
     private MangoInitializer(MangoSessionListener sessionListener,
-                             MangoSessionHandler sessionHandler) {
+                             MangoSessionHandler sessionHandler,
+                             PageResolver pageResolver) {
         this.sessionListener = sessionListener;
         this.sessionHandler = sessionHandler;
+        this.pageResolver = pageResolver;
     }
 
     @Override
@@ -51,6 +56,9 @@ public class MangoInitializer implements WebApplicationInitializer {
 
     private void configureWebAppContext(WebAppContext context) {
         context.setSessionHandler(sessionHandler);
+
+        //Setup error handling
+        context.setErrorHandler(new MangoErrorHandler(pageResolver));
     }
 
     /**

@@ -18,10 +18,10 @@ import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.components.pageresolver.LoginUriInfo;
+import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.module.DefaultPagesDefinition;
-import com.serotonin.m2m2.module.DefaultPagesDefinition.LoginUriInfo;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -34,12 +34,14 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     final RequestMatcher browserHtmlRequestMatcher;
     RequestCache requestCache;
     final UserDao userDao;
+    final PageResolver pageResolver;
 
     @Autowired
     public MangoAuthenticationSuccessHandler(
             RequestCache requestCache,
             @Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher,
-            UserDao userDao) {
+            UserDao userDao, PageResolver pageResolver) {
+        this.pageResolver = pageResolver;
         this.setRequestCache(requestCache);
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
         this.userDao = userDao;
@@ -49,7 +51,7 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
         String url = super.determineTargetUrl(request, response);
         if (url == null || url.equals(this.getDefaultTargetUrl())) {
-            LoginUriInfo info = DefaultPagesDefinition.getDefaultUriInfo(request, response, Common.getUser().getUser());
+            LoginUriInfo info = pageResolver.getDefaultUriInfo(request, response, Common.getUser().getUser());
             return info.getUri();
         }
         return url;
