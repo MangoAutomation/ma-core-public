@@ -20,6 +20,14 @@ import com.serotonin.m2m2.vo.User;
 @Component
 public class DefaultPageResolver implements PageResolver {
 
+    private final PermissionService permissionService;
+    private final SystemSettingsDao systemSettingsDao;
+
+    public DefaultPageResolver(PermissionService permissionService, SystemSettingsDao systemSettingsDao) {
+        this.permissionService = permissionService;
+        this.systemSettingsDao = systemSettingsDao;
+    }
+
     @Override
     public LoginUriInfo getDefaultUriInfo(HttpServletRequest request, HttpServletResponse response, User user) {
         String uri = null;
@@ -28,17 +36,16 @@ public class DefaultPageResolver implements PageResolver {
         if (user == null)
             uri = getLoginUri(request, response);
         else {
-            PermissionService service = Common.getBean(PermissionService.class);
             // If this is the first login to the instance by an admin...
-            if (service.hasAdminRole(user) && SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.NEW_INSTANCE)) {
+            if (permissionService.hasAdminRole(user) && systemSettingsDao.getBooleanValue(SystemSettingsDao.NEW_INSTANCE)) {
                 // Remove the flag
-                SystemSettingsDao.instance.removeValue(SystemSettingsDao.NEW_INSTANCE);
+                systemSettingsDao.removeValue(SystemSettingsDao.NEW_INSTANCE);
 
                 // If there is a page to which to forward, do so. This could be null.
                 uri = getFirstLoginUri(request, response);
                 required = true;
 
-            }else if(service.hasAdminRole(user) && (SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LICENSE_AGREEMENT_VERSION) != Common.getLicenseAgreementVersion())) {
+            }else if(permissionService.hasAdminRole(user) && (systemSettingsDao.getIntValue(SystemSettingsDao.LICENSE_AGREEMENT_VERSION) != Common.getLicenseAgreementVersion())) {
                 //When a new license version has been released but it is NOT the first login.
                 uri = getAdminLicenseUpgradeLoginUri(request, response);
                 required = true;
