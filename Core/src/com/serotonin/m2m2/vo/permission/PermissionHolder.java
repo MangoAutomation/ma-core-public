@@ -3,13 +3,16 @@
  */
 package com.serotonin.m2m2.vo.permission;
 
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -80,6 +83,14 @@ public interface PermissionHolder {
      */
     default @Nullable User getUser() {
         return this instanceof User ? (User) this : null;
+    }
+
+    default Locale getLocaleObject() {
+        return Common.getLocale();
+    }
+
+    default ZoneId getZoneId() {
+        return ZoneId.systemDefault();
     }
 
     /**

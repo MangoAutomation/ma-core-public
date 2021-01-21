@@ -331,6 +331,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         this._tz.reset();
     }
 
+    @Override
     public ZoneId getZoneId() {
         return this._tz.get(() -> {
             ZoneId tz = null;
@@ -514,6 +515,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         return "event.audit.user";
     }
 
+    @Override
     public Locale getLocaleObject() {
         return this.localeObject.get(() -> {
             if (locale == null || locale.isEmpty()) {

@@ -4,7 +4,9 @@
 
 package com.serotonin.m2m2.web.mvc.spring.security.oauth2;
 
+import java.time.ZoneId;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,6 +45,16 @@ public class MangoOAuth2User implements OAuth2User, PermissionHolder {
     @Override
     public Set<Role> getRoles() {
         return user.getRoles();
+    }
+
+    @Override
+    public Locale getLocaleObject() {
+        return user.getLocaleObject();
+    }
+
+    @Override
+    public ZoneId getZoneId() {
+        return user.getZoneId();
     }
 
     @Override
