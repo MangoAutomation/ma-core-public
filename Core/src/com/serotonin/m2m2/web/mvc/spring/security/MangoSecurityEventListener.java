@@ -19,7 +19,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent;
 import org.springframework.stereotype.Component;
 
-import com.infiniteautomation.mango.spring.events.MangoHttpSessionDestroyedEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -87,24 +86,12 @@ public class MangoSecurityEventListener {
 
             SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_USER_LOGIN, user.getId());
             TranslatableMessage message = new TranslatableMessage("event.login", user.getUsername(), remoteAddress);
-            SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), true, message);
+
+            // this event used to "return to normal" when the user logged out by listening to the MangoHttpSessionDestroyedEvent
+            // problem was that a) this event was only fired when the user explicitly logged out via the logout button,
+            // and not when a session expired b) It returned all login events for the user to normal, not just the one
+            // that corresponded to the session that created the login event
+            SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
         }
     }
-
-    @EventListener
-    private void handleHttpSessionDestroyedEvent(MangoHttpSessionDestroyedEvent event) {
-        for (Authentication authentication : event.getAuthentications()) {
-            PermissionHolder principal = (PermissionHolder) authentication.getPrincipal();
-            User user = principal.getUser();
-            Class<? extends Authentication> authClass = authentication.getClass();
-
-            if (user != null && !event.isUserMigratedToNewSession() &&
-                    loginAuthentications.stream().anyMatch(a -> a.isAssignableFrom(authClass))) {
-
-                SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_USER_LOGIN, user.getId());
-                SystemEventType.returnToNormal(eventType, Common.timer.currentTimeMillis());
-            }
-        }
-    }
-
 }
