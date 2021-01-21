@@ -58,6 +58,7 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.async.AsyncLoggerConfig;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
@@ -431,20 +432,25 @@ public class Common {
     }
 
     /**
-     * Get the current user from the Spring Security context (stored in a ThreadLocal). This is usually an instance
-     * of {@link User} for users that are logged in and have a HTTP session. However it may also be an instance of
-     * {@link SystemSuperadmin} or {@link Anonymous}
-     * @return the current user
-     * @throws PermissionException if there is no user in the context
+     * <p>Get the current principal from the Spring Security context (stored in a ThreadLocal).
+     * If you require an instance of {@link User} you should call {@link PermissionHolder#getUser()}
+     * which may be null.</p>
+     *
+     * <p>Note that this method will sometimes return {@link SystemSuperadmin} or {@link Anonymous} which
+     * are not associated with a particular user.</p>
+     *
+     * @return the current security principal (never null)
+     * @throws PermissionException if there is no authentication, or the principal is not a {@link PermissionHolder}
      */
+    @NonNull
     public static PermissionHolder getUser() throws PermissionException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             Object principle = auth.getPrincipal();
             // Ensure that the principle is a permission holder
-            if(principle instanceof PermissionHolder) {
-                return (PermissionHolder)principle;
-            }else {
+            if (principle instanceof PermissionHolder) {
+                return (PermissionHolder) principle;
+            } else {
                 throw new PermissionException(new TranslatableMessage("permission.exception.invalidAuthenticationPrinciple"), null);
             }
         }
