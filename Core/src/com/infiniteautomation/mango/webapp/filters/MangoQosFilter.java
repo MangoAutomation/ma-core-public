@@ -73,12 +73,9 @@ public class MangoQosFilter extends QoSFilter {
             if (context instanceof SecurityContext) {
                 SecurityContext securityContext = (SecurityContext) context;
                 Authentication auth = securityContext.getAuthentication();
-                if (auth != null) {
-                    Object principle = auth.getPrincipal();
-                    if (principle instanceof PermissionHolder) {
-                        PermissionHolder user = (PermissionHolder) principle;
-                        return permissionService.hasAdminRole(user) ? 3 : 2;
-                    }
+                if (auth != null && auth.getPrincipal() instanceof PermissionHolder) {
+                    PermissionHolder user = (PermissionHolder) auth.getPrincipal();
+                    return permissionService.hasAdminRole(user) ? 3 : 2;
                 }
             }
 

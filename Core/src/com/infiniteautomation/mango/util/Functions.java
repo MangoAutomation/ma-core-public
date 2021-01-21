@@ -4,6 +4,7 @@
  */
 package com.infiniteautomation.mango.util;
 
+import java.time.ZoneId;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +20,6 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -256,12 +256,10 @@ public class Functions {
     private static DateTimeZone defaultDTZ() {
         try {
             PermissionHolder user = Common.getUser();
-            if (user instanceof User && !StringUtils.isEmpty(((User)user).getTimezone()))
-                return DateTimeZone.forID(((User)user).getTimezone());
-        }catch(PermissionException e) {
-            return null;
+            return DateTimeZone.forID(user.getZoneId().getId());
+        } catch(PermissionException e) {
+            return DateTimeZone.forID(ZoneId.systemDefault().getId());
         }
-        return null;
     }
 
     private static String dtfFormat(long time, String pattern, DateTimeZone dtz) {

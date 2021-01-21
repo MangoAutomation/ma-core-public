@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScript;
@@ -47,6 +48,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.MangoJavascriptContextObjectDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.ScriptSourceDefinition;
@@ -78,10 +80,8 @@ import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.util.log.NullPrintWriter;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
@@ -254,12 +254,7 @@ public class MangoJavaScriptService {
                         Object o = script.getResult().getResult();
                         if(o instanceof PointValueTime && ((PointValueTime)o).getValue() == UNCHANGED) {
                             //TODO fix this display hack:
-                            String unchanged;
-                            if(user instanceof User) {
-                                unchanged = new TranslatableMessage(noChangeKey).translate(((User)user).getTranslations());
-                            }else {
-                                unchanged = new TranslatableMessage(noChangeKey).translate(Common.getTranslations());
-                            }
+                            String unchanged = new TranslatableMessage(noChangeKey).translate(Translations.getTranslations(user.getLocaleObject()));
                             script.getResult().setResult(new PointValueTime(unchanged, ((PointValueTime)o).getTime()));
                         }
                     }else {

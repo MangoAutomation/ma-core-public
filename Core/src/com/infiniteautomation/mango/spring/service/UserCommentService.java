@@ -72,11 +72,10 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, UserCommentVO vo) {
-        if(permissionService.hasAdminRole(user))
+        if (permissionService.hasAdminRole(user))
             return true;
-        else if((user instanceof User) && vo.getUserId() == ((User)user).getId())
-            return true;
-        return false;
+        else
+            return user.getUser() != null && vo.getUserId() == user.getUser().getId();
     }
 
     @Override
@@ -88,13 +87,13 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     public ProcessResult validate(UserCommentVO vo, PermissionHolder user) {
         //Don't use super, we don't have a 'name' field
         ProcessResult result = commonValidation(vo, user);
-        if(!permissionService.hasAdminRole(user)) {
-            if(user instanceof User) {
-                if(((User)user).getId() !=  vo.getUserId()) {
+        if (!permissionService.hasAdminRole(user)) {
+            if (user.getUser() != null) {
+                if (user.getUser().getId() != vo.getUserId()) {
                     result.addContextualMessage("userId", "validate.cannotChangeOwner");
                 }
-            }else {
-                result.addContextualMessage("userId","validate.onlyUserCanCreate");
+            } else {
+                result.addContextualMessage("userId", "validate.onlyUserCanCreate");
             }
         }
         return result;

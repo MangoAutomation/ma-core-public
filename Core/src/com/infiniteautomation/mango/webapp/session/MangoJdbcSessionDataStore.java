@@ -20,15 +20,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
 import com.serotonin.m2m2.vo.MangoSessionDataVO;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 /**
  *
@@ -98,6 +97,7 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
             Authentication auth = securityContext.getAuthentication();
             if (auth != null) {
                 Object principle = auth.getPrincipal();
+                // this is correct as we do not want to store the user id for OAuth2 authenticated users
                 if (principle instanceof User) {
                     User user = (User) principle;
                     vo.setUserId(user.getId());

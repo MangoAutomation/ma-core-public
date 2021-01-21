@@ -93,6 +93,10 @@ public interface PermissionHolder {
         return ZoneId.systemDefault();
     }
 
+    static boolean sameUser(PermissionHolder a, PermissionHolder b) {
+        return a == b || a.getUser() != null && b.getUser() != null && a.getUser().getId() == b.getUser().getId();
+    }
+
     /**
      * @author Jared Wiltshire
      */

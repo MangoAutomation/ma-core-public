@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -55,13 +54,11 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
         }
 
         if (!env.getProperty("rest.disableErrorRedirects", Boolean.class, false) && browserHtmlRequestMatcher.matches(request)) {
-            if (user instanceof User) {
-                String accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, (User) user);
-                if (accessDeniedUrl != null) {
-                    // redirect to error page.
-                    response.sendRedirect(accessDeniedUrl);
-                    return;
-                }
+            String accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, user.getUser());
+            if (accessDeniedUrl != null) {
+                // redirect to error page.
+                response.sendRedirect(accessDeniedUrl);
+                return;
             }
         }
         response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());

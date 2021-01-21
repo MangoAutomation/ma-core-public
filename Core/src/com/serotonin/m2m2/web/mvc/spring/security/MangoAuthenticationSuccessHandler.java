@@ -48,9 +48,8 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
         String url = super.determineTargetUrl(request, response);
-        PermissionHolder user = Common.getUser();
-        if (user instanceof User && (url == null || url.equals(this.getDefaultTargetUrl()))) {
-            LoginUriInfo info = DefaultPagesDefinition.getDefaultUriInfo(request, response, (User)user);
+        if (url == null || url.equals(this.getDefaultTargetUrl())) {
+            LoginUriInfo info = DefaultPagesDefinition.getDefaultUriInfo(request, response, Common.getUser().getUser());
             return info.getUri();
         }
         return url;
@@ -65,7 +64,8 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         Object principal = authentication.getPrincipal();
-        User user = principal instanceof User ? (User) principal : null;
+        PermissionHolder permissionHolder = principal instanceof PermissionHolder ? (PermissionHolder) principal : null;
+        User user = permissionHolder != null ? permissionHolder.getUser() : null;
 
         //Set the per-user session timeout
         if(user != null && user.isSessionExpirationOverride()) {

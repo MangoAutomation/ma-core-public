@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -185,7 +186,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     public int acknowledgeMany(ConditionSortLimit conditions, TranslatableMessage message) {
         // only users can ack events as it stores user id in events table
-        User user = (User) Common.getUser();
+        User user = Objects.requireNonNull(Common.getUser().getUser());
         AtomicInteger total = new AtomicInteger();
         long ackTimestamp = Common.timer.currentTimeMillis();
 

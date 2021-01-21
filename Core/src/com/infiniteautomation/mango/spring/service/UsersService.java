@@ -259,7 +259,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         ensureEditPermission(currentUser, vo);
 
         //You cannot delete yourself
-        if (currentUser instanceof User && ((User) currentUser).getId() == vo.getId())
+        if (currentUser.getUser() != null && currentUser.getUser().getId() == vo.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.badDelete"), currentUser);
 
         dao.delete(vo);
@@ -298,7 +298,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         PermissionHolder currentUser = Common.getUser();
         ensureEditPermission(currentUser, toLock);
 
-        if (currentUser instanceof User && ((User) currentUser).getId() == toLock.getId())
+        if (currentUser.getUser() != null && currentUser.getUser().getId() == toLock.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), currentUser);
         dao.lockPassword(toLock);
     }
@@ -341,7 +341,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         //Validate roles
-        boolean savingSelf = holder instanceof User && ((User) holder).getId() == existing.getId();
+        boolean savingSelf = holder.getUser() != null && holder.getUser().getId() == existing.getId();
         permissionService.validatePermissionHolderRoles(result, "roles", holder, existing.getRoles(), vo.getRoles());
 
         //Things we cannot do to ourselves
@@ -538,7 +538,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             return true;
         }
 
-        return holder instanceof User && ((User) holder).getId() == vo.getId() &&
+        return holder.getUser() != null && holder.getUser().getId() == vo.getId() &&
                 permissionService.hasPermission(holder, editSelfPermission.getPermission());
     }
 
@@ -548,7 +548,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             return true;
         }
 
-        return user instanceof User && ((User) user).getId() == vo.getId();
+        return user.getUser() != null && user.getUser().getId() == vo.getId();
     }
 
     /**

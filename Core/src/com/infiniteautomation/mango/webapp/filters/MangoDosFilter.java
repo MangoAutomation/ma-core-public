@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * https://www.eclipse.org/jetty/documentation/current/dos-filter.html
@@ -78,13 +78,11 @@ public class MangoDosFilter extends DoSFilter {
             if (context instanceof SecurityContext) {
                 SecurityContext securityContext = (SecurityContext) context;
                 Authentication auth = securityContext.getAuthentication();
-                if (auth != null) {
-                    Object principle = auth.getPrincipal();
-                    if (principle instanceof User) {
-                        User user = (User) principle;
-                        return Integer.toString(user.getId());
+                if (auth != null && auth.getPrincipal() instanceof PermissionHolder) {
+                    PermissionHolder user = (PermissionHolder) auth.getPrincipal();
+                    if (user.getUser() != null) {
+                        return Integer.toString(user.getUser().getId());
                     }
-                    return auth.getName();
                 }
             }
         }

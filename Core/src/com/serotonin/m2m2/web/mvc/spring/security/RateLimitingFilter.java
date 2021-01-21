@@ -14,7 +14,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -23,6 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Jared Wiltshire
@@ -57,9 +57,13 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean rateExceeded = false;
         long secondsTillRetry = 0;
-        boolean anonymous = authentication == null || authentication instanceof AnonymousAuthenticationToken;
 
-        if (anonymous && this.ipRateLimiter != null) {
+        User user = null;
+        if (authentication != null && authentication.getPrincipal() instanceof PermissionHolder) {
+            user = ((PermissionHolder) authentication.getPrincipal()).getUser();
+        }
+
+        if (user == null && this.ipRateLimiter != null) {
             // we dont check the X-FORWARDED-FOR header by default as this can be easily spoofed to bypass the rate limits
             String ip = request.getRemoteAddr();
             rateExceeded = this.ipRateLimiter.hit(ip, multiplier);
@@ -68,8 +72,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             if (rateExceeded && log.isDebugEnabled()) {
                 log.debug("Non-authenticated IP address " + ip + " exceeded rate limit of " + this.ipRateLimiter.getRefillQuanitity() + " requests per " + this.ipRateLimiter.getRefillPeriod() + " " + this.ipRateLimiter.getRefillPeriodUnit());
             }
-        } else if (!anonymous && this.userRateLimiter != null) {
-            User user = (User) authentication.getPrincipal();
+        } else if (user != null && this.userRateLimiter != null) {
             rateExceeded = this.userRateLimiter.hit(user.getId(), multiplier);
             secondsTillRetry = this.userRateLimiter.secondsTillRetry(user.getId());
 

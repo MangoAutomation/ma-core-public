@@ -98,7 +98,7 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
      */
     public void userUpdated(HttpServletRequest request, User user) {
         PermissionHolder currentUser = Common.getUser();
-        if(currentUser instanceof User && (((User)currentUser).getId() == user.getId())) {
+        if(currentUser.getUser() != null && (currentUser.getUser().getId() == user.getId())) {
             HttpSession session = request.getSession(false);
             if (session != null) {
                 SessionInformation info = this.getSessionInformation(session.getId());

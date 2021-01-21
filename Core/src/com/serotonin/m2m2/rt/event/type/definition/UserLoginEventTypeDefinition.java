@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -27,6 +27,11 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 public class UserLoginEventTypeDefinition extends SystemEventTypeDefinition {
+
+    @Autowired
+    PermissionService permissionService;
+    @Autowired
+    UserDao userDao;
 
     @Override
     public String getTypeName() {
@@ -61,10 +66,10 @@ public class UserLoginEventTypeDefinition extends SystemEventTypeDefinition {
         AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.instance.getIntValue(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN));
 
         List<User> users;
-        if (Common.getBean(PermissionService.class).hasAdminRole(user)) {
-            users = UserDao.getInstance().getActiveUsers();
-        } else if (user instanceof User) {
-            users = Collections.singletonList((User) user);
+        if (permissionService.hasAdminRole(user)) {
+            users = userDao.getActiveUsers();
+        } else if (user.getUser() != null) {
+            users = Collections.singletonList(user.getUser());
         } else {
             users = Collections.emptyList();
         }

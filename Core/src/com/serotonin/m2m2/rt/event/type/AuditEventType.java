@@ -35,7 +35,6 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
-import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.RejectedTaskReason;
 
@@ -148,20 +147,12 @@ public class AuditEventType extends EventType {
     }
 
     private static void raiseEvent(int changeType, String auditEventType, AbstractVO to, String key, Map<String, Object> context) {
-        Object username;
-        User raisingUser = null;
+        PermissionHolder permissionHolder = Common.getUser();
+        User raisingUser = permissionHolder.getUser();
 
-        try{
-            PermissionHolder user = Common.getUser();
-            if (user instanceof User) {
-                raisingUser = (User)user;
-                username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
-            }else {
-                username = user.getPermissionHolderName();
-            }
-        }catch(PermissionException e) {
-            //No user in context
-            username = new TranslatableMessage("common.unknown");
+        Object username = permissionHolder.getPermissionHolderName();
+        if (raisingUser != null) {
+            username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
         }
 
         TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
@@ -308,7 +299,7 @@ public class AuditEventType extends EventType {
     @Override
     public boolean excludeUser(User user) {
         if (raisingUser != null && !raisingUser.isReceiveOwnAuditEvents())
-            return user.equals(raisingUser);
+            return user.getId() == raisingUser.getId();
         return false;
     }
 
