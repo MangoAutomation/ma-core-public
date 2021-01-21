@@ -3,6 +3,9 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent;
 import org.springframework.stereotype.Component;
@@ -20,6 +25,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Class to handle all security related events.
@@ -31,6 +37,16 @@ public class MangoSecurityEventListener {
 
     private static final Log LOG = LogFactory.getLog(MangoSecurityEventListener.class);
     private final UserDao userDao;
+
+    /**
+     * OAuth authentication success event contains {@link OAuth2LoginAuthenticationToken} but on logout the authentication
+     * is {@link OAuth2AuthenticationToken}.
+     */
+    private final List<Class<? extends Authentication>> loginAuthentications = Arrays.asList(
+            UsernamePasswordAuthenticationToken.class,
+            OAuth2LoginAuthenticationToken.class,
+            OAuth2AuthenticationToken.class
+    );
 
     @Autowired
     public MangoSecurityEventListener(UserDao userDao) {
@@ -49,17 +65,23 @@ public class MangoSecurityEventListener {
     @EventListener
     private void handleAuthenticationSuccessEvent(AuthenticationSuccessEvent event) {
         Authentication authentication = event.getAuthentication();
+        PermissionHolder principal = (PermissionHolder) authentication.getPrincipal();
+        User user = principal.getUser();
+        Object details = authentication.getDetails();
 
         String remoteAddress = "";
-        Object details = authentication.getDetails();
+        boolean hasSession = false;
         if (details instanceof WebAuthenticationDetails) {
-            WebAuthenticationDetails webDetails = (WebAuthenticationDetails) authentication.getDetails();
+            WebAuthenticationDetails webDetails = (WebAuthenticationDetails) details;
             remoteAddress = webDetails.getRemoteAddress();
+
+            // Basic authentication uses UsernamePasswordAuthenticationToken but does does have a session
+            // we do not want to raise an event for basic authentication
+            hasSession = webDetails.getSessionId() != null;
         }
 
-        if (authentication instanceof UsernamePasswordAuthenticationToken) {
-            User user = (User) authentication.getPrincipal();
-
+        Class<? extends Authentication> authClass = authentication.getClass();
+        if (user != null && hasSession && loginAuthentications.stream().anyMatch(a -> a.isAssignableFrom(authClass))) {
             // Update the last login time.
             userDao.recordLogin(user);
 
@@ -72,8 +94,13 @@ public class MangoSecurityEventListener {
     @EventListener
     private void handleHttpSessionDestroyedEvent(MangoHttpSessionDestroyedEvent event) {
         for (Authentication authentication : event.getAuthentications()) {
-            if (authentication instanceof UsernamePasswordAuthenticationToken && !event.isUserMigratedToNewSession()) {
-                User user = (User) authentication.getPrincipal();
+            PermissionHolder principal = (PermissionHolder) authentication.getPrincipal();
+            User user = principal.getUser();
+            Class<? extends Authentication> authClass = authentication.getClass();
+
+            if (user != null && !event.isUserMigratedToNewSession() &&
+                    loginAuthentications.stream().anyMatch(a -> a.isAssignableFrom(authClass))) {
+
                 SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_USER_LOGIN, user.getId());
                 SystemEventType.returnToNormal(eventType, Common.timer.currentTimeMillis());
             }
