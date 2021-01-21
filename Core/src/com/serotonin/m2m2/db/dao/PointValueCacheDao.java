@@ -42,7 +42,7 @@ public interface PointValueCacheDao {
      * @param vos
      * @param size - size of all lists, may be ignored if store contains only the cache store.  If overlaid onto
      *             a PointValueDao then this is required and will be used.
-     * @return - Map of Ids to list where list is never null
+     * @return - Map of vo.seriesId to list where list is never null
      */
     public Map<Integer, List<PointValueTime>> getPointValueCaches(List<DataPointVO> vos, Integer size);
 }
