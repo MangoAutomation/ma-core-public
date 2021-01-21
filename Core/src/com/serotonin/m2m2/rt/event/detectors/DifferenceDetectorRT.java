@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.event.detectors;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.rt.DataPointEventNotifyWorkItem;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 
@@ -60,17 +61,19 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
         if (latest != null) {
             lastChange = latest.getTime();
             nextJobOffset = latest.getTime();
-        }else
+        }else {
             // The point may be new or not logged, so don't go active immediately.
             lastChange = now;
+        }
 
-        if (lastChange + getDurationMS() <= now) {
-            // Nothing has happened in the time frame, so set the event active.
-            eventActive = true;
-            raiseEvent(lastChange + getDurationMS(), createEventContext());
-        } else
-            // Otherwise, set the timeout.
+        //Submit task to fire event, this will call our pointChanged(null, latest) and pointUpdated(newValue) methods in a separate thread
+        //  so the raise and handle event logic is not done on the thread starting Mango.
+        if (latest != null) {
+            Common.backgroundProcessing.addWorkItem(new DataPointEventNotifyWorkItem(vo.getDataPoint().getXid(), this, null, latest,
+                    null, false, false, false, true, false));
+        }else {
             scheduleJob(nextJobOffset);
+        }
     }
 
     @Override
