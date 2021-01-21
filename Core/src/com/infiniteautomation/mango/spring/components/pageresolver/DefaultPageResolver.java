@@ -4,6 +4,8 @@
 
 package com.infiniteautomation.mango.spring.components.pageresolver;
 
+import java.util.function.Function;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -66,131 +68,72 @@ public class DefaultPageResolver implements PageResolver {
         return new LoginUriInfo(uri, required);
     }
 
+    private String findPageUri(Function<DefaultPagesDefinition, String> map) {
+        return ModuleRegistry.getDefinitions(DefaultPagesDefinition.class).stream()
+                .map(map)
+                .filter(StringUtils::isNotBlank)
+                .findFirst()
+                .orElse(null);
+    }
+
     @Override
     public String getUnauthorizedUri(HttpServletRequest request, HttpServletResponse response, User user) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getUnauthorizedPageUri(request, response, user);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getUnauthorizedPageUri(request, response, user));
     }
 
     @Override
     public String getLoginUri(HttpServletRequest request, HttpServletResponse response) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getLoginPageUri(request, response);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getLoginPageUri(request, response));
+    }
+
+    @Override
+    public String getLoginErrorUri(HttpServletRequest request, HttpServletResponse response) {
+        return findPageUri(def -> def.getLoginErrorUri(request, response));
     }
 
     @Override
     public String getPasswordResetUri() {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getPasswordResetPageUri();
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(DefaultPagesDefinition::getPasswordResetPageUri);
     }
 
     @Override
     public String getEmailVerificationUri() {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getEmailVerificationPageUri();
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(DefaultPagesDefinition::getEmailVerificationPageUri);
     }
 
     private String getFirstLoginUri(HttpServletRequest request, HttpServletResponse response) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getFirstLoginPageUri(request, response);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getFirstLoginPageUri(request, response));
     }
 
     private String getAdminLicenseUpgradeLoginUri(HttpServletRequest request, HttpServletResponse response) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getAdminLicenseUpgradeLoginPageUri(request, response);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getAdminLicenseUpgradeLoginPageUri(request, response));
     }
 
     private String getFirstUserLoginUri(HttpServletRequest request, HttpServletResponse response, User user) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getFirstUserLoginPageUri(request, response, user);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getFirstUserLoginPageUri(request, response, user));
     }
 
     private String getLoggedInUriPreHome(HttpServletRequest request, HttpServletResponse response, User user) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getLoggedInPageUriPreHome(request, response, user);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getLoggedInPageUriPreHome(request, response, user));
     }
 
     private String getLoggedInUri(HttpServletRequest request, HttpServletResponse response, User user) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getLoggedInPageUri(request, response, user);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getLoggedInPageUri(request, response, user));
     }
 
     @Override
     public String getNotFoundUri(HttpServletRequest request, HttpServletResponse response) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getNotFoundPageUri(request, response);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getNotFoundPageUri(request, response));
     }
 
     @Override
     public String getErrorUri(HttpServletRequest request, HttpServletResponse response) {
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getErrorPageUri(request, response);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getErrorPageUri(request, response));
     }
 
     @Override
     public String getStartupUri(HttpServletRequest request, HttpServletResponse response){
-        String uri = null;
-        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
-            uri = def.getStartupPageUri(request, response);
-            if (!StringUtils.isBlank(uri))
-                break;
-        }
-        return uri;
+        return findPageUri(def -> def.getStartupPageUri(request, response));
     }
 
 }

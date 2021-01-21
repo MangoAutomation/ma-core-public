@@ -97,12 +97,12 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
             if (exception instanceof CredentialsExpiredException) {
                 baseUri = pageResolver.getPasswordResetUri();
             } else {
-                baseUri = pageResolver.getLoginUri(request, response);
+                baseUri = pageResolver.getLoginErrorUri(request, response);
             }
 
             String uri = UriComponentsBuilder.fromUriString(baseUri)
                     .queryParamIfPresent("username", Optional.ofNullable(username))
-                    .queryParam("error", exception.getMessage()) // TODO Mango 4.0 user friendly translated message
+                    .queryParam("error", exception.getMessage())
                     .toUriString();
 
             if (log.isDebugEnabled()) {

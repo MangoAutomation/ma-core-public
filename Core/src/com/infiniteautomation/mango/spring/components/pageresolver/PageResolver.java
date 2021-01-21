@@ -30,6 +30,11 @@ public interface PageResolver {
     String getLoginUri(HttpServletRequest request, HttpServletResponse response);
 
     /**
+     * Page to use when login / authentication fails. Usually the same as the login page.
+     */
+    String getLoginErrorUri(HttpServletRequest request, HttpServletResponse response);
+
+    /**
      * Page used to reset a user's password.
      */
     String getPasswordResetUri();

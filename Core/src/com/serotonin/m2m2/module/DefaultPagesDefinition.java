@@ -23,6 +23,10 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         return null;
     }
 
+    public String getLoginErrorUri(HttpServletRequest request, HttpServletResponse response) {
+        return getLoginPageUri(request, response);
+    }
+
     /**
      * Returns the URI of the password reset page to use. The default value is "/ui/login". If this method returns null, the
      * next definition (if available) will be used.
