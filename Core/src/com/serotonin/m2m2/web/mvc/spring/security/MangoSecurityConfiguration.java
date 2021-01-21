@@ -70,6 +70,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.web.mvc.spring.security.oauth2.MangoOAuth2UserService;
+import com.serotonin.m2m2.web.mvc.spring.security.oauth2.MangoOidcUserService;
 import com.serotonin.m2m2.web.mvc.spring.security.permissions.RequireAuthenticationInterceptor;
 
 /**
@@ -211,8 +213,12 @@ public class MangoSecurityConfiguration {
     @Autowired TokenAuthMatcher tokenAuthMatcher;
     @Autowired AuthHeaderMatcher authHeaderMatcher;
 
-
     @Autowired @Qualifier(ANONYMOUS_PERMISSION_HOLDER) PermissionHolder anonymousPrincipal;
+
+    @Autowired
+    Optional<MangoOAuth2UserService> mangoOAuth2UserService;
+    @Autowired
+    Optional<MangoOidcUserService> mangoOidcUserService;
 
     RequestMatcher restRequestMatcher = new AntPathRequestMatcher("/rest/**");
     RequestMatcher notRestRequestMatcher = new NegatedRequestMatcher(restRequestMatcher);
@@ -479,7 +485,10 @@ public class MangoSecurityConfiguration {
                         .successHandler(authenticationSuccessHandler)
                         .failureHandler(authenticationFailureHandler)
                         // disable login page generation, not actually used
-                        .loginPage("/login-oauth");
+                        .loginPage("/login-oauth")
+                        .userInfoEndpoint()
+                        .oidcUserService(mangoOidcUserService.get())
+                        .userService(mangoOAuth2UserService.get());
             }
         }
     }
