@@ -14,15 +14,20 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.util.EnvironmentPropertyMapper;
+
 @Service
 // this service is always enabled
 public class OAuth2Information {
 
     private final ClientRegistrationRepository repository;
+    private final RegistrationPropertyMapperFactory mapperFactory;
 
     @Autowired
-    public OAuth2Information(Optional<ClientRegistrationRepository> repository) {
+    public OAuth2Information(Optional<ClientRegistrationRepository> repository,
+                             RegistrationPropertyMapperFactory mapperFactory) {
         this.repository = repository.orElse(null);
+        this.mapperFactory = mapperFactory;
     }
 
     public List<OAuth2ClientInfo> enabledClients() {
@@ -34,18 +39,25 @@ public class OAuth2Information {
                 }
             }
         }
+
         return registrations.stream()
-                .map(OAuth2ClientInfo::new)
+                .map(registration -> {
+                    EnvironmentPropertyMapper propertyMapper = mapperFactory.forRegistrationId(registration.getRegistrationId());
+                    String logoUri = propertyMapper.map("logoUri").orElse(null);
+                    return new OAuth2ClientInfo(registration, logoUri);
+                })
                 .collect(Collectors.toList());
     }
 
     public static class OAuth2ClientInfo {
         private final String registrationId;
         private final String clientName;
+        private final String logoUri;
 
-        private OAuth2ClientInfo(ClientRegistration registration) {
+        private OAuth2ClientInfo(ClientRegistration registration, String logoUri) {
             this.registrationId = registration.getRegistrationId();
             this.clientName = registration.getClientName();
+            this.logoUri = logoUri;
         }
 
         public String getRegistrationId() {
@@ -54,6 +66,10 @@ public class OAuth2Information {
 
         public String getClientName() {
             return clientName;
+        }
+
+        public String getLogoUri() {
+            return logoUri;
         }
     }
 }

@@ -12,8 +12,8 @@ import java.util.function.Function;
 import org.springframework.core.env.Environment;
 
 public class EnvironmentPropertyMapper {
-    final Environment env;
-    final String[] prefixes;
+    protected final Environment env;
+    protected final String[] prefixes;
 
     public EnvironmentPropertyMapper(Environment env) {
         this(env, "");

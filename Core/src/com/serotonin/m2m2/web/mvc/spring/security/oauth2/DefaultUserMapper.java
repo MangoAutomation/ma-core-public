@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.oidc.StandardClaimAccessor;
@@ -38,13 +37,13 @@ public class DefaultUserMapper implements UserMapper {
 
     private final RoleService roleService;
     private final UsersService usersService;
-    private final Environment env;
+    private final RegistrationPropertyMapperFactory mapperFactory;
 
     @Autowired
-    public DefaultUserMapper(RoleService roleService, UsersService usersService, Environment env) {
+    public DefaultUserMapper(RoleService roleService, UsersService usersService, RegistrationPropertyMapperFactory mapperFactory) {
         this.roleService = roleService;
         this.usersService = usersService;
-        this.env = env;
+        this.mapperFactory = mapperFactory;
     }
 
     @Override
@@ -53,13 +52,7 @@ public class DefaultUserMapper implements UserMapper {
         StandardClaimAccessor accessor = toAccessor(oAuth2User);
 
         String registrationId = clientRegistration.getRegistrationId();
-        String providerId = env.getProperty("oauth2.client.registration." + registrationId + ".provider", registrationId);
-
-        String registrationPrefix = "oauth2.client.registration." + registrationId + ".userMapping.";
-        String providerPrefix = "oauth2.client.provider." + providerId + ".userMapping.";
-        String defaultPrefix = "oauth2.client.default.userMapping.";
-
-        EnvironmentPropertyMapper propertyMapper = new EnvironmentPropertyMapper(env, registrationPrefix, providerPrefix, defaultPrefix);
+        EnvironmentPropertyMapper propertyMapper = mapperFactory.forRegistrationId(registrationId, "userMapping.");
 
         String usernamePrefix = propertyMapper.map("username.prefix").orElse("");
         String usernameSuffix = propertyMapper.map("username.suffix").orElse("");

@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -31,7 +32,7 @@ import com.infiniteautomation.mango.util.EnvironmentPropertyMapper;
 public class OAuth2Configuration {
 
     @Bean
-    public ClientRegistrationRepository clientRegistrationRepository(Environment env) {
+    public ClientRegistrationRepository clientRegistrationRepository(Environment env, RegistrationPropertyMapperFactory mapperFactory) {
         return new InMemoryClientRegistrationRepository(Arrays.stream(env.getRequiredProperty("oauth2.client.registrationIds", String[].class))
                 .map(registrationId -> {
                     ClientRegistration.Builder builder = null;
@@ -51,24 +52,22 @@ public class OAuth2Configuration {
                     // set URL to redirect back to Mango
                     builder.redirectUri("{baseUrl}/oauth2/callback/{registrationId}");
 
-                    String registrationPrefix = "oauth2.client.registration." + registrationId + ".";
-                    String providerPrefix = "oauth2.client.provider." + providerId + ".";
-                    EnvironmentPropertyMapper providerMapper = new EnvironmentPropertyMapper(env, registrationPrefix, providerPrefix);
+                    EnvironmentPropertyMapper propertyMapper = mapperFactory.forRegistrationId(registrationId);
 
-                    providerMapper.map("authorizationUri").ifPresent(builder::authorizationUri);
-                    providerMapper.map("tokenUri").ifPresent(builder::tokenUri);
-                    providerMapper.map("jwkSetUri").ifPresent(builder::jwkSetUri);
-                    providerMapper.map("issuerUri").ifPresent(builder::issuerUri);
-                    providerMapper.map("userInfoUri").ifPresent(builder::userInfoUri);
-                    providerMapper.map("userInfoAuthenticationMethod", AuthenticationMethod.class).ifPresent(builder::userInfoAuthenticationMethod);
-                    providerMapper.map("userNameAttributeName").ifPresent(builder::userNameAttributeName);
-                    providerMapper.map("clientAuthenticationMethod", ClientAuthenticationMethod.class).ifPresent(builder::clientAuthenticationMethod);
-                    providerMapper.map("authorizationGrantType", AuthorizationGrantType.class).ifPresent(builder::authorizationGrantType);
-                    providerMapper.map("scope", String[].class).ifPresent(builder::scope);
-                    providerMapper.map("clientName").ifPresent(builder::clientName);
-                    providerMapper.map("clientId").ifPresent(builder::clientId);
-                    providerMapper.map("clientSecret").ifPresent(builder::clientSecret);
-                    providerMapper.map("redirectUri").ifPresent(builder::redirectUri);
+                    propertyMapper.map("authorizationUri").ifPresent(builder::authorizationUri);
+                    propertyMapper.map("tokenUri").ifPresent(builder::tokenUri);
+                    propertyMapper.map("jwkSetUri").ifPresent(builder::jwkSetUri);
+                    propertyMapper.map("issuerUri").ifPresent(builder::issuerUri);
+                    propertyMapper.map("userInfoUri").ifPresent(builder::userInfoUri);
+                    propertyMapper.map("userInfoAuthenticationMethod", AuthenticationMethod.class).ifPresent(builder::userInfoAuthenticationMethod);
+                    propertyMapper.map("userNameAttributeName").ifPresent(builder::userNameAttributeName);
+                    propertyMapper.map("clientAuthenticationMethod", ClientAuthenticationMethod.class).ifPresent(builder::clientAuthenticationMethod);
+                    propertyMapper.map("authorizationGrantType", AuthorizationGrantType.class).ifPresent(builder::authorizationGrantType);
+                    propertyMapper.map("scope", String[].class).ifPresent(builder::scope);
+                    propertyMapper.map("clientName").ifPresent(builder::clientName);
+                    propertyMapper.map("clientId").ifPresent(builder::clientId);
+                    propertyMapper.map("clientSecret").ifPresent(builder::clientSecret);
+                    propertyMapper.map("redirectUri").ifPresent(builder::redirectUri);
 
                     return builder.build();
                 })
@@ -83,6 +82,17 @@ public class OAuth2Configuration {
     @Bean
     public OAuth2AuthorizedClientRepository authorizedClientRepository(OAuth2AuthorizedClientService authorizedClientService) {
         return new AuthenticatedPrincipalOAuth2AuthorizedClientRepository(authorizedClientService);
+    }
+
+    @Bean
+    public RegistrationPropertyMapperFactory registrationPropertyMapperFactory(@Autowired Environment env) {
+        return (registrationId, suffix) -> {
+            String providerId = env.getProperty("oauth2.client.registration." + registrationId + ".provider", registrationId);
+            String registrationPrefix = "oauth2.client.registration." + registrationId + "." + suffix;
+            String providerPrefix = "oauth2.client.provider." + providerId + "." + suffix;
+            String defaultPrefix = "oauth2.client.default." + suffix;
+            return new EnvironmentPropertyMapper(env, registrationPrefix, providerPrefix, defaultPrefix);
+        };
     }
 
 }
