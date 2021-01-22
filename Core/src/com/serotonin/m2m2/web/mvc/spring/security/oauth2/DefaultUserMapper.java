@@ -52,12 +52,12 @@ public class DefaultUserMapper implements UserMapper {
         StandardClaimAccessor accessor = toAccessor(oAuth2User);
 
         String registrationId = clientRegistration.getRegistrationId();
-        EnvironmentPropertyMapper propertyMapper = mapperFactory.forRegistrationId(registrationId, "userMapping.");
+        EnvironmentPropertyMapper userMapping = mapperFactory.forRegistrationId(registrationId, "userMapping.");
 
-        String usernamePrefix = propertyMapper.map("username.prefix").orElse("");
-        String usernameSuffix = propertyMapper.map("username.suffix").orElse("");
+        String usernamePrefix = userMapping.map("username.prefix").orElse("");
+        String usernameSuffix = userMapping.map("username.suffix").orElse("");
         String username = usernamePrefix +
-                propertyMapper.map("username", accessor::getClaimAsString).orElseThrow(NullPointerException::new) +
+                userMapping.map("username", accessor::getClaimAsString).orElseThrow(NullPointerException::new) +
                 usernameSuffix;
 
         User user;
@@ -69,28 +69,34 @@ public class DefaultUserMapper implements UserMapper {
             user.setPassword(LOCKED_PASSWORD);
         }
 
-        String emailPrefix = propertyMapper.map("email.prefix").orElse("");
-        String emailSuffix = propertyMapper.map("email.suffix").orElse("");
+        String emailPrefix = userMapping.map("email.prefix").orElse("");
+        String emailSuffix = userMapping.map("email.suffix").orElse("");
         String email = emailPrefix +
-                propertyMapper.map("email", accessor::getClaimAsString).orElse(username) +
+                userMapping.map("email", accessor::getClaimAsString) +
                 emailSuffix;
         user.setEmail(email);
 
-        propertyMapper.map("name", accessor::getClaimAsString).ifPresent(user::setName);
-        propertyMapper.map("phone", accessor::getClaimAsString).ifPresent(user::setPhone);
-        propertyMapper.map("locale", accessor::getClaimAsString).ifPresent(user::setLocale);
-        propertyMapper.map("timezone", accessor::getClaimAsString).ifPresent(user::setTimezone);
+        userMapping.map("name", accessor::getClaimAsString).ifPresent(user::setName);
+        userMapping.map("phone", accessor::getClaimAsString).ifPresent(user::setPhone);
+        userMapping.map("locale", accessor::getClaimAsString).ifPresent(user::setLocale);
+        userMapping.map("timezone", accessor::getClaimAsString).ifPresent(user::setTimezone);
 
-        String rolePrefix = propertyMapper.map("roles.prefix").orElse("");
-        String roleSuffix = propertyMapper.map("roles.suffix").orElse("");
+        String rolePrefix = userMapping.map("roles.prefix").orElse("");
+        String roleSuffix = userMapping.map("roles.suffix").orElse("");
 
-        Stream<String> oauthRoles = propertyMapper.map("roles", accessor::getClaimAsStringList)
+        Set<String> ignoreRoles = Arrays.stream(userMapping.map("roles.ignore", String[].class)
+                .orElse(new String[0])).collect(Collectors.toSet());
+
+        Stream<String> oauthRoles = userMapping.map("roles", accessor::getClaimAsStringList)
                 .orElseGet(ArrayList::new).stream()
-                .map(role -> rolePrefix + role + roleSuffix);
+                .filter(r -> !ignoreRoles.contains(r))
+                .map(r -> rolePrefix + r + roleSuffix)
+                .map(r -> userMapping.map("roles.map." + r).orElse(r));
 
-        Stream<String> extraRoles = Arrays.stream(propertyMapper.map("extraRoles", String[].class).orElse(new String[0]));
+        Stream<String> addRoles = Arrays.stream(userMapping.map("roles.add", String[].class)
+                .orElse(new String[0]));
 
-        Set<Role> roles = Stream.concat(oauthRoles, extraRoles)
+        Set<Role> roles = Stream.concat(oauthRoles, addRoles)
                 .map(roleService::getOrInsert)
                 .map(RoleVO::getRole)
                 .collect(Collectors.toCollection(HashSet::new));
