@@ -90,8 +90,7 @@ public class DefaultUserMapper implements UserMapper {
         Stream<String> oauthRoles = userMapping.map("roles", accessor::getClaimAsStringList)
                 .orElseGet(ArrayList::new).stream()
                 .filter(r -> !ignoreRoles.contains(r))
-                .map(r -> rolePrefix + r + roleSuffix)
-                .map(r -> userMapping.map("roles.map." + r).orElse(r));
+                .map(r -> userMapping.map("roles.map." + r).orElse(rolePrefix + r + roleSuffix));
 
         Stream<String> addRoles = Arrays.stream(userMapping.map("roles.add", String[].class)
                 .orElse(new String[0]));
