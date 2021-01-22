@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockEventManager;
@@ -48,6 +49,8 @@ public class UserEventsTest extends MangoTestBase {
 
         AtomicBoolean removerRunning = new AtomicBoolean(true);
         AtomicBoolean generatorRunning = new AtomicBoolean(true);
+
+        RunAs runAs = Common.getBean(RunAs.class);
         Runnable adder = () -> {
             while(removerRunning.get()) {
                 try {
@@ -72,18 +75,19 @@ public class UserEventsTest extends MangoTestBase {
 
         //Event Generator Thread
         Runnable generator = () -> {
-
-            //Raise some events
-            List<MockEventTypeTime> raised = new ArrayList<>();
-            for(int i=0; i<1000; i++) {
-                MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId, null);
-                raised.add(new MockEventTypeTime(event, timer.currentTimeMillis()));
-                Common.eventManager.raiseEvent(event,
-                        timer.currentTimeMillis(), true, AlarmLevels.URGENT,
-                        new TranslatableMessage("common.default", "Mock Event"), null);
-                timer.fastForwardTo(timer.currentTimeMillis() + 1);
-            }
-            generatorRunning.set(false);
+            runAs.runAs(PermissionHolder.SYSTEM_SUPERADMIN, () -> {
+                //Raise some events
+                List<MockEventTypeTime> raised = new ArrayList<>();
+                for (int i = 0; i < 1000; i++) {
+                    MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId, null);
+                    raised.add(new MockEventTypeTime(event, timer.currentTimeMillis()));
+                    Common.eventManager.raiseEvent(event,
+                            timer.currentTimeMillis(), true, AlarmLevels.URGENT,
+                            new TranslatableMessage("common.default", "Mock Event"), null);
+                    timer.fastForwardTo(timer.currentTimeMillis() + 1);
+                }
+                generatorRunning.set(false);
+            });
         };
 
         executor.execute(adder);
