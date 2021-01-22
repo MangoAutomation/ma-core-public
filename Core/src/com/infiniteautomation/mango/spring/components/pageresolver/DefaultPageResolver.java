@@ -92,6 +92,11 @@ public class DefaultPageResolver implements PageResolver {
     }
 
     @Override
+    public String getLogoutSuccessUri(HttpServletRequest request, HttpServletResponse response) {
+        return findPageUri(def -> def.getLogoutSuccessUri(request, response));
+    }
+
+    @Override
     public String getPasswordResetUri() {
         return findPageUri(DefaultPagesDefinition::getPasswordResetPageUri);
     }

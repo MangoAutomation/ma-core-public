@@ -55,7 +55,7 @@ public class MangoLogoutSuccessHandler extends SimpleUrlLogoutSuccessHandler {
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
         String url = super.determineTargetUrl(request, response);
         if (url == null || url.equals(this.getDefaultTargetUrl())) {
-            return pageResolver.getLoginUri(request, response);
+            return pageResolver.getLogoutSuccessUri(request, response);
         }
         return url;
     }

@@ -25,7 +25,7 @@ public interface PageResolver {
     String getUnauthorizedUri(HttpServletRequest request, HttpServletResponse response, User user);
 
     /**
-     * Page used to login / authenticate.
+     * Page used to login / authenticate. aka authentication entry point.
      */
     String getLoginUri(HttpServletRequest request, HttpServletResponse response);
 
@@ -33,6 +33,11 @@ public interface PageResolver {
      * Page to use when login / authentication fails. Usually the same as the login page.
      */
     String getLoginErrorUri(HttpServletRequest request, HttpServletResponse response);
+
+    /**
+     * Page you are redirected to when you successfully logout. Usually the same as the login page.
+     */
+    String getLogoutSuccessUri(HttpServletRequest request, HttpServletResponse response);
 
     /**
      * Page used to reset a user's password.
