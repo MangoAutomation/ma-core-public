@@ -31,6 +31,7 @@
         <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
         <mango.store.pugin.version>1.1.0</mango.store.pugin.version>
         <jooq.version>3.14.4</jooq.version>
+        <kotlin.version>1.4.21-2</kotlin.version>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
     </properties>
     <organization>
