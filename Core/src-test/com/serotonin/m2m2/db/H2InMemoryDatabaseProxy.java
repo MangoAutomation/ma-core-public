@@ -35,6 +35,7 @@ import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockPointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
@@ -57,6 +58,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
     protected NoSQLProxy noSQLProxy;
+    protected PointValueCacheProxy pointValueCacheProxy;
     protected MockPointValueDao mockPointValueDao;
     protected boolean initialized = false;
     protected boolean initWebConsole = false;
@@ -158,11 +160,24 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         // The database exists, so let's make its schema version matches the application version.
         DBUpgrade.checkUpgrade();
 
-        // Check if we are using NoSQL
-        NoSQLProxy proxy = ModuleRegistry.getDefinition(NoSQLProxy.class);
-        if (proxy != null) {
-            noSQLProxy = proxy;
-            noSQLProxy.initialize();
+        // Check if we are using NoSQL and use the first enabled proxy
+        List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
+        for(NoSQLProxy proxy : proxies) {
+            if (proxy.isEnabled()) {
+                noSQLProxy = proxy;
+                noSQLProxy.initialize();
+                break;
+            }
+        }
+
+        //Check to see if we are using the latest values store
+        List<PointValueCacheProxy> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheProxy.class);
+        for(PointValueCacheProxy proxy : latestValueProxies) {
+            if (proxy.isEnabled()) {
+                pointValueCacheProxy = proxy;
+                //Defer initialization until post spring context init via module element definition lifecycle
+                break;
+            }
         }
 
         initialized = true;
@@ -398,6 +413,16 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public NoSQLProxy getNoSQLProxy() {
         return noSQLProxy;
+    }
+
+    @Override
+    public PointValueCacheProxy getPointValueCacheProxy() {
+        return pointValueCacheProxy;
+    }
+
+    @Override
+    public PointValueCacheDao getPointValueCacheDao() {
+        return pointValueCacheProxy.getDao();
     }
 
     /**

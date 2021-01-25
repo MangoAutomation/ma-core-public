@@ -381,7 +381,7 @@ public class EventManagerImpl implements EventManager {
      * @param time
      * @param inactiveCause
      */
-    private void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
+    protected void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
         List<User> activeUsers = userDao.getActiveUsers();
 
         List<Integer> eventIds = new ArrayList<>();
@@ -472,7 +472,7 @@ public class EventManagerImpl implements EventManager {
      *
      * @param eventId
      * @param time
-     * @param userId
+     * @param user
      * @param alternateAckSource
      * @return the EventInstance for the ID if found, null otherwise
      */
@@ -594,7 +594,7 @@ public class EventManagerImpl implements EventManager {
     /**
      * Purge Events before time with a given type
      * @param time
-     * @param typeName
+     * @param alarmLevel
      * @return
      */
     @Override
@@ -926,7 +926,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * To access all active events quickly
-     * @param type
      * @return
      */
     @Override

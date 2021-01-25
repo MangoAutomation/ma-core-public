@@ -454,7 +454,8 @@ public class ScriptingTest extends MangoTestBase {
             DataPointVO vo = DataPointDao.getInstance().get(dataPointId);
             DataSourceVO ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, new ArrayList<>());
-            return new DataPointRT(dp, vo.getPointLocator().createRuntime(), ds, new ArrayList<>());
+            return new DataPointRT(dp, vo.getPointLocator().createRuntime(), ds, new ArrayList<>(),
+                    Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
         }
     }
 

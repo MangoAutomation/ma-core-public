@@ -798,6 +798,11 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         }
 
         @Override
+        protected void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
+            //Do nothing here
+        }
+
+        @Override
         public void addUserEventListener(UserEventListener l) {
             this.listeners.add((EventDetectorEventListener) l);
         }

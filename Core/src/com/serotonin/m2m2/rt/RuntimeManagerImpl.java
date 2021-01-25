@@ -23,6 +23,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -388,7 +389,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         //Startup multi threaded
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, Common.databaseProxy.newPointValueDao());
+        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, pointValueCacheDao);
         pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.
@@ -503,6 +505,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     /**
      * Only to be used at startup as synchronization has been reduced for performance
+     * @param vo
      */
     @Override
     public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
@@ -512,7 +515,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(vo.getDataPoint().getDataSourceId());
         if (ds != null) {
             // Change the VO into a data point implementation.
-            DataPointRT dataPoint = new DataPointRT(vo, vo.getDataPoint().getPointLocator().createRuntime(), ds.getVo(), vo.getInitialCache());
+            DataPointRT dataPoint = new DataPointRT(vo, vo.getDataPoint().getPointLocator().createRuntime(), ds.getVo(),
+                    vo.getInitialCache(), Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
 
             // Add/update it in the data image.
             synchronized (dataPoints) {

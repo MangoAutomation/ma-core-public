@@ -410,7 +410,8 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                         if(targetVo.getDefaultCacheSize() == 0)
                             targetVo.setDefaultCacheSize(1);
                         DataPointWithEventDetectors dp = new DataPointWithEventDetectors(targetVo, new ArrayList<>());
-                        dprt = new DataPointRT(dp, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(targetVo.getDataSourceId()), null);
+                        dprt = new DataPointRT(dp, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(targetVo.getDataSourceId()),
+                                null, Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
                         dprt.resetValues();
                     }
                     context.put(pair.getValue(), dprt);

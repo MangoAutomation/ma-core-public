@@ -92,7 +92,6 @@ public class MangoCommonConfiguration {
 
     /**
      * BeanPostProcessor are per application context.
-     * @param dispatcher
      * @return
      */
     @Bean

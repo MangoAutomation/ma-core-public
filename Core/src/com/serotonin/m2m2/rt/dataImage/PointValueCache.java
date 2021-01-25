@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.infiniteautomation.mango.util.LazyField;
-import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -30,7 +30,9 @@ public class PointValueCache {
     //This would not be the advised thing to do if we were to be deleting any data through here
     // as some properties of the delete are system settings that can be changed
     // However, since we're only querying, it should be more efficient to have only one static final reference
-    protected static final PointValueDao dao = Common.databaseProxy.newPointValueDao();
+    private final PointValueDao dao;
+
+    private final PointValueCacheDao pointValueCacheDao;
 
     /**
      * IMPORTANT: The list object should never be written to! The implementation here is for performance. Never call
@@ -39,9 +41,12 @@ public class PointValueCache {
      */
     private final LazyField<List<PointValueTime>> cache;
 
-    public PointValueCache(DataPointVO vo, int defaultSize, List<PointValueTime> cache) {
+    public PointValueCache(DataPointVO vo, int defaultSize, List<PointValueTime> cache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
         this.vo = vo;
         this.defaultSize = defaultSize;
+        this.dao = dao;
+        this.pointValueCacheDao = pointValueCacheDao;
+
         this.cache = new LazyField<>(() -> {
             List<PointValueTime> newCache;
             if (cache == null) {
@@ -65,6 +70,7 @@ public class PointValueCache {
 
     void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
         dao.savePointValueAsync(vo, pvt, source);
+
     }
 
     PointValueTime savePointValueSync(PointValueTime pvt, SetPointSource source) {
@@ -97,6 +103,9 @@ public class PointValueCache {
         // Check if we need to clean up the list
         while (newCache.size() > maxSize)
             newCache.remove(newCache.size() - 1);
+
+        //Update cache store
+        pointValueCacheDao.updatePointValueCache(vo, newCache);
 
         cache.set(newCache);
     }
@@ -142,42 +151,48 @@ public class PointValueCache {
      * @param size
      */
     private List<PointValueTime> refreshCache(int size, List<PointValueTime> existing) {
+
+        //Expanding cache
         if (size > maxSize) {
             maxSize = size;
-            if (size == 1) {
-                // Performance thingy
-                PointValueTime pvt = dao.getLatestPointValue(vo);
-                if (pvt != null) {
-                    List<PointValueTime> c = new ArrayList<PointValueTime>();
-                    c.add(pvt);
-                    return c;
-                }else {
-                    return existing;
-                }
-            }
-            else {
-                List<DataPointVO> vos = new ArrayList<>();
-                vos.add(vo);
-                List<PointValueTime> cc = new ArrayList<>();
-                cc.addAll(existing);
-                List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
-                dao.getLatestPointValues(vos, Long.MAX_VALUE, false, size, (value, index) -> {
-                    //Cache is in same order as rows
-                    if(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
-                        //The cached value is newer so add it
-                        while(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() > value.getTime())
-                            nc.add(cc.remove(0));
-                        if(cc.size() > 0 && cc.get(0).getTime() == value.getTime())
-                            cc.remove(0);
-                        if(nc.size() < size)
-                            nc.add(value);
-                    }else {
-                        //Past cached value times
-                        if(nc.size() < size)
-                            nc.add(value);
+
+            //TODO Mango 4.0 deal with this oddity
+            if(pointValueCacheDao instanceof PointValueDao) {
+                if (size == 1) {
+                    PointValueTime pvt = dao.getLatestPointValue(vo);
+                    if (pvt != null) {
+                        List<PointValueTime> c = new ArrayList<PointValueTime>();
+                        c.add(pvt);
+                        return c;
+                    } else {
+                        return existing;
                     }
-                });
-                return nc;
+                } else {
+                    List<DataPointVO> vos = new ArrayList<>();
+                    vos.add(vo);
+                    List<PointValueTime> cc = new ArrayList<>();
+                    cc.addAll(existing);
+                    List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
+                    dao.getLatestPointValues(vos, Long.MAX_VALUE, false, size, (value, index) -> {
+                        //Cache is in same order as rows
+                        if (nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
+                            //The cached value is newer so add it
+                            while (nc.size() < size && cc.size() > 0 && cc.get(0).getTime() > value.getTime())
+                                nc.add(cc.remove(0));
+                            if (cc.size() > 0 && cc.get(0).getTime() == value.getTime())
+                                cc.remove(0);
+                            if (nc.size() < size)
+                                nc.add(value);
+                        } else {
+                            //Past cached value times
+                            if (nc.size() < size)
+                                nc.add(value);
+                        }
+                    });
+                    return nc;
+                }
+            }else {
+                return pointValueCacheDao.expandPointValueCache(vo, size, existing);
             }
         }else {
             return existing;
@@ -191,12 +206,22 @@ public class PointValueCache {
         return cache.get();
     }
 
+    /**
+     * Completely reset cache using point value store, place
+     *   into cache store
+     */
     public void reset() {
         List<PointValueTime> nc = dao.getLatestPointValues(vo, defaultSize);
         maxSize = defaultSize;
         cache.set(nc);
+        pointValueCacheDao.updatePointValueCache(vo, cache.get());
     }
 
+    /**
+     * Trim current cache of values < before, update cache store with new cache
+     *  and reload any necessary data from point value store
+     * @param before
+     */
     public void reset(long before) {
         List<PointValueTime> c = cache.get();
         List<PointValueTime> nc = new ArrayList<PointValueTime>(c.size());
@@ -205,6 +230,8 @@ public class PointValueCache {
         while(iter.hasNext())
             if(iter.next().getTime() < before)
                 iter.remove();
+
+        pointValueCacheDao.updatePointValueCache(vo, nc);
 
         if(nc.size() < defaultSize) {
             maxSize = 0;

@@ -11,39 +11,39 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * @author Matthew Lohbihler
  */
 abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     private final Log log = LogFactory.getLog(BasePooledProxy.class);
-    private BasicDataSource dataSource;
+    private HikariDataSource dataSource;
 
     @Override
     protected void initializeImpl(String propertyPrefix) {
         log.info("Initializing pooled connection manager");
-        dataSource = new BasicDataSource();
-        dataSource.setDriverClassName(getDriverClassName());
-        dataSource.setUrl(getUrl(propertyPrefix));
-        dataSource.setUsername(Common.envProps.getString(propertyPrefix + "db.username"));
-        dataSource.setPassword(getDatabasePassword(propertyPrefix));
-        dataSource.setMaxTotal(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 10));
-        dataSource.setMaxIdle(Common.envProps.getInt(propertyPrefix + "db.pool.maxIdle", 10));
-        dataSource.setValidationQuery("SELECT 1");
-        dataSource.setTestOnBorrow(true);
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getUrl(propertyPrefix));
+        config.setUsername(Common.envProps.getString(propertyPrefix + "db.username"));
+        config.setPassword(getDatabasePassword(propertyPrefix));
+        config.setDriverClassName(getDriverClassName());
+        config.setConnectionTestQuery("SELECT 1");
+        config.setMaximumPoolSize(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 10));
+        config.setMinimumIdle(Common.envProps.getInt(propertyPrefix + "db.pool.maxIdle", 10));
+        dataSource = new HikariDataSource(config);
     }
 
     protected String getUrl(String propertyPrefix) {
@@ -116,12 +116,7 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     @Override
     public void terminateImpl() {
         log.info("Stopping database");
-        try {
-            dataSource.close();
-        }
-        catch (SQLException e) {
-            log.warn("", e);
-        }
+        dataSource.close();
     }
 
     @Override
@@ -136,11 +131,11 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
 
     @Override
     public int getActiveConnections() {
-        return dataSource.getNumActive();
+        return dataSource.getHikariPoolMXBean().getActiveConnections();
     }
 
     @Override
     public int getIdleConnections() {
-        return dataSource.getNumIdle();
+        return dataSource.getHikariPoolMXBean().getIdleConnections();
     }
 }

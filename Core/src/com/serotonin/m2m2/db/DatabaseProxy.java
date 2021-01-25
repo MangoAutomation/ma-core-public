@@ -18,6 +18,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
 
@@ -111,9 +112,14 @@ public interface DatabaseProxy {
 
     String getDatabasePassword(String propertyPrefix);
 
-    void setNoSQLProxy(NoSQLProxy proxy);
-
     PointValueDao newPointValueDao();
+
+
+    /**
+     * TODO Mango 4.0 Remove this method (only used in testing and not necessary)
+     * @param proxy
+     */
+    public void setNoSQLProxy(NoSQLProxy proxy);
 
     /**
      * Allow access to the NoSQL Proxy
@@ -122,4 +128,15 @@ public interface DatabaseProxy {
      */
     NoSQLProxy getNoSQLProxy();
 
+    /**
+     * Get the latest value proxy
+     * @return
+     */
+    PointValueCacheProxy getPointValueCacheProxy();
+
+    /**
+     * Get the point value cache dao
+     * @return
+     */
+    PointValueCacheDao getPointValueCacheDao();
 }

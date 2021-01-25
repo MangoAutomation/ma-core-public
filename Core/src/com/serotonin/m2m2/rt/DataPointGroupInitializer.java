@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
@@ -26,9 +26,9 @@ import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
  */
 public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWithEventDetectors>, Void> {
 
-    private final PointValueDao dao;
+    private final PointValueCacheDao dao;
 
-    public DataPointGroupInitializer(ExecutorService executor, int maxConcurrency, PointValueDao dao) {
+    public DataPointGroupInitializer(ExecutorService executor, int maxConcurrency, PointValueCacheDao dao) {
         super(executor, maxConcurrency);
         this.dao = dao;
     }
@@ -81,11 +81,11 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                 .orElse(0);
 
         boolean failed = false;
-        Map<Integer, List<PointValueTime>> latestValuesMap = new HashMap<>(subgroup.size());
+        Map<Integer, List<PointValueTime>> latestValuesMap;
         try {
-            dao.getLatestPointValues(queryPoints, Long.MAX_VALUE, true, maxCacheSize,
-                    (pvt, i) -> latestValuesMap.computeIfAbsent(pvt.getSeriesId(), (k) -> new ArrayList<>()).add(pvt));
+            latestValuesMap = dao.getPointValueCaches(queryPoints, maxCacheSize);
         } catch (Exception e) {
+            latestValuesMap = new HashMap<>();
             failed = true;
             log.warn("Failed to get latest point values for multiple points at once. " +
                     "Mango will fall back to retrieving latest point values per point which will take longer.", e);

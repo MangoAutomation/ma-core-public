@@ -32,7 +32,7 @@ public class LogStopWatch {
      * Logs an info line to the log/console with the message and the elapsed time, can be called
      * multiple times
      *
-     * @param text
+     * @param message
      */
     public void stop(Supplier<String> message) {
         logInfo(message, 0);
@@ -45,7 +45,7 @@ public class LogStopWatch {
      * If threshold is greater than 0 then the message will be logged at warning level,
      * otherwise it will be logged at info level.
      *
-     * @param text
+     * @param message
      * @param threshold message will only be logged if elapsed time is longer than the threshold
      */
     public void stop(Supplier<String> message, long threshold) {

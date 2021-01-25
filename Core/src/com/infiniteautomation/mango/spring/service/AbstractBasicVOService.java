@@ -41,7 +41,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * Service
      * @param dao
      * @param permissionService
-     * @param createPermissionDefinition
      */
     public AbstractBasicVOService(DAO dao, PermissionService permissionService) {
         this.dao = dao;
@@ -257,7 +256,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * Query for VOs using RQL.  Permissions are filtered within the database if supported by the dao, if not
      * you must filter manually.
      * @param conditions
-     * @param full - load relational data
      * @param callback
      */
     public void customizedQuery(ASTNode conditions, MappedRowCallback<T> callback) {

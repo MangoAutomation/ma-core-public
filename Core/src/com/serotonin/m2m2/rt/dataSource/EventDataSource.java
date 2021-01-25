@@ -4,8 +4,8 @@
  */
 package com.serotonin.m2m2.rt.dataSource;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -13,7 +13,11 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
 abstract public class EventDataSource<T extends DataSourceVO> extends DataSourceRT<T> {
-    protected List<DataPointRT> dataPoints = new ArrayList<>();
+
+    /**
+     * Map of data point id to data point
+     */
+    protected Map<Integer, DataPointRT> dataPoints = new HashMap<>();
 
     public EventDataSource(T vo) {
         super(vo);
@@ -26,9 +30,8 @@ abstract public class EventDataSource<T extends DataSourceVO> extends DataSource
     public void addDataPoint(DataPointRT dataPoint) {
         pointListChangeLock.writeLock().lock();
         try {
-            // Remove any existing instances of the points.
-            dataPoints.remove(dataPoint);
-            dataPoints.add(dataPoint);
+            // Replace data point
+            dataPoints.put(dataPoint.getId(), dataPoint);
         } finally {
             pointListChangeLock.writeLock().unlock();
         }
@@ -41,7 +44,7 @@ abstract public class EventDataSource<T extends DataSourceVO> extends DataSource
     public void removeDataPoint(DataPointRT dataPoint) {
         pointListChangeLock.writeLock().lock();
         try {
-            dataPoints.remove(dataPoint);
+            dataPoints.remove(dataPoint.getId());
         } finally {
             pointListChangeLock.writeLock().unlock();
         }

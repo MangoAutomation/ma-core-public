@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.event.detectors;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.rt.DataPointEventNotifyWorkItem;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 
@@ -71,14 +72,12 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
     /**
      * Change the state of the event, raise using the supplied timestamp if necessary
-     * @param state
      * @param timestamp
      */
     protected abstract void setEventActive(long timestamp);
 
     /**
      * Change the state of the event, rtn using the supplied timestamp if necessary
-     * @param state
      * @param timestamp
      */
     protected abstract void setEventInactive(long timestamp);
@@ -97,8 +96,12 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
         int pointId = vo.getDataPoint().getId();
         PointValueTime latest = Common.runtimeManager.getDataPoint(pointId).getPointValue();
 
-        if (latest != null)
-            pointChanged(null, latest);
+        //Submit task to fire event, this will call our pointChanged(null, latest) and pointUpdated(newValue) methods in a separate thread
+        //  so the raise and handle event logic is not done on the thread starting Mango.
+        if (latest != null) {
+            Common.backgroundProcessing.addWorkItem(new DataPointEventNotifyWorkItem(vo.getDataPoint().getXid(), this, null, latest,
+                    null, false, false, false, true, false));
+        }
     }
 
     @Override

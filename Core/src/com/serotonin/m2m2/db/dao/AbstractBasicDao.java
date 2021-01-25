@@ -550,7 +550,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      * which could mess up a query limit/offset scenario.  Resulting in
      * less items than asked for.
      *
-     * @param callback
      * @return
      */
     protected ResultSetExtractor<T> getObjectResultSetExtractor() {
@@ -607,7 +606,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      * which could mess up a query limit/offset scenario.  Resulting in
      * less items than asked for.
      *
-     * @param callback
      * @return
      */
     protected ResultSetExtractor<List<T>> getListResultSetExtractor() {

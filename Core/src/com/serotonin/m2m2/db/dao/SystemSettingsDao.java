@@ -761,7 +761,7 @@ public class SystemSettingsDao extends BaseDao {
      * caution, there is no checking on quality of the values being saved use
      * validate() first.
      *
-     * @param vo
+     * @param settings
      * @throws JsonProcessingException
      */
     public void updateSettings(Map<String, Object> settings) {
@@ -800,7 +800,8 @@ public class SystemSettingsDao extends BaseDao {
      * Validate the system settings passed in, only validating settings that exist in the map.
      *
      * @param settings
-     * @param voResponse
+     * @param response
+     * @param user
      */
     public void validate(Map<String, Object> settings, ProcessResult response, PermissionHolder user) {
 
@@ -1184,8 +1185,9 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     /**
-     * @param pointDataPurgePeriodType2
-     * @param pointDataPurgePeriodType3
+     *
+     * @param key
+     * @param settings
      * @param response
      */
     private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
@@ -1265,7 +1267,7 @@ public class SystemSettingsDao extends BaseDao {
      * Potentially Convert a value from a code, if no code exists then return null;
      *
      * @param key - Setting key
-     * @param value - String code
+     * @param code - String code
      * @return
      */
     public Integer convertToValueFromCode(String key, String code) {
