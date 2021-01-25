@@ -24,7 +24,8 @@ import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
- *
+ * TODO: This test will cause NPE due to the fact that audit events are being raised and there is no audit event type for
+ *  EventInstanceVOs
  * @author Terry Packer
  */
 public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTest<EventInstanceVO, EventInstanceTableDefinition, EventInstanceDao, EventInstanceService> {
