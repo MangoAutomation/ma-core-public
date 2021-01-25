@@ -71,9 +71,7 @@ public class DefaultUserMapper implements UserMapper {
 
         String emailPrefix = userMapping.map("email.prefix").orElse("");
         String emailSuffix = userMapping.map("email.suffix").orElse("");
-        String email = emailPrefix +
-                userMapping.map("email", accessor::getClaimAsString) +
-                emailSuffix;
+        String email = userMapping.map("email", accessor::getClaimAsString).map(e -> emailPrefix + e + emailSuffix).orElse(null);
         user.setEmail(email);
 
         userMapping.map("name", accessor::getClaimAsString).ifPresent(user::setName);
