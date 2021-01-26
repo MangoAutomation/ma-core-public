@@ -25,9 +25,9 @@ public class OAuth2Information {
 
     @Autowired
     public OAuth2Information(Optional<ClientRegistrationRepository> repository,
-                             RegistrationPropertyMapperFactory mapperFactory) {
+                             Optional<RegistrationPropertyMapperFactory> mapperFactory) {
         this.repository = repository.orElse(null);
-        this.mapperFactory = mapperFactory;
+        this.mapperFactory = mapperFactory.orElse(null);;
     }
 
     public List<OAuth2ClientInfo> enabledClients() {
