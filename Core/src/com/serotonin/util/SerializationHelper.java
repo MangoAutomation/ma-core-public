@@ -149,7 +149,7 @@ public class SerializationHelper {
                 try {
                     return super.resolveClass(desc);
                 }catch(Exception e) {
-                    throw new ModuleNotLoadedException(name);
+                    throw new ModuleNotLoadedException(name, e);
                 }
             }
         }

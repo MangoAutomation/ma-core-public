@@ -10,16 +10,16 @@ import java.io.IOException;
  *
  * @author Terry Packer
  */
-public class ModuleNotLoadedException extends IOException{
+public class ModuleNotLoadedException extends IOException {
 
     private static final long serialVersionUID = 1L;
 
-    public ModuleNotLoadedException(String classname) {
-        super("Class " + classname + " not loaded, is a module missing?");
+    public ModuleNotLoadedException(String classname, Exception e) {
+        super("Class " + classname + " not loaded, is a module missing?", e);
     }
     
-    public ModuleNotLoadedException(String moduleName, String classname) {
-        super("Module " + moduleName + " missing, unable to load " + classname);
+    public ModuleNotLoadedException(String moduleName, String classname,  Exception e) {
+        super("Module " + moduleName + " missing, unable to load " + classname, e);
     }
     
 }
