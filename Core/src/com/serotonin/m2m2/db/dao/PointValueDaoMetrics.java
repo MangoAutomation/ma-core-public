@@ -31,7 +31,7 @@ import com.serotonin.m2m2.vo.pair.LongPair;
  * @author Terry Packer
  *
  */
-public class PointValueDaoMetrics implements PointValueDao {
+public class PointValueDaoMetrics implements CachingPointValueDao {
 
     private final PointValueDao dao;
     private final long metricsThreshold;
