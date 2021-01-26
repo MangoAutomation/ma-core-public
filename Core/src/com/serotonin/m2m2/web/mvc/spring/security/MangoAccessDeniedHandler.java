@@ -22,10 +22,13 @@ import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.components.pageresolver.PageResolver;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
- * <p>This handles requests where the user is authenticated. See also {@link MangoAuthenticationEntryPoint} which handles requests where the user is not authenticated.</p>
+ * <p>This handles requests where the user is authenticated but does not have access, and also when there is no
+ * authentication entry point such as when using basic or token authentication.</p>
+ * <p>See also {@link MangoAuthenticationEntryPoint} which handles requests where the user is not authenticated.</p>
  *
  * @author Terry Packer
  * @author Jared Wiltshire
@@ -50,19 +53,29 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
 
-        PermissionHolder user = Common.getUser();
+        PermissionHolder user;
+        try {
+            user = Common.getUser();
+        } catch (PermissionException e) {
+            // this can occur with basic/token auth as an authentication entry point is not used for those auth types
+            user = null;
+        }
+
         if (log.isWarnEnabled()) {
-            log.warn(String.format("Access denied to resource %s, for user %s, IP address %s", request.getRequestURI(), user.getPermissionHolderName(), request.getRemoteAddr()));
+            log.warn(String.format("Access denied to resource '%s', for user '%s', IP address '%s'", request.getRequestURI(),
+                    user == null ? "" :user.getPermissionHolderName(), request.getRemoteAddr()));
         }
 
         if (!env.getProperty("rest.disableErrorRedirects", Boolean.class, false) && browserHtmlRequestMatcher.matches(request)) {
-            String accessDeniedUrl = pageResolver.getUnauthorizedUri(request, response, user.getUser());
+            String accessDeniedUrl = pageResolver.getUnauthorizedUri(request, response, user == null ? null : user.getUser());
             if (accessDeniedUrl != null) {
                 // redirect to error page.
                 response.sendRedirect(accessDeniedUrl);
                 return;
             }
         }
-        response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage());
+
+        response.sendError(user == null ? HttpServletResponse.SC_UNAUTHORIZED: HttpServletResponse.SC_FORBIDDEN,
+                accessDeniedException.getMessage());
     }
 }
