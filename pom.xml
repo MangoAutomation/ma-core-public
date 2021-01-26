@@ -10,6 +10,7 @@
         <jettyVersion>9.4.35.v20201120</jettyVersion>
         <springVersion>5.3.3</springVersion>
         <springSecurityVersion>5.4.2</springSecurityVersion>
+        <!-- do not upgrade to 2.14 until https://issues.apache.org/jira/browse/LOG4J2-3006 is resolved -->
         <log4jVersion>2.13.3</log4jVersion>
         <slf4jVersion>1.8.0-beta4</slf4jVersion>
         <jacksonVersion>2.12.1</jacksonVersion>
