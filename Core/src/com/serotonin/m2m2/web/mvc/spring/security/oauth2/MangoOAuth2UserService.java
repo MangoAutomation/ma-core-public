@@ -38,8 +38,7 @@ public class MangoOAuth2UserService extends DefaultOAuth2UserService {
                 return new MangoOAuth2User(delegate, user);
             });
         } catch (Exception e) {
-            throw new UserSyncAuthenticationException("Syncing authentication to Mango User failed", e);
+            throw new UserSyncAuthenticationException("Error synchronizing from OAuth2 to Mango user", e);
         }
     }
-
 }

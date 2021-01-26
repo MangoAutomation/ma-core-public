@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
+import org.jooq.exception.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -33,13 +35,16 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
+import com.infiniteautomation.mango.db.tables.OAuth2Users;
+import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
-import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -57,9 +62,7 @@ import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 /**
- * TODO Mango 4.0 Move userCache into service?
  * @author Terry Packer
- *
  */
 @Repository
 public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
@@ -160,11 +163,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         }
     }
 
-    /**
-     * Get a user from the cache, load from database first if necessary
-     * @param username
-     * @return
-     */
     @Override
     public User getByXid(String username) {
         if (username == null) return null;
@@ -355,11 +353,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         updatePasswordHash(user, LOCKED_PASSWORD);
     }
 
-    /**
-     * Update the hash for a user and remove from cache
-     * @param user
-     * @param newPasswordHash
-     */
     public void updatePasswordHash(User user, String newPasswordHash) {
         int userId = user.getId();
         User old = get(userId);
@@ -482,6 +475,68 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     @Override
     protected String getXidPrefix() {
         return "";
+    }
+
+    public Optional<User> getOAuth2User(String issuer, String subject) {
+        OAuth2Users oauth = OAuth2Users.O_AUTH2_USERS;
+        Users users = Users.USERS;
+
+        return this.create.select(users.fields())
+                .from(oauth)
+                .leftJoin(users).on(oauth.userId.eq(users.id))
+                .where(oauth.issuer.eq(issuer).and(oauth.subject.eq(subject)))
+                .fetchOptional(this::recordMapper);
+    }
+
+    public void linkOAuth2User(int userId, String issuer, String subject) {
+        OAuth2Users oauth = OAuth2Users.O_AUTH2_USERS;
+        this.create.insertInto(oauth)
+                .set(oauth.userId, userId)
+                .set(oauth.issuer, issuer)
+                .set(oauth.subject, subject)
+                .execute();
+    }
+
+    private User recordMapper(Record record) {
+        Users users = Users.USERS;
+        User user = new User();
+
+        user.setId(record.get(users.id));
+        user.setUsername(record.get(users.username));
+        user.setName(record.get(users.name));
+        user.setPassword(record.get(users.password));
+        user.setEmail(record.get(users.email));
+        user.setPhone(record.get(users.phone));
+        user.setDisabled(charToBool(record.get(users.disabled)));
+        user.setLastLogin(record.get(users.lastLogin));
+        user.setHomeUrl(record.get(users.homeUrl));
+        user.setReceiveAlarmEmails(AlarmLevels.fromValue(record.get(users.receiveAlarmEmails)));
+        user.setReceiveOwnAuditEvents(charToBool(record.get(users.receiveOwnAuditEvents)));
+        user.setTimezone(record.get(users.timezone));
+        user.setMuted(charToBool(record.get(users.muted)));
+        user.setLocale(record.get(users.locale));
+        user.setTokenVersion(record.get(users.tokenVersion));
+        user.setPasswordVersion(record.get(users.passwordVersion));
+        user.setPasswordChangeTimestamp(record.get(users.passwordChangeTimestamp));
+        user.setSessionExpirationOverride(charToBool(record.get(users.sessionExpirationOverride)));
+        user.setSessionExpirationPeriods(record.get(users.sessionExpirationPeriods));
+        user.setSessionExpirationPeriodType(record.get(users.sessionExpirationPeriodType));
+        user.setOrganization(record.get(users.organization));
+        user.setOrganizationalRole(record.get(users.organizationalRole));
+        user.setCreated(new Date(record.get(users.createdTs)));
+
+        Long emailVerifiedTs = record.get(users.emailVerifiedTs);
+        user.setEmailVerifiedDate(emailVerifiedTs == null ? null : new Date(emailVerifiedTs));
+
+        String userData = record.get(users.data);
+        if (userData != null) {
+            try {
+                user.setData(getObjectReader(JsonNode.class).readValue(userData));
+            } catch (JsonProcessingException e) {
+                throw new DataAccessException("Error reading JSON column", e);
+            }
+        }
+        return user;
     }
 
     /**

@@ -8,6 +8,7 @@ import static com.serotonin.m2m2.db.dao.UserDao.LOCKED_PASSWORD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,7 +26,6 @@ import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.EnvironmentPropertyMapper;
-import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -54,24 +54,32 @@ public class DefaultUserMapper implements UserMapper {
         String registrationId = clientRegistration.getRegistrationId();
         EnvironmentPropertyMapper userMapping = mapperFactory.forRegistrationId(registrationId, "userMapping.");
 
-        String usernamePrefix = userMapping.map("username.prefix").orElse("");
-        String usernameSuffix = userMapping.map("username.suffix").orElse("");
-        String username = usernamePrefix +
-                userMapping.map("username", accessor::getClaimAsString).orElseThrow(NullPointerException::new) +
-                usernameSuffix;
+        String subject = userMapping.map("subject", accessor::getClaimAsString)
+                .orElseThrow(() -> new IllegalStateException("Subject is required"));
+        String issuer = userMapping.map("issuer", accessor::getClaimAsString)
+                .orElseThrow(() -> new IllegalStateException("Issuer is required"));
 
-        User user;
-        try {
-            user = usersService.get(username);
-        } catch (NotFoundException e) {
-            user = new User();
-            user.setUsername(username);
-            user.setPassword(LOCKED_PASSWORD);
-        }
+        User user = usersService.getOAuth2User(issuer, subject).orElseGet(() -> {
+            // only synchronize the username when creating the user
+            String usernamePrefix = userMapping.map("username.prefix").orElse("");
+            String usernameSuffix = userMapping.map("username.suffix").orElse("");
+            String username = userMapping.map("username", accessor::getClaimAsString)
+                    .map(un -> usernamePrefix + un + usernameSuffix)
+                    .orElse(null); // user will get a random XID for a username if claim is missing
+
+            User newUser = new User();
+            newUser.setUsername(username);
+            newUser.setPassword(LOCKED_PASSWORD);
+            // in case role sync is not turned on
+            newUser.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
+            return newUser;
+        });
 
         String emailPrefix = userMapping.map("email.prefix").orElse("");
         String emailSuffix = userMapping.map("email.suffix").orElse("");
-        String email = userMapping.map("email", accessor::getClaimAsString).map(e -> emailPrefix + e + emailSuffix).orElse(null);
+        String email = userMapping.map("email", accessor::getClaimAsString)
+                .map(e -> emailPrefix + e + emailSuffix)
+                .orElse(null); // validation will fail if email is not set
         user.setEmail(email);
 
         userMapping.map("name", accessor::getClaimAsString).ifPresent(user::setName);
@@ -79,33 +87,35 @@ public class DefaultUserMapper implements UserMapper {
         userMapping.map("locale", accessor::getClaimAsString).ifPresent(user::setLocale);
         userMapping.map("timezone", accessor::getClaimAsString).ifPresent(user::setTimezone);
 
-        String rolePrefix = userMapping.map("roles.prefix").orElse("");
-        String roleSuffix = userMapping.map("roles.suffix").orElse("");
+        if (userMapping.map("oauth2.client.default.userMapping.roles.sync", Boolean.class).orElse(true)) {
+            String rolePrefix = userMapping.map("roles.prefix").orElse("");
+            String roleSuffix = userMapping.map("roles.suffix").orElse("");
 
-        Set<String> ignoreRoles = Arrays.stream(userMapping.map("roles.ignore", String[].class)
-                .orElse(new String[0])).collect(Collectors.toSet());
+            Set<String> ignoreRoles = Arrays.stream(userMapping.map("roles.ignore", String[].class)
+                    .orElse(new String[0])).collect(Collectors.toSet());
 
-        Stream<String> oauthRoles = userMapping.map("roles", accessor::getClaimAsStringList)
-                .orElseGet(ArrayList::new).stream()
-                .filter(r -> !ignoreRoles.contains(r))
-                .map(r -> userMapping.map("roles.map." + r).orElse(rolePrefix + r + roleSuffix));
+            Stream<String> oauthRoles = userMapping.map("roles", accessor::getClaimAsStringList)
+                    .orElseGet(ArrayList::new).stream()
+                    .filter(r -> !ignoreRoles.contains(r))
+                    .map(r -> userMapping.map("roles.map." + r).orElse(rolePrefix + r + roleSuffix));
 
-        Stream<String> addRoles = Arrays.stream(userMapping.map("roles.add", String[].class)
-                .orElse(new String[0]));
+            Stream<String> addRoles = Arrays.stream(userMapping.map("roles.add", String[].class)
+                    .orElse(new String[0]));
 
-        Set<Role> roles = Stream.concat(oauthRoles, addRoles)
-                .map(roleService::getOrInsert)
-                .map(RoleVO::getRole)
-                .collect(Collectors.toCollection(HashSet::new));
+            Set<Role> roles = Stream.concat(oauthRoles, addRoles)
+                    .map(roleService::getOrInsert)
+                    .map(RoleVO::getRole)
+                    .collect(Collectors.toCollection(HashSet::new));
 
-        // ensure user role is present
-        roles.add(PermissionHolder.USER_ROLE);
-        user.setRoles(roles);
+            // ensure user role is present
+            roles.add(PermissionHolder.USER_ROLE);
+            user.setRoles(roles);
+        }
 
         if (user.isNew()) {
-            usersService.insert(user);
+            usersService.insertOAuth2User(user, issuer, subject);
         } else {
-            usersService.update(username, user);
+            usersService.update(user.getId(), user);
         }
 
         return user;

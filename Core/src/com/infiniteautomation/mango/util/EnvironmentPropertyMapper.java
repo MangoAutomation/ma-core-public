@@ -40,8 +40,7 @@ public class EnvironmentPropertyMapper {
         return Arrays.stream(prefixes)
                 .map(prefix -> env.getProperty(prefix + property, type))
                 .filter(Objects::nonNull)
-                .map(transform)
-                .filter(Objects::nonNull)
-                .findFirst();
+                .findFirst()
+                .map(transform);
     }
 }

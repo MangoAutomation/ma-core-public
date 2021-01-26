@@ -17,6 +17,7 @@ import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -203,9 +204,9 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             throw new ValidationException(result);
         }
 
-        //Generate an Xid if necessary
-        if (StringUtils.isEmpty(vo.getXid()))
-            vo.setXid(dao.generateUniqueXid());
+        //Generate a username if necessary
+        if (StringUtils.isEmpty(vo.getUsername()))
+            vo.setUsername(dao.generateUniqueXid());
 
         ensureValid(vo, currentUser);
 
@@ -596,6 +597,26 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             }
             return user;
         });
+    }
+
+    public Optional<User> getOAuth2User(String issuer, String subject) {
+        Optional<User> optional = dao.getOAuth2User(issuer, subject);
+        optional.ifPresent(u -> ensureReadPermission(Common.getUser(), u));
+        return optional;
+    }
+
+    public void insertOAuth2User(User user, String issuer, String subject) {
+        ensureCreatePermission(Common.getUser(), user);
+        dao.doInTransaction(tx -> {
+            insert(user);
+            dao.linkOAuth2User(user.getId(), issuer, subject);
+        });
+    }
+
+    public void linkOAuth2User(int userId, String issuer, String subject) {
+        PermissionHolder currentUser = Common.getUser();
+        permissionService.ensureAdminRole(currentUser);
+        dao.linkOAuth2User(userId, issuer, subject);
     }
 
 }
