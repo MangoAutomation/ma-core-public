@@ -73,6 +73,7 @@ import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointSummary;
@@ -101,6 +102,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     private final PermissionService permissionService;
     private final DataPointTagsDao dataPointTagsDao;
     private final EventDetectorDao eventDetectorDao;
+    private final List<DataPointChangeDefinition> changeDefinitions;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -125,6 +127,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         this.permissionService = permissionService;
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
+        this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
     }
 
     /**
@@ -383,6 +386,10 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             if(def != null) {
                 def.deleteRelationalData(vo);
             }
+            //Run Pre Delete Change definitions
+            for (DataPointChangeDefinition changeDefinition : changeDefinitions) {
+                changeDefinition.preDelete(vo);
+            }
         }
 
         //delete the points in bulk
@@ -404,6 +411,13 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 .execute();
             }catch(Exception e) {
                 //Probably in use by another point (2 points on the same series)
+            }
+        }
+
+        //Run Post Delete Change definitions
+        for(DataPointVO vo : batch) {
+            for (DataPointChangeDefinition changeDefinition : changeDefinitions) {
+                changeDefinition.postDelete(vo);
             }
         }
 
