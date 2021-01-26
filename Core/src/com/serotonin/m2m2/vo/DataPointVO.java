@@ -204,7 +204,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     @JsonProperty
     private JsonNode data;
 
-    @JsonProperty
     private int seriesId = Common.NEW_ID;
 
     //

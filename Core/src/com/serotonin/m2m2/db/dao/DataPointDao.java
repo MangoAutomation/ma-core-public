@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.infiniteautomation.mango.db.tables.TimeSeries;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
@@ -48,6 +47,9 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.infiniteautomation.mango.db.tables.TimeSeries;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
@@ -68,8 +70,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -697,6 +697,17 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 .returningResult(TimeSeries.TIME_SERIES.id)
                 .fetchOne()
                 .into(int.class);
+    }
+
+    /**
+     * Does this series id exist in the database
+     * @param id
+     * @return
+     */
+    public boolean seriesIdExists(int id) {
+        return this.create.select(DSL.count(TimeSeries.TIME_SERIES.id))
+                .from(TimeSeries.TIME_SERIES)
+                .where(TimeSeries.TIME_SERIES.id.eq(id)).fetchOneInto(Integer.class) == 1;
     }
 
     @Override
