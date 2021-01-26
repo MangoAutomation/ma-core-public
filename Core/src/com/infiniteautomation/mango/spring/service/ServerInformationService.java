@@ -4,6 +4,9 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
@@ -208,15 +211,15 @@ public class ServerInformationService {
      *  but could be an empty array.
      * @return
      */
-    public LogicalProcessor[] availableProcessors() {
+    public List<LogicalProcessor> availableProcessors() {
         if(failedToLoad) {
-            return new LogicalProcessor[0];
+            return Collections.emptyList();
         }
 
         CentralProcessor processor = getProcessor();
-        LogicalProcessor[] processors = processor.getLogicalProcessors();
+        List<LogicalProcessor> processors = processor.getLogicalProcessors();
         if(processors == null) {
-            return new LogicalProcessor[0];
+            return Collections.emptyList();
         }else {
             return processors;
         }

@@ -149,7 +149,7 @@ public class ServerMonitoringService {
 
         mv.<Integer>create(AVAILABLE_PROCESSORS_ID)
         .name(new TranslatableMessage("java.monitor.JAVA_PROCESSORS"))
-        .supplier(() -> this.serverInfoService.availableProcessors().length)
+        .supplier(() -> this.serverInfoService.availableProcessors().size())
         .addTo(monitors)
         .uploadToStore(true)
         .buildPollable();
