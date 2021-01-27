@@ -19,9 +19,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeWriter;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * Uses either the legacy form of ScriptPermissions or the new version that contains a Set<Set<String>> like a MangoPermission
@@ -54,17 +52,17 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
         writer.writeObject(roles);
     }
 
-    //TODO Mango 4.0 improve performance as role dao is not available at construct time
+    //TODO Mango 4.0 improve performance as PermissionService is not available at construct time
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
         Set<Role> roles = new HashSet<>();
-        RoleDao roleDao = Common.getBean(RoleDao.class);
+        PermissionService service = Common.getBean(PermissionService.class);
         if(jsonValue instanceof JsonArray) {
             for(JsonValue val : (JsonArray)jsonValue) {
                 //Just a single string
-                RoleVO r = roleDao.getByXid(val.toString());
+                Role r = service.getRole(val.toString());
                 if(r != null) {
-                    roles.add(r.getRole());
+                    roles.add(r);
                 }else {
                     //Let the validation pick this up as a missing role, the response to the user is cleaner
                     roles.add(new Role(Common.NEW_ID, val.toString()));
@@ -79,9 +77,9 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
             permissions.addAll(PermissionService.explodeLegacyPermissionGroups(o.getString(DATA_POINT_READ)));
             permissions.addAll(PermissionService.explodeLegacyPermissionGroups(o.getString(CUSTOM)));
             for(String role : permissions) {
-                RoleVO r = roleDao.getByXid(role);
+                Role r = service.getRole(role);
                 if(r != null) {
-                    roles.add(r.getRole());
+                    roles.add(r);
                 }else {
                     //Let the validation pick this up as a missing role, the response to the user is cleaner
                     roles.add(new Role(Common.NEW_ID, role));

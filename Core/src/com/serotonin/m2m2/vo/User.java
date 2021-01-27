@@ -35,7 +35,6 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -44,7 +43,6 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
 public class User extends AbstractVO implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
@@ -597,7 +595,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     Set<Role> readLegacyPermissions(String permissionName, Set<Role> existing, JsonObject jsonObject) throws TranslatableJsonException {
         //Legacy permissions support
-        RoleDao roleDao = Common.getBean(RoleDao.class);
+        PermissionService permissionService = Common.getBean(PermissionService.class);
         if(jsonObject.containsKey(permissionName)) {
             Set<Role> roles;
             if(existing != null) {
@@ -609,9 +607,9 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
             try {
                 String groups = jsonObject.getString(permissionName);
                 for(String permission : PermissionService.explodeLegacyPermissionGroups(groups)) {
-                    RoleVO role = roleDao.getByXid(permission);
+                    Role role = permissionService.getRole(permission);
                     if(role != null) {
-                        roles.add(role.getRole());
+                        roles.add(role);
                     } else {
                         throw new TranslatableJsonException("emport.error.missingRole", permission, permissionName);
                     }
@@ -623,9 +621,9 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
                 try {
                     JsonArray permissions = jsonObject.getJsonArray(permissionName);
                     for(JsonValue jv : permissions) {
-                        RoleVO role = roleDao.getByXid(jv.toString());
+                        Role role = permissionService.getRole(jv.toString());
                         if(role != null) {
-                            roles.add(role.getRole());
+                            roles.add(role);
                         } else {
                             throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), permissionName);
                         }

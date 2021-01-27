@@ -142,7 +142,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
 
     /**
      * Get the roles that inherit this role, one level deep.
-     * @param vo
+     * @param roleId
      * @return
      */
     private Set<Role> getRolesThatInherit(int roleId) {
@@ -157,7 +157,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
 
     /**
      * Recursively get a set of all inherited roles of this role
-     * @param vo
+     * @param role
      * @return
      */
     public Set<Role> getFlatInheritance(Role role) {
@@ -184,7 +184,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
     /**
      * Get the inherited roles of this role from the database,
      *  one level deep only.
-     * @param vo
+     * @param roleId
      * @return
      */
     private Set<Role> getInherited(int roleId) {

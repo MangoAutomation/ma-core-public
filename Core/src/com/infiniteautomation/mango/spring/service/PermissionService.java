@@ -439,6 +439,21 @@ public class PermissionService implements CachingService {
     }
 
     /**
+     * Get a set of this role and all roles inherited by it
+     * @param role
+     * @return
+     */
+    public Set<Role> getAllInheritedRoles(Role role) {
+        Set<Role> allRoles = new HashSet<>();
+        allRoles.add(role);
+        RoleInheritance inheritance = roleHierarchyCache.get(role.getXid());
+        if (inheritance != null) {
+            allRoles.addAll(inheritance.inherited);
+        }
+        return Collections.unmodifiableSet(allRoles);
+    }
+
+    /**
      * Get a permission from the cache, load from db if necessary
      * @param id
      * @return

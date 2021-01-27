@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
@@ -19,7 +20,6 @@ import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
@@ -30,7 +30,6 @@ import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 /**
  * @author Terry Packer
@@ -45,8 +44,6 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
 
     @Autowired
     EventHandlerService eventHandlerService;
-    @Autowired
-    RoleDao roleDao;
     @Autowired
     PermissionService service;
     @Autowired
@@ -79,8 +76,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
                     updated.remove(event.getVo().getRole());
                     Set<Role> allRoles = new HashSet<>();
                     for(Role role : updated) {
-                        allRoles.add(role);
-                        allRoles.addAll(roleDao.getFlatInheritance(role));
+                        allRoles.addAll(service.getAllInheritedRoles(role));
                     }
                     ScriptPermissions permission = new ScriptPermissions(allRoles, vo.getScriptRoles().getPermissionHolderName());
                     vo.setScriptRoles(permission);
