@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+  -->
+
+<!--
+This is a Windows service wrapper configuration for WinSW - https://github.com/winsw/winsw/releases
+1. Copy this configuration somewhere and edit the paths below
+2. Download WinSW
+3. winsw install mango.xml
+4. winsw start mango.xml
+-->
+<service>
+    <id>mango</id>
+    <name>Mango Automation</name>
+    <description>Mango Automation by Radix IoT LLC.</description>
+
+    <env name="mango_paths_home" value="C:\mango"/>
+    <env name="mango_paths_data" value="C:\mango_data"/>
+    <env name="mango_config" value="C:\mango_data\env.properties"/>
+
+    <workingdirectory>%mango_paths_home%</workingdirectory>
+    <executable>java</executable>
+    <arguments>-cp %mango_paths_home%\lib\* com.serotonin.m2m2.Main</arguments>
+    <log mode="none"/>
+</service>
