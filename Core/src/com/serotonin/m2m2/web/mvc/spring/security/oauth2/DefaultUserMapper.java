@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,10 +55,14 @@ public class DefaultUserMapper implements UserMapper {
         String registrationId = clientRegistration.getRegistrationId();
         EnvironmentPropertyMapper userMapping = mapperFactory.forRegistrationId(registrationId, "userMapping.");
 
+        Optional<String> issuerOptional = userMapping.map("issuer.fixed");
+        if (!issuerOptional.isPresent()) {
+            issuerOptional = userMapping.map("issuer", accessor::getClaimAsString);
+        }
+
+        String issuer = issuerOptional.orElseThrow(() -> new IllegalStateException("Issuer is required"));
         String subject = userMapping.map("subject", accessor::getClaimAsString)
                 .orElseThrow(() -> new IllegalStateException("Subject is required"));
-        String issuer = userMapping.map("issuer", accessor::getClaimAsString)
-                .orElseThrow(() -> new IllegalStateException("Issuer is required"));
 
         User user = usersService.getOAuth2User(issuer, subject).orElseGet(() -> {
             // only synchronize the username when creating the user
