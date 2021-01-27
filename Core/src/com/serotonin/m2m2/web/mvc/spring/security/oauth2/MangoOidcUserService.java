@@ -38,7 +38,7 @@ public class MangoOidcUserService extends OidcUserService {
                 return new MangoOidcUser(delegate, user);
             });
         } catch (Exception e) {
-            throw new UserSyncAuthenticationException("Error synchronizing from OAuth2 to Mango user", e);
+            throw new UserSyncAuthenticationException("Error synchronizing OpenID Connect user", e);
         }
     }
 
