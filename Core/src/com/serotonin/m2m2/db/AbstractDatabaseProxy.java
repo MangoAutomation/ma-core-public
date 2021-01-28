@@ -10,13 +10,10 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.MissingResourceException;
-
-import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -27,13 +24,11 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
-import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueCacheDao;
@@ -205,35 +200,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     abstract protected void terminateImpl();
+
+    /**
+     * Should create the DataSource, does not do conversion etc
+     * @param propertyPrefix string to prefix in front of env.properties when getting connection URL etc
+     */
     abstract protected void initializeImpl(String propertyPrefix);
-
-    @Override
-    public void doInConnection(ConnectionCallbackVoid callback) {
-        DataSource dataSource = getDataSource();
-        Connection conn = null;
-        try {
-            conn = DataSourceUtils.getConnection(dataSource);
-            conn.setAutoCommit(false);
-            callback.doInConnection(conn);
-            conn.commit();
-        }
-        catch (Exception e) {
-            try {
-                if (conn != null)
-                    conn.rollback();
-            }
-            catch (SQLException e1) {
-                log.warn("Exception during rollback", e1);
-            }
-
-            // Wrap and rethrow
-            throw new ShouldNeverHappenException(e);
-        }
-        finally {
-            if (conn != null)
-                DataSourceUtils.releaseConnection(conn, dataSource);
-        }
-    }
 
     @Override
     abstract public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit);

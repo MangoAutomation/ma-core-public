@@ -32,7 +32,6 @@ import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
-import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.BaseDao;
@@ -141,8 +140,6 @@ public interface DatabaseProxy extends TransactionCapable {
     }
 
     String getTableListQuery();
-
-    void doInConnection(ConnectionCallbackVoid callback);
 
     <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper,
             int limit);

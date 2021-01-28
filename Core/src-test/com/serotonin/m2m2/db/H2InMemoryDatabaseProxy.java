@@ -6,7 +6,6 @@ package com.serotonin.m2m2.db;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Supplier;
@@ -22,14 +21,11 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
-import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockPointValueDao;
@@ -248,34 +244,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public String getTableListQuery() {
         return "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='PUBLIC'";
-    }
-
-    @Override
-    public void doInConnection(ConnectionCallbackVoid callback) {
-        DataSource dataSource = getDataSource();
-        Connection conn = null;
-        try {
-            conn = DataSourceUtils.getConnection(dataSource);
-            conn.setAutoCommit(false);
-            callback.doInConnection(conn);
-            conn.commit();
-        }
-        catch (Exception e) {
-            try {
-                if (conn != null)
-                    conn.rollback();
-            }
-            catch (SQLException e1) {
-                log.warn("Exception during rollback", e1);
-            }
-
-            // Wrap and rethrow
-            throw new ShouldNeverHappenException(e);
-        }
-        finally {
-            if (conn != null)
-                DataSourceUtils.releaseConnection(conn, dataSource);
-        }
     }
 
     @Override
