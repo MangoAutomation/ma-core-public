@@ -21,6 +21,8 @@ import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -142,6 +144,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
             runScript(H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql"), System.out);
+
+            DSLContext context = DSL.using(getConfig());
+            doInTransaction(txStatus -> {
+                initializeCoreDatabase(context);
+            });
 
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
                 def.newInstallationCheck(ejt);
@@ -440,6 +447,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
         runScript(new String[]{"DROP ALL OBJECTS;"}, null);
         runScript(H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql"), null);
+
+        DSLContext context = DSL.using(getConfig());
+        doInTransaction(txStatus -> {
+            initializeCoreDatabase(context);
+        });
 
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             def.newInstallationCheck(ejt);

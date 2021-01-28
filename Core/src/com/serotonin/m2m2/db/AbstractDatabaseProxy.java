@@ -32,31 +32,22 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.infiniteautomation.mango.db.tables.Roles;
-import com.infiniteautomation.mango.db.tables.SystemSettings;
-import com.infiniteautomation.mango.db.tables.UserRoleMappings;
-import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
-import com.serotonin.db.TransactionCapable;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-abstract public class AbstractDatabaseProxy implements DatabaseProxy, TransactionCapable {
+abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     public static DatabaseProxy createDatabaseProxy() {
         String type = Common.envProps.getString("db.type", "h2");
@@ -182,61 +173,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy, Transactio
         // Allow modules to upgrade their schemas
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             DBUpgrade.checkUpgrade(def, classLoader);
-    }
-
-    /**
-     * Inserts and updates data for a new installation
-     */
-    protected void initializeCoreDatabase(DSLContext context) {
-        SystemSettings ss = SystemSettings.SYSTEM_SETTINGS;
-        Roles r = Roles.ROLES;
-        Users u = Users.USERS;
-        UserRoleMappings urm = UserRoleMappings.USER_ROLE_MAPPINGS;
-
-        context.insertInto(ss, ss.settingName, ss.settingValue)
-                // Add the settings flag that this is a new instance. This flag is removed when an administrator logs in.
-                .values(SystemSettingsDao.NEW_INSTANCE, BaseDao.boolToChar(true))
-                // Record the current version.
-                .values(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Integer.toString(Common.getDatabaseSchemaVersion()))
-                .execute();
-
-        // TODO Mango 4.0 we should a setup page where on first login the admin chooses the locale, timezone and sets a new password
-
-        context.insertInto(r, r.id, r.xid, r.name)
-                .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), Common.translate("roles.superadmin"))
-                .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), Common.translate("roles.user"))
-                .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), Common.translate("roles.anonymous"))
-                .execute();
-
-        if (Common.envProps.getBoolean("initialize.admin.create")) {
-            long created = System.currentTimeMillis();
-
-            int adminId = context.insertInto(u)
-                    .set(u.name, Common.translate("users.defaultAdministratorName"))
-                    .set(u.username, Common.envProps.getProperty("initialize.admin.username"))
-                    .set(u.password, Common.encrypt(Common.envProps.getProperty("initialize.admin.password")))
-                    .set(u.email, Common.envProps.getProperty("initialize.admin.email"))
-                    .set(u.phone, "")
-                    .set(u.disabled, BaseDao.boolToChar(false))
-                    .set(u.lastLogin, 0L)
-                    .set(u.homeUrl, "/ui/administration/home")
-                    .set(u.receiveAlarmEmails, AlarmLevels.WARNING.value())
-                    .set(u.receiveOwnAuditEvents, BaseDao.boolToChar(false))
-                    .set(u.muted, BaseDao.boolToChar(true))
-                    .set(u.tokenVersion, 1)
-                    .set(u.passwordVersion, 1)
-                    .set(u.passwordChangeTimestamp, created)
-                    .set(u.sessionExpirationOverride, BaseDao.boolToChar(false))
-                    .set(u.createdTs, created)
-                    .returningResult(u.id)
-                    .fetchOptional().orElseThrow(IllegalStateException::new)
-                    .get(u.id);
-
-            context.insertInto(urm, urm.userId, urm.roleId)
-                    .values(adminId, PermissionHolder.SUPERADMIN_ROLE.getId())
-                    .values(adminId, PermissionHolder.USER_ROLE.getId())
-                    .execute();
-        }
     }
 
     private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
