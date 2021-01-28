@@ -31,7 +31,7 @@ public class FileStoreURLStreamHandler extends URLStreamHandler {
     @Override
     protected URLConnection openConnection(URL u) throws IOException {
         String fileStoreName = u.getHost();
-        String fileStorePath = u.getPath().substring(1);
+        String fileStorePath = u.getPath().length() > 0 ? u.getPath().substring(1) : u.getPath();
         Path path = fileStoreService.getPathForRead(fileStoreName, fileStorePath);
         return path.toUri().toURL().openConnection();
     }
