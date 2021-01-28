@@ -22,4 +22,5 @@ This is a Windows service wrapper configuration for WinSW - https://github.com/w
     <executable>java</executable>
     <arguments>-cp %mango_paths_home%\lib\* com.serotonin.m2m2.Main</arguments>
     <log mode="none"/>
+    <onfailure action="restart" delay="10 sec"/>
 </service>
