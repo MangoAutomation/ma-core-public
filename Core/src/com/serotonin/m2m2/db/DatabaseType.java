@@ -4,40 +4,23 @@
 
 package com.serotonin.m2m2.db;
 
-import com.serotonin.ShouldNeverHappenException;
+import org.jooq.SQLDialect;
 
 public enum DatabaseType {
     @Deprecated
-    DERBY {
-        @Override
-        AbstractDatabaseProxy getImpl() {
-            throw new ShouldNeverHappenException("Derby database support removed, please convert your database to H2 or MySQL using a 2.x.x version of Mango.");
-        }
-    },
-    H2 {
-        @Override
-        AbstractDatabaseProxy getImpl() {
-            return new H2Proxy();
-        }
-    },
-    MSSQL {
-        @Override
-        AbstractDatabaseProxy getImpl() {
-            return new MSSQLProxy();
-        }
-    },
-    MYSQL {
-        @Override
-        AbstractDatabaseProxy getImpl() {
-            return new MySQLProxy();
-        }
-    },
-    POSTGRES {
-        @Override
-        AbstractDatabaseProxy getImpl() {
-            return new PostgresProxy();
-        }
-    };
+    DERBY(SQLDialect.DERBY),
+    H2(SQLDialect.H2),
+    MSSQL(SQLDialect.DEFAULT),
+    MYSQL(SQLDialect.MYSQL),
+    POSTGRES(SQLDialect.POSTGRES);
 
-    abstract AbstractDatabaseProxy getImpl();
+    private final SQLDialect dialect;
+
+    DatabaseType(SQLDialect dialect) {
+        this.dialect = dialect;
+    }
+
+    public SQLDialect getDialect() {
+        return dialect;
+    }
 }

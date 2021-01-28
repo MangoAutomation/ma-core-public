@@ -18,7 +18,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockMangoProperties;
-import com.serotonin.m2m2.db.MySQLProxy;
+import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.DefaultDatabaseProxyFactory;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.properties.MangoProperties;
@@ -46,7 +47,7 @@ public class SystemSettingsDaoTest {
 
         Providers.add(MangoProperties.class, properties);
 
-        Common.databaseProxy = new MySQLProxy();
+        Common.databaseProxy = new DefaultDatabaseProxyFactory().createDatabaseProxy(DatabaseType.MYSQL);
         Common.databaseProxy.initialize(SystemSettingsDaoTest.class.getClassLoader());
 
         Providers.add(IMangoLifecycle.class, new MockMangoLifecycle(new ArrayList<>()));

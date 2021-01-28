@@ -12,6 +12,10 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 public class PostgresProxy extends BasePooledProxy {
+    public PostgresProxy(DatabaseProxyFactory factory, boolean useMetrics) {
+        super(factory, useMetrics);
+    }
+
     @Override
     public DatabaseType getType() {
         return DatabaseType.POSTGRES;

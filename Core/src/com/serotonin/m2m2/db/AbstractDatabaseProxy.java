@@ -49,20 +49,16 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
-    public static DatabaseProxy createDatabaseProxy() {
-        String type = Common.envProps.getString("db.type", "h2");
-        DatabaseType dt = DatabaseType.valueOf(type.toUpperCase());
-        return dt.getImpl();
-    }
-
     private final Log log = LogFactory.getLog(AbstractDatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
     private PointValueCacheProxy pointValueCacheProxy;
     private final boolean useMetrics;
     private PlatformTransactionManager transactionManager;
+    private final DatabaseProxyFactory factory;
 
-    public AbstractDatabaseProxy() {
-        this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
+    public AbstractDatabaseProxy(DatabaseProxyFactory factory, boolean useMetrics) {
+        this.factory = factory;
+        this.useMetrics = useMetrics;
     }
 
     @Override
@@ -108,7 +104,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
                     // TODO check that the convert source has the current DB version, or upgrade it if not.
 
-                    AbstractDatabaseProxy sourceProxy = convertType.getImpl();
+                    AbstractDatabaseProxy sourceProxy = getFactory().createDatabaseProxy(convertType);
                     sourceProxy.initializeImpl("convert.");
                     try {
                         DBConvert convert = new DBConvert();
@@ -337,5 +333,9 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public boolean isUseMetrics() {
         return this.useMetrics;
+    }
+
+    protected DatabaseProxyFactory getFactory() {
+        return this.factory;
     }
 }

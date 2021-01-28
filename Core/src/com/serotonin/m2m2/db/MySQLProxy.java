@@ -18,6 +18,10 @@ import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 
 public class MySQLProxy extends BasePooledProxy {
+    public MySQLProxy(DatabaseProxyFactory factory, boolean useMetrics) {
+        super(factory, useMetrics);
+    }
+
     @Override
     protected String getUrl(String propertyPrefix) {
         String url = super.getUrl(propertyPrefix);

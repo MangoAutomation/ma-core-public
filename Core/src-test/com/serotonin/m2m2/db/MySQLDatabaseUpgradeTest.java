@@ -70,7 +70,10 @@ public class MySQLDatabaseUpgradeTest {
         //Insert the test data
 
         //Start the proxy and let it upgrade
-        Common.databaseProxy = AbstractDatabaseProxy.createDatabaseProxy();
+        String type = Common.envProps.getString("db.type", "h2");
+        DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
+        DatabaseProxyFactory factory = new DefaultDatabaseProxyFactory();
+        Common.databaseProxy = factory.createDatabaseProxy(databaseType);
         Common.databaseProxy.initialize(this.getClass().getClassLoader());
     }
 

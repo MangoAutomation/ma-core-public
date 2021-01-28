@@ -13,7 +13,6 @@ import javax.sql.DataSource;
 
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DefaultConfiguration;
@@ -133,26 +132,12 @@ public interface DatabaseProxy extends TransactionCapable {
             configuration.set(StopWatchListener::new);
         }
 
-        switch(getType()) {
-            case DERBY:
-                configuration.set(SQLDialect.DERBY);
-                break;
-            case H2:
-                configuration.set(SQLDialect.H2);
-                configuration.settings()
-                        .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
-                        .withRenderNameCase(RenderNameCase.AS_IS);
-                break;
-            case MYSQL:
-                configuration.set(SQLDialect.MYSQL);
-                break;
-            case POSTGRES:
-                configuration.set(SQLDialect.POSTGRES);
-                break;
-            case MSSQL:
-            default:
-                configuration.set(SQLDialect.DEFAULT);
-                break;
+        DatabaseType type = getType();
+        configuration.set(type.getDialect());
+        if (type == DatabaseType.H2) {
+            configuration.settings()
+                    .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
+                    .withRenderNameCase(RenderNameCase.AS_IS);
         }
 
         return configuration;

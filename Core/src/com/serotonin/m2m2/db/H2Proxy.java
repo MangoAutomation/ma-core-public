@@ -4,24 +4,12 @@
  */
 package com.serotonin.m2m2.db;
 
-import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.DaoUtils;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.Common;
-import com.serotonin.util.DirectoryInfo;
-import com.serotonin.util.DirectoryUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.h2.Driver;
-import org.h2.engine.Constants;
-import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.h2.jdbcx.JdbcDataSource;
-import org.h2.tools.Server;
-import org.springframework.jdbc.core.RowMapper;
-
-import javax.sql.DataSource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,12 +20,43 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.sql.DataSource;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.h2.Driver;
+import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.h2.jdbcx.JdbcDataSource;
+import org.h2.tools.Server;
+import org.springframework.jdbc.core.RowMapper;
+
+import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.DaoUtils;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.util.DirectoryInfo;
+import com.serotonin.util.DirectoryUtils;
 
 public class H2Proxy extends AbstractDatabaseProxy {
     private static final Log LOG = LogFactory.getLog(H2Proxy.class);
@@ -58,6 +77,10 @@ public class H2Proxy extends AbstractDatabaseProxy {
         options.put("IGNORECASE", "TRUE");
         options.put("MV_STORE", "TRUE");
         DEFAULT_OPTIONS = Collections.unmodifiableMap(options);
+    }
+
+    public H2Proxy(DatabaseProxyFactory factory, boolean useMetrics) {
+        super(factory, useMetrics);
     }
 
     @Override

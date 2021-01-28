@@ -32,6 +32,10 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     private final Log log = LogFactory.getLog(BasePooledProxy.class);
     private HikariDataSource dataSource;
 
+    public BasePooledProxy(DatabaseProxyFactory factory, boolean useMetrics) {
+        super(factory, useMetrics);
+    }
+
     @Override
     protected void initializeImpl(String propertyPrefix) {
         log.info("Initializing pooled connection manager");

@@ -15,15 +15,10 @@ import java.util.function.Function;
 import javax.script.ScriptEngineManager;
 import javax.sql.DataSource;
 
-import org.jooq.SQLDialect;
-import org.jooq.conf.RenderNameStyle;
-import org.jooq.impl.DefaultConfiguration;
-import org.jooq.tools.StopWatchListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -55,10 +50,10 @@ import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefin
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
-import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -316,58 +311,35 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public DatabaseType dataBaseType() {
-        return Common.databaseProxy.getType();
+    public DatabaseProxy databaseProxy() {
+        return Common.databaseProxy;
     }
 
     @Bean
-    public DataSource dataSource() {
-        return Common.databaseProxy.getDataSource();
+    public DatabaseType dataBaseType(DatabaseProxy proxy) {
+        return proxy.getType();
     }
 
     @Bean
-    public PlatformTransactionManager platformTransactionManager() {
-        return Common.databaseProxy.getTransactionManager();
+    public DataSource dataSource(DatabaseProxy proxy) {
+        return proxy.getDataSource();
     }
 
     @Bean
-    public ExtendedJdbcTemplate extendedJdbcTemplate() {
+    public PlatformTransactionManager platformTransactionManager(DatabaseProxy proxy) {
+        return proxy.getTransactionManager();
+    }
+
+    @Bean
+    public ExtendedJdbcTemplate extendedJdbcTemplate(DataSource dataSource) {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(dataSource());
+        ejt.setDataSource(dataSource);
         return ejt;
     }
 
     @Bean
-    public org.jooq.Configuration jooqConfiguration(@Value("${db.useMetrics:false}") boolean useMetrics) {
-        org.jooq.Configuration configuration = new DefaultConfiguration();
-        configuration.set(new SpringConnectionProvider(dataSource()));
-
-        configuration.settings().setExecuteLogging(useMetrics);
-        if (useMetrics) {
-            configuration.set(StopWatchListener::new);
-        }
-
-        switch(dataBaseType()) {
-            case DERBY:
-                configuration.set(SQLDialect.DERBY);
-                break;
-            case H2:
-                configuration.set(SQLDialect.H2);
-                configuration.settings().setRenderNameStyle(RenderNameStyle.UPPER);
-                break;
-            case MYSQL:
-                configuration.set(SQLDialect.MYSQL);
-                break;
-            case POSTGRES:
-                configuration.set(SQLDialect.POSTGRES);
-                break;
-            case MSSQL:
-            default:
-                configuration.set(SQLDialect.DEFAULT);
-                break;
-        }
-
-        return configuration;
+    public org.jooq.Configuration jooqConfiguration(DatabaseProxy proxy) {
+        return proxy.getConfig();
     }
 
     @Override
@@ -391,12 +363,12 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    PointValueDao pointValueDao() {
-        return Common.databaseProxy.newPointValueDao();
+    PointValueDao pointValueDao(DatabaseProxy proxy) {
+        return proxy.newPointValueDao();
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    PointValueCacheDao latestPointValueDao() { return Common.databaseProxy.getPointValueCacheDao(); }
+    PointValueCacheDao latestPointValueDao(DatabaseProxy proxy) { return proxy.getPointValueCacheDao(); }
 
 }
