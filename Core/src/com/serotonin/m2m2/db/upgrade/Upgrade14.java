@@ -17,7 +17,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 /**
  * Add ID to UserComments Table with Primary Keys, XIDs
@@ -33,18 +33,18 @@ public class Upgrade14 extends DBUpgrade{
 
             // Run the scripts to add the ID Column
             Map<String, String[]> scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyIdColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlIdColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlIdColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2IdColumnScript);
+            scripts.put(DatabaseType.DERBY.name(), derbyIdColumnScript);
+            scripts.put(DatabaseType.MYSQL.name(), mysqlIdColumnScript);
+            scripts.put(DatabaseType.MSSQL.name(), mssqlIdColumnScript);
+            scripts.put(DatabaseType.H2.name(), h2IdColumnScript);
             runScript(scripts, os);
 
             //Run the scripts to create the XID column but not restrict it to NOT NULL
             scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyXidColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlXidColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlXidColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2XidColumnScript);
+            scripts.put(DatabaseType.DERBY.name(), derbyXidColumnScript);
+            scripts.put(DatabaseType.MYSQL.name(), mysqlXidColumnScript);
+            scripts.put(DatabaseType.MSSQL.name(), mssqlXidColumnScript);
+            scripts.put(DatabaseType.H2.name(), h2XidColumnScript);
             runScript(scripts, os);
 
             //Set XIDs on all the user comments, ugh
@@ -77,10 +77,10 @@ public class Upgrade14 extends DBUpgrade{
             os.write(upgradedString.getBytes(StandardCharsets.UTF_8));
 
             //Run the scripts to restrict the XID to NOT NULL
-            scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyXidNotNullColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlXidNotNullColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlXidNotNullColumnScript);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2XidNotNullColumnScript);
+            scripts.put(DatabaseType.DERBY.name(), derbyXidNotNullColumnScript);
+            scripts.put(DatabaseType.MYSQL.name(), mysqlXidNotNullColumnScript);
+            scripts.put(DatabaseType.MSSQL.name(), mssqlXidNotNullColumnScript);
+            scripts.put(DatabaseType.H2.name(), h2XidNotNullColumnScript);
             runScript(scripts, os);
         }
     }

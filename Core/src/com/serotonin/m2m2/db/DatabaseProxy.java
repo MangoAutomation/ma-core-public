@@ -25,7 +25,6 @@ import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
@@ -45,42 +44,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  */
 public interface DatabaseProxy extends TransactionCapable {
-
-    enum DatabaseType {
-        @Deprecated
-        DERBY {
-            @Override
-            AbstractDatabaseProxy getImpl() {
-                throw new ShouldNeverHappenException("Derby database support removed, please convert your database to H2 or MySQL using a 2.x.x version of Mango.");
-            }
-        },
-        H2 {
-            @Override
-            AbstractDatabaseProxy getImpl() {
-                return new H2Proxy();
-            }
-        },
-        MSSQL {
-            @Override
-            AbstractDatabaseProxy getImpl() {
-                return new MSSQLProxy();
-            }
-        },
-        MYSQL {
-            @Override
-            AbstractDatabaseProxy getImpl() {
-                return new MySQLProxy();
-            }
-        },
-        POSTGRES {
-            @Override
-            AbstractDatabaseProxy getImpl() {
-                return new PostgresProxy();
-            }
-        };
-
-        abstract AbstractDatabaseProxy getImpl();
-    }
 
     void initialize(ClassLoader classLoader);
 

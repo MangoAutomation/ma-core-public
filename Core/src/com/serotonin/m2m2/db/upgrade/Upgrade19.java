@@ -16,7 +16,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -28,29 +28,29 @@ public class Upgrade19 extends DBUpgrade {
     protected void upgrade() throws Exception {
         //Add the data type column into the database.
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), addColumn);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), addColumn);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), addColumn);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), addColumn);
+        scripts.put(DatabaseType.POSTGRES.name(), addColumn);
+        scripts.put(DatabaseType.MYSQL.name(), addColumn);
+        scripts.put(DatabaseType.MSSQL.name(), addColumn);
+        scripts.put(DatabaseType.H2.name(), addColumn);
         runScript(scripts);
 
         //not using data type id to deserialize, so we don't need a legacy row mapper here
         this.ejt.query(UPGRADE_19_DATA_POINT_SELECT, new Upgrade19ResultSetExtractor());
 
         scripts.clear();
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), alterColumn);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), modifyColumn);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterColumn);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), alterColumn);
+        scripts.put(DatabaseType.POSTGRES.name(), alterColumn);
+        scripts.put(DatabaseType.MYSQL.name(), modifyColumn);
+        scripts.put(DatabaseType.MSSQL.name(), alterColumn);
+        scripts.put(DatabaseType.H2.name(), alterColumn);
         runScript(scripts);
 
         scripts.clear();
         String[] empty = new String[0];
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), empty);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), empty);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), empty);
+        scripts.put(DatabaseType.POSTGRES.name(), empty);
+        scripts.put(DatabaseType.MYSQL.name(), empty);
+        scripts.put(DatabaseType.MSSQL.name(), empty);
         //Upgrade 14 omitted setting this primary key for the user comments, but it was in the create tables
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {"ALTER TABLE userComments ADD PRIMARY KEY (id);"});
+        scripts.put(DatabaseType.H2.name(), new String[] {"ALTER TABLE userComments ADD PRIMARY KEY (id);"});
         try {
             runScript(scripts);
         } catch(Exception e) {

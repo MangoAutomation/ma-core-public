@@ -3,25 +3,25 @@ package com.serotonin.m2m2.db.upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 public class Upgrade16 extends DBUpgrade {
 	@Override
 	protected void upgrade() throws Exception {
 		//Add receiveAlarmEmails column to mailing lists
 		Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyColumn);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlColumn);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlColumn);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Column);
+        scripts.put(DatabaseType.DERBY.name(), derbyColumn);
+        scripts.put(DatabaseType.MYSQL.name(), mysqlColumn);
+        scripts.put(DatabaseType.MSSQL.name(), mssqlColumn);
+        scripts.put(DatabaseType.H2.name(), h2Column);
         runScript(scripts);
 		
 		// Modify the old event levels for things
         scripts.clear();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), upgrade);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), upgrade);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), upgrade);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), upgrade);
+        scripts.put(DatabaseType.DERBY.name(), upgrade);
+        scripts.put(DatabaseType.MYSQL.name(), upgrade);
+        scripts.put(DatabaseType.MSSQL.name(), upgrade);
+        scripts.put(DatabaseType.H2.name(), upgrade);
         runScript(scripts);
 	}
 

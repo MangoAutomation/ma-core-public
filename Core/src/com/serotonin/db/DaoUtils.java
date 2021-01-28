@@ -29,7 +29,7 @@ import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.db.spring.ArgPreparedStatementSetter;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
+import com.serotonin.m2m2.db.DatabaseType;
 
 public class DaoUtils implements TransactionCapable {
     protected final DataSource dataSource;

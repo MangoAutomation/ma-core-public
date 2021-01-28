@@ -7,7 +7,7 @@ package com.serotonin.m2m2.db.upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 /**
  * Add performance indexes to the Events table
@@ -19,10 +19,10 @@ public class Upgrade22 extends DBUpgrade{
     @Override
     protected void upgrade() throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), postgres);
+        scripts.put(DatabaseType.MYSQL.name(), mysql);
+        scripts.put(DatabaseType.H2.name(), h2);
+        scripts.put(DatabaseType.MSSQL.name(), mssql);
+        scripts.put(DatabaseType.POSTGRES.name(), postgres);
         runScript(scripts);
     }
     

@@ -13,7 +13,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 public class Upgrade18 extends DBUpgrade {
 
@@ -21,18 +21,18 @@ public class Upgrade18 extends DBUpgrade {
 	protected void upgrade() throws Exception {
 		//Add the data type column into the database.
 		Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), H2_MYSQL_CREATE_TABLE);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), H2_MYSQL_CREATE_TABLE);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), H2_MYSQL_CREATE_TABLE);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), H2_MYSQL_CREATE_TABLE);
+        scripts.put(DatabaseType.DERBY.name(), H2_MYSQL_CREATE_TABLE);
+        scripts.put(DatabaseType.MYSQL.name(), H2_MYSQL_CREATE_TABLE);
+        scripts.put(DatabaseType.MSSQL.name(), H2_MYSQL_CREATE_TABLE);
+        scripts.put(DatabaseType.H2.name(), H2_MYSQL_CREATE_TABLE);
         runScript(scripts);
         ejt.query(DEPRECATED_EVENT_HANDLER_SELECT, new UpgradeMultipleEventHandlersResultSetExtractor());
         
         scripts.clear();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), H2_MYSQL_DROP_COLUMNS);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), H2_MYSQL_DROP_COLUMNS);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), H2_MYSQL_DROP_COLUMNS);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), H2_MYSQL_DROP_COLUMNS);
+        scripts.put(DatabaseType.DERBY.name(), H2_MYSQL_DROP_COLUMNS);
+        scripts.put(DatabaseType.MYSQL.name(), H2_MYSQL_DROP_COLUMNS);
+        scripts.put(DatabaseType.MSSQL.name(), H2_MYSQL_DROP_COLUMNS);
+        scripts.put(DatabaseType.H2.name(), H2_MYSQL_DROP_COLUMNS);
         runScript(scripts);
 	}
 

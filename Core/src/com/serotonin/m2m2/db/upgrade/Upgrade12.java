@@ -27,7 +27,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -237,11 +237,11 @@ public class Upgrade12 extends DBUpgrade {
         // Run the script.
         try (OutputStream os = createUpdateLogOutputStream()) {
             Map<String, String[]> scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Script);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mysqlScript);
+            scripts.put(DatabaseType.DERBY.name(), derbyScript);
+            scripts.put(DatabaseType.MYSQL.name(), mysqlScript);
+            scripts.put(DatabaseType.MSSQL.name(), mssqlScript);
+            scripts.put(DatabaseType.H2.name(), h2Script);
+            scripts.put(DatabaseType.POSTGRES.name(), mysqlScript);
             runScript(scripts, os);
 
             int upgradedEventHandlerCount = upgradeEventHandlers(os);
@@ -250,16 +250,16 @@ public class Upgrade12 extends DBUpgrade {
 
             //Now make column not null
             scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), new String[] {
+            scripts.put(DatabaseType.DERBY.name(), new String[] {
                     "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType NOT NULL;",
             });
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {
+            scripts.put(DatabaseType.MYSQL.name(), new String[] {
                     "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
             });
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {
+            scripts.put(DatabaseType.MSSQL.name(), new String[] {
                     "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType nvarchar(40) NOT NULL;",
             });
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {
+            scripts.put(DatabaseType.H2.name(), new String[] {
                     "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
             });
             runScript(scripts, os);

@@ -14,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
@@ -65,10 +65,10 @@ public class Upgrade26 extends DBUpgrade {
         }
 
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), sql);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sql);
+        scripts.put(DatabaseType.MYSQL.name(), mysql);
+        scripts.put(DatabaseType.H2.name(), sql);
+        scripts.put(DatabaseType.MSSQL.name(), mssql);
+        scripts.put(DatabaseType.POSTGRES.name(), sql);
         runScript(scripts);
     }
 

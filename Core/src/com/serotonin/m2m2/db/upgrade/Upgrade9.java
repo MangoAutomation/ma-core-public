@@ -9,9 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.db.DatabaseType;
 
 public class Upgrade9 extends DBUpgrade {
     private final Log LOG = LogFactory.getLog(Upgrade9.class);
@@ -20,10 +18,10 @@ public class Upgrade9 extends DBUpgrade {
     public void upgrade() throws Exception {
         // Run the script.
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), mysqlScript);
+        scripts.put(DatabaseType.DERBY.name(), derbyScript);
+        scripts.put(DatabaseType.MYSQL.name(), mysqlScript);
+        scripts.put(DatabaseType.MSSQL.name(), mssqlScript);
+        scripts.put(DatabaseType.H2.name(), mysqlScript);
         runScript(scripts);
 
         // Convert existing permissions data.
@@ -68,10 +66,10 @@ public class Upgrade9 extends DBUpgrade {
             ejt.update("UPDATE dataPoints SET setPermission=? WHERE id=?", e.getValue(), e.getKey());
 
         // Goodbye permission tables.
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), dropScript);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropScript);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropScript);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropScript);
+        scripts.put(DatabaseType.DERBY.name(), dropScript);
+        scripts.put(DatabaseType.MYSQL.name(), dropScript);
+        scripts.put(DatabaseType.MSSQL.name(), dropScript);
+        scripts.put(DatabaseType.H2.name(), dropScript);
         runScript(scripts);
     }
 

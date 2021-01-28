@@ -13,7 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 /**
  * 3.5.0 Schema Update
@@ -28,10 +28,10 @@ public class Upgrade25 extends DBUpgrade {
     @Override
     protected void upgrade() throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), sql);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sql);
+        scripts.put(DatabaseType.MYSQL.name(), mysql);
+        scripts.put(DatabaseType.H2.name(), sql);
+        scripts.put(DatabaseType.MSSQL.name(), mssql);
+        scripts.put(DatabaseType.POSTGRES.name(), sql);
         runScript(scripts);
 
         //Set all the timestamps for the password change to now
@@ -40,10 +40,10 @@ public class Upgrade25 extends DBUpgrade {
 
         //Alter the columns to be non null
         scripts.clear();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlAlterUserPasswordChangeTimestamp);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), sqlAlterUserPasswordChangeTimestamp);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sqlAlterUserPasswordChangeTimestamp);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlAlterUserPasswordChangeTimestamp);
+        scripts.put(DatabaseType.MYSQL.name(), mysqlAlterUserPasswordChangeTimestamp);
+        scripts.put(DatabaseType.H2.name(), sqlAlterUserPasswordChangeTimestamp);
+        scripts.put(DatabaseType.MSSQL.name(), sqlAlterUserPasswordChangeTimestamp);
+        scripts.put(DatabaseType.POSTGRES.name(), sqlAlterUserPasswordChangeTimestamp);
         runScript(scripts);
 
         File swaggerDirectory = Common.WEB.resolve("swagger").toFile();

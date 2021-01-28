@@ -33,9 +33,9 @@ import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -61,10 +61,10 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     private final PermissionService permissionService;
 
     static {
-        if(Common.databaseProxy.getType() == DatabaseProxy.DatabaseType.H2) {
+        if(Common.databaseProxy.getType() == DatabaseType.H2) {
             H2_SYNTAX = true;
             MYSQL_SYNTAX = false;
-        } else if(Common.databaseProxy.getType() == DatabaseProxy.DatabaseType.MYSQL) {
+        } else if(Common.databaseProxy.getType() == DatabaseType.MYSQL) {
             H2_SYNTAX = false;
             MYSQL_SYNTAX = true;
         } else {

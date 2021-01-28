@@ -18,7 +18,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 /**
  * Add organization column to users table
@@ -78,37 +78,37 @@ public class Upgrade28 extends DBUpgrade {
 
             //Create columns for user table
             Map<String, String[]> scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sqlJSON);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), sql);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlJSON);
+            scripts.put(DatabaseType.MYSQL.name(), sqlJSON);
+            scripts.put(DatabaseType.H2.name(), sql);
+            scripts.put(DatabaseType.MSSQL.name(), mssql);
+            scripts.put(DatabaseType.POSTGRES.name(), sqlJSON);
             runScript(scripts, out);
 
             //Set all the timestamps for the created date to now
             long now = Common.timer.currentTimeMillis();
             scripts.clear();
             String[] setCreatedTs = {"UPDATE users SET createdTs=" + now + ";"};
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), setCreatedTs);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), setCreatedTs);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), setCreatedTs);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), setCreatedTs);
+            scripts.put(DatabaseType.MYSQL.name(), setCreatedTs);
+            scripts.put(DatabaseType.H2.name(), setCreatedTs);
+            scripts.put(DatabaseType.MSSQL.name(), setCreatedTs);
+            scripts.put(DatabaseType.POSTGRES.name(), setCreatedTs);
             runScript(scripts, out);
 
 
             //add non null constraint to createdTs
             scripts.clear();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlAlterUserCreatedTimestamp);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), sqlAlterUserCreatedTimestamp);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sqlAlterUserCreatedTimestamp);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlAlterUserCreatedTimestamp);
+            scripts.put(DatabaseType.MYSQL.name(), mysqlAlterUserCreatedTimestamp);
+            scripts.put(DatabaseType.H2.name(), sqlAlterUserCreatedTimestamp);
+            scripts.put(DatabaseType.MSSQL.name(), sqlAlterUserCreatedTimestamp);
+            scripts.put(DatabaseType.POSTGRES.name(), sqlAlterUserCreatedTimestamp);
             runScript(scripts, out);
 
             //add unique constraint to email
             scripts.clear();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sqlUniqueEmail);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), sqlUniqueEmail);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sqlUniqueEmail);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlUniqueEmail);
+            scripts.put(DatabaseType.MYSQL.name(), sqlUniqueEmail);
+            scripts.put(DatabaseType.H2.name(), sqlUniqueEmail);
+            scripts.put(DatabaseType.MSSQL.name(), sqlUniqueEmail);
+            scripts.put(DatabaseType.POSTGRES.name(), sqlUniqueEmail);
             runScript(scripts, out);
         }
     }

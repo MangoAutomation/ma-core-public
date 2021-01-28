@@ -7,7 +7,7 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -54,34 +54,34 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
             //Add session data table for Jetty session persistence
             Map<String, String[]> scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sessionDataMySQL);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), sessionDataSQL);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sessionDataMSSQL);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sessionDataSQL);
+            scripts.put(DatabaseType.MYSQL.name(), sessionDataMySQL);
+            scripts.put(DatabaseType.H2.name(), sessionDataSQL);
+            scripts.put(DatabaseType.MSSQL.name(), sessionDataMSSQL);
+            scripts.put(DatabaseType.POSTGRES.name(), sessionDataSQL);
             runScript(scripts, out);
 
             //Add jsonData column to data points and data sources
             scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataColumnsMySQL);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataColumnsSql);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataColumnsMSSQL);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataColumnsMySQL);
+            scripts.put(DatabaseType.MYSQL.name(), jsonDataColumnsMySQL);
+            scripts.put(DatabaseType.H2.name(), jsonDataColumnsSql);
+            scripts.put(DatabaseType.MSSQL.name(), jsonDataColumnsMSSQL);
+            scripts.put(DatabaseType.POSTGRES.name(), jsonDataColumnsMySQL);
             runScript(scripts, out);
 
             //Update the data source name column length for MySQL
             scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[0]);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[0]);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterDataSourceNameColumnMySQL);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), new String[0]);
+            scripts.put(DatabaseType.MYSQL.name(), new String[0]);
+            scripts.put(DatabaseType.H2.name(), new String[0]);
+            scripts.put(DatabaseType.MSSQL.name(), alterDataSourceNameColumnMySQL);
+            scripts.put(DatabaseType.POSTGRES.name(), new String[0]);
             runScript(scripts, out);
 
             //Add data point index for deviceName,name,id
             scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointIndexes);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointIndexes);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointIndexes);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointIndexes);
+            scripts.put(DatabaseType.MYSQL.name(), dataPointIndexes);
+            scripts.put(DatabaseType.H2.name(), dataPointIndexes);
+            scripts.put(DatabaseType.MSSQL.name(), dataPointIndexes);
+            scripts.put(DatabaseType.POSTGRES.name(), dataPointIndexes);
             runScript(scripts, out);
 
             //Setup roles
@@ -122,45 +122,45 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
     private void createSystemPermissions(OutputStream out) {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), createSystemPermissionsMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), createSystemPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), createSystemPermissionsMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), createSystemPermissionsSQL);
+        scripts.put(DatabaseType.MYSQL.name(), createSystemPermissionsMySQL);
+        scripts.put(DatabaseType.H2.name(), createSystemPermissionsSQL);
+        scripts.put(DatabaseType.MSSQL.name(), createSystemPermissionsMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), createSystemPermissionsSQL);
         runScript(scripts, out);
     }
     private void dropTemplates(OutputStream out) {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropTemplatesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropTemplatesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropTemplatesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropTemplatesSQL);
+        scripts.put(DatabaseType.MYSQL.name(), dropTemplatesSQL);
+        scripts.put(DatabaseType.H2.name(), dropTemplatesSQL);
+        scripts.put(DatabaseType.MSSQL.name(), dropTemplatesSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), dropTemplatesSQL);
         runScript(scripts, out);
     }
 
     private void dropPointHierarchy(OutputStream out) {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropPointHierarchySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropPointHierarchySQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropPointHierarchySQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropPointHierarchySQL);
+        scripts.put(DatabaseType.MYSQL.name(), dropPointHierarchySQL);
+        scripts.put(DatabaseType.H2.name(), dropPointHierarchySQL);
+        scripts.put(DatabaseType.MSSQL.name(), dropPointHierarchySQL);
+        scripts.put(DatabaseType.POSTGRES.name(), dropPointHierarchySQL);
         runScript(scripts, out);
     }
 
     private void dropUserEvents(OutputStream out) {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropUserEventsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropUserEventsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropUserEventsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropUserEventsSQL);
+        scripts.put(DatabaseType.MYSQL.name(), dropUserEventsSQL);
+        scripts.put(DatabaseType.H2.name(), dropUserEventsSQL);
+        scripts.put(DatabaseType.MSSQL.name(), dropUserEventsSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), dropUserEventsSQL);
         runScript(scripts, out);
     }
 
     private void createRolesTables(OutputStream out) {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), createRolesMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), createRolesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), createRolesMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), createRolesSQL);
+        scripts.put(DatabaseType.MYSQL.name(), createRolesMySQL);
+        scripts.put(DatabaseType.H2.name(), createRolesSQL);
+        scripts.put(DatabaseType.MSSQL.name(), createRolesMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), createRolesSQL);
         runScript(scripts, out);
 
         //Add default user and superadmin roles
@@ -194,10 +194,10 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Drop the permissions column
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), userSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), userSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), userSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), userSQL);
+        scripts.put(DatabaseType.MYSQL.name(), userSQL);
+        scripts.put(DatabaseType.H2.name(), userSQL);
+        scripts.put(DatabaseType.MSSQL.name(), userSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), userSQL);
         runScript(scripts, out);
     }
 
@@ -221,10 +221,10 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     private void convertDataPoints(OutputStream out) {
         //Create permission columns
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointPermissionMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointPermissionH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointPermissionMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointPermissionMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), dataPointPermissionMySQL);
+        scripts.put(DatabaseType.H2.name(), dataPointPermissionH2);
+        scripts.put(DatabaseType.MSSQL.name(), dataPointPermissionMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), dataPointPermissionMySQL);
         runScript(scripts, out);
 
         //Move current permissions to roles
@@ -243,26 +243,26 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointPermissionNotNullMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointPermissionNotNull);
+        scripts.put(DatabaseType.MYSQL.name(), dataPointPermissionNotNullMySQL);
+        scripts.put(DatabaseType.H2.name(), dataPointPermissionNotNull);
+        scripts.put(DatabaseType.MSSQL.name(), dataPointPermissionNotNull);
+        scripts.put(DatabaseType.POSTGRES.name(), dataPointPermissionNotNull);
         runScript(scripts, out);
 
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointsMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), dataPointsMySQL);
+        scripts.put(DatabaseType.H2.name(), dataPointsH2);
+        scripts.put(DatabaseType.MSSQL.name(), dataPointsMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), dataPointsMySQL);
         runScript(scripts, out);
     }
 
     private void convertDataSources(OutputStream out) {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcePermissionMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcePermissionH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcePermissionMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcePermissionMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), dataSourcePermissionMySQL);
+        scripts.put(DatabaseType.H2.name(), dataSourcePermissionH2);
+        scripts.put(DatabaseType.MSSQL.name(), dataSourcePermissionMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), dataSourcePermissionMySQL);
         runScript(scripts, out);
 
         //Move current permissions to roles
@@ -276,28 +276,28 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcePermissionNotNullMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcePermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcePermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcePermissionNotNull);
+        scripts.put(DatabaseType.MYSQL.name(), dataSourcePermissionNotNullMySQL);
+        scripts.put(DatabaseType.H2.name(), dataSourcePermissionNotNull);
+        scripts.put(DatabaseType.MSSQL.name(), dataSourcePermissionNotNull);
+        scripts.put(DatabaseType.POSTGRES.name(), dataSourcePermissionNotNull);
         runScript(scripts, out);
 
         //Drop columns
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcesMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcesH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcesMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcesMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), dataSourcesMySQL);
+        scripts.put(DatabaseType.H2.name(), dataSourcesH2);
+        scripts.put(DatabaseType.MSSQL.name(), dataSourcesMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), dataSourcesMySQL);
         runScript(scripts, out);
     }
 
     private void convertJsonData(OutputStream out) {
         //Add permission id columns
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataPermissionMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataPermissionH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataPermissionMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataPermissionMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), jsonDataPermissionMySQL);
+        scripts.put(DatabaseType.H2.name(), jsonDataPermissionH2);
+        scripts.put(DatabaseType.MSSQL.name(), jsonDataPermissionMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), jsonDataPermissionMySQL);
         runScript(scripts, out);
 
         //Move current permissions to roles
@@ -320,35 +320,35 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //DROP publicData column
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataDropPublicDataSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataDropPublicDataSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataDropPublicDataSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataDropPublicDataSQL);
+        scripts.put(DatabaseType.MYSQL.name(), jsonDataDropPublicDataSQL);
+        scripts.put(DatabaseType.H2.name(), jsonDataDropPublicDataSQL);
+        scripts.put(DatabaseType.MSSQL.name(), jsonDataDropPublicDataSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), jsonDataDropPublicDataSQL);
         runScript(scripts, out);
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataPermissionNotNullMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataPermissionNotNull);
+        scripts.put(DatabaseType.MYSQL.name(), jsonDataPermissionNotNullMySQL);
+        scripts.put(DatabaseType.H2.name(), jsonDataPermissionNotNull);
+        scripts.put(DatabaseType.MSSQL.name(), jsonDataPermissionNotNull);
+        scripts.put(DatabaseType.POSTGRES.name(), jsonDataPermissionNotNull);
         runScript(scripts, out);
 
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataDropPermissionsSQL);
+        scripts.put(DatabaseType.MYSQL.name(), jsonDataDropPermissionsSQL);
+        scripts.put(DatabaseType.H2.name(), jsonDataDropPermissionsSQL);
+        scripts.put(DatabaseType.MSSQL.name(), jsonDataDropPermissionsSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), jsonDataDropPermissionsSQL);
         runScript(scripts, out);
     }
 
     private void convertMailingLists(OutputStream out) {
         //Add permission id columns
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mailingListsPermissionMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), mailingListsPermissionH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mailingListsPermissionMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mailingListsPermissionMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), mailingListsPermissionMySQL);
+        scripts.put(DatabaseType.H2.name(), mailingListsPermissionH2);
+        scripts.put(DatabaseType.MSSQL.name(), mailingListsPermissionMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), mailingListsPermissionMySQL);
         runScript(scripts, out);
 
         //Move current permissions to roles
@@ -364,28 +364,28 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mailingListsPermissionNotNullMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), mailingListsPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mailingListsPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mailingListsPermissionNotNull);
+        scripts.put(DatabaseType.MYSQL.name(), mailingListsPermissionNotNullMySQL);
+        scripts.put(DatabaseType.H2.name(), mailingListsPermissionNotNull);
+        scripts.put(DatabaseType.MSSQL.name(), mailingListsPermissionNotNull);
+        scripts.put(DatabaseType.POSTGRES.name(), mailingListsPermissionNotNull);
         runScript(scripts, out);
 
         //Drop old columns
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mailingListsDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), mailingListsDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mailingListsDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mailingListsDropPermissionsSQL);
+        scripts.put(DatabaseType.MYSQL.name(), mailingListsDropPermissionsSQL);
+        scripts.put(DatabaseType.H2.name(), mailingListsDropPermissionsSQL);
+        scripts.put(DatabaseType.MSSQL.name(), mailingListsDropPermissionsSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), mailingListsDropPermissionsSQL);
         runScript(scripts, out);
     }
 
     private void upgradeEventDetectors(OutputStream out) {
         //Add permission id columns
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), eventDetectorsPermissionMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventDetectorsPermissionH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventDetectorsPermissionMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventDetectorsPermissionMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), eventDetectorsPermissionMySQL);
+        scripts.put(DatabaseType.H2.name(), eventDetectorsPermissionH2);
+        scripts.put(DatabaseType.MSSQL.name(), eventDetectorsPermissionMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), eventDetectorsPermissionMySQL);
         runScript(scripts, out);
 
         //set permission to superadmin
@@ -395,20 +395,20 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(),eventDetectorsPermissionNotNullMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventDetectorsPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventDetectorsPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventDetectorsPermissionNotNull);
+        scripts.put(DatabaseType.MYSQL.name(),eventDetectorsPermissionNotNullMySQL);
+        scripts.put(DatabaseType.H2.name(), eventDetectorsPermissionNotNull);
+        scripts.put(DatabaseType.MSSQL.name(), eventDetectorsPermissionNotNull);
+        scripts.put(DatabaseType.POSTGRES.name(), eventDetectorsPermissionNotNull);
         runScript(scripts, out);
     }
 
     private void upgradeEventHandlers(OutputStream out) {
         //Add permission id columns
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), eventHandlersPermissionMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventHandlersPermissionH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventHandlersPermissionMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventHandlersPermissionMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), eventHandlersPermissionMySQL);
+        scripts.put(DatabaseType.H2.name(), eventHandlersPermissionH2);
+        scripts.put(DatabaseType.MSSQL.name(), eventHandlersPermissionMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), eventHandlersPermissionMySQL);
         runScript(scripts, out);
 
         //set permission to superadmin
@@ -418,20 +418,20 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), eventHandlersPermissionNotNullMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), eventHandlersPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), eventHandlersPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), eventHandlersPermissionNotNull);
+        scripts.put(DatabaseType.MYSQL.name(), eventHandlersPermissionNotNullMySQL);
+        scripts.put(DatabaseType.H2.name(), eventHandlersPermissionNotNull);
+        scripts.put(DatabaseType.MSSQL.name(), eventHandlersPermissionNotNull);
+        scripts.put(DatabaseType.POSTGRES.name(), eventHandlersPermissionNotNull);
         runScript(scripts, out);
     }
 
     private void convertFileStores(OutputStream out) {
         //Add permission id columns
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), fileStoresPermissionMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), fileStoresPermissionH2);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), fileStoresPermissionMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoresPermissionMySQL);
+        scripts.put(DatabaseType.MYSQL.name(), fileStoresPermissionMySQL);
+        scripts.put(DatabaseType.H2.name(), fileStoresPermissionH2);
+        scripts.put(DatabaseType.MSSQL.name(), fileStoresPermissionMSSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), fileStoresPermissionMySQL);
         runScript(scripts, out);
 
         //Move current permissions to roles
@@ -447,17 +447,17 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
         //Restrict to NOT NULL
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), fileStoresPermissionNotNullMySQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), fileStoresPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), fileStoresPermissionNotNull);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoresPermissionNotNull);
+        scripts.put(DatabaseType.MYSQL.name(), fileStoresPermissionNotNullMySQL);
+        scripts.put(DatabaseType.H2.name(), fileStoresPermissionNotNull);
+        scripts.put(DatabaseType.MSSQL.name(), fileStoresPermissionNotNull);
+        scripts.put(DatabaseType.POSTGRES.name(), fileStoresPermissionNotNull);
         runScript(scripts, out);
 
         scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), fileStoresDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), fileStoresDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), fileStoresDropPermissionsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoresDropPermissionsSQL);
+        scripts.put(DatabaseType.MYSQL.name(), fileStoresDropPermissionsSQL);
+        scripts.put(DatabaseType.H2.name(), fileStoresDropPermissionsSQL);
+        scripts.put(DatabaseType.MSSQL.name(), fileStoresDropPermissionsSQL);
+        scripts.put(DatabaseType.POSTGRES.name(), fileStoresDropPermissionsSQL);
         runScript(scripts, out);
     }
 

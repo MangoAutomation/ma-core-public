@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -30,10 +30,10 @@ public class Upgrade27 extends DBUpgrade {
     protected void upgrade() throws Exception {
         
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sql);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), sql);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sql);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sql);
+        scripts.put(DatabaseType.MYSQL.name(), sql);
+        scripts.put(DatabaseType.H2.name(), sql);
+        scripts.put(DatabaseType.MSSQL.name(), sql);
+        scripts.put(DatabaseType.POSTGRES.name(), sql);
         runScript(scripts);
         
         //Now update all the data point's to have a value

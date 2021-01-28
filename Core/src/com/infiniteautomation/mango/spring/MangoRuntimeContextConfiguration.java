@@ -59,7 +59,7 @@ import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueCacheDao;
@@ -316,7 +316,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public DatabaseProxy.DatabaseType dataBaseType() {
+    public DatabaseType dataBaseType() {
         return Common.databaseProxy.getType();
     }
 

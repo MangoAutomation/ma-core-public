@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -18,10 +18,10 @@ public class Upgrade3 extends DBUpgrade {
     public void upgrade() throws Exception {
         // Run the script.
         Map<String, String[]> scripts = new HashMap<String, String[]>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[0]);
+        scripts.put(DatabaseType.DERBY.name(), derbyScript);
+        scripts.put(DatabaseType.MYSQL.name(), mysqlScript);
+        scripts.put(DatabaseType.MSSQL.name(), mssqlScript);
+        scripts.put(DatabaseType.H2.name(), new String[0]);
         runScript(scripts);
 
         updatePoints();

@@ -15,7 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 /**
  * @author Jared Wiltshire
@@ -62,10 +62,10 @@ public class Upgrade21 extends DBUpgrade {
 
             //Finally update the users table with new columns
             scripts.clear();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
-            scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2);
-            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), postgres);
+            scripts.put(DatabaseType.MYSQL.name(), mysql);
+            scripts.put(DatabaseType.H2.name(), h2);
+            scripts.put(DatabaseType.MSSQL.name(), mssql);
+            scripts.put(DatabaseType.POSTGRES.name(), postgres);
             runScript(scripts, out);
         }
     }

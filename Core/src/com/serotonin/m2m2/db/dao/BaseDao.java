@@ -16,7 +16,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import com.google.common.collect.Iterables;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 
@@ -32,7 +32,7 @@ public class BaseDao extends DaoUtils {
         this(Common.databaseProxy.getDataSource(), Common.databaseProxy.getTransactionManager(), Common.databaseProxy.getType(), Common.databaseProxy.getConfig());
     }
 
-    public BaseDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseProxy.DatabaseType databaseType, Configuration configuration) {
+    public BaseDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, Configuration configuration) {
         super(dataSource, transactionManager, databaseType, configuration);
     }
 

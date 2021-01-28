@@ -4,16 +4,12 @@
 package com.serotonin.m2m2.db.upgrade;
 
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 /**
  * Adds seriesId to all data points
@@ -28,10 +24,10 @@ public class Upgrade34 extends DBUpgrade {
         try (OutputStream out = createUpdateLogOutputStream()) {
             //Create timeSeriesTable
             HashMap<String, String[]> createTimeSeries = new HashMap<>();
-            createTimeSeries.put(DatabaseProxy.DatabaseType.MYSQL.name(), createTimeSeriesTableMySQL);
-            createTimeSeries.put(DatabaseProxy.DatabaseType.H2.name(), createTimeSeriesTableSQL);
-            createTimeSeries.put(DatabaseProxy.DatabaseType.POSTGRES.name(), createTimeSeriesTableSQL);
-            createTimeSeries.put(DatabaseProxy.DatabaseType.MSSQL.name(), createTimeSeriesTableMSSQL);
+            createTimeSeries.put(DatabaseType.MYSQL.name(), createTimeSeriesTableMySQL);
+            createTimeSeries.put(DatabaseType.H2.name(), createTimeSeriesTableSQL);
+            createTimeSeries.put(DatabaseType.POSTGRES.name(), createTimeSeriesTableSQL);
+            createTimeSeries.put(DatabaseType.MSSQL.name(), createTimeSeriesTableMSSQL);
             runScript(createTimeSeries, out);
 
             //Add column
@@ -52,7 +48,7 @@ public class Upgrade34 extends DBUpgrade {
 
             //Make NON-NULL
             HashMap<String, String[]> scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {"ALTER TABLE dataPoints MODIFY COLUMN seriesId INT NOT NULL;"});
+            scripts.put(DatabaseType.MYSQL.name(), new String[] {"ALTER TABLE dataPoints MODIFY COLUMN seriesId INT NOT NULL;"});
             scripts.put(DEFAULT_DATABASE_TYPE,  new String[] {"ALTER TABLE dataPoints ALTER COLUMN seriesId INT NOT NULL;"});
             runScript(scripts, out);
 

@@ -7,17 +7,17 @@ package com.serotonin.m2m2.db.upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 public class Upgrade24 extends DBUpgrade {
 
     @Override
     protected void upgrade() throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sql);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), sql);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sql);
+        scripts.put(DatabaseType.MYSQL.name(), sql);
+        scripts.put(DatabaseType.H2.name(), sql);
+        scripts.put(DatabaseType.MSSQL.name(), mssql);
+        scripts.put(DatabaseType.POSTGRES.name(), sql);
         runScript(scripts);
     }
 

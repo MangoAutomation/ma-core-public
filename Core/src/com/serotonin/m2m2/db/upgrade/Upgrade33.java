@@ -16,7 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -104,7 +104,7 @@ public class Upgrade33 extends DBUpgrade implements PermissionMigration {
 
             //Make NON-NULL
             HashMap<String, String[]> scripts = new HashMap<>();
-            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {"ALTER TABLE events MODIFY COLUMN readPermissionId INT NOT NULL;"});
+            scripts.put(DatabaseType.MYSQL.name(), new String[] {"ALTER TABLE events MODIFY COLUMN readPermissionId INT NOT NULL;"});
             scripts.put(DEFAULT_DATABASE_TYPE,  new String[] {"ALTER TABLE events ALTER COLUMN readPermissionId INT NOT NULL;"});
             runScript(scripts, out);
         }

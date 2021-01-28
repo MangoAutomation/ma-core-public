@@ -7,7 +7,7 @@ package com.serotonin.m2m2.db.upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 public class Upgrade13 extends DBUpgrade {
 
@@ -15,10 +15,10 @@ public class Upgrade13 extends DBUpgrade {
     public void upgrade() throws Exception {
         // Run the script.
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Script);
+        scripts.put(DatabaseType.DERBY.name(), derbyScript);
+        scripts.put(DatabaseType.MYSQL.name(), mysqlScript);
+        scripts.put(DatabaseType.MSSQL.name(), mssqlScript);
+        scripts.put(DatabaseType.H2.name(), h2Script);
         runScript(scripts);
     }
 

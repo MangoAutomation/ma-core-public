@@ -10,7 +10,7 @@ import java.util.Map;
 
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseType;
 
 /**
  * @author Jared Wiltshire
@@ -19,10 +19,10 @@ public class Upgrade17 extends DBUpgrade {
 	@Override
 	protected void upgrade() throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derby);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2);
+        scripts.put(DatabaseType.DERBY.name(), derby);
+        scripts.put(DatabaseType.MYSQL.name(), mysql);
+        scripts.put(DatabaseType.MSSQL.name(), mssql);
+        scripts.put(DatabaseType.H2.name(), h2);
         
         //Check event detector lengths to ensure we won't make them longer than 50 (the max XID column length)
         this.ejt.query("SELECT id,xid FROM eventDetectors", new RowCallbackHandler() {
