@@ -4,20 +4,18 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
@@ -30,7 +28,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
@@ -56,6 +53,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
  * @author Terry Packer
  */
 public class H2InMemoryDatabaseProxy implements DatabaseProxy {
+    private final Log log = LogFactory.getLog(H2InMemoryDatabaseProxy.class);
 
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
@@ -133,25 +131,42 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         ejt.setDataSource(getDataSource());
 
         if (altCreateScript != null) {
-            runScript(altCreateScript.get(), System.out);
+            try (InputStream in = altCreateScript.get()) {
+                runScript(in, System.out);
+            } catch (IOException e) {
+                log.error("Failed to run altCreateScript", e);
+            }
         }
         if (defaultDataScript != null) {
-            runScript(defaultDataScript.get(), System.out);
+            try (InputStream in = defaultDataScript.get()) {
+                runScript(in, System.out);
+            } catch (IOException e) {
+                log.error("Failed to run defaultDataScript", e);
+            }
         }
 
         //Create the empty database
         if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
-            runScript(H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql"), System.out);
+            try (InputStream in = H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql")) {
+                runScript(in, System.out);
+            } catch (IOException e) {
+                log.error("createTables failed", e);
+            }
 
             DSLContext context = DSL.using(getConfig());
             doInTransaction(txStatus -> {
                 initializeCoreDatabase(context);
             });
 
-            for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
-                def.newInstallationCheck(ejt);
+            for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
+                try {
+                    def.newInstallationCheck(ejt);
+                } catch (Exception e) {
+                    log.error("newInstallationCheck() failed", e);
+                }
+            }
 
             SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                     Integer.toString(Common.getDatabaseSchemaVersion()));
@@ -211,36 +226,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void terminateImpl() {
-
-
-    }
-
-    @Override
     public DataSource getDataSource() {
         return dataSource;
-    }
-
-    @Override
-    public double applyBounds(double value) {
-        return value;
-    }
-
-    @Override
-    public File getDataDirectory() {
-
-        return null;
-    }
-
-    @Override
-    public Long getDatabaseSizeInBytes() {
-        return null;
-    }
-
-    @Override
-    public void executeCompress(ExtendedJdbcTemplate ejt) {
-
-
     }
 
     @Override
@@ -285,35 +272,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void runScript(InputStream input, OutputStream out) {
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new InputStreamReader(input));
-
-            List<String> lines = new ArrayList<>();
-            String line;
-            while ((line = in.readLine()) != null)
-                lines.add(line);
-
-            String[] script = new String[lines.size()];
-            lines.toArray(script);
-            runScript(script, out);
-        }
-        catch (Exception ioe) {
-            throw new ShouldNeverHappenException(ioe);
-        }
-        finally {
-            try {
-                if (in != null)
-                    in.close();
-            }
-            catch (IOException ioe) {
-                throw new RuntimeException(ioe);
-            }
-        }
-    }
-
-    @Override
     public String getTableListQuery() {
         return "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='PUBLIC'";
     }
@@ -334,7 +292,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                     conn.rollback();
             }
             catch (SQLException e1) {
-                throw new RuntimeException(e1);
+                log.warn("Exception during rollback", e1);
             }
 
             // Wrap and rethrow
@@ -344,7 +302,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             if (conn != null)
                 DataSourceUtils.releaseConnection(conn, dataSource);
         }
-
     }
 
     @Override
@@ -446,7 +403,9 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         ejt.setDataSource(getDataSource());
 
         runScript(new String[]{"DROP ALL OBJECTS;"}, null);
-        runScript(H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql"), null);
+        try (InputStream input = H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql")){
+            runScript(input, null);
+        }
 
         DSLContext context = DSL.using(getConfig());
         doInTransaction(txStatus -> {
@@ -481,11 +440,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public PlatformTransactionManager getTransactionManager() {
         return transactionManager;
-    }
-
-    @Override
-    public OutputStream createLogOutputStream(Class<?> clazz) {
-        return new NullOutputStream();
     }
 
 }

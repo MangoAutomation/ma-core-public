@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -183,7 +181,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                     if (resource == null) {
                         throw new ShouldNeverHappenException("Could not get script " + scriptName + " for class " + AbstractDatabaseProxy.class.getName());
                     }
-                    try (OutputStream os = new FileOutputStream(new File(Common.getLogsDir(), "createTables.log"))) {
+
+                    try (OutputStream os = createLogOutputStream("createTables.log")) {
                         runScript(resource, os);
                     }
                 }
@@ -205,6 +204,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
+    abstract protected void terminateImpl();
     abstract protected void initializeImpl(String propertyPrefix);
 
     @Override
@@ -313,10 +313,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public OutputStream createLogOutputStream(Class<?> clazz) {
+    public OutputStream createLogOutputStream(String fileName) {
         String dir = Common.envProps.getString("db.update.log.dir", "");
         Path logPath = Common.getLogsPath().resolve(dir).toAbsolutePath().normalize();
-        Path logFile = logPath.resolve(clazz.getName() + ".log");
+        Path logFile = logPath.resolve(fileName);
 
         try {
             Files.createDirectories(logPath);

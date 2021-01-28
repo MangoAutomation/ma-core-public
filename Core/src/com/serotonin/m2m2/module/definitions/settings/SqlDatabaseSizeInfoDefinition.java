@@ -24,7 +24,11 @@ public class SqlDatabaseSizeInfoDefinition extends SystemInfoDefinition<Long>{
     @Override
     public Long getValue() {
         // Database size
-        return Common.databaseProxy.getDatabaseSizeInBytes();
+        try {
+            return Common.databaseProxy.getDatabaseSizeInBytes();
+        } catch (UnsupportedOperationException e) {
+            return null;
+        }
     }
 
     @Override

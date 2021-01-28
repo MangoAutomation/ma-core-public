@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.File;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -58,11 +57,6 @@ public class MSSQLProxy extends BasePooledProxy {
     }
 
     @Override
-    public void executeCompress(ExtendedJdbcTemplate ejt) {
-        // no op
-    }
-
-    @Override
     public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit) {
         return dao.query(getLimitQuerySql(sql, limit), args, rowMapper);
     }
@@ -83,17 +77,6 @@ public class MSSQLProxy extends BasePooledProxy {
     @Override
     protected String getLimitDelete(String sql, int chunkSize) {
         return sql;
-    }
-    
-    @Override
-    public File getDataDirectory() {
-    	return null; //TODO 
-    	
-    }
-    
-    @Override
-    public Long getDatabaseSizeInBytes(){
-    	return null;
     }
     
 }

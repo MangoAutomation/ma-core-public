@@ -56,16 +56,6 @@ public class MySQLProxy extends BasePooledProxy {
     }
 
     @Override
-    public void executeCompress(ExtendedJdbcTemplate ejt) {
-        // no op
-    }
-
-    //    @Override
-    //    public String getPaginationSql(int offset, int count) {
-    //        return " limit " + offset + "," + count;
-    //    }
-
-    @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
         try {
             ejt.execute("select count(*) from " + tableName);
@@ -107,22 +97,16 @@ public class MySQLProxy extends BasePooledProxy {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(this.getDataSource());
         String dataDir = ejt.queryForObject("select @@DATADIR", new Object[]{}, String.class, null);
-        if(dataDir == null)
-            return null;
+        if (dataDir == null) {
+            throw new UnsupportedOperationException();
+        }
         return new File(dataDir);
     }
 
     @Override
-    public Long getDatabaseSizeInBytes(){
-
+    public long getDatabaseSizeInBytes() {
         File dataDirectory = getDataDirectory();
-        if(dataDirectory != null){
-            DirectoryInfo dbInfo = DirectoryUtils.getSize(dataDirectory);
-            return dbInfo.getSize();
-        }else
-            return null;
+        DirectoryInfo dbInfo = DirectoryUtils.getSize(dataDirectory);
+        return dbInfo.getSize();
     }
-
-
-
 }

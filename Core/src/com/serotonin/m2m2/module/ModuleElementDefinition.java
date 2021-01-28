@@ -93,7 +93,7 @@ abstract public class ModuleElementDefinition implements Ordered {
      * be called by client code.
      * @param uninstall module will be uninstalled
      */
-    public void postRuntimeManagerTerminate(boolean uninstall) {
+    public void postRuntimeManagerTerminate(boolean uninstall) throws IOException {
         // Override as required
     }
 

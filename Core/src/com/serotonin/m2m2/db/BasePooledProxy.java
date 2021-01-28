@@ -4,22 +4,15 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.zaxxer.hikari.HikariConfig;
@@ -89,35 +82,6 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     }
 
     @Override
-    public void runScript(InputStream input, OutputStream out) {
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new InputStreamReader(input));
-
-            List<String> lines = new ArrayList<String>();
-            String line;
-            while ((line = in.readLine()) != null)
-                lines.add(line);
-
-            String[] script = new String[lines.size()];
-            lines.toArray(script);
-            runScript(script, out);
-        }
-        catch (IOException ioe) {
-            throw new ShouldNeverHappenException(ioe);
-        }
-        finally {
-            try {
-                if (in != null)
-                    in.close();
-            }
-            catch (IOException ioe) {
-                log.warn("", ioe);
-            }
-        }
-    }
-
-    @Override
     public void terminateImpl() {
         log.info("Stopping database");
         dataSource.close();
@@ -126,11 +90,6 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     @Override
     public DataSource getDataSource() {
         return dataSource;
-    }
-
-    @Override
-    public File getDataDirectory() {
-        return null;
     }
 
     @Override

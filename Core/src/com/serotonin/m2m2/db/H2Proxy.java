@@ -4,11 +4,8 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -24,7 +21,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -386,16 +382,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
 
     @Override
-    public double applyBounds(double value) {
-        return value;
-    }
-
-    @Override
-    public void executeCompress(ExtendedJdbcTemplate ejt) {
-        // no op
-    }
-
-    @Override
     public String getTableListQuery() {
         return "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='PUBLIC'";
     }
@@ -433,35 +419,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
                     }
                 }
                 statement.delete(0, statement.length() - 1);
-            }
-        }
-    }
-
-    @Override
-    public void runScript(InputStream input, final OutputStream out) {
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new InputStreamReader(input));
-
-            List<String> lines = new ArrayList<>();
-            String line;
-            while ((line = in.readLine()) != null)
-                lines.add(line);
-
-            String[] script = new String[lines.size()];
-            lines.toArray(script);
-            runScript(script, out);
-        }
-        catch (IOException ioe) {
-            throw new ShouldNeverHappenException(ioe);
-        }
-        finally {
-            try {
-                if (in != null)
-                    in.close();
-            }
-            catch (IOException ioe) {
-                LOG.warn("", ioe);
             }
         }
     }
@@ -505,13 +462,10 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
 
     @Override
-    public Long getDatabaseSizeInBytes() {
+    public long getDatabaseSizeInBytes() {
         File dbFile = getDataDirectory();
-        if (dbFile != null) {
-            DirectoryInfo dbInfo = DirectoryUtils.getSize(dbFile);
-            return dbInfo.getSize();
-        }
-        return null;
+        DirectoryInfo dbInfo = DirectoryUtils.getSize(dbFile);
+        return dbInfo.getSize();
     }
 
     @Override

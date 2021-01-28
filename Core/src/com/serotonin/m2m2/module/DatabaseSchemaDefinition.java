@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -72,9 +73,11 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * @param ejt
      *            the JDBC template that provides access to the database
      */
-    public void newInstallationCheck(ExtendedJdbcTemplate ejt) {
+    public void newInstallationCheck(ExtendedJdbcTemplate ejt) throws IOException {
         if (!Common.databaseProxy.tableExists(ejt, getNewInstallationCheckTableName())) {
-            Common.databaseProxy.runScript(getInstallScript(), null);
+            try (InputStream input = getInstallScript()) {
+                Common.databaseProxy.runScript(input, null);
+            }
         }
     }
 
@@ -82,10 +85,12 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * Check and un-install if necessary
      */
     @Override
-    public void postRuntimeManagerTerminate(boolean uninstall) {
+    public void postRuntimeManagerTerminate(boolean uninstall) throws IOException {
         if(uninstall) {
             // Remove the database tables.
-            Common.databaseProxy.runScript(getUninstallScript(), null);
+            try (InputStream input = getUninstallScript()) {
+                Common.databaseProxy.runScript(input, null);
+            }
         }
     }
 

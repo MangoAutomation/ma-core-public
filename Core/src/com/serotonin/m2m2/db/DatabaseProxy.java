@@ -4,9 +4,13 @@
  */
 package com.serotonin.m2m2.db;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -18,12 +22,12 @@ import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
@@ -44,41 +48,67 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 public interface DatabaseProxy extends TransactionCapable {
 
-    void initialize(ClassLoader classLoader);
-
     DatabaseType getType();
-
-    void terminate(boolean terminateNoSql);
-
-    void terminateImpl();
-
     DataSource getDataSource();
 
-    PlatformTransactionManager getTransactionManager();
-
-    double applyBounds(double value);
-
-    File getDataDirectory();
+    void initialize(ClassLoader classLoader);
+    void terminate(boolean terminateNoSql);
 
     /**
-     *
-     * @return size of Database in bytes or null if don't know
+     * Applies database specific limits on double values.
+     * @param value input double
+     * @return output double
      */
-    Long getDatabaseSizeInBytes();
+    default double applyBounds(double value) {
+        return value;
+    }
 
-    void executeCompress(ExtendedJdbcTemplate ejt);
+    /**
+     * @return directory where data is stored
+     * @throws UnsupportedOperationException if not supported
+     */
+    default File getDataDirectory() {
+        throw new UnsupportedOperationException();
+    }
 
+    /**
+     * @return size of database in bytes
+     * @throws UnsupportedOperationException if not supported
+     */
+    default long getDatabaseSizeInBytes()  {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Checks if a table exists in the database.
+     * @param ejt
+     * @param tableName table to check
+     * @return true if the table exists
+     */
     boolean tableExists(ExtendedJdbcTemplate ejt, String tableName);
 
     int getActiveConnections();
 
     int getIdleConnections();
 
-    OutputStream createLogOutputStream(Class<?> clazz);
+    default OutputStream createLogOutputStream(Class<?> clazz) {
+        return createLogOutputStream(clazz.getName() + ".log");
+    }
+
+    default OutputStream createLogOutputStream(String fileName) {
+        return new NullOutputStream();
+    }
 
     void runScript(String[] script, OutputStream out);
 
-    void runScript(InputStream in, OutputStream out);
+    default void runScript(InputStream in, OutputStream out) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            String[] script = reader.lines().toArray(String[]::new);
+            runScript(script, out);
+        } catch (IOException ioe) {
+            throw new UncheckedIOException(ioe);
+        }
+    }
 
     String getTableListQuery();
 
