@@ -35,7 +35,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Configuration;
+import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.InsertValuesStep4;
 import org.jooq.Record;
 import org.jooq.ResultQuery;
 import org.jooq.SelectConditionStep;
@@ -60,13 +62,13 @@ import org.springframework.transaction.PlatformTransactionManager;
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
+import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.db.tables.records.PointValueAnnotationsRecord;
 import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
@@ -97,10 +99,6 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     private static final Log LOG = LogFactory.getLog(PointValueDao.class);
 
     private final ConcurrentLinkedQueue<UnsavedPointValue> unsavedPointValues = new ConcurrentLinkedQueue<>();
-
-    private static final String POINT_VALUE_INSERT_START = "insert into pointValues (dataPointId, dataType, pointValue, ts) values ";
-    private static final String POINT_VALUE_INSERT_VALUES = "(?,?,?,?)";
-    private static final int POINT_VALUE_INSERT_VALUES_COUNT = 4;
 
     public PointValueDaoSQL() {
         super();
@@ -210,7 +208,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
         dvalue = Common.databaseProxy.applyBounds(dvalue);
 
         if (async) {
-            BatchWriteBehind.add(new BatchWriteBehindEntry(vo, dataType, dvalue, time), ejt);
+            BatchWriteBehind.add(new BatchWriteBehindEntry(vo, dataType, dvalue, time), create);
             return -1;
         }
 
@@ -1136,14 +1134,6 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
             this.dvalue = dvalue;
             this.time = time;
         }
-
-        public void writeInto(Object[] params, int index) {
-            index *= POINT_VALUE_INSERT_VALUES_COUNT;
-            params[index++] = vo.getSeriesId();
-            params[index++] = dataType;
-            params[index++] = dvalue;
-            params[index++] = time;
-        }
     }
 
     public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
@@ -1201,13 +1191,13 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
             retriedExceptions.add(CannotGetJdbcConnectionException.class);
         }
 
-        static void add(BatchWriteBehindEntry e, ExtendedJdbcTemplate ejt) {
+        static void add(BatchWriteBehindEntry e, DSLContext create) {
             synchronized (ENTRIES) {
                 ENTRIES.push(e);
                 ENTRIES_MONITOR.setValue(ENTRIES.size());
                 if (ENTRIES.size() > instances.size() * SPAWN_THRESHOLD) {
                     if (instances.size() < MAX_INSTANCES) {
-                        BatchWriteBehind bwb = new BatchWriteBehind(ejt);
+                        BatchWriteBehind bwb = new BatchWriteBehind(create);
                         instances.add(bwb);
                         INSTANCES_MONITOR.setValue(instances.size());
                         try {
@@ -1223,10 +1213,10 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
             }
         }
 
-        private final ExtendedJdbcTemplate ejt;
+        private final DSLContext create;
 
-        public BatchWriteBehind(ExtendedJdbcTemplate ejt) {
-            this.ejt = ejt;
+        public BatchWriteBehind(DSLContext create) {
+            this.create = create;
         }
 
         @Override
@@ -1244,21 +1234,20 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
                     }
 
                     // Create the sql and parameters
-                    Object[] params = new Object[inserts.length * POINT_VALUE_INSERT_VALUES_COUNT];
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(POINT_VALUE_INSERT_START);
-                    for (int i = 0; i < inserts.length; i++) {
-                        if (i > 0)
-                            sb.append(',');
-                        sb.append(POINT_VALUE_INSERT_VALUES);
-                        inserts[i].writeInto(params, i);
+
+                    PointValues pv = POINT_VALUES;
+                    InsertValuesStep4<PointValuesRecord, Integer, Integer, Double, Long> insert = this.create.insertInto(pv)
+                            .columns(pv.dataPointId, pv.dataType, pv.pointValue, pv.ts);
+
+                    for (BatchWriteBehindEntry entry : inserts) {
+                        insert.values(entry.vo.getSeriesId(), entry.dataType, entry.dvalue, entry.time);
                     }
 
                     // Insert the data
                     int retries = 10;
                     while (true) {
                         try {
-                            ejt.update(sb.toString(), params);
+                            insert.execute();
                             writesPerSecond.hitMultiple(inserts.length);
                             BATCH_WRITE_SPEED_MONITOR.setValue(writesPerSecond.getEventCounts()[0] / 5);
                             break;
