@@ -59,23 +59,22 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     protected JdbcConnectionPool dataSource;
     protected NoSQLProxy noSQLProxy;
     protected PointValueCacheProxy pointValueCacheProxy;
-    protected MockPointValueDao mockPointValueDao;
+    protected final MockPointValueDao mockPointValueDao;
     protected boolean initialized = false;
-    protected boolean initWebConsole = false;
+    protected final boolean initWebConsole;
     protected Integer webPort;
     private Server web; //web UI
     protected DataSourceTransactionManager transactionManager;
-    protected boolean useMetrics = false;
-    protected Supplier<InputStream> altCreateScript = null;
-    protected Supplier<InputStream> defaultDataScript = null;
+    protected final boolean useMetrics;
+    protected final Supplier<InputStream> altCreateScript;
+    protected final Supplier<InputStream> defaultDataScript;
 
     public H2InMemoryDatabaseProxy() {
-        mockPointValueDao = new MockPointValueDao();
+        this(false, 0, false);
     }
 
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort) {
         this(initWebConsole, webPort, false);
-        this.mockPointValueDao = new MockPointValueDao();
     }
 
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics) {
@@ -423,6 +422,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public PointValueCacheDao getPointValueCacheDao() {
         return pointValueCacheProxy.getDao();
+    }
+
+    @Override
+    public boolean isUseMetrics() {
+        return this.useMetrics;
     }
 
     /**
