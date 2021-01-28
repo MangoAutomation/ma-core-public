@@ -141,4 +141,12 @@ public class ProcessResult implements Serializable {
         }
         messages.addAll(other.getMessages());
     }
+
+    @Override
+    public String toString() {
+        return "ProcessResult{" +
+                "messages=" + messages +
+                ", contextKeyPrefix='" + contextKeyPrefix + '\'' +
+                '}';
+    }
 }

@@ -39,4 +39,11 @@ public class ValidationException extends TranslatableRuntimeException {
     public Class<?> getValidatedClass() {
         return validatedClass;
     }
+
+    @Override
+    public String toString() {
+        return "ValidationException{" +
+                "validationResult=" + validationResult +
+                '}';
+    }
 }
