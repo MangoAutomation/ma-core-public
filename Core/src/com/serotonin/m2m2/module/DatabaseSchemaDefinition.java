@@ -6,6 +6,7 @@ package com.serotonin.m2m2.module;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -73,10 +74,12 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * @param ejt
      *            the JDBC template that provides access to the database
      */
-    public void newInstallationCheck(ExtendedJdbcTemplate ejt) throws IOException {
+    public void newInstallationCheck(ExtendedJdbcTemplate ejt) {
         if (!Common.databaseProxy.tableExists(ejt, getNewInstallationCheckTableName())) {
             try (InputStream input = getInstallScript()) {
                 Common.databaseProxy.runScript(input, null);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
     }
@@ -85,11 +88,13 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * Check and un-install if necessary
      */
     @Override
-    public void postRuntimeManagerTerminate(boolean uninstall) throws IOException {
+    public void postRuntimeManagerTerminate(boolean uninstall) {
         if(uninstall) {
             // Remove the database tables.
             try (InputStream input = getUninstallScript()) {
                 Common.databaseProxy.runScript(input, null);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
     }

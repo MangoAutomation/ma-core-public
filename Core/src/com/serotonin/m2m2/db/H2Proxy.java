@@ -6,14 +6,12 @@ package com.serotonin.m2m2.db;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -389,38 +387,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
     @Override
     public DatabaseType getType() {
         return DatabaseType.H2;
-    }
-
-    @Override
-    public void runScript(String[] script, final OutputStream out) {
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(getDataSource());
-
-        StringBuilder statement = new StringBuilder();
-
-        for (String line : script) {
-            // Trim whitespace
-            line = line.trim();
-
-            // Skip comments
-            if (line.startsWith("--"))
-                continue;
-
-            statement.append(line);
-            statement.append(" ");
-            if (line.endsWith(";")) {
-                // Execute the statement
-                ejt.execute(statement.toString());
-                if(out != null) {
-                    try {
-                        out.write((statement.toString() + "\n").getBytes(StandardCharsets.UTF_8));
-                    } catch (IOException e) {
-                        //Don't really care
-                    }
-                }
-                statement.delete(0, statement.length() - 1);
-            }
-        }
     }
 
     @Override

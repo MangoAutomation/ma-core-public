@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -99,7 +100,36 @@ public interface DatabaseProxy extends TransactionCapable {
         return new NullOutputStream();
     }
 
-    void runScript(String[] script, OutputStream out);
+    default void runScript(String[] script, OutputStream out) {
+        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+        ejt.setDataSource(getDataSource());
+
+        StringBuilder statement = new StringBuilder();
+
+        for (String line : script) {
+            // Trim whitespace
+            line = line.trim();
+
+            // Skip comments
+            if (line.startsWith("--"))
+                continue;
+
+            statement.append(line);
+            statement.append(" ");
+            if (line.endsWith(";")) {
+                // Execute the statement
+                ejt.execute(statement.toString());
+                if(out != null) {
+                    try {
+                        out.write((statement.toString() + "\n").getBytes(StandardCharsets.UTF_8));
+                    } catch (IOException e) {
+                        //Don't really care
+                    }
+                }
+                statement.delete(0, statement.length() - 1);
+            }
+        }
+    }
 
     default void runScript(InputStream in, OutputStream out) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {

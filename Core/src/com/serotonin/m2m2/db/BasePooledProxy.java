@@ -4,16 +4,11 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -48,38 +43,6 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     }
 
     abstract protected String getDriverClassName();
-
-    @Override
-    public void runScript(String[] script, OutputStream out) {
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(dataSource);
-
-        StringBuilder statement = new StringBuilder();
-
-        for (String line : script) {
-            // Trim whitespace
-            line = line.trim();
-
-            // Skip comments
-            if (line.startsWith("--"))
-                continue;
-
-            statement.append(line);
-            statement.append(" ");
-            if (line.endsWith(";")) {
-                // Execute the statement
-                ejt.execute(statement.toString());
-                if(out != null) {
-                    try {
-                        out.write((statement.toString() + "\n").getBytes(StandardCharsets.UTF_8));
-                    } catch (IOException e) {
-                        //Don't really care
-                    }
-                }
-                statement.delete(0, statement.length() - 1);
-            }
-        }
-    }
 
     @Override
     public void terminateImpl() {

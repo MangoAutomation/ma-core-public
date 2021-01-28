@@ -6,7 +6,6 @@ package com.serotonin.m2m2.db;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -244,31 +243,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public int getIdleConnections() {
         return dataSource.getMaxConnections() - dataSource.getActiveConnections();
-    }
-
-    @Override
-    public void runScript(String[] script, OutputStream out) {
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(getDataSource());
-
-        StringBuilder statement = new StringBuilder();
-
-        for (String line : script) {
-            // Trim whitespace
-            line = line.trim();
-
-            // Skip comments
-            if (line.startsWith("--"))
-                continue;
-
-            statement.append(line);
-            statement.append(" ");
-            if (line.endsWith(";")) {
-                // Execute the statement
-                ejt.execute(statement.toString());
-                statement.delete(0, statement.length() - 1);
-            }
-        }
     }
 
     @Override
