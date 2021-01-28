@@ -208,14 +208,14 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy, Transactio
                 .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), Common.translate("roles.anonymous"))
                 .execute();
 
-        if (Common.envProps.getBoolean("initialize.createAdminUser")) {
+        if (Common.envProps.getBoolean("initialize.admin.create")) {
             long created = System.currentTimeMillis();
 
             int adminId = context.insertInto(u)
                     .set(u.name, Common.translate("users.defaultAdministratorName"))
-                    .set(u.username, "admin")
-                    .set(u.password, Common.encrypt("admin"))
-                    .set(u.email, "admin@mango.example.com")
+                    .set(u.username, Common.envProps.getProperty("initialize.admin.username"))
+                    .set(u.password, Common.encrypt(Common.envProps.getProperty("initialize.admin.password")))
+                    .set(u.email, Common.envProps.getProperty("initialize.admin.email"))
                     .set(u.phone, "")
                     .set(u.disabled, BaseDao.boolToChar(false))
                     .set(u.lastLogin, 0L)
