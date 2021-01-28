@@ -536,30 +536,3 @@ CREATE TABLE mangoSessionData
 );
 CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);
 CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);
-
---
---
--- Mango Default Data
---
--- [jooq ignore start]
--- Insert admin user
-INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails,
-                   receiveOwnAuditEvents, muted, tokenVersion, passwordVersion, passwordChangeTimestamp,
-                   sessionExpirationOverride, createdTs)
-VALUES (1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm',
-        'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', 1, 1,
-        DATEDIFF('SECOND', DATE '1970-01-01', CURRENT_TIMESTAMP()) * 1000, 'N',
-        DATEDIFF('SECOND', DATE '1970-01-01', CURRENT_TIMESTAMP()) * 1000);
--- Insert default roles
-INSERT INTO roles (id, xid, name)
-VALUES (1, 'superadmin', 'Superadmins');
-INSERT INTO roles (id, xid, name)
-VALUES (2, 'user', 'Users');
-INSERT INTO roles (id, xid, name)
-VALUES (3, 'anonymous', 'Anonymous');
--- Add admin user role mappings
-INSERT INTO userRoleMappings (roleId, userId)
-VALUES (1, 1);
-INSERT INTO userRoleMappings (roleId, userId)
-VALUES (2, 1);
--- [jooq ignore stop]

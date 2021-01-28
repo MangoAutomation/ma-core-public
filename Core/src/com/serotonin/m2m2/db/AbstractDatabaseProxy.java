@@ -23,6 +23,8 @@ import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.RowMapper;
@@ -30,9 +32,14 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.infiniteautomation.mango.db.tables.Roles;
+import com.infiniteautomation.mango.db.tables.SystemSettings;
+import com.infiniteautomation.mango.db.tables.UserRoleMappings;
+import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
+import com.serotonin.db.TransactionCapable;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -46,9 +53,10 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-abstract public class AbstractDatabaseProxy implements DatabaseProxy {
+abstract public class AbstractDatabaseProxy implements DatabaseProxy, TransactionCapable {
 
     public static DatabaseProxy createDatabaseProxy() {
         String type = Common.envProps.getString("db.type", "h2");
@@ -59,17 +67,20 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     private final Log log = LogFactory.getLog(AbstractDatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
     private PointValueCacheProxy pointValueCacheProxy;
-    private Boolean useMetrics;
+    private final boolean useMetrics;
     private PlatformTransactionManager transactionManager;
+
+    public AbstractDatabaseProxy() {
+        this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
+    }
 
     @Override
     public void initialize(ClassLoader classLoader) {
         initializeImpl("");
 
-        useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
-
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
+        DSLContext context = DSL.using(getConfig());
 
         transactionManager = new DataSourceTransactionManager(getDataSource());
 
@@ -108,20 +119,22 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
                     AbstractDatabaseProxy sourceProxy = convertType.getImpl();
                     sourceProxy.initializeImpl("convert.");
-
-                    DBConvert convert = new DBConvert();
-                    convert.setSource(sourceProxy);
-                    convert.setTarget(this);
                     try {
-                        convert.execute();
+                        DBConvert convert = new DBConvert();
+                        convert.setSource(sourceProxy);
+                        convert.setTarget(this);
+                        try {
+                            convert.execute();
+                        } catch (SQLException e) {
+                            throw new ShouldNeverHappenException(e);
+                        }
+                    } finally {
+                        sourceProxy.terminate(false);
                     }
-                    catch (SQLException e) {
-                        throw new ShouldNeverHappenException(e);
-                    }
-
-                    sourceProxy.terminate(false);
                 } else {
-                    this.initializeCoreDatabase(ejt);
+                    doInTransaction(txStatus -> {
+                        initializeCoreDatabase(context);
+                    });
                 }
             } else {
                 // The database exists, so let's make its schema version matches the application version.
@@ -173,23 +186,57 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     /**
      * Inserts and updates data for a new installation
-     * @param ejt
      */
-    protected void initializeCoreDatabase(ExtendedJdbcTemplate ejt) {
-        String insertSystemSetting = "INSERT INTO systemSettings (settingName, settingValue) VALUES (?, ?);";
-        String updateRoleName = "UPDATE roles SET name = ? WHERE id = ?;";
-        String updateUserName = "UPDATE users SET name = ? WHERE id = ?;";
+    protected void initializeCoreDatabase(DSLContext context) {
+        SystemSettings ss = SystemSettings.SYSTEM_SETTINGS;
+        Roles r = Roles.ROLES;
+        Users u = Users.USERS;
+        UserRoleMappings urm = UserRoleMappings.USER_ROLE_MAPPINGS;
 
-        // Add the settings flag that this is a new instance. This flag is removed when an administrator logs in.
-        ejt.update(insertSystemSetting, SystemSettingsDao.NEW_INSTANCE, BaseDao.boolToChar(true));
-        // Record the current version.
-        ejt.update(insertSystemSetting, SystemSettingsDao.DATABASE_SCHEMA_VERSION, Integer.toString(Common.getDatabaseSchemaVersion()));
+        context.insertInto(ss, ss.settingName, ss.settingValue)
+                // Add the settings flag that this is a new instance. This flag is removed when an administrator logs in.
+                .values(SystemSettingsDao.NEW_INSTANCE, BaseDao.boolToChar(true))
+                // Record the current version.
+                .values(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Integer.toString(Common.getDatabaseSchemaVersion()))
+                .execute();
 
         // TODO Mango 4.0 we should a setup page where on first login the admin chooses the locale, timezone and sets a new password
-        ejt.update(updateRoleName, Common.translate("roles.superadmin"), PermissionHolder.SUPERADMIN_ROLE.getId());
-        ejt.update(updateRoleName, Common.translate("roles.user"), PermissionHolder.USER_ROLE.getId());
-        ejt.update(updateRoleName, Common.translate("roles.anonymous"), PermissionHolder.ANONYMOUS_ROLE.getId());
-        ejt.update(updateUserName, Common.translate("users.defaultAdministratorName"), 1);
+
+        context.insertInto(r, r.id, r.xid, r.name)
+                .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), Common.translate("roles.superadmin"))
+                .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), Common.translate("roles.user"))
+                .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), Common.translate("roles.anonymous"))
+                .execute();
+
+        if (Common.envProps.getBoolean("initialize.createAdminUser")) {
+            long created = System.currentTimeMillis();
+
+            int adminId = context.insertInto(u)
+                    .set(u.name, Common.translate("users.defaultAdministratorName"))
+                    .set(u.username, "admin")
+                    .set(u.password, Common.encrypt("admin"))
+                    .set(u.email, "admin@mango.example.com")
+                    .set(u.phone, "")
+                    .set(u.disabled, BaseDao.boolToChar(false))
+                    .set(u.lastLogin, 0L)
+                    .set(u.homeUrl, "/ui/administration/home")
+                    .set(u.receiveAlarmEmails, AlarmLevels.WARNING.value())
+                    .set(u.receiveOwnAuditEvents, BaseDao.boolToChar(false))
+                    .set(u.muted, BaseDao.boolToChar(true))
+                    .set(u.tokenVersion, 1)
+                    .set(u.passwordVersion, 1)
+                    .set(u.passwordChangeTimestamp, created)
+                    .set(u.sessionExpirationOverride, BaseDao.boolToChar(false))
+                    .set(u.createdTs, created)
+                    .returningResult(u.id)
+                    .fetchOptional().orElseThrow(IllegalStateException::new)
+                    .get(u.id);
+
+            context.insertInto(urm, urm.userId, urm.roleId)
+                    .values(adminId, PermissionHolder.SUPERADMIN_ROLE.getId())
+                    .values(adminId, PermissionHolder.USER_ROLE.getId())
+                    .execute();
+        }
     }
 
     private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
@@ -349,5 +396,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         log.warn("Failing over to null output stream, database upgrade messages will be lost");
         return new NullOutputStream();
+    }
+
+    @Override
+    public boolean isUseMetrics() {
+        return this.useMetrics;
     }
 }

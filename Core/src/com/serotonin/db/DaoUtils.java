@@ -9,19 +9,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
-import org.jooq.conf.RenderNameCase;
-import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultConfiguration;
-import org.jooq.tools.StopWatchListener;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -29,8 +23,6 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.pair.StringStringPair;
@@ -52,45 +44,15 @@ public class DaoUtils implements TransactionCapable {
     protected final DatabaseType databaseType;
     protected final DSLContext create;
 
-    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType) {
+    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, Configuration configuration) {
         this.dataSource = dataSource;
         this.transactionManager = transactionManager;
         this.databaseType = databaseType;
         this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
         this.metricsThreshold = Common.envProps.getLong("db.metricsThreshold", 0L);
 
-        ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(dataSource);
-
-        Configuration configuration = new DefaultConfiguration();
-        configuration.set(new SpringConnectionProvider(dataSource));
-
-        configuration.settings().setExecuteLogging(this.useMetrics);
-        if (this.useMetrics) {
-            configuration.set(StopWatchListener::new);
-        }
-
-        switch(this.databaseType) {
-            case DERBY:
-                configuration.set(SQLDialect.DERBY);
-                break;
-            case H2:
-                configuration.set(SQLDialect.H2);
-                configuration.settings()
-                        .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
-                        .withRenderNameCase(RenderNameCase.AS_IS);
-                break;
-            case MYSQL:
-                configuration.set(SQLDialect.MYSQL);
-                break;
-            case POSTGRES:
-                configuration.set(SQLDialect.POSTGRES);
-                break;
-            case MSSQL:
-            default:
-                configuration.set(SQLDialect.DEFAULT);
-                break;
-        }
+        this.ejt = new ExtendedJdbcTemplate();
+        this.ejt.setDataSource(dataSource);
 
         this.create = DSL.using(configuration);
     }
@@ -305,13 +267,4 @@ public class DaoUtils implements TransactionCapable {
         return transactionManager;
     }
 
-    @Override
-    public <T> T doInTransaction(TransactionCallback<T> callback) {
-        return this.getTransactionTemplate().execute(callback);
-    }
-
-    @Override
-    public void doInTransaction(Consumer<TransactionStatus> callback) {
-        this.getTransactionTemplate().executeWithoutResult(callback);
-    }
 }

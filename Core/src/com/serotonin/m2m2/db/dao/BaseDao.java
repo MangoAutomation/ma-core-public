@@ -8,15 +8,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.jooq.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
+
 import com.google.common.collect.Iterables;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.sql.DataSource;
 
 public class BaseDao extends DaoUtils {
 
@@ -27,11 +29,11 @@ public class BaseDao extends DaoUtils {
      * Public constructor for code that needs to get stuff from the database.
      */
     public BaseDao() {
-        this(Common.databaseProxy.getDataSource(), Common.databaseProxy.getTransactionManager(), Common.databaseProxy.getType());
+        this(Common.databaseProxy.getDataSource(), Common.databaseProxy.getTransactionManager(), Common.databaseProxy.getType(), Common.databaseProxy.getConfig());
     }
 
-    public BaseDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseProxy.DatabaseType databaseType) {
-        super(dataSource, transactionManager, databaseType);
+    public BaseDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseProxy.DatabaseType databaseType, Configuration configuration) {
+        super(dataSource, transactionManager, databaseType, configuration);
     }
 
     //
