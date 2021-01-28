@@ -214,16 +214,14 @@ public class DiskUsageMonitoringService {
         //Volume information for sql db partition (if possible)
         try {
             File dataDirectory = Common.databaseProxy.getDataDirectory();
-            try {
-                FileStore store = Files.getFileStore(dataDirectory.toPath());
-                sqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
-                sqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
-                sqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
-            } catch (Exception e) {
-                log.error("Unable to get Filestore partition usage", e);
-            }
+            FileStore store = Files.getFileStore(dataDirectory.toPath());
+            sqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
+            sqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
+            sqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
         } catch (UnsupportedOperationException e) {
             // not supported
+        } catch (Exception e) {
+            log.error("Unable to get SQL database partition usage", e);
         }
 
         try{

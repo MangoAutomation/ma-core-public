@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db;
 
 import java.io.File;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
@@ -18,6 +19,7 @@ import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 
 public class MySQLProxy extends BasePooledProxy {
+
     public MySQLProxy(DatabaseProxyFactory factory, boolean useMetrics) {
         super(factory, useMetrics);
     }
@@ -94,11 +96,21 @@ public class MySQLProxy extends BasePooledProxy {
 
     @Override
     public File getDataDirectory() {
+        String url = getUrl("");
+        if (!url.startsWith("jdbc:")) {
+            throw new IllegalStateException("Invalid JDBC URL");
+        }
+        URI uri = URI.create(url.substring("jdbc:".length()));
+        String host = uri.getHost();
+        if (!(host == null || host.equals("localhost") || host.equals("[::1]") || host.startsWith("127."))) {
+            throw new UnsupportedOperationException();
+        }
+
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(this.getDataSource());
         String dataDir = ejt.queryForObject("select @@DATADIR", new Object[]{}, String.class, null);
         if (dataDir == null) {
-            throw new UnsupportedOperationException();
+            throw new IllegalStateException("Couldn't get data directory from MySQL");
         }
         return new File(dataDir);
     }
