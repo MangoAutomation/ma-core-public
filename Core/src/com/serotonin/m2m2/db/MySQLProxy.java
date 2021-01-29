@@ -8,12 +8,9 @@ import java.io.File;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.List;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
@@ -74,24 +71,8 @@ public class MySQLProxy extends BasePooledProxy {
     }
 
     @Override
-    public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit) {
-        return dao.query(getLimitQuerySql(sql, limit), args, rowMapper);
-    }
-
-    private String getLimitQuerySql(String sql, int limit) {
-        if (limit > 0)
-            sql += " limit " + limit;
-        return sql;
-    }
-
-    @Override
     public String getTableListQuery() {
         return "show tables";
-    }
-
-    @Override
-    protected String getLimitDelete(String sql, int chunkSize) {
-        return sql + " LIMIT " + chunkSize;
     }
 
     @Override

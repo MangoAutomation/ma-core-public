@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -22,14 +21,12 @@ import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
-import org.springframework.jdbc.core.RowMapper;
 
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.util.NullOutputStream;
-import com.serotonin.db.DaoUtils;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -140,12 +137,6 @@ public interface DatabaseProxy extends TransactionCapable {
     }
 
     String getTableListQuery();
-
-    <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper,
-            int limit);
-
-    long doLimitDelete(ExtendedJdbcTemplate ejt, String sql, Object[] args, int chunkSize,
-            int chunkWait, int limit);
 
     String getDatabasePassword(String propertyPrefix);
 

@@ -1,13 +1,10 @@
 package com.serotonin.m2m2.db;
 
 import java.sql.SQLException;
-import java.util.List;
 
 import org.postgresql.util.PSQLException;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 public class PostgresProxy extends BasePooledProxy {
@@ -42,21 +39,10 @@ public class PostgresProxy extends BasePooledProxy {
     }
 
     @Override
-    public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit) {
-        if (limit > 0)
-            sql += " LIMIT " + limit;
-        return dao.query(sql, args, rowMapper);
-    }
-
-    @Override
     public String getTableListQuery() {
         return "SELECT table_name FROM information_schema.tables "
                 + "WHERE table_catalog=current_database() AND table_schema=current_schema()";
     }
 
-    @Override
-    protected String getLimitDelete(String sql, int chunkSize) {
-        return sql;
-    }
 
 }

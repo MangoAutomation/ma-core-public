@@ -5,12 +5,9 @@
 package com.serotonin.m2m2.db;
 
 import java.sql.SQLException;
-import java.util.List;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 public class MSSQLProxy extends BasePooledProxy {
@@ -57,26 +54,8 @@ public class MSSQLProxy extends BasePooledProxy {
     }
 
     @Override
-    public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit) {
-        return dao.query(getLimitQuerySql(sql, limit), args, rowMapper);
-    }
-
-    private String getLimitQuerySql(String sql, int limit) {
-        if (limit > 0) {
-            if (sql.length() > 6 && sql.substring(0, 7).equalsIgnoreCase("select "))
-                sql = "select top " + limit + " " + sql.substring(7);
-        }
-        return sql;
-    }
-
-    @Override
     public String getTableListQuery() {
         return "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' order by table_name";
     }
 
-    @Override
-    protected String getLimitDelete(String sql, int chunkSize) {
-        return sql;
-    }
-    
 }

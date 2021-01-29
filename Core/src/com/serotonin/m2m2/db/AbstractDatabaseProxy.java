@@ -22,13 +22,11 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueCacheDao;
@@ -206,42 +204,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
      * @param propertyPrefix string to prefix in front of env.properties when getting connection URL etc
      */
     abstract protected void initializeImpl(String propertyPrefix);
-
-    @Override
-    abstract public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit);
-
-    @Override
-    public long doLimitDelete(ExtendedJdbcTemplate ejt, String sql, Object[] args, int chunkSize, int chunkWait,
-            int limit) {
-        sql = getLimitDelete(sql, chunkSize);
-
-        long total = 0;
-        while (true) {
-            int cnt;
-            if (args == null)
-                cnt = ejt.update(sql);
-            else
-                cnt = ejt.update(sql, args);
-
-            total += cnt;
-
-            if (cnt < chunkSize || (limit > 0 && total >= limit))
-                break;
-
-            if (chunkWait > 0) {
-                try {
-                    Thread.sleep(chunkWait);
-                }
-                catch (InterruptedException e) {
-                    // no op
-                }
-            }
-        }
-
-        return total;
-    }
-
-    abstract protected String getLimitDelete(String sql, int chunkSize);
 
     @Override
     public String getDatabasePassword(String propertyPrefix) {

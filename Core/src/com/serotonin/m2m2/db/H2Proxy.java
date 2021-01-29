@@ -43,10 +43,8 @@ import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
-import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.util.DirectoryInfo;
@@ -387,18 +385,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
     @Override
     public DatabaseType getType() {
         return DatabaseType.H2;
-    }
-
-    @Override
-    public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit) {
-        if (limit > 0)
-            sql += " LIMIT " + limit;
-        return dao.query(sql, args, rowMapper);
-    }
-
-    @Override
-    protected String getLimitDelete(String sql, int chunkSize) {
-        return sql + " LIMIT " + chunkSize;
     }
 
     @Override
