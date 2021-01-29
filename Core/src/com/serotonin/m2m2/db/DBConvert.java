@@ -12,11 +12,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Named;
+import org.jooq.Table;
 
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.infiniteautomation.mango.db.DefaultSchema;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
@@ -46,7 +49,10 @@ public class DBConvert {
             try (Connection targetConn = target.getDataSource().getConnection()) {
                 targetConn.setAutoCommit(false);
 
-                List<String> tableNames = getCoreTableNames();
+                List<Table<?>> tables = DefaultSchema.DEFAULT_SCHEMA.getTables();
+
+                List<String> tableNames = tables.stream().map(Named::getName).collect(Collectors.toCollection(ArrayList::new));
+
                 for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
                     def.addConversionTableNames(tableNames);
 
@@ -56,34 +62,6 @@ public class DBConvert {
         }
 
         LOG.warn("Completed database conversion");
-    }
-
-    private List<String> getCoreTableNames() {
-        List<String> tableNames = new ArrayList<>();
-        tableNames.add(SchemaDefinition.SYSTEM_SETTINGS_TABLE);
-        tableNames.add(SchemaDefinition.USERS_TABLE);
-        tableNames.add(SchemaDefinition.USER_COMMENTS_TABLE);
-        tableNames.add(SchemaDefinition.MAILING_LISTS_TABLE);
-        tableNames.add("mailingListInactive");
-        tableNames.add("mailingListMembers");
-        tableNames.add(SchemaDefinition.TEMPLATES_TABLE);
-        tableNames.add(SchemaDefinition.DATASOURCES_TABLE);
-        tableNames.add(SchemaDefinition.DATAPOINTS_TABLE);
-        tableNames.add(SchemaDefinition.DATAPOINTTAGS_TABLE);
-        tableNames.add("pointValues");
-        tableNames.add("pointValueAnnotations");
-        tableNames.add(SchemaDefinition.EVENT_DETECTOR_TABLE);
-        tableNames.add(SchemaDefinition.EVENTS_TABLE);
-        tableNames.add(SchemaDefinition.EVENT_HANDLER_TABLE);
-        tableNames.add(SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE);
-        tableNames.add(SchemaDefinition.PUBLISHERS_TABLE);
-        tableNames.add("dataPointHierarchy");
-        tableNames.add(SchemaDefinition.AUDIT_TABLE);
-        tableNames.add(SchemaDefinition.JSON_DATA_TABLE);
-        tableNames.add(SchemaDefinition.FILE_STORES_TABLE);
-        tableNames.add(SchemaDefinition.INSTALLED_MODULES_TABLE);
-        tableNames.add(SchemaDefinition.ROLES_TABLE);
-        return tableNames;
     }
 
     private void copyTable(Connection sourceConn, Connection targetConn, String tableName) throws SQLException {

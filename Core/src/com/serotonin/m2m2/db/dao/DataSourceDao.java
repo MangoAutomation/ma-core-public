@@ -34,6 +34,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
@@ -61,7 +62,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
 
     //TODO Mango 4.0 Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
-    public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(SchemaDefinition.DATASOURCES_TABLE)).as(DATA_SOURCES_ALIAS);
+    public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(DataSources.DATA_SOURCES.getName())).as(DATA_SOURCES_ALIAS);
     public static final Field<Integer> ID = DSL.field(DATA_SOURCES_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
     public static final Field<String> EDIT_PERMISSION = DSL.field(DATA_SOURCES_ALIAS.append("editPermission"), SQLDataType.VARCHAR(255).nullable(true));
 

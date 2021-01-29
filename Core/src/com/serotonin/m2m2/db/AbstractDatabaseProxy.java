@@ -25,6 +25,7 @@ import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -33,7 +34,6 @@ import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -165,7 +165,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
         boolean coreIsNew = false;
 
-        if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
+        if (!tableExists(ejt, Users.USERS.getName())) {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
             try {

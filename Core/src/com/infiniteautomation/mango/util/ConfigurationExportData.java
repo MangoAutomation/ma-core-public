@@ -12,6 +12,15 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.infiniteautomation.mango.db.tables.DataPoints;
+import com.infiniteautomation.mango.db.tables.DataSources;
+import com.infiniteautomation.mango.db.tables.EventDetectors;
+import com.infiniteautomation.mango.db.tables.EventHandlers;
+import com.infiniteautomation.mango.db.tables.JsonData;
+import com.infiniteautomation.mango.db.tables.MailingLists;
+import com.infiniteautomation.mango.db.tables.Publishers;
+import com.infiniteautomation.mango.db.tables.SystemSettings;
+import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.db.pair.StringStringPair;
@@ -23,7 +32,6 @@ import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.EmportDefinition;
@@ -38,15 +46,15 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 public class ConfigurationExportData {
 
     //When adding to this list make sure you update getAllExportNames();
-    public static final String DATA_SOURCES = SchemaDefinition.DATASOURCES_TABLE;
-    public static final String DATA_POINTS = SchemaDefinition.DATAPOINTS_TABLE;
-    public static final String EVENT_HANDLERS = SchemaDefinition.EVENT_HANDLER_TABLE;
-    public static final String EVENT_DETECTORS = SchemaDefinition.EVENT_DETECTOR_TABLE;
-    public static final String JSON_DATA = SchemaDefinition.JSON_DATA_TABLE;
-    public static final String MAILING_LISTS = SchemaDefinition.MAILING_LISTS_TABLE;
-    public static final String PUBLISHERS = SchemaDefinition.PUBLISHERS_TABLE;
-    public static final String SYSTEM_SETTINGS = SchemaDefinition.SYSTEM_SETTINGS_TABLE;
-    public static final String USERS = SchemaDefinition.USERS_TABLE;
+    public static final String DATA_SOURCES = DataSources.DATA_SOURCES.getName();
+    public static final String DATA_POINTS = DataPoints.DATA_POINTS.getName();
+    public static final String EVENT_HANDLERS = EventHandlers.EVENT_HANDLERS.getName();
+    public static final String EVENT_DETECTORS = EventDetectors.EVENT_DETECTORS.getName();
+    public static final String JSON_DATA = JsonData.JSON_DATA.getName();
+    public static final String MAILING_LISTS = MailingLists.MAILING_LISTS.getName();
+    public static final String PUBLISHERS = Publishers.PUBLISHERS.getName();
+    public static final String SYSTEM_SETTINGS = SystemSettings.SYSTEM_SETTINGS.getName();
+    public static final String USERS = Users.USERS.getName();
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
     public static final String ROLES = "roles";
     public static final String PERMISSIONS = "permissions";

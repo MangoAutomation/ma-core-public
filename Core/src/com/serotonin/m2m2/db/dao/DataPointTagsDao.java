@@ -33,6 +33,7 @@ import org.springframework.stereotype.Repository;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.db.tables.DataPointTags;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
@@ -50,7 +51,7 @@ public class DataPointTagsDao extends BaseDao {
     private static final LazyInitializer<DataPointTagsDao> springInstance = new LazyInitializer<>();
 
     public static final Name DATA_POINT_TAGS_ALIAS = DSL.name("tags");
-    public static final Table<Record> DATA_POINT_TAGS_NO_ALIAS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTTAGS_TABLE));
+    public static final Table<Record> DATA_POINT_TAGS_NO_ALIAS = DSL.table(DSL.name(DataPointTags.DATA_POINT_TAGS.getName()));
     public static final Table<Record> DATA_POINT_TAGS = DATA_POINT_TAGS_NO_ALIAS.as(DATA_POINT_TAGS_ALIAS);
 
     public static final Field<Integer> DATA_POINT_ID = DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId"), SQLDataType.INTEGER.nullable(false));
