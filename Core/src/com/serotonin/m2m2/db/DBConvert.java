@@ -12,11 +12,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jooq.Named;
 import org.jooq.Table;
 
 import com.infiniteautomation.mango.db.DefaultSchema;
@@ -49,22 +47,22 @@ public class DBConvert {
             try (Connection targetConn = target.getDataSource().getConnection()) {
                 targetConn.setAutoCommit(false);
 
-                List<Table<?>> tables = DefaultSchema.DEFAULT_SCHEMA.getTables();
+                List<Table<?>> tables = new ArrayList<>(DefaultSchema.DEFAULT_SCHEMA.getTables());
 
-                List<String> tableNames = tables.stream().map(Named::getName).collect(Collectors.toCollection(ArrayList::new));
+                for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
+                    tables.addAll(def.getTablesForConversion());
+                }
 
-                for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
-                    def.addConversionTableNames(tableNames);
-
-                for (String tableName : tableNames)
-                    copyTable(sourceConn, targetConn, tableName);
+                for (Table<?> table : tables)
+                    copyTable(sourceConn, targetConn, table);
             }
         }
 
         LOG.warn("Completed database conversion");
     }
 
-    private void copyTable(Connection sourceConn, Connection targetConn, String tableName) throws SQLException {
+    private void copyTable(Connection sourceConn, Connection targetConn, Table<?> table) throws SQLException {
+        String tableName = table.getName();
         LOG.warn(" --> Converting table " + tableName + "...");
 
         // Get the source data

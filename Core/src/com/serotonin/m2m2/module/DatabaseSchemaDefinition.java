@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 
+import org.jooq.Table;
+
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -27,13 +29,12 @@ import com.serotonin.m2m2.Common;
 abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
 
     /**
-     * Modules should add all table names that they manage to the given list. The names are used to perform conversions
+     * Modules should add return all tables they manage. The names are used to perform conversions
      * between one type of database (e.g. Derby) and another (e.g. MySQL).
      *
-     * @param tableNames
-     *            the list of table name to add to
+     * @return tables to convert
      */
-    abstract public void addConversionTableNames(List<String> tableNames);
+    abstract public List<Table<?>> getTablesForConversion();
 
     /**
      * The Java package in which upgrade classes can be found. An upgrade class must be provided whenever the "code
