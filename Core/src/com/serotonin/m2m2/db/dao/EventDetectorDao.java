@@ -80,11 +80,11 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
                              ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_DETECTOR,
-                EventDetectors.EVENT_DETECTORS.as("ed"),
+                EventDetectors.EVENT_DETECTORS,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
                 mapper, publisher);
-        this.dataPointTable = DataPoints.DATA_POINTS.as("dp");
-        this.dataSourceTable = DataSources.DATA_SOURCES.as("ds");
+        this.dataPointTable = DataPoints.DATA_POINTS;
+        this.dataSourceTable = DataSources.DATA_SOURCES;
         this.permissionService = permissionService;
         //Build our ordered column set from the Module Registry
 

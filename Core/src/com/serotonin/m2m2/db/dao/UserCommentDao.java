@@ -47,7 +47,7 @@ public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentsRe
     private UserCommentDao(
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_USER_COMMENT, UserComments.USER_COMMENTS.as("uc"), null, mapper, publisher);
+        super(AuditEventType.TYPE_USER_COMMENT, UserComments.USER_COMMENTS, null, mapper, publisher);
         this.userTable = Users.USERS;
     }
 

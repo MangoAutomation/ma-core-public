@@ -101,9 +101,9 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                              PermissionService permissionService,
                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
                              ApplicationEventPublisher publisher, UserCommentDao userCommentDao) {
-        super(null, Events.EVENTS.as("evt"), null, mapper, publisher);
-        this.users = Users.USERS.as("u");
-        this.userComments = UserComments.USER_COMMENTS.as("uc");
+        super(null, Events.EVENTS, null, mapper, publisher);
+        this.users = Users.USERS;
+        this.userComments = UserComments.USER_COMMENTS;
         this.dataPointTagsDao = dataPointTagsDao;
         this.permissionService = permissionService;
         this.userCommentDao = userCommentDao;
@@ -533,8 +533,8 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
     private ConditionSortLimit rqlToDataPointEventCountCondition(ASTNode rql) {
         //Setup Mappings
-        DataPoints dataPoints = DataPoints.DATA_POINTS.as("dp");
-        Events events = Events.EVENTS.as("evt");
+        DataPoints dataPoints = DataPoints.DATA_POINTS;
+        Events events = Events.EVENTS;
 
         Map<String, Field<?>> fieldMap = new HashMap<>();
         fieldMap.put("xid", dataPoints.xid);
@@ -565,8 +565,8 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                                                                         Long to,
                                                                         boolean countQuery,
                                                                         PermissionHolder user) {
-        Events events = Events.EVENTS.as("evt");
-        DataPoints dataPoints = DataPoints.DATA_POINTS.as("dp");
+        Events events = Events.EVENTS;
+        DataPoints dataPoints = DataPoints.DATA_POINTS;
         Name tagsAlias = DSL.name(DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS);
         DataPointTags dataPointTags = DataPointTags.DATA_POINT_TAGS.as(tagsAlias);
 

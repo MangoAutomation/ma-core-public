@@ -60,7 +60,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_PUBLISHER,
-                Publishers.PUBLISHERS.as("pub"),
+                Publishers.PUBLISHERS,
                 new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
                 mapper, publisher);
     }

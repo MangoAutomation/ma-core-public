@@ -61,7 +61,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
     private JsonDataDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionService permissionService) {
-        super(AuditEventType.TYPE_JSON_DATA, JsonData.JSON_DATA.as("jd"), new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher);
+        super(AuditEventType.TYPE_JSON_DATA, JsonData.JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher);
         this.permissionService = permissionService;
     }
 

@@ -79,7 +79,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_DATA_SOURCE, DataSources.DATA_SOURCES.as("ds"),
+        super(AuditEventType.TYPE_DATA_SOURCE, DataSources.DATA_SOURCES,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;

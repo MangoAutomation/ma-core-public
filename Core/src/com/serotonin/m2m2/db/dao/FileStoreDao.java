@@ -53,7 +53,7 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoresRecord, Fil
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionService permissionService) {
-        super(FileStore.FileStoreAuditEvent.TYPE_NAME, FileStores.FILE_STORES.as("fs"), new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher);
+        super(FileStore.FileStoreAuditEvent.TYPE_NAME, FileStores.FILE_STORES, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher);
         this.permissionService = permissionService;
     }
 

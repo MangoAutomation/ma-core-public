@@ -29,7 +29,7 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
 
     @Override
     public Field<Integer> getSourceIdColumnName() {
-        return EventDetectors.EVENT_DETECTORS.as("ed").dataPointId;
+        return EventDetectors.EVENT_DETECTORS.dataPointId;
     }
 
     @Override

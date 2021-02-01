@@ -77,7 +77,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_USER,
-                Users.USERS.as("u"),
+                Users.USERS,
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;

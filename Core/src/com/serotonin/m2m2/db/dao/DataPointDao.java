@@ -120,7 +120,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
             DataPointTagsDao dataPointTagsDao,
             EventDetectorDao eventDetectorDao) {
 
-        super(EventType.EventTypeNames.DATA_POINT, DataPoints.DATA_POINTS.as("dp"),
+        super(EventType.EventTypeNames.DATA_POINT, DataPoints.DATA_POINTS,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
 
@@ -129,9 +129,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.eventDetectorDao = eventDetectorDao;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
         
-        this.eventDetectors = EventDetectors.EVENT_DETECTORS.as("edt");
-        this.userComments = UserComments.USER_COMMENTS.as("uc");
-        this.dataSources = DataSources.DATA_SOURCES.as("ds");
+        this.eventDetectors = EventDetectors.EVENT_DETECTORS;
+        this.userComments = UserComments.USER_COMMENTS;
+        this.dataSources = DataSources.DATA_SOURCES;
     }
 
     /**

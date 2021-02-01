@@ -64,7 +64,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST,
-                MailingLists.MAILING_LISTS.as("ml"),
+                MailingLists.MAILING_LISTS,
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;

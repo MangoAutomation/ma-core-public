@@ -95,9 +95,9 @@ public class EventDao extends BaseDao {
             PermissionService permissionService) {
         this.auditEventDao = auditEventDao;
         this.userCommentDao = userCommentDao;
-        table = Events.EVENTS.as("evt");
-        this.userTable = Users.USERS.as("u");
-        this.userCommentTable = UserComments.USER_COMMENTS.as("uc");
+        table = Events.EVENTS;
+        this.userTable = Users.USERS;
+        this.userCommentTable = UserComments.USER_COMMENTS;
         this.permissionService = permissionService;
     }
 

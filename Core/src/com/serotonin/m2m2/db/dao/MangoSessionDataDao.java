@@ -38,7 +38,7 @@ import com.serotonin.m2m2.vo.MangoSessionDataVO;
 @Repository
 public class MangoSessionDataDao extends BaseDao {
 
-    protected final MangoSessionData table = MangoSessionData.MANGO_SESSION_DATA.as("sess");
+    protected final MangoSessionData table = MangoSessionData.MANGO_SESSION_DATA;
 
     private static final LazyInitSupplier<MangoSessionDataDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(MangoSessionDataDao.class);

@@ -54,7 +54,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
             ApplicationEventPublisher publisher,
             PermissionDao permissionDao) {
         super(AuditEventType.TYPE_ROLE,
-                Roles.ROLES.as("r"),
+                Roles.ROLES,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
         this.permissionDao = permissionDao;

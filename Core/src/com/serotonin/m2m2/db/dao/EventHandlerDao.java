@@ -78,7 +78,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_HANDLER,
-                EventHandlers.EVENT_HANDLERS.as("eh"),
+                EventHandlers.EVENT_HANDLERS,
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;

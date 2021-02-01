@@ -39,7 +39,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
     private AuditEventDao(
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(Audit.AUDIT.as("aud"), mapper, publisher);
+        super(Audit.AUDIT, mapper, publisher);
     }
 
     /**
