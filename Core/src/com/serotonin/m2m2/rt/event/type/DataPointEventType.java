@@ -9,6 +9,8 @@ import java.util.Map;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyField;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -26,6 +28,7 @@ public class DataPointEventType extends EventType {
     private int dataPointId;
     private int pointEventDetectorId;
     private DuplicateHandling duplicateHandling = DuplicateHandling.IGNORE;
+    private LazyField<MangoPermission> readPermission;
 
     public DataPointEventType() {
         // Required for reflection.
@@ -40,6 +43,7 @@ public class DataPointEventType extends EventType {
         supplyReference2(() -> {
             return eventDetector;
         });
+        this.readPermission = new LazyField<>(dataPoint.getReadPermission());
     }
 
     public DataPointEventType(int dataPointId, int pointEventDetectorId) {
@@ -50,6 +54,19 @@ public class DataPointEventType extends EventType {
         });
         supplyReference2(() -> {
             return Common.getBean(EventDetectorDao.class).get(pointEventDetectorId);
+        });
+
+        this.readPermission = new LazyField<>(() -> {
+            Integer readPermissionId = Common.getBean(DataPointDao.class).getReadPermissionId(dataPointId);
+            if(readPermissionId != null) {
+                try {
+                    return Common.getBean(PermissionService.class).get(readPermissionId);
+                }catch(NotFoundException e) {
+                    return MangoPermission.superadminOnly();
+                }
+            }else {
+                return MangoPermission.superadminOnly();
+            }
         });
     }
 
@@ -155,7 +172,7 @@ public class DataPointEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        return service.hasDataPointReadPermission(user, dataPointId);
+        return service.hasPermission(user, this.readPermission.get());
     }
 
     @Override
