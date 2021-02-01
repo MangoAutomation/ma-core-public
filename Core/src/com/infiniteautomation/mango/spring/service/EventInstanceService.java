@@ -19,14 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.Events;
-import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.serotonin.db.MappedRowCallback;
@@ -59,6 +57,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * Lock used to protect access to acknowledging many events at once
      */
     private final Lock ackManyLock = new ReentrantLock();
+    private final Events events = Events.EVENTS;
 
     @Autowired
     public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao) {
@@ -122,8 +121,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             summaries.put(level, new UserEventLevelSummary(level));
         }
 
-        Field<Long> ackTs = this.dao.getTable().ackTs;
-        ConditionSortLimit conditions = new ConditionSortLimit(ackTs.isNull(), null, null, null);
+        ConditionSortLimit conditions = new ConditionSortLimit(events.ackTs.isNull(), null, null, null);
         dao.customizedQuery(conditions, user, (item, index) -> {
             dao.loadRelationalData(item);
             UserEventLevelSummary summary = summaries.get(item.getAlarmLevel());

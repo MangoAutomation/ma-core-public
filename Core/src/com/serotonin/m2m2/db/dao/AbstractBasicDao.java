@@ -378,10 +378,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         return Arrays.asList(table.fields());
     }
 
-    public TABLE getTable() {
-        return table;
-    }
-
     /**
      * Add any joins including those in the conditions
      *  Override as necessary

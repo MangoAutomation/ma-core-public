@@ -15,7 +15,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
-import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectConnectByStep;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.DataPoints;
-import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -87,6 +85,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     private final DataSourceDao dataSourceDao;
     private final EventDetectorDao eventDetectorDao;
     private final List<DataPointChangeDefinition> changeDefinitions;
+    private final DataPoints dataPoints = DataPoints.DATA_POINTS;
 
     @Autowired
     public DataPointService(DataPointDao dao, DataSourceDao dataSourceDao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
@@ -385,17 +384,16 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     public void queryDeviceNames(Condition conditions, boolean sortAsc, Integer limit, Integer offset, MappedRowCallback<String> callback) {
         PermissionHolder user = Common.getUser();
 
-        Field<String> deviceName = this.dao.getTable().deviceName;
         List<SortField<?>> sort = new ArrayList<>();
         if(sortAsc) {
-            sort.add(deviceName.asc());
+            sort.add(dataPoints.deviceName.asc());
         }else {
-            sort.add(deviceName.desc());
+            sort.add(dataPoints.deviceName.desc());
         }
 
         ConditionSortLimit csl = new ConditionSortLimit(conditions, sort, limit, offset);
 
-        SelectJoinStep<Record> select = this.dao.getSelectQuery(Collections.singletonList(deviceName));
+        SelectJoinStep<Record> select = this.dao.getSelectQuery(Collections.singletonList(dataPoints.deviceName));
         select = dao.joinTables(select, null);
 
         if(!permissionService.hasAdminRole(user)) {
@@ -403,7 +401,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         }
 
         SelectConnectByStep<Record> afterWhere = conditions == null ? select : select.where(conditions);
-        SelectHavingStep<Record> afterGroupBy = afterWhere.groupBy(deviceName);
+        SelectHavingStep<Record> afterGroupBy = afterWhere.groupBy(dataPoints.deviceName);
         SelectLimitStep<Record> afterSort = afterGroupBy.orderBy(sort);
 
         Select<Record> offsetStep = afterSort;
