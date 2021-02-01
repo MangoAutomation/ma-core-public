@@ -29,7 +29,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Terry Packer
  */
 @Service
-public class RoleService extends AbstractVOService<RoleVO, RolesRecord, Roles, RoleDao> {
+public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
 
     @Autowired
     public RoleService(RoleDao dao, PermissionService permissionService) {

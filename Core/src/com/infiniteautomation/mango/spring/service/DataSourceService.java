@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.db.tables.DataSources;
-import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -39,7 +37,7 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourcesRecord, DataSources, DataSourceDao> {
+public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourceDao> {
 
     private final DataPointService dataPointService;
     private final DataSourcePermissionDefinition createPermission;

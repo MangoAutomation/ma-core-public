@@ -16,7 +16,6 @@ import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
-import org.jooq.Table;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -37,7 +36,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public interface AbstractBasicVOAccess<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>> extends TransactionCapable {
+public interface AbstractBasicVOAccess<T extends AbstractBasicVO> extends TransactionCapable {
 
     /**
      * Insert a vo and save relational data in a transaction
@@ -243,12 +242,6 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, R extends Reco
      * @return
      */
     <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user);
-
-    /**
-     * Get the table model
-     * @return
-     */
-    TABLE getTable();
 
     /**
      * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns

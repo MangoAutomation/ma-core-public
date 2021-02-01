@@ -73,7 +73,7 @@ import freemarker.template.TemplateException;
  * @author Terry Packer
  */
 @Service
-public class UsersService extends AbstractVOService<User, UsersRecord, Users, UserDao> implements CachingService {
+public class UsersService extends AbstractVOService<User, UserDao> implements CachingService {
 
     private final SystemSettingsDao systemSettings;
     private final PasswordService passwordService;

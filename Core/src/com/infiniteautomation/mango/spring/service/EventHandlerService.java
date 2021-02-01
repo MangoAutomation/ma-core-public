@@ -11,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.db.tables.EventHandlers;
-import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
@@ -31,7 +29,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Service
-public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO, EventHandlersRecord, EventHandlers, EventHandlerDao> {
+public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO, EventHandlerDao> {
 
     private final EventHandlerCreatePermission createPermission;
 

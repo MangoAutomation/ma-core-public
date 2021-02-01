@@ -17,7 +17,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOServiceTest<VO extends AbstractVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractVoDao<VO,R,TABLE>, SERVICE extends AbstractVOService<VO,R,TABLE,DAO>> extends AbstractBasicVOServiceTest<VO, R, TABLE, DAO, SERVICE> {
+public abstract class AbstractVOServiceTest<VO extends AbstractVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractVoDao<VO,R,TABLE>, SERVICE extends AbstractVOService<VO, DAO>> extends AbstractBasicVOServiceTest<VO, R, TABLE, DAO, SERVICE> {
 
     public AbstractVOServiceTest() {
 

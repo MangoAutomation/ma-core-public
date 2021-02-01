@@ -75,7 +75,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Jared Wiltshire
  * @author Terry Packer
  */
-public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>> extends BaseDao implements AbstractBasicVOAccess<T, R, TABLE> {
+public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>> extends BaseDao implements AbstractBasicVOAccess<T> {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
     //Retry transactions that deadlock
@@ -378,7 +378,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         return Arrays.asList(table.fields());
     }
 
-    @Override
     public TABLE getTable() {
         return table;
     }

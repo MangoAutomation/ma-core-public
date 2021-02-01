@@ -47,7 +47,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Service
-public class MailingListService extends AbstractVOService<MailingList, MailingListsRecord, MailingLists, MailingListDao> {
+public class MailingListService extends AbstractVOService<MailingList, MailingListDao> {
 
     private final UserDao userDao;
     private final MailingListCreatePermission createPermission;

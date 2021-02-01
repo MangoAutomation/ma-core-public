@@ -38,7 +38,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO,R,TABLE,DAO>> extends MangoTestBase {
+public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO, DAO>> extends MangoTestBase {
 
     protected RunAs runAs;
     protected SERVICE service;

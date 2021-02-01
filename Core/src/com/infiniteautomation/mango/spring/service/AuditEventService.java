@@ -19,7 +19,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  */
 @Service
-public class AuditEventService extends AbstractBasicVOService<AuditEventInstanceVO, AuditRecord, Audit, AuditEventDao> {
+public class AuditEventService extends AbstractBasicVOService<AuditEventInstanceVO, AuditEventDao> {
 
     @Autowired
     public AuditEventService(AuditEventDao dao, PermissionService permissionService) {

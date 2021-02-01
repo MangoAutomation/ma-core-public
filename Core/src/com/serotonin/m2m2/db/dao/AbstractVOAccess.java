@@ -6,8 +6,6 @@ package com.serotonin.m2m2.db.dao;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.jooq.Record;
-import org.jooq.Table;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -22,7 +20,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public interface AbstractVOAccess<T extends AbstractVO, R extends Record, TABLE extends Table<R>> extends AbstractBasicVOAccess<T, R, TABLE> {
+public interface AbstractVOAccess<T extends AbstractVO> extends AbstractBasicVOAccess<T> {
 
     /**
      * Generates a unique XID

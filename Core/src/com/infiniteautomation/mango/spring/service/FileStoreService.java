@@ -43,7 +43,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Jared Wiltshire
  */
 @Service
-public class FileStoreService extends AbstractVOService<FileStore, FileStoresRecord, FileStores, FileStoreDao> {
+public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao> {
 
     private final UserFileStoreCreatePermissionDefinition createPermission;
     private final Path fileStoreRoot = Common.getFileStorePath();;

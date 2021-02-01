@@ -26,7 +26,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Jared Wiltshire
  * @author Terry Packer
  */
-public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABLE extends Table<R>> extends AbstractBasicDao<T, R, TABLE> implements AbstractVOAccess<T, R, TABLE> {
+public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABLE extends Table<R>> extends AbstractBasicDao<T, R, TABLE> implements AbstractVOAccess<T> {
 
     /**
      * For generating XIDs this is prepended to any XIDs generated

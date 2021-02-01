@@ -30,7 +30,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractVoDao<VO,R,TABLE>, SERVICE extends AbstractVOService<VO,R,TABLE,DAO>> extends AbstractVOServiceTest<VO, R, TABLE, DAO, SERVICE> {
+public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractVoDao<VO,R,TABLE>, SERVICE extends AbstractVOService<VO, DAO>> extends AbstractVOServiceTest<VO, R, TABLE, DAO, SERVICE> {
 
     public AbstractVOServiceWithPermissionsTest() {
 

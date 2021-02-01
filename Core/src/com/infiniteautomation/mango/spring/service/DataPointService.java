@@ -82,7 +82,7 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class DataPointService extends AbstractVOService<DataPointVO, DataPointsRecord, DataPoints, DataPointDao> {
+public class DataPointService extends AbstractVOService<DataPointVO, DataPointDao> {
 
     private final DataSourceDao dataSourceDao;
     private final EventDetectorDao eventDetectorDao;

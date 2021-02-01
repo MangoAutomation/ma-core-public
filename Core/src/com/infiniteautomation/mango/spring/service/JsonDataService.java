@@ -34,7 +34,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Service
-public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataRecord, JsonData, JsonDataDao> {
+public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> {
 
     private final JsonDataCreatePermissionDefinition createPermission;
     private final ObjectMapper mapper;

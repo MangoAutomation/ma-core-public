@@ -9,8 +9,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.Table;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
@@ -34,7 +32,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOService<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicVOAccess<T, R, TABLE>> {
+public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO extends AbstractBasicVOAccess<T>> {
 
     protected final DAO dao;
     protected final PermissionService permissionService;

@@ -30,7 +30,7 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class EventDetectorsService extends AbstractVOService<AbstractEventDetectorVO, EventDetectorsRecord, EventDetectors, EventDetectorDao>{
+public class EventDetectorsService extends AbstractVOService<AbstractEventDetectorVO, EventDetectorDao>{
 
     @Autowired
     public EventDetectorsService(EventDetectorDao dao, PermissionService permissionService) {

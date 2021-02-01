@@ -52,7 +52,7 @@ import net.jazdw.rql.parser.ASTNode;
  *
  */
 @Service
-public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventsRecord, Events, EventInstanceDao> {
+public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceDao> {
 
     private final DataPointDao dataPointDao;
     /**

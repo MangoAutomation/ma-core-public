@@ -29,7 +29,7 @@ import com.serotonin.validation.StringValidation;
  * @author Terry Packer
  */
 @Service
-public class UserCommentService extends AbstractVOService<UserCommentVO, UserCommentsRecord, UserComments, UserCommentDao>  {
+public class UserCommentService extends AbstractVOService<UserCommentVO, UserCommentDao>  {
 
     private final UserDao userDao;
     private final DataPointDao dataPointDao;
