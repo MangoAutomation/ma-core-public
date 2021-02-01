@@ -5,11 +5,11 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
@@ -153,7 +153,7 @@ public class PointValueDaoMetrics implements CachingPointValueDao {
 
     @Override
     public void getPointValuesBetween(DataPointVO vo, long from, long to,
-            MappedRowCallback<PointValueTime> callback) {
+            Consumer<PointValueTime> callback) {
         LogStopWatch LogStopWatch = new LogStopWatch();
         dao.getPointValuesBetween(vo,from,to,callback);
         LogStopWatch.stop(() -> "getPointValuesBetween(vo,from,to,callback) + (" + vo + ", " + from + ", " + to + ", " + callback.toString() + ")", this.metricsThreshold);
@@ -161,7 +161,7 @@ public class PointValueDaoMetrics implements CachingPointValueDao {
 
     @Override
     public void getPointValuesBetween(List<DataPointVO> vos, long from,
-            long to, MappedRowCallback<IdPointValueTime> callback) {
+            long to, Consumer<IdPointValueTime> callback) {
         LogStopWatch LogStopWatch = new LogStopWatch();
         dao.getPointValuesBetween(vos,from,to,callback);
         Supplier<String> msg;

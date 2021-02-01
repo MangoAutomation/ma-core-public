@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EmportService;
@@ -32,7 +33,6 @@ import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
@@ -43,7 +43,6 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -123,12 +122,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             ASTNode root = parser.parse(query);
             List<DataPointVO> dataPoints = new ArrayList<>();
             ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) dataPointDao.rqlToCondition(root, null, null, null);
-            DataPointDao.getInstance().customizedQuery(conditions, permissions, new MappedRowCallback<DataPointVO>() {
-                @Override
-                public void row(DataPointVO item, int index) {
-                    dataPoints.add(item);
-                }
-            });
+            DataPointDao.getInstance().customizedQuery(conditions, permissions, dataPoints::add);
 
             data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
         }
@@ -154,7 +148,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             List<DataSourceVO> dataSources = new ArrayList<>();
             ASTNode root = parser.parse(query);
             runAs.runAs(permissions, () -> {
-                dataSourceService.customizedQuery(root, (ds, index) -> {
+                dataSourceService.customizedQuery(root, (ds) -> {
                     dataSources.add(ds);
                 });
             });

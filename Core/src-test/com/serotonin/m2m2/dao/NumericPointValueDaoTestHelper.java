@@ -975,7 +975,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(PointValueTime value, int index) {
+            public void row(PointValueTime value) {
                 Assert.fail("Should not have data");
             }
 
@@ -996,7 +996,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(PointValueTime value, int index) {
+            public void row(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1029,7 +1029,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(PointValueTime value, int index) {
+            public void row(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1062,7 +1062,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(PointValueTime value, int index) {
+            public void row(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");

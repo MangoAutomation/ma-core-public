@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,6 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.Events;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
@@ -122,7 +122,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         }
 
         ConditionSortLimit conditions = new ConditionSortLimit(events.ackTs.isNull(), null, null, null);
-        dao.customizedQuery(conditions, user, (item, index) -> {
+        dao.customizedQuery(conditions, user, (item) -> {
             dao.loadRelationalData(item);
             UserEventLevelSummary summary = summaries.get(item.getAlarmLevel());
             summary.increment(item);
@@ -199,7 +199,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         }
 
         try {
-            customizedQuery(conditions, (EventInstanceVO vo, int index) -> {
+            customizedQuery(conditions, (EventInstanceVO vo) -> {
                 if (hasEditPermission(user, vo)) {
                     EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), ackTimestamp, user, message);
                     if (event != null && event.isAcknowledged()) {
@@ -229,7 +229,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
         PermissionHolder user = Common.getUser();
         CurrentPeriod current = new CurrentPeriod(list);
-        customizedQuery(conditions.withNullLimitOffset(), (EventInstanceVO item, int index) -> {
+        customizedQuery(conditions.withNullLimitOffset(), (EventInstanceVO item) -> {
             if (hasReadPermission(user, item)) {
                 PeriodCounts period = current.getPeriod(new Date(item.getActiveTimestamp()));
                 if (period != null) {
@@ -328,7 +328,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * Query events for a set of tags
      *
      */
-    public void queryDataPointEventCountsByRQL(ASTNode rql, Long from, Long to, MappedRowCallback<AlarmPointTagCount> callback) {
+    public void queryDataPointEventCountsByRQL(ASTNode rql, Long from, Long to, Consumer<AlarmPointTagCount> callback) {
         PermissionHolder user = Common.getUser();
         this.dao.queryDataPointEventCountsByRQL(rql, from, to, user, callback);
     }

@@ -66,7 +66,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
@@ -869,7 +868,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @param user
      * @param callback
      */
-    public void customizedEditQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<DataPointVO> callback) {
+    public void customizedEditQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<DataPointVO> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
         select = joinEditPermissions(select, conditions, user);
@@ -947,7 +946,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     @Override
     protected ResultSetExtractor<Void> getCallbackResultSetExtractor(
-            MappedRowCallback<DataPointVO> callback) {
+            Consumer<DataPointVO> callback) {
         return getCallbackResultSetExtractor(callback, (e, rs) -> {
             if (e.getCause() instanceof ModuleNotLoadedException) {
                 try {

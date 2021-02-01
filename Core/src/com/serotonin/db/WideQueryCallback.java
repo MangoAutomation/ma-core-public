@@ -30,10 +30,9 @@ public interface WideQueryCallback<T> {
      * If an exception is thrown the query should be aborted
      * 
      * @param value
-     * @param index
      * @throws IOException to abort query
      */
-    void row(T value, int index);
+    void row(T value);
     
     /**
      * Called with the value before the query period, will not be called if there is no value after.

@@ -137,7 +137,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
         List<T> items = new ArrayList<>();
-        query(sql, args.toArray(new Object[0]), getCallbackResultSetExtractor((item, index)->{
+        query(sql, args.toArray(new Object[0]), getCallbackResultSetExtractor((item)->{
             loadRelationalData(item);
             items.add(item);
         }));

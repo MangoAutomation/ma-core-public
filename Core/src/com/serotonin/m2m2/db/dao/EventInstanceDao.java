@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,6 @@ import com.infiniteautomation.mango.spring.service.EventInstanceService.AlarmPoi
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -438,7 +438,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
             Long from,
             Long to,
             PermissionHolder user,
-            MappedRowCallback<AlarmPointTagCount> callback) {
+            Consumer<AlarmPointTagCount> callback) {
 
         ConditionSortLimit conditions =  rqlToDataPointEventCountCondition(rql);
         Map<String, Name> tags;
@@ -498,7 +498,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                             if(rs.wasNull()) {
                                 rtnTs = null;
                             }
-                            callback.row(new AlarmPointTagCount(xid, name, deviceName, message, level, count, activeTs, rtnTs, tagMap), rowNum);
+                            callback.accept(new AlarmPointTagCount(xid, name, deviceName, message, level, count, activeTs, rtnTs, tagMap));
 
                         }catch(Exception e) {
                             throw new SQLException(e);

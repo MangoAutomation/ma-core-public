@@ -14,7 +14,6 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicVOAccess;
 import com.serotonin.m2m2.db.dao.QueryBuilder;
@@ -244,11 +243,11 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @param conditions
      * @param callback
      */
-    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
+    public void customizedQuery(ConditionSortLimit conditions, Consumer<T> callback) {
         PermissionHolder user = Common.getUser();
-        dao.customizedQuery(conditions, user, (item, index) ->{
+        dao.customizedQuery(conditions, user, (item) ->{
             dao.loadRelationalData(item);
-            callback.row(item, index);
+            callback.accept(item);
         });
     }
 
@@ -258,11 +257,11 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @param conditions
      * @param callback
      */
-    public void customizedQuery(ASTNode conditions, MappedRowCallback<T> callback) {
+    public void customizedQuery(ASTNode conditions, Consumer<T> callback) {
         PermissionHolder user = Common.getUser();
-        dao.customizedQuery(dao.rqlToCondition(conditions, null, null, null), user, (item, index) ->{
+        dao.customizedQuery(dao.rqlToCondition(conditions, null, null, null), user, (item) ->{
             dao.loadRelationalData(item);
-            callback.row(item, index);
+            callback.accept(item);
         });
     }
 

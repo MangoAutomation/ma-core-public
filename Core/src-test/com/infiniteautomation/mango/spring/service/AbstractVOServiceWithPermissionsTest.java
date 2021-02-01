@@ -422,7 +422,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         runAs.runAs(readUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item, row) -> {
+            getService().customizedQuery(conditions, (item) -> {
                 count.getAndIncrement();
             });
             assertEquals(0, count.get());
@@ -431,7 +431,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             Condition c = getDao().getNameField().eq(saved.getName());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item, row) -> {
+            getService().customizedQuery(conditions, (item) -> {
                 count.getAndIncrement();
                 assertEquals(saved.getName(), item.getName());
             });
@@ -447,7 +447,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         runAs.runAs(editUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item, row) -> {
+            getService().customizedQuery(conditions, (item) -> {
                 count.getAndIncrement();
             });
             assertEquals(0, count.get());
@@ -460,7 +460,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             Condition c = getDao().getNameField().eq(savedReadable.getName());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item, row) -> {
+            getService().customizedQuery(conditions, (item) -> {
                 count.getAndIncrement();
                 assertEquals(savedReadable.getName(), item.getName());
             });

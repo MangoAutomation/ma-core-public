@@ -9,10 +9,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -181,14 +181,14 @@ public class MockPointValueDao implements PointValueDao{
 
     @Override
     public void getPointValuesBetween(DataPointVO vo, long from, long to,
-            MappedRowCallback<PointValueTime> callback) {
+            Consumer<PointValueTime> callback) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
     public void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
-            MappedRowCallback<IdPointValueTime> callback) {
+            Consumer<IdPointValueTime> callback) {
         // TODO Auto-generated method stub
 
     }

@@ -182,7 +182,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
         runAs.runAs(readUser, () -> {
             ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
             AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item, row) -> {
+            getService().customizedQuery(conditions, (item) -> {
                 count.getAndIncrement();
             });
             assertEquals(0, count.get());
@@ -191,7 +191,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
             Condition c = getDao().getIdField().eq(saved.getId());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item, row) -> {
+            getService().customizedQuery(conditions, (item) -> {
                 count.getAndIncrement();
                 assertEquals(saved.getId(), item.getId());
             });

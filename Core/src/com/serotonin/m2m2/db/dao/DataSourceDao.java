@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -46,7 +47,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -239,8 +239,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     }
 
     @Override
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(
-            MappedRowCallback<DataSourceVO> callback) {
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<DataSourceVO> callback) {
         return getCallbackResultSetExtractor(callback, (e, rs) -> {
             if (e.getCause() instanceof ModuleNotLoadedException) {
                 try {

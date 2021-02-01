@@ -20,8 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.db.tables.FileStores;
-import com.infiniteautomation.mango.db.tables.records.FileStoresRecord;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableIllegalArgumentException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
@@ -107,7 +105,7 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
         List<FileStore> stores = new ArrayList<>();
 
         this.customizedQuery(new ConditionSortLimit(null, null, null, null),
-                (item, row) -> stores.add(item));
+                (item) -> stores.add(item));
 
         PermissionHolder user = Common.getUser();
         Collection<FileStoreDefinition> moduleDefs = ModuleRegistry.getFileStoreDefinitions().values();

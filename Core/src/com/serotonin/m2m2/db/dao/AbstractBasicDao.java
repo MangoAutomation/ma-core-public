@@ -59,7 +59,6 @@ import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -312,22 +311,20 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     }
 
     @Override
-    public void getAll(MappedRowCallback<T> callback) {
+    public void getAll(Consumer<T> callback) {
         Select<Record> query = this.getJoinedSelectQuery();
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        query(sql, args.toArray(), getCallbackResultSetExtractor((item, index) -> {
+        query(sql, args.toArray(), getCallbackResultSetExtractor((item) -> {
             loadRelationalData(item);
-            callback.row(item, index);
+            callback.accept(item);
         }));
     }
 
     @Override
     public List<T> getAll() {
         List<T> items = new ArrayList<>();
-        getAll((item, index) -> {
-            items.add(item);
-        });
+        getAll(items::add);
         return items;
     }
 
@@ -434,7 +431,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     }
 
     @Override
-    public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback) {
+    public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
         select = joinPermissions(select, conditions, user);
@@ -443,7 +440,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     @Override
     public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<?>> sort, Integer limit, Integer offset,
-            MappedRowCallback<T> callback) {
+            Consumer<T> callback) {
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
 
         SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
@@ -461,7 +458,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     }
 
     @Override
-    public void customizedQuery(Select<Record> select, MappedRowCallback<T> callback) {
+    public void customizedQuery(Select<Record> select, Consumer<T> callback) {
         customizedQuery(select, getCallbackResultSetExtractor(callback));
     }
 
@@ -668,7 +665,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @param callback
      * @return
      */
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(MappedRowCallback<T> callback) {
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<T> callback) {
         return getCallbackResultSetExtractor(callback, (e, rs) -> {
             if(e.getCause() instanceof ModuleNotLoadedException) {
                 LOG.error(e.getCause().getMessage(), e.getCause());
@@ -687,7 +684,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @param error
      * @return
      */
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(MappedRowCallback<T> callback, BiConsumer<Exception, ResultSet> error) {
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<T> callback, BiConsumer<Exception, ResultSet> error) {
         return new ResultSetExtractor<Void>() {
 
             @Override
@@ -698,7 +695,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                     try {
                         T row = rowMapper.mapRow(rs, rowNum);
                         loadRelationalData(row);
-                        callback.row(row, rowNum);
+                        callback.accept(row);
                     }catch (Exception e) {
                         error.accept(e, rs);
                         //Abort mission

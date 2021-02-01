@@ -67,7 +67,7 @@ public class DataSourceQuery extends ScriptUtility {
         ASTNode root = parser.parse(query);
         List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();
         runAs.runAs(permissions, () -> {
-            dataSourceService.customizedQuery(root, (ds, index) -> {
+            dataSourceService.customizedQuery(root, (ds) -> {
                 List<DataPointWrapper> points = getPointsForSource(ds);
                 results.add(new DataSourceWrapper(ds, points));
             });

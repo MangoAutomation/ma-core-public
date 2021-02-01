@@ -22,7 +22,6 @@ import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -88,7 +87,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> extends Transa
      *
      * @return
      */
-    void getAll(MappedRowCallback<T> callback);
+    void getAll(Consumer<T> callback);
 
     /**
      * Return all VOs with FKs Populated optionally
@@ -163,30 +162,20 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> extends Transa
     int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition);
 
     /**
-     * TODO Mango 4.0 Remove this
-     * Create a custom query with callback for each row
-     * @param conditions
-     * @param callback
-     */
-    void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback);
-
-    /**
      * Adapts the callback to a consumer.
      *
      * @param conditions
      * @param user
      * @param consumer
      */
-    default void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<T> consumer) {
-        customizedQuery(conditions, user, (item, i) -> consumer.accept(item));
-    }
+    void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<T> consumer);
 
     /**
      * Execute a query for VOs with a callback per row
      * @param select
      * @param callback
      */
-    void customizedQuery(Select<Record> select, MappedRowCallback<T> callback);
+    void customizedQuery(Select<Record> select, Consumer<T> callback);
 
     /**
      * Execute a custom query and extract results
@@ -208,7 +197,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> extends Transa
     void customizedQuery(SelectJoinStep<Record> select,
             Condition condition, List<SortField<?>> sort,
             Integer limit, Integer offset,
-            MappedRowCallback<T> callback);
+            Consumer<T> callback);
 
     /**
      * Get the select query for the supplied fields without any joins

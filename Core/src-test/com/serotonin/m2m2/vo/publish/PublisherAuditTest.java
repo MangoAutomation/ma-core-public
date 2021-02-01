@@ -75,7 +75,7 @@ public class PublisherAuditTest extends MangoTestBase {
             ConditionSortLimit c = new ConditionSortLimit(conditions, Collections.singletonList(auditTable.id.asc()), null, null);
             service.customizedQuery(
                     c,
-                    (evt, index) -> {
+                    (evt) -> {
                         events.add(evt);
                     });
             if (events.size() == 2) {

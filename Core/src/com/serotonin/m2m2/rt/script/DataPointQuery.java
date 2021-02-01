@@ -17,7 +17,6 @@ import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.RQLUtils;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -65,12 +64,7 @@ public class DataPointQuery extends ScriptUtility {
         ASTNode root = RQLUtils.parseRQLtoAST(query);
         List<DataPointVO> dataPoints = new ArrayList<>();
         ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null, null);
-        DataPointDao.getInstance().customizedQuery(conditions, permissions, new MappedRowCallback<DataPointVO>() {
-            @Override
-            public void row(DataPointVO item, int index) {
-                dataPoints.add(item);
-            }
-        });
+        DataPointDao.getInstance().customizedQuery(conditions, permissions, dataPoints::add);
 
         List<DataPointWrapper> results = new ArrayList<DataPointWrapper>();
 

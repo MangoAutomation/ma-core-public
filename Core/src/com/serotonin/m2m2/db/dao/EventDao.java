@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -46,7 +47,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
@@ -252,7 +252,7 @@ public class EventDao extends BaseDao {
      * @param callback
      * @return
      */
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(MappedRowCallback<EventInstance> callback) {
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<EventInstance> callback) {
         return getCallbackResultSetExtractor(callback, (e, rs) -> {
             if(e.getCause() instanceof ModuleNotLoadedException) {
                 LOG.error(e.getCause().getMessage(), e.getCause());
@@ -265,7 +265,7 @@ public class EventDao extends BaseDao {
         });
     }
 
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(MappedRowCallback<EventInstance> callback, BiConsumer<Exception, ResultSet> error) {
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<EventInstance> callback, BiConsumer<Exception, ResultSet> error) {
         return new ResultSetExtractor<Void>() {
 
             @Override
@@ -276,7 +276,7 @@ public class EventDao extends BaseDao {
                     try {
                         EventInstance row = rowMapper.mapRow(rs, rowNum);
                         loadRelationalData(row);
-                        callback.row(row, rowNum);
+                        callback.accept(row);
                     }catch (Exception e) {
                         error.accept(e, rs);
                     }finally {
@@ -419,7 +419,7 @@ public class EventDao extends BaseDao {
         SelectConditionStep<Record> where = query.where(table.rtnApplicable.eq(boolToChar(true)).and(table.rtnTs.isNull()));
         String sql = where.getSQL();
         List<Object> args = where.getBindValues();
-        query(sql, args.toArray(), getCallbackResultSetExtractor((item, index) -> {
+        query(sql, args.toArray(), getCallbackResultSetExtractor((item) -> {
             loadRelationalData(item);
             events.add(item);
         }));

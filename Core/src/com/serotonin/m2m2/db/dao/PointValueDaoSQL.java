@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,7 +70,6 @@ import com.infiniteautomation.mango.db.tables.records.PointValueAnnotationsRecor
 import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -462,7 +462,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     // Query with callback
     //
     @Override
-    public void getPointValuesBetween(DataPointVO vo, long from, long to, MappedRowCallback<PointValueTime> callback) {
+    public void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<PointValueTime> callback) {
         ResultQuery<Record> result = baseQuery()
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
                 .and(pv.ts.greaterOrEqual(from))
@@ -471,7 +471,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
 
         AtomicInteger count = new AtomicInteger();
         try (Stream<Record> stream = result.fetchSize(100).stream()) {
-            stream.map(this::mapRecord).forEach(pvt -> callback.row(pvt, count.getAndIncrement()));
+            stream.map(this::mapRecord).forEach(callback);
         }
     }
 
@@ -619,7 +619,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
         PointValueTime pvt = this.getPointValueBefore(vo, from);
         if (pvt != null)
             callback.preQuery(pvt);
-        this.getPointValuesBetween(vo, from, to, callback::row);
+        this.getPointValuesBetween(vo, from, to, (value) -> callback.row(value));
         pvt = this.getPointValueAfter(vo, to);
         if (pvt != null)
             callback.postQuery(pvt);
@@ -920,7 +920,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     //
     @Override
     public void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
-                                      MappedRowCallback<IdPointValueTime> callback) {
+                                      Consumer<IdPointValueTime> callback) {
         List<Integer> dataPointIds = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
         String ids = createDelimitedList(dataPointIds, ",", null);
         query(ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + ids + ") and pv.ts >= ? and pv.ts<? order by ts",

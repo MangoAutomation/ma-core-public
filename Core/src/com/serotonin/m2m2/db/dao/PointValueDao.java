@@ -19,10 +19,10 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -135,7 +135,7 @@ public interface PointValueDao {
      * @param to
      * @return
      */
-    public void getPointValuesBetween(DataPointVO vo, long from, long to, MappedRowCallback<PointValueTime> callback);
+    public void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<PointValueTime> callback);
 
     /**
      * Get point values >= from and < to
@@ -145,7 +145,7 @@ public interface PointValueDao {
      * @return ordered list for all values by time
      */
     public void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
-            MappedRowCallback<IdPointValueTime> callback);
+            Consumer<IdPointValueTime> callback);
 
     /**
      * Get point values >= from and < to

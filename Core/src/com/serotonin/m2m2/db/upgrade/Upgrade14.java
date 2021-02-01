@@ -12,11 +12,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.db.DatabaseType;
 
 /**
@@ -56,9 +56,9 @@ public class Upgrade14 extends DBUpgrade{
                     return rs.getInt(1);
                 }
             };
-            final MappedRowCallback<Integer> callback = new MappedRowCallback<Integer>(){
+            final Consumer<Integer> callback = new Consumer<Integer>(){
                 @Override
-                public void row(Integer item, int index) {
+                public void accept(Integer item) {
                     ejt.update("UPDATE userComments SET xid=? WHERE id=?", new Object[]{prefix + UUID.randomUUID(), item});
                     count.incrementAndGet();
                 }
@@ -68,7 +68,7 @@ public class Upgrade14 extends DBUpgrade{
 
                 @Override
                 public void processRow(ResultSet rs) throws SQLException {
-                    callback.row(mapper.mapRow(rs, rowNum), rowNum);
+                    callback.accept(mapper.mapRow(rs, rowNum));
                     rowNum++;
                 }
             });

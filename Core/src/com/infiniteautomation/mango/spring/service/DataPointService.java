@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -36,7 +37,6 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.Common.TimePeriods;
@@ -381,7 +381,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * @param offset
      * @param callback
      */
-    public void queryDeviceNames(Condition conditions, boolean sortAsc, Integer limit, Integer offset, MappedRowCallback<String> callback) {
+    public void queryDeviceNames(Condition conditions, boolean sortAsc, Integer limit, Integer offset, Consumer<String> callback) {
         PermissionHolder user = Common.getUser();
 
         List<SortField<?>> sort = new ArrayList<>();
@@ -414,10 +414,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         }
 
         dao.customizedQuery(offsetStep, (ResultSetExtractor<Void>) rs -> {
-            int rowNum = 0;
             while (rs.next()) {
-                callback.row(rs.getString(1), rowNum);
-                rowNum++;
+                callback.accept(rs.getString(1));
             }
             return null;
         });

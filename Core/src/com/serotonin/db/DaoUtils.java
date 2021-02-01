@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -247,14 +248,12 @@ public class DaoUtils implements TransactionCapable {
         return ejt.query(sql, args, rowMapper, limit);
     }
 
-    public <T> void query(String sql, Object[] args, final RowMapper<T> rowMapper, final MappedRowCallback<T> callback) {
+    public <T> void query(String sql, Object[] args, final RowMapper<T> rowMapper, final Consumer<T> callback) {
         ejt.query(sql, args, new RowCallbackHandler() {
             private int rowNum = 0;
-
             @Override
             public void processRow(ResultSet rs) throws SQLException {
-                callback.row(rowMapper.mapRow(rs, rowNum), rowNum);
-                rowNum++;
+                callback.accept(rowMapper.mapRow(rs, rowNum++));
             }
         });
     }
