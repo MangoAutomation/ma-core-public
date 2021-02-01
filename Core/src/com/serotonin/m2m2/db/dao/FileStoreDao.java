@@ -22,6 +22,10 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.FileStores;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.infiniteautomation.mango.db.tables.records.FileStoresRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
@@ -29,8 +33,6 @@ import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -42,18 +44,18 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Jared Wiltshire
  */
 @Repository
-public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinition> {
+public class FileStoreDao extends AbstractVoDao<FileStore, FileStoresRecord, FileStores> {
 
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(FileStoreDao.class));
 
     private final PermissionService permissionService;
 
     @Autowired
-    private FileStoreDao(FileStoreTableDefinition table,
+    private FileStoreDao(
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionService permissionService) {
-        super(FileStore.FileStoreAuditEvent.TYPE_NAME, table, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher);
+        super(FileStore.FileStoreAuditEvent.TYPE_NAME, FileStores.FILE_STORES.as("fs"), new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher);
         this.permissionService = permissionService;
     }
 
@@ -81,18 +83,23 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoreTableDefinit
     }
 
     @Override
-    protected Object[] voToObjectArray(FileStore vo) {
-        return new Object[] {
-                vo.getXid(),
-                vo.getName(),
-                vo.getReadPermission().getId(),
-                vo.getWritePermission().getId()
-        };
+    protected Record voToObjectArray(FileStore vo) {
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.name, vo.getName());
+        record.set(table.readPermissionId, vo.getReadPermission().getId());
+        record.set(table.writePermissionId, vo.getWritePermission().getId());
+        return record;
     }
 
     @Override
     public RowMapper<FileStore> getRowMapper() {
         return new FileStoreRowMapper();
+    }
+
+    @Override
+    public FileStore mapRecord(Record record) {
+        return null;
     }
 
     @Override

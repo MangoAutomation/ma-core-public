@@ -25,6 +25,8 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.MailingLists;
+import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
@@ -51,7 +53,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Matthew Lohbihler
  */
 @Repository
-public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableDefinition> {
+public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecord, MailingLists> {
 
     private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(MailingListDao.class);
@@ -60,12 +62,11 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
     private final PermissionService permissionService;
 
     @Autowired
-    private MailingListDao(MailingListTableDefinition table,
-            PermissionService permissionService,
+    private MailingListDao(PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST,
-                table,
+                MailingLists.MAILING_LISTS.as("ml"),
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
@@ -197,19 +198,24 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListTableD
     }
 
     @Override
-    protected Object[] voToObjectArray(MailingList vo) {
-        return new Object[] {
-                vo.getXid(),
-                vo.getName(),
-                vo.getReceiveAlarmEmails().value(),
-                vo.getReadPermission().getId(),
-                vo.getEditPermission().getId()
-        };
+    protected Record voToObjectArray(MailingList vo) {
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.name, vo.getName());
+        record.set(table.receiveAlarmEmails, vo.getReceiveAlarmEmails().value());
+        record.set(table.readPermissionId, vo.getReadPermission().getId());
+        record.set(table.editPermissionId, vo.getEditPermission().getId());
+        return record;
     }
 
     @Override
     public RowMapper<MailingList> getRowMapper() {
         return new MailingListRowMapper();
+    }
+
+    @Override
+    public MailingList mapRecord(Record record) {
+        return null;
     }
 
     class MailingListRowMapper implements RowMapper<MailingList> {

@@ -3,14 +3,15 @@
  */
 package com.infiniteautomation.mango.spring.events;
 
-import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
-import com.serotonin.m2m2.db.dao.AbstractBasicDao;
-import com.serotonin.m2m2.vo.AbstractBasicVO;
+import java.util.Objects;
+
 import org.springframework.context.ApplicationEvent;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.ResolvableTypeProvider;
 
-import java.util.Objects;
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
  * @author Jared Wiltshire
@@ -30,7 +31,7 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
      * @param originalXid
      * @param updatedFields
      */
-    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo) {
+    public DaoEvent(AbstractBasicDao<T,?,?> source, DaoEventType type, T vo) {
         super(source);
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);
@@ -48,7 +49,7 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
      * @param vo
      * @param originalXid
      */
-    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo, T originalVo) {
+    public DaoEvent(AbstractBasicDao<T,?,?> source, DaoEventType type, T vo, T originalVo) {
         super(source);
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);

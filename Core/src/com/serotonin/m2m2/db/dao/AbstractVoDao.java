@@ -6,13 +6,14 @@ package com.serotonin.m2m2.db.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
+import org.jooq.Table;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -25,7 +26,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Jared Wiltshire
  * @author Terry Packer
  */
-public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends AbstractTableDefinition> extends AbstractBasicDao<T, TABLE> implements AbstractVOAccess<T, TABLE> {
+public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABLE extends Table<R>> extends AbstractBasicDao<T, R, TABLE> implements AbstractVOAccess<T, R, TABLE> {
 
     /**
      * For generating XIDs this is prepended to any XIDs generated
@@ -51,8 +52,6 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
      *
      * @param typeName
      * @param table
-     * @param tableAlias
-     * @param extraProperties
      * @param countMonitorName - If not null create a monitor to track table row count
      * @param mapper
      * @param publisher
@@ -64,8 +63,6 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
-
-
 
     /**
      * Gets the XID prefix for XID generation
@@ -79,27 +76,48 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
         if (xidPrefix == null) {
             return null;
         }
-        return generateUniqueXid(xidPrefix, this.table.getTable().getName());
+        return generateUniqueXid(xidPrefix, table.getName());
     }
 
     @Override
     public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, this.table.getTable().getName());
+        return isXidUnique(xid, excludeId, table.getName());
+    }
+
+    public Field<String> getXidField() {
+        Field<?> field = table.field("xid");
+        if (field != null) {
+            if (field.getDataType().isString()) {
+                return field.cast(String.class);
+            }
+        }
+        return null;
+    }
+
+    public Field<String> getNameField() {
+        Field<?> field = table.field("name");
+        if (field != null) {
+            if (field.getDataType().isString()) {
+                return field.cast(String.class);
+            }
+        }
+        return null;
     }
 
     @Override
     public T getByXid(String xid) {
-        if (this.table.getField("xid") == null) {
+        Field<String> xidField = getXidField();
+        if (xidField == null) {
             throw new UnsupportedOperationException("This table does not have an XID column");
         }
         Assert.notNull(xid, "Must supply xid");
 
         Select<Record> query = this.getJoinedSelectQuery()
-                .where(table.getXidAlias().eq(xid))
+                .where(xidField.eq(xid))
                 .limit(1);
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        T vo = ejt.query(sql, args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
+        T vo = ejt.query(sql, args.toArray(new Object[0]), getObjectResultSetExtractor());
         if(vo != null) {
             loadRelationalData(vo);
         }
@@ -108,17 +126,18 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
 
     @Override
     public List<T> getByName(String name) {
-        if (this.table.getField("name") == null) {
+        Field<String> nameField = getXidField();
+        if (nameField == null) {
             throw new UnsupportedOperationException("This table does not have a name column");
         }
         Assert.notNull(name, "Must supply name");
 
         Select<Record> query = this.getJoinedSelectQuery()
-                .where(this.table.getField("name").eq(name));
+                .where(nameField.eq(name));
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
         List<T> items = new ArrayList<>();
-        query(sql, args.toArray(new Object[args.size()]), getCallbackResultSetExtractor((item, index)->{
+        query(sql, args.toArray(new Object[0]), getCallbackResultSetExtractor((item, index)->{
             loadRelationalData(item);
             items.add(item);
         }));
@@ -127,15 +146,15 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
 
     @Override
     public Integer getIdByXid(String xid) {
-        return this.create.select(this.table.getIdAlias()).from(this.table.getTableAsAlias())
-                .where(this.table.getXidAlias().eq(xid))
+        return this.create.select(getIdField()).from(table)
+                .where(getXidField().eq(xid))
                 .limit(1).fetchOneInto(Integer.class);
     }
 
     @Override
     public String getXidById(int id) {
-        return this.create.select(this.table.getXidAlias()).from(this.table.getTableAsAlias())
-                .where(this.table.getIdAlias().eq(id))
+        return this.create.select(getXidField()).from(table)
+                .where(getIdField().eq(id))
                 .limit(1).fetchOneInto(String.class);
     }
 
@@ -169,8 +188,8 @@ public abstract class AbstractVoDao<T extends AbstractVO, TABLE extends Abstract
 
     @Override
     public void lockRow(String xid) {
-        this.create.select().from(this.table.getTableAsAlias())
-        .where(this.table.getXidAlias().eq(xid))
+        this.create.select().from(table)
+        .where(getXidField().eq(xid))
         .forUpdate()
         .fetch();
     }

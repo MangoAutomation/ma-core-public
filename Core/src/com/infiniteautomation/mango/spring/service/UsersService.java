@@ -31,7 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.cache.WeakValueCache;
-import com.infiniteautomation.mango.spring.db.UserTableDefinition;
+import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
@@ -72,7 +73,7 @@ import freemarker.template.TemplateException;
  * @author Terry Packer
  */
 @Service
-public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> implements CachingService {
+public class UsersService extends AbstractVOService<User, UsersRecord, Users, UserDao> implements CachingService {
 
     private final SystemSettingsDao systemSettings;
     private final PasswordService passwordService;

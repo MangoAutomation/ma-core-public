@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.jooq.Query;
+import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
@@ -30,6 +31,8 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
+import com.infiniteautomation.mango.db.tables.Roles;
+import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -42,17 +45,16 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Repository
-public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
+public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     private final PermissionDao permissionDao;
 
     @Autowired
-    private RoleDao(RoleTableDefinition table,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionDao permissionDao) {
         super(AuditEventType.TYPE_ROLE,
-                table,
+                Roles.ROLES.as("r"),
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
         this.permissionDao = permissionDao;
@@ -102,16 +104,21 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
     }
 
     @Override
-    protected Object[] voToObjectArray(RoleVO vo) {
-        return new Object[] {
-                vo.getXid(),
-                vo.getName()
-        };
+    protected Record voToObjectArray(RoleVO vo) {
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.name, vo.getName());
+        return record;
     }
 
     @Override
     public RowMapper<RoleVO> getRowMapper() {
         return new RoleVORowMapper();
+    }
+
+    @Override
+    public RoleVO mapRecord(Record record) {
+        return null;
     }
 
     /**
@@ -147,9 +154,9 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
      */
     private Set<Role> getRolesThatInherit(int roleId) {
         Select<?> select = this.create.select(getSelectFields())
-                .from(this.table.getTableAsAlias())
+                .from(table)
                 .join(RoleTableDefinition.roleInheritanceTableAsAlias)
-                .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias))
+                .on(getIdField().eq(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias))
                 .where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(roleId));
         List<Object> args = select.getBindValues();
         return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
@@ -189,9 +196,9 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
      */
     private Set<Role> getInherited(int roleId) {
         Select<?> select = this.create.select(getSelectFields())
-                .from(this.table.getTableAsAlias())
+                .from(table)
                 .join(RoleTableDefinition.roleInheritanceTableAsAlias)
-                .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias))
+                .on(getIdField().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias))
                 .where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
         List<Object> args = select.getBindValues();
         return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
@@ -222,15 +229,15 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
                 afterWhere = select.where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(roleId));
             }else {
                 //Find all roles with no inherited roles
-                SelectJoinStep<Record1<Integer>> select = create.select(table.getIdAlias()).from(table.getTableAsAlias());
+                SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
                 SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
-                        .on(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(table.getIdAlias()));
+                        .on(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(getIdField()));
                 afterWhere = afterJoin.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.isNull());
             }
 
             switch(operation) {
                 case CONTAINS:
-                    return table.getIdAlias().in(afterWhere.asField());
+                    return getIdField().in(afterWhere.asField());
                 default:
                     throw new RQLVisitException(String.format("Unsupported node type '%s' for property '%s'", node.getName(), arguments.get(0)));
             }
@@ -252,26 +259,26 @@ public class RoleDao extends AbstractVoDao<RoleVO, RoleTableDefinition> {
             SelectConditionStep<Record1<Integer>> afterWhere;
             //TODO Mango 4.0 Should really used role cache in PermissionService but there is a
             // circular dependency if injected due to our use of the RoleDao
-            if(roleXid != null) {
+            if (roleXid != null) {
                 //Find all roles inherited by this role
-                RoleVO role = getByXid((String)roleXid);
-                if(role != null) {
+                RoleVO role = getByXid((String) roleXid);
+                if (role != null) {
                     roleId = role.getId();
                 }
                 SelectJoinStep<Record1<Integer>> select = create.select(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias)
                         .from(RoleTableDefinition.roleInheritanceTableAsAlias);
                 afterWhere = select.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
-            }else {
+            } else {
                 //Find all roles with that are not inherited by any role
-                SelectJoinStep<Record1<Integer>> select = create.select(table.getIdAlias()).from(table.getTableAsAlias());
+                SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
                 SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
-                        .on(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(table.getIdAlias()));
+                        .on(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(getIdField()));
                 afterWhere = afterJoin.where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.isNull());
             }
 
-            switch(operation) {
+            switch (operation) {
                 case CONTAINS:
-                    return table.getIdAlias().in(afterWhere.asField());
+                    return getIdField().in(afterWhere.asField());
                 default:
                     throw new RQLVisitException(String.format("Unsupported node type '%s' for property '%s'", node.getName(), arguments.get(0)));
             }

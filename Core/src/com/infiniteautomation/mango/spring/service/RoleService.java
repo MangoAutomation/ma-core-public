@@ -12,7 +12,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.db.tables.Roles;
+import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
@@ -28,7 +29,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Terry Packer
  */
 @Service
-public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, RoleDao> {
+public class RoleService extends AbstractVOService<RoleVO, RolesRecord, Roles, RoleDao> {
 
     @Autowired
     public RoleService(RoleDao dao, PermissionService permissionService) {

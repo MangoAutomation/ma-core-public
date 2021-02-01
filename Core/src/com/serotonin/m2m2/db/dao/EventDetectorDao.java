@@ -1,17 +1,16 @@
 /**
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jooq.Condition;
@@ -24,34 +23,36 @@ import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.DataPoints;
+import com.infiniteautomation.mango.db.tables.DataSources;
+import com.infiniteautomation.mango.db.tables.EventDetectors;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.infiniteautomation.mango.db.tables.records.EventDetectorsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
@@ -61,93 +62,125 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
- *
  */
 @Repository()
-public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, EventDetectorTableDefinition> {
+public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, EventDetectorsRecord, EventDetectors> {
 
     private static final LazyInitSupplier<EventDetectorDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(EventDetectorDao.class);
     });
 
     /* Map of Source Type to Source ID Column Names */
-    private LinkedHashMap<String, Field<Integer>> sourceTypeToColumnNameMap;
-    private final DataPointTableDefinition dataPointTable;
-    private final DataSourceTableDefinition dataSourceTable;
+    private final DataPoints dataPointTable;
+    private final DataSources dataSourceTable;
 
     private final PermissionService permissionService;
+    private final Map<String, Field<Integer>> sourceTypeToField;
 
     @Autowired
-    private EventDetectorDao(EventDetectorTableDefinition table,
-            DataPointTableDefinition dataPointTable,
-            DataSourceTableDefinition dataSourceTable,
-            PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher){
+    private EventDetectorDao(PermissionService permissionService,
+                             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_DETECTOR,
-                table,
+                EventDetectors.EVENT_DETECTORS.as("ed"),
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
                 mapper, publisher);
-        this.dataPointTable = dataPointTable;
-        this.dataSourceTable = dataSourceTable;
+        this.dataPointTable = DataPoints.DATA_POINTS.as("dp");
+        this.dataSourceTable = DataSources.DATA_SOURCES.as("ds");
         this.permissionService = permissionService;
         //Build our ordered column set from the Module Registry
-        List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
-        this.sourceTypeToColumnNameMap = new LinkedHashMap<>(defs.size());
-        for(EventDetectorDefinition<?> def : defs) {
-            this.sourceTypeToColumnNameMap.put(def.getSourceTypeName(), this.table.getField(def.getSourceIdColumnName()));
-        }
+
+        this.sourceTypeToField = ModuleRegistry.getEventDetectorDefinitions()
+                .stream()
+                .collect(Collectors.toMap(EventDetectorDefinition::getSourceTypeName,
+                        EventDetectorDefinition::getSourceIdColumnName));
     }
 
     /**
      * Get cached instance from Spring Context
+     *
      * @return
      */
     public static EventDetectorDao getInstance() {
         return springInstance.get();
     }
 
-    @Override
-    protected Object[] voToObjectArray(AbstractEventDetectorVO vo) {
-        String data = null;
-        try{
-            data = writeValueAsString(vo);
-        }catch(JsonException | IOException e){
-            LOG.error(e.getMessage(), e);
-        }
-
-        //Find the index of our sourceIdColumn
-        int sourceIdIndex = getSourceIdIndex(vo.getDefinition().getSourceTypeName());
-
-        Object[] o = new Object[7 + this.sourceTypeToColumnNameMap.size()];
-        o[0] = vo.getXid();
-        o[1] = vo.getDetectorSourceType();
-        o[2] = vo.getDetectorType();
-        o[3] = convertData(vo.getData());
-        o[4] = data;
-        o[5] = vo.getReadPermission().getId();
-        o[6] = vo.getEditPermission().getId();
-        o[7 + sourceIdIndex] = vo.getSourceId();
-        return o;
-    }
-
-    @Override
-    public RowMapper<AbstractEventDetectorVO> getRowMapper() {
-        return new EventDetectorRowMapper<AbstractEventDetectorVO>((c) -> this.extractData(c), this);
-    }
-
-    public JsonObject readValueFromString(String json) throws JsonException, IOException {
-        JsonTypeReader reader = new JsonTypeReader(json);
-
-        return (JsonObject)reader.read();
-    }
-
-    public static String writeValueAsString(AbstractEventDetectorVO value) throws JsonException, IOException {
+    private String writeValueAsString(AbstractEventDetectorVO value) throws JsonException, IOException {
         StringWriter stringWriter = new StringWriter();
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
         writer.writeObject(value);
         return stringWriter.toString();
+    }
 
+    @Override
+    protected Record voToObjectArray(AbstractEventDetectorVO vo) {
+        String data = null;
+        try {
+            data = writeValueAsString(vo);
+        } catch (JsonException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
+
+        //Find the index of our sourceIdColumn
+        Field<Integer> sourceId = sourceTypeToField.get(vo.getDetectorSourceType());
+
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.sourceTypeName, vo.getDetectorSourceType());
+        record.set(table.typeName, vo.getDetectorType());
+        record.set(table.jsonData, convertData(vo.getData()));
+        record.set(table.data, data);
+        record.set(table.readPermissionId, vo.getReadPermission().getId());
+        record.set(table.editPermissionId, vo.getEditPermission().getId());
+
+        // null out other columns
+        for (Field<Integer> field : sourceTypeToField.values()) {
+            record.set(field, null);
+        }
+        // update the correct source id column
+        record.set(sourceId, vo.getSourceId());
+
+        return record;
+    }
+
+    @Override
+    public AbstractEventDetectorVO mapRecord(Record record) {
+        String type = record.get(table.sourceTypeName);
+        EventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(type);
+        if (definition == null)
+            throw new IllegalStateException("Event detector definition of type '" + type + "' not found.");
+
+        //Compute the index of this source id
+        Field<Integer> sourceIdField = sourceTypeToField.get(definition.getSourceTypeName());
+        int sourceId = record.get(sourceIdField);
+
+        // TODO Mango 4.0 ensure id and definition are set
+        AbstractEventDetectorVO vo = definition.baseCreateEventDetectorVO(sourceId);
+        readRecordIntoEventDetector(record, vo);
+        return vo;
+    }
+
+    private void readRecordIntoEventDetector(Record record, AbstractEventDetectorVO vo) {
+        vo.setId(record.get(table.id));
+        vo.setXid(record.get(table.xid));
+        vo.setData(extractData(record.get(table.jsonData)));
+
+        //Read Into Detector
+        JsonTypeReader typeReader = new JsonTypeReader(record.get(table.data));
+        try {
+            JsonValue value = typeReader.read();
+            JsonObject root = value.toJsonObject();
+            JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
+            root.remove("handlers");
+            reader.readInto(vo);
+        } catch (ClassCastException | IOException | JsonException e) {
+            LOG.error(e.getMessage(), e);
+        }
+
+        MangoPermission read = new MangoPermission(record.get(table.readPermissionId));
+        vo.supplyReadPermission(() -> read);
+        MangoPermission edit = new MangoPermission(record.get(table.editPermissionId));
+        vo.supplyEditPermission(() -> edit);
     }
 
     @Override
@@ -170,31 +203,31 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     public void saveRelationalData(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo) {
         EventTypeVO et = vo.getEventType();
         EventHandlerDao eventHandlerDao = EventHandlerDao.getInstance();
-        if(vo.getAddedEventHandlers() != null) {
-            if(existing != null) {
+        if (vo.getAddedEventHandlers() != null) {
+            if (existing != null) {
                 for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
                     eventHandlerDao.addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
                 }
-            }else {
+            } else {
                 for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
                     eventHandlerDao.saveEventHandlerMapping(ehVo.getId(), et.getEventType());
                 }
             }
-        }else if(vo.getEventHandlerXids() != null) {
+        } else if (vo.getEventHandlerXids() != null) {
             //Remove all mappings if we are updating the detector
-            if(existing != null ) {
+            if (existing != null) {
                 eventHandlerDao.deleteEventHandlerMappings(et.getEventType());
             }
             //Add mappings
-            for(String xid : vo.getEventHandlerXids()) {
+            for (String xid : vo.getEventHandlerXids()) {
                 eventHandlerDao.saveEventHandlerMapping(xid, et.getEventType());
             }
         }
-        if(existing != null) {
-            if(!existing.getReadPermission().equals(vo.getReadPermission())) {
+        if (existing != null) {
+            if (!existing.getReadPermission().equals(vo.getReadPermission())) {
                 permissionService.deletePermissions(existing.getReadPermission());
             }
-            if(!existing.getEditPermission().equals(vo.getEditPermission())) {
+            if (!existing.getEditPermission().equals(vo.getEditPermission())) {
                 permissionService.deletePermissions(existing.getEditPermission());
             }
         }
@@ -217,7 +250,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     public void deleteRelationalData(AbstractEventDetectorVO vo) {
         //Also update the Event Handlers
         ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
-                new Object[] { vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId() });
+                vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId());
     }
 
     @Override
@@ -231,8 +264,8 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
-            ConditionSortLimit conditions, PermissionHolder user) {
-        if(!permissionService.hasAdminRole(user)) {
+                                                                ConditionSortLimit conditions, PermissionHolder user) {
+        if (!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
@@ -242,7 +275,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
                     .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .having(DSL.count().eq(DSL.count(
                             DSL.case_().when(roleIdsIn, DSL.inline(1))
-                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
+                                    .else_(DSL.inline((Integer) null))))).asTable("mintermsGranted");
 
             Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
                     .from(PermissionsMinterms.PERMISSIONS_MINTERMS)
@@ -256,6 +289,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         }
         return select;
     }
+
     /**
      * Get all data point event detectors with the corresponding sourceId AND the point loaded into it
      * Ordered by detector id.
@@ -263,103 +297,58 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
      * @param sourceId
      * @return
      */
-    public List<AbstractPointEventDetectorVO> getWithSource(int sourceId, DataPointVO dp){
-        Field<Integer> sourceIdColumnName = getSourceIdColumnName(EventType.EventTypeNames.DATA_POINT);
-        Select<Record> query = getJoinedSelectQuery().where(sourceIdColumnName.eq(sourceId)).orderBy(this.table.getIdAlias());
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        return query(sql, args.toArray(new Object[args.size()]), new PointEventDetectorRowMapper(dp, (c) -> this.extractData(c), this));
+    // TODO Mango 4.0 do we need to load relational data?
+    public List<AbstractPointEventDetectorVO> getWithSource(int sourceId, DataPointVO dp) {
+        Field<Integer> sourceIdColumnName = sourceTypeToField.get(EventType.EventTypeNames.DATA_POINT);
+
+        return getJoinedSelectQuery()
+                .where(sourceIdColumnName.eq(sourceId))
+                .orderBy(getIdField())
+                .fetch(r -> mapPointEventDetector(r, dp));
     }
 
     /**
      * Get the id for a given row
+     *
      * @param xid
      * @return
      */
     public int getId(String xid, int dpId) {
-        return queryForObject("SELECT id from " + this.table.getTable().getName() + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
+        return queryForObject("SELECT id from " + table.getName() + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
     }
 
     /**
-     * Get the column name for the source id using the source type
-     * @param sourceType
+     * Get all point event detectors with the data point loaded
+     *
      * @return
      */
-    public Field<Integer> getSourceIdColumnName(String sourceType){
-        Field<Integer> columnName = this.sourceTypeToColumnNameMap.get(sourceType);
-        if(columnName == null)
-            throw new ShouldNeverHappenException("Unknown Detector Source Type: " + sourceType);
-        else
-            return columnName;
+    public List<AbstractPointEventDetectorVO> getAllPointEventDetectors() {
+        List<Field<?>> fields = new ArrayList<>(getSelectFields());
+        fields.addAll(Arrays.asList(dataPointTable.fields()));
+        fields.add(dataSourceTable.name);
+        fields.add(dataSourceTable.xid);
+        fields.add(dataSourceTable.dataSourceType);
+
+        Select<Record> select = joinTables(getSelectQuery(fields), null)
+                .leftOuterJoin(dataPointTable)
+                .on(dataPointTable.id.eq(table.dataPointId))
+                .join(dataSourceTable)
+                .on(dataSourceTable.id.eq(dataPointTable.dataSourceId))
+                .where(table.sourceTypeName.eq(EventTypeNames.DATA_POINT));
+
+        DataPointDao dataPointDao = DataPointDao.getInstance();
+        return select.fetch(record -> {
+            DataPointVO dataPoint = dataPointDao.mapRecord(record);
+            dataPointDao.loadRelationalData(dataPoint);
+            return mapPointEventDetector(record, dataPoint);
+        });
     }
 
-    /**
-     * Get the index of the source id column in the result set returned from a Select
-     * @param sourceType
-     * @return
-     */
-    public int getSourceIdIndex(String sourceType){
-        int index = 0;
-        Iterator<String> it = this.sourceTypeToColumnNameMap.keySet().iterator();
-        while(it.hasNext()){
-            if(it.next().equals(sourceType))
-                break;
-            index++;
-        }
-
-        return index;
-    }
-
-    class EventDetectorWithDataPointResultSetExtractor implements ResultSetExtractor<List<AbstractPointEventDetectorVO>> {
-
-        private final int firstEventDetectorColumn;
-
-        public EventDetectorWithDataPointResultSetExtractor(int firstEventDetectorColumn){
-            this.firstEventDetectorColumn = firstEventDetectorColumn;
-        }
-
-
-        @Override
-        public List<AbstractPointEventDetectorVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            List<AbstractPointEventDetectorVO> results = new ArrayList<>();
-            RowMapper<DataPointVO> pointRowMapper = DataPointDao.getInstance().getRowMapper();
-            while(rs.next()) {
-                DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-                PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(firstEventDetectorColumn, (c) -> EventDetectorDao.this.extractData(c), dpvo, EventDetectorDao.this);
-                AbstractPointEventDetectorVO ped = mapper.mapRow(rs, rs.getRow());
-                results.add(ped);
-            }
-            return results;
-        }
-    }
-
-    /**
-     * Get all event detectors for a given source type i.e. DATA_POINT with the source loaded
-     * @param sourceType
-     * @return
-     */
-    public <X extends AbstractEventDetectorVO> List<X> getForSourceType(String sourceType){
-        switch(sourceType) {
-            case EventType.EventTypeNames.DATA_POINT:
-                List<Field<?>> fields = new ArrayList<>(this.dataPointTable.getSelectFields());
-                //Add data source fields
-                fields.add(dataSourceTable.getAlias("name"));
-                fields.add(dataSourceTable.getAlias("xid"));
-                fields.add(dataSourceTable.getAlias("dataSourceType"));
-
-                int firstEventDetectorColumn = fields.size() + 1; //next field is the start of our columns
-                fields.addAll(getSelectFields());
-
-                Select<Record> select = this.joinTables(this.getSelectQuery(fields), null)
-                        .leftOuterJoin(this.dataPointTable.getTableAsAlias())
-                        .on(this.dataPointTable.getIdAlias().eq(this.table.getField("dataPointId")))
-                        .join(dataSourceTable.getTableAsAlias())
-                        .on(DSL.field(dataSourceTable.getAlias("id"))
-                                .eq(this.table.getAlias("dataSourceId")))
-                        .where(this.table.getAlias("sourceTypeName").eq(sourceType));
-                customizedQuery(select, new EventDetectorWithDataPointResultSetExtractor(firstEventDetectorColumn));
-            default:
-                return query(getJoinedSelectQuery().getSQL() + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>((c) -> this.extractData(c), this));
-        }
+    public AbstractPointEventDetectorVO mapPointEventDetector(Record record, DataPointVO dataPoint) {
+        String type = record.get(table.sourceTypeName);
+        PointEventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(type);
+        AbstractPointEventDetectorVO detector = definition.baseCreateEventDetectorVO(dataPoint);
+        readRecordIntoEventDetector(record, detector);
+        return detector;
     }
 }

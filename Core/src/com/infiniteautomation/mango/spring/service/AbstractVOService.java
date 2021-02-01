@@ -4,8 +4,9 @@
 package com.infiniteautomation.mango.spring.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Record;
+import org.jooq.Table;
 
-import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -23,7 +24,7 @@ import com.serotonin.validation.StringValidation;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOService<T extends AbstractVO, TABLE extends AbstractTableDefinition, DAO extends AbstractVOAccess<T, TABLE>> extends AbstractBasicVOService<T,TABLE,DAO> {
+public abstract class AbstractVOService<T extends AbstractVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractVOAccess<T,R,TABLE>> extends AbstractBasicVOService<T,R,TABLE,DAO> {
 
     /**
      *

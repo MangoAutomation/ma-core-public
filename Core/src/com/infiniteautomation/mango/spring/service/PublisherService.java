@@ -11,7 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
+import com.infiniteautomation.mango.db.tables.Publishers;
+import com.infiniteautomation.mango.db.tables.records.PublishersRecord;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -33,7 +34,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Service
-public class PublisherService extends AbstractVOService<PublisherVO<? extends PublishedPointVO>, PublisherTableDefinition, PublisherDao> {
+public class PublisherService extends AbstractVOService<PublisherVO<? extends PublishedPointVO>, PublishersRecord, Publishers, PublisherDao> {
 
     @Autowired
     public PublisherService(PublisherDao dao, PermissionService permissionService) {

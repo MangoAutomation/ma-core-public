@@ -13,8 +13,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.db.tables.MailingLists;
+import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
@@ -31,7 +32,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest<MailingList, MailingListTableDefinition, MailingListDao, MailingListService> {
+public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest<MailingList, MailingListsRecord, MailingLists, MailingListDao, MailingListService> {
 
     @Override
     MailingListService getService() {

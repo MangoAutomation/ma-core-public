@@ -16,13 +16,13 @@ import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
+import org.jooq.Table;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
-import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
@@ -37,21 +37,21 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition> extends TransactionCapable {
+public interface AbstractBasicVOAccess<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>> extends TransactionCapable {
 
     /**
      * Insert a vo and save relational data in a transaction
      *
      * @param vo
      */
-    public void insert(T vo);
+    void insert(T vo);
 
     /**
      * Save any data and set FKs that are required prior to saving this VO
      * @param existing (null on inserts)
      * @param vo
      */
-    public void savePreRelationalData(T existing, T vo);
+    void savePreRelationalData(T existing, T vo);
 
     /**
      * Save relational data for a vo to a different table,
@@ -59,7 +59,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param existing (null on inserts)
      * @param vo
      */
-    public void saveRelationalData(T existing, T vo);
+    void saveRelationalData(T existing, T vo);
 
     /**
      * Update a vo and save its relational data in a transaction.
@@ -67,7 +67,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param id existing id of vo
      * @param vo
      */
-    public void update(int id, T vo);
+    void update(int id, T vo);
 
     /**
      * Update a vo and save its relational data in a transaction.
@@ -75,34 +75,34 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param existing
      * @param vo
      */
-    public void update(T existing, T vo);
+    void update(T existing, T vo);
 
     /**
      * Return a VO and load its relational data using the user to ensure read permission
      * @param id
      * @return
      */
-    public T get(int id);
+    T get(int id);
 
     /**
      * Callback for all VOs with FKs Populated optionally
      *
      * @return
      */
-    public void getAll(MappedRowCallback<T> callback);
+    void getAll(MappedRowCallback<T> callback);
 
     /**
      * Return all VOs with FKs Populated optionally
      *
      * @return
      */
-    public List<T> getAll();
+    List<T> getAll();
 
     /**
      * Load relational data from another table, does not happen within a transaction
      * @param vo
      */
-    public void loadRelationalData(T vo);
+    void loadRelationalData(T vo);
 
     /**
      * Delete a VO based on its id this will always get the FKs to ensure they will be deleted if
@@ -111,14 +111,14 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param id
      * @return true if was deleted
      */
-    public boolean delete(int id);
+    boolean delete(int id);
 
     /**
      * Delete a VO (uses id to find it)
      * @param vo
      * @return true if was deleted
      */
-    public boolean delete(T vo);
+    boolean delete(T vo);
 
     /**
      * Optionally delete any relational data, this is called in a transaction
@@ -126,33 +126,33 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      *
      * @param vo
      */
-    public void deleteRelationalData(T vo);
+    void deleteRelationalData(T vo);
 
     /**
      * Optionally perform any logic after the VO is deleted
      * @param vo
      */
-    public void deletePostRelationalData(T vo);
+    void deletePostRelationalData(T vo);
 
     /**
      * Count all from table
      *
      * @return
      */
-    public int count();
+    int count();
 
     /**
      * Create a custom count query
      * @param conditions
      * @return
      */
-    public int customizedCount(ConditionSortLimit conditions, PermissionHolder user);
+    int customizedCount(ConditionSortLimit conditions, PermissionHolder user);
 
     /**
      * Get the default count query
      * @return
      */
-    public SelectSelectStep<Record1<Integer>> getCountQuery();
+    SelectSelectStep<Record1<Integer>> getCountQuery();
 
     /**
      * TODO Mango 4.0 is the condition necessary?  Change to accept different query step
@@ -161,7 +161,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param condition
      * @return
      */
-    public int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition);
+    int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition);
 
     /**
      * TODO Mango 4.0 Remove this
@@ -169,7 +169,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param conditions
      * @param callback
      */
-    public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback);
+    void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback);
 
     /**
      * Adapts the callback to a consumer.
@@ -178,7 +178,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param user
      * @param consumer
      */
-    public default void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<T> consumer) {
+    default void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<T> consumer) {
         customizedQuery(conditions, user, (item, i) -> consumer.accept(item));
     }
 
@@ -187,14 +187,14 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param select
      * @param callback
      */
-    public void customizedQuery(Select<Record> select, MappedRowCallback<T> callback);
+    void customizedQuery(Select<Record> select, MappedRowCallback<T> callback);
 
     /**
      * Execute a custom query and extract results
      * @param select
      * @param callback
      */
-    public <TYPE> TYPE customizedQuery(Select<Record> select, ResultSetExtractor<TYPE> callback);
+    <TYPE> TYPE customizedQuery(Select<Record> select, ResultSetExtractor<TYPE> callback);
 
     /**
      * Explicit convenience method for verbose custom queries
@@ -206,8 +206,8 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param offset
      * @param callback
      */
-    public void customizedQuery(SelectJoinStep<Record> select,
-            Condition condition, List<SortField<Object>> sort,
+    void customizedQuery(SelectJoinStep<Record> select,
+            Condition condition, List<SortField<?>> sort,
             Integer limit, Integer offset,
             MappedRowCallback<T> callback);
 
@@ -216,13 +216,13 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param fields
      * @return
      */
-    public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields);
+    SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields);
 
     /**
      * Get the select query with default joins
      * @return
      */
-    public SelectJoinStep<Record> getJoinedSelectQuery();
+    SelectJoinStep<Record> getJoinedSelectQuery();
 
     /**
      * Join default tables for DAO
@@ -232,7 +232,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param conditions
      * @return
      */
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions);
+    <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions);
 
     /**
      * Join the permissions table to restrict to viewable records
@@ -242,13 +242,13 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param user
      * @return
      */
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user);
+    <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user);
 
     /**
      * Get the table model
      * @return
      */
-    public TABLE getTable();
+    TABLE getTable();
 
     /**
      * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
@@ -260,39 +260,39 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param valueConverters - can be null
      * @return
      */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters);
+    ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters);
 
     /**
      * Issues a SELECT FOR UPDATE for the row with the given id. Enables transactional updates on rows.
      * @param id
      */
-    public void lockRow(int id);
+    void lockRow(int id);
 
-    public default void withLockedRow(int id, Consumer<TransactionStatus> callback) {
+    default void withLockedRow(int id, Consumer<TransactionStatus> callback) {
         doInTransaction(txStatus -> {
             lockRow(id);
             callback.accept(txStatus);
         });
     }
 
-    public default <X> X withLockedRow(int id, TransactionCallback<X> callback) {
+    default <X> X withLockedRow(int id, TransactionCallback<X> callback) {
         return doInTransaction(txStatus -> {
             lockRow(id);
             return callback.doInTransaction(txStatus);
         });
     }
 
-    public int count(PermissionHolder user);
+    int count(PermissionHolder user);
 
-    public int count(PermissionHolder user, String rql);
+    int count(PermissionHolder user, String rql);
 
-    public List<T> list(PermissionHolder user);
+    List<T> list(PermissionHolder user);
 
-    public void list(PermissionHolder user, Consumer<T> consumer);
+    void list(PermissionHolder user, Consumer<T> consumer);
 
-    public List<T> query(PermissionHolder user, String rql);
+    List<T> query(PermissionHolder user, String rql);
 
-    public void query(PermissionHolder user, String rql, Consumer<T> consumer);
+    void query(PermissionHolder user, String rql, Consumer<T> consumer);
 
-    public QueryBuilder<T> buildQuery(PermissionHolder user);
+    QueryBuilder<T> buildQuery(PermissionHolder user);
 }

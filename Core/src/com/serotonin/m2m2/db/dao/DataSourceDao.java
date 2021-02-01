@@ -35,6 +35,9 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.DataSources;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
@@ -47,8 +50,6 @@ import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -58,7 +59,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.SerializationHelper;
 
 @Repository()
-public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDefinition> {
+public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord, DataSources> {
 
     //TODO Mango 4.0 Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
@@ -76,11 +77,10 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
 
     @Autowired
     private DataSourceDao(
-            DataSourceTableDefinition table,
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_DATA_SOURCE, table,
+        super(AuditEventType.TYPE_DATA_SOURCE, DataSources.DATA_SOURCES.as("ds"),
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
@@ -101,7 +101,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
      */
     @SuppressWarnings("unchecked")
     public <T extends DataSourceVO> List<T> getDataSourcesForType(String type) {
-        SelectConditionStep<Record> query = getJoinedSelectQuery().where(this.table.getAlias("dataSourceType").eq(type));
+        SelectConditionStep<Record> query = getJoinedSelectQuery().where(table.dataSourceType.eq(type));
         return (List<T>) query(query.getSQL(), query.getBindValues().toArray(), getListResultSetExtractor());
     }
 
@@ -116,7 +116,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
                     withLockedRow(vo.getId(), (txStatus) -> {
                         DataPointDao.getInstance().deleteDataPoints(vo.getId());
                         deleteRelationalData(vo);
-                        result.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                        result.deleted = this.create.deleteFrom(table).where(table.id.eq(vo.getId())).execute();
                         deletePostRelationalData(vo);
                     });
                     break;
@@ -264,20 +264,26 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
     }
 
     @Override
-    protected Object[] voToObjectArray(DataSourceVO vo) {
-        return new Object[] {
-                vo.getXid(),
-                vo.getName(),
-                vo.getDefinition().getDataSourceTypeName(),
-                SerializationHelper.writeObjectToArray(vo),
-                convertData(vo.getData()),
-                vo.getReadPermission().getId(),
-                vo.getEditPermission().getId()};
+    protected Record voToObjectArray(DataSourceVO vo) {
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.name, vo.getName());
+        record.set(table.dataSourceType, vo.getDefinition().getDataSourceTypeName());
+        record.set(table.data, SerializationHelper.writeObjectToArray(vo));
+        record.set(table.jsonData, convertData(vo.getData()));
+        record.set(table.readPermissionId, vo.getReadPermission().getId());
+        record.set(table.editPermissionId, vo.getEditPermission().getId());
+        return record;
     }
 
     @Override
     public RowMapper<DataSourceVO> getRowMapper() {
         return new DataSourceRowMapper();
+    }
+
+    @Override
+    public DataSourceVO mapRecord(Record record) {
+        return null;
     }
 
     @Override
@@ -366,7 +372,9 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourceTableDe
      * @return permission id or null
      */
     public Integer getReadPermissionId(int dataSourceId) {
-        return this.create.select(DataSourceTableDefinition.READ_PERMISSION).from(DataSourceTableDefinition.TABLE).where(this.table.getIdField().eq(dataSourceId)).fetchOneInto(Integer.class);
+        return this.create.select(table.readPermissionId).from(table)
+                .where(table.id.eq(dataSourceId))
+                .fetchOneInto(Integer.class);
     }
 
 }

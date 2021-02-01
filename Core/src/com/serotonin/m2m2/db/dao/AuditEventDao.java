@@ -6,19 +6,18 @@ package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
+import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.tables.Audit;
+import com.infiniteautomation.mango.db.tables.records.AuditRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
@@ -33,20 +32,14 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
  *
  */
 @Repository()
-public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditEventTableDefinition> {
+public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditRecord, Audit> {
     private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
 
-    /**
-     * @param tablePrefix
-     * @param extraProperties
-     * @param extraSQL
-     */
     @Autowired
     private AuditEventDao(
-            AuditEventTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(table, mapper, publisher);
+        super(Audit.AUDIT.as("aud"), mapper, publisher);
     }
 
     /**
@@ -60,7 +53,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditE
     }
 
     @Override
-    protected Object[] voToObjectArray(AuditEventInstanceVO vo) {
+    protected Record voToObjectArray(AuditEventInstanceVO vo) {
         String jsonData = null;
         try{
             jsonData = writeValueAsString(vo.getContext());
@@ -69,51 +62,43 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditE
             LOG.error(e.getMessage(), e);
         }
 
-        return new Object[]{
-                vo.getTypeName(),
-                vo.getAlarmLevel().value(),
-                vo.getUserId(),
-                vo.getChangeType(),
-                vo.getObjectId(),
-                vo.getTimestamp(),
-                jsonData,
-                writeTranslatableMessage(vo.getMessage())
-        };
+        Record record = table.newRecord();
+
+        record.set(table.typeName, vo.getTypeName());
+        record.set(table.alarmLevel, vo.getAlarmLevel().value());
+        record.set(table.userId, vo.getUserId());
+        record.set(table.changeType, vo.getChangeType());
+        record.set(table.objectId, vo.getObjectId());
+        record.set(table.ts, vo.getTimestamp());
+        record.set(table.context, jsonData);
+        record.set(table.message, writeTranslatableMessage(vo.getMessage()));
+
+        return record;
     }
 
     @Override
-    public RowMapper<AuditEventInstanceVO> getRowMapper() {
-        return new AuditEventInstanceRowMapper();
-    }
-
-    class AuditEventInstanceRowMapper implements RowMapper<AuditEventInstanceVO>{
-
-        @Override
-        public AuditEventInstanceVO mapRow(ResultSet rs, int rowNum)
-                throws SQLException {
-            int i=0;
-            AuditEventInstanceVO vo = new AuditEventInstanceVO();
-            vo.setId(rs.getInt(++i));
-            vo.setTypeName(rs.getString(++i));
-            vo.setAlarmLevel(AlarmLevels.fromValue(rs.getInt(++i)));
-            vo.setUserId(rs.getInt(++i));
-            vo.setChangeType(rs.getInt(++i));
-            vo.setObjectId(rs.getInt(++i));
-            vo.setTimestamp(rs.getLong(++i));
-            try {
-                vo.setContext(readValueFromString(rs.getString(++i)));
-            } catch (IOException | JsonException e) {
-                LOG.error(e.getMessage(), e);
-            }
-            vo.setMessage(readTranslatableMessage(rs, ++i));
-            return vo;
+    public AuditEventInstanceVO mapRecord(Record record) {
+        int i=0;
+        AuditEventInstanceVO vo = new AuditEventInstanceVO();
+        vo.setId(record.get(table.id));
+        vo.setTypeName(record.get(table.typeName));
+        vo.setAlarmLevel(AlarmLevels.fromValue(record.get(table.alarmLevel)));
+        vo.setUserId(record.get(table.userId));
+        vo.setChangeType(record.get(table.changeType));
+        vo.setObjectId(record.get(table.objectId));
+        vo.setTimestamp(record.get(table.ts));
+        try {
+            vo.setContext(readValueFromString(record.get(table.context)));
+        } catch (IOException | JsonException e) {
+            LOG.error(e.getMessage(), e);
         }
-
+        vo.setMessage(readTranslatableMessage(record.get(table.message)));
+        return vo;
     }
 
     public JsonObject readValueFromString(String json) throws JsonException, IOException {
         JsonTypeReader reader = new JsonTypeReader(json);
-        return (JsonObject)reader.read();
+        return (JsonObject) reader.read();
     }
 
     public String writeValueAsString(JsonObject value) throws JsonException, IOException {
@@ -147,7 +132,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditE
     /**
      * Purge Audit Events Before a given time
      * @param time
-     * @param typeName
      * @return
      */
     public int purgeEventsBefore(final long time) {
@@ -157,7 +141,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditE
     /**
      * Purge Audit Events Before a given time with a given alarmLevel
      * @param time
-     * @param typeName
      * @return
      */
     public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {

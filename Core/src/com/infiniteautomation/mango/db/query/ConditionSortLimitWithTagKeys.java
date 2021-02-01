@@ -19,7 +19,7 @@ import org.jooq.SortField;
 public class ConditionSortLimitWithTagKeys extends ConditionSortLimit {
     private final Map<String, Name> tagKeyToColumn;
 
-    public ConditionSortLimitWithTagKeys(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, Map<String, Name> tagKeyToColumn) {
+    public ConditionSortLimitWithTagKeys(Condition condition, List<SortField<?>> sort, Integer limit, Integer offset, Map<String, Name> tagKeyToColumn) {
         super(condition, sort, limit, offset);
         this.tagKeyToColumn = tagKeyToColumn;
     }

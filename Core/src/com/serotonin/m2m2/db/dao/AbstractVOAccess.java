@@ -6,10 +6,11 @@ package com.serotonin.m2m2.db.dao;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.jooq.Record;
+import org.jooq.Table;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
-import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -21,36 +22,35 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public interface AbstractVOAccess<T extends AbstractVO, TABLE extends AbstractTableDefinition> extends AbstractBasicVOAccess<T, TABLE> {
+public interface AbstractVOAccess<T extends AbstractVO, R extends Record, TABLE extends Table<R>> extends AbstractBasicVOAccess<T, R, TABLE> {
 
     /**
      * Generates a unique XID
      *
      * @return A new unique XID, null if XIDs are not supported
      */
-    public String generateUniqueXid();
+    String generateUniqueXid();
 
     /**
      * Checks if a XID is unique
      *
-     * @param XID
-     *            to check
+     * @param xid to check
      * @param excludeId
      * @return True if XID is unique
      */
-    public boolean isXidUnique(String xid, int excludeId);
+    boolean isXidUnique(String xid, int excludeId);
 
     /**
      * Get the ID for an XID
      * @return Integer
      */
-    public Integer getIdByXid(String xid);
+    Integer getIdByXid(String xid);
 
     /**
      * Get the ID for an XID
      * @return String
      */
-    public String getXidById(int id);
+    String getXidById(int id);
 
     /**
      * Find a VO by its XID
@@ -59,7 +59,7 @@ public interface AbstractVOAccess<T extends AbstractVO, TABLE extends AbstractTa
      *            XID to search for
      * @return vo if found, otherwise null
      */
-    public T getByXid(String xid);
+    T getByXid(String xid);
 
 
     /**
@@ -69,22 +69,22 @@ public interface AbstractVOAccess<T extends AbstractVO, TABLE extends AbstractTa
      *            name to search for
      * @return List of VO with matching name
      */
-    public List<T> getByName(String name);
+    List<T> getByName(String name);
 
     /**
      * Issues a SELECT FOR UPDATE for the row with the given xid. Enables transactional updates on rows.
      * @param xid
      */
-    public void lockRow(String xid);
+    void lockRow(String xid);
 
-    public default void withLockedRow(String xid, Consumer<TransactionStatus> callback) {
+    default void withLockedRow(String xid, Consumer<TransactionStatus> callback) {
         doInTransaction(txStatus -> {
             lockRow(xid);
             callback.accept(txStatus);
         });
     }
 
-    public default <X> X withLockedRow(String xid, TransactionCallback<X> callback) {
+    default <X> X withLockedRow(String xid, TransactionCallback<X> callback) {
         return doInTransaction(txStatus -> {
             lockRow(xid);
             return callback.doInTransaction(txStatus);

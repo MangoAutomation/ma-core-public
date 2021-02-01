@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.JsonData;
+import com.infiniteautomation.mango.db.tables.records.JsonDataRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
@@ -49,7 +51,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Repository()
-public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefinition> {
+public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonData> {
 
     private static final LazyInitSupplier<JsonDataDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(JsonDataDao.class);
@@ -57,15 +59,11 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
 
     private final PermissionService permissionService;
 
-    /**
-     * @param handler
-     * @param typeName
-     */
     @Autowired
-    private JsonDataDao(JsonDataTableDefinition table, @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+    private JsonDataDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionService permissionService) {
-        super(AuditEventType.TYPE_JSON_DATA, table, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher);
+        super(AuditEventType.TYPE_JSON_DATA, JsonData.JSON_DATA.as("jd"), new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher);
         this.permissionService = permissionService;
     }
 
@@ -84,7 +82,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
     }
 
     @Override
-    protected Object[] voToObjectArray(JsonDataVO vo) {
+    protected Record voToObjectArray(JsonDataVO vo) {
         String jsonData = null;
         try {
             JsonNode data = vo.getJsonData();
@@ -95,12 +93,23 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataTableDefiniti
             LOG.error(e.getMessage(), e);
         }
 
-        return new Object[] {vo.getXid(), vo.getName(), jsonData, vo.getReadPermission().getId(), vo.getEditPermission().getId()};
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.name, vo.getName());
+        record.set(table.data, jsonData);
+        record.set(table.readPermissionId, vo.getReadPermission().getId());
+        record.set(table.editPermissionId, vo.getEditPermission().getId());
+        return record;
     }
 
     @Override
     public RowMapper<JsonDataVO> getRowMapper() {
         return new JsonDataRowMapper();
+    }
+
+    @Override
+    public JsonDataVO mapRecord(Record record) {
+        return null;
     }
 
     class JsonDataRowMapper implements RowMapper<JsonDataVO> {

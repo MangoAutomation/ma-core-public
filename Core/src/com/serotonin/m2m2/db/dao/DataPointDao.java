@@ -9,11 +9,10 @@ import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_A
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +24,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
+import org.jooq.Cursor;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
@@ -32,6 +32,7 @@ import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
 import org.jooq.Table;
+import org.jooq.exception.NoDataFoundException;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,17 +48,19 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.db.tables.DataPoints;
+import com.infiniteautomation.mango.db.tables.DataSources;
+import com.infiniteautomation.mango.db.tables.EventDetectors;
 import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.TimeSeries;
+import com.infiniteautomation.mango.db.tables.UserComments;
+import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
-import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -81,9 +84,9 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
 
@@ -93,12 +96,10 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 @Repository()
-public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefinition> {
+public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, DataPoints> {
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
-    private final DataSourceTableDefinition dataSourceTable;
-    private final EventDetectorTableDefinition eventDetectorTable;
-    private final UserCommentTableDefinition userCommentTable;
+
     private final PermissionService permissionService;
     private final DataPointTagsDao dataPointTagsDao;
     private final EventDetectorDao eventDetectorDao;
@@ -108,26 +109,30 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         return Common.getRuntimeContext().getBean(DataPointDao.class);
     });
 
+    private final EventDetectors eventDetectors;
+    private final UserComments userComments;
+    private final DataSources dataSources;
+
     @Autowired
-    private DataPointDao(DataPointTableDefinition table,
-            DataSourceTableDefinition dataSourceTable,
-            EventDetectorTableDefinition eventDetectorTable,
-            UserCommentTableDefinition userCommentTable,
+    private DataPointDao(
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             DataPointTagsDao dataPointTagsDao,
             EventDetectorDao eventDetectorDao) {
-        super(EventType.EventTypeNames.DATA_POINT, table,
+
+        super(EventType.EventTypeNames.DATA_POINT, DataPoints.DATA_POINTS.as("dp"),
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
-        this.dataSourceTable = dataSourceTable;
-        this.eventDetectorTable = eventDetectorTable;
-        this.userCommentTable = userCommentTable;
+
         this.permissionService = permissionService;
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
+        
+        this.eventDetectors = EventDetectors.EVENT_DETECTORS.as("edt");
+        this.userComments = UserComments.USER_COMMENTS.as("uc");
+        this.dataSources = DataSources.DATA_SOURCES.as("ds");
     }
 
     /**
@@ -148,7 +153,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
      * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
-        return this.customizedQuery(getJoinedSelectQuery().where(this.table.getAlias("dataSourceId").eq(dataSourceId)),
+        return this.customizedQuery(getJoinedSelectQuery().where(table.dataSourceId.eq(dataSourceId)),
                 getListResultSetExtractor());
     }
 
@@ -167,59 +172,31 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
      * @return
      */
     public List<DataPointWithEventDetectors> getDataPointsForDataSourceStart(int dataSourceId) {
+        // TODO Mango 4.0 verify
         List<Field<?>> fields = new ArrayList<>(this.getSelectFields());
-        fields.addAll(this.eventDetectorTable.getSelectFields());
+        fields.addAll(Arrays.asList(eventDetectors.fields()));
 
-        Select<Record> select = this.joinTables(this.getSelectQuery(fields), null).leftOuterJoin(this.eventDetectorTable.getTableAsAlias())
-                .on(this.table.getIdAlias().eq(this.eventDetectorTable.getField("dataPointId")))
-                .where(this.table.getAlias("dataSourceId").eq(dataSourceId).and(this.table.getAlias("enabled").eq(boolToChar(true))));
+        Select<Record> select = this.joinTables(this.getSelectQuery(fields), null).leftOuterJoin(eventDetectors)
+                .on(table.id.eq(eventDetectors.dataPointId))
+                .where(table.dataSourceId.eq(dataSourceId).and(table.enabled.eq(boolToChar(true))));
 
-        return this.customizedQuery(select, new DataPointStartupResultSetExtractor());
-    }
+        Map<Integer, DataPointWithEventDetectors> result = new HashMap<>();
+        try (Cursor<Record> cursor = select.fetchLazy()) {
+            for (Record record : cursor) {
+                int id = record.get(table.id);
 
-    class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointWithEventDetectors>> {
-
-        private final int firstEventDetectorColumn;
-
-        public DataPointStartupResultSetExtractor() {
-            this.firstEventDetectorColumn = getSelectFields().size() + 1;
-        }
-
-        @Override
-        public List<DataPointWithEventDetectors> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            Map<Integer, DataPointWithEventDetectors> result = new HashMap<>();
-            DataPointMapper pointRowMapper = new DataPointMapper();
-            while(rs.next()) {
-                int id = rs.getInt(1); //dp.id column number
-                if(result.containsKey(id))
-                    try{
-                        addEventDetector(result.get(id), rs);
-                    }catch(Exception e){
-                        LOG.error("Point not fully initialized: " + e.getMessage(), e);
-                    }
-                else {
-                    DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
+                DataPointWithEventDetectors dp = result.computeIfAbsent(id, (i) -> {
+                    DataPointVO dpvo = this.mapRecord(record);
                     loadRelationalData(dpvo);
-                    DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpvo, new ArrayList<>());
-                    result.put(id, dp);
-                    try{
-                        addEventDetector(dp, rs);
-                    }catch(Exception e){
-                        LOG.error("Point not fully initialized: " + e.getMessage(), e);
-                    }
-                }
+                    return new DataPointWithEventDetectors(dpvo, new ArrayList<>());
+                });
+
+                AbstractPointEventDetectorVO detector = eventDetectorDao.mapPointEventDetector(record, dp.getDataPoint());
+                dp.getEventDetectors().add(detector);
             }
-            return new ArrayList<DataPointWithEventDetectors>(result.values());
         }
 
-        private void addEventDetector(DataPointWithEventDetectors dp, ResultSet rs) throws SQLException {
-            if(rs.getObject(firstEventDetectorColumn) == null)
-                return;
-            PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(this.firstEventDetectorColumn, (c) -> DataPointDao.this.extractData(c), dp.getDataPoint(), eventDetectorDao);
-            AbstractEventDetectorVO edvo = mapper.mapRow(rs, rs.getRow());
-            AbstractPointEventDetectorVO ped = (AbstractPointEventDetectorVO) edvo;
-            dp.getEventDetectors().add(ped);
-        }
+        return new ArrayList<>(result.values());
     }
 
     /**
@@ -263,7 +240,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
      * @param dp
      */
     public void saveEnabledColumn(DataPointVO dp) {
-        ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
+        ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", boolToChar(dp.isEnabled()), dp.getId());
         DataPointVO old = get(dp.getId());
         this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, old));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
@@ -297,7 +274,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     void deleteDataPoints(final int dataSourceId) {
 
         //We will not load any relational data from this and rely on the permissionIds being set
-        Select<Record> query = getJoinedSelectQuery().where(table.getAlias("dataSourceId").eq(dataSourceId));
+        Select<Record> query = getJoinedSelectQuery().where(table.dataSourceId.eq(dataSourceId));
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
         query(sql, args.toArray(), new ResultSetExtractor<Void>() {
@@ -375,11 +352,11 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.in(ids)).execute();
 
         //delete user comments
-        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
-                userCommentTable.getField("typeKey").in(ids)).execute();
+        create.deleteFrom(userComments).where(userComments.commentType.eq(2),
+                userComments.typeKey.in(ids)).execute();
 
         //delete event detectors
-        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").in(ids)).execute();
+        create.deleteFrom(eventDetectors).where(eventDetectors.dataPointId.in(ids)).execute();
 
         for(DataPointVO vo : batch) {
             DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
@@ -393,7 +370,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         }
 
         //delete the points in bulk
-        int deleted = create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
+        int deleted = create.deleteFrom(table).where(table.id.in(ids)).execute();
 
         if(this.countMonitor != null) {
             this.countMonitor.addValue(-deleted);
@@ -458,20 +435,21 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
      * @return
      */
     public DataPointSummary getSummary(String xid) {
-        Select<?> query = this.joinTables(this.create.select(this.table.getIdAlias(),
-                this.table.getXidAlias(),
-                this.table.getNameAlias(),
-                this.table.getAlias("dataSourceId"),
-                this.table.getAlias("deviceName"),
-                this.table.getAlias("readPermissionId"),
-                this.table.getAlias("editPermissionId"),
-                this.table.getAlias("setPermissionId"),
-                this.table.getAlias("seriesId"))
-                .from(this.table.getTableAsAlias()), null).where(this.table.getXidAlias().eq(xid)).limit(1);
+        Select<?> query = this.joinTables(this.create.select(
+                table.id,
+                table.xid,
+                table.name,
+                table.dataSourceId,
+                table.deviceName,
+                table.readPermissionId,
+                table.editPermissionId,
+                table.setPermissionId,
+                table.seriesId)
+                .from(table), null).where(getXidField().eq(xid)).limit(1);
 
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        DataPointSummary item = this.ejt.query(sql, args.toArray(new Object[args.size()]),
+        return this.ejt.query(sql, args.toArray(new Object[0]),
                 (rs) -> {
                     if(rs.next()) {
                         DataPointSummary summary = new DataPointSummary();
@@ -489,7 +467,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                         return null;
                     }
                 });
-        return item;
     }
 
     //
@@ -536,14 +513,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             phc.setPointName(point.getName());
             counts.add(phc);
         }
-        Collections.sort(counts, new Comparator<PointHistoryCount>() {
-
-            @Override
-            public int compare(PointHistoryCount count1, PointHistoryCount count2) {
-                return count2.getCount() - count1.getCount();
-            }
-
-        });
+        counts.sort((count1, count2) -> count2.getCount() - count1.getCount());
 
         return counts;
     }
@@ -578,12 +548,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         }
 
         // Remove the counts for which there are no point, i.e. deleted.
-        Iterator<PointHistoryCount> iter = counts.iterator();
-        while (iter.hasNext()) {
-            PointHistoryCount c = iter.next();
-            if (c.getPointName() == null)
-                iter.remove();
-        }
+        counts.removeIf(c -> c.getPointName() == null);
 
         return counts;
     }
@@ -611,94 +576,89 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     }
 
     @Override
-    protected Object[] voToObjectArray(DataPointVO vo) {
-        return new Object[] {
-                vo.getXid(),
-                vo.getName(),
-                SerializationHelper.writeObjectToArray(vo),
-                vo.getDataSourceId(),
-                vo.getDeviceName(),
-                boolToChar(vo.isEnabled()),
-                vo.getLoggingType(),
-                vo.getIntervalLoggingPeriodType(),
-                vo.getIntervalLoggingPeriod(),
-                vo.getIntervalLoggingType(),
-                vo.getTolerance(),
-                boolToChar(vo.isPurgeOverride()),
-                vo.getPurgeType(),
-                vo.getPurgePeriod(),
-                vo.getDefaultCacheSize(),
-                boolToChar(vo.isDiscardExtremeValues()),
-                vo.getEngineeringUnits(),
-                vo.getRollup(),
-                vo.getPointLocator().getDataTypeId(),
-                boolToChar(vo.getPointLocator().isSettable()),
-                convertData(vo.getData()),
-                vo.getSeriesId(),
-                vo.getReadPermission().getId(),
-                vo.getEditPermission().getId(),
-                vo.getSetPermission().getId()
-        };
+    protected Record voToObjectArray(DataPointVO vo) {
+        DataPointsRecord record = table.newRecord();
+
+        record.set(table.xid, vo.getXid());
+        record.set(table.name, vo.getName());
+        record.set(table.data, SerializationHelper.writeObjectToArray(vo));
+        record.set(table.dataSourceId, vo.getDataSourceId());
+        record.set(table.deviceName, vo.getDeviceName());
+        record.set(table.enabled, boolToChar(vo.isEnabled()));
+        record.set(table.loggingType, vo.getLoggingType());
+        record.set(table.intervalLoggingPeriodType, vo.getIntervalLoggingPeriodType());
+        record.set(table.intervalLoggingPeriod, vo.getIntervalLoggingPeriod());
+        record.set(table.intervalLoggingType, vo.getIntervalLoggingType());
+        record.set(table.tolerance, vo.getTolerance());
+        record.set(table.purgeOverride, boolToChar(vo.isPurgeOverride()));
+        record.set(table.purgeType, vo.getPurgeType());
+        record.set(table.purgePeriod, vo.getPurgePeriod());
+        record.set(table.defaultCacheSize, vo.getDefaultCacheSize());
+        record.set(table.discardExtremeValues, boolToChar(vo.isDiscardExtremeValues()));
+        record.set(table.engineeringUnits, vo.getEngineeringUnits());
+        record.set(table.rollup, vo.getRollup());
+        record.set(table.dataTypeId, vo.getPointLocator().getDataTypeId());
+        record.set(table.settable, boolToChar(vo.getPointLocator().isSettable()));
+        record.set(table.jsonData, convertData(vo.getData()));
+        record.set(table.seriesId, vo.getSeriesId());
+        record.set(table.readPermissionId, vo.getReadPermission().getId());
+        record.set(table.editPermissionId, vo.getEditPermission().getId());
+        record.set(table.setPermissionId, vo.getSetPermission().getId());
+
+        return record;
     }
 
     @Override
-    public RowMapper<DataPointVO> getRowMapper() {
-        return new DataPointMapper();
-    }
+    public DataPointVO mapRecord(Record record) {
+        int id = record.get(table.id);
+        String xid = record.get(table.xid);
+        String name = record.get(table.name);
 
-    public class DataPointMapper implements RowMapper<DataPointVO> {
-        @Override
-        public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            int i = 0;
-            int id = (rs.getInt(++i));
-            String xid = rs.getString(++i);
-            String name = rs.getString(++i);
+        DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContextFromArray(record.get(table.data));
 
-            DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
+        dp.setId(id);
+        dp.setXid(xid);
+        dp.setName(name);
+        dp.setDataSourceId(record.get(table.dataSourceId));
+        dp.setDeviceName(record.get(table.deviceName));
+        dp.setEnabled(charToBool(record.get(table.enabled)));
+        dp.setLoggingType(record.get(table.loggingType));
+        dp.setIntervalLoggingPeriodType(record.get(table.intervalLoggingPeriodType));
+        dp.setIntervalLoggingPeriod(record.get(table.intervalLoggingPeriod));
+        dp.setIntervalLoggingType(record.get(table.intervalLoggingType));
+        dp.setTolerance(record.get(table.tolerance));
+        dp.setPurgeOverride(charToBool(record.get(table.purgeOverride)));
+        dp.setPurgeType(record.get(table.purgeType));
+        dp.setPurgePeriod(record.get(table.purgePeriod));
+        dp.setDefaultCacheSize(record.get(table.defaultCacheSize));
+        dp.setDiscardExtremeValues(charToBool(record.get(table.discardExtremeValues)));
+        dp.setEngineeringUnits(record.get(table.engineeringUnits));
+        dp.setRollup(record.get(table.rollup));
 
-            dp.setId(id);
-            dp.setXid(xid);
-            dp.setName(name);
-            dp.setDataSourceId(rs.getInt(++i));
-            dp.setDeviceName(rs.getString(++i));
-            dp.setEnabled(charToBool(rs.getString(++i)));
-            dp.setLoggingType(rs.getInt(++i));
-            dp.setIntervalLoggingPeriodType(rs.getInt(++i));
-            dp.setIntervalLoggingPeriod(rs.getInt(++i));
-            dp.setIntervalLoggingType(rs.getInt(++i));
-            dp.setTolerance(rs.getDouble(++i));
-            dp.setPurgeOverride(charToBool(rs.getString(++i)));
-            dp.setPurgeType(rs.getInt(++i));
-            dp.setPurgePeriod(rs.getInt(++i));
-            dp.setDefaultCacheSize(rs.getInt(++i));
-            dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
-            dp.setEngineeringUnits(rs.getInt(++i));
-            dp.setRollup(rs.getInt(++i));
+//        // read and discard dataTypeId
+//        record.get(table.xyz);
+//        // read and discard settable boolean
+//        record.get(table.xyz);
 
-            // read and discard dataTypeId
-            rs.getInt(++i);
-            // read and discard settable boolean
-            rs.getString(++i);
+        dp.setData(extractData(record.get(table.jsonData)));
+        dp.setSeriesId(record.get(table.seriesId));
 
-            dp.setData(extractData(rs.getClob(++i)));
-            dp.setSeriesId(rs.getInt(++i));
+        MangoPermission read = new MangoPermission(record.get(table.readPermissionId));
+        dp.supplyReadPermission(() -> read);
 
-            MangoPermission read = new MangoPermission(rs.getInt(++i));
-            dp.supplyReadPermission(() -> read);
+        MangoPermission edit = new MangoPermission(record.get(table.editPermissionId));
+        dp.supplyEditPermission(() -> edit);
 
-            MangoPermission edit = new MangoPermission(rs.getInt(++i));
-            dp.supplyEditPermission(() -> edit);
+        MangoPermission set = new MangoPermission(record.get(table.setPermissionId));
+        dp.supplySetPermission(() -> set);
 
-            MangoPermission set = new MangoPermission(rs.getInt(++i));
-            dp.supplySetPermission(() -> set);
+        // Data source information from join
+        dp.setDataSourceName(record.get(dataSources.name));
+        dp.setDataSourceXid(record.get(dataSources.xid));
+        dp.setDataSourceTypeName(record.get(dataSources.dataSourceType));
+        dp.ensureUnitsCorrect();
 
-            // Data source information from join
-            dp.setDataSourceName(rs.getString(++i));
-            dp.setDataSourceXid(rs.getString(++i));
-            dp.setDataSourceTypeName(rs.getString(++i));
-            dp.ensureUnitsCorrect();
-            return dp;
-        }
+        return dp;
     }
 
     /**
@@ -709,8 +669,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         return this.create.insertInto(TimeSeries.TIME_SERIES)
                 .defaultValues()
                 .returningResult(TimeSeries.TIME_SERIES.id)
-                .fetchOne()
-                .into(int.class);
+                .fetchOptional()
+                .orElseThrow(NoDataFoundException::new)
+                .value1();
     }
 
     /**
@@ -721,7 +682,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     public boolean seriesIdExists(int id) {
         return this.create.select(DSL.count(TimeSeries.TIME_SERIES.id))
                 .from(TimeSeries.TIME_SERIES)
-                .where(TimeSeries.TIME_SERIES.id.eq(id)).fetchOneInto(Integer.class) == 1;
+                .where(TimeSeries.TIME_SERIES.id.eq(id))
+                .fetchSingle()
+                .value1() == 1;
     }
 
     @Override
@@ -809,11 +772,11 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
                 EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
 
         //delete user comments
-        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
-                userCommentTable.getField("typeKey").eq(vo.getId())).execute();
+        create.deleteFrom(userComments).where(userComments.commentType.eq(2),
+                userComments.typeKey.eq(vo.getId())).execute();
 
         //delete event detectors
-        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").eq(vo.getId())).execute();
+        create.deleteFrom(eventDetectors).where(eventDetectors.dataPointId.eq(vo.getId())).execute();
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
@@ -842,24 +805,24 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     @Override
     public List<Field<?>> getSelectFields() {
-        List<Field<?>> fields = new ArrayList<>(this.table.getSelectFields());
-        fields.add(dataSourceTable.getAlias("name"));
-        fields.add(dataSourceTable.getAlias("xid"));
-        fields.add(dataSourceTable.getAlias("dataSourceType"));
+        List<Field<?>> fields = new ArrayList<>(super.getSelectFields());
+        fields.add(dataSources.name);
+        fields.add(dataSources.xid);
+        fields.add(dataSources.dataSourceType);
         return fields;
     }
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        select = select.join(dataSourceTable.getTableAsAlias())
-                .on(DSL.field(dataSourceTable.getAlias("id"))
-                        .eq(this.table.getAlias("dataSourceId")));
+        select = select.join(dataSources)
+                .on(DSL.field(dataSources.id)
+                        .eq(table.dataSourceId));
 
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
                 Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getIdAlias()));
+                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(table.id));
             }
         }
         return select;
@@ -870,7 +833,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
             PermissionHolder user) {
 
         if(!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
+            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 
@@ -916,7 +879,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
     public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
         if(!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
+            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
 
@@ -943,6 +906,14 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     protected void notifyTagsUpdated(DataPointVO dataPoint) {
         this.eventPublisher.publishEvent(new DataPointTagsUpdatedEvent(this, dataPoint));
+    }
+
+    @Override
+    protected Map<String, Field<?>> createAliasMap() {
+        Map<String, Field<?>> aliases = super.createAliasMap();
+        Map<String, Field<?>> myAliases = new HashMap<>();
+        myAliases.put("dataType", DataPoints.DATA_POINTS.dataTypeId);
+        return combine(aliases, myAliases);
     }
 
     @Override
@@ -993,7 +964,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
 
     @Override
     public QueryBuilder<DataPointVO> buildQuery(PermissionHolder user) {
-        return new DataPointQueryBuilder(table.getAliasMap(), valueConverterMap,
+        return new DataPointQueryBuilder(aliasMap, valueConverterMap,
                 csl -> customizedCount(csl, user),
                 (csl, consumer) -> customizedQuery(csl, user, consumer));
     }
@@ -1004,7 +975,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
      * @return permission id or null
      */
     public Integer getReadPermissionId(int dataPointId) {
-        return this.create.select(DataPointTableDefinition.READ_PERMISSION).from(DataPointTableDefinition.TABLE).where(this.table.getIdField().eq(dataPointId)).fetchOneInto(Integer.class);
+        return this.create.select(DataPointTableDefinition.READ_PERMISSION).from(DataPointTableDefinition.TABLE).where(table.id.eq(dataPointId)).fetchOneInto(Integer.class);
     }
 
     private static class DataPointQueryBuilder extends QueryBuilder<DataPointVO> {
@@ -1038,7 +1009,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointTableDefin
         }
 
         @Override
-        protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
+        protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<?>> sort, Integer limit, Integer offset) {
             return new ConditionSortLimitWithTagKeys(condition, sort, limit, offset, tagKeyToColumn);
         }
     }

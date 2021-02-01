@@ -40,6 +40,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
+import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -63,7 +65,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
  *
  */
 @Repository
-public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
+public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
@@ -72,11 +74,10 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
 
     @Autowired
     private UserDao(PermissionService permissionService,
-            UserTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_USER,
-                table,
+                Users.USERS.as("u"),
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
@@ -94,9 +95,9 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     protected Map<String, Field<?>> createAliasMap() {
         Map<String, Field<?>> aliases = super.createAliasMap();
         Map<String, Field<?>> myAliases = new HashMap<>();
-        myAliases.put("lastPasswordChange", table.getAlias("passwordChangeTimestamp"));
-        myAliases.put("created", table.getAlias("createdTs"));
-        myAliases.put("emailVerified", table.getAlias("emailVerifiedTs"));
+        myAliases.put("lastPasswordChange", table.passwordChangeTimestamp);
+        myAliases.put("created", table.createdTs);
+        myAliases.put("emailVerified", table.emailVerifiedTs);
         return combine(aliases, myAliases);
     }
 
@@ -132,9 +133,9 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         if(username == null) {
             return false;
         }else {
-            return this.getCountQuery().from(this.table.getTableAsAlias()).where(
-                    this.table.getField("username").eq(username),
-                    this.table.getField("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
+            return this.getCountQuery().from(table).where(
+                    table.username.eq(username),
+                    table.id.notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
         }
     }
 
@@ -148,9 +149,9 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
         if(email == null) {
             return false;
         }else {
-            return this.getCountQuery().from(this.table.getTableAsAlias()).where(
-                    this.table.getField("email").eq(email),
-                    this.table.getField("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
+            return this.getCountQuery().from(table).where(
+                    table.email.eq(email),
+                    table.id.notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
         }
     }
 
@@ -163,7 +164,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     public User getByXid(String username) {
         if (username == null) return null;
 
-        Select<Record> query = getJoinedSelectQuery().where(this.table.getField("username").equalIgnoreCase(username));
+        Select<Record> query = getJoinedSelectQuery().where(table.username.equalIgnoreCase(username));
         List<Object> args = query.getBindValues();
         User user = ejt.query(query.getSQL(), args.toArray(new Object[0]),
                 getObjectResultSetExtractor());
@@ -217,7 +218,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
      */
     public User getUserByEmail(String emailAddress) {
         if (emailAddress == null) return null;
-        Select<Record> query = getJoinedSelectQuery().where(this.table.getField("email").eq(emailAddress));
+        Select<Record> query = getJoinedSelectQuery().where(table.email.eq(emailAddress));
         List<Object> args = query.getBindValues();
         return ejt.query(query.getSQL(), args.toArray(new Object[0]), getObjectResultSetExtractor());
     }
@@ -261,7 +262,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     }
 
     public List<User> getActiveUsers() {
-        Select<Record> query = getJoinedSelectQuery().where(this.table.getField("disabled").eq("N"));
+        Select<Record> query = getJoinedSelectQuery().where(table.disabled.eq("N"));
         List<Object> args = query.getBindValues();
         return query(query.getSQL(), args.toArray(new Object[0]), getListResultSetExtractor());
     }
@@ -446,38 +447,43 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
     }
 
     @Override
-    protected Object[] voToObjectArray(User vo) {
-        return new Object[]{
-                vo.getUsername(),
-                vo.getName(),
-                vo.getPassword(),
-                vo.getEmail(),
-                vo.getPhone(),
-                boolToChar(vo.isDisabled()),
-                vo.getLastLogin(),
-                vo.getHomeUrl(),
-                vo.getReceiveAlarmEmails().value(),
-                boolToChar(vo.isReceiveOwnAuditEvents()),
-                vo.getTimezone(),
-                boolToChar(vo.isMuted()),
-                vo.getLocale(),
-                vo.getTokenVersion(),
-                vo.getPasswordVersion(),
-                vo.getPasswordChangeTimestamp(),
-                boolToChar(vo.isSessionExpirationOverride()),
-                vo.getSessionExpirationPeriods(),
-                vo.getSessionExpirationPeriodType(),
-                vo.getOrganization(),
-                vo.getOrganizationalRole(),
-                vo.getCreatedTs(),
-                vo.getEmailVerifiedTimestamp(),
-                convertData(vo.getData())
-        };
+    protected Record voToObjectArray(User vo) {
+        Record record = table.newRecord();
+        record.set(table.username, vo.getUsername());
+        record.set(table.name, vo.getName());
+        record.set(table.password, vo.getPassword());
+        record.set(table.email, vo.getEmail());
+        record.set(table.phone, vo.getPhone());
+        record.set(table.disabled, boolToChar(vo.isDisabled()));
+        record.set(table.lastLogin, vo.getLastLogin());
+        record.set(table.homeUrl, vo.getHomeUrl());
+        record.set(table.receiveAlarmEmails, vo.getReceiveAlarmEmails().value());
+        record.set(table.receiveOwnAuditEvents, boolToChar(vo.isReceiveOwnAuditEvents()));
+        record.set(table.timezone, vo.getTimezone());
+        record.set(table.muted, boolToChar(vo.isMuted()));
+        record.set(table.locale, vo.getLocale());
+        record.set(table.tokenVersion, vo.getTokenVersion());
+        record.set(table.passwordVersion, vo.getPasswordVersion());
+        record.set(table.passwordChangeTimestamp, vo.getPasswordChangeTimestamp());
+        record.set(table.sessionExpirationOverride, boolToChar(vo.isSessionExpirationOverride()));
+        record.set(table.sessionExpirationPeriods, vo.getSessionExpirationPeriods());
+        record.set(table.sessionExpirationPeriodType, vo.getSessionExpirationPeriodType());
+        record.set(table.organization, vo.getOrganization());
+        record.set(table.organizationalRole, vo.getOrganizationalRole());
+        record.set(table.createdTs, vo.getCreatedTs());
+        record.set(table.emailVerifiedTs, vo.getEmailVerifiedTimestamp());
+        record.set(table.data, convertData(vo.getData()));
+        return record;
     }
 
     @Override
     public RowMapper<User> getRowMapper() {
         return new UserRowMapper();
+    }
+
+    @Override
+    public User mapRecord(Record record) {
+        return null;
     }
 
     @Override
@@ -508,7 +514,7 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
             SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.eq(roleId));
             if (operation == RQLOperation.CONTAINS) {
-                return table.getIdAlias().in(afterWhere.asField());
+                return getIdField().in(afterWhere.asField());
             }
             throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
         };
@@ -530,15 +536,15 @@ public class UserDao extends AbstractVoDao<User, UserTableDefinition> {
             Object roleXid = arguments.get(1);
             Set<Integer> roleIds = new HashSet<>();
 
-            Set<Role> inherited = permissionService.getRolesThatInherit((String)roleXid);
-            for(Role r : inherited) {
+            Set<Role> inherited = permissionService.getRolesThatInherit((String) roleXid);
+            for (Role r : inherited) {
                 roleIds.add(r.getId());
             }
 
             SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
             SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.in(roleIds));
             if (operation == RQLOperation.CONTAINS) {
-                return table.getIdAlias().in(afterWhere.asField());
+                return getIdField().in(afterWhere.asField());
             }
             throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
         };

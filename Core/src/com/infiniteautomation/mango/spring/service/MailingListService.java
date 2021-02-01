@@ -20,7 +20,8 @@ import org.springframework.stereotype.Service;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
+import com.infiniteautomation.mango.db.tables.MailingLists;
+import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
@@ -46,7 +47,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Service
-public class MailingListService extends AbstractVOService<MailingList, MailingListTableDefinition, MailingListDao> {
+public class MailingListService extends AbstractVOService<MailingList, MailingListsRecord, MailingLists, MailingListDao> {
 
     private final UserDao userDao;
     private final MailingListCreatePermission createPermission;

@@ -16,6 +16,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,8 +26,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.tables.Publishers;
+import com.infiniteautomation.mango.db.tables.records.PublishersRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
@@ -46,7 +48,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Matthew Lohbihler
  */
 @Repository()
-public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedPointVO>, PublisherTableDefinition> {
+public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedPointVO>, PublishersRecord, Publishers> {
 
     private static final LazyInitSupplier<PublisherDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(PublisherDao.class);
@@ -55,11 +57,10 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
     @Autowired
-    private PublisherDao(PublisherTableDefinition table,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_PUBLISHER,
-                table,
+                Publishers.PUBLISHERS.as("pub"),
                 new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
                 mapper, publisher);
     }
@@ -201,16 +202,22 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    protected Object[] voToObjectArray(PublisherVO<? extends PublishedPointVO> vo) {
-        return new Object[] {
-                vo.getXid(),
-                vo.getDefinition().getPublisherTypeName(),
-                SerializationHelper.writeObjectToArray(vo)};
+    protected Record voToObjectArray(PublisherVO<? extends PublishedPointVO> vo) {
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.publisherType, vo.getDefinition().getPublisherTypeName());
+        record.set(table.data, SerializationHelper.writeObjectToArray(vo));
+        return record;
     }
 
     @Override
     public RowMapper<PublisherVO<? extends PublishedPointVO>> getRowMapper() {
         return new PublisherRowMapper();
+    }
+
+    @Override
+    public PublisherVO<? extends PublishedPointVO> mapRecord(Record record) {
+        return null;
     }
 
     @Override

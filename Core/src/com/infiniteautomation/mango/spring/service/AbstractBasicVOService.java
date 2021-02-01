@@ -9,10 +9,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Table;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
-import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
@@ -25,6 +26,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+
 import net.jazdw.rql.parser.ASTNode;
 
 /**
@@ -32,7 +34,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition, DAO extends AbstractBasicVOAccess<T, TABLE>> {
+public abstract class AbstractBasicVOService<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicVOAccess<T, R, TABLE>> {
 
     protected final DAO dao;
     protected final PermissionService permissionService;

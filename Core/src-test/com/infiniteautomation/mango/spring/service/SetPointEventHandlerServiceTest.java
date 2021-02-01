@@ -14,8 +14,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.db.tables.EventHandlers;
+import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
@@ -41,7 +42,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<AbstractEventHandlerVO, EventHandlerTableDefinition, EventHandlerDao, EventHandlerService> {
+public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<AbstractEventHandlerVO, EventHandlersRecord, EventHandlers, EventHandlerDao, EventHandlerService> {
 
     private DataPointVO activeDataPoint;
     private DataPointVO inactiveDataPoint;

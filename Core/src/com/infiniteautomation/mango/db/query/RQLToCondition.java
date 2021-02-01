@@ -4,14 +4,6 @@
 
 package com.infiniteautomation.mango.db.query;
 
-import com.serotonin.m2m2.db.dao.BaseDao;
-import net.jazdw.rql.parser.ASTNode;
-import org.jooq.Condition;
-import org.jooq.Field;
-import org.jooq.SortField;
-import org.jooq.SortOrder;
-import org.jooq.impl.DSL;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -20,6 +12,16 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.SortField;
+import org.jooq.SortOrder;
+import org.jooq.impl.DSL;
+
+import com.serotonin.m2m2.db.dao.BaseDao;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * Transforms RQL node into a jOOQ Condition along with sort fields, limit and offset
@@ -41,7 +43,7 @@ public class RQLToCondition {
     protected final Map<String, Field<?>> fieldMapping;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
-    protected List<SortField<Object>> sortFields = null;
+    protected List<SortField<?>> sortFields = null;
     protected Integer limit = null;
     protected Integer offset = null;
 
@@ -200,8 +202,8 @@ public class RQLToCondition {
         return converter == null ? Function.identity() : converter;
     }
 
-    protected List<SortField<Object>> getSortFields(ASTNode node) {
-        List<SortField<Object>> fields = new ArrayList<>(node.getArgumentsSize());
+    protected List<SortField<?>> getSortFields(ASTNode node) {
+        List<SortField<?>> fields = new ArrayList<>(node.getArgumentsSize());
 
         for (Object obj : node) {
             boolean descending = false;

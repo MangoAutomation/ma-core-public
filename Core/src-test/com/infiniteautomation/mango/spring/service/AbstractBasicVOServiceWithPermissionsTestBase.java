@@ -11,11 +11,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jooq.Condition;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
@@ -29,7 +30,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition, DAO extends AbstractBasicDao<VO, TABLE>, SERVICE extends AbstractBasicVOService<VO, TABLE, DAO>> extends AbstractBasicVOServiceTest<VO, TABLE, DAO, SERVICE> {
+public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO, R, TABLE, DAO>> extends AbstractBasicVOServiceTest<VO, R, TABLE, DAO, SERVICE> {
 
     public AbstractBasicVOServiceWithPermissionsTestBase() {
 
@@ -418,7 +419,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             assertEquals(0, count.get());
         });
         runAs.runAs(editUser, () -> {
-            Condition c = getDao().getTable().getIdAlias().eq(saved.getId());
+            Condition c = getDao().getIdField().eq(saved.getId());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {
@@ -443,7 +444,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             assertEquals(0, count.get());
         });
         runAs.runAs(editUser, () -> {
-            Condition c = getDao().getTable().getIdAlias().eq(saved.getId());
+            Condition c = getDao().getIdField().eq(saved.getId());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {

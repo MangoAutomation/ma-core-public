@@ -7,7 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
+import com.infiniteautomation.mango.db.tables.EventDetectors;
+import com.infiniteautomation.mango.db.tables.records.EventDetectorsRecord;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
@@ -29,7 +30,7 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class EventDetectorsService extends AbstractVOService<AbstractEventDetectorVO, EventDetectorTableDefinition, EventDetectorDao>{
+public class EventDetectorsService extends AbstractVOService<AbstractEventDetectorVO, EventDetectorsRecord, EventDetectors, EventDetectorDao>{
 
     @Autowired
     public EventDetectorsService(EventDetectorDao dao, PermissionService permissionService) {

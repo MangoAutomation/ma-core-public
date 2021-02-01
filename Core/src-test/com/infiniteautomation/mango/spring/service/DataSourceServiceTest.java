@@ -8,8 +8,9 @@ import static org.junit.Assert.assertEquals;
 import java.util.Collections;
 import java.util.UUID;
 
+import com.infiniteautomation.mango.db.tables.DataSources;
+import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
@@ -24,7 +25,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<DataSourceVO, DataSourceTableDefinition, DataSourceDao, DataSourceService> {
+public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<DataSourceVO, DataSourcesRecord, DataSources, DataSourceDao, DataSourceService> {
 
     @Override
     String getCreatePermissionType() {

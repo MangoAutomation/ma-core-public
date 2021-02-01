@@ -25,7 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
+import com.infiniteautomation.mango.db.tables.Events;
+import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.serotonin.db.MappedRowCallback;
@@ -51,7 +52,7 @@ import net.jazdw.rql.parser.ASTNode;
  *
  */
 @Service
-public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceTableDefinition, EventInstanceDao> {
+public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventsRecord, Events, EventInstanceDao> {
 
     private final DataPointDao dataPointDao;
     /**
@@ -121,7 +122,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             summaries.put(level, new UserEventLevelSummary(level));
         }
 
-        Field<Long> ackTs = this.dao.getTable().getAlias("ackTs");
+        Field<Long> ackTs = this.dao.getTable().ackTs;
         ConditionSortLimit conditions = new ConditionSortLimit(ackTs.isNull(), null, null, null);
         dao.customizedQuery(conditions, user, (item, index) -> {
             dao.loadRelationalData(item);

@@ -49,12 +49,13 @@ import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.Events;
 import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.infiniteautomation.mango.db.tables.UserComments;
+import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
-import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.service.EventInstanceService.AlarmPointTagCount;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -86,29 +87,28 @@ import net.jazdw.rql.parser.ASTNode;
  *
  */
 @Repository()
-public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstanceTableDefinition> {
+public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecord, Events> {
 
     private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(
             () -> Common.getRuntimeContext().getBean(EventInstanceDao.class));
 
-    private final UserTableDefinition userTable;
-    private final UserCommentTableDefinition userCommentTable;
+    private final Users users;
+    private final UserComments userComments;
     private final DataPointTagsDao dataPointTagsDao;
     private final PermissionService permissionService;
+    private final UserCommentDao userCommentDao;
 
     @Autowired
-    private EventInstanceDao(EventInstanceTableDefinition table,
-            UserTableDefinition userTable,
-            UserCommentTableDefinition userCommentTable,
-            DataPointTagsDao dataPointTagsDao,
-            PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
-        super(null, table, null, mapper, publisher);
-        this.userTable = userTable;
-        this.userCommentTable = userCommentTable;
+    private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
+                             PermissionService permissionService,
+                             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                             ApplicationEventPublisher publisher, UserCommentDao userCommentDao) {
+        super(null, Events.EVENTS.as("evt"), null, mapper, publisher);
+        this.users = Users.USERS.as("u");
+        this.userComments = UserComments.USER_COMMENTS.as("uc");
         this.dataPointTagsDao = dataPointTagsDao;
         this.permissionService = permissionService;
+        this.userCommentDao = userCommentDao;
     }
 
     /**
@@ -125,56 +125,42 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     }
 
     @Override
-    protected Object[] voToObjectArray(EventInstanceVO event) {
+    protected Record voToObjectArray(EventInstanceVO event) {
         EventType type = event.getEventType();
+        Record record = table.newRecord();
+        record.set(table.typeName, type.getEventType());
+        record.set(table.subTypeName, type.getEventSubtype());
+        record.set(table.typeRef1, type.getReferenceId1());
+        record.set(table.typeRef2, type.getReferenceId2());
+        record.set(table.activeTs, event.getActiveTimestamp());
+        record.set(table.rtnApplicable, boolToChar(event.isRtnApplicable()));
         if (event.isRtnApplicable() && !event.isActive()) {
-            return new Object[] {
-                    type.getEventType(),
-                    type.getEventSubtype(),
-                    type.getReferenceId1(),
-                    type.getReferenceId2(),
-                    event.getActiveTimestamp(),
-                    boolToChar(event.isRtnApplicable()),
-                    event.getRtnTimestamp(),
-                    event.getRtnCause().value(),
-                    event.getAlarmLevel().value(),
-                    writeTranslatableMessage(event.getMessage()),
-                    null,
-                    null,
-                    null,
-                    event.getReadPermission().getId()
-            };
+            record.set(table.rtnTs, event.getRtnTimestamp());
+            record.set(table.rtnCause, event.getRtnCause().value());
         }else {
-            return new Object[] {
-                    type.getEventType(),
-                    type.getEventSubtype(),
-                    type.getReferenceId1(),
-                    type.getReferenceId2(),
-                    event.getActiveTimestamp(),
-                    boolToChar(event.isRtnApplicable()),
-                    null,
-                    null,
-                    event.getAlarmLevel().value(),
-                    writeTranslatableMessage(event.getMessage()),
-                    null,
-                    null,
-                    null,
-                    event.getReadPermission().getId()
-            };
+            record.set(table.rtnTs, null);
+            record.set(table.rtnCause, null);
         }
+        record.set(table.alarmLevel, event.getAlarmLevel().value());
+        record.set(table.message, writeTranslatableMessage(event.getMessage()));
+        record.set(table.ackTs, null);
+        record.set(table.ackUserId, null);
+        record.set(table.alternateAckSource, null);
+        record.set(table.readPermissionId, event.getReadPermission().getId());
+        return record;
     }
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
 
-        select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
+        select = select.leftJoin(users).on(users.id.eq(table.ackUserId));
 
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
                 // TODO Mango 4.0 throw exception or don't join if event type is not restricted to DATA_POINT
                 Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-                select = select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getAlias("typeRef1")));
+                select = select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(table.typeRef1));
             }
         }
 
@@ -215,9 +201,9 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     @Override
     public List<Field<?>> getSelectFields() {
         List<Field<?>> fields = new ArrayList<>(super.getSelectFields());
-        fields.add(userTable.getAlias("username"));
-        Field<?> hasComments = this.create.selectCount().from(userCommentTable.getTableAsAlias())
-                .where(userCommentTable.getAlias("commentType").eq(UserCommentVO.TYPE_EVENT), userCommentTable.getAlias("typeKey").eq(this.table.getAlias("id"))).asField("cnt");
+        fields.add(users.username);
+        Field<?> hasComments = this.create.selectCount().from(userComments)
+                .where(userComments.commentType.eq(UserCommentVO.TYPE_EVENT), userComments.typeKey.eq(table.id)).asField("cnt");
         fields.add(hasComments);
         return fields;
     }
@@ -225,6 +211,11 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     @Override
     public RowMapper<EventInstanceVO> getRowMapper() {
         return new EventInstanceVORowMapper();
+    }
+
+    @Override
+    public EventInstanceVO mapRecord(Record record) {
+        return null;
     }
 
     public static class EventInstanceVORowMapper implements RowMapper<EventInstanceVO> {
@@ -290,8 +281,9 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
     @Override
     public void loadRelationalData(EventInstanceVO vo) {
         if (vo.isHasComments()) {
-            vo.setEventComments(query(EVENT_COMMENT_SELECT, new Object[] { vo.getId() },
-                    UserCommentDao.getInstance().getRowMapper()));
+            List<UserCommentVO> comments = new ArrayList<>();
+            userCommentDao.getEventComments(vo.getId(), comments::add);
+            vo.setEventComments(comments);
         }
 
         MangoPermission read = vo.getReadPermission();
@@ -303,11 +295,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventInstan
         MangoPermission readPermission = vo.getReadPermission();
         permissionService.deletePermissions(readPermission);
     }
-
-    private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //
-            + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
-            + " and uc.typeKey=? " //
-            + "order by uc.ts";
 
     public static EventType createEventType(ResultSet rs, int offset) throws SQLException {
         String typeName = rs.getString(offset);

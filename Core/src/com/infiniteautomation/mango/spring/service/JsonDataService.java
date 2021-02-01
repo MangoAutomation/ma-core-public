@@ -16,8 +16,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.infiniteautomation.mango.db.tables.JsonData;
+import com.infiniteautomation.mango.db.tables.records.JsonDataRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -33,7 +34,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Service
-public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTableDefinition, JsonDataDao> {
+public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataRecord, JsonData, JsonDataDao> {
 
     private final JsonDataCreatePermissionDefinition createPermission;
     private final ObjectMapper mapper;

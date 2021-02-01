@@ -26,6 +26,8 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.EventHandlers;
+import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
@@ -49,7 +51,7 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 @Repository()
-public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, EventHandlerTableDefinition>{
+public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, EventHandlersRecord, EventHandlers> {
 
     private static final LazyInitSupplier<EventHandlerDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(EventHandlerDao.class);
@@ -79,7 +81,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_HANDLER,
-                table,
+                EventHandlers.EVENT_HANDLERS.as("eh"),
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
@@ -99,20 +101,25 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     @Override
-    protected Object[] voToObjectArray(AbstractEventHandlerVO vo) {
-        return new Object[]{
-                vo.getXid(),
-                vo.getName(),
-                vo.getDefinition().getEventHandlerTypeName(),
-                SerializationHelper.writeObjectToArray(vo),
-                vo.getReadPermission().getId(),
-                vo.getEditPermission().getId()
-        };
+    protected Record voToObjectArray(AbstractEventHandlerVO vo) {
+        Record record = table.newRecord();
+        record.set(table.xid, vo.getXid());
+        record.set(table.alias, vo.getName());
+        record.set(table.eventHandlerType, vo.getDefinition().getEventHandlerTypeName());
+        record.set(table.data, SerializationHelper.writeObjectToArray(vo));
+        record.set(table.readPermissionId, vo.getReadPermission().getId());
+        record.set(table.editPermissionId, vo.getEditPermission().getId());
+        return record;
     }
 
     @Override
     public RowMapper<AbstractEventHandlerVO> getRowMapper() {
         return new EventHandlerRowMapper();
+    }
+
+    @Override
+    public AbstractEventHandlerVO mapRecord(Record record) {
+        return null;
     }
 
     private static final String EVENT_HANDLER_SELECT = "SELECT id, xid, alias, eventHandlerType, data, readPermissionId, editPermissionId FROM eventHandlers ";

@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,11 +36,14 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.Events;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.infiniteautomation.mango.db.tables.UserComments;
+import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
-import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
@@ -48,8 +52,6 @@ import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -84,23 +86,20 @@ public class EventDao extends BaseDao {
 
     private final AuditEventDao auditEventDao;
     private final UserCommentDao userCommentDao;
-    private final EventInstanceTableDefinition table;
-    private final UserTableDefinition userTable;
-    private final UserCommentTableDefinition userCommentTable;
+    private final Events table;
+    private final Users userTable;
+    private final UserComments userCommentTable;
     private final PermissionService permissionService;
 
     @Autowired
     private EventDao(AuditEventDao auditEventDao,
             UserCommentDao userCommentDao,
-            EventInstanceTableDefinition table,
-            UserTableDefinition userTable,
-            UserCommentTableDefinition userCommentTable,
             PermissionService permissionService) {
         this.auditEventDao = auditEventDao;
         this.userCommentDao = userCommentDao;
-        this.table = table;
-        this.userTable = userTable;
-        this.userCommentTable = userCommentTable;
+        table = Events.EVENTS.as("evt");
+        this.userTable = Users.USERS.as("u");
+        this.userCommentTable = UserComments.USER_COMMENTS.as("uc");
         this.permissionService = permissionService;
     }
 
@@ -141,64 +140,50 @@ public class EventDao extends BaseDao {
     private void insertEvent(EventInstance event) {
         savePreRelationalData(event);
         int id = -1;
-        InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(event));
+        // TODO Mango 4.0
+        InsertValuesStepN<?> insert = this.create.insertInto(table).columns(table.fields()).values(voToObjectArray(event));
         String sql = insert.getSQL();
         List<Object> args = insert.getBindValues();
         id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
         event.setId(id);
     }
 
-    private Object[] voToObjectArray(EventInstance event) {
+    private Record voToObjectArray(EventInstance event) {
         EventType type = event.getEventType();
+        Record record = table.newRecord();
+        record.set(table.typeName, type.getEventType());
+        record.set(table.subTypeName, type.getEventSubtype());
+        record.set(table.typeRef1, type.getReferenceId1());
+        record.set(table.typeRef2, type.getReferenceId2());
+        record.set(table.activeTs, event.getActiveTimestamp());
+        record.set(table.rtnApplicable, boolToChar(event.isRtnApplicable()));
         if (event.isRtnApplicable() && !event.isActive()) {
-            return new Object[] {
-                    type.getEventType(),
-                    type.getEventSubtype(),
-                    type.getReferenceId1(),
-                    type.getReferenceId2(),
-                    event.getActiveTimestamp(),
-                    boolToChar(event.isRtnApplicable()),
-                    event.getRtnTimestamp(),
-                    event.getRtnCause().value(),
-                    event.getAlarmLevel().value(),
-                    writeTranslatableMessage(event.getMessage()),
-                    null,
-                    null,
-                    null,
-                    event.getReadPermission().getId()
-            };
+            record.set(table.rtnTs, event.getRtnTimestamp());
+            record.set(table.rtnCause, event.getRtnCause().value());
         }else {
-            return new Object[] {
-                    type.getEventType(),
-                    type.getEventSubtype(),
-                    type.getReferenceId1(),
-                    type.getReferenceId2(),
-                    event.getActiveTimestamp(),
-                    boolToChar(event.isRtnApplicable()),
-                    null,
-                    null,
-                    event.getAlarmLevel().value(),
-                    writeTranslatableMessage(event.getMessage()),
-                    null,
-                    null,
-                    null,
-                    event.getReadPermission().getId()
-            };
+            record.set(table.rtnTs, null);
+            record.set(table.rtnCause, null);
         }
+        record.set(table.alarmLevel, event.getAlarmLevel().value());
+        record.set(table.message, writeTranslatableMessage(event.getMessage()));
+        record.set(table.ackTs, null);
+        record.set(table.ackUserId, null);
+        record.set(table.alternateAckSource, null);
+        record.set(table.readPermissionId, event.getReadPermission().getId());
+        return record;
     }
 
-
     public List<Field<?>> getSelectFields() {
-        List<Field<?>> fields = new ArrayList<>(this.table.getSelectFields());
-        fields.add(userTable.getAlias("username"));
-        Field<?> hasComments = this.create.selectCount().from(userCommentTable.getTableAsAlias())
-                .where(userCommentTable.getAlias("commentType").eq(UserCommentVO.TYPE_EVENT), userCommentTable.getAlias("typeKey").eq(this.table.getAlias("id"))).asField("cnt");
+        List<Field<?>> fields = new ArrayList<>(Arrays.asList(table.fields()));
+        fields.add(userTable.username);
+        Field<?> hasComments = this.create.selectCount().from(userCommentTable)
+                .where(userCommentTable.commentType.eq(UserCommentVO.TYPE_EVENT), userCommentTable.typeKey.eq(table.id)).asField("cnt");
         fields.add(hasComments);
         return fields;
     }
 
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
+        select = select.leftJoin(userTable).on(userTable.id.eq(table.ackUserId));
         return select;
     }
 
@@ -237,15 +222,11 @@ public class EventDao extends BaseDao {
         vo.setReadPermission(readPermission);
     }
 
-    private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //
-            + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
-            + " and uc.typeKey=? " //
-            + "order by uc.ts";
-
     public void loadRelationalData(EventInstance vo) {
         if (vo.isHasComments()) {
-            vo.setEventComments(query(EVENT_COMMENT_SELECT, new Object[] { vo.getId() },
-                    UserCommentDao.getInstance().getRowMapper()));
+            List<UserCommentVO> comments = new ArrayList<>();
+            userCommentDao.getEventComments(vo.getId(), comments::add);
+            vo.setEventComments(comments);
         }
 
         MangoPermission read = vo.getReadPermission();
@@ -259,7 +240,7 @@ public class EventDao extends BaseDao {
 
     public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
         return this.create.select(fields)
-                .from(this.table.getTableAsAlias());
+                .from(table);
     }
 
     public SelectJoinStep<Record> getJoinedSelectQuery() {
@@ -347,9 +328,9 @@ public class EventDao extends BaseDao {
                         EventInstance row = rowMapper.mapRow(rs, rowNum);
                         loadRelationalData(row);
                         results.add(row);
-                    }catch (Exception e) {
+                    } catch (Exception e) {
                         error.accept(e, rs);
-                    }finally {
+                    } finally {
                         rowNum++;
                     }
                     return DataAccessUtils.uniqueResult(results);
@@ -370,9 +351,9 @@ public class EventDao extends BaseDao {
     private void updateEvent(EventInstance event) {
         if (event.isRtnApplicable()) {
             Map<Field<?>, Object> values = new LinkedHashMap<>();
-            values.put(this.table.getField("rtnTs"), event.getRtnTimestamp());
-            values.put(this.table.getField("rtnCause"), event.getRtnCause().value());
-            UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getIdField().eq(event.getId()));
+            values.put(table.rtnTs, event.getRtnTimestamp());
+            values.put(table.rtnCause, event.getRtnCause().value());
+            UpdateConditionStep<?> update = this.create.update(table).set(values).where(table.id.eq(event.getId()));
             String sql = update.getSQL();
             List<Object> args = update.getBindValues();
             ejt.update(sql, args.toArray(new Object[args.size()]));
@@ -392,14 +373,14 @@ public class EventDao extends BaseDao {
         }
 
         Map<Field<?>, Object> values = new LinkedHashMap<>();
-        values.put(this.table.getField("rtnTs"), timestamp);
-        values.put(this.table.getField("rtnCause"), cause.value());
+        values.put(table.rtnTs, timestamp);
+        values.put(table.rtnCause, cause.value());
 
         for(List<Integer> batch : batchInParameters(eventIds)) {
-            UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getField("rtnApplicable").eq(boolToChar(true)).and(this.table.getIdField().in(batch)));
+            UpdateConditionStep<?> update = this.create.update(table).set(values).where(table.rtnApplicable.eq(boolToChar(true)).and(table.id.in(batch)));
             String sql = update.getSQL();
             List<Object> args = update.getBindValues();
-            ejt.update(sql, args.toArray(new Object[args.size()]));
+            ejt.update(sql, args.toArray(new Object[0]));
         }
     }
 
@@ -413,13 +394,13 @@ public class EventDao extends BaseDao {
      */
     public boolean ackEvent(int eventId, long time, Integer userId, TranslatableMessage alternateAckSource) {
         Map<Field<?>, Object> values = new LinkedHashMap<>();
-        values.put(this.table.getField("ackTs"), time);
-        values.put(this.table.getField("ackUserId"), userId);
-        values.put(this.table.getField("alternateAckSource"), writeTranslatableMessage(alternateAckSource));
-        UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getIdField().eq(eventId).and(this.table.getField("ackTs").isNull()));
+        values.put(table.ackTs, time);
+        values.put(table.ackUserId, userId);
+        values.put(table.alternateAckSource, writeTranslatableMessage(alternateAckSource));
+        UpdateConditionStep<?> update = this.create.update(table).set(values).where(table.id.eq(eventId).and(table.ackTs.isNull()));
         String sql = update.getSQL();
         List<Object> args = update.getBindValues();
-        return ejt.update(sql, args.toArray(new Object[args.size()])) > 0;
+        return ejt.update(sql, args.toArray(new Object[0])) > 0;
     }
 
     private static final String BASIC_EVENT_SELECT = //
@@ -437,7 +418,7 @@ public class EventDao extends BaseDao {
     public List<EventInstance> getActiveEvents() {
         List<EventInstance> events = new ArrayList<>();
         SelectJoinStep<Record> query = this.getJoinedSelectQuery();
-        SelectConditionStep<Record> where = query.where(this.table.getAlias("rtnApplicable").eq(boolToChar(true)).and(this.table.getAlias("rtnTs").isNull()));
+        SelectConditionStep<Record> where = query.where(table.rtnApplicable.eq(boolToChar(true)).and(table.rtnTs.isNull()));
         String sql = where.getSQL();
         List<Object> args = where.getBindValues();
         query(sql, args.toArray(), getCallbackResultSetExtractor((item, index) -> {
@@ -454,11 +435,11 @@ public class EventDao extends BaseDao {
      */
     public EventInstance get(int id){
         Select<Record> query = this.getJoinedSelectQuery()
-                .where(this.table.getIdAlias().eq(id))
+                .where(table.id.eq(id))
                 .limit(1);
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        EventInstance item = ejt.query(sql, args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
+        EventInstance item = ejt.query(sql, args.toArray(new Object[0]), getObjectResultSetExtractor());
         if (item != null) {
             loadRelationalData(item);
         }

@@ -3,11 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collections;
 import java.util.UUID;
 
+import com.infiniteautomation.mango.db.tables.FileStores;
+import com.infiniteautomation.mango.db.tables.records.FileStoresRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
 import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
@@ -15,13 +18,11 @@ import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author Terry Packer
  *
  */
-public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsTestBase<FileStore, FileStoreTableDefinition, FileStoreDao, FileStoreService> {
+public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsTestBase<FileStore, FileStoresRecord, FileStores, FileStoreDao, FileStoreService> {
 
     @Override
     public FileStoreService getService() {

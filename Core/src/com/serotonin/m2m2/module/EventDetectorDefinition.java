@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
+import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -26,7 +27,7 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * Name of the column in the event detectors into which to store the source id
      * @return
      */
-    abstract public String getSourceIdColumnName();
+    abstract public Field<Integer> getSourceIdColumnName();
 
     /**
      * Name of the type of Source [DATA_POINT, DATA_SOURCE, SYSTEM, ...]

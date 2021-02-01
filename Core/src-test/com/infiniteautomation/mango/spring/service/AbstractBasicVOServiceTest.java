@@ -16,11 +16,13 @@ import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -31,13 +33,12 @@ import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 /**
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition, DAO extends AbstractBasicDao<VO, TABLE>, SERVICE extends AbstractBasicVOService<VO,TABLE,DAO>> extends MangoTestBase {
+public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO,R,TABLE,DAO>> extends MangoTestBase {
 
     protected RunAs runAs;
     protected SERVICE service;

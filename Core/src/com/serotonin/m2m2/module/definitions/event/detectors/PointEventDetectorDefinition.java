@@ -4,8 +4,10 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.db.tables.EventDetectors;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -22,14 +24,12 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 public abstract class PointEventDetectorDefinition<T extends AbstractPointEventDetectorVO> extends EventDetectorDefinition<T> {
 
-    public static final String SOURCE_ID_COLUMN_NAME = "dataPointId";
-
     @Autowired
     private DataPointService dataPointService;
 
     @Override
-    public String getSourceIdColumnName() {
-        return SOURCE_ID_COLUMN_NAME;
+    public Field<Integer> getSourceIdColumnName() {
+        return EventDetectors.EVENT_DETECTORS.as("ed").dataPointId;
     }
 
     @Override

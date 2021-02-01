@@ -3,6 +3,9 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -22,7 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.InsertValuesStepN;
+import org.jooq.Identity;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
@@ -31,7 +33,9 @@ import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
-import org.jooq.UpdateConditionStep;
+import org.jooq.Table;
+import org.jooq.TableField;
+import org.jooq.exception.NoDataFoundException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.context.ApplicationEventPublisher;
@@ -50,7 +54,6 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
-import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.RQLUtils;
@@ -62,6 +65,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+
 import net.jazdw.rql.parser.ASTNode;
 
 /**
@@ -71,7 +75,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Jared Wiltshire
  * @author Terry Packer
  */
-public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition> extends BaseDao implements AbstractBasicVOAccess<T, TABLE> {
+public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>> extends BaseDao implements AbstractBasicVOAccess<T, R, TABLE> {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
     //Retry transactions that deadlock
@@ -108,13 +112,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         this.eventPublisher = publisher;
 
         // Map of potential property names to db field aliases
-        this.aliasMap = this.createAliasMap();
+        this.aliasMap = createAliasMap();
 
         // Map of potential property names to sub select conditions
-        this.subSelectMap = this.createSubSelectMap();
+        this.subSelectMap = createSubSelectMap();
 
         // Map of properties to their QueryAttribute
-        this.valueConverterMap = this.createValueConverterMap();
+        this.valueConverterMap = createValueConverterMap();
 
         //Setup Monitors
         if(countMonitorName != null) {
@@ -129,14 +133,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     /**
-     * Converts a VO object into an array of objects for insertion or updating
-     * of database
+     * Converts a VO object into a map of fields for insert/update of DB.
      *
      * @param vo
      *            to convert
      * @return object array
      */
-    protected abstract Object[] voToObjectArray(T vo);
+    protected abstract Record voToObjectArray(T vo);
 
     /**
      * Condition required for user to have read permission.  Override as required, note
@@ -154,7 +157,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      *
      * @return row mapper
      */
-    public abstract RowMapper<T> getRowMapper();
+    public RowMapper<T> getRowMapper() {
+        return this::mapRow;
+    }
+
+    public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Record record = create.fetchLazy(rs).fetchNext();
+        return mapRecord(record);
+    }
+
+    public abstract T mapRecord(Record record);
 
     @Override
     public boolean delete(int id) {
@@ -170,7 +182,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
                 try {
                     deleted = withLockedRow(vo.getId(), (txStatus) -> {
                         deleteRelationalData(vo);
-                        int result = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                        int result = create.deleteFrom(table).where(getIdField().eq(vo.getId())).execute();
                         if(result > 0) {
                             deletePostRelationalData(vo);
                         }
@@ -198,6 +210,17 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         return false;
     }
 
+    public Field<Integer> getIdField() {
+        Identity<? extends Record, ?> identity = table.getIdentity();
+        if (identity != null) {
+            TableField<? extends Record, ?> field = identity.getField();
+            if (field.getDataType().isNumeric()) {
+                return field.cast(Integer.class);
+            }
+        }
+        return null;
+    }
+
     @Override
     public void deleteRelationalData(T vo) { }
 
@@ -211,14 +234,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             try {
                 doInTransaction(status -> {
                     savePreRelationalData(null, vo);
-                    int id = -1;
-                    InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
-                    String sql = insert.getSQL();
-                    List<Object> args = insert.getBindValues();
-                    id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
+
+                    int id = create.insertInto(table)
+                            .set(voToObjectArray(vo))
+                            .returningResult(getIdField())
+                            .fetchOptional()
+                            .orElseThrow(NoDataFoundException::new)
+                            .value1();
                     vo.setId(id);
+
                     saveRelationalData(null, vo);
-                    return null;
                 });
                 break;
             }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
@@ -253,20 +278,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             try {
                 doInTransaction(status -> {
                     savePreRelationalData(existing, vo);
-                    List<Object> list = new ArrayList<>();
-                    list.addAll(Arrays.asList(voToObjectArray(vo)));
-                    Map<Field<?>, Object> values = new LinkedHashMap<>();
-                    int i = 0;
-                    for(Field<?> f : this.table.getUpdateFields()) {
-                        values.put(f, list.get(i));
-                        i++;
-                    }
-                    UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getIdField().eq(vo.getId()));
-                    String sql = update.getSQL();
-                    List<Object> args = update.getBindValues();
-                    ejt.update(sql, args.toArray(new Object[args.size()]));
+
+                    create.update(table).set(voToObjectArray(vo))
+                            .where(getIdField().eq(vo.getId()))
+                            .execute();
+
                     saveRelationalData(existing, vo);
-                    return null;
                 });
                 break;
             }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
@@ -283,11 +300,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public T get(int id) {
         Select<Record> query = this.getJoinedSelectQuery()
-                .where(this.table.getIdAlias().eq(id))
+                .where(getIdField().eq(id))
                 .limit(1);
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        T item = ejt.query(sql, args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
+        T item = ejt.query(sql, args.toArray(new Object[0]), getObjectResultSetExtractor());
         if (item != null) {
             loadRelationalData(item);
         }
@@ -316,8 +333,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
-        return this.create.select(fields)
-                .from(this.table.getTableAsAlias());
+        return create.select(fields)
+                .from(table);
     }
 
     @Override
@@ -331,7 +348,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public int count() {
-        return getCountQuery().from(this.table.getTableAsAlias()).fetchOneInto(Integer.class);
+        return getCountQuery().from(table)
+                .fetchSingle()
+                .value1();
     }
 
     /**
@@ -340,10 +359,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      */
     @Override
     public SelectSelectStep<Record1<Integer>> getCountQuery() {
-        if (this.table.getIdAlias() == null) {
-            return this.create.selectCount();
+        if (getIdField() == null) {
+            return create.selectCount();
         } else {
-            return this.create.select(DSL.count(this.table.getIdAlias()));
+            return create.select(DSL.count(getIdField()));
         }
     }
 
@@ -356,7 +375,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      * @return
      */
     public List<Field<?>> getSelectFields() {
-        return this.table.getSelectFields();
+        return Arrays.asList(table.fields());
     }
 
     @Override
@@ -387,7 +406,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     public int customizedCount(ConditionSortLimit conditions, PermissionHolder user) {
         SelectSelectStep<Record1<Integer>> count = getCountQuery();
 
-        SelectJoinStep<Record1<Integer>> select = count.from(this.table.getTableAsAlias());
+        SelectJoinStep<Record1<Integer>> select = count.from(table);
         select = joinTables(select, conditions);
         select = joinPermissions(select, conditions, user);
         return customizedCount(select, conditions.getCondition());
@@ -402,7 +421,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
         String sql = select.getSQL();
         List<Object> arguments = select.getBindValues();
-        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+        Object[] argumentsArray = arguments.toArray(new Object[0]);
 
         LogStopWatch stopWatch = null;
         if (useMetrics) {
@@ -413,7 +432,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
         if (stopWatch != null) {
             Select<Record1<Integer>> selectOutput = select;
-            stopWatch.stop(() -> "customizedCount(): " + this.create.renderInlined(selectOutput), metricsThreshold);
+            stopWatch.stop(() -> "customizedCount(): " + create.renderInlined(selectOutput), metricsThreshold);
         }
 
         return count;
@@ -428,7 +447,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset,
+    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<?>> sort, Integer limit, Integer offset,
             MappedRowCallback<T> callback) {
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
 
@@ -452,12 +471,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public <TYPE> TYPE customizedQuery(Select<Record> select,
-            ResultSetExtractor<TYPE> callback) {
-
+    public <TYPE> TYPE customizedQuery(Select<Record> select, ResultSetExtractor<TYPE> callback) {
         String sql = select.getSQL();
         List<Object> arguments = select.getBindValues();
-        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+        Object[] argumentsArray = arguments.toArray(new Object[0]);
 
         LogStopWatch stopWatch = null;
         if (useMetrics) {
@@ -467,30 +484,28 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             return this.query(sql, argumentsArray, callback);
         }finally {
             if (stopWatch != null) {
-                stopWatch.stop(() -> "customizedQuery(): " + this.create.renderInlined(select), metricsThreshold);
+                stopWatch.stop(() -> "customizedQuery(): " + create.renderInlined(select), metricsThreshold);
             }
         }
     }
 
     protected Map<String, Field<?>> createAliasMap() {
-        return this.table.getAliasMap();
+        return Collections.emptyMap();
     }
 
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
-        return this.table.getSubSelectMap();
+        return Collections.emptyMap();
     }
 
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
-        return this.table.getFieldMap().entrySet().stream()
-                .filter(e -> e.getValue().getDataType().getSQLDataType() == SQLDataType.CHAR)
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER));
+        return table.fieldStream().filter(f -> f.getDataType().getSQLDataType() == SQLDataType.CHAR)
+                .collect(Collectors.toMap(Field::getName, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER));
     }
 
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMapping, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
         RQLToCondition rqlToCondition = createRqlToCondition(combine(this.subSelectMap, subSelectMapping), combine(this.aliasMap, fieldMap), combine(this.valueConverterMap, valueConverters));
-        ConditionSortLimit conditions = rqlToCondition.visit(rql);
-        return conditions;
+        return rqlToCondition.visit(rql);
     }
 
     protected <X, Y> Map<X,Y> combine(Map<X,Y> a, Map<X,Y> b) {
@@ -704,8 +719,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void lockRow(int id) {
-        this.create.select().from(this.table.getTableAsAlias())
-        .where(this.table.getIdAlias().eq(id))
+        create.select().from(table)
+        .where(getIdField().eq(id))
         .forUpdate()
         .fetch();
     }
@@ -729,15 +744,25 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     protected JsonNode extractData(Clob c) throws SQLException {
-        try {
-            if(c != null) {
-                return getObjectReader(JsonNode.class).readValue(c.getCharacterStream());
-            }else {
-                return null;
+        if (c != null) {
+            try (Reader reader = c.getCharacterStream()) {
+                return getObjectReader(JsonNode.class).readValue(reader);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        }catch(Exception e) {
-            throw new SQLException(e);
         }
+        return null;
+    }
+
+    protected JsonNode extractData(String c) {
+        if (c != null) {
+            try {
+                return getObjectReader(JsonNode.class).readValue(c);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return null;
     }
 
     @Override

@@ -29,8 +29,9 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.DataPoints;
+import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -81,7 +82,7 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class DataPointService extends AbstractVOService<DataPointVO, DataPointTableDefinition, DataPointDao> {
+public class DataPointService extends AbstractVOService<DataPointVO, DataPointsRecord, DataPoints, DataPointDao> {
 
     private final DataSourceDao dataSourceDao;
     private final EventDetectorDao eventDetectorDao;
@@ -384,8 +385,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     public void queryDeviceNames(Condition conditions, boolean sortAsc, Integer limit, Integer offset, MappedRowCallback<String> callback) {
         PermissionHolder user = Common.getUser();
 
-        Field<Object> deviceName = this.dao.getTable().getAlias("deviceName");
-        List<SortField<Object>> sort = new ArrayList<>();
+        Field<String> deviceName = this.dao.getTable().deviceName;
+        List<SortField<?>> sort = new ArrayList<>();
         if(sortAsc) {
             sort.add(deviceName.asc());
         }else {

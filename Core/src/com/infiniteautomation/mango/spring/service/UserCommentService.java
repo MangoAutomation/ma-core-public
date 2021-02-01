@@ -8,7 +8,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
+import com.infiniteautomation.mango.db.tables.UserComments;
+import com.infiniteautomation.mango.db.tables.records.UserCommentsRecord;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -28,7 +29,7 @@ import com.serotonin.validation.StringValidation;
  * @author Terry Packer
  */
 @Service
-public class UserCommentService extends AbstractVOService<UserCommentVO, UserCommentTableDefinition, UserCommentDao>  {
+public class UserCommentService extends AbstractVOService<UserCommentVO, UserCommentsRecord, UserComments, UserCommentDao>  {
 
     private final UserDao userDao;
     private final DataPointDao dataPointDao;

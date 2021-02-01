@@ -3,9 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.db;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.jooq.Field;
 import org.jooq.Name;
@@ -14,9 +12,6 @@ import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Component;
-
-import com.serotonin.m2m2.module.EventDetectorDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 
 /**
  * @author Terry Packer
@@ -60,13 +55,6 @@ public class EventDetectorTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name(READ_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false)));
         fields.add(DSL.field(DSL.name(EDIT_PERMISSION_NAME), SQLDataType.INTEGER.nullable(false)));
 
-        Map<String, Field<?>> definitionFields = new LinkedHashMap<>();
-        //Build our ordered column set from the Module Registry
-        List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
-        for(EventDetectorDefinition<?> def : defs) {
-            definitionFields.put(def.getSourceIdColumnName(), DSL.field(DSL.name(def.getSourceIdColumnName()), SQLDataType.INTEGER));
-        }
-        fields.addAll(definitionFields.values());
     }
 
 }

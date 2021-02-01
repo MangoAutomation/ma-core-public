@@ -3,9 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import org.jooq.Record;
+import org.jooq.Table;
 import org.junit.Test;
 
-import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.AbstractVoDao;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -16,7 +17,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOServiceTest<VO extends AbstractVO, TABLE extends AbstractTableDefinition, DAO extends AbstractVoDao<VO,TABLE>, SERVICE extends AbstractVOService<VO,TABLE,DAO>> extends AbstractBasicVOServiceTest<VO, TABLE, DAO, SERVICE> {
+public abstract class AbstractVOServiceTest<VO extends AbstractVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractVoDao<VO,R,TABLE>, SERVICE extends AbstractVOService<VO,R,TABLE,DAO>> extends AbstractBasicVOServiceTest<VO, R, TABLE, DAO, SERVICE> {
 
     public AbstractVOServiceTest() {
 

@@ -13,8 +13,9 @@ import org.jooq.Condition;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.Events;
+import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -28,7 +29,7 @@ import com.serotonin.m2m2.vo.role.Role;
  *  EventInstanceVOs
  * @author Terry Packer
  */
-public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTest<EventInstanceVO, EventInstanceTableDefinition, EventInstanceDao, EventInstanceService> {
+public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTest<EventInstanceVO, EventsRecord, Events, EventInstanceDao, EventInstanceService> {
 
     @Override
     String getCreatePermissionType() {
@@ -187,7 +188,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
             assertEquals(0, count.get());
         });
         runAs.runAs(editUser, () -> {
-            Condition c = getDao().getTable().getIdAlias().eq(saved.getId());
+            Condition c = getDao().getIdField().eq(saved.getId());
             ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
             AtomicInteger count = new AtomicInteger();
             getService().customizedQuery(conditions, (item, row) -> {

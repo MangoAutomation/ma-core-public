@@ -13,7 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.db.tables.Roles;
+import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.User;
@@ -24,7 +25,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Terry Packer
  *
  */
-public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefinition, RoleDao, RoleService> {
+public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RolesRecord, Roles, RoleDao, RoleService> {
 
     @Test
     public void cannotInsertNewUserRole() {

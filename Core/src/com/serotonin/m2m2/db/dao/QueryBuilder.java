@@ -56,7 +56,7 @@ public class QueryBuilder<T> {
 
     protected Deque<Group> stack = new ArrayDeque<>();
     protected Group group = new Group(Operator.AND);
-    protected List<SortField<Object>> sort = new ArrayList<>();
+    protected List<SortField<?>> sort = new ArrayList<>();
 
     protected QueryBuilder(Map<String, Field<?>> fields, Map<String, Function<Object, Object>> valueConverter, Function<ConditionSortLimit, Integer> countFn, BiConsumer<ConditionSortLimit, Consumer<T>> queryFn) {
         this.fields = fields;
@@ -202,7 +202,7 @@ public class QueryBuilder<T> {
         return group.toCondition().toString();
     }
 
-    protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
+    protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<?>> sort, Integer limit, Integer offset) {
         return new ConditionSortLimit(condition, sort, limit, offset);
     }
 }

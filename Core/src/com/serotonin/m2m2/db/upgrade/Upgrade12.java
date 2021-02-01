@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,9 +27,9 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.json.JsonException;
+import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -529,7 +530,10 @@ public class Upgrade12 extends DBUpgrade {
             }
             String jsonData = null;
             try{
-                jsonData = EventDetectorDao.writeValueAsString(vo);
+                StringWriter stringWriter = new StringWriter();
+                JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
+                writer.writeObject(vo);
+                jsonData = stringWriter.toString();
             }catch(JsonException | IOException e){
                 LOG.error(e.getMessage(), e);
                 try{

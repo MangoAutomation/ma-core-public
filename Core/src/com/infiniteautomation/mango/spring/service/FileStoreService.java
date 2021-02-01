@@ -17,11 +17,11 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
+import com.infiniteautomation.mango.db.tables.FileStores;
+import com.infiniteautomation.mango.db.tables.records.FileStoresRecord;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableIllegalArgumentException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
@@ -43,7 +43,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Jared Wiltshire
  */
 @Service
-public class FileStoreService extends AbstractVOService<FileStore, FileStoreTableDefinition, FileStoreDao> {
+public class FileStoreService extends AbstractVOService<FileStore, FileStoresRecord, FileStores, FileStoreDao> {
 
     private final UserFileStoreCreatePermissionDefinition createPermission;
     private final Path fileStoreRoot = Common.getFileStorePath();;
