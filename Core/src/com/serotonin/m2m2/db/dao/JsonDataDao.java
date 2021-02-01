@@ -31,16 +31,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.JsonData;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.records.JsonDataRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
@@ -177,7 +175,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
         if (!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
-            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
 
             Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId).from(MintermsRoles.MINTERMS_ROLES)
                     .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
@@ -189,7 +187,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
                     .asTable("permissionsGranted");
 
             select = select.join(permissionsGranted).on(permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
-                    .in(JsonDataTableDefinition.READ_PERMISSION_ALIAS));
+                    .in(table.readPermissionId));
 
         }
         return select;

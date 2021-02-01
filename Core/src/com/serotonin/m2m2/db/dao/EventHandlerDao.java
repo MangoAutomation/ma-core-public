@@ -30,8 +30,6 @@ import com.infiniteautomation.mango.db.tables.EventHandlers;
 import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
@@ -76,8 +74,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     @Autowired
-    private EventHandlerDao(EventHandlerTableDefinition table,
-            PermissionService permissionService,
+    private EventHandlerDao(PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_HANDLER,
@@ -289,7 +286,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
-            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
 
             Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .from(MintermsRoles.MINTERMS_ROLES)
@@ -305,7 +302,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            EventHandlerTableDefinition.READ_PERMISSION_ALIAS));
+                            table.readPermissionId));
 
         }
         return select;

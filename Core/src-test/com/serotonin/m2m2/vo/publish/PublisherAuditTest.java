@@ -4,11 +4,24 @@
  */
 package com.serotonin.m2m2.vo.publish;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.jooq.Condition;
+import org.jooq.impl.DSL;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
+import com.infiniteautomation.mango.db.tables.Audit;
 import com.infiniteautomation.mango.spring.service.AuditEventService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.m2m2.*;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.MockEventManager;
+import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -18,15 +31,6 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
-import org.jooq.Condition;
-import org.jooq.impl.DSL;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  *
@@ -66,9 +70,9 @@ public class PublisherAuditTest extends MangoTestBase {
         List<AuditEventInstanceVO> events = new ArrayList<>();
         while(retries > 0) {
             AuditEventService service = Common.getBean(AuditEventService.class);
-            AuditEventTableDefinition table = Common.getBean(AuditEventTableDefinition.class);
-            Condition conditions = DSL.and(table.getAlias("typeName").eq(AuditEventType.TYPE_PUBLISHER), table.getAlias("objectId").eq(vo.getId()));
-            ConditionSortLimit c = new ConditionSortLimit(conditions, Arrays.asList(table.getAlias("id").asc()), null, null);
+            Audit auditTable = Audit.AUDIT;
+            Condition conditions = DSL.and(auditTable.typeName.eq(AuditEventType.TYPE_PUBLISHER), auditTable.objectId.eq(vo.getId()));
+            ConditionSortLimit c = new ConditionSortLimit(conditions, Collections.singletonList(auditTable.id.asc()), null, null);
             service.customizedQuery(
                     c,
                     (evt, index) -> {

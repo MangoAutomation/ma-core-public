@@ -26,17 +26,15 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.MailingLists;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -170,7 +168,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
-            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
 
             Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .from(MintermsRoles.MINTERMS_ROLES)
@@ -186,7 +184,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            MailingListTableDefinition.READ_PERMISSION_ALIAS));
+                            table.readPermissionId));
 
         }
         return select;

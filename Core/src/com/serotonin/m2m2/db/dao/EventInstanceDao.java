@@ -54,8 +54,6 @@ import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.EventInstanceService.AlarmPointTagCount;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -175,7 +173,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
-            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
 
             Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .from(MintermsRoles.MINTERMS_ROLES)
@@ -191,7 +189,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            EventInstanceTableDefinition.READ_PERMISSION_ALIAS));
+                            table.readPermissionId));
 
         }
         return select;

@@ -34,7 +34,7 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.tables.DataPointTags;
-import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
+import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
@@ -64,12 +64,11 @@ public class DataPointTagsDao extends BaseDao {
     public static final String DEVICE_TAG_KEY = "device";
     public static final String NAME_TAG_KEY = "name";
 
-    private final DataPointTableDefinition dataPointTable;
+    private final DataPoints dataPointTable = DataPoints.DATA_POINTS;
     private final PermissionService permissionService;
 
     @Autowired
-    private DataPointTagsDao(DataPointTableDefinition dataPointTable, PermissionService permissionService) {
-        this.dataPointTable = dataPointTable;
+    private DataPointTagsDao(PermissionService permissionService) {
         this.permissionService = permissionService;
     }
 
@@ -169,7 +168,7 @@ public class DataPointTagsDao extends BaseDao {
                 .from(DATA_POINT_TAGS);
 
         if (!permissionService.hasAdminRole(user)) {
-            query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
+            query = query.join(dataPointTable).on(DATA_POINT_ID.eq(dataPointTable.id));
 
             ConditionSortLimit csl = new ConditionSortLimit(null, null, null, null);
             query = DataPointDao.getInstance().joinPermissions(query, csl, user);
@@ -189,7 +188,7 @@ public class DataPointTagsDao extends BaseDao {
 
         SelectConditionStep<Record1<String>> conditional;
         if (!permissionService.hasAdminRole(user)) {
-            query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
+            query = query.join(dataPointTable).on(DATA_POINT_ID.eq(dataPointTable.id));
             ConditionSortLimit csl = new ConditionSortLimit(TAG_KEY.eq(tagKey), null, null, null);
             query = DataPointDao.getInstance().joinPermissions(query, csl, user);
             conditional = query.where(csl.getCondition());
@@ -260,7 +259,7 @@ public class DataPointTagsDao extends BaseDao {
 
 
         if (!permissionService.hasAdminRole(user)) {
-            query = query.join(dataPointTable.getTableAsAlias()).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
+            query = query.join(dataPointTable).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.id));
 
             ConditionSortLimit csl = new ConditionSortLimit(allConditions, null, null, null);
             query = DataPointDao.getInstance().joinPermissions(query, csl, user);

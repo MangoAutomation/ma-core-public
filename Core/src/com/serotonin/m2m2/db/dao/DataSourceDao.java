@@ -35,14 +35,12 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.DataSources;
+import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
-import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -74,6 +72,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     });
 
     private final PermissionService permissionService;
+    private final EventHandlersMapping eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
 
     @Autowired
     private DataSourceDao(
@@ -321,9 +320,9 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
     @Override
     public void deleteRelationalData(DataSourceVO vo) {
-        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
-        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_SOURCE),
-                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
+        create.deleteFrom(eventHandlersMapping)
+        .where(eventHandlersMapping.eventTypeName.eq(EventType.EventTypeNames.DATA_SOURCE),
+                eventHandlersMapping.eventTypeRef1.eq(vo.getId())).execute();
 
         vo.getDefinition().deleteRelationalData(vo);
     }
@@ -344,7 +343,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
 
-            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
 
             Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .from(MintermsRoles.MINTERMS_ROLES)
@@ -360,7 +359,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            DataSourceTableDefinition.READ_PERMISSION_ALIAS));
+                            table.readPermissionId));
 
         }
         return select;

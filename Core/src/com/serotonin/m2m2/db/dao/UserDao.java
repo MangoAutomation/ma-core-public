@@ -25,7 +25,6 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
-import org.jooq.SelectJoinStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -40,10 +39,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
+import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -71,6 +70,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
 
     private final PermissionService permissionService;
+    UserRoleMappings userRoleMappings = UserRoleMappings.USER_ROLE_MAPPINGS;
 
     @Autowired
     private UserDao(PermissionService permissionService,
@@ -511,10 +511,13 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
             if(role != null) {
                 roleId = role.getId();
             }
-            SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
-            SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.eq(roleId));
+
+            SelectConditionStep<Record1<Integer>> afterWhere = create.select(userRoleMappings.userId)
+                    .from(userRoleMappings)
+                    .where(userRoleMappings.roleId.eq(roleId));
+
             if (operation == RQLOperation.CONTAINS) {
-                return getIdField().in(afterWhere.asField());
+                return table.id.in(afterWhere.asField());
             }
             throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
         };
@@ -541,10 +544,12 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
                 roleIds.add(r.getId());
             }
 
-            SelectJoinStep<Record1<Integer>> select = UserDao.this.create.select(UserTableDefinition.userIdFieldAlias).from(UserTableDefinition.userRoleMappingTableTableAsAlias);
-            SelectConditionStep<Record1<Integer>> afterWhere = select.where(UserTableDefinition.roleIdFieldAlias.in(roleIds));
+            SelectConditionStep<Record1<Integer>> afterWhere = UserDao.this.create.select(userRoleMappings.userId)
+                    .from(userRoleMappings)
+                    .where(userRoleMappings.roleId.in(roleIds));
+
             if (operation == RQLOperation.CONTAINS) {
-                return getIdField().in(afterWhere.asField());
+                return table.id.in(afterWhere.asField());
             }
             throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
         };

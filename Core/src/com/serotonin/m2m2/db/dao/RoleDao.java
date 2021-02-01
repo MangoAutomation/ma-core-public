@@ -31,10 +31,10 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
+import com.infiniteautomation.mango.db.tables.RoleInheritance;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.role.Role;
@@ -73,15 +73,16 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     public void saveRelationalData(RoleVO existing, RoleVO vo) {
         if(existing != null) {
             //Drop the mappings
-            this.create.deleteFrom(RoleTableDefinition.roleInheritanceTable).where(RoleTableDefinition.roleIdField.eq(vo.getId())).execute();
+
+            this.create.deleteFrom(RoleInheritance.ROLE_INHERITANCE).where(RoleInheritance.ROLE_INHERITANCE.roleId.eq(vo.getId())).execute();
         }
 
         if(vo.getInherited() != null && vo.getInherited().size() > 0) {
             List<Query> inserts = new ArrayList<>();
             for(Role role : vo.getInherited()) {
-                inserts.add(this.create.insertInto(RoleTableDefinition.roleInheritanceTable).columns(
-                        RoleTableDefinition.roleIdField,
-                        RoleTableDefinition.roleInheritanceTableInheritedRoleIdField).values(vo.getId(), role.getId()));
+                inserts.add(this.create.insertInto(RoleInheritance.ROLE_INHERITANCE).columns(
+                        RoleInheritance.ROLE_INHERITANCE.roleId, RoleInheritance.ROLE_INHERITANCE.inheritedRoleId)
+                        .values(vo.getId(), role.getId()));
             }
             create.batch(inserts).execute();
         }
@@ -155,9 +156,9 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     private Set<Role> getRolesThatInherit(int roleId) {
         Select<?> select = this.create.select(getSelectFields())
                 .from(table)
-                .join(RoleTableDefinition.roleInheritanceTableAsAlias)
-                .on(getIdField().eq(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias))
-                .where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(roleId));
+                .join(RoleInheritance.ROLE_INHERITANCE)
+                .on(getIdField().eq(RoleInheritance.ROLE_INHERITANCE.roleId))
+                .where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(roleId));
         List<Object> args = select.getBindValues();
         return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
     }
@@ -197,9 +198,9 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     private Set<Role> getInherited(int roleId) {
         Select<?> select = this.create.select(getSelectFields())
                 .from(table)
-                .join(RoleTableDefinition.roleInheritanceTableAsAlias)
-                .on(getIdField().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias))
-                .where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
+                .join(RoleInheritance.ROLE_INHERITANCE)
+                .on(getIdField().eq(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId))
+                .where(RoleInheritance.ROLE_INHERITANCE.roleId.eq(roleId));
         List<Object> args = select.getBindValues();
         return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
     }
@@ -224,15 +225,15 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
                 if(role != null) {
                     roleId = role.getId();
                 }
-                SelectJoinStep<Record1<Integer>> select = create.select(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias)
-                        .from(RoleTableDefinition.roleInheritanceTableAsAlias);
-                afterWhere = select.where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(roleId));
+                SelectJoinStep<Record1<Integer>> select = create.select(RoleInheritance.ROLE_INHERITANCE.roleId)
+                        .from(RoleInheritance.ROLE_INHERITANCE);
+                afterWhere = select.where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(roleId));
             }else {
                 //Find all roles with no inherited roles
                 SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
-                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
-                        .on(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(getIdField()));
-                afterWhere = afterJoin.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.isNull());
+                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleInheritance.ROLE_INHERITANCE)
+                        .on(RoleInheritance.ROLE_INHERITANCE.roleId.eq(getIdField()));
+                afterWhere = afterJoin.where(RoleInheritance.ROLE_INHERITANCE.roleId.isNull());
             }
 
             switch(operation) {
@@ -265,15 +266,15 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
                 if (role != null) {
                     roleId = role.getId();
                 }
-                SelectJoinStep<Record1<Integer>> select = create.select(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias)
-                        .from(RoleTableDefinition.roleInheritanceTableAsAlias);
-                afterWhere = select.where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
+                SelectJoinStep<Record1<Integer>> select = create.select(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId)
+                        .from(RoleInheritance.ROLE_INHERITANCE);
+                afterWhere = select.where(RoleInheritance.ROLE_INHERITANCE.roleId.eq(roleId));
             } else {
                 //Find all roles with that are not inherited by any role
                 SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
-                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleTableDefinition.roleInheritanceTableAsAlias)
-                        .on(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.eq(getIdField()));
-                afterWhere = afterJoin.where(RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias.isNull());
+                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleInheritance.ROLE_INHERITANCE)
+                        .on(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(getIdField()));
+                afterWhere = afterJoin.where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.isNull());
             }
 
             switch (operation) {

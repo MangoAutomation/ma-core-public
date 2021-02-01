@@ -51,6 +51,7 @@ import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
+import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.TimeSeries;
@@ -58,9 +59,6 @@ import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
-import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
-import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -112,6 +110,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private final EventDetectors eventDetectors;
     private final UserComments userComments;
     private final DataSources dataSources;
+    private final EventHandlersMapping eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
 
     @Autowired
     private DataPointDao(
@@ -347,9 +346,10 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     protected void deleteBatch(List<DataPointVO> batch, List<Integer> ids,
             Set<Integer> permissionIds, Set<Integer> seriesIds) {
         //delete event handler mappings
-        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
-        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
-                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.in(ids)).execute();
+
+        create.deleteFrom(eventHandlersMapping)
+        .where(eventHandlersMapping.eventTypeName.eq(EventType.EventTypeNames.DATA_POINT),
+                eventHandlersMapping.eventTypeRef1.in(ids)).execute();
 
         //delete user comments
         create.deleteFrom(userComments).where(userComments.commentType.eq(2),
@@ -767,9 +767,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     public void deleteRelationalData(DataPointVO vo) {
 
         //delete event handler mappings
-        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
-        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
-                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
+        create.deleteFrom(eventHandlersMapping)
+        .where(eventHandlersMapping.eventTypeName.eq(EventType.EventTypeNames.DATA_POINT),
+                eventHandlersMapping.eventTypeRef1.eq(vo.getId())).execute();
 
         //delete user comments
         create.deleteFrom(userComments).where(userComments.commentType.eq(2),
@@ -835,7 +835,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
 
-            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
 
             Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .from(MintermsRoles.MINTERMS_ROLES)
@@ -851,7 +851,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            DataPointTableDefinition.READ_PERMISSION_ALIAS));
+                            table.readPermissionId));
 
         }
         return select;
@@ -881,7 +881,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
 
-            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
 
             Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
                     .from(MintermsRoles.MINTERMS_ROLES)
@@ -897,7 +897,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
             select = select.join(permissionsGranted).on(
                     permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            DataPointTableDefinition.EDIT_PERMISSION_ALIAS));
+                            table.editPermissionId));
 
         }
         return select;
@@ -975,7 +975,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return permission id or null
      */
     public Integer getReadPermissionId(int dataPointId) {
-        return this.create.select(DataPointTableDefinition.READ_PERMISSION).from(DataPointTableDefinition.TABLE).where(table.id.eq(dataPointId)).fetchOneInto(Integer.class);
+        return this.create.select(table.readPermissionId).from(table).where(table.id.eq(dataPointId)).fetchOneInto(Integer.class);
     }
 
     private static class DataPointQueryBuilder extends QueryBuilder<DataPointVO> {
