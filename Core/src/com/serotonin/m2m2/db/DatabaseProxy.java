@@ -188,7 +188,13 @@ public interface DatabaseProxy extends TransactionCapable {
                     .withRenderNameCase(RenderNameCase.AS_IS);
         }
 
+        configuration.settings().setFetchSize(defaultFetchSize());
+
         return configuration;
+    }
+
+    default int defaultFetchSize() {
+        return 50;
     }
 
     /**

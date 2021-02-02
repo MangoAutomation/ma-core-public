@@ -102,4 +102,10 @@ public class MySQLProxy extends BasePooledProxy {
         DirectoryInfo dbInfo = DirectoryUtils.getSize(dataDirectory);
         return dbInfo.getSize();
     }
+
+    @Override
+    public int defaultFetchSize() {
+        // see https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-implementation-notes.html
+        return Integer.MIN_VALUE;
+    }
 }
