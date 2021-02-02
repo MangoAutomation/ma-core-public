@@ -139,10 +139,10 @@ public class EventDao extends BaseDao {
         savePreRelationalData(event);
         int id = -1;
         // TODO Mango 4.0
-        InsertValuesStepN<?> insert = this.create.insertInto(table).columns(table.fields()).values(voToObjectArray(event));
+        InsertValuesStepN<?> insert = this.create.insertInto(table).values(voToObjectArray(event));
         String sql = insert.getSQL();
         List<Object> args = insert.getBindValues();
-        id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
+        id = ejt.doInsert(sql, args.toArray(new Object[0]));
         event.setId(id);
     }
 

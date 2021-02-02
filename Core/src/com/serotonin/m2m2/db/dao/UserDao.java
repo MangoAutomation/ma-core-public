@@ -94,6 +94,13 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         return springInstance.get();
     }
 
+    /**
+     * Required so getXidById() method works.
+     */
+    public Field<String> getXidField() {
+        return table.username;
+    }
+
     @Override
     protected Map<String, Field<?>> createAliasMap() {
         Map<String, Field<?>> aliases = super.createAliasMap();
@@ -476,7 +483,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         if (emailVerifiedTs != null) {
             user.setEmailVerifiedDate(new Date(emailVerifiedTs));
         }
-        user.setData(extractData(record.get(table.data)));
+        user.setData(extractDataFromObject(record.get(table.data)));
         return user;
     }
 

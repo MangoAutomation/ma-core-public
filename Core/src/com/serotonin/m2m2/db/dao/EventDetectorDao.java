@@ -161,7 +161,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     private void readRecordIntoEventDetector(Record record, AbstractEventDetectorVO vo) {
         vo.setId(record.get(table.id));
         vo.setXid(record.get(table.xid));
-        vo.setData(extractData(record.get(table.jsonData)));
+        vo.setData(extractDataFromObject(record.get(table.jsonData)));
 
         //Read Into Detector
         JsonTypeReader typeReader = new JsonTypeReader(record.get(table.data));
@@ -312,7 +312,10 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
      * @return
      */
     public int getId(String xid, int dpId) {
-        return queryForObject("SELECT id from " + table.getName() + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
+        return this.create.select(table.id)
+                .from(table)
+                .where(table.xid.equal(xid), table.dataPointId.equal(dpId))
+                .fetchOptional(table.id).orElse(Common.NEW_ID);
     }
 
     /**
@@ -344,6 +347,9 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     public AbstractPointEventDetectorVO mapPointEventDetector(Record record, DataPointVO dataPoint) {
         String type = record.get(table.sourceTypeName);
+        if (type == null) {
+            return null;
+        }
         PointEventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(type);
         AbstractPointEventDetectorVO detector = definition.baseCreateEventDetectorVO(dataPoint);
         readRecordIntoEventDetector(record, detector);

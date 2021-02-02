@@ -103,7 +103,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
         vo.setId(record.get(table.id));
         vo.setXid(record.get(table.xid));
         vo.setName(record.get(table.name));
-        vo.setJsonData(extractData(record.get(table.data)));
+        vo.setJsonData(extractDataFromObject(record.get(table.data)));
         vo.setReadPermission(new MangoPermission(record.get(table.readPermissionId)));
         vo.setEditPermission(new MangoPermission(record.get(table.editPermissionId)));
         return vo;

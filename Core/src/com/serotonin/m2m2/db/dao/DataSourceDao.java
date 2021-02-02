@@ -266,7 +266,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
         ds.setXid(record.get(table.xid));
         ds.setName(record.get(table.name));
         ds.setDefinition(ModuleRegistry.getDataSourceDefinition(record.get(table.dataSourceType)));
-        ds.setData(extractData(record.get(table.jsonData)));
+        ds.setData(extractDataFromObject(record.get(table.jsonData)));
         ds.setReadPermission(new MangoPermission(record.get(table.readPermissionId)));
         ds.setEditPermission(new MangoPermission(record.get(table.editPermissionId)));
         return ds;
