@@ -91,7 +91,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         this.sourceTypeToField = ModuleRegistry.getEventDetectorDefinitions()
                 .stream()
                 .collect(Collectors.toMap(EventDetectorDefinition::getSourceTypeName,
-                        EventDetectorDefinition::getSourceIdColumnName));
+                        EventDetectorDefinition::getSourceIdColumnName, (a, b) -> a));
     }
 
     /**
