@@ -190,7 +190,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
                 });
 
                 AbstractPointEventDetectorVO detector = eventDetectorDao.mapPointEventDetector(record, dp.getDataPoint());
-                dp.getEventDetectors().add(detector);
+                if (detector != null) {
+                    dp.getEventDetectors().add(detector);
+                }
             }
         }
 
@@ -639,7 +641,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 //        // read and discard settable boolean
 //        record.get(table.xyz);
 
-        dp.setData(extractData(record.get(table.jsonData)));
+        dp.setData(extractDataFromObject(record.get(table.jsonData)));
         dp.setSeriesId(record.get(table.seriesId));
 
         MangoPermission read = new MangoPermission(record.get(table.readPermissionId));
