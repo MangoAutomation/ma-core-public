@@ -23,8 +23,10 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
+import org.jooq.Cursor;
 import org.jooq.Field;
 import org.jooq.Identity;
+import org.jooq.JSON;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
@@ -40,7 +42,6 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -574,35 +575,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         });
     }
 
-    /**
-     *
-     * @param error
-     * @return
-     */
     protected ResultSetExtractor<T> getObjectResultSetExtractor(BiConsumer<Exception, ResultSet> error) {
-        return new ResultSetExtractor<T>() {
-
-            @Override
-            public T extractData(ResultSet rs) throws SQLException, DataAccessException {
-                RowMapper<T> rowMapper = getRowMapper();
-                List<T> results = new ArrayList<>();
-                int rowNum = 0;
-                while (rs.next()) {
-                    try {
-                        T row = rowMapper.mapRow(rs, rowNum);
-                        loadRelationalData(row);
-                        results.add(row);
-                    }catch (Exception e) {
-                        error.accept(e, rs);
-                        //Abort mission
-                        break;
-                    }finally {
-                        rowNum++;
-                    }
-                    return DataAccessUtils.uniqueResult(results);
-                }
-                return null;
-            }
+        return rs -> {
+            List<T> results = new ArrayList<>(1);
+            extractFromResultSet(rs, results::add, error);
+            return DataAccessUtils.uniqueResult(results);
         };
     }
 
@@ -634,29 +611,25 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @return
      */
     protected ResultSetExtractor<List<T>> getListResultSetExtractor(BiConsumer<Exception, ResultSet> error) {
-        return new ResultSetExtractor<List<T>>() {
-
-            @Override
-            public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
-                RowMapper<T> rowMapper = getRowMapper();
-                List<T> results = new ArrayList<>();
-                int rowNum = 0;
-                while (rs.next()) {
-                    try {
-                        T row = rowMapper.mapRow(rs, rowNum);
-                        loadRelationalData(row);
-                        results.add(row);
-                    }catch (Exception e) {
-                        error.accept(e, rs);
-                        //Abort mission
-                        break;
-                    }finally {
-                        rowNum++;
-                    }
-                }
-                return results;
-            }
+        return rs -> {
+            List<T> results = new ArrayList<>();
+            extractFromResultSet(rs, results::add, error);
+            return results;
         };
+    }
+
+    protected void extractFromResultSet(ResultSet rs, Consumer<T> consumer, BiConsumer<Exception, ResultSet> error) {
+        try (Cursor<Record> cursor = create.fetchLazy(rs)) {
+            for (Record record : cursor) {
+                try {
+                    T row = mapRecord(record);
+                    loadRelationalData(row);
+                    consumer.accept(row);
+                } catch (Exception e) {
+                    error.accept(e, rs);
+                }
+            }
+        }
     }
 
     /**
@@ -678,34 +651,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         });
     }
 
-    /**
-     *
-     * @param callback
-     * @param error
-     * @return
-     */
     protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<T> callback, BiConsumer<Exception, ResultSet> error) {
-        return new ResultSetExtractor<Void>() {
-
-            @Override
-            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
-                RowMapper<T> rowMapper = getRowMapper();
-                int rowNum = 0;
-                while (rs.next()) {
-                    try {
-                        T row = rowMapper.mapRow(rs, rowNum);
-                        loadRelationalData(row);
-                        callback.accept(row);
-                    }catch (Exception e) {
-                        error.accept(e, rs);
-                        //Abort mission
-                        break;
-                    }finally {
-                        rowNum++;
-                    }
-                }
-                return null;
-            }
+        return rs -> {
+            extractFromResultSet(rs, callback, error);
+            return null;
         };
     }
 
@@ -755,6 +704,22 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
             }
         }
         return null;
+    }
+
+    /**
+     * Work around jOOQ bug https://github.com/jOOQ/jOOQ/issues/11148
+     * Getting a String field from a record is throwing ClassCastException on MySQL as it returns a JSON instance.
+     */
+    protected JsonNode extractDataFromObject(Object c) {
+        if (c == null) {
+            return null;
+        } if (c instanceof JSON) {
+            return extractData(((JSON) c).data());
+        } else if (c instanceof String) {
+            return extractData((String) c);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
