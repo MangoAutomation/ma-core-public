@@ -233,7 +233,7 @@ public interface DatabaseProxy extends TransactionCapable {
                     .set(u.disabled, BaseDao.boolToChar(false))
                     .set(u.lastLogin, 0L)
                     .set(u.homeUrl, "/ui/administration/home")
-                    .set(u.receiveAlarmEmails, AlarmLevels.WARNING.value())
+                    .set(u.receiveAlarmEmails, AlarmLevels.IGNORE.value())
                     .set(u.receiveOwnAuditEvents, BaseDao.boolToChar(false))
                     .set(u.muted, BaseDao.boolToChar(true))
                     .set(u.tokenVersion, 1)
