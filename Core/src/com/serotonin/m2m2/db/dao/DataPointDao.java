@@ -170,7 +170,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public List<DataPointWithEventDetectors> getDataPointsForDataSourceStart(int dataSourceId) {
-        // TODO Mango 4.0 verify
         List<Field<?>> fields = new ArrayList<>(this.getSelectFields());
         fields.addAll(Arrays.asList(eventDetectors.fields()));
 
@@ -766,7 +765,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     @Override
     public void deleteRelationalData(DataPointVO vo) {
-
         //delete event handler mappings
         create.deleteFrom(eventHandlersMapping)
         .where(eventHandlersMapping.eventTypeName.eq(EventType.EventTypeNames.DATA_POINT),

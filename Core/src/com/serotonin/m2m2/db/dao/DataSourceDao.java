@@ -16,14 +16,11 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
-import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,12 +55,6 @@ import com.serotonin.util.SerializationHelper;
 
 @Repository()
 public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord, DataSources> {
-
-    //TODO Mango 4.0 Clean up/remove
-    public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
-    public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(DataSources.DATA_SOURCES.getName())).as(DATA_SOURCES_ALIAS);
-    public static final Field<Integer> ID = DSL.field(DATA_SOURCES_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
-    public static final Field<String> EDIT_PERMISSION = DSL.field(DATA_SOURCES_ALIAS.append("editPermission"), SQLDataType.VARCHAR(255).nullable(true));
 
     static final Log LOG = LogFactory.getLog(DataSourceDao.class);
 
