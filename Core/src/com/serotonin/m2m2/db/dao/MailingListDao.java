@@ -207,28 +207,15 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
     }
 
     @Override
-    public RowMapper<MailingList> getRowMapper() {
-        return new MailingListRowMapper();
-    }
-
-    @Override
     public MailingList mapRecord(Record record) {
-        return null;
-    }
-
-    class MailingListRowMapper implements RowMapper<MailingList> {
-        @Override
-        public MailingList mapRow(ResultSet rs, int rowNum) throws SQLException {
-            MailingList ml = new MailingList();
-            int i = 0;
-            ml.setId(rs.getInt(++i));
-            ml.setXid(rs.getString(++i));
-            ml.setName(rs.getString(++i));
-            ml.setReceiveAlarmEmails(AlarmLevels.fromValue(rs.getInt(++i)));
-            ml.setReadPermission(new MangoPermission(rs.getInt(++i)));
-            ml.setEditPermission(new MangoPermission(rs.getInt(++i)));
-            return ml;
-        }
+        MailingList ml = new MailingList();
+        ml.setId(record.get(table.id));
+        ml.setXid(record.get(table.xid));
+        ml.setName(record.get(table.name));
+        ml.setReceiveAlarmEmails(AlarmLevels.fromValue(record.get(table.receiveAlarmEmails)));
+        ml.setReadPermission(new MangoPermission(record.get(table.readPermissionId)));
+        ml.setEditPermission(new MangoPermission(record.get(table.editPermissionId)));
+        return ml;
     }
 
     class EmailRecipientRowMapper implements RowMapper<MailingListRecipient> {

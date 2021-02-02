@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -95,6 +94,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     private final DataPointTagsDao dataPointTagsDao;
     private final PermissionService permissionService;
     private final UserCommentDao userCommentDao;
+    private final Field<Integer> hasComments;
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
@@ -107,6 +107,12 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         this.dataPointTagsDao = dataPointTagsDao;
         this.permissionService = permissionService;
         this.userCommentDao = userCommentDao;
+
+        this.hasComments = this.create.selectCount()
+                .from(userComments)
+                .where(userComments.commentType.eq(UserCommentVO.TYPE_EVENT))
+                .and(userComments.typeKey.eq(table.id))
+                .asField("cnt");
     }
 
     /**
@@ -200,65 +206,51 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     public List<Field<?>> getSelectFields() {
         List<Field<?>> fields = new ArrayList<>(super.getSelectFields());
         fields.add(users.username);
-        Field<?> hasComments = this.create.selectCount().from(userComments)
-                .where(userComments.commentType.eq(UserCommentVO.TYPE_EVENT), userComments.typeKey.eq(table.id)).asField("cnt");
         fields.add(hasComments);
         return fields;
     }
 
     @Override
-    public RowMapper<EventInstanceVO> getRowMapper() {
-        return new EventInstanceVORowMapper();
-    }
-
-    @Override
     public EventInstanceVO mapRecord(Record record) {
-        return null;
-    }
+        EventInstanceVO event = new EventInstanceVO();
+        event.setId(record.get(table.id));
 
-    public static class EventInstanceVORowMapper implements RowMapper<EventInstanceVO> {
-        @Override
-        public EventInstanceVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            EventInstanceVO event = new EventInstanceVO();
-            event.setId(rs.getInt(1));
+        EventType type = createEventType(record);
+        event.setEventType(type);
+        event.setActiveTimestamp(record.get(table.activeTs));
+        event.setRtnApplicable(charToBool(record.get(table.rtnApplicable)));
+        event.setAlarmLevel(AlarmLevels.fromValue(record.get(table.alarmLevel)));
+        TranslatableMessage message = BaseDao.readTranslatableMessage(record.get(table.message));
+        if(message == null)
+            event.setMessage(new TranslatableMessage("common.noMessage"));
+        else
+            event.setMessage(message);
 
-            EventType type = createEventType(rs, 2);
-            event.setEventType(type);
-            event.setActiveTimestamp(rs.getLong(6));
-            event.setRtnApplicable(charToBool(rs.getString(7)));
-            event.setAlarmLevel(AlarmLevels.fromValue(rs.getInt(10)));
-            TranslatableMessage message = BaseDao.readTranslatableMessage(rs, 11);
-            if(message == null)
-                event.setMessage(new TranslatableMessage("common.noMessage"));
-            else
-                event.setMessage(message);
-
-            //Set the Return to normal
-            long rtnTs = rs.getLong(8);
-            if (!rs.wasNull()){
-                //if(event.isActive()){ Probably don't need this
-                event.setRtnTimestamp(rtnTs);
-                event.setRtnCause(ReturnCause.fromValue(rs.getInt(9)));
-                //}
-            }
-
-            MangoPermission read = new MangoPermission(rs.getInt(15));
-            event.supplyReadPermission(() -> read);
-
-            long ackTs = rs.getLong(12);
-            if (!rs.wasNull()) {
-                //Compute total time
-                event.setAcknowledgedTimestamp(ackTs);
-                event.setAcknowledgedByUserId(rs.getInt(13));
-                if (!rs.wasNull())
-                    event.setAcknowledgedByUsername(rs.getString(16));
-                event.setAlternateAckSource(BaseDao.readTranslatableMessage(rs, 14));
-            }
-            event.setHasComments(rs.getInt(17) > 0);
-
-
-            return event;
+        //Set the Return to normal
+        Long rtnTs = record.get(table.rtnTs);
+        if (rtnTs != null) {
+            //if(event.isActive()){ Probably don't need this
+            event.setRtnTimestamp(rtnTs);
+            event.setRtnCause(ReturnCause.fromValue(record.get(table.rtnCause)));
+            //}
         }
+
+        MangoPermission read = new MangoPermission(record.get(table.readPermissionId));
+        event.supplyReadPermission(() -> read);
+
+        Long ackTs = record.get(table.ackTs);
+        if (ackTs != null) {
+            //Compute total time
+            event.setAcknowledgedTimestamp(ackTs);
+            Integer ackUserId = record.get(table.ackUserId);
+            if (ackUserId != null) {
+                event.setAcknowledgedByUserId(ackUserId);
+                event.setAcknowledgedByUsername(record.get(users.username));
+            }
+            event.setAlternateAckSource(BaseDao.readTranslatableMessage(record.get(table.alternateAckSource)));
+        }
+        event.setHasComments(record.get(hasComments) > 0);
+        return event;
     }
 
     @Override
@@ -294,30 +286,30 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         permissionService.deletePermissions(readPermission);
     }
 
-    public static EventType createEventType(ResultSet rs, int offset) throws SQLException {
-        String typeName = rs.getString(offset);
-        String subtypeName = rs.getString(offset + 1);
+    public EventType createEventType(Record record) {
+        String typeName = record.get(table.typeName);
+        String subtypeName = record.get(table.subTypeName);
         EventType type;
         if (typeName.equals(EventType.EventTypeNames.DATA_POINT))
-            type = new DataPointEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
+            type = new DataPointEventType(record.get(table.typeRef1), record.get(table.typeRef2));
         else if (typeName.equals(EventType.EventTypeNames.DATA_SOURCE))
-            type = new DataSourceEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
+            type = new DataSourceEventType(record.get(table.typeRef1), record.get(table.typeRef2));
         else if (typeName.equals(EventType.EventTypeNames.SYSTEM))
-            type = new SystemEventType(subtypeName, rs.getInt(offset + 2));
+            type = new SystemEventType(subtypeName, record.get(table.typeRef1));
         else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
-            type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
+            type = new PublisherEventType(record.get(table.typeRef1), record.get(table.typeRef2));
         else if (typeName.equals(EventType.EventTypeNames.AUDIT))
             throw new ShouldNeverHappenException("AUDIT events should not exist here. Consider running the SQL: DELETE FROM events WHERE typeName='AUDIT';");
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
             if (def == null) {
                 //Create Missing Event Type
-                type = new MissingEventType(typeName, null, rs.getInt(offset + 2), rs.getInt(offset + 3));
+                type = new MissingEventType(typeName, null, record.get(table.typeRef1), record.get(table.typeRef2));
             }else {
-                type = def.createEventType(subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
+                type = def.createEventType(subtypeName, record.get(table.typeRef1), record.get(table.typeRef2));
                 if (type == null) {
                     //Create Missing Event type
-                    type = new MissingEventType(typeName, subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
+                    type = new MissingEventType(typeName, subtypeName, record.get(table.typeRef1), record.get(table.typeRef2));
                 }
             }
         }

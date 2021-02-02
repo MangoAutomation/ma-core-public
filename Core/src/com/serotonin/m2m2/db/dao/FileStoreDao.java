@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +15,6 @@ import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,20 +63,6 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoresRecord, Fil
         return FileStore.XID_PREFIX;
     }
 
-    private static class FileStoreRowMapper implements RowMapper<FileStore> {
-        @Override
-        public FileStore mapRow(ResultSet rs, int rowNum) throws SQLException {
-            int i = 0;
-            FileStore result = new FileStore();
-            result.setId(rs.getInt(++i));
-            result.setXid(rs.getString(++i));
-            result.setName(rs.getString(++i));
-            result.setReadPermission(new MangoPermission(rs.getInt(++i)));
-            result.setWritePermission(new MangoPermission(rs.getInt(++i)));
-            return result;
-        }
-    }
-
     @Override
     protected Record voToObjectArray(FileStore vo) {
         Record record = table.newRecord();
@@ -91,13 +74,14 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoresRecord, Fil
     }
 
     @Override
-    public RowMapper<FileStore> getRowMapper() {
-        return new FileStoreRowMapper();
-    }
-
-    @Override
     public FileStore mapRecord(Record record) {
-        return null;
+        FileStore result = new FileStore();
+        result.setId(record.get(table.id));
+        result.setXid(record.get(table.xid));
+        result.setName(record.get(table.name));
+        result.setReadPermission(new MangoPermission(record.get(table.readPermissionId)));
+        result.setWritePermission(new MangoPermission(record.get(table.writePermissionId)));
+        return result;
     }
 
     @Override

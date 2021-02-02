@@ -27,14 +27,14 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.EventHandlers;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -110,13 +110,20 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     @Override
-    public RowMapper<AbstractEventHandlerVO> getRowMapper() {
-        return new EventHandlerRowMapper();
-    }
-
-    @Override
     public AbstractEventHandlerVO mapRecord(Record record) {
-        return null;
+        AbstractEventHandlerVO h = (AbstractEventHandlerVO) SerializationHelper.readObjectInContextFromArray(record.get(table.data));
+        h.setId(record.get(table.id));
+        h.setXid(record.get(table.xid));
+        h.setAlias(record.get(table.alias));
+        h.setDefinition(ModuleRegistry.getEventHandlerDefinition(record.get(table.eventHandlerType)));
+
+        MangoPermission read = new MangoPermission(record.get(table.readPermissionId));
+        h.supplyReadPermission(() -> read);
+
+        MangoPermission edit = new MangoPermission(record.get(table.editPermissionId));
+        h.supplyEditPermission(() -> edit);
+
+        return h;
     }
 
     private static final String EVENT_HANDLER_SELECT = "SELECT id, xid, alias, eventHandlerType, data, readPermissionId, editPermissionId FROM eventHandlers ";
@@ -165,39 +172,28 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     private List<AbstractEventHandlerVO> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
         if (subtypeName == null)
             return query(EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB, new Object[] { typeName, ref1, ref2 },
-                    new EventHandlerRowMapper());
+                    getRowMapper());
         return query(EVENT_HANDLER_SELECT_BY_TYPE_SUB, new Object[] { typeName, subtypeName, ref1, ref2 },
-                new EventHandlerRowMapper());
+                getRowMapper());
     }
 
-    class EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO> {
-        @Override
-        public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            AbstractEventHandlerVO h = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
-            h.setId(rs.getInt(1));
-            h.setXid(rs.getString(2));
-            h.setAlias(rs.getString(3));
-            h.setDefinition(ModuleRegistry.getEventHandlerDefinition(rs.getString(4)));
-
-            MangoPermission read = new MangoPermission(rs.getInt(6));
-            h.supplyReadPermission(() -> read);
-
-            MangoPermission edit = new MangoPermission(rs.getInt(7));
-            h.supplyEditPermission(() -> edit);
-
-            return h;
-        }
-    }
 
     /**
      * For use in the legacy query methods
      *
      * @author Terry Packer
      */
-    class EventHandlerWithRelationalDataRowMapper extends EventHandlerRowMapper {
+    class EventHandlerWithRelationalDataRowMapper implements RowMapper<AbstractEventHandlerVO> {
+
+        final RowMapper<AbstractEventHandlerVO> delegate;
+
+        EventHandlerWithRelationalDataRowMapper() {
+            delegate = getRowMapper();
+        }
+
         @Override
         public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            AbstractEventHandlerVO h = super.mapRow(rs, rowNum);
+            AbstractEventHandlerVO h = delegate.mapRow(rs, rowNum);
             loadRelationalData(h);
             return h;
         }

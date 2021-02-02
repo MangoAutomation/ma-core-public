@@ -6,9 +6,6 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
-import java.sql.Clob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +17,6 @@ import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -100,40 +96,17 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
         return record;
     }
 
-    @Override
-    public RowMapper<JsonDataVO> getRowMapper() {
-        return new JsonDataRowMapper();
-    }
 
     @Override
     public JsonDataVO mapRecord(Record record) {
-        return null;
-    }
-
-    class JsonDataRowMapper implements RowMapper<JsonDataVO> {
-
-        @Override
-        public JsonDataVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            int i = 0;
-            JsonDataVO vo = new JsonDataVO();
-            vo.setId(rs.getInt(++i));
-            vo.setXid(rs.getString(++i));
-            vo.setName(rs.getString(++i));
-
-            // Read the data
-            try {
-                Clob clob = rs.getClob(++i);
-                if (clob != null) {
-                    vo.setJsonData(getObjectReader(JsonNode.class).readTree(clob.getCharacterStream()));
-                }
-            } catch (Exception e) {
-                LOG.error(e.getMessage(), e);
-            }
-            vo.setReadPermission(new MangoPermission(rs.getInt(++i)));
-            vo.setEditPermission(new MangoPermission(rs.getInt(++i)));
-
-            return vo;
-        }
+        JsonDataVO vo = new JsonDataVO();
+        vo.setId(record.get(table.id));
+        vo.setXid(record.get(table.xid));
+        vo.setName(record.get(table.name));
+        vo.setJsonData(extractData(record.get(table.data)));
+        vo.setReadPermission(new MangoPermission(record.get(table.readPermissionId)));
+        vo.setEditPermission(new MangoPermission(record.get(table.editPermissionId)));
+        return vo;
     }
 
     @Override

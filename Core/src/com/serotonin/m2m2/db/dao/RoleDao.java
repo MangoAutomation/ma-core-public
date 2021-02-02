@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,20 +10,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectOnConditionStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -113,13 +109,12 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     }
 
     @Override
-    public RowMapper<RoleVO> getRowMapper() {
-        return new RoleVORowMapper();
+    public RoleVO mapRecord(Record record) {
+        return new RoleVO(record.get(table.id), record.get(table.xid), record.get(table.name));
     }
 
-    @Override
-    public RoleVO mapRecord(Record record) {
-        return null;
+    public Role mapRecordToRole(Record record) {
+        return new Role(record.get(table.id), record.get(table.xid));
     }
 
     /**
@@ -154,13 +149,15 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
      * @return
      */
     private Set<Role> getRolesThatInherit(int roleId) {
-        Select<?> select = this.create.select(getSelectFields())
+        try (Stream<Record> stream = this.create.select(getSelectFields())
                 .from(table)
                 .join(RoleInheritance.ROLE_INHERITANCE)
                 .on(getIdField().eq(RoleInheritance.ROLE_INHERITANCE.roleId))
-                .where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(roleId));
-        List<Object> args = select.getBindValues();
-        return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
+                .where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(roleId))
+                .stream()) {
+
+            return Collections.unmodifiableSet(stream.map(this::mapRecordToRole).collect(Collectors.toSet()));
+        }
     }
 
     /**
@@ -196,13 +193,15 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
      * @return
      */
     private Set<Role> getInherited(int roleId) {
-        Select<?> select = this.create.select(getSelectFields())
+        try (Stream<Record> stream = this.create.select(getSelectFields())
                 .from(table)
                 .join(RoleInheritance.ROLE_INHERITANCE)
                 .on(getIdField().eq(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId))
-                .where(RoleInheritance.ROLE_INHERITANCE.roleId.eq(roleId));
-        List<Object> args = select.getBindValues();
-        return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleSetResultSetExtractor());
+                .where(RoleInheritance.ROLE_INHERITANCE.roleId.eq(roleId))
+                .stream()) {
+
+            return Collections.unmodifiableSet(stream.map(this::mapRecordToRole).collect(Collectors.toSet()));
+        }
     }
 
     public RQLSubSelectCondition createInheritedRoleCondition() {
@@ -284,80 +283,5 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
                     throw new RQLVisitException(String.format("Unsupported node type '%s' for property '%s'", node.getName(), arguments.get(0)));
             }
         };
-    }
-
-    /**
-     * Get a result set extractor for an unmodifiable set of role vos
-     * @return
-     */
-    public RoleVoSetResultSetExtractor getRoleVoSetResultSetExtractor() {
-        return new RoleVoSetResultSetExtractor();
-    }
-
-    /**
-     * Get a result set extractor for an unmodifiable set of roles
-     * @return
-     */
-    public RoleSetResultSetExtractor getRoleSetResultSetExtractor() {
-        return new RoleSetResultSetExtractor();
-    }
-
-
-    private static class RoleVORowMapper implements RowMapper<RoleVO> {
-        @Override
-        public RoleVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            RoleVO vo = new RoleVO(rs.getInt(1), rs.getString(2), rs.getString(3));
-            return vo;
-        }
-    }
-
-    private static class RoleRowMapper implements RowMapper<Role> {
-        @Override
-        public Role mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return new Role(rs.getInt(1), rs.getString(2));
-        }
-    }
-
-    /**
-     * Extract the roles into an un-modifiable set
-     * @author Terry Packer
-     *
-     */
-    private static class RoleVoSetResultSetExtractor implements ResultSetExtractor<Set<RoleVO>> {
-
-        private final RoleVORowMapper rowMapper;
-
-        public RoleVoSetResultSetExtractor() {
-            this.rowMapper = new RoleVORowMapper();
-        }
-
-        @Override
-        public Set<RoleVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            Set<RoleVO> results = new HashSet<>();
-            int rowNum = 0;
-            while (rs.next()) {
-                results.add(this.rowMapper.mapRow(rs, rowNum++));
-            }
-            return Collections.unmodifiableSet(results);
-        }
-    }
-
-    public static class RoleSetResultSetExtractor implements ResultSetExtractor<Set<Role>> {
-
-        private final RoleRowMapper rowMapper;
-
-        public RoleSetResultSetExtractor() {
-            this.rowMapper = new RoleRowMapper();
-        }
-
-        @Override
-        public Set<Role> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            Set<Role> results = new HashSet<>();
-            int rowNum = 0;
-            while (rs.next()) {
-                results.add(this.rowMapper.mapRow(rs, rowNum++));
-            }
-            return Collections.unmodifiableSet(results);
-        }
     }
 }

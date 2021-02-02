@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,13 +33,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
+import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.UsersRecord;
@@ -49,7 +50,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.RoleDao.RoleSetResultSetExtractor;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -70,17 +70,20 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
 
     private final PermissionService permissionService;
-    UserRoleMappings userRoleMappings = UserRoleMappings.USER_ROLE_MAPPINGS;
+    private final UserRoleMappings userRoleMappings = UserRoleMappings.USER_ROLE_MAPPINGS;
+    private final Roles roles = Roles.ROLES;
+    private final RoleDao roleDao;
 
     @Autowired
     private UserDao(PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+                    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                    ApplicationEventPublisher publisher, RoleDao roleDao) {
         super(AuditEventType.TYPE_USER,
                 Users.USERS,
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
+        this.roleDao = roleDao;
     }
 
     /**
@@ -135,7 +138,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         }else {
             return this.getCountQuery().from(table).where(
                     table.username.eq(username),
-                    table.id.notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
+                    table.id.notEqual(excludeId)).fetchSingleInto(Integer.class) == 0;
         }
     }
 
@@ -151,7 +154,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         }else {
             return this.getCountQuery().from(table).where(
                     table.email.eq(email),
-                    table.id.notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
+                    table.id.notEqual(excludeId)).fetchSingleInto(Integer.class) == 0;
         }
     }
 
@@ -180,7 +183,13 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
      * @return
      */
     public Set<Role> getUserRoles(User vo) {
-        return query(USER_ROLES_SELECT, new Object[] {vo.getId()}, new RoleSetResultSetExtractor());
+        try (Stream<? extends Record> stream = create.select(roles.id, roles.xid)
+                .from(userRoleMappings)
+                .join(roles).on(userRoleMappings.roleId.eq(roles.id))
+                .where(userRoleMappings.userId.eq(vo.getId()))
+                .stream()) {
+            return Collections.unmodifiableSet(stream.map(roleDao::mapRecordToRole).collect(Collectors.toSet()));
+        }
     }
 
     @Override
@@ -223,44 +232,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         return ejt.query(query.getSQL(), args.toArray(new Object[0]), getObjectResultSetExtractor());
     }
 
-    class UserRowMapper implements RowMapper<User> {
-        @Override
-        public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-            User user = new User();
-            int i = 0;
-            user.setId(rs.getInt(++i));
-            user.setUsername(rs.getString(++i));
-            user.setName(rs.getString(++i));
-            user.setPassword(rs.getString(++i));
-            user.setEmail(rs.getString(++i));
-            user.setPhone(rs.getString(++i));
-            user.setDisabled(charToBool(rs.getString(++i)));
-            user.setLastLogin(rs.getLong(++i));
-            user.setHomeUrl(rs.getString(++i));
-            user.setReceiveAlarmEmails(AlarmLevels.fromValue(rs.getInt(++i)));
-            user.setReceiveOwnAuditEvents(charToBool(rs.getString(++i)));
-            user.setTimezone(rs.getString(++i));
-            user.setMuted(charToBool(rs.getString(++i)));
-            user.setLocale(rs.getString(++i));
-            user.setTokenVersion(rs.getInt(++i));
-            user.setPasswordVersion(rs.getInt(++i));
-            user.setPasswordChangeTimestamp(rs.getLong(++i));
-            user.setSessionExpirationOverride(charToBool(rs.getString(++i)));
-            user.setSessionExpirationPeriods(rs.getInt(++i));
-            user.setSessionExpirationPeriodType(rs.getString(++i));
-            user.setOrganization(rs.getString(++i));
-            user.setOrganizationalRole(rs.getString(++i));
-            user.setCreated(new Date(rs.getLong(++i)));
-            Date emailVerified = new Date(rs.getLong(++i));
-            if (rs.wasNull()) {
-                emailVerified = null;
-            }
-            user.setEmailVerifiedDate(emailVerified);
-            user.setData(extractData(rs.getClob(++i)));
-            return user;
-        }
-    }
-
     public List<User> getActiveUsers() {
         Select<Record> query = getJoinedSelectQuery().where(table.disabled.eq("N"));
         List<Object> args = query.getBindValues();
@@ -269,7 +240,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
 
     private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";
     private static final String USER_ROLE_INSERT = "INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)";
-    private static final String USER_ROLES_SELECT = "SELECT r.id, r.xid, r.name FROM userRoleMappings AS ur JOIN roles r ON ur.roleId=r.id WHERE ur.userId=?";
 
     @Override
     public void insert(User vo) {
@@ -477,13 +447,37 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     }
 
     @Override
-    public RowMapper<User> getRowMapper() {
-        return new UserRowMapper();
-    }
-
-    @Override
     public User mapRecord(Record record) {
-        return null;
+        User user = new User();
+        user.setId(record.get(table.id));
+        user.setUsername(record.get(table.username));
+        user.setName(record.get(table.name));
+        user.setPassword(record.get(table.password));
+        user.setEmail(record.get(table.email));
+        user.setPhone(record.get(table.phone));
+        user.setDisabled(charToBool(record.get(table.disabled)));
+        user.setLastLogin(record.get(table.lastLogin));
+        user.setHomeUrl(record.get(table.homeUrl));
+        user.setReceiveAlarmEmails(AlarmLevels.fromValue(record.get(table.receiveAlarmEmails)));
+        user.setReceiveOwnAuditEvents(charToBool(record.get(table.receiveOwnAuditEvents)));
+        user.setTimezone(record.get(table.timezone));
+        user.setMuted(charToBool(record.get(table.muted)));
+        user.setLocale(record.get(table.locale));
+        user.setTokenVersion(record.get(table.tokenVersion));
+        user.setPasswordVersion(record.get(table.passwordVersion));
+        user.setPasswordChangeTimestamp(record.get(table.passwordChangeTimestamp));
+        user.setSessionExpirationOverride(charToBool(record.get(table.sessionExpirationOverride)));
+        user.setSessionExpirationPeriods(record.get(table.sessionExpirationPeriods));
+        user.setSessionExpirationPeriodType(record.get(table.sessionExpirationPeriodType));
+        user.setOrganization(record.get(table.organization));
+        user.setOrganizationalRole(record.get(table.organizationalRole));
+        user.setCreated(new Date(record.get(table.createdTs)));
+        Long emailVerifiedTs = record.get(table.emailVerifiedTs);
+        if (emailVerifiedTs != null) {
+            user.setEmailVerifiedDate(new Date(emailVerifiedTs));
+        }
+        user.setData(extractData(record.get(table.data)));
+        return user;
     }
 
     @Override

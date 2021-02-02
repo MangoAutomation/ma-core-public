@@ -1,29 +1,13 @@
-/**
- * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.jooq.Field;
-import org.jooq.InsertValuesStepN;
 import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.Select;
-import org.jooq.UpdateConditionStep;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.support.DataAccessUtils;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.tables.MangoSessionData;
@@ -33,6 +17,7 @@ import com.serotonin.m2m2.vo.MangoSessionDataVO;
 
 /**
  * Access to persist/retrieve Jetty session data
+ *
  * @author Terry Packer
  */
 @Repository
@@ -40,9 +25,8 @@ public class MangoSessionDataDao extends BaseDao {
 
     protected final MangoSessionData table = MangoSessionData.MANGO_SESSION_DATA;
 
-    private static final LazyInitSupplier<MangoSessionDataDao> springInstance = new LazyInitSupplier<>(() -> {
-        return Common.getRuntimeContext().getBean(MangoSessionDataDao.class);
-    });
+    private static final LazyInitSupplier<MangoSessionDataDao> springInstance = new LazyInitSupplier<>(() ->
+            Common.getRuntimeContext().getBean(MangoSessionDataDao.class));
 
     public static MangoSessionDataDao getInstance() {
         return springInstance.get();
@@ -65,85 +49,58 @@ public class MangoSessionDataDao extends BaseDao {
         return record;
     }
 
-    public RowMapper<MangoSessionDataVO> getRowMapper() {
-        return mapper;
-    }
-
-    private final MangoSessionDataRowMapper mapper = new MangoSessionDataRowMapper();
-
-    private class MangoSessionDataRowMapper implements RowMapper<MangoSessionDataVO> {
-
-        @Override
-        public MangoSessionDataVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            int i=0;
-            MangoSessionDataVO vo = new MangoSessionDataVO();
-            vo.setSessionId(rs.getString(++i));
-            vo.setContextPath(rs.getString(++i));
-            vo.setVirtualHost(rs.getString(++i));
-            vo.setLastNode(rs.getString(++i));
-            vo.setAccessTime(rs.getLong(++i));
-            vo.setLastAccessTime(rs.getLong(++i));
-            vo.setCreateTime(rs.getLong(++i));
-            vo.setCookieTime(rs.getLong(++i));
-            vo.setLastSavedTime(rs.getLong(++i));
-            vo.setExpiryTime(rs.getLong(++i));
-            vo.setMaxInterval(rs.getLong(++i));
-            vo.setUserId(rs.getInt(++i));
-            return vo;
-        }
-
+    public MangoSessionDataVO mapRecord(Record record) {
+        MangoSessionDataVO vo = new MangoSessionDataVO();
+        vo.setSessionId(record.get(table.sessionId));
+        vo.setContextPath(record.get(table.contextPath));
+        vo.setVirtualHost(record.get(table.virtualHost));
+        vo.setLastNode(record.get(table.lastNode));
+        vo.setAccessTime(record.get(table.accessTime));
+        vo.setLastAccessTime(record.get(table.lastAccessTime));
+        vo.setCreateTime(record.get(table.createTime));
+        vo.setCookieTime(record.get(table.cookieTime));
+        vo.setLastSavedTime(record.get(table.lastSavedTime));
+        vo.setExpiryTime(record.get(table.expiryTime));
+        vo.setMaxInterval(record.get(table.maxInterval));
+        vo.setUserId(record.get(table.userId));
+        return vo;
     }
 
     /**
      * Insert session data
      */
     public void insert(MangoSessionDataVO vo) throws DataAccessException {
-        InsertValuesStepN<?> insert = this.create.insertInto(table).columns(table.fields()).values(voToObjectArray(vo));
-        insert.execute();
+        this.create.insertInto(table).values(voToObjectArray(vo)).execute();
     }
 
     /**
      * Update session data
      */
     public void update(String sessionId, String contextPath, String virtualHost, MangoSessionDataVO vo) {
-        List<Object> list = new ArrayList<>();
-        // TODO Mango 4.0
-        list.addAll(Arrays.asList(voToObjectArray(vo)));
-        Map<Field<?>, Object> values = new LinkedHashMap<>();
-        int i = 0;
-        for(Field<?> f : table.fields()) {
-            values.put(f, list.get(i));
-            i++;
-        }
-        UpdateConditionStep<?> update = this.create.update(table).set(values).where(
-                table.sessionId.eq(sessionId),
-                table.contextPath.eq(contextPath),
-                table.virtualHost.eq(virtualHost));
-
-        String sql = update.getSQL();
-        List<Object> args = update.getBindValues();
-        ejt.update(sql, args.toArray(new Object[args.size()]));
+        this.create.update(table)
+                .set(voToObjectArray(vo))
+                .where(table.sessionId.eq(sessionId),
+                        table.contextPath.eq(contextPath),
+                        table.virtualHost.eq(virtualHost))
+                .execute();
     }
 
     /**
      * Is there a session with this primary key
      */
     public boolean sessionExists(String sessionId, String contextPath, String virtualHost) {
-        Select<Record1<Long>> query = this.create.select(table.expiryTime)
+        Long expiryTime = this.create.select(table.expiryTime)
                 .from(table)
                 .where(table.sessionId.eq(sessionId),
                         table.contextPath.eq(contextPath),
-                        table.virtualHost.eq(virtualHost));
+                        table.virtualHost.eq(virtualHost))
+                .fetchSingle().value1();
 
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        Long expiryTime = queryForObject(sql, args.toArray(), Long.class, null);
-
-        if(expiryTime == null) {
+        if (expiryTime == null) {
             return false;
-        }else if(expiryTime <=0) {
+        } else if (expiryTime <= 0) {
             return true; //Never expires
-        }else {
+        } else {
             return expiryTime > Common.timer.currentTimeMillis();
         }
 
@@ -160,57 +117,24 @@ public class MangoSessionDataDao extends BaseDao {
      * Get expired sessions before or at the upper bound
      */
     public Set<String> getExpiredSessionIds(String contextPath,
-            String virtualHost, long upperBound) {
-        Select<Record1<String>> query = this.create.select(table.sessionId)
+                                            String virtualHost, long upperBound) {
+
+        return this.create.select(table.sessionId)
                 .from(table)
                 .where(table.contextPath.eq(contextPath),
                         table.virtualHost.eq(virtualHost),
                         table.expiryTime.greaterThan(0L),
-                        table.expiryTime.lessOrEqual(upperBound));
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        return query(sql, args.toArray(), expiredIdsExtractor);
-    }
-
-    private final ExpireSessionIdsExtractor expiredIdsExtractor = new ExpireSessionIdsExtractor();
-    private class ExpireSessionIdsExtractor implements ResultSetExtractor<Set<String>> {
-        @Override
-        public Set<String> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            Set<String> expired = new HashSet<>();
-            while (rs.next()) {
-                expired.add(rs.getString(1));
-            }
-            return expired;
-        }
+                        table.expiryTime.lessOrEqual(upperBound))
+                .fetchSet(table.sessionId);
     }
 
     public MangoSessionDataVO get(String sessionId, String contextPath, String virtualHost) {
-        Select<Record> query = this.create.select(Arrays.asList(table.fields()))
+        return this.create.select(table.fields())
                 .from(table)
                 .where(table.sessionId.eq(sessionId),
                         table.contextPath.eq(contextPath),
                         table.virtualHost.eq(virtualHost))
-                .limit(1);
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        return ejt.query(sql, args.toArray(new Object[args.size()]), extractor);
-    }
-
-    private final MangoSessionDataVOExtractor extractor = new MangoSessionDataVOExtractor();
-    private class MangoSessionDataVOExtractor implements ResultSetExtractor<MangoSessionDataVO> {
-        @Override
-        public MangoSessionDataVO extractData(ResultSet rs) throws SQLException, DataAccessException {
-            RowMapper<MangoSessionDataVO> rowMapper = getRowMapper();
-            List<MangoSessionDataVO> results = new ArrayList<>();
-            int rowNum = 0;
-            while (rs.next()) {
-                MangoSessionDataVO row = rowMapper.mapRow(rs, rowNum);
-                results.add(row);
-                rowNum++;
-                return DataAccessUtils.uniqueResult(results);
-            }
-            return null;
-        }
+                .fetchOne(this::mapRecord);
     }
 
     /**

@@ -88,7 +88,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
         @Override
         public List<PublisherVO<? extends PublishedPointVO>> extractData(ResultSet rs) throws SQLException,
         DataAccessException {
-            PublisherRowMapper rowMapper = new PublisherRowMapper();
+            RowMapper<PublisherVO<? extends PublishedPointVO>> rowMapper = getRowMapper();
             List<PublisherVO<? extends PublishedPointVO>> results = new ArrayList<PublisherVO<? extends PublishedPointVO>>();
             int rowNum = 0;
             while (rs.next()) {
@@ -109,19 +109,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
                 }
             }
             return results;
-        }
-    }
-
-    class PublisherRowMapper implements RowMapper<PublisherVO<? extends PublishedPointVO>> {
-        @Override
-        @SuppressWarnings("unchecked")
-        public PublisherVO<? extends PublishedPointVO> mapRow(ResultSet rs, int rowNum) throws SQLException {
-            PublisherVO<? extends PublishedPointVO> p = (PublisherVO<? extends PublishedPointVO>) SerializationHelper
-                    .readObjectInContext(rs.getBinaryStream(4));
-            p.setId(rs.getInt(1));
-            p.setXid(rs.getString(2));
-            p.setDefinition(ModuleRegistry.getPublisherDefinition(rs.getString(3)));
-            return p;
         }
     }
 
@@ -211,13 +198,13 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    public RowMapper<PublisherVO<? extends PublishedPointVO>> getRowMapper() {
-        return new PublisherRowMapper();
-    }
-
-    @Override
     public PublisherVO<? extends PublishedPointVO> mapRecord(Record record) {
-        return null;
+        PublisherVO<? extends PublishedPointVO> p = (PublisherVO<? extends PublishedPointVO>) SerializationHelper
+            .readObjectInContextFromArray(record.get(table.data));
+        p.setId(record.get(table.id));
+        p.setXid(record.get(table.xid));
+        p.setDefinition(ModuleRegistry.getPublisherDefinition(record.get(table.publisherType)));
+        return p;
     }
 
     @Override

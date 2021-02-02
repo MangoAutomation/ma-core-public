@@ -156,11 +156,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      *
      * @return row mapper
      */
-    public RowMapper<T> getRowMapper() {
+    public final RowMapper<T> getRowMapper() {
         return this::mapRow;
     }
 
-    public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public final T mapRow(ResultSet rs, int rowNum) throws SQLException {
         Record record = create.fetchLazy(rs).fetchNext();
         return mapRecord(record);
     }

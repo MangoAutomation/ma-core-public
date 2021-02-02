@@ -205,21 +205,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
         });
     }
 
-    class DataSourceRowMapper implements RowMapper<DataSourceVO> {
-        @Override
-        public DataSourceVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            DataSourceVO ds = (DataSourceVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
-            ds.setId(rs.getInt(1));
-            ds.setXid(rs.getString(2));
-            ds.setName(rs.getString(3));
-            ds.setDefinition(ModuleRegistry.getDataSourceDefinition(rs.getString(4)));
-            ds.setData(extractData(rs.getClob(6)));
-            ds.setReadPermission(new MangoPermission(rs.getInt(7)));
-            ds.setEditPermission(new MangoPermission(rs.getInt(8)));
-            return ds;
-        }
-    }
-
     @Override
     protected ResultSetExtractor<List<DataSourceVO>> getListResultSetExtractor() {
         return getListResultSetExtractor((e, rs) -> {
@@ -275,13 +260,16 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     }
 
     @Override
-    public RowMapper<DataSourceVO> getRowMapper() {
-        return new DataSourceRowMapper();
-    }
-
-    @Override
     public DataSourceVO mapRecord(Record record) {
-        return null;
+        DataSourceVO ds = (DataSourceVO) SerializationHelper.readObjectInContextFromArray(record.get(table.data));
+        ds.setId(record.get(table.id));
+        ds.setXid(record.get(table.xid));
+        ds.setName(record.get(table.name));
+        ds.setDefinition(ModuleRegistry.getDataSourceDefinition(record.get(table.dataSourceType)));
+        ds.setData(extractData(record.get(table.jsonData)));
+        ds.setReadPermission(new MangoPermission(record.get(table.readPermissionId)));
+        ds.setEditPermission(new MangoPermission(record.get(table.editPermissionId)));
+        return ds;
     }
 
     @Override

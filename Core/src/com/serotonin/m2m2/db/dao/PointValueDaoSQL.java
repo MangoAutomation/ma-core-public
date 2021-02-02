@@ -452,7 +452,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
         }
 
         AtomicInteger count = new AtomicInteger();
-        try (Stream<Record> stream = result.fetchSize(100).stream()) {
+        try (Stream<Record> stream = result.stream()) {
             stream.map(this::mapRecord).forEach(pvt -> callback.row(pvt, count.getAndIncrement()));
         }
     }
@@ -469,8 +469,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
                 .and(pv.ts.lessThan(to))
                 .orderBy(pv.ts);
 
-        AtomicInteger count = new AtomicInteger();
-        try (Stream<Record> stream = result.fetchSize(100).stream()) {
+        try (Stream<Record> stream = result.stream()) {
             stream.map(this::mapRecord).forEach(callback);
         }
     }
