@@ -3,12 +3,10 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Select;
 import org.jooq.Table;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
@@ -112,16 +110,10 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         }
         Assert.notNull(xid, "Must supply xid");
 
-        Select<Record> query = this.getJoinedSelectQuery()
+        return getJoinedSelectQuery()
                 .where(xidField.eq(xid))
-                .limit(1);
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        T vo = ejt.query(sql, args.toArray(new Object[0]), getObjectResultSetExtractor());
-        if(vo != null) {
-            loadRelationalData(vo);
-        }
-        return vo;
+                .limit(1)
+                .fetchOne(this::mapRecordLoadRelationalData);
     }
 
     @Override
@@ -132,16 +124,9 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         }
         Assert.notNull(name, "Must supply name");
 
-        Select<Record> query = this.getJoinedSelectQuery()
-                .where(nameField.eq(name));
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        List<T> items = new ArrayList<>();
-        query(sql, args.toArray(new Object[0]), getCallbackResultSetExtractor((item)->{
-            loadRelationalData(item);
-            items.add(item);
-        }));
-        return items;
+        return getJoinedSelectQuery()
+                .where(nameField.eq(name))
+                .fetch(this::mapRecordLoadRelationalData);
     }
 
     @Override

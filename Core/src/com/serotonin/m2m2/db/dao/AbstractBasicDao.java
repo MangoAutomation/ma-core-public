@@ -19,6 +19,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +38,7 @@ import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.TableField;
+import org.jooq.exception.DataAccessException;
 import org.jooq.exception.NoDataFoundException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -76,7 +78,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  */
 public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>> extends BaseDao implements AbstractBasicVOAccess<T> {
-    protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
+    protected Log LOG = LogFactory.getLog(getClass());
 
     //Retry transactions that deadlock
     //TODO Mango 4.0 make the retry criteria more accurate
@@ -154,6 +156,32 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     }
 
     public abstract T mapRecord(Record record);
+
+    public T mapRecordSafe(Record record) {
+        try {
+            return mapRecord(record);
+        } catch (Exception e) {
+            if (e.getCause() instanceof ModuleNotLoadedException) {
+                //We will log and continue as to not prevent someone from loading module based VOs for
+                // which the modules are actually installed.
+                LOG.error("Failed to map SQL record due to missing module", e.getCause());
+            } else {
+                LOG.error("Failed to map SQL record", e);
+                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
+                // want to see the 500 error in the API etc.
+                throw new ShouldNeverHappenException(e);
+            }
+        }
+        return null;
+    }
+
+    public T mapRecordLoadRelationalData(Record record) {
+        T result = mapRecordSafe(record);
+        if (result != null) {
+            loadRelationalData(result);
+        }
+        return result;
+    }
 
     @Override
     public boolean delete(int id) {
@@ -286,27 +314,17 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     @Override
     public T get(int id) {
-        Select<Record> query = this.getJoinedSelectQuery()
+        return getJoinedSelectQuery()
                 .where(getIdField().eq(id))
-                .limit(1);
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        T item = ejt.query(sql, args.toArray(new Object[0]), getObjectResultSetExtractor());
-        if (item != null) {
-            loadRelationalData(item);
-        }
-        return item;
+                .limit(1)
+                .fetchOne(this::mapRecordLoadRelationalData);
     }
 
     @Override
     public void getAll(Consumer<T> callback) {
-        Select<Record> query = this.getJoinedSelectQuery();
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        query(sql, args.toArray(), getCallbackResultSetExtractor((item) -> {
-            loadRelationalData(item);
-            callback.accept(item);
-        }));
+        try (Stream<Record> stream = getJoinedSelectQuery().stream()) {
+            stream.map(this::mapRecordLoadRelationalData).forEach(callback);
+        }
     }
 
     @Override
@@ -344,10 +362,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      */
     @Override
     public SelectSelectStep<Record1<Integer>> getCountQuery() {
-        if (getIdField() == null) {
+        Field<Integer> idField = getIdField();
+        if (idField == null) {
             return create.selectCount();
         } else {
-            return create.select(DSL.count(getIdField()));
+            return create.select(DSL.count(idField));
         }
     }
 
@@ -399,16 +418,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
             select = input.where(condition);
         }
 
-        String sql = select.getSQL();
-        List<Object> arguments = select.getBindValues();
-        Object[] argumentsArray = arguments.toArray(new Object[0]);
-
         LogStopWatch stopWatch = null;
         if (useMetrics) {
             stopWatch = new LogStopWatch();
         }
 
-        int count = this.ejt.queryForInt(sql, argumentsArray, 0);
+        int count = select.fetchSingle().value1();
 
         if (stopWatch != null) {
             Select<Record1<Integer>> selectOutput = select;
@@ -452,16 +467,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     @Override
     public <TYPE> TYPE customizedQuery(Select<Record> select, ResultSetExtractor<TYPE> callback) {
-        String sql = select.getSQL();
-        List<Object> arguments = select.getBindValues();
-        Object[] argumentsArray = arguments.toArray(new Object[0]);
-
         LogStopWatch stopWatch = null;
         if (useMetrics) {
             stopWatch = new LogStopWatch();
         }
         try {
-            return this.query(sql, argumentsArray, callback);
+            try (ResultSet resultSet = select.fetchResultSet()) {
+                return callback.extractData(resultSet);
+            } catch (SQLException e) {
+                throw new DataAccessException("Error extracting data from result set", e);
+            }
         }finally {
             if (stopWatch != null) {
                 stopWatch.stop(() -> "customizedQuery(): " + create.renderInlined(select), metricsThreshold);
