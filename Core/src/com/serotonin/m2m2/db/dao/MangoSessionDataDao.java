@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.util.Set;
 
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
@@ -89,21 +90,13 @@ public class MangoSessionDataDao extends BaseDao {
      * Is there a session with this primary key
      */
     public boolean sessionExists(String sessionId, String contextPath, String virtualHost) {
-        Long expiryTime = this.create.select(table.expiryTime)
-                .from(table)
-                .where(table.sessionId.eq(sessionId),
-                        table.contextPath.eq(contextPath),
-                        table.virtualHost.eq(virtualHost))
-                .fetchSingle().value1();
-
-        if (expiryTime == null) {
-            return false;
-        } else if (expiryTime <= 0) {
-            return true; //Never expires
-        } else {
-            return expiryTime > Common.timer.currentTimeMillis();
-        }
-
+        return this.create.fetchExists(
+                DSL.select().from(table)
+                        .where(table.sessionId.eq(sessionId),
+                                table.contextPath.eq(contextPath),
+                                table.virtualHost.eq(virtualHost))
+                        .and(DSL.or(table.expiryTime.lessOrEqual(0L), //Never expires
+                                table.expiryTime.greaterThan(Common.timer.currentTimeMillis()))));
     }
 
     public boolean delete(String sessionId, String contextPath, String virtualHost) {
