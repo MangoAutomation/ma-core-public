@@ -295,14 +295,17 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
      * @param sourceId
      * @return
      */
-    // TODO Mango 4.0 do we need to load relational data?
     public List<AbstractPointEventDetectorVO> getWithSource(int sourceId, DataPointVO dp) {
         Field<Integer> sourceIdColumnName = sourceTypeToField.get(EventType.EventTypeNames.DATA_POINT);
 
         return getJoinedSelectQuery()
                 .where(sourceIdColumnName.eq(sourceId))
                 .orderBy(getIdField())
-                .fetch(r -> mapPointEventDetector(r, dp));
+                .fetch(r -> {
+                    AbstractPointEventDetectorVO result = mapPointEventDetector(r, dp);
+                    loadRelationalData(result);
+                    return result;
+                });
     }
 
     /**
