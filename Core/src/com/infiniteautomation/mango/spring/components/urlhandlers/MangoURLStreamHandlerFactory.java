@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.components.urlhandlers;
 import java.net.URL;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class MangoURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
     @Autowired
     public MangoURLStreamHandlerFactory(List<URLStreamHandler> handlers) {
-        this.handlers = new HashMap<>(handlers.size());
+        Map<String, URLStreamHandler> handlersMap = new HashMap<>(handlers.size());
 
         // want lowest precedence handlers first, iterate in reverse
         for (int i = handlers.size() - 1; i >= 0; i--) {
@@ -31,10 +32,12 @@ public class MangoURLStreamHandlerFactory implements URLStreamHandlerFactory {
             SupportedProtocols annotation = handler.getClass().getAnnotation(SupportedProtocols.class);
             if (annotation != null) {
                 for (String protocol : annotation.value()) {
-                    this.handlers.put(protocol, handler);
+                    handlersMap.put(protocol, handler);
                 }
             }
         }
+
+        this.handlers = Collections.unmodifiableMap(handlersMap);
 
         // can only be done once, ever
         URL.setURLStreamHandlerFactory(this);
