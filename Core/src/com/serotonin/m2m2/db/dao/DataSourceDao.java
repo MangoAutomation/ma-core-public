@@ -10,14 +10,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Record;
-import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
@@ -91,8 +89,9 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
      */
     @SuppressWarnings("unchecked")
     public <T extends DataSourceVO> List<T> getDataSourcesForType(String type) {
-        SelectConditionStep<Record> query = getJoinedSelectQuery().where(table.dataSourceType.eq(type));
-        return (List<T>) query(query.getSQL(), query.getBindValues().toArray(), getListResultSetExtractor());
+        return (List<T>) getJoinedSelectQuery()
+                .where(table.dataSourceType.eq(type))
+                .fetch(this::mapRecordLoadRelationalData);
     }
 
     @Override
@@ -197,39 +196,14 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     }
 
     @Override
-    protected ResultSetExtractor<List<DataSourceVO>> getListResultSetExtractor() {
-        return getListResultSetExtractor((e, rs) -> {
-            if (e.getCause() instanceof ModuleNotLoadedException) {
-                try {
-                    LOG.error( "Data source with type '" +
-                            rs.getString("dataSourceType") +
-                            "' and xid '" + rs.getString("xid") +
-                            "' could not be loaded. Is its module missing?", e.getCause());
-                }catch(SQLException e1) {
-                    LOG.error(e.getMessage(), e);
-                }
-            }else {
-                LOG.error(e.getMessage(), e);
-            }
-        });
-    }
-
-    @Override
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<DataSourceVO> callback) {
-        return getCallbackResultSetExtractor(callback, (e, rs) -> {
-            if (e.getCause() instanceof ModuleNotLoadedException) {
-                try {
-                    LOG.error( "Data source with type '" +
-                            rs.getString("dataSourceType") +
-                            "' and xid '" + rs.getString("xid") +
-                            "' could not be loaded. Is its module missing?", e.getCause());
-                }catch(SQLException e1) {
-                    LOG.error(e.getMessage(), e);
-                }
-            }else {
-                LOG.error(e.getMessage(), e);
-            }
-        });
+    protected void handleMappingException(Exception e, Record record) {
+        if (e.getCause() instanceof ModuleNotLoadedException) {
+            LOG.error("Data source with xid '" + record.get(table.xid) +
+                    "' could not be loaded. Is its module missing?", e.getCause());
+        } else {
+            LOG.error("Error mapping data source with xid '" + record.get(table.xid) +
+                    "' from SQL record", e.getCause());
+        }
     }
 
     @Override

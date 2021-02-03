@@ -23,7 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -169,15 +168,9 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     @Override
     public User getByXid(String username) {
         if (username == null) return null;
-
-        Select<Record> query = getJoinedSelectQuery().where(table.username.equalIgnoreCase(username));
-        List<Object> args = query.getBindValues();
-        User user = ejt.query(query.getSQL(), args.toArray(new Object[0]),
-                getObjectResultSetExtractor());
-        if(user != null) {
-            loadRelationalData(user);
-        }
-        return user;
+        return getJoinedSelectQuery()
+                .where(table.username.equalIgnoreCase(username))
+                .fetchOne(this::mapRecordLoadRelationalData);
     }
 
     /**
@@ -230,15 +223,15 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
      */
     public User getUserByEmail(String emailAddress) {
         if (emailAddress == null) return null;
-        Select<Record> query = getJoinedSelectQuery().where(table.email.eq(emailAddress));
-        List<Object> args = query.getBindValues();
-        return ejt.query(query.getSQL(), args.toArray(new Object[0]), getObjectResultSetExtractor());
+        return getJoinedSelectQuery()
+                .where(table.email.eq(emailAddress))
+                .fetchOne(this::mapRecordLoadRelationalData);
     }
 
     public List<User> getActiveUsers() {
-        Select<Record> query = getJoinedSelectQuery().where(table.disabled.eq("N"));
-        List<Object> args = query.getBindValues();
-        return query(query.getSQL(), args.toArray(new Object[0]), getListResultSetExtractor());
+        return getJoinedSelectQuery()
+                .where(table.disabled.eq(boolToChar(false)))
+                .fetch(this::mapRecordLoadRelationalData);
     }
 
     private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";

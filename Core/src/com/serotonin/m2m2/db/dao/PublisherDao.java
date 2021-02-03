@@ -37,7 +37,6 @@ import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -125,23 +124,19 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
                 table.publisherType.equal(publisherType),
                 table.id.notEqual(excludeId)).stream()) {
 
-            return stream.map(record -> {
-                try {
-                    return this.mapRecord(record);
-                } catch (ShouldNeverHappenException e) {
-                    // If the module was removed but there are still records in the database, this exception will be
-                    // thrown. Check the inner exception to confirm.
-                    if (e.getCause() instanceof ModuleNotLoadedException) {
-                        // Yep. Log the occurrence and continue.
-                        LOG.error("Publisher with type '" + record.get(table.publisherType) + "' and xid '" +
-                                record.get(table.xid) + "' could not be loaded. Is its module missing?", e);
-                    } else {
-                        LOG.error(e.getMessage(), e);
-                    }
-                }
-                return null;
-            }).filter(Objects::nonNull)
+            return stream.map(this::mapRecordSafe).filter(Objects::nonNull)
                     .map(p -> p.getPoints().size()).reduce(0, Integer::sum);
+        }
+    }
+
+    @Override
+    protected void handleMappingException(Exception e, Record record) {
+        if (e.getCause() instanceof ModuleNotLoadedException) {
+            LOG.error("Publisher with xid '" + record.get(table.xid) +
+                    "' could not be loaded. Is its module missing?", e.getCause());
+        } else {
+            LOG.error("Error mapping publisher with xid '" + record.get(table.xid) +
+                    "' from SQL record", e.getCause());
         }
     }
 

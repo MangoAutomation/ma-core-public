@@ -151,8 +151,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
-        return this.customizedQuery(getJoinedSelectQuery().where(table.dataSourceId.eq(dataSourceId)),
-                getListResultSetExtractor());
+        return getJoinedSelectQuery()
+                .where(table.dataSourceId.eq(dataSourceId))
+                .fetch(this::mapRecordLoadRelationalData);
     }
 
     /**
@@ -483,14 +484,18 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         //For now we will do this the slow way
-        List<DataPointVO> points = query(getJoinedSelectQuery().getSQL() + " ORDER BY dp.deviceName, dp.name", getListResultSetExtractor());
+
+        List<DataPointVO> points = getJoinedSelectQuery()
+                .orderBy(table.deviceName, table.name)
+                .fetch(this::mapRecordLoadRelationalData);
+
         List<PointHistoryCount> counts = new ArrayList<>();
         for (DataPointVO point : points) {
             PointHistoryCount phc = new PointHistoryCount();
             long count = dao.dateRangeCount(point, 0L, Long.MAX_VALUE);
             phc.setCount((int) count);
             phc.setPointId(point.getId());
-            phc.setPointName(point.getName());
+            phc.setPointName(point.getExtendedName());
             counts.add(phc);
         }
         counts.sort((count1, count2) -> count2.getCount() - count1.getCount());
@@ -515,7 +520,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
                     }
                 });
 
-        List<DataPointVO> points = query(getJoinedSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
+        List<DataPointVO> points = getJoinedSelectQuery()
+                .orderBy(table.deviceName, table.name)
+                .fetch(this::mapRecordLoadRelationalData);
 
         // Collate in the point names.
         for (PointHistoryCount c : counts) {
@@ -908,36 +915,14 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     }
 
     @Override
-    protected ResultSetExtractor<List<DataPointVO>> getListResultSetExtractor() {
-        return getListResultSetExtractor((e, rs) -> {
-            if (e.getCause() instanceof ModuleNotLoadedException) {
-                try {
-                    LOG.error("Data point with xid '" + rs.getString("xid")
-                    + "' could not be loaded. Is its module missing?", e.getCause());
-                }catch(SQLException e1) {
-                    LOG.error(e.getMessage(), e);
-                }
-            }else {
-                LOG.error(e.getMessage(), e);
-            }
-        });
-    }
-
-    @Override
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(
-            Consumer<DataPointVO> callback) {
-        return getCallbackResultSetExtractor(callback, (e, rs) -> {
-            if (e.getCause() instanceof ModuleNotLoadedException) {
-                try {
-                    LOG.error("Data point with xid '" + rs.getString("xid")
-                    + "' could not be loaded. Is its module missing?", e.getCause());
-                }catch(SQLException e1) {
-                    LOG.error(e.getMessage(), e);
-                }
-            }else {
-                LOG.error(e.getMessage(), e);
-            }
-        });
+    protected void handleMappingException(Exception e, Record record) {
+        if (e.getCause() instanceof ModuleNotLoadedException) {
+            LOG.error("Data point with xid '" + record.get(table.xid) +
+                    "' could not be loaded. Is its module missing?", e.getCause());
+        } else {
+            LOG.error("Error mapping data point with xid '" + record.get(table.xid) +
+                    "' from SQL record", e.getCause());
+        }
     }
 
     @Override

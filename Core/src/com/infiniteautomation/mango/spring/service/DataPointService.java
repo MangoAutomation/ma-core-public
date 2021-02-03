@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -25,7 +26,6 @@ import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
@@ -413,12 +413,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             }
         }
 
-        dao.customizedQuery(offsetStep, (ResultSetExtractor<Void>) rs -> {
-            while (rs.next()) {
-                callback.accept(rs.getString(1));
-            }
-            return null;
-        });
+        try (Stream<Record> stream = offsetStep.stream()) {
+            stream.map(r -> r.get(dataPoints.deviceName)).forEach(callback);
+        }
     }
 
     @Override

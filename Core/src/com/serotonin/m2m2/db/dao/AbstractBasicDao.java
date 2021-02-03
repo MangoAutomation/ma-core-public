@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -23,8 +23,9 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jooq.Condition;
-import org.jooq.Cursor;
 import org.jooq.Field;
 import org.jooq.Identity;
 import org.jooq.JSON;
@@ -44,7 +45,6 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -61,7 +61,6 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.ModuleNotLoadedException;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -134,8 +133,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         }
     }
 
-
-
     /**
      * Converts a VO object into a map of fields for insert/update of DB.
      *
@@ -155,32 +152,44 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         return DSL.trueCondition();
     }
 
-    public abstract T mapRecord(Record record);
+    public abstract @NonNull T mapRecord(@NonNull Record record);
 
-    public T mapRecordSafe(Record record) {
+    /**
+     * Maps the record safely, catching exceptions
+     * @param record SQL record
+     * @return the mapped record as a VO type, or null if an exception occurred
+     */
+    public @Nullable T mapRecordSafe(@NonNull Record record) {
         try {
             return mapRecord(record);
         } catch (Exception e) {
-            if (e.getCause() instanceof ModuleNotLoadedException) {
-                //We will log and continue as to not prevent someone from loading module based VOs for
-                // which the modules are actually installed.
-                LOG.error("Failed to map SQL record due to missing module", e.getCause());
-            } else {
-                LOG.error("Failed to map SQL record", e);
-                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
-                // want to see the 500 error in the API etc.
-                throw new ShouldNeverHappenException(e);
-            }
+            handleMappingException(e, record);
         }
         return null;
     }
 
-    public T mapRecordLoadRelationalData(Record record) {
+    /**
+     * Maps the record (safely, catching exceptions) then loads the relational data.
+     * @param record SQL record
+     * @return the mapped record as a VO type, or null if an exception occurred
+     */
+    @Nullable
+    public T mapRecordLoadRelationalData(@NonNull Record record) {
         T result = mapRecordSafe(record);
         if (result != null) {
             loadRelationalData(result);
         }
         return result;
+    }
+
+    protected void handleMappingException(@NonNull Exception e, @NonNull Record record) {
+        if (e.getCause() instanceof ModuleNotLoadedException) {
+            //We will log and continue as to not prevent someone from loading module based VOs for
+            // which the modules are actually installed.
+            LOG.error("Failed to map SQL record due to missing module", e.getCause());
+        } else {
+            LOG.error("Failed to map SQL record", e);
+        }
     }
 
     @Override
@@ -322,9 +331,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     @Override
     public void getAll(Consumer<T> callback) {
-        try (Stream<Record> stream = getJoinedSelectQuery().stream()) {
-            stream.map(this::mapRecordLoadRelationalData).forEach(callback);
-        }
+        customizedQuery(getJoinedSelectQuery(), callback);
     }
 
     @Override
@@ -444,10 +451,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     @Override
     public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<?>> sort, Integer limit, Integer offset,
             Consumer<T> callback) {
+
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
-
         SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
-
         Select<Record> offsetStep = afterSort;
         if (limit != null) {
             if (offset != null) {
@@ -456,13 +462,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                 offsetStep = afterSort.limit(limit);
             }
         }
-
-        customizedQuery(offsetStep, getCallbackResultSetExtractor(callback));
+        customizedQuery(offsetStep, callback);
     }
 
     @Override
     public void customizedQuery(Select<Record> select, Consumer<T> callback) {
-        customizedQuery(select, getCallbackResultSetExtractor(callback));
+        try (Stream<Record> stream = select.stream()) {
+            stream.map(this::mapRecordLoadRelationalData)
+                    .filter(Objects::nonNull)
+                    .forEach(callback);
+        }
     }
 
     @Override
@@ -562,113 +571,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      */
     public ObjectReader getObjectReader(Class<?> type) {
         return mapper.readerFor(type);
-    }
-
-    /**
-     * Available to overload the result set extractor for list queries.
-     *
-     * If a module is not installed the exception is caught and logged,
-     * which could mess up a query limit/offset scenario.  Resulting in
-     * less items than asked for.
-     *
-     * @return
-     */
-    protected ResultSetExtractor<T> getObjectResultSetExtractor() {
-        return getObjectResultSetExtractor((e,rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException) {
-                //We will log and continue as to not prevent someone from loading module based VOs for
-                // which the modules are actually installed.
-                LOG.error(e.getCause().getMessage(), e.getCause());
-            }else {
-                LOG.error(e.getMessage(), e);
-                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
-                // want to see the 500 error in the API etc.
-                throw new ShouldNeverHappenException(e);
-            }
-        });
-    }
-
-    protected ResultSetExtractor<T> getObjectResultSetExtractor(BiConsumer<Exception, ResultSet> error) {
-        return rs -> {
-            List<T> results = new ArrayList<>(1);
-            extractFromResultSet(rs, results::add, error);
-            return DataAccessUtils.uniqueResult(results);
-        };
-    }
-
-    /**
-     * Available to overload the result set extractor for list queries.
-     *
-     * If a module is not installed the exception is caught and logged,
-     * which could mess up a query limit/offset scenario.  Resulting in
-     * less items than asked for.
-     *
-     * @return
-     */
-    protected ResultSetExtractor<List<T>> getListResultSetExtractor() {
-        return getListResultSetExtractor((e,rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException) {
-                LOG.error(e.getCause().getMessage(), e.getCause());
-            }else {
-                LOG.error(e.getMessage(), e);
-                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
-                // want to see the 500 error in the API etc.
-                throw new ShouldNeverHappenException(e);
-            }
-        });
-    }
-
-    /**
-     *
-     * @param error
-     * @return
-     */
-    protected ResultSetExtractor<List<T>> getListResultSetExtractor(BiConsumer<Exception, ResultSet> error) {
-        return rs -> {
-            List<T> results = new ArrayList<>();
-            extractFromResultSet(rs, results::add, error);
-            return results;
-        };
-    }
-
-    protected void extractFromResultSet(ResultSet rs, Consumer<T> consumer, BiConsumer<Exception, ResultSet> error) {
-        try (Cursor<Record> cursor = create.fetchLazy(rs)) {
-            for (Record record : cursor) {
-                try {
-                    T row = mapRecord(record);
-                    loadRelationalData(row);
-                    consumer.accept(row);
-                } catch (Exception e) {
-                    error.accept(e, rs);
-                }
-            }
-        }
-    }
-
-    /**
-     * Available to overload the result set extractor for callback queries
-     *  to customize error handling
-     * @param callback
-     * @return
-     */
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<T> callback) {
-        return getCallbackResultSetExtractor(callback, (e, rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException) {
-                LOG.error(e.getCause().getMessage(), e.getCause());
-            }else {
-                LOG.error(e.getMessage(), e);
-                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
-                // want to see the 500 error in the API etc.
-                throw new ShouldNeverHappenException(e);
-            }
-        });
-    }
-
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<T> callback, BiConsumer<Exception, ResultSet> error) {
-        return rs -> {
-            extractFromResultSet(rs, callback, error);
-            return null;
-        };
     }
 
     @Override
