@@ -143,7 +143,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
 
     @Override
     public AbstractEventDetectorVO mapRecord(Record record) {
-        String type = record.get(table.sourceTypeName);
+        String type = record.get(table.typeName);
         EventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(type);
         if (definition == null)
             throw new IllegalStateException("Event detector definition of type '" + type + "' not found.");
@@ -152,7 +152,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         Field<Integer> sourceIdField = sourceTypeToField.get(definition.getSourceTypeName());
         int sourceId = record.get(sourceIdField);
 
-        // TODO Mango 4.0 ensure id and definition are set
         AbstractEventDetectorVO vo = definition.baseCreateEventDetectorVO(sourceId);
         readRecordIntoEventDetector(record, vo);
         return vo;
@@ -349,7 +348,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     }
 
     public AbstractPointEventDetectorVO mapPointEventDetector(Record record, DataPointVO dataPoint) {
-        String type = record.get(table.sourceTypeName);
+        String type = record.get(table.typeName);
         if (type == null) {
             return null;
         }

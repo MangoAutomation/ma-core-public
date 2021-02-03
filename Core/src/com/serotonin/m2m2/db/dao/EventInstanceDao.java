@@ -288,29 +288,41 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     public EventType createEventType(Record record) {
         String typeName = record.get(table.typeName);
         String subtypeName = record.get(table.subTypeName);
+        Integer typeRef1 = record.get(table.typeRef1);
+        Integer typeRef2 = record.get(table.typeRef2);
+        return createEventType(typeName, subtypeName, typeRef1, typeRef2);
+    }
+
+    public EventType createEventType(String typeName, String subtypeName, Integer typeRef1, Integer typeRef2) {
         EventType type;
-        if (typeName.equals(EventType.EventTypeNames.DATA_POINT))
-            type = new DataPointEventType(record.get(table.typeRef1), record.get(table.typeRef2));
-        else if (typeName.equals(EventType.EventTypeNames.DATA_SOURCE))
-            type = new DataSourceEventType(record.get(table.typeRef1), record.get(table.typeRef2));
-        else if (typeName.equals(EventType.EventTypeNames.SYSTEM))
-            type = new SystemEventType(subtypeName, record.get(table.typeRef1));
-        else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
-            type = new PublisherEventType(record.get(table.typeRef1), record.get(table.typeRef2));
-        else if (typeName.equals(EventType.EventTypeNames.AUDIT))
-            throw new ShouldNeverHappenException("AUDIT events should not exist here. Consider running the SQL: DELETE FROM events WHERE typeName='AUDIT';");
-        else {
-            EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
-            if (def == null) {
-                //Create Missing Event Type
-                type = new MissingEventType(typeName, null, record.get(table.typeRef1), record.get(table.typeRef2));
-            }else {
-                type = def.createEventType(subtypeName, record.get(table.typeRef1), record.get(table.typeRef2));
-                if (type == null) {
-                    //Create Missing Event type
-                    type = new MissingEventType(typeName, subtypeName, record.get(table.typeRef1), record.get(table.typeRef2));
+        switch (typeName) {
+            case EventType.EventTypeNames.DATA_POINT:
+                type = new DataPointEventType(typeRef1, typeRef2);
+                break;
+            case EventType.EventTypeNames.DATA_SOURCE:
+                type = new DataSourceEventType(typeRef1, typeRef2);
+                break;
+            case EventType.EventTypeNames.SYSTEM:
+                type = new SystemEventType(subtypeName, typeRef1);
+                break;
+            case EventType.EventTypeNames.PUBLISHER:
+                type = new PublisherEventType(typeRef1, typeRef2);
+                break;
+            case EventType.EventTypeNames.AUDIT:
+                throw new ShouldNeverHappenException("AUDIT events should not exist here. Consider running the SQL: DELETE FROM events WHERE typeName='AUDIT';");
+            default:
+                EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
+                if (def == null) {
+                    //Create Missing Event Type
+                    type = new MissingEventType(typeName, null, typeRef1, typeRef2);
+                } else {
+                    type = def.createEventType(subtypeName, typeRef1, typeRef2);
+                    if (type == null) {
+                        //Create Missing Event type
+                        type = new MissingEventType(typeName, subtypeName, typeRef1, typeRef2);
+                    }
                 }
-            }
+                break;
         }
         return type;
     }

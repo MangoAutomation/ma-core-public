@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +17,6 @@ import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -27,6 +24,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.EventHandlers;
+import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
@@ -73,15 +71,21 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         }
     }
 
+    private final EventHandlersMapping handlerMapping;
+    private final EventInstanceDao eventInstanceDao;
+
     @Autowired
     private EventHandlerDao(PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+                            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                            ApplicationEventPublisher publisher, EventInstanceDao eventInstanceDao) {
         super(AuditEventType.TYPE_EVENT_HANDLER,
                 EventHandlers.EVENT_HANDLERS,
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
+        this.eventInstanceDao = eventInstanceDao;
+
+        this.handlerMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
     }
 
     /**
@@ -126,77 +130,50 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         return h;
     }
 
-    private static final String EVENT_HANDLER_SELECT = "SELECT id, xid, alias, eventHandlerType, data, readPermissionId, editPermissionId FROM eventHandlers ";
-    /**
-     * Note: eventHandlers.eventTypeRef[1,2] match on both the given ref and 0. This is to allow a single set of event
-     * handlers to be defined for user login events, rather than have to individually define them for each user.
-     */
-    private static final String EVENT_HANDLER_SELECT_BY_TYPE_SUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, " +
-            "eh.data, eh.readPermissionId, eh.editPermissionId FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE ehm.eventTypeName=? AND " +
-            "ehm.eventSubtypeName=? AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? or ehm.eventTypeRef2=0)";
-    private static final String EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, eh.data, eh.readPermissionId, eh.editPermissionId " +
-            "FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE ehm.eventTypeName=? AND " +
-            "ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
-
     public List<AbstractEventHandlerVO> getEventHandlers(EventType type) {
         return getEventHandlers(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(),
                 type.getReferenceId2());
     }
 
     public List<AbstractEventHandlerVO> getEventHandlersByType(String typeName) {
-        return query(EVENT_HANDLER_SELECT + " WHERE eventHandlerType=?", new Object[] {typeName}, new EventHandlerWithRelationalDataRowMapper());
+        List<AbstractEventHandlerVO> handlers = getJoinedSelectQuery().where(table.eventHandlerType.equal(typeName)).fetch(this::mapRecord);
+        for (AbstractEventHandlerVO handler : handlers) {
+            loadRelationalData(handler);
+        }
+        return handlers;
     }
 
     private List<EventType> getEventTypesForHandler(int handlerId) {
-        return ejt.query("SELECT eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2 FROM eventHandlersMapping WHERE eventHandlerId=?", new Object[] {handlerId}, new RowMapper<EventType>() {
-            @Override
-            public EventType mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return EventDao.createEventType(rs, 1);
-            }
-        });
+        return this.create.select(handlerMapping.fields()).
+                from(handlerMapping)
+                .where(handlerMapping.eventHandlerId.equal(handlerId))
+                .fetch(this::mapEventType);
     }
 
-    private static final String EVENT_HANDLER_XID_SELECT_SUB = "SELECT eh.xid FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE " +
-            "ehm.eventTypeName=? AND ehm.eventSubtypeName=? AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
-    private static final String EVENT_HANDLER_XID_SELECT_NULLSUB = "select eh.xid FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE " +
-            "ehm.eventTypeName=? AND ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
+    private EventType mapEventType(Record record) {
+        String typeName = record.get(handlerMapping.eventTypeName);
+        String subtypeName = record.get(handlerMapping.eventSubtypeName);
+        Integer typeRef1 = record.get(handlerMapping.eventTypeRef1);
+        Integer typeRef2 = record.get(handlerMapping.eventTypeRef2);
+        return eventInstanceDao.createEventType(typeName, subtypeName, typeRef1, typeRef2);
+    }
 
     public List<String> getEventHandlerXids(EventType type) {
-        if(type.getEventSubtype() == null)
-            return queryForList(EVENT_HANDLER_XID_SELECT_NULLSUB, new Object[] { type.getEventType(),
-                    type.getReferenceId1(), type.getReferenceId2()}, String.class);
-        return queryForList(EVENT_HANDLER_XID_SELECT_SUB, new Object[] { type.getEventType(), type.getEventSubtype(),
-                type.getReferenceId1(), type.getReferenceId2()}, String.class);
+        return create.select(table.xid).from(table).innerJoin(handlerMapping).on(table.id.equal(handlerMapping.eventHandlerId))
+                .where(handlerMapping.eventTypeName.equal(type.getEventType()),
+                        handlerMapping.eventSubtypeName.equal(type.getEventSubtype() == null ? "" : type.getEventSubtype()),
+                        DSL.or(handlerMapping.eventTypeRef1.equal(0), handlerMapping.eventTypeRef1.equal(type.getReferenceId1())),
+                        DSL.or(handlerMapping.eventTypeRef2.equal(0), handlerMapping.eventTypeRef2.equal(type.getReferenceId2())))
+                .fetch(table.xid);
     }
 
     private List<AbstractEventHandlerVO> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
-        if (subtypeName == null)
-            return query(EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB, new Object[] { typeName, ref1, ref2 },
-                    getRowMapper());
-        return query(EVENT_HANDLER_SELECT_BY_TYPE_SUB, new Object[] { typeName, subtypeName, ref1, ref2 },
-                getRowMapper());
-    }
-
-
-    /**
-     * For use in the legacy query methods
-     *
-     * @author Terry Packer
-     */
-    class EventHandlerWithRelationalDataRowMapper implements RowMapper<AbstractEventHandlerVO> {
-
-        final RowMapper<AbstractEventHandlerVO> delegate;
-
-        EventHandlerWithRelationalDataRowMapper() {
-            delegate = getRowMapper();
-        }
-
-        @Override
-        public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            AbstractEventHandlerVO h = delegate.mapRow(rs, rowNum);
-            loadRelationalData(h);
-            return h;
-        }
+        return getJoinedSelectQuery().innerJoin(handlerMapping).on(table.id.equal(handlerMapping.eventHandlerId))
+                .where(handlerMapping.eventTypeName.equal(typeName),
+                        handlerMapping.eventSubtypeName.equal(subtypeName == null ? "" : subtypeName),
+                        DSL.or(handlerMapping.eventTypeRef1.equal(0), handlerMapping.eventTypeRef1.equal(ref1)),
+                        DSL.or(handlerMapping.eventTypeRef2.equal(0), handlerMapping.eventTypeRef2.equal(ref2)))
+                .fetch(this::mapRecord);
     }
 
     @Override

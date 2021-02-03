@@ -271,68 +271,48 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @param dataSourceId
      */
     void deleteDataPoints(final int dataSourceId) {
+        List<DataPointVO> batch = new ArrayList<>();
+        List<Integer> pointIds = new ArrayList<>();
+        Set<Integer> permissionIds = new HashSet<>();
+        Set<Integer> seriesIds = new HashSet<>();
+        int batchSize = getInBatchSize();
 
         //We will not load any relational data from this and rely on the permissionIds being set
-        Select<Record> query = getJoinedSelectQuery().where(table.dataSourceId.eq(dataSourceId));
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        query(sql, args.toArray(), new ResultSetExtractor<Void>() {
+        getJoinedSelectQuery().where(table.dataSourceId.eq(dataSourceId)).forEach(record -> {
+            try {
+                DataPointVO row = mapRecord(record);
 
-            @Override
-            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
-                RowMapper<DataPointVO> rowMapper = getRowMapper();
-                int rowNum = 0;
-                List<DataPointVO> batch = new ArrayList<>();
-                List<Integer> pointIds = new ArrayList<>();
-                Set<Integer> permissionIds = new HashSet<>();
-                Set<Integer> seriesIds = new HashSet<>();
-                int batchSize = getInBatchSize();
+                //Don't trigger a lazy load (load relational after this)
+                permissionIds.add(row.getReadPermission().getId());
+                permissionIds.add(row.getEditPermission().getId());
+                permissionIds.add(row.getSetPermission().getId());
 
-                while (rs.next()) {
-                    try {
-                        DataPointVO row = rowMapper.mapRow(rs, rowNum);
-
-                        //Don't trigger a lazy load (load relational after this)
-                        permissionIds.add(row.getReadPermission().getId());
-                        permissionIds.add(row.getEditPermission().getId());
-                        permissionIds.add(row.getSetPermission().getId());
-
-                        loadRelationalData(row);
-                        batch.add(row);
-                        pointIds.add(row.getId());
-                        seriesIds.add(row.getSeriesId());
-
-                    }catch (Exception e) {
-                        if (e.getCause() instanceof ModuleNotLoadedException) {
-                            try {
-                                LOG.error("Data point with xid '" + rs.getString("xid")
-                                + "' could not be loaded. Is its module missing?", e.getCause());
-                            }catch(SQLException e1) {
-                                LOG.error(e.getMessage(), e);
-                            }
-                        }else {
-                            LOG.error(e.getMessage(), e);
-                        }
-                    }finally {
-                        rowNum++;
-                    }
-
-                    //Check if time to batch
-                    if(batch.size() == batchSize) {
-                        deleteBatch(batch, pointIds, permissionIds, seriesIds);
-                        batch.clear();
-                        pointIds.clear();
-                        permissionIds.clear();
-                        seriesIds.clear();
-                    }
-
+                loadRelationalData(row);
+                batch.add(row);
+                pointIds.add(row.getId());
+                seriesIds.add(row.getSeriesId());
+            } catch (Exception e) {
+                if (e.getCause() instanceof ModuleNotLoadedException) {
+                    LOG.error("Data point with xid '" + record.get(table.xid)
+                            + "' could not be loaded. Is its module missing?", e.getCause());
+                } else {
+                    LOG.error(e.getMessage(), e);
                 }
-                if(batch.size() > 0) {
-                    deleteBatch(batch, pointIds, permissionIds, seriesIds);
-                }
-                return null;
+            }
+
+            //Check if time to batch
+            if (batch.size() == batchSize) {
+                deleteBatch(batch, pointIds, permissionIds, seriesIds);
+                batch.clear();
+                pointIds.clear();
+                permissionIds.clear();
+                seriesIds.clear();
             }
         });
+
+        if (batch.size() > 0) {
+            deleteBatch(batch, pointIds, permissionIds, seriesIds);
+        }
     }
 
     /**

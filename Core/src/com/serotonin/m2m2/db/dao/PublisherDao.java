@@ -12,17 +12,20 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -84,34 +87,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
         }
     }
 
-    class PublisherExtractor implements ResultSetExtractor<List<PublisherVO<? extends PublishedPointVO>>> {
-        @Override
-        public List<PublisherVO<? extends PublishedPointVO>> extractData(ResultSet rs) throws SQLException,
-        DataAccessException {
-            RowMapper<PublisherVO<? extends PublishedPointVO>> rowMapper = getRowMapper();
-            List<PublisherVO<? extends PublishedPointVO>> results = new ArrayList<PublisherVO<? extends PublishedPointVO>>();
-            int rowNum = 0;
-            while (rs.next()) {
-                try {
-                    results.add(rowMapper.mapRow(rs, rowNum++));
-                }
-                catch (ShouldNeverHappenException e) {
-                    // If the module was removed but there are still records in the database, this exception will be
-                    // thrown. Check the inner exception to confirm.
-                    if (e.getCause() instanceof ModuleNotLoadedException) {
-                        // Yep. Log the occurrence and continue.
-                        LOG.error(
-                                "Publisher with type '" + rs.getString("publisherType") + "' and xid '"
-                                        + rs.getString("xid") + "' could not be loaded. Is its module missing?", e);
-                    }else {
-                        LOG.error(e.getMessage(), e);
-                    }
-                }
-            }
-            return results;
-        }
-    }
-
     /**
      * Delete all publishers of a given type
      * @param publisherType
@@ -146,14 +121,28 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     public int countPointsForPublisherType(String publisherType, int excludeId) {
-        List<PublisherVO<? extends PublishedPointVO>> publishers = query(PUBLISHER_SELECT + " WHERE publisherType=?",
-                new Object[] { publisherType }, new PublisherExtractor());
-        int count = 0;
-        for (PublisherVO<? extends PublishedPointVO> publisher : publishers) {
-            if (publisher.getId() != excludeId)
-                count += publisher.getPoints().size();
+        try (Stream<Record> stream = create.select(table.fields()).from(table).where(
+                table.publisherType.equal(publisherType),
+                table.id.notEqual(excludeId)).stream()) {
+
+            return stream.map(record -> {
+                try {
+                    return this.mapRecord(record);
+                } catch (ShouldNeverHappenException e) {
+                    // If the module was removed but there are still records in the database, this exception will be
+                    // thrown. Check the inner exception to confirm.
+                    if (e.getCause() instanceof ModuleNotLoadedException) {
+                        // Yep. Log the occurrence and continue.
+                        LOG.error("Publisher with type '" + record.get(table.publisherType) + "' and xid '" +
+                                record.get(table.xid) + "' could not be loaded. Is its module missing?", e);
+                    } else {
+                        LOG.error(e.getMessage(), e);
+                    }
+                }
+                return null;
+            }).filter(Objects::nonNull)
+                    .map(p -> p.getPoints().size()).reduce(0, Integer::sum);
         }
-        return count;
     }
 
     /**
@@ -161,15 +150,18 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
      * @return
      */
     public AggregatePublisherUsageStatistics getUsage() {
-        List<PublisherUsageStatistics> publisherUsageStatistics = ejt.query("SELECT publisherType, COUNT(publisherType) FROM publishers GROUP BY publisherType", new RowMapper<PublisherUsageStatistics>() {
-            @Override
-            public PublisherUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
-                PublisherUsageStatistics usage = new PublisherUsageStatistics();
-                usage.setPublisherType(rs.getString(1));
-                usage.setCount(rs.getInt(2));
-                return usage;
-            }
-        });
+        Field<Integer> count = DSL.count(table.publisherType);
+        List<PublisherUsageStatistics> publisherUsageStatistics = create.select(table.publisherType, count)
+                .from(table)
+                .groupBy(table.publisherType)
+                .fetch()
+                .map(record -> {
+                    PublisherUsageStatistics usage = new PublisherUsageStatistics();
+                    usage.setPublisherType(record.get(table.publisherType));
+                    usage.setCount(record.get(count));
+                    return usage;
+                });
+
         List<PublisherPointsUsageStatistics> publisherPointsUsageStatistics = new ArrayList<>();
         for(PublisherUsageStatistics stats : publisherUsageStatistics) {
             PublisherPointsUsageStatistics pointStats = new PublisherPointsUsageStatistics();

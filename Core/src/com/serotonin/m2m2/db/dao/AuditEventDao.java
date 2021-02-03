@@ -116,8 +116,10 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
      * @return
      */
     public List<AuditEventInstanceVO> getAllForObject(String typeName, int id) {
-        String selectAll = this.getJoinedSelectQuery().getSQL();
-        return query(selectAll + " WHERE typeName=? AND objectId=? ORDER BY ts ASC", new Object[]{typeName, id}, getRowMapper());
+        return getJoinedSelectQuery()
+                .where(table.typeName.eq(typeName), table.objectId.eq(id))
+                .orderBy(table.ts.asc())
+                .fetch(this::mapRecord);
     }
 
     /**

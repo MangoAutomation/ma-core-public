@@ -44,7 +44,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -152,21 +151,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      */
     protected Condition hasReadPermission(PermissionHolder user) {
         return DSL.trueCondition();
-    }
-
-    /**
-     * Gets the row mapper for converting the retrieved database values into a
-     * VO object
-     *
-     * @return row mapper
-     */
-    public final RowMapper<T> getRowMapper() {
-        return this::mapRow;
-    }
-
-    public final T mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Record record = create.fetchLazy(rs).fetchNext();
-        return mapRecord(record);
     }
 
     public abstract T mapRecord(Record record);
@@ -376,7 +360,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @return
      */
     public List<Field<?>> getSelectFields() {
-        return Arrays.asList(table.fields());
+        return Arrays.stream(table.fields()).collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**
