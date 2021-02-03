@@ -70,7 +70,7 @@ public class MangoSessionDataDao extends BaseDao {
      * Insert session data
      */
     public void insert(MangoSessionDataVO vo) throws DataAccessException {
-        this.create.insertInto(table).values(voToObjectArray(vo)).execute();
+        this.create.insertInto(table).set(voToObjectArray(vo)).execute();
     }
 
     /**

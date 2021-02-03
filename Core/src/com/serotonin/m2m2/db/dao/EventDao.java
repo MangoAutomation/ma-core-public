@@ -19,7 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.InsertValuesStepN;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
@@ -42,6 +42,7 @@ import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -138,8 +139,7 @@ public class EventDao extends BaseDao {
     private void insertEvent(EventInstance event) {
         savePreRelationalData(event);
         int id = -1;
-        // TODO Mango 4.0
-        InsertValuesStepN<?> insert = this.create.insertInto(table).values(voToObjectArray(event));
+        InsertSetMoreStep<EventsRecord> insert = this.create.insertInto(table).set(voToObjectArray(event));
         String sql = insert.getSQL();
         List<Object> args = insert.getBindValues();
         id = ejt.doInsert(sql, args.toArray(new Object[0]));
