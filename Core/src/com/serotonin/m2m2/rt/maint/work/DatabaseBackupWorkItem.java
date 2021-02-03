@@ -301,7 +301,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
     /**
      * Restore a database from a backup
      *
-     * @param file
+     * @param filename
      */
     public static ProcessResult restore(String filename) {
         ProcessResult result = new ProcessResult();
@@ -552,7 +552,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
     }
 
     /**
-     * @param backupLocation2
+     * @param location
      */
     public void setBackupLocation(String location) {
         this.backupLocation = location;
