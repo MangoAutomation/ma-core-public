@@ -333,8 +333,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     @Override
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
         Map<String, Function<Object, Object>> converters = super.createValueConverterMap();
-        Map<String, Function<Object, Object>> myConverters = new HashMap<>();
-        myConverters.put("alarmLevel", value -> {
+        converters.put("alarmLevel", value -> {
             if (value instanceof String) {
                 return AlarmLevels.fromName((String)value).value();
             }else if(value instanceof AlarmLevels) {
@@ -342,7 +341,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
             }
             return value;
         });
-        return combine(converters, myConverters);
+        return converters;
     }
 
     public static class RQLToEventInstanceConditions extends RQLToConditionWithTagKeys {

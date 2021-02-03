@@ -90,7 +90,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
 
-    protected final Map<String, Field<?>> aliasMap;
+    protected final Map<String, Field<?>> fieldMap;
     protected final Map<String, RQLSubSelectCondition> subSelectMap;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
@@ -112,14 +112,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         this.mapper = mapper;
         this.eventPublisher = publisher;
 
-        // Map of potential property names to db field aliases
-        this.aliasMap = createAliasMap();
+        // Map of potential RQL property names to db fields
+        this.fieldMap = unmodifiableMap(createFieldMap());
 
         // Map of potential property names to sub select conditions
-        this.subSelectMap = createSubSelectMap();
+        this.subSelectMap = unmodifiableMap(createSubSelectMap());
 
         // Map of properties to their QueryAttribute
-        this.valueConverterMap = createValueConverterMap();
+        this.valueConverterMap = unmodifiableMap(createValueConverterMap());
 
         //Setup Monitors
         if(countMonitorName != null) {
@@ -132,6 +132,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
             this.countMonitor = null;
         }
     }
+
+
 
     /**
      * Converts a VO object into a map of fields for insert/update of DB.
@@ -483,33 +485,43 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         }
     }
 
-    protected Map<String, Field<?>> createAliasMap() {
+    /**
+     * @return Map of RQL property name to SQL fields
+     */
+    protected Map<String, Field<?>> createFieldMap() {
         return Arrays.stream(table.fields())
                 .collect(Collectors.toMap(Field::getName, Functions.identity(), (a,b) -> a, HashMap::new));
     }
 
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
-        return Collections.emptyMap();
+        return new HashMap<>();
     }
 
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
         return table.fieldStream().filter(f -> f.getDataType().getSQLDataType() == SQLDataType.CHAR)
-                .collect(Collectors.toMap(Field::getName, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER));
+                .collect(Collectors.toMap(Field::getName, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER, (a,b) -> a, HashMap::new));
     }
 
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMapping, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
-        RQLToCondition rqlToCondition = createRqlToCondition(combine(this.subSelectMap, subSelectMapping), combine(this.aliasMap, fieldMap), combine(this.valueConverterMap, valueConverters));
+        RQLToCondition rqlToCondition = createRqlToCondition(combine(this.subSelectMap, subSelectMapping), combine(this.fieldMap, fieldMap), combine(this.valueConverterMap, valueConverters));
         return rqlToCondition.visit(rql);
     }
 
-    protected <X, Y> Map<X,Y> combine(Map<X,Y> a, Map<X,Y> b) {
+    protected <X, Y> Map<X,Y> combine(Map<? extends X,? extends Y> a, Map<? extends X,? extends Y> b) {
         if (b == null || b.isEmpty()) {
-            return Collections.unmodifiableMap(a);
+            return unmodifiableMap(a);
         }
         HashMap<X,Y> result = new HashMap<>(a);
         result.putAll(b);
-        return Collections.unmodifiableMap(result);
+        return unmodifiableMap(result);
+    }
+
+    protected <X, Y> Map<X,Y> unmodifiableMap(Map<? extends X,? extends Y> delegate) {
+        if (delegate.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return Collections.unmodifiableMap(delegate);
     }
 
     /**
@@ -762,7 +774,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     @Override
     public QueryBuilder<T> buildQuery(PermissionHolder user) {
-        return new QueryBuilder<T>(aliasMap, valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
+        return new QueryBuilder<T>(fieldMap, valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
     }
 
 }

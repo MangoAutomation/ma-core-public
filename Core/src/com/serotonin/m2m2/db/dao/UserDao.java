@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -102,35 +101,32 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     }
 
     @Override
-    protected Map<String, Field<?>> createAliasMap() {
-        Map<String, Field<?>> aliases = super.createAliasMap();
-        Map<String, Field<?>> myAliases = new HashMap<>();
-        myAliases.put("lastPasswordChange", table.passwordChangeTimestamp);
-        myAliases.put("created", table.createdTs);
-        myAliases.put("emailVerified", table.emailVerifiedTs);
-        return combine(aliases, myAliases);
+    protected Map<String, Field<?>> createFieldMap() {
+        Map<String, Field<?>> fields = super.createFieldMap();
+        fields.put("lastPasswordChange", table.passwordChangeTimestamp);
+        fields.put("created", table.createdTs);
+        fields.put("emailVerified", table.emailVerifiedTs);
+        return fields;
     }
 
     @Override
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
         Map<String, Function<Object, Object>> converters = super.createValueConverterMap();
-        Map<String, Function<Object, Object>> myConverters = new HashMap<>();
-        myConverters.put("receiveAlarmEmails", v -> {
+        converters.put("receiveAlarmEmails", v -> {
             if (v instanceof String) {
                 return AlarmLevels.fromName((String) v).value();
             }
             return v;
         });
-        return combine(converters, myConverters);
+        return converters;
     }
 
     @Override
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
         Map<String, RQLSubSelectCondition> subSelectMap = super.createSubSelectMap();
-        Map<String, RQLSubSelectCondition> mySubSelects = new HashMap<>();
-        mySubSelects.put("roles", createUserRoleCondition());
-        mySubSelects.put("inheritedRoles", createUserInheritedRoleCondition());
-        return combine(subSelectMap, mySubSelects);
+        subSelectMap.put("roles", createUserRoleCondition());
+        subSelectMap.put("inheritedRoles", createUserInheritedRoleCondition());
+        return subSelectMap;
     }
 
     /**

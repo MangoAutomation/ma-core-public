@@ -5,7 +5,6 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,10 +58,9 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     @Override
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
         Map<String, RQLSubSelectCondition> subselects = super.createSubSelectMap();
-        Map<String, RQLSubSelectCondition> mySubselects = new HashMap<>();
-        mySubselects.put("inherited", createInheritedRoleCondition());
-        mySubselects.put("inheritedBy", createInheritedByRoleCondition());
-        return combine(subselects, mySubselects);
+        subselects.put("inherited", createInheritedRoleCondition());
+        subselects.put("inheritedBy", createInheritedByRoleCondition());
+        return subselects;
     }
 
     @Override

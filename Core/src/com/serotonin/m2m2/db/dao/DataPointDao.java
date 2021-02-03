@@ -908,11 +908,10 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     }
 
     @Override
-    protected Map<String, Field<?>> createAliasMap() {
-        Map<String, Field<?>> aliases = super.createAliasMap();
-        Map<String, Field<?>> myAliases = new HashMap<>();
-        myAliases.put("dataType", DataPoints.DATA_POINTS.dataTypeId);
-        return combine(aliases, myAliases);
+    protected Map<String, Field<?>> createFieldMap() {
+        Map<String, Field<?>> fields = super.createFieldMap();
+        fields.put("dataType", DataPoints.DATA_POINTS.dataTypeId);
+        return fields;
     }
 
     @Override
@@ -963,7 +962,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     @Override
     public QueryBuilder<DataPointVO> buildQuery(PermissionHolder user) {
-        return new DataPointQueryBuilder(aliasMap, valueConverterMap,
+        return new DataPointQueryBuilder(fieldMap, valueConverterMap,
                 csl -> customizedCount(csl, user),
                 (csl, consumer) -> customizedQuery(csl, user, consumer));
     }
