@@ -90,11 +90,10 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
             () -> Common.getRuntimeContext().getBean(EventInstanceDao.class));
 
     private final Users users;
-    private final UserComments userComments;
     private final DataPointTagsDao dataPointTagsDao;
     private final PermissionService permissionService;
     private final UserCommentDao userCommentDao;
-    private final Field<Integer> hasComments;
+    private final Field<Long> commentCount;
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
@@ -103,16 +102,16 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                              ApplicationEventPublisher publisher, UserCommentDao userCommentDao) {
         super(null, Events.EVENTS, null, mapper, publisher);
         this.users = Users.USERS;
-        this.userComments = UserComments.USER_COMMENTS;
         this.dataPointTagsDao = dataPointTagsDao;
         this.permissionService = permissionService;
         this.userCommentDao = userCommentDao;
 
-        this.hasComments = this.create.selectCount()
+        UserComments userComments = UserComments.USER_COMMENTS;
+        this.commentCount = this.create.selectCount()
                 .from(userComments)
-                .where(userComments.commentType.eq(UserCommentVO.TYPE_EVENT))
-                .and(userComments.typeKey.eq(table.id))
-                .asField("cnt");
+                .where(userComments.commentType.eq(UserCommentVO.TYPE_EVENT),
+                        userComments.typeKey.eq(table.id))
+                .asField("commentCount");
     }
 
     /**
@@ -206,7 +205,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     public List<Field<?>> getSelectFields() {
         List<Field<?>> fields = new ArrayList<>(super.getSelectFields());
         fields.add(users.username);
-        fields.add(hasComments);
+        fields.add(commentCount);
         return fields;
     }
 
@@ -249,7 +248,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
             }
             event.setAlternateAckSource(BaseDao.readTranslatableMessage(record.get(table.alternateAckSource)));
         }
-        event.setHasComments(record.get(hasComments) > 0);
+        event.setHasComments(record.get(commentCount) > 0L);
         return event;
     }
 
