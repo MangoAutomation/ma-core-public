@@ -25,6 +25,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockPointValueDao;
@@ -143,7 +144,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
             try (InputStream in = H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql")) {
-                runScript(in, System.out);
+                runScript(in, new NullOutputStream());
             } catch (IOException e) {
                 log.error("createTables failed", e);
             }
