@@ -463,7 +463,10 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         user.setPasswordVersion(record.get(table.passwordVersion));
         user.setPasswordChangeTimestamp(record.get(table.passwordChangeTimestamp));
         user.setSessionExpirationOverride(charToBool(record.get(table.sessionExpirationOverride)));
-        user.setSessionExpirationPeriods(record.get(table.sessionExpirationPeriods));
+        Integer sessionExpirationPeriods = record.get(table.sessionExpirationPeriods);
+        if (sessionExpirationPeriods != null) {
+            user.setSessionExpirationPeriods(sessionExpirationPeriods);
+        }
         user.setSessionExpirationPeriodType(record.get(table.sessionExpirationPeriodType));
         user.setOrganization(record.get(table.organization));
         user.setOrganizationalRole(record.get(table.organizationalRole));
