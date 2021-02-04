@@ -52,7 +52,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.common.base.Functions;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
@@ -498,7 +497,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      */
     protected Map<String, Field<?>> createFieldMap() {
         return Arrays.stream(table.fields())
-                .collect(Collectors.toMap(Field::getName, Functions.identity(), (a,b) -> a, HashMap::new));
+                .collect(Collectors.toMap(Field::getName, Function.identity(), (a,b) -> a, HashMap::new));
     }
 
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
