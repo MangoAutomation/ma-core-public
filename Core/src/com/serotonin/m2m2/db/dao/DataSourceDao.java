@@ -123,7 +123,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
             if(result.deleted > 0) {
                 this.publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
-                AuditEventType.raiseDeletedEvent(this.typeName, vo);
+                AuditEventType.raiseDeletedEvent(this.auditEventType, vo);
             }
 
             return result.deleted > 0;

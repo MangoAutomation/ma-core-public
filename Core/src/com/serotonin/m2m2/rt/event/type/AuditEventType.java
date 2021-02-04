@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -106,6 +107,7 @@ public class AuditEventType extends EventType {
     }
 
     public static void raiseAddedEvent(String auditEventType, AbstractVO o) {
+        Assert.notNull(auditEventType, "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
         JsonSerializableUtility scanner = new JsonSerializableUtility();
         try {
@@ -118,6 +120,7 @@ public class AuditEventType extends EventType {
     }
 
     public static void raiseChangedEvent(String auditEventType, AbstractVO from, AbstractVO to) {
+        Assert.notNull(auditEventType, "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
 
         //Find the annotated properties
@@ -136,12 +139,14 @@ public class AuditEventType extends EventType {
     }
 
     public static void raiseToggleEvent(String auditEventType, AbstractActionVO toggled) {
+        Assert.notNull(auditEventType, "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
         context.put(AbstractActionVO.ENABLED_KEY, toggled.isEnabled());
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, toggled, "event.audit.extended.toggled", context);
     }
 
     public static void raiseDeletedEvent(String auditEventType, AbstractVO o) {
+        Assert.notNull(auditEventType, "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, auditEventType, o, "event.audit.extended.deleted", context);
     }
@@ -234,6 +239,7 @@ public class AuditEventType extends EventType {
     }
 
     public AuditEventType(String auditEventType, int changeType, int referenceId) {
+        Assert.notNull(auditEventType, "auditEventType cannot be null");
         this.auditEventType = auditEventType;
         this.changeType = changeType;
         this.referenceId = referenceId;

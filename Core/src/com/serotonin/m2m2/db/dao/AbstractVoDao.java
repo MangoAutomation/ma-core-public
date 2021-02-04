@@ -33,33 +33,33 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
     /**
      * Audit event type name
      */
-    protected final String typeName; //Type name for Audit Events
+    protected final String auditEventType;
 
     /**
      *
-     * @param typeName
+     * @param auditEventType
      * @param table
      * @param mapper
      * @param publisher
      */
-    protected AbstractVoDao(String typeName, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(typeName, table, null, mapper, publisher);
+    protected AbstractVoDao(String auditEventType, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(auditEventType, table, null, mapper, publisher);
     }
 
     /**
      *
-     * @param typeName
+     * @param auditEventType
      * @param table
      * @param countMonitorName - If not null create a monitor to track table row count
      * @param mapper
      * @param publisher
      */
-    protected AbstractVoDao(String typeName, TABLE table,
-            TranslatableMessage countMonitorName,
-            ObjectMapper mapper, ApplicationEventPublisher publisher) {
+    protected AbstractVoDao(String auditEventType, TABLE table,
+                            TranslatableMessage countMonitorName,
+                            ObjectMapper mapper, ApplicationEventPublisher publisher) {
         super(table, countMonitorName, mapper, publisher);
         this.xidPrefix = getXidPrefix();
-        this.typeName = typeName;
+        this.auditEventType = auditEventType;
     }
 
     /**
@@ -146,7 +146,9 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
     @Override
     public boolean delete(T vo) {
         if(super.delete(vo)) {
-            AuditEventType.raiseDeletedEvent(this.typeName, vo);
+            if (this.auditEventType != null) {
+                AuditEventType.raiseDeletedEvent(this.auditEventType, vo);
+            }
             return true;
         }else {
             return false;
@@ -159,7 +161,9 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
             vo.setXid(generateUniqueXid());
         }
         super.insert(vo);
-        AuditEventType.raiseAddedEvent(this.typeName, vo);
+        if (this.auditEventType != null) {
+            AuditEventType.raiseAddedEvent(this.auditEventType, vo);
+        }
     }
 
     @Override
@@ -168,7 +172,9 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
             vo.setXid(existing.getXid());
         }
         super.update(existing, vo);
-        AuditEventType.raiseChangedEvent(this.typeName, existing, vo);
+        if (this.auditEventType != null) {
+            AuditEventType.raiseChangedEvent(this.auditEventType, existing, vo);
+        }
     }
 
     @Override

@@ -381,7 +381,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
         //Audit Events/Dao events
         for(DataPointVO vo : batch) {
-            AuditEventType.raiseDeletedEvent(this.typeName, vo);
+            AuditEventType.raiseDeletedEvent(this.auditEventType, vo);
             publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
         }
 
