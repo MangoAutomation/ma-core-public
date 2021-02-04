@@ -93,7 +93,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     private final DataPointTagsDao dataPointTagsDao;
     private final PermissionService permissionService;
     private final UserCommentDao userCommentDao;
-    private final Field<Long> commentCount;
+    private final Field<Integer> commentCount;
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
@@ -248,7 +248,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
             }
             event.setAlternateAckSource(BaseDao.readTranslatableMessage(record.get(table.alternateAckSource)));
         }
-        event.setHasComments(record.get(commentCount) > 0L);
+        event.setHasComments(record.get(commentCount) > 0);
         return event;
     }
 

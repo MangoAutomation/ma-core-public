@@ -123,7 +123,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
         ConditionSortLimit conditions = new ConditionSortLimit(events.ackTs.isNull(), null, null, null);
         dao.customizedQuery(conditions, user, (item) -> {
-            dao.loadRelationalData(item);
             UserEventLevelSummary summary = summaries.get(item.getAlarmLevel());
             summary.increment(item);
         });
