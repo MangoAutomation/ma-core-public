@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Field;
+import org.jooq.InsertValuesStep3;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.SelectConditionStep;
@@ -42,6 +43,7 @@ import com.infiniteautomation.mango.db.tables.OAuth2Users;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.db.tables.records.OAuth2UsersRecord;
 import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -53,6 +55,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.vo.LinkedAccount;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -68,9 +71,10 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
 
     private final PermissionService permissionService;
-    private final UserRoleMappings userRoleMappings = UserRoleMappings.USER_ROLE_MAPPINGS;
-    private final Roles roles = Roles.ROLES;
+    private final UserRoleMappings userRoleMappings;
+    private final Roles roles;
     private final RoleDao roleDao;
+    private final OAuth2Users oauth;
 
     @Autowired
     private UserDao(PermissionService permissionService,
@@ -82,6 +86,9 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
                 mapper, publisher);
         this.permissionService = permissionService;
         this.roleDao = roleDao;
+        this.oauth = OAuth2Users.O_AUTH2_USERS;
+        this.roles = Roles.ROLES;
+        this.userRoleMappings = UserRoleMappings.USER_ROLE_MAPPINGS;
     }
 
     /**
@@ -474,24 +481,38 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         return "";
     }
 
-    public Optional<User> getOAuth2User(String issuer, String subject) {
-        OAuth2Users oauth = OAuth2Users.O_AUTH2_USERS;
-        Users users = Users.USERS;
-
-        return this.create.select(users.fields())
+    public Optional<User> getUserForLinkedAccount(LinkedAccount account) {
+        return create.select(table.fields())
                 .from(oauth)
-                .leftJoin(users).on(oauth.userId.eq(users.id))
-                .where(oauth.issuer.eq(issuer).and(oauth.subject.eq(subject)))
+                .leftJoin(table).on(oauth.userId.eq(table.id))
+                .where(oauth.issuer.eq(account.getIssuer()).and(oauth.subject.eq(account.getSubject())))
                 .fetchOptional(this::mapRecord);
     }
 
-    public void linkOAuth2User(int userId, String issuer, String subject) {
-        OAuth2Users oauth = OAuth2Users.O_AUTH2_USERS;
-        this.create.insertInto(oauth)
+    public void linkAccount(int userId, LinkedAccount account) {
+        create.insertInto(oauth)
                 .set(oauth.userId, userId)
-                .set(oauth.issuer, issuer)
-                .set(oauth.subject, subject)
+                .set(oauth.issuer, account.getIssuer())
+                .set(oauth.subject, account.getSubject())
                 .execute();
+    }
+
+    public void updateLinkedAccounts(int userId, Iterable<? extends LinkedAccount> accounts) {
+        this.doInTransaction(txStatus -> {
+            create.deleteFrom(oauth).where(oauth.userId.equal(userId)).execute();
+            InsertValuesStep3<OAuth2UsersRecord, Integer, String, String> insert = create.insertInto(oauth, oauth.userId, oauth.issuer, oauth.subject);
+            for (LinkedAccount account : accounts) {
+                insert = insert.values(userId, account.getIssuer(), account.getSubject());
+            }
+            insert.execute();
+        });
+    }
+
+    public List<LinkedAccount> getLinkedAccounts(int userId) {
+        return create.select(oauth.issuer, oauth.subject)
+                .from(oauth)
+                .where(oauth.userId.equal(userId))
+                .fetch(r -> new LinkedAccount(r.get(oauth.issuer), r.get(oauth.subject)));
     }
 
     /**

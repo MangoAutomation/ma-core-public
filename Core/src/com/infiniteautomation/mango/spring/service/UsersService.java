@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IllformedLocaleException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +51,7 @@ import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermis
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
+import com.serotonin.m2m2.vo.LinkedAccount;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -597,24 +599,33 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         });
     }
 
-    public Optional<User> getOAuth2User(String issuer, String subject) {
-        Optional<User> optional = dao.getOAuth2User(issuer, subject);
+    public Optional<User> getUserForLinkedAccount(LinkedAccount linkedAccount) {
+        Optional<User> optional = dao.getUserForLinkedAccount(linkedAccount);
         optional.ifPresent(u -> ensureReadPermission(Common.getUser(), u));
         return optional;
     }
 
-    public void insertOAuth2User(User user, String issuer, String subject) {
+    public void insertUserForLinkedAccount(User user, LinkedAccount linkedAccount) {
         ensureCreatePermission(Common.getUser(), user);
         dao.doInTransaction(tx -> {
             insert(user);
-            dao.linkOAuth2User(user.getId(), issuer, subject);
+            dao.linkAccount(user.getId(), linkedAccount);
         });
     }
 
-    public void linkOAuth2User(int userId, String issuer, String subject) {
-        PermissionHolder currentUser = Common.getUser();
-        permissionService.ensureAdminRole(currentUser);
-        dao.linkOAuth2User(userId, issuer, subject);
+    public void linkAccount(int userId, LinkedAccount linkedAccount) {
+        permissionService.ensureAdminRole(Common.getUser());
+        dao.linkAccount(userId, linkedAccount);
     }
 
+    public void updateLinkedAccounts(int userId, Iterable<? extends LinkedAccount> accounts) {
+        permissionService.ensureAdminRole(Common.getUser());
+        dao.updateLinkedAccounts(userId, accounts);
+    }
+
+    public List<LinkedAccount> getLinkedAccounts(int userId) {
+        // users cannot update their own linked accounts
+        permissionService.ensureAdminRole(Common.getUser());
+        return dao.getLinkedAccounts(userId);
+    }
 }

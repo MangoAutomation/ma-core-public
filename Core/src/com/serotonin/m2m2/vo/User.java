@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.IllformedLocaleException;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.spring.service.PasswordService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -495,9 +497,11 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     }
 
     @Override
-    public void jsonWrite(ObjectWriter writer) throws IOException,
-    JsonException {
+    public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("name", name);
+        UsersService usersService = Common.getBean(UsersService.class);
+        List<LinkedAccount> linkedAccounts = usersService.getLinkedAccounts(id);
+        writer.writeEntry("linkedAccounts", linkedAccounts);
     }
 
     @Override

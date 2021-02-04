@@ -1,14 +1,19 @@
 package com.infiniteautomation.mango.emport;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.vo.LinkedAccount;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -72,6 +77,7 @@ public class UserImporter extends Importer {
                         usersService.update(existing, imported);
                         addSuccessMessage(false, "emport.user.prefix", username);
                     }
+                    linkAccounts(imported.getId());
                 }catch(ValidationException e) {
                     setValidationMessages(e.getValidationResult(), "emport.user.prefix", username);
                 }catch(PermissionException e){
@@ -84,6 +90,16 @@ public class UserImporter extends Importer {
             catch (JsonException e) {
                 addFailureMessage("emport.user.prefix", username, getJsonExceptionMessage(e));
             }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void linkAccounts(int userId) throws JsonException {
+        TypeDefinition listOfAccountsType = new TypeDefinition(List.class, LinkedAccount.class);
+        JsonArray linkedAccounts = json.getJsonArray("linkedAccounts");
+        if (linkedAccounts != null) {
+            List<LinkedAccount> accounts = (List<LinkedAccount>) ctx.getReader().read(listOfAccountsType, linkedAccounts);
+            usersService.updateLinkedAccounts(userId, accounts);
         }
     }
 }
