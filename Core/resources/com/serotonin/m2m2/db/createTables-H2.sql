@@ -136,10 +136,10 @@ ALTER TABLE users
 -- Links OAuth2 users to a Mango user
 CREATE TABLE oAuth2Users
 (
-    id     INT          NOT NULL AUTO_INCREMENT,
-    issuer    VARCHAR(255) NOT NULL,
-    subject    VARCHAR(255) NOT NULL,
-    userId INT          NOT NULL,
+    id      INT          NOT NULL AUTO_INCREMENT,
+    issuer  VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    userId  INT          NOT NULL,
     PRIMARY KEY (id)
 );
 ALTER TABLE oAuth2Users

@@ -32,8 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.cache.WeakValueCache;
-import com.infiniteautomation.mango.db.tables.Users;
-import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
