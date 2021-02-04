@@ -14,6 +14,7 @@ import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.LinkedAccount;
+import com.serotonin.m2m2.vo.OAuth2LinkedAccount;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -95,7 +96,7 @@ public class UserImporter extends Importer {
 
     @SuppressWarnings("unchecked")
     protected void linkAccounts(int userId) throws JsonException {
-        TypeDefinition listOfAccountsType = new TypeDefinition(List.class, LinkedAccount.class);
+        TypeDefinition listOfAccountsType = new TypeDefinition(List.class, OAuth2LinkedAccount.class);
         JsonArray linkedAccounts = json.getJsonArray("linkedAccounts");
         if (linkedAccounts != null) {
             List<LinkedAccount> accounts = (List<LinkedAccount>) ctx.getReader().read(listOfAccountsType, linkedAccounts);

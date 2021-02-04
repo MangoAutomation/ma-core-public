@@ -28,6 +28,7 @@ import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.EnvironmentPropertyMapper;
 import com.serotonin.m2m2.vo.LinkedAccount;
+import com.serotonin.m2m2.vo.OAuth2LinkedAccount;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -65,7 +66,7 @@ public class DefaultUserMapper implements UserMapper {
         String subject = userMapping.map("subject", accessor::getClaimAsString)
                 .orElseThrow(() -> new IllegalStateException("Subject is required"));
 
-        LinkedAccount linkedAccount = new LinkedAccount(issuer, subject);
+        LinkedAccount linkedAccount = new OAuth2LinkedAccount(issuer, subject);
 
         User user = usersService.getUserForLinkedAccount(linkedAccount).orElseGet(() -> {
             // only synchronize the username when creating the user

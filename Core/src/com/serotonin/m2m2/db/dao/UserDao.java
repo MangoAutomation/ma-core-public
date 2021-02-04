@@ -56,6 +56,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.LinkedAccount;
+import com.serotonin.m2m2.vo.OAuth2LinkedAccount;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -482,19 +483,29 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     }
 
     public Optional<User> getUserForLinkedAccount(LinkedAccount account) {
-        return create.select(table.fields())
-                .from(oauth)
-                .leftJoin(table).on(oauth.userId.eq(table.id))
-                .where(oauth.issuer.eq(account.getIssuer()).and(oauth.subject.eq(account.getSubject())))
-                .fetchOptional(this::mapRecord);
+        if (account instanceof OAuth2LinkedAccount) {
+            OAuth2LinkedAccount oAuth2Account = (OAuth2LinkedAccount) account;
+            return create.select(table.fields())
+                    .from(oauth)
+                    .leftJoin(table).on(oauth.userId.eq(table.id))
+                    .where(oauth.issuer.eq(oAuth2Account.getIssuer()).and(oauth.subject.eq(oAuth2Account.getSubject())))
+                    .fetchOptional(this::mapRecord);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public void linkAccount(int userId, LinkedAccount account) {
-        create.insertInto(oauth)
-                .set(oauth.userId, userId)
-                .set(oauth.issuer, account.getIssuer())
-                .set(oauth.subject, account.getSubject())
-                .execute();
+        if (account instanceof OAuth2LinkedAccount) {
+            OAuth2LinkedAccount oAuth2Account = (OAuth2LinkedAccount) account;
+            create.insertInto(oauth)
+                    .set(oauth.userId, userId)
+                    .set(oauth.issuer, oAuth2Account.getIssuer())
+                    .set(oauth.subject, oAuth2Account.getSubject())
+                    .execute();
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     public void updateLinkedAccounts(int userId, Iterable<? extends LinkedAccount> accounts) {
@@ -502,7 +513,12 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
             create.deleteFrom(oauth).where(oauth.userId.equal(userId)).execute();
             InsertValuesStep3<OAuth2UsersRecord, Integer, String, String> insert = create.insertInto(oauth, oauth.userId, oauth.issuer, oauth.subject);
             for (LinkedAccount account : accounts) {
-                insert = insert.values(userId, account.getIssuer(), account.getSubject());
+                if (account instanceof OAuth2LinkedAccount) {
+                    OAuth2LinkedAccount oAuth2Account = (OAuth2LinkedAccount) account;
+                    insert = insert.values(userId, oAuth2Account.getIssuer(), oAuth2Account.getSubject());
+                } else {
+                    throw new UnsupportedOperationException();
+                }
             }
             insert.execute();
         });
@@ -512,7 +528,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         return create.select(oauth.issuer, oauth.subject)
                 .from(oauth)
                 .where(oauth.userId.equal(userId))
-                .fetch(r -> new LinkedAccount(r.get(oauth.issuer), r.get(oauth.subject)));
+                .fetch(r -> new OAuth2LinkedAccount(r.get(oauth.issuer), r.get(oauth.subject)));
     }
 
     /**
