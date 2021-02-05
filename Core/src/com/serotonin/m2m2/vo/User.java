@@ -500,8 +500,14 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("name", name);
         UsersService usersService = Common.getBean(UsersService.class);
-        List<LinkedAccount> linkedAccounts = usersService.getLinkedAccounts(this);
-        writer.writeEntry("linkedAccounts", linkedAccounts);
+
+        // TODO Mango 4.0 remove this check after user read/write permissions are added
+        // this method is called when raising an audit event
+        // users with create permission do not have read permission for the user they created
+        if (usersService.hasReadPermission(Common.getUser(), this)) {
+            List<LinkedAccount> linkedAccounts = usersService.getLinkedAccounts(this);
+            writer.writeEntry("linkedAccounts", linkedAccounts);
+        }
     }
 
     @Override
