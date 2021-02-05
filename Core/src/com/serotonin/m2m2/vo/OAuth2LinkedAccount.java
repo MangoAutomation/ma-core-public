@@ -8,7 +8,7 @@ package com.serotonin.m2m2.vo;
  * Represents a linked OAuth2 / OpenID Connect account.
  */
 public class OAuth2LinkedAccount implements LinkedAccount {
-    public static final String OAUTH2_LINKED_ACCOUNT = "OAUTH2";
+    public static final String TYPE = "OAUTH2";
 
     String issuer;
     String subject;
@@ -39,6 +39,6 @@ public class OAuth2LinkedAccount implements LinkedAccount {
 
     @Override
     public String getType() {
-        return OAUTH2_LINKED_ACCOUNT;
+        return TYPE;
     }
 }

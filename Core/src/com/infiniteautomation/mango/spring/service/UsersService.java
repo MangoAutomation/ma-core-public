@@ -623,9 +623,8 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         dao.updateLinkedAccounts(userId, accounts);
     }
 
-    public List<LinkedAccount> getLinkedAccounts(int userId) {
-        // users cannot update their own linked accounts
-        permissionService.ensureAdminRole(Common.getUser());
-        return dao.getLinkedAccounts(userId);
+    public List<LinkedAccount> getLinkedAccounts(User user) {
+        ensureReadPermission(Common.getUser(), user);
+        return dao.getLinkedAccounts(user.getId());
     }
 }

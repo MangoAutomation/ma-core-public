@@ -500,7 +500,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("name", name);
         UsersService usersService = Common.getBean(UsersService.class);
-        List<LinkedAccount> linkedAccounts = usersService.getLinkedAccounts(id);
+        List<LinkedAccount> linkedAccounts = usersService.getLinkedAccounts(this);
         writer.writeEntry("linkedAccounts", linkedAccounts);
     }
 
