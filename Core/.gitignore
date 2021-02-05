@@ -28,3 +28,4 @@
 .settings
 .classpath
 .project
+/env.properties
