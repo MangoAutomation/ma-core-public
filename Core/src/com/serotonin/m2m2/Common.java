@@ -283,7 +283,7 @@ public class Common {
      * @return
      */
     public static int getDatabaseSchemaVersion() {
-        return 35;
+        return 36;
     }
 
     public static File getLogsDir() {

@@ -112,6 +112,18 @@ create table users (
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
 ALTER TABLE users ADD CONSTRAINT email_unique UNIQUE(email);
 
+-- Links OAuth2 users to a Mango user
+CREATE TABLE oAuth2Users
+(
+    id      INT          NOT NULL AUTO_INCREMENT,
+    issuer  VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    userId  INT          NOT NULL,
+    PRIMARY KEY (id)
+);
+ALTER TABLE oAuth2Users ADD CONSTRAINT oAuth2UsersFk1 FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE;
+ALTER TABLE oAuth2Users ADD CONSTRAINT oAuth2UsersUn1 UNIQUE (issuer, subject);
+
 --
 --
 -- User Role Mappings

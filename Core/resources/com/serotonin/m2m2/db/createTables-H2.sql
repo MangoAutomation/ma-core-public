@@ -142,10 +142,8 @@ CREATE TABLE oAuth2Users
     userId  INT          NOT NULL,
     PRIMARY KEY (id)
 );
-ALTER TABLE oAuth2Users
-    ADD CONSTRAINT oAuth2UsersFk1 FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE;
-ALTER TABLE oAuth2Users
-    ADD CONSTRAINT oAuth2UsersUn1 UNIQUE (issuer, subject);
+ALTER TABLE oAuth2Users ADD CONSTRAINT oAuth2UsersFk1 FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE;
+ALTER TABLE oAuth2Users ADD CONSTRAINT oAuth2UsersUn1 UNIQUE (issuer, subject);
 
 --
 --
