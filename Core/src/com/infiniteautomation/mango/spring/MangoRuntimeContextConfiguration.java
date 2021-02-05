@@ -63,8 +63,10 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.RuntimeManagerImpl;
+import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
@@ -363,12 +365,26 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    PointValueDao pointValueDao(DatabaseProxy proxy) {
+    public PointValueDao pointValueDao(DatabaseProxy proxy) {
         return proxy.newPointValueDao();
     }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    PointValueCacheDao latestPointValueDao(DatabaseProxy proxy) { return proxy.getPointValueCacheDao(); }
+    public PointValueCacheDao latestPointValueDao(DatabaseProxy proxy) { return proxy.getPointValueCacheDao(); }
 
+    @Bean
+    public BackgroundProcessing backgroundProcessing() {
+        return Common.backgroundProcessing;
+    }
+
+    @Bean
+    public com.serotonin.timer.AbstractTimer AbstractTimer() {
+        return Common.timer;
+    }
+
+    @Bean
+    public EventManager eventManager() {
+        return Common.eventManager;
+    }
 }
