@@ -7,14 +7,18 @@ package com.serotonin.m2m2.rt.publish;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
+import com.serotonin.m2m2.Common;
 import com.serotonin.util.ILifecycle;
 
 abstract public class SendThread extends Thread implements ILifecycle {
     private static final Log LOG = LogFactory.getLog(SendThread.class);
     private boolean running;
+    private final RunAs runAs;
 
     public SendThread(String threadName) {
         super(threadName);
+        this.runAs = Common.getBean(RunAs.class);
     }
 
     @Override
@@ -53,7 +57,7 @@ abstract public class SendThread extends Thread implements ILifecycle {
     @Override
     public void run() {
         try {
-            runImpl();
+            runAs.runAs(runAs.systemSuperadmin(), this::runImpl);
         }
         catch (Exception e) {
             LOG.error("Send thread " + getName() + " failed with an exception", e);
