@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.spring.components.urlhandlers;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -36,4 +37,14 @@ public class FileStoreURLStreamHandler extends URLStreamHandler {
         return path.toUri().toURL().openConnection();
     }
 
+    /**
+     * Prevents DNS resolution of hostnames when calculating the hashcode. Note: This is not synchronized, unlike the super method.
+     *
+     * @param u
+     * @return
+     */
+    @Override
+    protected InetAddress getHostAddress(URL u) {
+        return null;
+    }
 }
