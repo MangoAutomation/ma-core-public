@@ -6,6 +6,7 @@ package com.serotonin.m2m2.module;
 
 import java.util.EnumSet;
 
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
 
 /**
@@ -28,5 +29,12 @@ abstract public class JacksonModuleDefinition extends ModuleElementDefinition {
 	public abstract Iterable<? extends Module> getJacksonModules();
 
     public abstract EnumSet<ObjectMapperSource> getSourceMapperTypes();
+
+    protected Version createJacksonVersion() {
+        com.github.zafarkhaja.semver.Version version = getModule().getVersion();
+
+        return new Version(version.getMajorVersion(), version.getMinorVersion(), version.getPatchVersion(),
+                version.getPreReleaseVersion());
+    }
 	
 }
