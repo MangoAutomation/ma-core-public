@@ -8,9 +8,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
@@ -22,7 +24,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 /**
  * @author Terry Packer
@@ -38,13 +39,13 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
     protected static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
     protected static final int OPERATION_SUCCESSFUL = 1; //Operation worked
 
-    private final DataSourceService dataSourceService;
-    private final DataPointService dataPointService;
-    private final RunAs runAs;
+    protected final DataSourceService dataSourceService;
+    protected final DataPointService dataPointService;
+    protected final RunAs runAs;
 
     @Autowired
-    public RuntimeManagerScriptUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService, RunAs runAs) {
-        super(service, dataPointService.getPermissionService());
+    public RuntimeManagerScriptUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService, RunAs runAs, PermissionService permissionService) {
+        super(service, permissionService);
         this.dataSourceService = dataSourceService;
         this.dataPointService = dataPointService;
         this.runAs = runAs;

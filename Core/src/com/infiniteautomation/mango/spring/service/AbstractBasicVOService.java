@@ -356,14 +356,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
     }
 
-    /**
-     * get the permission service that was wired in
-     * @return
-     */
-    public PermissionService getPermissionService() {
-        return permissionService;
-    }
-
     public int count() {
         return dao.count(Common.getUser());
     }
