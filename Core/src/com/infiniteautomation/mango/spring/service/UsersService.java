@@ -578,10 +578,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
     @Override
     public void clearCaches() {
-        PermissionHolder currentUser = Common.getUser();
-        permissionService.ensureAdminRole(currentUser);
-
-        // TODO Mango 4.0 Exposing this is potentially dangerous as users may not get their roles updated
+        permissionService.ensureAdminRole(Common.getUser());
         userByUsername.clear();
     }
 
