@@ -6,7 +6,7 @@ package com.serotonin.m2m2.module;
 
 import java.util.EnumSet;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.Module;
 
 /**
  * Define Jackson Modules to be applied to the various core mappers
@@ -25,7 +25,7 @@ abstract public class JacksonModuleDefinition extends ModuleElementDefinition {
 	/**
 	 * Get the Jackson Module to apply to the Mapper
 	 */
-	public abstract SimpleModule getJacksonModule();
+	public abstract Iterable<? extends Module> getJacksonModules();
 
     public abstract EnumSet<ObjectMapperSource> getSourceMapperTypes();
 	

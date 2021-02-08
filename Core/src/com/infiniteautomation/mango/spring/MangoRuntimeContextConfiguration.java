@@ -42,6 +42,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -181,9 +182,12 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
-        for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.REST))
-                objectMapper.registerModule(def.getJacksonModule());
+        for (JacksonModuleDefinition def : defs) {
+            if (def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.REST)) {
+                for (Module module : def.getJacksonModules()) {
+                    objectMapper.registerModule(module);
+                }
+            }
         }
 
         //Always output dates in ISO 8601
@@ -207,9 +211,12 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
-        for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.COMMON))
-                mapper.registerModule(def.getJacksonModule());
+        for (JacksonModuleDefinition def : defs) {
+            if (def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.COMMON)) {
+                for (Module module : def.getJacksonModules()) {
+                    mapper.registerModule(module);
+                }
+            }
         }
 
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
@@ -226,9 +233,12 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
-        for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.DATABASE))
-                mapper.registerModule(def.getJacksonModule());
+        for (JacksonModuleDefinition def : defs) {
+            if (def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.DATABASE)) {
+                for (Module module : def.getJacksonModules()) {
+                    mapper.registerModule(module);
+                }
+            }
         }
 
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
