@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -568,7 +567,6 @@ public class MangoJavaScriptService {
      */
     public ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result) {
         PermissionHolder permissions = Common.getUser();
-        Objects.requireNonNull(permissions, "Permission holder must be set in security context");
 
         return new ScriptPointValueSetter(permissions) {
 
