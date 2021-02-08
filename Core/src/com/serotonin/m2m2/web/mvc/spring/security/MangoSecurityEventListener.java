@@ -3,18 +3,12 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.switchuser.AuthenticationSwitchUserEvent;
 import org.springframework.stereotype.Component;
@@ -36,16 +30,6 @@ public class MangoSecurityEventListener {
 
     private static final Log LOG = LogFactory.getLog(MangoSecurityEventListener.class);
     private final UserDao userDao;
-
-    /**
-     * OAuth authentication success event contains {@link OAuth2LoginAuthenticationToken} but on logout the authentication
-     * is {@link OAuth2AuthenticationToken}.
-     */
-    private final List<Class<? extends Authentication>> loginAuthentications = Arrays.asList(
-            UsernamePasswordAuthenticationToken.class,
-            OAuth2LoginAuthenticationToken.class,
-            OAuth2AuthenticationToken.class
-    );
 
     @Autowired
     public MangoSecurityEventListener(UserDao userDao) {
@@ -69,18 +53,19 @@ public class MangoSecurityEventListener {
         Object details = authentication.getDetails();
 
         String remoteAddress = "";
-        boolean hasSession = false;
+        boolean recordLogin = true;
+
         if (details instanceof WebAuthenticationDetails) {
             WebAuthenticationDetails webDetails = (WebAuthenticationDetails) details;
             remoteAddress = webDetails.getRemoteAddress();
-
-            // Basic authentication uses UsernamePasswordAuthenticationToken but does does have a session
-            // we do not want to raise an event for basic authentication
-            hasSession = webDetails.getSessionId() != null;
+        }
+        if (details instanceof MangoAuthenticationDetails) {
+            MangoAuthenticationDetails mangoDetails = (MangoAuthenticationDetails) details;
+            recordLogin = mangoDetails.isRecordLogin();
         }
 
         Class<? extends Authentication> authClass = authentication.getClass();
-        if (user != null && hasSession && loginAuthentications.stream().anyMatch(a -> a.isAssignableFrom(authClass))) {
+        if (user != null && recordLogin) {
             // Update the last login time.
             userDao.recordLogin(user);
 

@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +22,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
@@ -47,7 +44,6 @@ import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -185,12 +181,6 @@ public class MangoSecurityConfiguration {
         return !enabled ? null : new RateLimiter<>(burstQuantity, quanitity, period, periodUnit);
     }
 
-    @Bean
-    public AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource() {
-        return new WebAuthenticationDetailsSource();
-    }
-
-    @Autowired AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource;
     @Autowired HttpFirewall httpFirewall;
     @Autowired AccessDeniedHandler accessDeniedHandler;
     @Autowired AuthenticationEntryPoint authenticationEntryPoint;
@@ -370,6 +360,8 @@ public class MangoSecurityConfiguration {
             .authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler);
 
+            MangoAuthenticationDetailsSource authenticationDetailsSource = new MangoAuthenticationDetailsSource(false);
+
             if (basicAuthenticationEnabled) {
                 http.httpBasic()
                 .authenticationDetailsSource(authenticationDetailsSource)
@@ -380,7 +372,8 @@ public class MangoSecurityConfiguration {
             }
 
             if (tokenAuthEnabled) {
-                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint, authenticationDetailsSource), BasicAuthenticationFilter.class);
+                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint,
+                        authenticationDetailsSource), BasicAuthenticationFilter.class);
             }
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
@@ -436,6 +429,8 @@ public class MangoSecurityConfiguration {
             http.rememberMe().disable();
             http.requestCache().disable();
 
+            MangoAuthenticationDetailsSource authenticationDetailsSource = new MangoAuthenticationDetailsSource(true);
+
             http.apply(jsonLoginConfigurer)
             .authenticationDetailsSource(authenticationDetailsSource)
             .successHandler(authenticationSuccessHandler)
@@ -484,6 +479,7 @@ public class MangoSecurityConfiguration {
                         .redirectionEndpoint().baseUri("/oauth2/callback/{registrationId}").and()
                         .successHandler(authenticationSuccessHandler)
                         .failureHandler(authenticationFailureHandler)
+                        .authenticationDetailsSource(authenticationDetailsSource)
                         // disable login page generation, not actually used
                         .loginPage("/login-oauth")
                         .userInfoEndpoint()
