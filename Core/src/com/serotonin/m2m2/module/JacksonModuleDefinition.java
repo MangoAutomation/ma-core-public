@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.util.EnumSet;
+
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
@@ -25,6 +27,6 @@ abstract public class JacksonModuleDefinition extends ModuleElementDefinition {
 	 */
 	public abstract SimpleModule getJacksonModule();
 
-	public abstract ObjectMapperSource getSourceMapperType();
+    public abstract EnumSet<ObjectMapperSource> getSourceMapperTypes();
 	
 }

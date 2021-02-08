@@ -182,7 +182,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
         for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.REST)
+            if(def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.REST))
                 objectMapper.registerModule(def.getJacksonModule());
         }
 
@@ -208,7 +208,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
         for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.COMMON)
+            if(def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.COMMON))
                 mapper.registerModule(def.getJacksonModule());
         }
 
@@ -227,7 +227,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
         for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.DATABASE)
+            if(def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.DATABASE))
                 mapper.registerModule(def.getJacksonModule());
         }
 
