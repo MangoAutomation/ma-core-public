@@ -11,6 +11,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -18,6 +19,8 @@ import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
+import com.serotonin.provider.Providers;
+import com.serotonin.util.properties.MangoProperties;
 
 public class PointValueTimeSerializerTest {
 
@@ -25,6 +28,9 @@ public class PointValueTimeSerializerTest {
 
     @Before
     public void init() {
+        // used by com.serotonin.m2m2.rt.dataImage.PointValueTime.toString
+        Providers.add(MangoProperties.class, new MockMangoProperties());
+
         this.mapper = new ObjectMapper();
 
         SimpleModule module = new SimpleModule();
