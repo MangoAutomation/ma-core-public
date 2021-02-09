@@ -12,7 +12,7 @@ import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 
 /**
- * Interface for proxy manager of persistent access and storege of data point caches.
+ * Interface for proxy manager of persistent access and storage of data point caches.
  */
 public abstract class PointValueCacheProxy extends ModuleElementDefinition {
 
@@ -35,16 +35,22 @@ public abstract class PointValueCacheProxy extends ModuleElementDefinition {
     public abstract void shutdown();
 
     /**
-     * Get the dao to access the persistsent store
+     * Get the dao to access the persistent store
      * @return
      */
     public abstract PointValueCacheDao getDao();
 
     @Override
     public void postDatabase(Version previousVersion, Version current) {
-        initialize();
+        if (isEnabled()) {
+            initialize();
+        }
     }
 
     @Override
-    public void postRuntimeManagerTerminate(boolean uninstall) { shutdown(); }
+    public void postRuntimeManagerTerminate(boolean uninstall) {
+        if (isEnabled()) {
+            shutdown();
+        }
+    }
 }
