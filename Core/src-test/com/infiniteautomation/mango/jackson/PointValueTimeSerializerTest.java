@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.jackson;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,11 +27,14 @@ public class PointValueTimeSerializerTest {
 
     private ObjectMapper mapper;
 
-    @Before
-    public void init() {
+    @BeforeClass
+    public static void setup() {
         // used by com.serotonin.m2m2.rt.dataImage.PointValueTime.toString
         Providers.add(MangoProperties.class, new MockMangoProperties());
+    }
 
+    @Before
+    public void init() {
         this.mapper = new ObjectMapper();
 
         SimpleModule module = new SimpleModule();
