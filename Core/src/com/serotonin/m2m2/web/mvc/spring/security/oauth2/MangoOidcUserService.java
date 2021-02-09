@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.infiniteautomation.mango.spring.components.RunAs;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.vo.User;
 
 @Component
@@ -37,6 +38,8 @@ public class MangoOidcUserService extends OidcUserService {
                 User user = mapper.mapUser(userRequest, delegate);
                 return new MangoOidcUser(delegate, user);
             });
+        } catch (ValidationException e) {
+            throw new UserSyncAuthenticationException("Error synchronizing OpenID Connect user: " + e.getValidationResult().getMessages().toString(), e);
         } catch (Exception e) {
             throw new UserSyncAuthenticationException("Error synchronizing OpenID Connect user", e);
         }

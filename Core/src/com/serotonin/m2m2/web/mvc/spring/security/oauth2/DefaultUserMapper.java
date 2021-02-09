@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -38,6 +40,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 @ConditionalOnProperty("${authentication.oauth2.enabled}")
 public class DefaultUserMapper implements UserMapper {
 
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final RoleService roleService;
     private final UsersService usersService;
     private final RegistrationPropertyMapperFactory mapperFactory;
@@ -51,6 +54,10 @@ public class DefaultUserMapper implements UserMapper {
 
     @Override
     public User mapUser(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
+        if (log.isDebugEnabled()) {
+            log.debug("Syncing OAuth2 user {} to Mango user", oAuth2User);
+        }
+
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
         StandardClaimAccessor accessor = toAccessor(oAuth2User);
 
