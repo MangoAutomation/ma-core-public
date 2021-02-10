@@ -659,7 +659,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dsVo.setUpdatePeriods(1);
         dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
         validate(dsVo);
-        Common.runtimeManager.insertDataSource(dsVo);
+        DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+        dataSourceService.insert(dsVo);
 
         //Create point locator
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);

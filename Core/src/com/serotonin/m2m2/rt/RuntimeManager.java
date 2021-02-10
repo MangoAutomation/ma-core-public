@@ -59,20 +59,18 @@ public interface RuntimeManager extends ILifecycle {
 
     DataSourceVO getDataSource(int dataSourceId);
 
-    void deleteDataSource(int dataSourceId);
+    /**
+     * Starts the data source.
+     * @param vo The data source VO
+     * @throws IllegalArgumentException if the data source is not saved, or is not enabled
+     */
+    void startDataSource(DataSourceVO vo);
 
     /**
-     * Insert a new data source
-     * @param vo
+     * Stops the data source (if running)
+     * @param dataSourceId the data source id
      */
-    void insertDataSource(DataSourceVO vo);
-
-    /**
-     * Update a data source
-     * @param existing
-     * @param vo
-     */
-    void updateDataSource(DataSourceVO existing, DataSourceVO vo);
+    void stopDataSource(int dataSourceId);
 
     /**
      * Initialize a data source (only to be used at system startup)
@@ -196,9 +194,18 @@ public interface RuntimeManager extends ILifecycle {
 
     PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId);
 
-    void deletePublisher(int publisherId);
+    /**
+     * Starts the publisher
+     * @param vo the publisher VO
+     * @throws IllegalArgumentException if the publisher is not saved, or is not enabled
+     */
+    void startPublisher(PublisherVO<? extends PublishedPointVO> vo);
 
-    void savePublisher(PublisherVO<? extends PublishedPointVO> vo);
+    /**
+     * Stops the publisher
+     * @param publisherId id of the publisher
+     */
+    void stopPublisher(int publisherId);
 
     /**
      * Get a message about what state we are in

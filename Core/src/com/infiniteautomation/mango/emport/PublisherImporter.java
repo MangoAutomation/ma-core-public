@@ -60,7 +60,11 @@ public class PublisherImporter extends Importer {
 
                 boolean isnew = vo.isNew();
                 if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
-                    Common.runtimeManager.savePublisher(vo);
+                    if (isnew) {
+                        service.insert(vo);
+                    } else {
+                        service.update(vo.getId(), vo);
+                    }
                     addSuccessMessage(isnew, "emport.publisher.prefix", xid);
                 }else{
                     addFailureMessage("emport.publisher.runtimeManagerNotRunning", xid);

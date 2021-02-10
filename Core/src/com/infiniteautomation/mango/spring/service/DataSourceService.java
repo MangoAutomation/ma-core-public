@@ -9,6 +9,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableIllegalStateException;
@@ -41,14 +42,16 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     private final DataPointService dataPointService;
     private final DataSourcePermissionDefinition createPermission;
+    private final RunAs runAs;
 
     @Autowired
     public DataSourceService(DataSourceDao dao, PermissionService permissionService,
-            DataPointService dataPointService,
-            DataSourcePermissionDefinition createPermission) {
+                             DataPointService dataPointService,
+                             DataSourcePermissionDefinition createPermission, RunAs runAs) {
         super(dao, permissionService);
         this.dataPointService = dataPointService;
         this.createPermission = createPermission;
+        this.runAs = runAs;
     }
 
     @Override
@@ -80,57 +83,34 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     }
 
     @Override
-    public DataSourceVO insert(DataSourceVO vo)
-            throws PermissionException, ValidationException {
-        PermissionHolder user = Common.getUser();
-
-        //Ensure they can create a list
-        ensureCreatePermission(user, vo);
-
-        //Ensure we don't presume to exist
-        if(vo.getId() != Common.NEW_ID) {
-            ProcessResult result = new ProcessResult();
-            result.addContextualMessage("id", "validate.invalidValue");
-            throw new ValidationException(result);
+    public DataSourceVO insert(DataSourceVO vo) throws PermissionException, ValidationException {
+        DataSourceVO result = super.insert(vo);
+        if (result.isEnabled()) {
+            Common.runtimeManager.startDataSource(result);
         }
-
-        //Generate an Xid if necessary
-        if(StringUtils.isEmpty(vo.getXid()))
-            vo.setXid(dao.generateUniqueXid());
-
-        ensureValid(vo, user);
-        Common.runtimeManager.insertDataSource(vo);
-
-        return vo;
+        return result;
     }
-
 
     @Override
     public DataSourceVO update(DataSourceVO existing, DataSourceVO vo) throws PermissionException, ValidationException {
-        PermissionHolder user = Common.getUser();
-
-        ensureEditPermission(user, existing);
-
-        //Ensure matching data source types
-        if(!StringUtils.equals(existing.getDefinition().getDataSourceTypeName(), vo.getDefinition().getDataSourceTypeName())) {
-            ProcessResult result = new ProcessResult();
-            result.addContextualMessage("definition.dataSourceTypeName", "validate.incompatibleDataSourceType");
-            throw new ValidationException(result);
+        ensureEditPermission(Common.getUser(), existing);
+        Common.runtimeManager.stopDataSource(existing.getId());
+        DataSourceVO result = super.update(existing, vo);
+        if (result.isEnabled()) {
+            Common.runtimeManager.startDataSource(result);
         }
-
-        vo.setId(existing.getId());
-        ensureValid(existing, vo, user);
-        Common.runtimeManager.updateDataSource(existing, vo);
-        return vo;
+        return result;
     }
 
     @Override
     public DataSourceVO delete(DataSourceVO vo) throws PermissionException, NotFoundException {
-        PermissionHolder user = Common.getUser();
-
-        ensureDeletePermission(user, vo);
-        Common.runtimeManager.deleteDataSource(vo.getId());
-        return vo;
+        ensureDeletePermission(Common.getUser(), vo);
+        Common.runtimeManager.stopDataSource(vo.getId());
+        DataSourceVO result = super.delete(vo);
+        runAs.runAs(runAs.systemSuperadmin(), () -> {
+            Common.eventManager.cancelEventsForDataSource(result.getId());
+        });
+        return result;
     }
 
     /**
@@ -156,14 +136,13 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     public void restart(String xid, boolean enabled, boolean restart) {
         DataSourceVO vo = get(xid);
         DataSourceVO existing = (DataSourceVO) vo.copy();
-        PermissionHolder user = Common.getUser();
-        ensureEditPermission(user, vo);
+        ensureEditPermission(Common.getUser(), vo);
         if (enabled && restart) {
             vo.setEnabled(true);
-            Common.runtimeManager.updateDataSource(existing, vo); //saving will restart it
+            update(existing, vo);
         } else if(vo.isEnabled() != enabled) {
             vo.setEnabled(enabled);
-            Common.runtimeManager.updateDataSource(existing, vo);
+            update(existing, vo);
         }
     }
 
@@ -220,7 +199,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         ensureValid(copy, user);
 
         //Save it
-        Common.runtimeManager.insertDataSource(copy);
+        insert(copy);
 
         if(copyPoints) {
             // Copy the points from this data source
@@ -245,6 +224,12 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         ProcessResult response = commonValidation(vo, user);
         permissionService.validatePermission(response, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
         permissionService.validatePermission(response, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+
+        //Ensure matching data source types
+        if(!StringUtils.equals(existing.getDefinition().getDataSourceTypeName(), vo.getDefinition().getDataSourceTypeName())) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("definition.dataSourceTypeName", "validate.incompatibleDataSourceType");
+        }
 
         //Allow module to define validation logic
         vo.getDefinition().validate(response, existing, vo, user);

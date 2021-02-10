@@ -319,36 +319,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void deleteDataSource(int dataSourceId) {
-        stopDataSource(dataSourceId);
-        dataSourceDao.delete(dataSourceId);
-        Common.eventManager.cancelEventsForDataSource(dataSourceId);
-    }
+    public void startDataSource(DataSourceVO vo) {
+        Assert.isTrue(vo.getId() > 0, "Data source must be saved");
+        Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
 
-    @Override
-    public void insertDataSource(DataSourceVO vo) {
-
-        // In this case it is new data source, we need to save to the database first so that it has a proper id.
-        dataSourceDao.insert(vo);
-
-        // If the data source is enabled, start it.
-        if (vo.isEnabled()) {
-            if (initializeDataSource(vo))
-                startDataSourcePolling(vo);
-        }
-    }
-
-    @Override
-    public void updateDataSource(DataSourceVO existing, DataSourceVO vo) {
-        // If the data source is running, stop it.
-        stopDataSource(vo.getId());
-
-        dataSourceDao.update(existing, vo);
-
-        // If the data source is enabled, start it.
-        if (vo.isEnabled()) {
-            if (initializeDataSource(vo))
-                startDataSourcePolling(vo);
+        if (initializeDataSource(vo)) {
+            startDataSourcePolling(vo);
         }
     }
 
@@ -412,9 +388,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
             dataSource.beginPolling();
     }
 
-    private void stopDataSource(int id) {
+    @Override
+    public void stopDataSource(int dataSourceId) {
         synchronized (runningDataSources) {
-            stopDataSourceShutdown(id);
+            stopDataSourceShutdown(dataSourceId);
         }
     }
 
@@ -834,30 +811,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void deletePublisher(int publisherId) {
-        stopPublisher(publisherId);
-        publisherDao.delete(publisherId);
-        Common.eventManager.cancelEventsForPublisher(publisherId);
-    }
-
-    @Override
-    public void savePublisher(PublisherVO<? extends PublishedPointVO> vo) {
-        // If the publisher is running, stop it.
-        stopPublisher(vo.getId());
-
-        // In case this is a new publisher, we need to save to the database first so that it has a proper id.
-        if(vo.getId() == Common.NEW_ID) {
-            publisherDao.insert(vo);
-        }else {
-            publisherDao.update(vo.getId(), vo);
-        }
-
-        // If the publisher is enabled, start it.
-        if (vo.isEnabled())
-            startPublisher(vo);
-    }
-
-    private void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
+    public void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
         long startTime = System.nanoTime();
         synchronized (runningPublishers) {
             // If the publisher is already running, just quit.
@@ -882,9 +836,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
         stateMessage = new TranslatableMessage("runtimeManager.initialize.publisher", vo.getName(), (double)duration/(double)1000000);
     }
 
-    private void stopPublisher(int id) {
+    @Override
+    public void stopPublisher(int publisherId) {
         synchronized (runningPublishers) {
-            PublisherRT<?> publisher = getRunningPublisher(id);
+            PublisherRT<?> publisher = getRunningPublisher(publisherId);
             if (publisher == null)
                 return;
 

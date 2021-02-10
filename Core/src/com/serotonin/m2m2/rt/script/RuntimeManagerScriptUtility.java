@@ -13,6 +13,7 @@ import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
@@ -41,14 +42,16 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     protected final DataSourceService dataSourceService;
     protected final DataPointService dataPointService;
+    protected final PublisherService publisherService;
     protected final RunAs runAs;
 
     @Autowired
-    public RuntimeManagerScriptUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService, RunAs runAs, PermissionService permissionService) {
+    public RuntimeManagerScriptUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService, RunAs runAs, PermissionService permissionService, PublisherService publisherService) {
         super(service, permissionService);
         this.dataSourceService = dataSourceService;
         this.dataPointService = dataPointService;
         this.runAs = runAs;
+        this.publisherService = publisherService;
     }
 
     @Override
@@ -280,7 +283,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
         else if(!vo.isEnabled()){
             vo.setEnabled(true);
             try{
-                Common.runtimeManager.savePublisher(vo);
+                publisherService.update(vo.getId(), vo);
             }catch(Exception e){
                 LOG.error(e.getMessage(), e);
                 throw e;
@@ -302,7 +305,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
         else if(vo.isEnabled()){
             vo.setEnabled(false);
             try{
-                Common.runtimeManager.savePublisher(vo);
+                publisherService.update(vo.getId(), vo);
             }catch(Exception e){
                 LOG.error(e.getMessage(), e);
                 throw e;

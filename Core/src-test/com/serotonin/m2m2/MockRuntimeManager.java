@@ -119,23 +119,13 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void deleteDataSource(int dataSourceId) {
-        if(useDatabase)
-            DataSourceDao.getInstance().delete(dataSourceId);
+    public void startDataSource(DataSourceVO vo) {
+
     }
 
     @Override
-    public void insertDataSource(DataSourceVO vo) {
-        if(useDatabase) {
-            DataSourceDao.getInstance().insert(vo);
-        }
-    }
+    public void stopDataSource(int dataSourceId) {
 
-    @Override
-    public void updateDataSource(DataSourceVO existing, DataSourceVO vo) {
-        if(useDatabase) {
-            DataSourceDao.getInstance().update(existing, vo);
-        }
     }
 
     @Override
@@ -287,21 +277,13 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void deletePublisher(int publisherId) {
-        if(useDatabase)
-            PublisherDao.getInstance().delete(publisherId);
+    public void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
 
     }
 
     @Override
-    public void savePublisher(PublisherVO<? extends PublishedPointVO> vo) {
-        if(useDatabase) {
-            if(vo.getId() == Common.NEW_ID) {
-                PublisherDao.getInstance().insert(vo);
-            }else {
-                PublisherDao.getInstance().update(vo.getId(), vo);
-            }
-        }
+    public void stopPublisher(int publisherId) {
+
     }
 
     @Override

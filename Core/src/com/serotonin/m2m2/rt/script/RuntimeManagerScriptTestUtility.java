@@ -6,6 +6,7 @@ import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -18,8 +19,9 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 
     @Autowired
     public RuntimeManagerScriptTestUtility(MangoJavaScriptService service, DataPointService dataPointService,
-                                           DataSourceService dataSourceService, RunAs runAs, PermissionService permissionService) {
-        super(service, dataPointService, dataSourceService, runAs, permissionService);
+                                           DataSourceService dataSourceService, RunAs runAs,
+                                           PermissionService permissionService, PublisherService publisherService) {
+        super(service, dataPointService, dataSourceService, runAs, permissionService, publisherService);
     }
 
     /**
