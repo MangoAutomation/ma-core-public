@@ -101,7 +101,7 @@ public class EventInstance implements EventInstanceI {
             this.message = new TranslatableMessage("common.noMessage");
         else
             this.message = message;
-        this.context = context;
+        this.context = context == null ? Collections.emptyMap() : context;
     }
 
     public TranslatableMessage getAckMessage() {
@@ -298,6 +298,10 @@ public class EventInstance implements EventInstanceI {
 
     public Map<String, Object> getContext() {
         return context;
+    }
+
+    public Object context(String key) {
+        return context.get(key);
     }
 
     public List<Integer> getIdsToNotify() {
