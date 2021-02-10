@@ -50,6 +50,7 @@ public class SystemEventType extends EventType {
     public static final String TYPE_PROCESS_FAILURE = "PROCESS_FAILURE";
     public static final String TYPE_LICENSE_CHECK = "LICENSE_CHECK";
     public static final String TYPE_BACKUP_FAILURE = "BACKUP_FAILURE";
+    public static final String TYPE_BACKUP_SUCCESS = "BACKUP_SUCCESS";
     public static final String TYPE_UPGRADE_CHECK = "UPGRADE_CHECK";
     public static final String TYPE_REJECTED_WORK_ITEM = "REJECTED_WORK_ITEM";
     public static final String TYPE_MISSING_MODULE_DEPENDENCY = "MISSING_MODULE_DEPENDENCY";

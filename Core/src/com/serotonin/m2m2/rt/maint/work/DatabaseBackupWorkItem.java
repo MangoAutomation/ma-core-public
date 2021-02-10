@@ -131,14 +131,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 filename += runtimeString;
             }
 
-            // Fill the full path
-            String fullFilePath = this.backupLocation;
-            if (fullFilePath.endsWith(File.separator)) {
-                fullFilePath += filename;
-            } else {
-                fullFilePath += File.separator;
-                fullFilePath += filename;
-            }
+            File file = new File(this.backupLocation, filename + ".zip");
+            this.filename = file.getAbsolutePath();
 
             if(cancelled)
                 return;
@@ -148,7 +142,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
                 switch (Common.databaseProxy.getType()) {
                     case H2:
-                        String[] backupScript = new String[] { "SCRIPT DROP TO '" + fullFilePath + ".zip' COMPRESSION ZIP;" };
+                        String[] backupScript = new String[] { "SCRIPT DROP TO '" + this.filename + "' COMPRESSION ZIP;" };
                         try (OutputStream out = Common.databaseProxy.createLogOutputStream(this.getClass())) {
                             Common.databaseProxy.runScript(backupScript, out);
                         }
@@ -171,7 +165,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                         // Split off any extra stuff on the db
                         String[] dbParts = parts[3].split("\\?");
                         String database = dbParts[0];
-                        backupMysqlWithOutDatabase(dumpExePath, host, port, user, password, database, fullFilePath);
+                        backupMysqlWithOutDatabase(dumpExePath, host, port, user, password, database, this.filename);
                         break;
                     case DERBY:
                     case MSSQL:
@@ -183,16 +177,15 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
                 }
 
-                File file = new File(fullFilePath + ".zip");
                 if (!file.exists()) {
                     failed = true;
-                    LOG.warn("Unable to create backup file: " + fullFilePath);
-                    backupFailed(fullFilePath, "Unable to create backup file");
+                    LOG.warn("Unable to create backup file: " + this.filename);
+                    backupFailed(this.filename, "Unable to create backup file");
                     return;
                 }
 
-                //Save the filename
-                this.filename = file.getAbsolutePath();
+                SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_SUCCESS),
+                        Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.backup.success", file.getName()));
 
                 // Store the last successful backup time
                 SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, runtimeString);
@@ -215,7 +208,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
             } catch (Exception e) {
                 LOG.warn(e);
                 failed = true;
-                backupFailed(fullFilePath, e.getMessage());
+                backupFailed(this.filename, e.getMessage());
             }finally{
                 finished = true;
                 completed.complete(null);
