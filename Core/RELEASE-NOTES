@@ -70,6 +70,7 @@
 * Change MySQL connection pool library from dbcp2 to HikariCP
 * Support OAuth2 and OpenID Connect authentication via Spring Security (configurable via env.properties)
 * System login events are now instantaneous events and no longer "return to normal" on logout
+* Ability to create initial database from a backup file or .sql script. See "db.createTables.restoreFrom" env property.
 
 *Version 3.7.4*
 * Improve work item failure logging
