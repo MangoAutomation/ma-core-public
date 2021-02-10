@@ -101,6 +101,9 @@ abstract public class DBUpgrade extends BaseDao {
                 SystemSettingsDao.instance.setValue(settingsKey, upgrade.getNewSchemaVersion());
             }
             catch (Exception e) {
+                try (PrintWriter writer = new PrintWriter(upgrade.createUpdateLogOutputStream())) {
+                    e.printStackTrace(writer);
+                }
                 throw new ShouldNeverHappenException(e);
             }
         }
