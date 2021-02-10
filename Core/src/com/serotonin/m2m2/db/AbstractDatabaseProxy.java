@@ -7,13 +7,13 @@ package com.serotonin.m2m2.db;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.MissingResourceException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -79,45 +79,44 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
 
         try {
-            if (newDatabaseCheck(ejt)) {
-                // Check if we should convert from another database.
-                String convertTypeStr = null;
-                try {
-                    convertTypeStr = Common.envProps.getString("convert.db.type");
-                }
-                catch (MissingResourceException e) {
-                    convertTypeStr = "";
-                }
-
-                if (!StringUtils.isBlank(convertTypeStr)) {
-                    // Found a database type from which to convert.
-                    DatabaseType convertType = DatabaseType.valueOf(convertTypeStr.toUpperCase());
-
-                    // TODO check that the convert source has the current DB version, or upgrade it if not.
-
-                    AbstractDatabaseProxy sourceProxy = getFactory().createDatabaseProxy(convertType);
-                    sourceProxy.initializeImpl("convert.");
-                    try {
-                        DBConvert convert = new DBConvert();
-                        convert.setSource(sourceProxy);
-                        convert.setTarget(this);
-                        try {
-                            convert.execute();
-                        } catch (SQLException e) {
-                            throw new ShouldNeverHappenException(e);
-                        }
-                    } finally {
-                        sourceProxy.terminate(false);
-                    }
+            if (!databaseExists(ejt)) {
+                if (Common.envProps.getString("db.createTables.restoreFrom") != null) {
+                    restoreTables();
                 } else {
-                    doInTransaction(txStatus -> {
-                        initializeCoreDatabase(context);
-                    });
+                    createTables();
+
+                    // Check if we should convert from another database.
+                    String convertTypeStr = Common.envProps.getString("convert.db.type");
+                    if (!StringUtils.isBlank(convertTypeStr)) {
+                        // Found a database type from which to convert.
+                        DatabaseType convertType = DatabaseType.valueOf(convertTypeStr.toUpperCase());
+
+                        // TODO check that the convert source has the current DB version, or upgrade it if not.
+
+                        AbstractDatabaseProxy sourceProxy = getFactory().createDatabaseProxy(convertType);
+                        sourceProxy.initializeImpl("convert.");
+                        try {
+                            DBConvert convert = new DBConvert();
+                            convert.setSource(sourceProxy);
+                            convert.setTarget(this);
+                            try {
+                                convert.execute();
+                            } catch (SQLException e) {
+                                throw new ShouldNeverHappenException(e);
+                            }
+                        } finally {
+                            sourceProxy.terminate(false);
+                        }
+                    } else {
+                        doInTransaction(txStatus -> {
+                            initializeCoreDatabase(context);
+                        });
+                    }
                 }
-            } else {
-                // The database exists, so let's make its schema version matches the application version.
-                DBUpgrade.checkUpgrade();
             }
+
+            // always make sure the schema version matches the application version.
+            DBUpgrade.checkUpgrade();
 
             //Ensure the modules are upgraded/installed after the core schema is updated
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
@@ -147,12 +146,13 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                     break;
                 }
             }
-        }
-        catch (CannotGetJdbcConnectionException e) {
+        } catch (CannotGetJdbcConnectionException e) {
             log.fatal("Unable to connect to database of type " + getType().name(), e);
             throw e;
-        }
-        catch (Exception e) {
+        } catch (IOException e) {
+            log.fatal("Exception initializing database proxy: " + e.getMessage(), e);
+            throw new UncheckedIOException(e);
+        } catch (Exception e) {
             log.fatal("Exception initializing database proxy: " + e.getMessage(), e);
             throw e;
         }
@@ -162,30 +162,38 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             DBUpgrade.checkUpgrade(def, classLoader);
     }
 
-    private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
-        boolean coreIsNew = false;
+    private boolean databaseExists(ExtendedJdbcTemplate ejt) {
+        return tableExists(ejt, Users.USERS.getName());
+    }
 
-        if (!tableExists(ejt, Users.USERS.getName())) {
-            // The users table wasn't found, so assume that this is a new instance.
-            // Create the tables
-            try {
-                String scriptName = "createTables-" + getType().name() + ".sql";
-                try (InputStream resource = AbstractDatabaseProxy.class.getResourceAsStream(scriptName)) {
-                    if (resource == null) {
-                        throw new ShouldNeverHappenException("Could not get script " + scriptName + " for class " + AbstractDatabaseProxy.class.getName());
-                    }
-
-                    try (OutputStream os = createLogOutputStream("createTables.log")) {
-                        runScript(resource, os);
-                    }
-                }
-            } catch (IOException e) {
-                throw new ShouldNeverHappenException(e);
+    private void createTables() throws IOException {
+        String scriptName = "createTables-" + getType().name() + ".sql";
+        try (InputStream resource = AbstractDatabaseProxy.class.getResourceAsStream(scriptName)) {
+            if (resource == null) {
+                throw new ShouldNeverHappenException("Could not open script " + scriptName);
             }
-            coreIsNew = true;
+            try (OutputStream os = createTablesOutputStream()) {
+                runScript(resource, os);
+            }
         }
+    }
 
-        return coreIsNew;
+    private void restoreTables() throws IOException {
+        String scriptName = "createTables-" + getType().name() + ".sql";
+        String restoreFrom = Common.envProps.getString("db.createTables.restoreFrom");
+        Path restoreFromPath = Common.MA_DATA_PATH.resolve(restoreFrom).normalize();
+        Path scriptPath = restoreFromPath.resolve(scriptName);
+
+        try (InputStream resource = Files.newInputStream(scriptPath)) {
+            try (OutputStream os = createTablesOutputStream()) {
+                runScript(resource, os);
+            }
+        }
+    }
+
+    private OutputStream createTablesOutputStream() {
+        boolean createLogFile = Common.envProps.getBoolean("db.createTables.createLogFile", true);
+        return createLogFile ? createLogOutputStream("createTables.log") : null;
     }
 
     @Override
