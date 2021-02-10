@@ -10,6 +10,8 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 
 public class BackupSuccessEventTypeDefinition extends SystemEventTypeDefinition {
 
+    public final static String BACKUP_PATH_CONTEXT_KEY = "BACKUP_PATH";
+
     @Override
     public String getTypeName() {
         return SystemEventType.TYPE_BACKUP_SUCCESS;

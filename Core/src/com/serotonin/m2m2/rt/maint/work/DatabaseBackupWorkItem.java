@@ -7,10 +7,14 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ProcessBuilder.Redirect;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +35,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.rt.event.type.definition.BackupSuccessEventTypeDefinition;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.RejectedTaskReason;
@@ -131,8 +136,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 filename += runtimeString;
             }
 
-            File file = new File(this.backupLocation, filename + ".zip");
-            this.filename = file.getAbsolutePath();
+            Path backupFilePath = Paths.get(this.backupLocation).resolve(filename + ".zip").toAbsolutePath().normalize();
+            this.filename = backupFilePath.toString();
 
             if(cancelled)
                 return;
@@ -177,7 +182,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
                 }
 
-                if (!file.exists()) {
+                if (!Files.exists(backupFilePath)) {
                     failed = true;
                     LOG.warn("Unable to create backup file: " + this.filename);
                     backupFailed(this.filename, "Unable to create backup file");
@@ -185,7 +190,9 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 }
 
                 SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_SUCCESS),
-                        Common.timer.currentTimeMillis(), false, new TranslatableMessage("event.backup.success", file.getName()));
+                        Common.timer.currentTimeMillis(), false,
+                        new TranslatableMessage("event.backup.success", backupFilePath.getFileName().toString()),
+                        Collections.singletonMap(BackupSuccessEventTypeDefinition.BACKUP_PATH_CONTEXT_KEY, backupFilePath));
 
                 // Store the last successful backup time
                 SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, runtimeString);
