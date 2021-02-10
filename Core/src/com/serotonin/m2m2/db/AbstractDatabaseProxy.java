@@ -13,7 +13,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -179,14 +182,34 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     private void restoreTables() throws IOException {
-        String scriptName = "createTables-" + getType().name() + ".sql";
         String restoreFrom = Common.envProps.getString("db.createTables.restoreFrom");
         Path restoreFromPath = Common.MA_DATA_PATH.resolve(restoreFrom).normalize();
-        Path scriptPath = restoreFromPath.resolve(scriptName);
 
-        try (InputStream resource = Files.newInputStream(scriptPath)) {
-            try (OutputStream os = createTablesOutputStream()) {
-                runScript(resource, os);
+        try (OutputStream os = createTablesOutputStream()) {
+            if (restoreFromPath.getFileName().toString().endsWith(".zip")) {
+                try (ZipFile zip = new ZipFile(restoreFromPath.toFile())) {
+                    ZipEntry script = null;
+
+                    Enumeration<? extends ZipEntry> entries = zip.entries();
+                    while (entries.hasMoreElements()) {
+                        ZipEntry entry = entries.nextElement();
+                        if (!entry.isDirectory() && entry.getName().endsWith(".sql")) {
+                            script = entry;
+                        }
+                    }
+
+                    if (script == null) {
+                        throw new IllegalStateException("Zip file does not contain a .sql script");
+                    }
+
+                    try (InputStream resource = zip.getInputStream(script)) {
+                        runScript(resource, os);
+                    }
+                }
+            } else {
+                try (InputStream resource = Files.newInputStream(restoreFromPath)) {
+                    runScript(resource, os);
+                }
             }
         }
     }
