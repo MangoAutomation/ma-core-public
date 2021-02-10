@@ -22,6 +22,7 @@ import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
 
+import com.infiniteautomation.mango.db.tables.RoleInheritance;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
@@ -205,6 +206,7 @@ public interface DatabaseProxy extends TransactionCapable {
         Roles r = Roles.ROLES;
         Users u = Users.USERS;
         UserRoleMappings urm = UserRoleMappings.USER_ROLE_MAPPINGS;
+        RoleInheritance ri = RoleInheritance.ROLE_INHERITANCE;
 
         context.insertInto(ss, ss.settingName, ss.settingValue)
                 // Add the settings flag that this is a new instance. This flag is removed when an administrator logs in.
@@ -219,6 +221,11 @@ public interface DatabaseProxy extends TransactionCapable {
                 .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), Common.translate("roles.superadmin"))
                 .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), Common.translate("roles.user"))
                 .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), Common.translate("roles.anonymous"))
+                .execute();
+
+        context.insertInto(ri, ri.roleId, ri.inheritedRoleId)
+                .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.USER_ROLE.getId())
+                .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getId())
                 .execute();
 
         if (Common.envProps.getBoolean("initialize.admin.create")) {
