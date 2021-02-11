@@ -415,10 +415,6 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         }
 
         Set<Role> inherited = permissionService.getAllInheritedRoles(holder);
-        //No user can have the anonymous role
-        if(inherited.contains(PermissionHolder.ANONYMOUS_ROLE)) {
-            result.addMessage("roles", new TranslatableMessage("users.validate.cannotHaveAnonymousRole"));
-        }
 
         //Every user must have the user role
         if(!inherited.contains(PermissionHolder.USER_ROLE)) {
