@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
+import com.infiniteautomation.mango.util.exception.FeatureDisabledException;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
@@ -47,6 +48,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleNotificationListener;
 import com.serotonin.m2m2.module.ModuleNotificationListener.UpgradeState;
@@ -85,6 +87,10 @@ public class ModulesService {
      */
     public String startDownloads(List<StringStringPair> modules, boolean backup, boolean restart) {
         permissionService.ensureAdminRole(Common.getUser());
+
+        if (env.getProperty("store.disableUpgrades", Boolean.class, false)) {
+            throw new FeatureDisabledException(new TranslatableMessage("modules.error.upgradesDisabled"));
+        }
 
         synchronized (upgradeDownloaderLock) {
             if (upgradeDownloader != null)
