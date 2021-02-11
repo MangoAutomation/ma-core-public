@@ -11,6 +11,7 @@ import java.io.ObjectOutputStream;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.util.SerializationHelper;
@@ -25,6 +26,17 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO {
     private int activeProcessTimeout = 15;
     private String inactiveProcessCommand;
     private int inactiveProcessTimeout = 15;
+
+    @JsonProperty
+    private boolean interpolateCommands;
+
+    public boolean isInterpolateCommands() {
+        return interpolateCommands;
+    }
+
+    public void setInterpolateCommands(boolean interpolateCommands) {
+        this.interpolateCommands = interpolateCommands;
+    }
 
     public String getActiveProcessCommand() {
         return activeProcessCommand;
@@ -63,7 +75,7 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO {
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -71,6 +83,7 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO {
         out.writeInt(activeProcessTimeout);
         SerializationHelper.writeSafeUTF(out, inactiveProcessCommand);
         out.writeInt(inactiveProcessTimeout);
+        out.writeBoolean(interpolateCommands);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -80,6 +93,13 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO {
             activeProcessTimeout = in.readInt();
             inactiveProcessCommand = SerializationHelper.readSafeUTF(in);
             inactiveProcessTimeout = in.readInt();
+            interpolateCommands = false;
+        } else if(ver == 2) {
+            activeProcessCommand = SerializationHelper.readSafeUTF(in);
+            activeProcessTimeout = in.readInt();
+            inactiveProcessCommand = SerializationHelper.readSafeUTF(in);
+            inactiveProcessTimeout = in.readInt();
+            interpolateCommands = in.readBoolean();
         }
     }
 

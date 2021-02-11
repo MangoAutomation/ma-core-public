@@ -4,7 +4,9 @@
  */
 package com.serotonin.m2m2.rt.event.handlers;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.maint.work.ProcessWorkItem;
@@ -20,17 +22,43 @@ public class ProcessHandlerRT extends EventHandlerRT<ProcessEventHandlerVO> {
 
     @Override
     public void eventRaised(EventInstance evt) {
-        executeCommand(vo.getActiveProcessCommand(), vo.getActiveProcessTimeout());
+        executeCommand(evt, vo.getActiveProcessCommand(), vo.getActiveProcessTimeout());
     }
 
     @Override
     public void eventInactive(EventInstance evt) {
-        executeCommand(vo.getInactiveProcessCommand(), vo.getInactiveProcessTimeout());
+        executeCommand(evt, vo.getInactiveProcessCommand(), vo.getInactiveProcessTimeout());
     }
 
-    private void executeCommand(String command, int timeout) {
+    private void executeCommand(EventInstance event, String command, int timeout) {
         if (StringUtils.isBlank(command))
             return;
+        if (vo.isInterpolateCommands()) {
+            command = getSubstitutor(event).replace(command);
+        }
         ProcessWorkItem.queueProcess(command, timeout);
+    }
+
+    private StringSubstitutor getSubstitutor(EventInstance event) {
+        return new StringSubstitutor(name -> {
+            try {
+                SubstituteContext context = new SubstituteContext(event);
+                return BeanUtils.getProperty(context, name);
+            } catch (Exception e) {
+                throw new RuntimeException(String.format("Failed to access property '%s'", name), e);
+            }
+        });
+    }
+
+    public static class SubstituteContext {
+        private final EventInstance event;
+
+        private SubstituteContext(EventInstance event) {
+            this.event = event;
+        }
+
+        public EventInstance getEvent() {
+            return event;
+        }
     }
 }
