@@ -199,6 +199,11 @@ public class ModulesService {
      */
     public int upgradesAvailable() throws Exception {
         permissionService.ensureAdminRole(Common.getUser());
+
+        if (env.getProperty("store.disableUpgrades", Boolean.class, false)) {
+            throw new FeatureDisabledException(new TranslatableMessage("modules.error.upgradesDisabled"));
+        }
+
         JsonValue jsonResponse = getAvailableUpgrades();
 
         if (jsonResponse == null)
@@ -235,6 +240,10 @@ public class ModulesService {
      */
     public JsonValue getAvailableUpgrades() throws JsonException, IOException, HttpException {
         permissionService.ensureAdminRole(Common.getUser());
+
+        if (env.getProperty("store.disableUpgrades", Boolean.class, false)) {
+            throw new FeatureDisabledException(new TranslatableMessage("modules.error.upgradesDisabled"));
+        }
 
         // Create the request
         List<Module> modules = ModuleRegistry.getModules();
