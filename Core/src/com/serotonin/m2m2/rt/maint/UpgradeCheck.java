@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.infiniteautomation.mango.spring.service.ModulesService;
+import com.infiniteautomation.mango.util.exception.FeatureDisabledException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -55,7 +56,11 @@ public class UpgradeCheck extends TimerTask {
         try {
             //If upgrade checks are not enabled we won't contact the store at all
             if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED)) {
-                available = Common.getBean(ModulesService.class).upgradesAvailable();
+                try {
+                    available = Common.getBean(ModulesService.class).upgradesAvailable();
+                } catch (FeatureDisabledException e) {
+                    // ignore
+                }
             }
 
             if (available != null && available > 0) {
