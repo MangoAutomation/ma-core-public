@@ -33,11 +33,6 @@ fi
 # This will ensure that the logs are written to the correct directories.
 cd "$MA_HOME"
 
-#Create a logs directory if it doesn't exist
-if [ ! -d "$MA_HOME"/logs ]; then
-	mkdir "$MA_HOME"/logs
-fi
-
 # Determine the Java home
 if [ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
     EXECJAVA="$JAVA_HOME/bin/java"
