@@ -82,7 +82,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 /**
@@ -609,15 +608,7 @@ public class MangoJavaScriptService {
         if(permissionService.hasAdminRole(Common.getUser()))
             return factory.getScriptEngine();
         else
-            return factory.getScriptEngine(new NoJavaFilter());
-    }
-
-    private static class NoJavaFilter implements ClassFilter {
-
-        @Override
-        public boolean exposeToScripts(String s) {
-            return false;
-        }
+            return factory.getScriptEngine(className -> false);
     }
 
     /**
