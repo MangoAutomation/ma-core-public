@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used to conditionally load a ModuleElementDefinition only if a environment propery is set to true
+ * Used to conditionally load a ModuleElementDefinition only if a environment property is set to true
  *
  * @author Jared Wiltshire
  */
@@ -18,13 +18,15 @@ import java.lang.annotation.Target;
 public @interface ConditionalDefinition {
     /**
      * Defines the environment property to evaluate
-     * @return
+     * @return env property name
      */
     String value() default "";
 
+    String[] requireClasses() default {};
+
     /**
-     * If set to false the module defintion will never be autoloaded
-     * @return
+     * Determines if the ModuleElementDefinition is made available via the {@link ModuleRegistry}
+     * @return true if enabled
      */
-    boolean autoLoad() default true;
+    boolean enabled() default true;
 }

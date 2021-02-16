@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.module;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -124,11 +125,25 @@ abstract public class ModuleElementDefinition implements Ordered {
                     if (!clazz.isAnnotationPresent(ConditionalDefinition.class)) {
                         return true;
                     }
+
                     ConditionalDefinition conditional = clazz.getAnnotation(ConditionalDefinition.class);
-                    if (!conditional.autoLoad()) {
-                        return false;
-                    }
-                    return Common.envProps.getBoolean(conditional.value());
+                    String envProperty = conditional.value();
+                    String[] requireClasses = conditional.requireClasses();
+
+                    return conditional.enabled() &&
+                            (envProperty.isEmpty() || Common.envProps.getBoolean(envProperty)) &&
+                            checkClassesAvailable(requireClasses, classloader);
                 }).collect(Collectors.toSet());
+    }
+
+    public static boolean checkClassesAvailable(String[] classNames, ClassLoader classLoader) {
+        return Arrays.stream(classNames).allMatch(className -> {
+            try {
+                classLoader.loadClass(className);
+            } catch (ClassNotFoundException e) {
+                return false;
+            }
+            return true;
+        });
     }
 }

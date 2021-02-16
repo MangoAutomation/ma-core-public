@@ -22,6 +22,7 @@ import com.infiniteautomation.mango.spring.script.permissions.LoadOtherPermissio
 import com.infiniteautomation.mango.spring.script.permissions.LoadWebPermission;
 import com.infiniteautomation.mango.spring.script.permissions.NashornPermission;
 import com.infiniteautomation.mango.spring.service.FileStoreService;
+import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 
 import jdk.nashorn.api.scripting.JSObject;
@@ -31,6 +32,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
  * @author Jared Wiltshire
  */
 @SuppressWarnings({"removal", "deprecation", "restriction"})
+@ConditionalDefinition(requireClasses = {"jdk.nashorn.api.scripting.NashornScriptEngineFactory"})
 public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
 
     @Autowired

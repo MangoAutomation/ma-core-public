@@ -11,7 +11,7 @@ import com.serotonin.m2m2.module.LicenseDefinition;
  * Simply checks that a license for the module exists. Useful for modules that only provide a single license type,
  * such as "paid".
  */
-@ConditionalDefinition(autoLoad = false)
+@ConditionalDefinition(enabled = false)
 public class BasicModuleLicense extends LicenseDefinition {
     private final List<TranslatableMessage> ERRORS = new ArrayList<>();
 
