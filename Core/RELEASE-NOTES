@@ -67,12 +67,17 @@
 * The env.properties file is now created on startup if it does not exist, it will be created with all properties commented out
 * Mango will now fail to start if the env.properties file has POSIX "others" read/write permissions. You must manually adjust the permissions on your env.properties file so it is not readable or writable by "others".
 * $MA_HOME/overrides/classes and $MA_HOME/overrides/properties are no longer added to the classpath via the default start up scripts.
+* Changes below here added in 4.0.0-beta.6
 * Change MySQL connection pool library from dbcp2 to HikariCP
 * Support OAuth2 and OpenID Connect authentication via Spring Security (configurable via env.properties)
 * System login events are now instantaneous events and no longer "return to normal" on logout
 * Ability to create initial database from a backup file or .sql script. See "db.createTables.restoreFrom" env property.
 * Option to interpolate event properties into process event handler commands
 * Add env property to disable upgrades (store.disableUpgrades)
+* Changes below here added in 4.0.0-beta.7
+* Fix performance regression in DAO layer
+* Fix default userNameAttributeName for OAuth providers
+* Fix issue starting Mango when Nashorn JavaScript engine is not available (JDK 15+)
 
 *Version 3.7.4*
 * Improve work item failure logging
