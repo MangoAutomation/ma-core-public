@@ -86,7 +86,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         Field<?> field = table.field("xid");
         if (field != null) {
             if (field.getDataType().isString()) {
-                return field.cast(String.class);
+                return field.coerce(String.class);
             }
         }
         return null;
@@ -96,7 +96,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         Field<?> field = table.field("name");
         if (field != null) {
             if (field.getDataType().isString()) {
-                return field.cast(String.class);
+                return field.coerce(String.class);
             }
         }
         return null;

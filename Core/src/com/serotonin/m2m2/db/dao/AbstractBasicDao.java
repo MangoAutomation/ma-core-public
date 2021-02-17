@@ -238,7 +238,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         if (identity != null) {
             TableField<? extends Record, ?> field = identity.getField();
             if (field.getDataType().isNumeric()) {
-                return field.cast(Integer.class);
+                return field.coerce(Integer.class);
             }
         }
         return null;
