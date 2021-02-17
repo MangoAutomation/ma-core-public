@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -58,13 +59,16 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
 
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
+    private final DataPointDao dataPointDao;
+
     @Autowired
-    private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher){
+    private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                         ApplicationEventPublisher publisher, DataPointDao dataPointDao){
         super(AuditEventType.TYPE_PUBLISHER,
                 Publishers.PUBLISHERS,
                 new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
                 mapper, publisher);
+        this.dataPointDao = dataPointDao;
     }
 
     /**
@@ -205,14 +209,25 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    public void loadRelationalData(PublisherVO<?> vo) {
+    public void loadRelationalData(PublisherVO<? extends PublishedPointVO> vo) {
+        // remove deleted data points
+        Iterator<? extends PublishedPointVO> it = vo.getPoints().iterator();
+        while (it.hasNext()) {
+            PublishedPointVO point = it.next();
+            String xid = dataPointDao.getXidById(point.getDataPointId());
+            if (xid == null) {
+                it.remove();
+            } else {
+                point.setDataPointXid(xid);
+            }
+        }
+
         vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override
     public void deleteRelationalData(PublisherVO<?> vo) {
-        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", new Object[] {
-                EventType.EventTypeNames.PUBLISHER, vo.getId()});
+        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", EventType.EventTypeNames.PUBLISHER, vo.getId());
         vo.getDefinition().deleteRelationalData(vo);
     }
 

@@ -23,6 +23,11 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 abstract public class PublishedPointVO implements Serializable, JsonSerializable {
     private int dataPointId;
 
+    /**
+     * This field is only used for JSON export, and for outputting to the REST model
+     */
+    private transient String dataPointXid;
+
     public int getDataPointId() {
         return dataPointId;
     }
@@ -54,8 +59,8 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        String xid = DataPointDao.getInstance().getXidById(dataPointId);
-        writer.writeEntry("dataPointId", xid);
+        // yes we write the XID into a field named dataPointId
+        writer.writeEntry("dataPointId", dataPointXid);
     }
 
     @Override
@@ -68,5 +73,13 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
         if (id == null)
             throw new TranslatableJsonException("emport.error.missingPoint", xid);
         dataPointId = id;
+    }
+
+    public String getDataPointXid() {
+        return dataPointXid;
+    }
+
+    public void setDataPointXid(String dataPointXid) {
+        this.dataPointXid = dataPointXid;
     }
 }
