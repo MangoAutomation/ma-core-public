@@ -18,6 +18,9 @@ RestartSec=5s
 User=mango
 NoNewPrivileges=true
 
+# Allow Mango to open lots of files (needed for IasTsdb / NoSQL module)
+LimitNOFILE=1048576
+
 # Needed for ping command
 #AmbientCapabilities=CAP_NET_RAW
 
