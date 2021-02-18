@@ -61,7 +61,7 @@ public class PointValueTimeDeserializer extends StdDeserializer<PointValueTime> 
         }
 
         JsonNode annotationNode = node.get("serializedAnnotation");
-        if (annotationNode != null && (!annotationNode.isMissingNode() && !annotationNode.isNull())) {
+        if (annotationNode != null && !annotationNode.isNull()) {
             try {
                 return new AnnotatedPointValueTime(dataValue, timestamp, TranslatableMessage.deserialize(annotationNode.asText()));
             } catch (TranslatableMessageParseException e) {
