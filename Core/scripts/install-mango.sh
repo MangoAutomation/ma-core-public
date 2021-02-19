@@ -1,8 +1,7 @@
 #!/bin/sh
 
 #
-# Copyright (C) 2019 Infinite Automation Systems Inc. All rights reserved.
-# @author Jared Wiltshire
+# Copyright (C) 2021 Radix IoT LLC. All rights reserved.
 #
 
 set -e
@@ -15,11 +14,6 @@ prompt() {
 	read -r result
 	[ -z "$result" ] && result="$2"
 	printf "%s" "$result"
-}
-
-# Used to download updated scripts from git main branch
-get_script() {
-	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
 }
 
 if [ -z "$MA_HOME" ]; then
@@ -45,7 +39,7 @@ fi
 if [ ! "$(id -u "$MA_USER" 2> /dev/null)" ]; then
 	NO_LOGIN_SHELL="$(command -v nologin)" || true
 	[ ! -x "$NO_LOGIN_SHELL" ] && NO_LOGIN_SHELL=/bin/false
-	
+
 	USER_ADD_CMD="$(command -v useradd)" || true
 	if [ ! -x "$USER_ADD_CMD" ]; then
 		echo "Can't create user '$MA_USER' as useradd command does not exist."
@@ -81,7 +75,7 @@ fi
 
 while [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
 	prompt_text="Drop SQL database '$MA_DB_NAME' and user '$MA_DB_USER'? (If they exist)"
-	MA_CONFIRM_DROP="$(prompt "$prompt_text" 'no')"
+  MA_CONFIRM_DROP="$(prompt "$prompt_text" 'no')"
 done
 
 if [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" = 'yes' ]; then
@@ -101,16 +95,16 @@ if [ "$(find "$MA_HOME" -mindepth 1 -maxdepth 1)" ]; then
 		prompt_text="Installion directory is not empty, delete all files in '$MA_HOME'? (May contain H2 databases and time series databases)"
 		MA_CONFIRM_DELETE="$(prompt "$prompt_text" 'no')"
 	done
-	
+
 	if [ "$MA_CONFIRM_DELETE" = 'no' ]; then
 		exit 1
 	fi
-	
+
 	find "$MA_HOME" -mindepth 1 -maxdepth 1 -exec rm -r '{}' \;
 fi
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
-	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '3.6.6')"
+	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '4.0.0')"
 fi
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_BUNDLE_TYPE" ]; then
@@ -139,6 +133,8 @@ fi
 [ "$MA_DELETE_ZIP" = true ] && rm -f "$MA_CORE_ZIP"
 
 # Create an overrides env.properties file
+mkdir "$MA_HOME"/overrides
+mkdir "$MA_HOME"/overrides/properties
 MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
 if [ "$MA_DB_TYPE" = 'mysql' ]; then
 	echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME?useSSL=false" > "$MA_ENV_FILE"
@@ -158,18 +154,6 @@ ssl.keystore.location=$MA_HOME/overrides/keystore.p12
 ssl.keystore.password=$(openssl rand -base64 24)" >> "$MA_ENV_FILE"
 
 chmod 600 "$MA_ENV_FILE"
-
-# Used to download updated scripts from git main branch
-get_script() {
-	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
-}
-
-get_script start-mango.sh
-get_script mango.service
-get_script getenv.sh
-get_script genkey.sh
-get_script certbot-deploy.sh
-get_script start-options.sh
 
 chmod +x "$MA_HOME"/bin/*.sh
 cp "$MA_HOME/bin/start-options.sh" "$MA_HOME/overrides/"
@@ -203,7 +187,7 @@ chown -R "$MA_USER":"$MA_GROUP" "$MA_HOME"
 # Stop and remove any existing mango service
 if [ -x "$(command -v systemctl)" ] && [ -d /etc/systemd/system ]; then
 	# link the new service file into /etc
-	ln -sf "$MA_HOME"/overrides/mango.service /etc/systemd/system/"$MA_SERVICE_NAME".service
+	systemctl link "$MA_HOME"/overrides/mango.service
 
 	# enable the sytemd service (but dont start Mango)
 	systemctl enable "$MA_SERVICE_NAME"
