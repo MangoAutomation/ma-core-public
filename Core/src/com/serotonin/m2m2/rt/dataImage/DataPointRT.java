@@ -252,30 +252,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         if (newValue == null || newValue.getValue() == null)
             return;
 
-        // Check the data type of the value against that of the locator, just for fun.
-        int valueDataType = DataTypes.getDataType(newValue.getValue());
-        if (valueDataType != DataTypes.UNKNOWN && valueDataType != vo.getPointLocator().getDataTypeId())
-            // This should never happen, but if it does it can have serious downstream consequences. Also, we need
-            // to know how it happened, and the stack trace here provides the best information.
-            throw new ShouldNeverHappenException("Data type mismatch between new value and point locator: newValue="
-                    + DataTypes.getDataType(newValue.getValue()) + ", locator=" + vo.getPointLocator().getDataTypeId());
-
         // Check if this value qualifies for discardation.
-        if (vo.isDiscardExtremeValues() && DataTypes.getDataType(newValue.getValue()) == DataTypes.NUMERIC) {
-            double newd = newValue.getDoubleValue();
-            //Discard if NaN
-            if(Double.isNaN(newd))
-                return;
-
-            if (newd < vo.getDiscardLowLimit() || newd > vo.getDiscardHighLimit())
-                // Discard the value
-                return;
-        }
-
-        if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
-            // Too far future dated. Toss it. But log a message first.
-            LOG.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
-                    + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime()));
+        if(discardUnwantedValues(newValue)) {
             return;
         }
 
@@ -387,24 +365,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         if (newValue == null || newValue.getValue() == null)
             return;
 
-        // Check the data type of the value against that of the locator, just for fun.
-        int valueDataType = DataTypes.getDataType(newValue.getValue());
-        if (valueDataType != DataTypes.UNKNOWN && valueDataType != vo.getPointLocator().getDataTypeId())
-            // This should never happen, but if it does it can have serious downstream consequences. Also, we need
-            // to know how it happened, and the stack trace here provides the best information.
-            throw new ShouldNeverHappenException("Data type mismatch between new value and point locator: newValue="
-                    + DataTypes.getDataType(newValue.getValue()) + ", locator=" + vo.getPointLocator().getDataTypeId());
-
         // Check if this value qualifies for discardation.
-        if (vo.isDiscardExtremeValues() && DataTypes.getDataType(newValue.getValue()) == DataTypes.NUMERIC) {
-            double newd = newValue.getDoubleValue();
-            //Discard if NaN
-            if(Double.isNaN(newd))
-                return;
-
-            if (newd < vo.getDiscardLowLimit() || newd > vo.getDiscardHighLimit())
-                // Discard the value
-                return;
+        if(discardUnwantedValues(newValue)) {
+            return;
         }
 
         if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
@@ -432,6 +395,49 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }else if(fireEvents == FireEvents.ALWAYS)
             fireEvents(pointValue.get(), newValue, null, source != null, true, logValue, false, false);
 
+    }
+
+    /**
+     * Should this value be discarded? The rules are:
+     *  - mismatched value data type to point data type
+     *  - if discarding extreme values then discard NaN or outside of extreme limits
+     *  - anything too far in the future, see future date limit system setting
+     *
+     * @param pvt
+     * @return
+     */
+    private boolean discardUnwantedValues(PointValueTime pvt) {
+
+        // Check the data type of the value against that of the locator, just for fun.
+        int valueDataType = DataTypes.getDataType(pvt.getValue());
+        if (valueDataType != DataTypes.UNKNOWN && valueDataType != vo.getPointLocator().getDataTypeId())
+            // This should never happen, but if it does it can have serious downstream consequences. Also, we need
+            // to know how it happened, and the stack trace here provides the best information.
+            throw new ShouldNeverHappenException("Data type mismatch between new value and point locator: newValue="
+                    + DataTypes.getDataType(pvt.getValue()) + ", locator=" + vo.getPointLocator().getDataTypeId());
+
+        if (vo.isDiscardExtremeValues() && vo.getPointLocator().getDataTypeId()== DataTypes.NUMERIC) {
+            double newd = pvt.getDoubleValue();
+            //Discard if NaN
+            if(Double.isNaN(newd))
+                return true;
+
+            if (newd < vo.getDiscardLowLimit() || newd > vo.getDiscardHighLimit()) {
+                return true;
+            }else {
+                return false;
+            }
+        }
+
+        //Future date check
+        if (pvt.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
+            // Too far future dated. Toss it. But log a message first.
+            LOG.warn("Discarding point value", new Exception("Future dated value detected: pointId="
+                    + vo.getId() + ", value=" + pvt.getValue().toString()
+                    + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + pvt.getTime()));
+            return true;
+        }
+        return false;
     }
 
     //
@@ -638,8 +644,13 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             } else
                 value = null;
 
-            if (value != null){
+            if (value != null) {
                 PointValueTime newValue = new PointValueTime(value, fireTime);
+                // Check if this value qualifies for discardation.
+                if(discardUnwantedValues(newValue)) {
+                    return;
+                }
+
                 valueCache.logPointValueAsync(newValue, null);
                 //Fire logged Events
                 fireEvents(null, newValue, null, false, false, true, false, false);
