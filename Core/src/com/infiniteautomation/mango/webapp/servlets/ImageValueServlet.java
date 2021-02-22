@@ -19,6 +19,8 @@ import org.apache.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
@@ -37,10 +39,6 @@ public class ImageValueServlet extends HttpServlet {
 
     private static final Log LOG = LogFactory.getLog(ImageValueServlet.class);
 
-    /**
-     * @TODO(security): Validate the point access against the user. If anonymous, make sure the view allows public
-     *                  access to the point.
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String imageInfo = request.getPathInfo();
@@ -67,10 +65,11 @@ public class ImageValueServlet extends HttpServlet {
             int width = getIntRequestParameter(request, "w", -1);
             int height = getIntRequestParameter(request, "h", -1);
 
-            // DataPointRT dp = Common.ctx.getRuntimeManager().getDataPoint(dataPointId);
-            // Permissions.ensureDataPointReadPermission(Common.getUser(request), dp.getVO());
-
             PointValueFacade pointValueFacade = new PointValueFacade(dataPointId);
+
+            //Permission checks
+            Common.getBean(PermissionService.class).ensureDataPointReadPermission(Common.getUser(), dataPointId);
+
             PointValueTime pvt = null;
             if (timestamp.startsWith(historyPrefix)) {
                 // Find the point with the given timestamp
