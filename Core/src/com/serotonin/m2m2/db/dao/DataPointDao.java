@@ -416,7 +416,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public DataPointSummary getSummary(String xid) {
-        Select<?> query = this.joinTables(this.create.select(
+        return create.select(
                 table.id,
                 table.xid,
                 table.name,
@@ -426,28 +426,24 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
                 table.editPermissionId,
                 table.setPermissionId,
                 table.seriesId)
-                .from(table), null).where(getXidField().eq(xid)).limit(1);
+                .from(table)
+                .where(getXidField().eq(xid))
+                .limit(1)
+                .fetchOne(this::mapDataPointSummary);
+    }
 
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        return this.ejt.query(sql, args.toArray(new Object[0]),
-                (rs) -> {
-                    if(rs.next()) {
-                        DataPointSummary summary = new DataPointSummary();
-                        summary.setId(rs.getInt(1));
-                        summary.setXid(rs.getString(2));
-                        summary.setName(rs.getString(3));
-                        summary.setDataSourceId(rs.getInt(4));
-                        summary.setDeviceName(rs.getString(5));
-                        summary.setReadPermission(permissionService.get(rs.getInt(6)));
-                        summary.setEditPermission(permissionService.get(rs.getInt(7)));
-                        summary.setSetPermission(permissionService.get(rs.getInt(8)));
-                        summary.setSeriesId(rs.getInt(9));
-                        return summary;
-                    }else {
-                        return null;
-                    }
-                });
+    public DataPointSummary mapDataPointSummary(Record record) {
+        DataPointSummary summary = new DataPointSummary();
+        summary.setId(record.get(table.id));
+        summary.setXid(record.get(table.xid));
+        summary.setName(record.get(table.name));
+        summary.setDataSourceId(record.get(table.dataSourceId));
+        summary.setDeviceName(record.get(table.deviceName));
+        summary.setReadPermission(permissionService.get(record.get(table.readPermissionId)));
+        summary.setEditPermission(permissionService.get(record.get(table.editPermissionId)));
+        summary.setSetPermission(permissionService.get(record.get(table.setPermissionId)));
+        summary.setSeriesId(record.get(table.seriesId));
+        return summary;
     }
 
     //
