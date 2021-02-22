@@ -20,6 +20,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 
@@ -56,7 +57,14 @@ public class PointValueTimeDeserializer extends StdDeserializer<PointValueTime> 
             case "BINARY": dataValue = new BinaryValue(valueNode.asBoolean()); break;
             case "MULTISTATE": dataValue = new MultistateValue(valueNode.asInt()); break;
             case "NUMERIC": dataValue = new NumericValue(valueNode.asDouble()); break;
-            case "IMAGE": throw JsonMappingException.from(jsonParser, "Unsupported dataType " + dataTypeStr);
+            case "IMAGE":
+
+                if(valueNode.get("saved").asBoolean()) {
+                    dataValue = new ImageValue(valueNode.get("id").asLong(), valueNode.get("type").asInt());
+                }else {
+                    dataValue = new ImageValue(valueNode.get("data").binaryValue(), valueNode.get("type").asInt());
+                }
+                break;
             default: throw JsonMappingException.from(jsonParser, "Unknown dataType " + dataTypeStr);
         }
 

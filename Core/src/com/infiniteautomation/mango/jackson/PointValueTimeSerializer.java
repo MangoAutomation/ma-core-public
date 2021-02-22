@@ -7,13 +7,13 @@ package com.infiniteautomation.mango.jackson;
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.IAnnotated;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 
 public class PointValueTimeSerializer extends StdSerializer<PointValueTime> {
 
@@ -43,7 +43,20 @@ public class PointValueTimeSerializer extends StdSerializer<PointValueTime> {
                 jsonGenerator.writeStringField("dataType", "NUMERIC");
                 jsonGenerator.writeNumberField("value", value.getDoubleValue());
                 break;
-            case DataTypes.IMAGE: throw JsonMappingException.from(jsonGenerator, "Unsupported dataType " + value.getDataType());
+            case DataTypes.IMAGE:
+                jsonGenerator.writeStringField("dataType", "IMAGE");
+                ImageValue imageValue = (ImageValue) value;
+                jsonGenerator.writeObjectFieldStart("value");
+                jsonGenerator.writeBooleanField("saved", imageValue.isSaved());
+                if(imageValue.isSaved()) {
+                    jsonGenerator.writeNumberField("id", imageValue.getId());
+                }else {
+                    //TODO Do we really want to save the entire image in the cache?
+                    jsonGenerator.writeBinary(imageValue.getData());
+                }
+                jsonGenerator.writeNumberField("type", imageValue.getType());
+                jsonGenerator.writeEndObject();
+                break;
         }
 
         jsonGenerator.writeNumberField("timestamp", pointValueTime.getTime());
