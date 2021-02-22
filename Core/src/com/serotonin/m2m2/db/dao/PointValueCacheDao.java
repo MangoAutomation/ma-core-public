@@ -45,4 +45,11 @@ public interface PointValueCacheDao {
      * @return - Map of vo.seriesId to list where list is never null
      */
     public Map<Integer, List<PointValueTime>> getPointValueCaches(List<DataPointVO> vos, Integer size);
+
+    /**
+     * Get the cache for a point value from the store, may be empty but never null
+     * @param vo
+     * @return
+     */
+    public List<PointValueTime> getPointValueCache(DataPointVO vo);
 }

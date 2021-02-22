@@ -67,4 +67,9 @@ public interface CachingPointValueDao extends PointValueDao, PointValueCacheDao 
         return caches;
     }
 
+    @Override
+    public default List<PointValueTime> getPointValueCache(DataPointVO vo) {
+        List<PointValueTime> cache = new ArrayList<>();
+        return getLatestPointValues(vo, vo.getDefaultCacheSize());
+    }
 }
