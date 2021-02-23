@@ -140,7 +140,7 @@ abstract public class ModuleElementDefinition implements Ordered {
         return Arrays.stream(classNames).allMatch(className -> {
             try {
                 classLoader.loadClass(className);
-            } catch (ClassNotFoundException e) {
+            } catch (ClassNotFoundException | UnsupportedClassVersionError e) {
                 return false;
             }
             return true;
