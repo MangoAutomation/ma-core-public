@@ -137,7 +137,7 @@ mkdir "$MA_HOME"/overrides
 mkdir "$MA_HOME"/overrides/properties
 MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
 if [ "$MA_DB_TYPE" = 'mysql' ]; then
-	echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME?useSSL=false" > "$MA_ENV_FILE"
+	echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME" > "$MA_ENV_FILE"
 elif [ "$MA_DB_TYPE" = 'h2' ]; then
 	echo "db.url=jdbc:h2:$MA_HOME/databases/$MA_DB_NAME" > "$MA_ENV_FILE"
 else
