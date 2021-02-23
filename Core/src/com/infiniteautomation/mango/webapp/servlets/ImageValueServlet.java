@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,13 @@ public class ImageValueServlet extends HttpServlet {
     public static final String historyPrefix = "hst";
 
     private static final Log LOG = LogFactory.getLog(ImageValueServlet.class);
+
+    private final PermissionService permissionService;
+
+    @Autowired
+    public ImageValueServlet(PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -68,7 +76,7 @@ public class ImageValueServlet extends HttpServlet {
             PointValueFacade pointValueFacade = new PointValueFacade(dataPointId);
 
             //Permission checks
-            Common.getBean(PermissionService.class).ensureDataPointReadPermission(Common.getUser(), dataPointId);
+            permissionService.ensureDataPointReadPermission(Common.getUser(), dataPointId);
 
             PointValueTime pvt = null;
             if (timestamp.startsWith(historyPrefix)) {
