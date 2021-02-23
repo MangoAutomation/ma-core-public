@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
+
 package com.infiniteautomation.mango.spring.script.engines;
 
 import java.net.MalformedURLException;
@@ -22,18 +23,14 @@ import com.infiniteautomation.mango.spring.script.permissions.LoadOtherPermissio
 import com.infiniteautomation.mango.spring.script.permissions.LoadWebPermission;
 import com.infiniteautomation.mango.spring.script.permissions.NashornPermission;
 import com.infiniteautomation.mango.spring.service.FileStoreService;
-import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-
 /**
+ *
+ * See <a href="https://github.com/szegedi/nashorn/wiki/Using-Nashorn-with-different-Java-versions">Using Nashorn with different Java versions</a>.
  * @author Jared Wiltshire
  */
-@SuppressWarnings({"removal", "deprecation", "restriction"})
-@ConditionalDefinition(requireClasses = {"jdk.nashorn.api.scripting.NashornScriptEngineFactory"})
-public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
+public abstract class NashornScriptEngineDefinition extends ScriptEngineDefinition {
 
     @Autowired
     NashornPermission permission;
@@ -54,24 +51,12 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
     };
 
     @Override
-    public boolean supports(ScriptEngineFactory engineFactory) {
-        return "jdk.nashorn.api.scripting.NashornScriptEngineFactory".equals(engineFactory.getClass().getName());
-    }
-
-    @Override
     public ScriptEngine createEngine(ScriptEngineFactory engineFactory, MangoScript script) {
-        ScriptEngine engine;
-
-        if (permissionService.hasAdminRole(script)) {
-            engine = engineFactory.getScriptEngine();
-        } else {
-            // deny access to all java classes
-            engine = ((NashornScriptEngineFactory) engineFactory).getScriptEngine(name -> false);
-        }
-
+        ScriptEngine engine = createScriptEngine(engineFactory,
+                permissionService.hasAdminRole(script) ? null : c -> false);
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-        JSObject loadFn = (JSObject) engineBindings.get("load");
 
+        Object originalLoad = engineBindings.get("load");
         if (!permissionService.hasAdminRole(script)) {
             // remove exit and quit functions from bindings
             for (String key : KEYS_TO_REMOVE) {
@@ -86,7 +71,7 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
             }
         }
 
-        Function<Object, Object> load = source -> {
+        Function<Object, Object> replacementLoad = source -> {
             URL url = null;
             if (source instanceof URL) {
                 url = (URL) source;
@@ -94,6 +79,7 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
                 try {
                     url = new URL((String) source);
                 } catch (MalformedURLException e) {
+                    // ignore
                 }
             }
 
@@ -104,17 +90,21 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
 
                 if (isFileStore && permissionService.hasPermission(script, loadFileStorePermission.getPermission()) ||
                         isWeb && permissionService.hasPermission(script, loadWebPermission.getPermission())) {
-                    return loadFn.call(null, source);
+                    return callLoad(originalLoad, source);
                 }
             }
 
             permissionService.ensurePermission(script, loadOtherPermission.getPermission());
-            return loadFn.call(null, source);
+            return callLoad(originalLoad, source);
         };
-        engineBindings.put("load", load);
+        engineBindings.put("load", replacementLoad);
 
         return engine;
     }
+
+    protected abstract Object callLoad(Object load, Object source);
+
+    protected abstract ScriptEngine createScriptEngine(ScriptEngineFactory engineFactory, Function<String, Boolean> filter);
 
     @Override
     public MangoPermission requiredPermission() {
