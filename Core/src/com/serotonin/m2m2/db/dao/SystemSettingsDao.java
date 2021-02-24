@@ -236,9 +236,9 @@ public class SystemSettingsDao extends BaseDao {
      */
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
-    private final ObjectMapper mapper = null;
+    private ObjectMapper mapper = null;
     @Autowired
-    private final ApplicationEventPublisher eventPublisher = null;
+    private ApplicationEventPublisher eventPublisher = null;
 
     private SystemSettingsDao() {
 
@@ -530,7 +530,10 @@ public class SystemSettingsDao extends BaseDao {
 
         this.updateThreadPoolSettings(key, value);
         SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingSaved(key, oldValue, value);
-        this.eventPublisher.publishEvent(new SystemSettingChangeAuditEvent(Common.getUser(), key, oldValue, value));
+
+        if (this.eventPublisher != null) {
+            this.eventPublisher.publishEvent(new SystemSettingChangeAuditEvent(Common.getUser(), key, oldValue, value));
+        }
     }
 
     /**
@@ -605,7 +608,10 @@ public class SystemSettingsDao extends BaseDao {
         if(fireEvents) {
             //Fire the event
             SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingRemoved(key, lastValue, getValue(key));
-            this.eventPublisher.publishEvent(new SystemSettingDeleteAuditEvent(Common.getUser(), key, lastValue, getValue(key)));
+
+            if (this.eventPublisher != null) {
+                this.eventPublisher.publishEvent(new SystemSettingDeleteAuditEvent(Common.getUser(), key, lastValue, getValue(key)));
+            }
         }
     }
 
