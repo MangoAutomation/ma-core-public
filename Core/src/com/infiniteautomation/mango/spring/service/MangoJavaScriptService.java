@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -23,6 +24,8 @@ import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
@@ -31,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.components.RunAs;
+import com.infiniteautomation.mango.spring.script.engines.NashornScriptEngineDefinition;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScript;
@@ -50,6 +54,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.MangoJavascriptContextObjectDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.ScriptEngineDefinition;
 import com.serotonin.m2m2.module.ScriptSourceDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
@@ -82,8 +87,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-
 /**
  * Service to allow running and validating Mango JavaScript scripts
  *
@@ -114,12 +117,25 @@ public class MangoJavaScriptService {
     private final PermissionService permissionService;
     private final DataPointService dataPointService;
     private final RunAs runAs;
+    private final Optional<NashornScriptEngineDefinition> nashornEngineDefinition;
+    private final Optional<ScriptEngineFactory> nashornFactory;
 
     @Autowired
-    public MangoJavaScriptService(PermissionService permissionService, DataPointService dataPointService, RunAs runAs) {
+    public MangoJavaScriptService(PermissionService permissionService, DataPointService dataPointService, RunAs runAs,
+                                  ScriptEngineManager manager, List<ScriptEngineDefinition> engineDefinitions) {
         this.dataPointService = dataPointService;
         this.permissionService = permissionService;
         this.runAs = runAs;
+
+        this.nashornFactory = manager.getEngineFactories().stream()
+                .filter(f -> f.getNames().contains("nashorn"))
+                .findFirst();
+
+        this.nashornEngineDefinition = engineDefinitions.stream()
+                .filter(def -> nashornFactory.isPresent() && def.supports(nashornFactory.get()))
+                .filter(def -> def instanceof NashornScriptEngineDefinition)
+                .map(def -> (NashornScriptEngineDefinition) def)
+                .findFirst();
     }
 
     /**
@@ -604,11 +620,12 @@ public class MangoJavaScriptService {
      * @return
      */
     public ScriptEngine newEngine() {
-        NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-        if(permissionService.hasAdminRole(Common.getUser()))
-            return factory.getScriptEngine();
-        else
-            return factory.getScriptEngine(className -> false);
+        ScriptEngineFactory factory = nashornFactory.orElseThrow(UnsupportedOperationException::new);
+        NashornScriptEngineDefinition def = nashornEngineDefinition.orElseThrow(UnsupportedOperationException::new);
+
+        PermissionHolder user = Common.getUser();
+        permissionService.ensurePermission(user, def.requiredPermission());
+        return def.createScriptEngine(factory, permissionService.hasAdminRole(user) ? null : c -> false);
     }
 
     /**

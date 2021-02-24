@@ -33,7 +33,7 @@ public class BuiltInNashornScriptEngineDefinition extends NashornScriptEngineDef
     }
 
     @Override
-    protected ScriptEngine createScriptEngine(ScriptEngineFactory engineFactory, Function<String, Boolean> filter) {
+    public ScriptEngine createScriptEngine(ScriptEngineFactory engineFactory, Function<String, Boolean> filter) {
         if (filter == null) {
             return engineFactory.getScriptEngine();
         }

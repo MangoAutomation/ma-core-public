@@ -104,7 +104,7 @@ public abstract class NashornScriptEngineDefinition extends ScriptEngineDefiniti
 
     protected abstract Object callLoad(Object load, Object source);
 
-    protected abstract ScriptEngine createScriptEngine(ScriptEngineFactory engineFactory, Function<String, Boolean> filter);
+    public abstract ScriptEngine createScriptEngine(ScriptEngineFactory engineFactory, Function<String, Boolean> filter);
 
     @Override
     public MangoPermission requiredPermission() {
