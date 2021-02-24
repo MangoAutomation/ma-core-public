@@ -90,19 +90,18 @@ public abstract class NashornScriptEngineDefinition extends ScriptEngineDefiniti
 
                 if (isFileStore && permissionService.hasPermission(script, loadFileStorePermission.getPermission()) ||
                         isWeb && permissionService.hasPermission(script, loadWebPermission.getPermission())) {
-                    return callLoad(originalLoad, source);
+                    return callFunction(originalLoad, null, source);
                 }
             }
 
             permissionService.ensurePermission(script, loadOtherPermission.getPermission());
-            return callLoad(originalLoad, source);
+            return callFunction(originalLoad, null, source);
         };
         engineBindings.put("load", replacementLoad);
-
         return engine;
     }
 
-    protected abstract Object callLoad(Object load, Object source);
+    protected abstract Object callFunction(Object function, Object thiz, Object... args);
 
     public abstract ScriptEngine createScriptEngine(ScriptEngineFactory engineFactory, Function<String, Boolean> filter);
 

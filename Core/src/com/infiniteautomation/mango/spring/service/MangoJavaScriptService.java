@@ -1,6 +1,7 @@
-/**
- * Copyright (C) 2019  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
+
 package com.infiniteautomation.mango.spring.service;
 
 import java.io.File;
@@ -15,7 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -93,7 +93,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  *
  */
-@SuppressWarnings("restriction")
 @Service
 public class MangoJavaScriptService {
 
@@ -117,8 +116,8 @@ public class MangoJavaScriptService {
     private final PermissionService permissionService;
     private final DataPointService dataPointService;
     private final RunAs runAs;
-    private final Optional<NashornScriptEngineDefinition> nashornEngineDefinition;
-    private final Optional<ScriptEngineFactory> nashornFactory;
+    private final NashornScriptEngineDefinition nashornEngineDefinition;
+    private final ScriptEngineFactory nashornFactory;
 
     @Autowired
     public MangoJavaScriptService(PermissionService permissionService, DataPointService dataPointService, RunAs runAs,
@@ -129,13 +128,15 @@ public class MangoJavaScriptService {
 
         this.nashornFactory = manager.getEngineFactories().stream()
                 .filter(f -> f.getNames().contains("nashorn"))
-                .findFirst();
+                .findFirst()
+                .orElse(null);
 
         this.nashornEngineDefinition = engineDefinitions.stream()
-                .filter(def -> nashornFactory.isPresent() && def.supports(nashornFactory.get()))
+                .filter(def -> nashornFactory != null && def.supports(nashornFactory))
                 .filter(def -> def instanceof NashornScriptEngineDefinition)
                 .map(def -> (NashornScriptEngineDefinition) def)
-                .findFirst();
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -239,10 +240,9 @@ public class MangoJavaScriptService {
     }
 
     /**
-     *
      * @param vo
      * @param createSetter
-     * @param user
+     * @param noChangeKey
      * @return
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter, String noChangeKey) {
@@ -484,7 +484,6 @@ public class MangoJavaScriptService {
      * @param runtime
      * @param timestamp
      * @throws ScriptError
-     * @throws ResultTypeException
      * @throws ScriptPermissionsException
      */
     public void execute(CompiledMangoJavaScript script, long runtime, long timestamp) throws ScriptError, ScriptPermissionsException {
@@ -575,9 +574,7 @@ public class MangoJavaScriptService {
 
     /**
      * Create a dumb setter that tracks actions but does not actually set anything
-     * @param vo
      * @param result
-     * @param permissions
      * @return
      */
     public ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result) {
@@ -616,16 +613,16 @@ public class MangoJavaScriptService {
     /* Utilities for Script Execution */
     /**
      * Create a new script engine
-     * @param - to help restrict script execution access so that only admin can access java classes
      * @return
      */
     public ScriptEngine newEngine() {
-        ScriptEngineFactory factory = nashornFactory.orElseThrow(UnsupportedOperationException::new);
-        NashornScriptEngineDefinition def = nashornEngineDefinition.orElseThrow(UnsupportedOperationException::new);
+        if (nashornFactory == null || nashornEngineDefinition == null) {
+            throw new UnsupportedOperationException("Nashorn engine is not available");
+        }
 
         PermissionHolder user = Common.getUser();
-        permissionService.ensurePermission(user, def.requiredPermission());
-        return def.createScriptEngine(factory, permissionService.hasAdminRole(user) ? null : c -> false);
+        permissionService.ensurePermission(user, nashornEngineDefinition.requiredPermission());
+        return nashornEngineDefinition.createScriptEngine(nashornFactory, permissionService.hasAdminRole(user) ? null : c -> false);
     }
 
     /**
@@ -793,8 +790,6 @@ public class MangoJavaScriptService {
         else if (toDataTypeId == DataTypes.NUMERIC) {
             if (input instanceof Number)
                 value = new NumericValue(((Number) input).doubleValue());
-            else if (input instanceof NumericValue)
-                value = (NumericValue) input;
             else if (input instanceof String) {
                 try {
                     value = new NumericValue(Double.parseDouble((String) input));

@@ -27,9 +27,8 @@ public class BuiltInNashornScriptEngineDefinition extends NashornScriptEngineDef
     }
 
     @Override
-    protected Object callLoad(Object load, Object source) {
-        JSObject loadFn = (JSObject) load;
-        return loadFn.call(null, source);
+    protected Object callFunction(Object function, Object thiz, Object... args) {
+        return ((JSObject) function).call(thiz, args);
     }
 
     @Override
