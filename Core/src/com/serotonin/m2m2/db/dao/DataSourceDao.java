@@ -38,6 +38,7 @@ import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
@@ -123,7 +124,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
             if(result.deleted > 0) {
                 this.publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
-                AuditEventType.raiseDeletedEvent(this.auditEventType, vo);
+                publishAuditEvent(new DeleteAuditEvent<DataSourceVO>(this.auditEventType, Common.getUser(), vo));
             }
 
             return result.deleted > 0;

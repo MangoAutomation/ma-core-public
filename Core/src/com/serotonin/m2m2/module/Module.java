@@ -179,6 +179,7 @@ public class Module {
     public boolean upgrade() throws Exception {
         this.previousVersion = InstalledModulesDao.instance.getModuleVersion(name);
         if(this.previousVersion == null) {
+            InstalledModulesDao.instance.updateModuleVersion(this);
             return true;
         }
         try {

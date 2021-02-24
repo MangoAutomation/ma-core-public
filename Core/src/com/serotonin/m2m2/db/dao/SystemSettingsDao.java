@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.awt.Color;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -20,8 +20,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -36,6 +38,8 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.components.EmailAddressVerificationService;
 import com.infiniteautomation.mango.spring.components.PasswordResetService;
+import com.infiniteautomation.mango.spring.events.audit.SystemSettingChangeAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.SystemSettingDeleteAuditEvent;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -233,8 +237,11 @@ public class SystemSettingsDao extends BaseDao {
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
     private final ObjectMapper mapper = null;
+    @Autowired
+    private final ApplicationEventPublisher eventPublisher = null;
 
     private SystemSettingsDao() {
+
     }
 
     // Value cache
@@ -505,23 +512,25 @@ public class SystemSettingsDao extends BaseDao {
                 if(Common.databaseProxy.getType() == DatabaseType.MYSQL) {
                     // Delete any existing value.
                     if(value == null) {
-                        removeValue(key);
+                        removeValue(key, false);
                     }else {
                         ejt2.update("insert into systemSettings values (?,?) on duplicate key update settingValue=?", new Object[] { key, value, value });
                     }
                 }else {
                     // Delete any existing value.
-                    removeValue(key);
+                    removeValue(key, false);
 
                     // Insert the new value if it's not null.
-                    if (value != null)
-                        ejt2.update("insert into systemSettings values (?,?)", new Object[] { key, value });
+                    if (value != null) {
+                        ejt2.update("insert into systemSettings values (?,?)", new Object[]{key, value});
+                    }
                 }
             }
         });
 
         this.updateThreadPoolSettings(key, value);
         SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingSaved(key, oldValue, value);
+        this.eventPublisher.publishEvent(new SystemSettingChangeAuditEvent(Common.getUser(), key, oldValue, value));
     }
 
     /**
@@ -569,17 +578,35 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
 
+    /**
+     * Remove the value from system settings, this will result in the default being used if there is one
+     * @param key
+     */
     public void removeValue(String key) {
+        removeValue(key, true);
+    }
+
+    /**
+     * Remove the value and optionally fire events
+     * @param key
+     * @param fireEvents
+     */
+    private void removeValue(String key, boolean fireEvents) {
         // Remove the value from the cache
         String lastValue = cache.remove(key);
 
-        // Reset the cached values too.
-        FUTURE_DATE_LIMIT = -1;
+        if(StringUtils.equals(key, FUTURE_DATE_LIMIT_PERIOD_TYPE) || StringUtils.equals(key, FUTURE_DATE_LIMIT_PERIODS)) {
+            // Reset the cached values too.
+            FUTURE_DATE_LIMIT = -1;
+        }
 
         ejt.update("delete from systemSettings where settingName=?", new Object[] { key });
 
-        //Fire the event
-        SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingRemoved(key, lastValue, getValue(key));
+        if(fireEvents) {
+            //Fire the event
+            SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingRemoved(key, lastValue, getValue(key));
+            this.eventPublisher.publishEvent(new SystemSettingDeleteAuditEvent(Common.getUser(), key, lastValue, getValue(key)));
+        }
     }
 
     public long getFutureDateLimit() {

@@ -48,6 +48,7 @@ import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.spring.events.audit.ChangeAuditEvent;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -398,7 +399,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         User old = get(userId);
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", homeUrl, userId);
         User user = get(userId);
-        AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
+        publishAuditEvent(new ChangeAuditEvent<User>(this.auditEventType, Common.getUser(), old, user));
         eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 
@@ -406,7 +407,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         User old = get(userId);
         ejt.update("UPDATE users SET muted=? WHERE id=?", boolToChar(muted), userId);
         User user = get(userId);
-        AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
+        publishAuditEvent(new ChangeAuditEvent<User>(this.auditEventType, Common.getUser(), old, user));
         eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, user, old));
     }
 

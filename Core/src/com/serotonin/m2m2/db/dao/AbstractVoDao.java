@@ -12,8 +12,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.events.audit.AuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.ChangeAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.CreateAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -147,7 +151,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
     public boolean delete(T vo) {
         if(super.delete(vo)) {
             if (this.auditEventType != null) {
-                AuditEventType.raiseDeletedEvent(this.auditEventType, vo);
+                publishAuditEvent(new DeleteAuditEvent<T>(this.auditEventType, Common.getUser(), vo));
             }
             return true;
         }else {
@@ -162,7 +166,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         }
         super.insert(vo);
         if (this.auditEventType != null) {
-            AuditEventType.raiseAddedEvent(this.auditEventType, vo);
+            publishAuditEvent(new CreateAuditEvent<T>(this.auditEventType, Common.getUser(), vo));
         }
     }
 
@@ -173,7 +177,7 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         }
         super.update(existing, vo);
         if (this.auditEventType != null) {
-            AuditEventType.raiseChangedEvent(this.auditEventType, existing, vo);
+            publishAuditEvent(new ChangeAuditEvent<T>(this.auditEventType, Common.getUser(), existing, vo));
         }
     }
 
@@ -183,6 +187,12 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
         .where(getXidField().eq(xid))
         .forUpdate()
         .fetch();
+    }
+
+    protected void publishAuditEvent(AuditEvent event) {
+        if (this.eventPublisher != null) {
+            this.eventPublisher.publishEvent(event);
+        }
     }
 
 }

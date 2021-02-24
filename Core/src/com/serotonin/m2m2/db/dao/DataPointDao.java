@@ -62,6 +62,8 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
+import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.ToggleAuditEvent;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
@@ -119,7 +121,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
             DataPointTagsDao dataPointTagsDao,
             EventDetectorDao eventDetectorDao) {
 
-        super(EventType.EventTypeNames.DATA_POINT, DataPoints.DATA_POINTS,
+        super(AuditEventType.TYPE_DATA_POINT, DataPoints.DATA_POINTS,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
 
@@ -243,7 +245,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", boolToChar(dp.isEnabled()), dp.getId());
         DataPointVO old = get(dp.getId());
         this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, old));
-        AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
+        this.publishAuditEvent(new ToggleAuditEvent(this.auditEventType, Common.getUser(), dp));
     }
 
     /**
@@ -381,23 +383,10 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
         //Audit Events/Dao events
         for(DataPointVO vo : batch) {
-            AuditEventType.raiseDeletedEvent(this.auditEventType, vo);
             publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
+            publishAuditEvent(new DeleteAuditEvent<DataPointVO>(this.auditEventType, Common.getUser(), vo));
         }
 
-    }
-
-    /**
-     * Use to raise events after the delete transaction of a data source
-     *
-     * @param points - deleted points
-     */
-    void raiseDeletedEvents(List<DataPointVO> points) {
-        for (DataPointVO dp : points) {
-            this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp));
-            AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
-            this.countMonitor.decrement();
-        }
     }
 
     /**

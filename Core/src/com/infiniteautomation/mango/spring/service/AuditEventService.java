@@ -4,13 +4,34 @@
 
 package com.infiniteautomation.mango.spring.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.infiniteautomation.mango.db.tables.Audit;
-import com.infiniteautomation.mango.db.tables.records.AuditRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
+import com.infiniteautomation.mango.spring.events.audit.ChangeAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.CreateAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.SystemSettingChangeAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.SystemSettingDeleteAuditEvent;
+import com.infiniteautomation.mango.spring.events.audit.ToggleAuditEvent;
+import com.serotonin.json.JsonException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.util.JsonSerializableUtility;
+import com.serotonin.m2m2.vo.AbstractActionVO;
+import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -20,6 +41,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 @Service
 public class AuditEventService extends AbstractBasicVOService<AuditEventInstanceVO, AuditEventDao> {
+
+    private final Logger log = LoggerFactory.getLogger(AuditEventService.class);
 
     @Autowired
     public AuditEventService(AuditEventDao dao, PermissionService permissionService) {
@@ -41,4 +64,143 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
         return permissionService.hasAdminRole(user);
     }
 
+    /**
+     * VO created
+     * @param event
+     */
+    @EventListener
+    protected void raiseCreatedEvent(CreateAuditEvent event) {
+        Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
+        Map<String, Object> context = new HashMap<String, Object>();
+        JsonSerializableUtility scanner = new JsonSerializableUtility();
+        try {
+            context = scanner.findValues(event.getVo());
+        } catch (IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | JsonException | IOException e) {
+            log.error(e.getMessage(), e);
+        }
+        raiseVoAuditEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, event.getAuditEventType(), event.getRaisingHolder(), event.getVo(), "event.audit.extended.added", context);
+    }
+
+    /**
+     * VO changed
+     * @param event
+     */
+    @EventListener
+    protected void raiseChangedEvent(ChangeAuditEvent event) {
+        Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
+        Map<String, Object> context = new HashMap<String, Object>();
+
+        //Find the annotated properties
+        JsonSerializableUtility scanner = new JsonSerializableUtility();
+        try {
+            context = scanner.findChanges(event.getFrom(), event.getVo());
+            if (context.size() == 0)
+                // If the object wasn't in fact changed, don't raise an event.
+                return;
+        } catch (IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | JsonException | IOException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        raiseVoAuditEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, event.getAuditEventType(), event.getRaisingHolder(), event.getVo(), "event.audit.extended.changed", context);
+    }
+
+    /**
+     * An action VO was toggled
+     * @param event
+     */
+    @EventListener
+    protected void raiseToggledEvent(ToggleAuditEvent event) {
+        Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
+        Map<String, Object> context = new HashMap<String, Object>();
+        context.put(AbstractActionVO.ENABLED_KEY, event.getVo().isEnabled());
+        raiseVoAuditEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, event.getAuditEventType(), event.getRaisingHolder(), event.getVo(), "event.audit.extended.toggled", context);
+    }
+
+    /**
+     * VO deleted
+     * @param event
+     */
+    @EventListener
+    protected void raiseDeletedEvent(DeleteAuditEvent event) {
+        Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
+        Map<String, Object> context = new HashMap<String, Object>();
+        raiseVoAuditEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, event.getAuditEventType(), event.getRaisingHolder(), event.getVo(), "event.audit.extended.deleted", context);
+    }
+
+    /**
+     * System setting changed
+     * @param event
+     */
+    @EventListener
+    protected void raiseSystemSettingChangedEvent(SystemSettingChangeAuditEvent event) {
+        Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
+        Map<String, Object> context = new HashMap<String, Object>();
+        context.put(event.getKey(), event.getToValue());
+        raiseSystemSettingAuditEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY,
+                event.getAuditEventType(), event.getRaisingHolder(),
+                event.getKey(), "event.audit.systemSetting.changed", context);
+    }
+
+    /**
+     * System setting deleted (set back to default)
+     * @param event
+     */
+    @EventListener
+    protected void raiseSystemSettingDeletedEvent(SystemSettingDeleteAuditEvent event) {
+        Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
+        Map<String, Object> context = new HashMap<String, Object>();
+        raiseSystemSettingAuditEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE,
+                event.getAuditEventType(), event.getRaisingHolder(),
+                event.getKey(), "event.audit.systemSetting.deleted", context);
+    }
+
+    private void raiseSystemSettingAuditEvent(int changeType, String auditEventType, PermissionHolder permissionHolder,
+            String systemSettingKey, String key, Map<String, Object> context) {
+        User raisingUser = permissionHolder.getUser();
+        Object username = permissionHolder.getPermissionHolderName();
+        if (raisingUser != null) {
+            username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
+        }
+
+        TranslatableMessage message = new TranslatableMessage(key, username, systemSettingKey);
+
+        AuditEventType type = new AuditEventType(auditEventType, changeType, Common.NEW_ID);
+        type.setRaisingUser(raisingUser);
+
+        Common.eventManager.raiseEvent(type, Common.timer.currentTimeMillis(), false,
+                AuditEventType.getEventType(type.getAuditEventType()).getAlarmLevel(),
+                message, context);
+    }
+
+
+    /**
+     * Common raise event logic
+     *
+     * @param changeType
+     * @param auditEventType
+     * @param permissionHolder
+     * @param to
+     * @param key
+     * @param context
+     */
+    private void raiseVoAuditEvent(int changeType, String auditEventType, PermissionHolder permissionHolder, AbstractVO to, String key, Map<String, Object> context) {
+
+        User raisingUser = permissionHolder.getUser();
+        Object username = permissionHolder.getPermissionHolderName();
+        if (raisingUser != null) {
+            username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
+        }
+
+        TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
+                to.getName(), to.getXid());
+
+        AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
+        type.setRaisingUser(raisingUser);
+
+        Common.eventManager.raiseEvent(type, Common.timer.currentTimeMillis(), false,
+                AuditEventType.getEventType(type.getAuditEventType()).getAlarmLevel(),
+                message, context);
+    }
 }

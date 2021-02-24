@@ -5,9 +5,7 @@
 package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,22 +20,15 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.ExportNames;
-import com.serotonin.m2m2.util.JsonSerializableUtility;
-import com.serotonin.m2m2.vo.AbstractActionVO;
-import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.timer.RejectedTaskReason;
 
 public class AuditEventType extends EventType {
     //
@@ -60,6 +51,7 @@ public class AuditEventType extends EventType {
     public static final String TYPE_PUBLISHER = "EVENT_PUBLISHER";
     public static final String TYPE_MAILING_LIST = "MAILING_LIST";
     public static final String TYPE_ROLE = "ROLE";
+
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
     private static final ConcurrentHashMap<String, EventTypeVO> EVENT_TYPES = new ConcurrentHashMap<>();
@@ -104,124 +96,6 @@ public class AuditEventType extends EventType {
 
     public static void setEventTypeAlarmLevel(String subtype, AlarmLevels alarmLevel) {
         SystemSettingsDao.instance.setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel.value());
-    }
-
-    public static void raiseAddedEvent(String auditEventType, AbstractVO o) {
-        Assert.notNull(auditEventType, "auditEventType cannot be null");
-        Map<String, Object> context = new HashMap<String, Object>();
-        JsonSerializableUtility scanner = new JsonSerializableUtility();
-        try {
-            context = scanner.findValues(o);
-        } catch (IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException | JsonException | IOException e) {
-            LOG.error(e.getMessage(), e);
-        }
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, auditEventType, o, "event.audit.extended.added", context);
-    }
-
-    public static void raiseChangedEvent(String auditEventType, AbstractVO from, AbstractVO to) {
-        Assert.notNull(auditEventType, "auditEventType cannot be null");
-        Map<String, Object> context = new HashMap<String, Object>();
-
-        //Find the annotated properties
-        JsonSerializableUtility scanner = new JsonSerializableUtility();
-        try {
-            context = scanner.findChanges(from,to);
-            if (context.size() == 0)
-                // If the object wasn't in fact changed, don't raise an event.
-                return;
-        } catch (IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException | JsonException | IOException e) {
-            LOG.error(e.getMessage(), e);
-        }
-
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, to, "event.audit.extended.changed", context);
-    }
-
-    public static void raiseToggleEvent(String auditEventType, AbstractActionVO toggled) {
-        Assert.notNull(auditEventType, "auditEventType cannot be null");
-        Map<String, Object> context = new HashMap<String, Object>();
-        context.put(AbstractActionVO.ENABLED_KEY, toggled.isEnabled());
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, toggled, "event.audit.extended.toggled", context);
-    }
-
-    public static void raiseDeletedEvent(String auditEventType, AbstractVO o) {
-        Assert.notNull(auditEventType, "auditEventType cannot be null");
-        Map<String, Object> context = new HashMap<String, Object>();
-        raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, auditEventType, o, "event.audit.extended.deleted", context);
-    }
-
-    private static void raiseEvent(int changeType, String auditEventType, AbstractVO to, String key, Map<String, Object> context) {
-        PermissionHolder permissionHolder = Common.getUser();
-        User raisingUser = permissionHolder.getUser();
-
-        Object username = permissionHolder.getPermissionHolderName();
-        if (raisingUser != null) {
-            username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
-        }
-
-        TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
-                to.getName(), to.getXid());
-
-        AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
-        type.setRaisingUser(raisingUser);
-
-        Common.backgroundProcessing.addWorkItem(new AuditEventWorkItem(type, Common.timer.currentTimeMillis(), message, context));
-    }
-
-    static class AuditEventWorkItem implements WorkItem {
-
-        private AuditEventType type;
-        private long time;
-        private TranslatableMessage message;
-        private Map<String, Object> context;
-
-
-        /**
-         * @param type
-         * @param time
-         * @param message
-         * @param context
-         */
-        public AuditEventWorkItem(AuditEventType type, long time, TranslatableMessage message,
-                Map<String, Object> context) {
-            this.type = type;
-            this.time = time;
-            this.message = message;
-            this.context = context;
-        }
-
-        @Override
-        public void execute() {
-            Common.eventManager.raiseEvent(type, time, false, getEventType(type.getAuditEventType())
-                    .getAlarmLevel(), message, context);
-        }
-
-        @Override
-        public int getPriority() {
-            return WorkItem.PRIORITY_LOW;
-        }
-
-        @Override
-        public String getDescription() {
-            return message.translate(Common.getTranslations());
-        }
-
-        @Override
-        public String getTaskId() {
-            // No Order required
-            return null;
-        }
-
-        @Override
-        public int getQueueSize() {
-            return 0;
-        }
-
-        @Override
-        public void rejected(RejectedTaskReason reason) {
-            //No special handling, tracking/logging handled by WorkItemRunnable
-        }
     }
 
     //

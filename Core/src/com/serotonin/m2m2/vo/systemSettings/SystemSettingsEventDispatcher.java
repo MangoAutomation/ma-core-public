@@ -14,9 +14,12 @@ import com.serotonin.timer.RejectedTaskReason;
 
 /**
  * Dispatch events for System settings changes
+ *   This class is deprecated, use the Spring event SystemSettingChangeAuditEvent
+ *
  * @author Terry Packer
  *
  */
+@Deprecated
 public class SystemSettingsEventDispatcher {
 
     private enum SystemSettingEventType {
