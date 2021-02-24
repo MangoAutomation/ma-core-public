@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.script.Invocable;
+import javax.script.ScriptException;
+
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -37,8 +40,6 @@ import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.web.http.HttpUtils4;
 
-import jdk.nashorn.api.scripting.JSObject;
-
 @SuppressWarnings("restriction")
 public class HttpBuilderScriptUtility extends ScriptUtility {
     public static final String CONTEXT_KEY = "HttpBuilder";
@@ -50,7 +51,7 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
     private ScriptHttpCallback responseCallback;
     private ScriptExceptionCallback exceptionCallback;
     private Exception thrown;
-    private List<Integer> okayStatus = new ArrayList<Integer>(1);
+    private final List<Integer> okayStatus = new ArrayList<>(1);
 
     @Autowired
     public HttpBuilderScriptUtility(MangoJavaScriptService service, PermissionService permissionService) {
@@ -118,24 +119,33 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
         return this;
     }
 
+    private Object invokeMethod(Object thiz, String name, Object... args) throws ScriptException {
+        Invocable invocable = (Invocable) getScriptEngine();
+        try {
+            return invocable.invokeMethod(thiz, name, args);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     @SuppressWarnings({"unchecked"})
-    public Object request(Map<String, Object> request) {
+    public Object request(Map<String, Object> request) throws ScriptException {
         reset();
         try {
             if(request.containsKey("excp"))
-                exceptionCallback = new ScriptObjectMirrorExceptionCallbackWrapper((JSObject)request.get("excp"));
+                exceptionCallback = e -> invokeMethod(request, "excp", e);
             else if(request.containsKey("exceptionCallback"))
-                exceptionCallback = new ScriptObjectMirrorExceptionCallbackWrapper((JSObject)request.get("exceptionCallback"));
+                exceptionCallback = e -> invokeMethod(request, "exceptionCallback", e);
 
             if(request.containsKey("err"))
-                errorCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("err"));
+                errorCallback = (s, h, c) -> invokeMethod(request, "err", s, h, c);
             else if(request.containsKey("errorCallback"))
-                errorCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("errorCallback"));
+                errorCallback = (s, h, c) -> invokeMethod(request, "errorCallback", s, h, c);
 
             if(request.containsKey("resp"))
-                responseCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("resp"));
+                responseCallback = (s, h, c) -> invokeMethod(request, "resp", s, h, c);
             else if(request.containsKey("responseCallback"))
-                responseCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("responseCallback"));
+                responseCallback = (s, h, c) -> invokeMethod(request, "responseCallback", s, h, c);
 
             if(!request.containsKey("path")) {
                 thrown = new Exception("Must have 'path' attribute to make request.");
@@ -177,11 +187,9 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
                 delete(path, headers);
 
             return execute();
-        } catch(ClassCastException e) {
+        } catch(ClassCastException | JsonProcessingException e) {
             thrown = e;
             //throw new ScriptException(e.getMessage());
-        } catch(JsonProcessingException e) {
-            thrown = e;
         } finally {
             if(thrown != null) {
                 if(exceptionCallback != null)
@@ -215,9 +223,7 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
                 post.setEntity(new StringEntity(Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.COMMON_OBJECT_MAPPER_NAME).writeValueAsString(content)));
             }
             request = post;
-        } catch(UnsupportedEncodingException e) {
-            thrown = e;
-        } catch(JsonProcessingException e) {
+        } catch(UnsupportedEncodingException | JsonProcessingException e) {
             thrown = e;
         }
         return this;
@@ -287,15 +293,15 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
         return this;
     }
 
-    public Object execute() {
+    public Object execute() throws ScriptException {
         return execute(false);
     }
 
-    public Object retry() {
+    public Object retry() throws ScriptException {
         return execute(true);
     }
 
-    private Object execute(boolean retry) {
+    private Object execute(boolean retry) throws ScriptException {
         if(!retry && retried > 0) {
             if(exceptionCallback != null)
                 return exceptionCallback.exception(new Exception("Request was already executed."));
@@ -325,9 +331,9 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
 
         try {
             for(Integer status : okayStatus)
-                if(status.intValue() == response.getStatusLine().getStatusCode()) {
+                if(status == response.getStatusLine().getStatusCode()) {
                     if(responseCallback != null)
-                        return responseCallback.invoke(status.intValue(), extractHeaders(response), HttpUtils4.readFullResponseBody(response));
+                        return responseCallback.invoke(status, extractHeaders(response), HttpUtils4.readFullResponseBody(response));
                     return null;
                 }
 
@@ -368,8 +374,8 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
 
     private Map<String, String> extractHeaders(HttpResponse response) {
         if(response == null)
-            return new HashMap<String, String>();
-        Map<String, String> headers = new HashMap<String, String>();
+            return new HashMap<>();
+        Map<String, String> headers = new HashMap<>();
         for(Header h : response.getAllHeaders())
             headers.put(h.getName(), h.getValue());
         return headers;
@@ -406,34 +412,5 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
         builder.append("setOkayStatusArray( int[] ): void, set the status codes to call the resp function on, default [200]\n");
         builder.append("}");
         return builder.toString();
-    }
-
-    private class ScriptObjectMirrorCallbackWrapper implements ScriptHttpCallback {
-
-        private final JSObject jso;
-
-        ScriptObjectMirrorCallbackWrapper(JSObject jso) {
-            this.jso = jso;
-        }
-
-        @Override
-        public Object invoke(int status, Map<String, String> headers, String content) {
-            return jso.call(HttpBuilderScriptUtility.this, status, headers, content);
-        }
-
-    }
-    
-    private class ScriptObjectMirrorExceptionCallbackWrapper implements ScriptExceptionCallback {
-        
-        private final JSObject jso;
-        
-        ScriptObjectMirrorExceptionCallbackWrapper(JSObject jso) {
-            this.jso = jso;
-        }
-        
-        @Override
-        public Object exception(Exception e) {
-            return jso.call(HttpBuilderScriptUtility.this, e);
-        }
     }
 }

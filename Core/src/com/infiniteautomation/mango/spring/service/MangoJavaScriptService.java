@@ -422,7 +422,7 @@ public class MangoJavaScriptService {
         if(script.getPermissionHolder() != null) {
             script.getUtilities().clear();
             for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
-                ScriptUtility util = script.isTestRun() ? def.initializeTestContextObject(script.getPermissionHolder()) : def.initializeContextObject(script.getPermissionHolder());
+                ScriptUtility util = def.initializeContextObject(script);
                 util.setScriptLog(script.getLog());
                 util.setResult(script.getResult());
                 util.takeContext(script.getEngine(), engineScope, script.getSetter(), script.getImportExclusions(), script.isTestRun());

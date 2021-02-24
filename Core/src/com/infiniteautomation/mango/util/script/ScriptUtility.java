@@ -27,6 +27,7 @@ public abstract class ScriptUtility {
 
     protected final static String NEWLINE = "\n";
     protected PermissionHolder permissions;
+    protected ScriptEngine scriptEngine;
     protected final MangoJavaScriptService service;
     protected final PermissionService permissionService;
     protected ScriptLog log;
@@ -52,7 +53,15 @@ public abstract class ScriptUtility {
     public PermissionHolder getPermissions() {
         return permissions;
     }
-    
+
+    public ScriptEngine getScriptEngine() {
+        return scriptEngine;
+    }
+
+    public void setScriptEngine(ScriptEngine scriptEngine) {
+        this.scriptEngine = scriptEngine;
+    }
+
     public void setScriptLog(ScriptLog log) {
         this.log = log;
     }

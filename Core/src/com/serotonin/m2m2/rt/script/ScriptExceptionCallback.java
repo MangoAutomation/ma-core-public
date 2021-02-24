@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.rt.script;
 
+import javax.script.ScriptException;
+
+@FunctionalInterface
 public interface ScriptExceptionCallback {
-    public Object exception(Exception e);
+    Object exception(Exception e) throws ScriptException;
 }
