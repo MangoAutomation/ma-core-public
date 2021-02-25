@@ -232,6 +232,8 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> extends Transa
      */
     <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user);
 
+    Field<Integer> getReadPermissionField();
+
     /**
      * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
      *  and value converters to translate the RQL conditions into the values expected from the database.

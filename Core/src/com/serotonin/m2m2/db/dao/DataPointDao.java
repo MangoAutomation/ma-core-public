@@ -800,35 +800,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
-            PermissionHolder user) {
-
-        if(!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
-
-            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
-
-            Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .from(MintermsRoles.MINTERMS_ROLES)
-                    .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .having(DSL.count().eq(DSL.count(
-                            DSL.case_().when(roleIdsIn, DSL.inline(1))
-                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
-
-            Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
-                    .from(PermissionsMinterms.PERMISSIONS_MINTERMS)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermsRoles.MINTERMS_ROLES.mintermId).eq(PermissionsMinterms.PERMISSIONS_MINTERMS.mintermId))
-                    .asTable("permissionsGranted");
-
-            select = select.join(permissionsGranted).on(
-                    permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            table.readPermissionId));
-
-        }
-        return select;
-    }
-
-    @Override
     protected RQLToCondition createRqlToCondition(Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap,
             Map<String, Function<Object, Object>> converterMap) {
         return new RQLToConditionWithTagKeys(fieldMap, converterMap);

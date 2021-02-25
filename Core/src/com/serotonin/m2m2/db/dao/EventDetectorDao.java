@@ -13,25 +13,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
-import org.jooq.SelectJoinStep;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.records.EventDetectorsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
@@ -56,7 +49,6 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -257,34 +249,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         MangoPermission editPermission = vo.getEditPermission();
         permissionService.deletePermissions(readPermission, editPermission);
         vo.getDefinition().deletePostRelationalData(vo);
-    }
-
-    @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
-                                                                ConditionSortLimit conditions, PermissionHolder user) {
-        if (!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
-
-            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
-
-            Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .from(MintermsRoles.MINTERMS_ROLES)
-                    .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .having(DSL.count().eq(DSL.count(
-                            DSL.case_().when(roleIdsIn, DSL.inline(1))
-                                    .else_(DSL.inline((Integer) null))))).asTable("mintermsGranted");
-
-            Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
-                    .from(PermissionsMinterms.PERMISSIONS_MINTERMS)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermsRoles.MINTERMS_ROLES.mintermId).eq(PermissionsMinterms.PERMISSIONS_MINTERMS.mintermId))
-                    .asTable("permissionsGranted");
-
-            select = select.join(permissionsGranted).on(
-                    permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            table.readPermissionId));
-
-        }
-        return select;
     }
 
     /**

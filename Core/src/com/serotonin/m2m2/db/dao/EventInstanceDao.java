@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -47,8 +46,6 @@ import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.tables.DataPointTags;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.Events;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.EventsRecord;
@@ -168,37 +165,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         }
 
         return select;
-    }
-
-    @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
-            ConditionSortLimit conditions, PermissionHolder user) {
-
-        if(!permissionService.hasAdminRole(user)) {
-
-            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(r -> r.getId()).collect(Collectors.toList());
-
-            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
-
-            Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .from(MintermsRoles.MINTERMS_ROLES)
-                    .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .having(DSL.count().eq(DSL.count(
-                            DSL.case_().when(roleIdsIn, DSL.inline(1))
-                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
-
-            Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
-                    .from(PermissionsMinterms.PERMISSIONS_MINTERMS)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermsRoles.MINTERMS_ROLES.mintermId).eq(PermissionsMinterms.PERMISSIONS_MINTERMS.mintermId))
-                    .asTable("permissionsGranted");
-
-            select = select.join(permissionsGranted).on(
-                    permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            table.readPermissionId));
-
-        }
-        return select;
-
     }
 
     @Override

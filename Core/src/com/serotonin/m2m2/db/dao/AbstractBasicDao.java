@@ -55,9 +55,12 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.db.tables.MintermsRoles;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.log.LogStopWatch;
@@ -65,6 +68,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -104,8 +108,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @param publisher
      */
     public AbstractBasicDao(TABLE table,
-            TranslatableMessage countMonitorName,
-            ObjectMapper mapper, ApplicationEventPublisher publisher) {
+                            TranslatableMessage countMonitorName,
+                            ObjectMapper mapper, ApplicationEventPublisher publisher) {
 
         this.table = table;
         this.mapper = mapper;
@@ -404,7 +408,42 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      */
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user) {
-        return select;
+        Field<Integer> readPermissionField = getReadPermissionField();
+        PermissionService permissionService = Common.getBean(PermissionService.class);
+        if (readPermissionField == null || permissionService.hasAdminRole(user)) {
+            return select;
+        }
+
+        List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
+        Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
+
+        Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
+                .from(MintermsRoles.MINTERMS_ROLES)
+                .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
+                .having(DSL.count().eq(DSL.count(
+                        DSL.case_().when(roleIdsIn, DSL.inline(1))
+                                .else_(DSL.inline((Integer) null))))).asTable("mintermsGranted");
+
+        Table<?> permissionsGranted = this.create.selectDistinct(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
+                .from(PermissionsMinterms.PERMISSIONS_MINTERMS)
+                .join(mintermsGranted)
+                .on(mintermsGranted.field(MintermsRoles.MINTERMS_ROLES.mintermId).eq(PermissionsMinterms.PERMISSIONS_MINTERMS.mintermId))
+                .asTable("permissionsGranted");
+
+        return select.join(permissionsGranted)
+                .on(permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(readPermissionField));
+
+    }
+
+    @Override
+    public Field<Integer> getReadPermissionField() {
+        Field<?> field = table.field("readPermissionId");
+        if (field != null) {
+            if (field.getDataType().isNumeric()) {
+                return field.coerce(Integer.class);
+            }
+        }
+        return null;
     }
 
     @Override
