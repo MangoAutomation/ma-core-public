@@ -397,7 +397,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         select = dao.joinTables(select, null);
 
         if(!permissionService.hasAdminRole(user)) {
-            select = dao.joinPermissions(select, csl, user);
+            select = dao.joinPermissions(select, user);
         }
 
         SelectConnectByStep<Record> afterWhere = conditions == null ? select : select.where(conditions);

@@ -171,7 +171,7 @@ public class DataPointTagsDao extends BaseDao {
             query = query.join(dataPointTable).on(DATA_POINT_ID.eq(dataPointTable.id));
 
             ConditionSortLimit csl = new ConditionSortLimit(null, null, null, null);
-            query = DataPointDao.getInstance().joinPermissions(query, csl, user);
+            query = DataPointDao.getInstance().joinPermissions(query, user);
             try (Stream<Record1<String>> stream = query.where(csl.getCondition()).stream()) {
                 return stream.map(Record1::value1).collect(Collectors.toSet());
             }
@@ -190,7 +190,7 @@ public class DataPointTagsDao extends BaseDao {
         if (!permissionService.hasAdminRole(user)) {
             query = query.join(dataPointTable).on(DATA_POINT_ID.eq(dataPointTable.id));
             ConditionSortLimit csl = new ConditionSortLimit(TAG_KEY.eq(tagKey), null, null, null);
-            query = DataPointDao.getInstance().joinPermissions(query, csl, user);
+            query = DataPointDao.getInstance().joinPermissions(query, user);
             conditional = query.where(csl.getCondition());
         }else {
             conditional = query.where(TAG_KEY.eq(tagKey));
@@ -262,7 +262,7 @@ public class DataPointTagsDao extends BaseDao {
             query = query.join(dataPointTable).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.id));
 
             ConditionSortLimit csl = new ConditionSortLimit(allConditions, null, null, null);
-            query = DataPointDao.getInstance().joinPermissions(query, csl, user);
+            query = DataPointDao.getInstance().joinPermissions(query, user);
             allConditions = csl.getCondition();
         }
 

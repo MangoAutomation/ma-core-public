@@ -400,9 +400,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * Join on permission read conditions to limit results to what the user can 'see'
      */
     @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user) {
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, PermissionHolder user) {
         Field<Integer> readPermissionField = getReadPermissionField();
-        if (readPermissionField == null || permissionService.hasAdminRole(user)) {
+        return joinPermissionsOnField(select, user, readPermissionField);
+    }
+
+    protected <R extends Record> SelectJoinStep<R> joinPermissionsOnField(SelectJoinStep<R> select, PermissionHolder user, Field<Integer> permissionIdField) {
+        if (permissionIdField == null || permissionService.hasAdminRole(user)) {
             return select;
         }
 
@@ -423,8 +427,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                 .asTable("permissionsGranted");
 
         return select.join(permissionsGranted)
-                .on(permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(readPermissionField));
-
+                .on(permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(permissionIdField));
     }
 
     @Override
@@ -444,7 +447,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
         SelectJoinStep<Record1<Integer>> select = count.from(table);
         select = joinTables(select, conditions);
-        select = joinPermissions(select, conditions, user);
+        select = joinPermissions(select, user);
         return customizedCount(select, conditions.getCondition());
     }
 
@@ -474,7 +477,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
-        select = joinPermissions(select, conditions, user);
+        select = joinPermissions(select, user);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 

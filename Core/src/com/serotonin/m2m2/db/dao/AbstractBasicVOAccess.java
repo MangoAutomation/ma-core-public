@@ -226,11 +226,10 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> extends Transa
      * Join the permissions table to restrict to viewable records
      * @param <R>
      * @param select
-     * @param conditions
      * @param user
      * @return
      */
-    <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user);
+    <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, PermissionHolder user);
 
     Field<Integer> getReadPermissionField();
 

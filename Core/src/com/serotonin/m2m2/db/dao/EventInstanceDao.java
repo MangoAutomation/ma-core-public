@@ -595,7 +595,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
         SelectJoinStep<Record> innerSelect = this.create.select(innerSelectFields)
                 .from(events);
-        innerSelect = joinPermissions(innerSelect, conditions, user);
+        innerSelect = joinPermissions(innerSelect, user);
         Table<?> innerSelectTable = innerSelect
                 .where(eventsConditions)
                 .groupBy(events.typeRef1, events.typeRef2, events.message, events.alarmLevel).asTable(events);

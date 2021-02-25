@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,8 +51,6 @@ import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
 import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
-import com.infiniteautomation.mango.db.tables.MintermsRoles;
-import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.TimeSeries;
 import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
@@ -85,7 +82,6 @@ import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
 
@@ -811,37 +807,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     public void customizedEditQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<DataPointVO> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
-        select = joinEditPermissions(select, conditions, user);
+        select = joinPermissionsOnField(select, user, table.editPermissionId);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
-
-    public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
-            PermissionHolder user) {
-        if(!permissionService.hasAdminRole(user)) {
-            List<Integer> roleIds = permissionService.getAllInheritedRoles(user).stream().map(Role::getId).collect(Collectors.toList());
-
-            Condition roleIdsIn = MintermsRoles.MINTERMS_ROLES.roleId.in(roleIds);
-
-            Table<?> mintermsGranted = this.create.select(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .from(MintermsRoles.MINTERMS_ROLES)
-                    .groupBy(MintermsRoles.MINTERMS_ROLES.mintermId)
-                    .having(DSL.count().eq(DSL.count(
-                            DSL.case_().when(roleIdsIn, DSL.inline(1))
-                            .else_(DSL.inline((Integer)null))))).asTable("mintermsGranted");
-
-            Table<?> permissionsGranted = this.create.select(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId)
-                    .from(PermissionsMinterms.PERMISSIONS_MINTERMS)
-                    .join(mintermsGranted).on(mintermsGranted.field(MintermsRoles.MINTERMS_ROLES.mintermId).eq(PermissionsMinterms.PERMISSIONS_MINTERMS.mintermId))
-                    .asTable("permissionsGranted");
-
-            select = select.join(permissionsGranted).on(
-                    permissionsGranted.field(PermissionsMinterms.PERMISSIONS_MINTERMS.permissionId).in(
-                            table.editPermissionId));
-
-        }
-        return select;
-    }
-
 
     protected void notifyTagsUpdated(DataPointVO dataPoint) {
         this.eventPublisher.publishEvent(new DataPointTagsUpdatedEvent(this, dataPoint));
