@@ -145,16 +145,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      */
     protected abstract Record toRecord(T vo);
 
-    /**
-     * Condition required for user to have read permission.  Override as required, note
-     *  that when overriding the user can and will sometimes be null
-     * @param user - reading user (can be null)
-     * @return
-     */
-    protected Condition hasReadPermission(PermissionHolder user) {
-        return DSL.trueCondition();
-    }
-
     public abstract @NonNull T mapRecord(@NonNull Record record);
 
     /**
