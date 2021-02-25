@@ -98,8 +98,6 @@ import com.serotonin.util.SerializationHelper;
 public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, DataPoints> {
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
-
-    private final PermissionService permissionService;
     private final DataPointTagsDao dataPointTagsDao;
     private final EventDetectorDao eventDetectorDao;
     private final List<DataPointChangeDefinition> changeDefinitions;
@@ -116,16 +114,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     @Autowired
     private DataPointDao(
             PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             DataPointTagsDao dataPointTagsDao,
             EventDetectorDao eventDetectorDao) {
 
         super(AuditEventType.TYPE_DATA_POINT, DataPoints.DATA_POINTS,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
-                mapper, publisher);
+                mapper, publisher, permissionService);
 
-        this.permissionService = permissionService;
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();

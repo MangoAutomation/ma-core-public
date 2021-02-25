@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.Publishers;
 import com.infiniteautomation.mango.db.tables.records.PublishersRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
@@ -63,11 +64,11 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
 
     @Autowired
     private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                         ApplicationEventPublisher publisher, DataPointDao dataPointDao){
+                         ApplicationEventPublisher publisher, DataPointDao dataPointDao, PermissionService permissionService){
         super(AuditEventType.TYPE_PUBLISHER,
                 Publishers.PUBLISHERS,
                 new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
-                mapper, publisher);
+                mapper, publisher, permissionService);
         this.dataPointDao = dataPointDao;
     }
 

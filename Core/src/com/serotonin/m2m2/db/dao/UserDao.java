@@ -72,7 +72,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
 
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
 
-    private final PermissionService permissionService;
     private final UserRoleMappings userRoleMappings;
     private final Roles roles;
     private final RoleDao roleDao;
@@ -85,8 +84,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         super(AuditEventType.TYPE_USER,
                 Users.USERS,
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
-                mapper, publisher);
-        this.permissionService = permissionService;
+                mapper, publisher, permissionService);
         this.roleDao = roleDao;
         this.oauth = OAuth2Users.O_AUTH2_USERS;
         this.roles = Roles.ROLES;

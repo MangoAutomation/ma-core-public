@@ -31,15 +31,12 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoresRecord, Fil
 
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(FileStoreDao.class));
 
-    private final PermissionService permissionService;
-
     @Autowired
     private FileStoreDao(
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             PermissionService permissionService) {
-        super(FileStore.FileStoreAuditEvent.TYPE_NAME, FileStores.FILE_STORES, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher);
-        this.permissionService = permissionService;
+        super(FileStore.FileStoreAuditEvent.TYPE_NAME, FileStores.FILE_STORES, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher, permissionService);
     }
 
     public static FileStoreDao getInstance() {

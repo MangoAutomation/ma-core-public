@@ -64,7 +64,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     private final DataPoints dataPointTable;
     private final DataSources dataSourceTable;
 
-    private final PermissionService permissionService;
     private final Map<String, Field<Integer>> sourceTypeToField;
 
     @Autowired
@@ -74,10 +73,9 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         super(AuditEventType.TYPE_EVENT_DETECTOR,
                 EventDetectors.EVENT_DETECTORS,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
-                mapper, publisher);
+                mapper, publisher, permissionService);
         this.dataPointTable = DataPoints.DATA_POINTS;
         this.dataSourceTable = DataSources.DATA_SOURCES;
-        this.permissionService = permissionService;
         //Build our ordered column set from the Module Registry
 
         this.sourceTypeToField = ModuleRegistry.getEventDetectorDefinitions()

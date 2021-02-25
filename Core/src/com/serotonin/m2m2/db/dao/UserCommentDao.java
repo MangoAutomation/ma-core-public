@@ -24,6 +24,7 @@ import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.UserCommentsRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -46,8 +47,8 @@ public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentsRe
     @Autowired
     private UserCommentDao(
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_USER_COMMENT, UserComments.USER_COMMENTS, null, mapper, publisher);
+            ApplicationEventPublisher publisher, PermissionService permissionService) {
+        super(AuditEventType.TYPE_USER_COMMENT, UserComments.USER_COMMENTS, null, mapper, publisher, permissionService);
         this.userTable = Users.USERS;
     }
 

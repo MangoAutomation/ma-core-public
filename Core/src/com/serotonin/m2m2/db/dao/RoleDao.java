@@ -30,6 +30,7 @@ import com.infiniteautomation.mango.db.tables.RoleInheritance;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.role.Role;
@@ -45,13 +46,13 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     private final PermissionDao permissionDao;
 
     @Autowired
-    private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher,
-            PermissionDao permissionDao) {
+    private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                    ApplicationEventPublisher publisher,
+                    PermissionDao permissionDao, PermissionService permissionService) {
         super(AuditEventType.TYPE_ROLE,
                 Roles.ROLES,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
-                mapper, publisher);
+                mapper, publisher, permissionService);
         this.permissionDao = permissionDao;
     }
 

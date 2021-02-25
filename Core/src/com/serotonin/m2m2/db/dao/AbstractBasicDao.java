@@ -89,6 +89,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     protected final TABLE table;
     protected final ObjectMapper mapper;
     protected final ApplicationEventPublisher eventPublisher;
+    protected final PermissionService permissionService;
 
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
@@ -97,8 +98,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     protected final Map<String, RQLSubSelectCondition> subSelectMap;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
-    public AbstractBasicDao(TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(table, null, mapper, publisher);
+    public AbstractBasicDao(TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
+        this(table, null, mapper, publisher, permissionService);
     }
 
     /**
@@ -106,14 +107,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @param countMonitorName - If not null create a monitor to track table row count
      * @param mapper
      * @param publisher
+     * @param permissionService
      */
     public AbstractBasicDao(TABLE table,
                             TranslatableMessage countMonitorName,
-                            ObjectMapper mapper, ApplicationEventPublisher publisher) {
+                            ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
 
         this.table = table;
         this.mapper = mapper;
         this.eventPublisher = publisher;
+        this.permissionService = permissionService;
 
         // Map of potential RQL property names to db fields
         this.fieldMap = unmodifiableMap(createFieldMap());
@@ -399,7 +402,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user) {
         Field<Integer> readPermissionField = getReadPermissionField();
-        PermissionService permissionService = Common.getBean(PermissionService.class);
         if (readPermissionField == null || permissionService.hasAdminRole(user)) {
             return select;
         }

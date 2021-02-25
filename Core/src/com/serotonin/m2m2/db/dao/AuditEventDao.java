@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.Audit;
 import com.infiniteautomation.mango.db.tables.records.AuditRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
@@ -37,9 +38,9 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
 
     @Autowired
     private AuditEventDao(
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
-        super(Audit.AUDIT, mapper, publisher);
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+            ApplicationEventPublisher publisher, PermissionService permissionService) {
+        super(Audit.AUDIT, mapper, publisher, permissionService);
     }
 
     /**

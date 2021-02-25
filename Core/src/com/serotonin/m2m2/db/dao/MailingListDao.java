@@ -48,17 +48,15 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
         return Common.getRuntimeContext().getBean(MailingListDao.class);
     });
 
-    private final PermissionService permissionService;
 
     @Autowired
     private MailingListDao(PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher){
+                           @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                           ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST,
                 MailingLists.MAILING_LISTS,
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
-                mapper, publisher);
-        this.permissionService = permissionService;
+                mapper, publisher, permissionService);
     }
 
     public static MailingListDao getInstance() {

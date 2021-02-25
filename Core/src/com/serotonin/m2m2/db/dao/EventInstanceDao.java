@@ -88,7 +88,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
     private final Users users;
     private final DataPointTagsDao dataPointTagsDao;
-    private final PermissionService permissionService;
     private final UserCommentDao userCommentDao;
     private final Field<Integer> commentCount;
 
@@ -97,10 +96,9 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                              PermissionService permissionService,
                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
                              ApplicationEventPublisher publisher, UserCommentDao userCommentDao) {
-        super(null, Events.EVENTS, null, mapper, publisher);
+        super(null, Events.EVENTS, null, mapper, publisher, permissionService);
         this.users = Users.USERS;
         this.dataPointTagsDao = dataPointTagsDao;
-        this.permissionService = permissionService;
         this.userCommentDao = userCommentDao;
 
         UserComments userComments = UserComments.USER_COMMENTS;

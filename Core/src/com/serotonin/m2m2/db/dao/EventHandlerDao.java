@@ -48,8 +48,6 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     private static final boolean H2_SYNTAX;
     private static final boolean MYSQL_SYNTAX;
 
-    private final PermissionService permissionService;
-
     static {
         if(Common.databaseProxy.getType() == DatabaseType.H2) {
             H2_SYNTAX = true;
@@ -73,8 +71,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         super(AuditEventType.TYPE_EVENT_HANDLER,
                 EventHandlers.EVENT_HANDLERS,
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
-                mapper, publisher);
-        this.permissionService = permissionService;
+                mapper, publisher, permissionService);
         this.eventInstanceDao = eventInstanceDao;
 
         this.handlerMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;

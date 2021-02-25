@@ -52,18 +52,16 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
         return Common.getRuntimeContext().getBean(DataSourceDao.class);
     });
 
-    private final PermissionService permissionService;
     private final EventHandlersMapping eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
 
     @Autowired
     private DataSourceDao(
             PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_DATA_SOURCE, DataSources.DATA_SOURCES,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
-                mapper, publisher);
-        this.permissionService = permissionService;
+                mapper, publisher, permissionService);
     }
 
     /**

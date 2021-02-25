@@ -16,6 +16,7 @@ import com.infiniteautomation.mango.spring.events.audit.AuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.ChangeAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.CreateAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -46,8 +47,8 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
      * @param mapper
      * @param publisher
      */
-    protected AbstractVoDao(String auditEventType, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(auditEventType, table, null, mapper, publisher);
+    protected AbstractVoDao(String auditEventType, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
+        this(auditEventType, table, null, mapper, publisher, permissionService);
     }
 
     /**
@@ -60,8 +61,8 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
      */
     protected AbstractVoDao(String auditEventType, TABLE table,
                             TranslatableMessage countMonitorName,
-                            ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        super(table, countMonitorName, mapper, publisher);
+                            ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
+        super(table, countMonitorName, mapper, publisher, permissionService);
         this.xidPrefix = getXidPrefix();
         this.auditEventType = auditEventType;
     }

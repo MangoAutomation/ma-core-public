@@ -41,14 +41,11 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
         return Common.getRuntimeContext().getBean(JsonDataDao.class);
     });
 
-    private final PermissionService permissionService;
-
     @Autowired
     private JsonDataDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-            ApplicationEventPublisher publisher,
-            PermissionService permissionService) {
-        super(AuditEventType.TYPE_JSON_DATA, JsonData.JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher);
-        this.permissionService = permissionService;
+                        ApplicationEventPublisher publisher,
+                        PermissionService permissionService) {
+        super(AuditEventType.TYPE_JSON_DATA, JsonData.JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher, permissionService);
     }
 
     /**
