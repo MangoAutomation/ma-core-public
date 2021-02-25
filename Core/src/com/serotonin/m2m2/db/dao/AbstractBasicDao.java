@@ -137,13 +137,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     }
 
     /**
-     * Converts a VO object into a map of fields for insert/update of DB.
+     * Converts a VO object into a jOOQ {@link Record} for insert/update of DB.
      *
      * @param vo
      *            to convert
      * @return object array
      */
-    protected abstract Record voToObjectArray(T vo);
+    protected abstract Record toRecord(T vo);
 
     /**
      * Condition required for user to have read permission.  Override as required, note
@@ -263,7 +263,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                     savePreRelationalData(null, vo);
 
                     int id = create.insertInto(table)
-                            .set(voToObjectArray(vo))
+                            .set(toRecord(vo))
                             .returningResult(getIdField())
                             .fetchOptional()
                             .orElseThrow(NoDataFoundException::new)
@@ -306,7 +306,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                 doInTransaction(status -> {
                     savePreRelationalData(existing, vo);
 
-                    create.update(table).set(voToObjectArray(vo))
+                    create.update(table).set(toRecord(vo))
                             .where(getIdField().eq(vo.getId()))
                             .execute();
 

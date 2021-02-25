@@ -94,7 +94,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     @Override
-    protected Record voToObjectArray(AbstractEventHandlerVO vo) {
+    protected Record toRecord(AbstractEventHandlerVO vo) {
         Record record = table.newRecord();
         record.set(table.xid, vo.getXid());
         record.set(table.alias, vo.getName());

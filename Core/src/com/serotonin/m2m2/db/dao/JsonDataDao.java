@@ -66,7 +66,7 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
     }
 
     @Override
-    protected Record voToObjectArray(JsonDataVO vo) {
+    protected Record toRecord(JsonDataVO vo) {
         String jsonData = null;
         try {
             JsonNode data = vo.getJsonData();

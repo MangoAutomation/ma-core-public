@@ -52,7 +52,7 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoresRecord, Fil
     }
 
     @Override
-    protected Record voToObjectArray(FileStore vo) {
+    protected Record toRecord(FileStore vo) {
         Record record = table.newRecord();
         record.set(table.xid, vo.getXid());
         record.set(table.name, vo.getName());

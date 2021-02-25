@@ -99,7 +99,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     }
 
     @Override
-    protected Record voToObjectArray(RoleVO vo) {
+    protected Record toRecord(RoleVO vo) {
         Record record = table.newRecord();
         record.set(table.xid, vo.getXid());
         record.set(table.name, vo.getName());

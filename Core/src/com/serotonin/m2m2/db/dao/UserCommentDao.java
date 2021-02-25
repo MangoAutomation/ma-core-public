@@ -110,7 +110,7 @@ public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentsRe
     }
 
     @Override
-    protected Record voToObjectArray(UserCommentVO vo) {
+    protected Record toRecord(UserCommentVO vo) {
         UserCommentsRecord record = table.newRecord();
 
         record.set(table.xid, vo.getXid());

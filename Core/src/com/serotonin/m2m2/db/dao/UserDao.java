@@ -412,7 +412,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     }
 
     @Override
-    protected Record voToObjectArray(User vo) {
+    protected Record toRecord(User vo) {
         Record record = table.newRecord();
         record.set(table.username, vo.getUsername());
         record.set(table.name, vo.getName());

@@ -204,7 +204,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     }
 
     @Override
-    protected Record voToObjectArray(DataSourceVO vo) {
+    protected Record toRecord(DataSourceVO vo) {
         Record record = table.newRecord();
         record.set(table.xid, vo.getXid());
         record.set(table.name, vo.getName());

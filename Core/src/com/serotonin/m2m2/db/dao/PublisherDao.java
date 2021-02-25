@@ -180,7 +180,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    protected Record voToObjectArray(PublisherVO<? extends PublishedPointVO> vo) {
+    protected Record toRecord(PublisherVO<? extends PublishedPointVO> vo) {
         Record record = table.newRecord();
         record.set(table.xid, vo.getXid());
         record.set(table.publisherType, vo.getDefinition().getPublisherTypeName());

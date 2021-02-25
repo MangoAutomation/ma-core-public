@@ -125,7 +125,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     }
 
     @Override
-    protected Record voToObjectArray(EventInstanceVO event) {
+    protected Record toRecord(EventInstanceVO event) {
         EventType type = event.getEventType();
         Record record = table.newRecord();
         record.set(table.typeName, type.getEventType());

@@ -53,7 +53,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
     }
 
     @Override
-    protected Record voToObjectArray(AuditEventInstanceVO vo) {
+    protected Record toRecord(AuditEventInstanceVO vo) {
         String jsonData = null;
         try{
             jsonData = writeValueAsString(vo.getContext());

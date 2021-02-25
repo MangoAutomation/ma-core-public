@@ -548,7 +548,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     }
 
     @Override
-    protected Record voToObjectArray(DataPointVO vo) {
+    protected Record toRecord(DataPointVO vo) {
         DataPointsRecord record = table.newRecord();
 
         record.set(table.xid, vo.getXid());

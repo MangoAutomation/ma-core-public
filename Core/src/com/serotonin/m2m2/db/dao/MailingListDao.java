@@ -159,7 +159,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
     }
 
     @Override
-    protected Record voToObjectArray(MailingList vo) {
+    protected Record toRecord(MailingList vo) {
         Record record = table.newRecord();
         record.set(table.xid, vo.getXid());
         record.set(table.name, vo.getName());

@@ -103,7 +103,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     }
 
     @Override
-    protected Record voToObjectArray(AbstractEventDetectorVO vo) {
+    protected Record toRecord(AbstractEventDetectorVO vo) {
         String data = null;
         try {
             data = writeValueAsString(vo);
