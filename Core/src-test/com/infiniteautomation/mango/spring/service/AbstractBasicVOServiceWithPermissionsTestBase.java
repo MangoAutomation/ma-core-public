@@ -393,16 +393,6 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 assertEquals(0, count);
             });
         });
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
-            service.insert(vo);
-            runAs.runAs(editUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(2, count);
-            });
-        });
     }
 
     @Test
@@ -442,16 +432,6 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 count.getAndIncrement();
             });
             assertEquals(0, count.get());
-        });
-        runAs.runAs(editUser, () -> {
-            Condition c = getDao().getIdField().eq(saved.getId());
-            ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
-            AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item) -> {
-                count.getAndIncrement();
-                assertEquals(saved.getId(), item.getId());
-            });
-            assertEquals(1, count.get());
         });
     }
 
