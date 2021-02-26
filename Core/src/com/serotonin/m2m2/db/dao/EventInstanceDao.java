@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -90,6 +88,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     private final DataPointTagsDao dataPointTagsDao;
     private final UserCommentDao userCommentDao;
     private final Field<Integer> commentCount;
+    private final DataPointTags dataPointTags;
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
@@ -107,6 +106,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                 .where(userComments.commentType.eq(UserCommentVO.TYPE_EVENT),
                         userComments.typeKey.eq(table.id))
                 .asField("commentCount");
+        dataPointTags = DataPointTags.DATA_POINT_TAGS;
     }
 
     /**
@@ -156,11 +156,11 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-                select = select.leftJoin(pivotTable).on(
+                Table<Record> tagsPivot = dataPointTagsDao.createTagPivotTable(tagKeyToColumn);
+                select = select.leftJoin(tagsPivot).on(
                         table.typeName.eq(EventType.EventTypeNames.DATA_POINT),
                         table.subTypeName.isNull(),
-                        table.typeRef1.eq(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID)
+                        table.typeRef1.eq(tagsPivot.field(dataPointTags.dataPointId))
                 );
             }
         }
@@ -536,7 +536,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                                                                         PermissionHolder user) {
         Events events = Events.EVENTS;
         DataPoints dataPoints = DataPoints.DATA_POINTS;
-        Name tagsAlias = DSL.name(DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS);
+        Name tagsAlias = DSL.name(DataPointTagsDao.TAGS_PIVOT_ALIAS);
         DataPointTags dataPointTags = DataPointTags.DATA_POINT_TAGS.as(tagsAlias);
 
         List<Field<?>> joinSelectFields = new ArrayList<>();

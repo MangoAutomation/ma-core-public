@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -47,6 +45,7 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.db.tables.DataPointTags;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
@@ -105,7 +104,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private final EventDetectors eventDetectors;
     private final UserComments userComments;
     private final DataSources dataSources;
-    private final EventHandlersMapping eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
+    private final EventHandlersMapping eventHandlersMapping;
+    private final DataPointTags dataPointTags;
 
     @Autowired
     private DataPointDao(
@@ -126,6 +126,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.eventDetectors = EventDetectors.EVENT_DETECTORS;
         this.userComments = UserComments.USER_COMMENTS;
         this.dataSources = DataSources.DATA_SOURCES;
+        this.eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
+        this.dataPointTags = DataPointTags.DATA_POINT_TAGS;
     }
 
     /**
@@ -785,8 +787,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(table.id));
+                Table<Record> tagsPivot = dataPointTagsDao.createTagPivotTable(tagKeyToColumn);
+                return select.leftJoin(tagsPivot).on(table.id.eq(tagsPivot.field(dataPointTags.dataPointId)));
             }
         }
         return select;
@@ -885,7 +887,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
             }
 
             Name columnName = columnNameForTagKey(tagKey);
-            return DSL.field(DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS.append(columnName));
+            return DSL.field(DataPointTagsDao.TAGS_PIVOT_ALIAS.append(columnName));
         }
 
         private Name columnNameForTagKey(String tagKey) {

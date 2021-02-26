@@ -76,7 +76,7 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
         }
 
         Name columnName = columnNameForTagKey(tagKey);
-        return (Field<T>) DSL.field(DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS.append(columnName));
+        return (Field<T>) DSL.field(DataPointTagsDao.TAGS_PIVOT_ALIAS.append(columnName));
     }
 
     public Name columnNameForTagKey(String tagKey) {
