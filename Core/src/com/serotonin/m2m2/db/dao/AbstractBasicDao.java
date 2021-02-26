@@ -500,10 +500,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     @Override
     public void customizedQuery(Select<Record> select, Consumer<T> callback) {
+        LogStopWatch stopWatch = null;
+        if (useMetrics) {
+            stopWatch = new LogStopWatch();
+        }
         try (Stream<Record> stream = select.stream()) {
             stream.map(this::mapRecordLoadRelationalData)
                     .filter(Objects::nonNull)
                     .forEach(callback);
+        }finally {
+            if (stopWatch != null) {
+                stopWatch.stop(() -> "customizedQuery(): " + create.renderInlined(select), metricsThreshold);
+            }
         }
     }
 
