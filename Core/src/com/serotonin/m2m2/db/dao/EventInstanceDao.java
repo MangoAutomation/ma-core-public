@@ -156,9 +156,12 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
-                // TODO Mango 4.0 throw exception or don't join if event type is not restricted to DATA_POINT
                 Table<Record> pivotTable = dataPointTagsDao.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-                select = select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(table.typeRef1));
+                select = select.leftJoin(pivotTable).on(
+                        table.typeName.eq(EventType.EventTypeNames.DATA_POINT),
+                        table.subTypeName.isNull(),
+                        table.typeRef1.eq(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID)
+                );
             }
         }
 
