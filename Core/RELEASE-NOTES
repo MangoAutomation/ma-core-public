@@ -80,6 +80,11 @@
 * Fix issue starting Mango when Nashorn JavaScript engine is not available (JDK 15+)
 * Changes below here added in 4.0.0-beta.8
 * Support using Nashorn JavaScript engine in JDK 15+ via "nashorn" module
+* Set open file limit in Mango systemd service (mango.service file)
+* Fix install script to create overrides directory and dont set useSSL parameter on MySQL URL
+* Performance enhancement when querying for events using data point tags
+* Audit event refactor to use Spring events
+* Support (de)serializing image point values to/from JSON for MapDB
 
 *Version 3.7.4*
 * Improve work item failure logging
