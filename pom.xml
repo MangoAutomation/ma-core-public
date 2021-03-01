@@ -19,6 +19,7 @@
         </noSnapshotVer>
         <compilerSourceVersion>1.8</compilerSourceVersion>
         <compilerTargetVersion>1.8</compilerTargetVersion>
+        <compilerReleaseVersion>8</compilerReleaseVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <buildNumber>${maven.build.timestamp}</buildNumber>
@@ -101,6 +102,22 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>javac-release</id>
+            <activation>
+                <jdk>[1.9,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <release>${compilerReleaseVersion}</release>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
     <build>
         <directory>maven-target</directory>
@@ -136,7 +153,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.2</version>
+                    <version>3.8.1</version>
                     <configuration>
                         <source>${compilerSourceVersion}</source>
                         <target>${compilerTargetVersion}</target>
