@@ -90,6 +90,12 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>webpack-development</id>
+            <properties>
+                <webpack.mode>development</webpack.mode>
+            </properties>
+        </profile>
     </profiles>
     <build>
         <resources>
