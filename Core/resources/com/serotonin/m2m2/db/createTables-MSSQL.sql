@@ -398,7 +398,6 @@ CREATE TABLE jsonData (
   	id int not null identity,
 	xid nvarchar(100) not null,
 	name nvarchar(255) not null,
-  	publicData char(1),
   	data ntext,
 	readPermissionId INT NOT NULL,
     editPermissionId INT NOT NULL,

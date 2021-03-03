@@ -481,7 +481,6 @@ CREATE TABLE jsonData
     id               INT          NOT NULL AUTO_INCREMENT,
     xid              VARCHAR(100) NOT NULL,
     name             VARCHAR(255) NOT NULL,
-    publicData       CHAR(1),
     data             LONGTEXT,
     readPermissionId INT          NOT NULL,
     editPermissionId INT          NOT NULL,

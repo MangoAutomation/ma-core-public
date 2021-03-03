@@ -412,7 +412,6 @@ CREATE TABLE jsonData (
   	id int not null auto_increment,
 	xid varchar(100) not null,
 	name varchar(255) not null,
-  	publicData char(1),
   	data longtext,
   	readPermissionId INT NOT NULL,
     editPermissionId INT NOT NULL,
