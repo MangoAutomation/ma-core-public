@@ -122,7 +122,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
-        
+
         this.eventDetectors = EventDetectors.EVENT_DETECTORS;
         this.userComments = UserComments.USER_COMMENTS;
         this.dataSources = DataSources.DATA_SOURCES;
@@ -820,7 +820,12 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     @Override
     protected Map<String, Field<?>> createFieldMap() {
         Map<String, Field<?>> fields = super.createFieldMap();
-        fields.put("dataType", DataPoints.DATA_POINTS.dataTypeId);
+        fields.put("dataType", table.dataTypeId);
+
+        DataSources dataSources = DataSources.DATA_SOURCES;
+        fields.put("dataSourceName", dataSources.name);
+        fields.put("dataSourceXid", dataSources.xid);
+        fields.put("dataSourceType", dataSources.dataSourceType);
         return fields;
     }
 
