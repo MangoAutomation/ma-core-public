@@ -266,6 +266,8 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
         assertEquals(expected.getDataSourceId(), actual.getDataSourceId());
         assertEquals(expected.getPointLocator().getDataTypeId(), actual.getPointLocator().getDataTypeId());
 
+        assertEquals(expected.getSeriesId(), actual.getSeriesId());
+
         assertPermission(expected.getReadPermission(), actual.getReadPermission());
         assertPermission(expected.getEditPermission(), actual.getEditPermission());
         assertPermission(expected.getSetPermission(), actual.getSetPermission());

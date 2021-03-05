@@ -658,8 +658,12 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
         //Shall we generate a new series ID?
         if(vo.getSeriesId() == Common.NEW_ID) {
-            int seriesId = insertNewTimeSeries();
-            vo.setSeriesId(seriesId);
+            if(existing == null) {
+                int seriesId = insertNewTimeSeries();
+                vo.setSeriesId(seriesId);
+            }else {
+                vo.setSeriesId(existing.getSeriesId());
+            }
         }
 
         MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
