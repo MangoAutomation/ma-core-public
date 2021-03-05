@@ -90,6 +90,7 @@
 * Fix H2 upgrade bug with JsonData schema to not have publicData column
 * Fix DataPointDao bug to allow use of RQL to query data source name,typeName,xid
 * Set javac release flag for newer JDK versions
+* Add timing metrics to customizedQuery in base DAOs
 
 *Version 3.7.4*
 * Improve work item failure logging
