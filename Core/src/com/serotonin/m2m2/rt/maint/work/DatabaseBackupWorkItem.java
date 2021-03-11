@@ -170,7 +170,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                         // Split off any extra stuff on the db
                         String[] dbParts = parts[3].split("\\?");
                         String database = dbParts[0];
-                        backupMysqlWithOutDatabase(dumpExePath, host, port, user, password, database, this.filename);
+                        backupMysqlWithOutDatabase(dumpExePath, host, port, user, password, database, backupFilePath, filename);
                         break;
                     case DERBY:
                     case MSSQL:
@@ -396,14 +396,14 @@ public class DatabaseBackupWorkItem implements WorkItem {
      * @return
      */
     public void backupMysqlWithOutDatabase(String dumpExePath, String host, String port, String user,
-            String password, String database, String backupPath) {
+            String password, String database, Path backupPath, String baseFilename) {
         try {
             Process p = null;
 
             // only backup the data not included create database
-            List<String> args = new ArrayList<String>();
+            List<String> args = new ArrayList<>();
             args.add(dumpExePath);
-            args.add("-h" + host);
+            args.add("-h" + (host.isEmpty() ? "localhost" : host));
             args.add("-P" + port);
             args.add("-u" + user);
             args.add("-p" + password);
@@ -411,51 +411,33 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
             ProcessBuilder pb = new ProcessBuilder(args);
             pb.redirectError(Redirect.INHERIT);
-            File rawOutputFile = new File(backupPath + ".sql");
-            pb.redirectOutput(Redirect.to(rawOutputFile));
+
+            Path sqlFile = backupPath.getParent().resolve(baseFilename + ".sql");
+            pb.redirectOutput(Redirect.to(sqlFile.toFile()));
 
             p = pb.start();
-
             int processComplete = p.waitFor();
 
             if (processComplete == 0) {
-                byte[] buffer = new byte[1024];
-
                 try {
-
-                    FileOutputStream fos = new FileOutputStream(backupPath + ".zip");
-                    ZipOutputStream zos = new ZipOutputStream(fos);
-                    ZipEntry ze = new ZipEntry(rawOutputFile.getName());
-                    zos.putNextEntry(ze);
-                    FileInputStream in = new FileInputStream(rawOutputFile);
-
-                    int len;
-                    while ((len = in.read(buffer)) > 0) {
-                        zos.write(buffer, 0, len);
+                    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(backupPath))) {
+                        ZipEntry ze = new ZipEntry(sqlFile.getFileName().toString());
+                        zos.putNextEntry(ze);
+                        Files.copy(sqlFile, zos);
+                        zos.closeEntry();
                     }
-
-                    in.close();
-                    zos.closeEntry();
-
-                    zos.close();
-                }finally{
+                } finally {
                     // Delete the sql file
-                    if(rawOutputFile.exists())
-                        rawOutputFile.delete();
+                    Files.deleteIfExists(sqlFile);
                 }
-
-                LOG.info("Backup created successfully for" + database + " in " + host + ":" + port);
+                LOG.info("Backup created successfully for " + database + " in " + host + ":" + port);
             } else {
                 LOG.info("Could not create the backup for " + database + " in " + host + ":" + port);
-                backupFailed(backupPath, "Process exit status: "+processComplete);
+                backupFailed(backupPath.toString(), "Process exit status: "+processComplete);
             }
-
-        } catch (IOException ioe) {
-            LOG.error(ioe, ioe.getCause());
-            backupFailed(backupPath, ioe.getMessage());
         } catch (Exception e) {
             LOG.error(e, e.getCause());
-            backupFailed(backupPath, e.getMessage());
+            backupFailed(backupPath.toString(), e.getMessage());
         }
     }
 
