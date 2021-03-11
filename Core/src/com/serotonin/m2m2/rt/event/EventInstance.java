@@ -17,6 +17,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceI;
@@ -197,7 +198,7 @@ public class EventInstance implements EventInstanceI {
 
     @Override
     public TranslatableMessage getMessage() {
-        if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
+        if(eventType.getEventType().equals(EventTypeNames.MISSING)) {
             MissingEventType type = (MissingEventType)eventType;
             return new TranslatableMessage("event.missing", type.getMissingTypeName());
         }else
@@ -205,7 +206,7 @@ public class EventInstance implements EventInstanceI {
     }
 
     public String getMessageString(){
-        if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
+        if(eventType.getEventType().equals(EventTypeNames.MISSING)) {
             MissingEventType type = (MissingEventType)eventType;
             return new TranslatableMessage("event.missing", type.getMissingTypeName()).translate(Common.getTranslations());
         }else
