@@ -74,7 +74,7 @@ public abstract class SystemActionTask extends TimerTask {
 			this.runImpl(runtime);
 		}catch(Exception e){
 			LOG.error(e.getMessage(), e);
-			this.results.put("exception", e);
+			this.results.put("exception", e.getMessage());
 			this.results.put("failed", true);
 		}finally{
 			this.finished = true;
