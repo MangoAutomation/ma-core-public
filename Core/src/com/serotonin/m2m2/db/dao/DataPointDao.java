@@ -153,12 +153,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
                 .fetch(this::mapRecordLoadRelationalData);
     }
 
-    /**
-     * Get all data point Ids in the table
-     * @return
-     */
-    public List<Integer> getDataPointIds(){
-        return queryForList("SELECT id FROM dataPoints" , Integer.class);
+    public Set<Integer> getSeriesIds() {
+        return create.select(table.seriesId).from(table).fetchSet(table.seriesId);
     }
 
     /**
