@@ -151,49 +151,10 @@ public class PointValueCache {
      * @param size
      */
     private List<PointValueTime> refreshCache(int size, List<PointValueTime> existing) {
-
-        //Expanding cache
         if (size > maxSize) {
+            //Expanding cache
             maxSize = size;
-
-            //TODO Mango 4.0 deal with this oddity
-            if(pointValueCacheDao instanceof PointValueDao) {
-                if (size == 1) {
-                    PointValueTime pvt = dao.getLatestPointValue(vo);
-                    if (pvt != null) {
-                        List<PointValueTime> c = new ArrayList<PointValueTime>();
-                        c.add(pvt);
-                        return c;
-                    } else {
-                        return existing;
-                    }
-                } else {
-                    List<DataPointVO> vos = new ArrayList<>();
-                    vos.add(vo);
-                    List<PointValueTime> cc = new ArrayList<>();
-                    cc.addAll(existing);
-                    List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
-                    dao.getLatestPointValues(vos, Long.MAX_VALUE, false, size, (value, index) -> {
-                        //Cache is in same order as rows
-                        if (nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
-                            //The cached value is newer so add it
-                            while (nc.size() < size && cc.size() > 0 && cc.get(0).getTime() > value.getTime())
-                                nc.add(cc.remove(0));
-                            if (cc.size() > 0 && cc.get(0).getTime() == value.getTime())
-                                cc.remove(0);
-                            if (nc.size() < size)
-                                nc.add(value);
-                        } else {
-                            //Past cached value times
-                            if (nc.size() < size)
-                                nc.add(value);
-                        }
-                    });
-                    return nc;
-                }
-            }else {
-                return pointValueCacheDao.expandPointValueCache(vo, size, existing);
-            }
+            return pointValueCacheDao.expandPointValueCache(vo, size, existing);
         }else {
             return existing;
         }
