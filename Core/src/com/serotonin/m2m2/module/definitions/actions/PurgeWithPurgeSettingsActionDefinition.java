@@ -57,6 +57,7 @@ public class PurgeWithPurgeSettingsActionDefinition extends SystemActionDefiniti
         public void runImpl(long runtime) {
             DataPurge dataPurge = new DataPurge();
             dataPurge.execute(Common.timer.currentTimeMillis());
+            this.results.put("countPointValues", dataPurge.isCountPointValues());
             this.results.put("deletedPointValues", dataPurge.getDeletedSamples());
             this.results.put("deletedFiles", dataPurge.getDeletedFiles());
             this.results.put("deletedEvents", dataPurge.getDeletedEvents());
