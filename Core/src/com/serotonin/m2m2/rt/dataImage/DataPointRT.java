@@ -266,9 +266,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         switch (vo.getLoggingType()) {
             case DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL:
             case DataPointVO.LoggingTypes.ON_CHANGE:
-                if (pointValue.get() == null)
+                if (pointValue.get() == null) {
                     logValue = true;
-                else if (backdated)
+                    if(newValue.getValue() instanceof NumericValue) {
+                        //Set the tolerance origin so the next value has
+                        // something to compare to
+                        toleranceOrigin = newValue.getDoubleValue();
+                    }
+                }else if (backdated)
                     // Backdated. Ignore it
                     logValue = false;
                 else {
@@ -814,7 +819,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     public void initializeHistorical() {
         if(timer != null) {
-            pointValue.set(getPointValueBefore(timer.currentTimeMillis()));
+            pointValue.set(getPointValueBefore(timer.currentTimeMillis() + 1));
             initializeIntervalLogging(timer.currentTimeMillis(), false);
         } else
             initializeIntervalLogging(0l, false);
