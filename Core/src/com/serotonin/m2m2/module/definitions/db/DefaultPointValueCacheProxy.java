@@ -4,7 +4,7 @@
  *
  */
 
-package com.serotonin.m2m2.module.definitions.actions.com.serotonin.m2m2.module.definitions.pointValueCacheProxy;
+package com.serotonin.m2m2.module.definitions.db;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.PointValueCacheProxy;
@@ -13,7 +13,7 @@ import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 /**
  * Default implementation of proxy to use if none are module defined
  */
-public class SqlPointValueCacheProxy extends PointValueCacheProxy {
+public class DefaultPointValueCacheProxy extends PointValueCacheProxy {
 
     @Override
     protected void initialize() {
