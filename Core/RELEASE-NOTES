@@ -36,7 +36,6 @@
 * Delete Mango work directory on upgrade as it is only used for the legacy UI
 * Fix bug where the quantize setting on a data source was not being imported in a JSON import
 * Add ability for modules to define asynchronous servlets
-* Upgrade apache commons database pool library (commons-dbcp2) to 2.7.0
 * Change PointValueDao interface to use full DataPointVO instead of just the data point id
 * Change MySQL character set to utf8mb4 for full UTF support (note: Mango requires MySQL v5.7.8 or newer)
 * Upgrade Caffeine cache library to 2.8.5
@@ -65,7 +64,7 @@
 * The default location of the env.properties file is now $MA_HOME/env.properties, Mango will still fall back to the old location at $MA_HOME/overrides/properties/env.properties
 * The location of the env.properties can now be specified via an environment variable "mango_config" or via Java system property "mango.config"
 * The env.properties file is now created on startup if it does not exist, it will be created with all properties commented out
-* Mango will now fail to start if the env.properties file has POSIX "others" read/write permissions. You must manually adjust the permissions on your env.properties file so it is not readable or writable by "others".
+* Mango will now log a warning if the env.properties file has POSIX "others" read/write permissions. You must manually adjust the permissions on your env.properties file so it is not readable or writable by "others".
 * $MA_HOME/overrides/classes and $MA_HOME/overrides/properties are no longer added to the classpath via the default start up scripts.
 * Changes below here added in 4.0.0-beta.6
 * Change MySQL connection pool library from dbcp2 to HikariCP
