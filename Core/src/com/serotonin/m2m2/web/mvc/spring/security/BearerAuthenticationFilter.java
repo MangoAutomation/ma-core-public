@@ -75,8 +75,8 @@ public class BearerAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (authenticationIsRequired()) {
                 BearerAuthenticationToken authRequest = new BearerAuthenticationToken(tokenString);
-                Authentication authResult = authenticationManager.authenticate(authRequest);
                 authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
+                Authentication authResult = authenticationManager.authenticate(authRequest);
                 SecurityContextHolder.getContext().setAuthentication(authResult);
             }
         } catch (AuthenticationException failed) {
