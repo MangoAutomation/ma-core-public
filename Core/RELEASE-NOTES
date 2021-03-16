@@ -94,6 +94,8 @@
 * Fix bug in on point value change logging type where the first 2 values of a point always would be logged no matter what
 * Improve nightly purge performance
 * Fix extra .zip being applied to nightly SQL backup names
+* Changes below here added in 4.0.0-beta.11
+* Fix bug where login events were being generated during Token Authentication
 
 *Version 3.7.4*
 * Improve work item failure logging
