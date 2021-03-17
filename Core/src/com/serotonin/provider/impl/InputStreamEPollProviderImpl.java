@@ -3,6 +3,8 @@
  */
 package com.serotonin.provider.impl;
 
+import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
+
 import com.serotonin.epoll.InputStreamEPoll;
 import com.serotonin.provider.InputStreamEPollProvider;
 
@@ -31,7 +33,9 @@ public class InputStreamEPollProviderImpl implements InputStreamEPollProvider {
             synchronized (this) {
                 if (inputStreamEPoll == null) {
                     inputStreamEPoll = new InputStreamEPoll();
-                    Thread thread = new Thread(inputStreamEPoll, inputStreamEPoll.getClass().getSimpleName());
+
+                    Thread thread = new Thread(new DelegatingSecurityContextRunnable(inputStreamEPoll),
+                            inputStreamEPoll.getClass().getSimpleName());
                     thread.setPriority(Thread.MAX_PRIORITY);
                     thread.start();
                 }
