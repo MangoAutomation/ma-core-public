@@ -29,12 +29,14 @@ import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.JsonSerializableUtility;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.timer.RejectedTaskReason;
 
 /**
  *
@@ -65,11 +67,15 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
         return permissionService.hasAdminRole(user);
     }
 
+    @EventListener
+    protected void raiseAuditEvent(AuditEvent event) {
+        Common.backgroundProcessing.addWorkItem(new AuditEventWorkItem(event, this));
+    }
+
     /**
      * VO created
      * @param event
      */
-    @EventListener
     protected void raiseCreatedEvent(CreateAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
@@ -87,7 +93,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
      * VO changed
      * @param event
      */
-    @EventListener
     protected void raiseChangedEvent(ChangeAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
@@ -111,7 +116,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
      * An action VO was toggled
      * @param event
      */
-    @EventListener
     protected void raiseToggledEvent(ToggleAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
@@ -123,7 +127,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
      * VO deleted
      * @param event
      */
-    @EventListener
     protected void raiseDeletedEvent(DeleteAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
@@ -134,7 +137,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
      * System setting changed
      * @param event
      */
-    @EventListener
     protected void raiseSystemSettingChangedEvent(SystemSettingChangeAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
@@ -148,7 +150,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
      * System setting deleted (set back to default)
      * @param event
      */
-    @EventListener
     protected void raiseSystemSettingDeletedEvent(SystemSettingDeleteAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
         Map<String, Object> context = new HashMap<String, Object>();
@@ -203,5 +204,59 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
         Common.eventManager.raiseEvent(type, Common.timer.currentTimeMillis(), false,
                 AuditEventType.getEventType(type.getAuditEventType()).getAlarmLevel(),
                 message, context);
+    }
+
+    static class AuditEventWorkItem implements WorkItem {
+
+        private final AuditEventService service;
+        private final AuditEvent auditEvent;
+
+        public AuditEventWorkItem(AuditEvent event, AuditEventService service) {
+            this.service = service;
+            this.auditEvent = event;
+        }
+
+        @Override
+        public void execute() {
+            if(auditEvent instanceof CreateAuditEvent) {
+                service.raiseCreatedEvent((CreateAuditEvent)auditEvent);
+            }else if(auditEvent instanceof ChangeAuditEvent) {
+                service.raiseChangedEvent((ChangeAuditEvent)auditEvent);
+            }else if(auditEvent instanceof ToggleAuditEvent) {
+                service.raiseToggledEvent((ToggleAuditEvent)auditEvent);
+            }else if(auditEvent instanceof DeleteAuditEvent) {
+                service.raiseDeletedEvent((DeleteAuditEvent)auditEvent);
+            }else if(auditEvent instanceof SystemSettingChangeAuditEvent) {
+                service.raiseSystemSettingChangedEvent((SystemSettingChangeAuditEvent)auditEvent);
+            }else if(auditEvent instanceof SystemSettingDeleteAuditEvent) {
+                service.raiseSystemSettingDeletedEvent((SystemSettingDeleteAuditEvent)auditEvent);
+            }
+        }
+
+        @Override
+        public int getPriority() {
+            return WorkItem.PRIORITY_LOW;
+        }
+
+        @Override
+        public String getDescription() {
+            return auditEvent.getAuditEventType();
+        }
+
+        @Override
+        public String getTaskId() {
+            // No Order required
+            return null;
+        }
+
+        @Override
+        public int getQueueSize() {
+            return 0;
+        }
+
+        @Override
+        public void rejected(RejectedTaskReason reason) {
+            //No special handling, tracking/logging handled by WorkItemRunnable
+        }
     }
 }
