@@ -43,7 +43,7 @@ public class DataSourceEventType extends EventType {
             return ds;
         });
         supplyReference2(() -> {
-            return null;
+            return dataSourceEventTypeId;
         });
     }
 
@@ -56,7 +56,7 @@ public class DataSourceEventType extends EventType {
             return Common.getBean(DataSourceDao.class).get(dataSourceId);
         });
         supplyReference2(() -> {
-            return null;
+            return dataSourceEventTypeId;
         });
     }
 
