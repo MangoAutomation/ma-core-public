@@ -9,12 +9,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Field;
 import org.jooq.Table;
 
 import com.infiniteautomation.mango.db.DefaultSchema;
@@ -53,8 +56,22 @@ public class DBConvert {
                     tables.addAll(def.getTablesForConversion());
                 }
 
-                for (Table<?> table : tables)
-                    copyTable(sourceConn, targetConn, table);
+                int constraintViolations = 0;
+                for (int i = 0; i < tables.size(); i++) {
+                    Table<?> table = tables.get(i);
+                    try {
+                        copyTable(sourceConn, targetConn, table);
+                    } catch (SQLIntegrityConstraintViolationException e) {
+                        // TODO either pre-order the tables or look up foreign key reference to check if table exists yet
+                        // table must have a constraint that references a table we haven't created yet
+                        if (constraintViolations++ < 1000) {
+                            LOG.warn("Constraint violation while converting table " + table.getName() + ", will reattempt");
+                            tables.add(table);
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
             }
         }
 
@@ -63,11 +80,14 @@ public class DBConvert {
 
     private void copyTable(Connection sourceConn, Connection targetConn, Table<?> table) throws SQLException {
         String tableName = table.getName();
-        LOG.warn(" --> Converting table " + tableName + "...");
+        LOG.warn("Converting table " + tableName + "...");
 
         // Get the source data
         Statement sourceStmt = sourceConn.createStatement();
-        ResultSet rs = sourceStmt.executeQuery("select * from " + tableName);
+
+        // only copy fields explicitly listed in our schema
+        String fields = table.fieldStream().map(Field::getName).collect(Collectors.joining(","));
+        ResultSet rs = sourceStmt.executeQuery("select  " + fields + " from " + tableName);
 
         // Create the insert statement from the meta data of the source.
         StringBuilder sb = new StringBuilder();
@@ -112,6 +132,6 @@ public class DBConvert {
         rs.close();
         sourceStmt.close();
 
-        LOG.warn(" --> Finished converting table " + tableName + ". " + total + " records copied.");
+        LOG.warn("Finished converting table " + tableName + ". " + total + " records copied.");
     }
 }
