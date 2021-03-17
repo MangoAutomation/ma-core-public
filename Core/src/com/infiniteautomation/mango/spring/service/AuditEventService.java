@@ -16,6 +16,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import com.infiniteautomation.mango.spring.events.audit.AuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.ChangeAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.CreateAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
