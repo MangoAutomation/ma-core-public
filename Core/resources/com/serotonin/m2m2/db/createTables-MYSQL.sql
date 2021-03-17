@@ -232,7 +232,6 @@ CREATE TABLE dataPoints (
   discardExtremeValues char(1),
   engineeringUnits int,
   data longblob not null,
-  templateId int,
   rollup int,
   dataTypeId int not null,
   settable char(1),
