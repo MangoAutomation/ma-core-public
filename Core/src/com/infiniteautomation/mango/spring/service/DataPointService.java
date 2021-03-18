@@ -642,8 +642,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         }
 
         //Validate the series id if it is being assigned
-        if(vo.getSeriesId() != Common.NEW_ID) {
-            if(!dao.seriesIdExists(vo.getSeriesId())) {
+        if (vo.getSeriesId() > 0) {
+            if (!dao.seriesIdExists(vo.getSeriesId())) {
                 response.addContextualMessage("seriesId", "pointEdit.seriesIdNotFound", vo.getSeriesId());
             }
         }

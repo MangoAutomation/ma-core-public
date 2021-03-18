@@ -653,11 +653,11 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     @Override
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
         //Shall we generate a new series ID?
-        if(vo.getSeriesId() == Common.NEW_ID) {
-            if(existing == null) {
+        if (vo.getSeriesId() <= 0) {
+            if (existing == null) {
                 int seriesId = insertNewTimeSeries();
                 vo.setSeriesId(seriesId);
-            }else {
+            } else {
                 vo.setSeriesId(existing.getSeriesId());
             }
         }
