@@ -96,6 +96,10 @@
 * Fix extra .zip being applied to nightly SQL backup names
 * Changes below here added in 4.0.0-beta.11
 * Fix bug where login events were being generated during Token Authentication
+* Fix bug in DB Conversion that was failing
+* Remove seriesId from Data Point REST model entirely
+* Fix bug in InputStreamEPoll to contain a security context to check permissions during runtime
+* Fix data source event type to correctly supply Reference 2 Object
 
 *Version 3.7.4*
 * Improve work item failure logging
