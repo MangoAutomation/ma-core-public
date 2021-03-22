@@ -51,13 +51,6 @@ public abstract class AngularJSModuleDefinition extends ModuleElementDefinition 
     }
 
     /**
-     * @return true if the JavaScript file can be concatenated into a single file and loaded from a different URL (i.e. not from the module's web directory).
-     */
-    public boolean supportsBundling() {
-        return false;
-    }
-
-    /**
      * @return list of AngularJS module names to load into the UI web app after the bundle is loaded
      */
     public List<String> angularJsModuleNames() {
