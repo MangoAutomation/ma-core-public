@@ -85,7 +85,6 @@ public class Module {
     private final List<ModuleElementDefinition> definitions = new ArrayList<>();
 
     private final Set<String> locales = new HashSet<>();
-    private List<String> emailTemplateDirs;
     private final boolean signed;
 
     /**
