@@ -9,8 +9,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,18 +53,15 @@ public class Module {
         VERSION_STATE_CODES.addElement(UpgradeVersionState.PRODUCTION, "PRODUCTION");
     }
 
-    public static final void sortByName(List<Module> modules) {
-        Collections.sort(modules, new Comparator<Module>() {
-            @Override
-            public int compare(Module m1, Module m2) {
-                //Always put Core first
-                if(m1 instanceof CoreModule) {
-                    return 1;
-                }else if(m2 instanceof CoreModule) {
-                    return -1;
-                }else {
-                    return m1.getName().compareTo(m2.getName());
-                }
+    public static void sortByName(List<Module> modules) {
+        modules.sort((m1, m2) -> {
+            //Always put Core first
+            if (m1 instanceof CoreModule) {
+                return 1;
+            } else if (m2 instanceof CoreModule) {
+                return -1;
+            } else {
+                return m1.getName().compareTo(m2.getName());
             }
         });
     }
