@@ -406,7 +406,8 @@ ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) R
 --  Thirty character restriction is from the store
 CREATE TABLE installedModules (
 	name varchar(30) not null,
-	version varchar(255) not null
+	version varchar(255) not null,
+    upgradedTimestamp BIGINT NOT NULL
 );
 ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 

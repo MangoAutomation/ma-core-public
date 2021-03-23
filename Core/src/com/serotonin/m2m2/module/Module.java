@@ -9,6 +9,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.InstalledModulesDao;
+import com.serotonin.m2m2.db.dao.InstalledModulesDao.InstalledModule;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry.CoreModule;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -69,6 +71,7 @@ public class Module {
     private final String name;
     private final Version version;
     private Version previousVersion;
+    private Date upgradedDate;
     private String licenseType;
     private final TranslatableMessage description;
     private final String vendor;
@@ -168,27 +171,40 @@ public class Module {
 
     /**
      * Called after the database is initialized to perform any database related upgrades outside
-     *  of a schema definition
+     * of a schema definition
+     *
+     * @return true if module was installed or upgraded
+     * @throws Exception
      */
     public boolean upgrade() throws Exception {
-        this.previousVersion = InstalledModulesDao.instance.getModuleVersion(name);
-        if(this.previousVersion == null) {
+        InstalledModule installedModule = InstalledModulesDao.instance.getInstalledModule(name);
+        this.previousVersion = installedModule.getVersion();
+        this.upgradedDate = installedModule.getUpgradedDate();
+
+        if (previousVersion == null) {
+            this.upgradedDate = new Date(Common.START_TIME);
             InstalledModulesDao.instance.updateModuleVersion(this);
             return true;
         }
+
         try {
             for (ModuleElementDefinition df : definitions) {
-                if(df instanceof UpgradeDefinition) {
-                    ((UpgradeDefinition)df).upgrade(this.previousVersion, this.version);
+                if (df instanceof UpgradeDefinition) {
+                    ((UpgradeDefinition) df).upgrade(previousVersion, version);
                 }
             }
-            //Fully running so update our version
-            InstalledModulesDao.instance.updateModuleVersion(this);
-        }catch(Throwable t) {
+
+            if (previousVersion.equals(version)) {
+                return false;
+            } else {
+                this.upgradedDate = new Date(Common.START_TIME);
+                InstalledModulesDao.instance.updateModuleVersion(this);
+                return true;
+            }
+        } catch (Throwable t) {
             //TODO Mango 4.0 unload module here
             throw new ModuleUpgradeException(t, name, previousVersion, version);
         }
-        return false;
     }
 
     /**
@@ -420,4 +436,11 @@ public class Module {
         return locales;
     }
 
+    public Date getUpgradedDate() {
+        return upgradedDate;
+    }
+
+    public void setUpgradedDate(Date upgradedDate) {
+        this.upgradedDate = upgradedDate;
+    }
 }

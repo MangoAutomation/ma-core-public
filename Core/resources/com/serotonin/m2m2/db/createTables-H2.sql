@@ -499,8 +499,9 @@ ALTER TABLE jsonData
 --  Thirty character restriction is from the store
 CREATE TABLE installedModules
 (
-    name    VARCHAR(30)  NOT NULL,
-    version VARCHAR(255) NOT NULL
+    name                 VARCHAR(30)  NOT NULL,
+    version              VARCHAR(255) NOT NULL,
+    upgradedTimestamp    BIGINT       NOT NULL
 );
 ALTER TABLE installedModules
     ADD CONSTRAINT installModulesUn1 UNIQUE (name);
