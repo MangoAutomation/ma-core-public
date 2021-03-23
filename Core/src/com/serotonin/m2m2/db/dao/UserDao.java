@@ -449,7 +449,10 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         user.setEmail(record.get(table.email));
         user.setPhone(record.get(table.phone));
         user.setDisabled(charToBool(record.get(table.disabled)));
-        user.setLastLogin(record.get(table.lastLogin));
+        Long lastLogin = record.get(table.lastLogin);
+        if (lastLogin != null) {
+            user.setLastLogin(lastLogin);
+        }
         user.setHomeUrl(record.get(table.homeUrl));
         user.setReceiveAlarmEmails(AlarmLevels.fromValue(record.get(table.receiveAlarmEmails)));
         user.setReceiveOwnAuditEvents(charToBool(record.get(table.receiveOwnAuditEvents)));
