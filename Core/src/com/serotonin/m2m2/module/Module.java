@@ -178,8 +178,10 @@ public class Module {
      */
     public boolean upgrade() throws Exception {
         InstalledModule installedModule = InstalledModulesDao.instance.getInstalledModule(name);
-        this.previousVersion = installedModule.getVersion();
-        this.upgradedDate = installedModule.getUpgradedDate();
+        if (installedModule != null) {
+            this.previousVersion = installedModule.getVersion();
+            this.upgradedDate = installedModule.getUpgradedDate();
+        }
 
         if (previousVersion == null) {
             this.upgradedDate = new Date(Common.START_TIME);
