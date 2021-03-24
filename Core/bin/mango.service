@@ -1,6 +1,6 @@
 [Unit]
 Description=Mango Automation
-After=mysqld.service
+After=mysql.service
 StartLimitIntervalSec=0
 
 [Service]
