@@ -331,7 +331,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         return proxy.getType();
     }
 
-    @Bean
+    @Bean(destroyMethod = "") // Prevent Spring from prematurely calling close()
     public DataSource dataSource(DatabaseProxy proxy) {
         return proxy.getDataSource();
     }
