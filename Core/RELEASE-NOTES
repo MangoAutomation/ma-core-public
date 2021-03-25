@@ -104,6 +104,8 @@
 * Database upgrade to record date that module was installed/upgraded
 * Fix NPE in UserDao that prevented startup when user's last login date was null
 * Prevent Spring from prematurely calling close()
+* Twilio module removed from bundle zip
+* Change systemd service to start after mysql instead of mysqld
 
 *Version 3.7.4*
 * Improve work item failure logging
