@@ -28,6 +28,9 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     public static final PermissionGroup SCRIPTING_ENGINES_GROUP = new PermissionGroupImpl("scriptingEngines",
             new TranslatableMessage("permission.groups.scriptingEngines.title"),
             new TranslatableMessage("permission.groups.scriptingEngines.description"));
+    public static final PermissionGroup USERS_GROUP = new PermissionGroupImpl("users",
+            new TranslatableMessage("permission.groups.users.title"),
+            new TranslatableMessage("permission.groups.users.description"));
 
     protected volatile MangoPermission permission;
 

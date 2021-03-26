@@ -5,6 +5,7 @@ package com.serotonin.m2m2.module.definitions.permissions;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.PermissionGroup;
 
 /**
  * @author Terry Packer
@@ -22,5 +23,10 @@ public class UserCreatePermission extends PermissionDefinition {
     @Override
     public String getPermissionTypeName() {
         return PERMISSION;
+    }
+
+    @Override
+    public PermissionGroup getGroup() {
+        return USERS_GROUP;
     }
 }
