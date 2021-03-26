@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.script.permissions;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.PermissionGroup;
 
 /**
  * Grants access to use an unknown scripting engine
@@ -22,6 +23,11 @@ public class UnknownEnginePermission extends PermissionDefinition {
     @Override
     public String getPermissionTypeName() {
         return PERMISSION;
+    }
+
+    @Override
+    public PermissionGroup getGroup() {
+        return SCRIPTING_ENGINES_GROUP;
     }
 
 }

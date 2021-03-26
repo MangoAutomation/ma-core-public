@@ -3,9 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.script.permissions;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.PermissionGroup;
 
 /**
  * Allows access to write to stdout/stderr and to read from stdin
@@ -27,7 +27,7 @@ public class StandardStreamsPermission extends PermissionDefinition {
     }
 
     @Override
-    protected MangoPermission getDefaultPermission() {
-        return MangoPermission.superadminOnly();
+    public PermissionGroup getGroup() {
+        return SCRIPTING_ENGINES_GROUP;
     }
 }

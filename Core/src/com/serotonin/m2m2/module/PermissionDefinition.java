@@ -25,6 +25,10 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 abstract public class PermissionDefinition extends ModuleElementDefinition {
 
+    public static final PermissionGroup SCRIPTING_ENGINES_GROUP = new PermissionGroupImpl("scriptingEngines",
+            new TranslatableMessage("permission.groups.scriptingEngines.title"),
+            new TranslatableMessage("permission.groups.scriptingEngines.description"));
+
     protected volatile MangoPermission permission;
 
     /**
@@ -51,8 +55,8 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * or installed.  The roles must already exist in the roles table
      * @return - Set of roles to assign to permission
      */
-    protected MangoPermission getDefaultPermission(){
-        return new MangoPermission();
+    protected MangoPermission getDefaultPermission() {
+        return MangoPermission.superadminOnly();
     }
 
     /**
@@ -91,4 +95,28 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
         }
     }
 
+    /**
+     * Logical group for permission, used for sorting into groups on the UI.
+     * Default implementation returns module name and description.
+     *
+     * @return group for this permission
+     */
+    public PermissionGroup getGroup() {
+        return new ModulePermissionGroup();
+    }
+
+    public class ModulePermissionGroup implements PermissionGroup {
+        @Override
+        public String getName() {
+            return getModule().getName();
+        }
+        @Override
+        public TranslatableMessage getTitle() {
+            return new TranslatableMessage("permission.groups.module.title", getModule().getName());
+        }
+        @Override
+        public TranslatableMessage getDescription() {
+            return getModule().getDescription();
+        }
+    }
 }
