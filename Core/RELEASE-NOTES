@@ -106,6 +106,8 @@
 * Prevent Spring from prematurely calling close()
 * Twilio module removed from bundle zip
 * Change systemd service to start after mysql instead of mysqld
+* Changes below here added in 4.0.0-beta.13
+* Upgrade JSSC Serial library to 2.9.2
 
 *Version 3.7.4*
 * Improve work item failure logging
