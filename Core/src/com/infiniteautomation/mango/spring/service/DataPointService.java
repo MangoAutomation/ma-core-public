@@ -5,7 +5,6 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -642,7 +641,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             }
         }else {
             //ensure there is an empty map
-            vo.setTags(new HashMap<>());
+            vo.setTags(Collections.emptyMap());
         }
 
         //Validate the series id if it is being assigned

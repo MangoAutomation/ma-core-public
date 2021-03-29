@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -674,19 +673,11 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     @Override
     public void saveRelationalData(DataPointVO existing, DataPointVO vo) {
-        Map<String, String> tags = vo.getTags();
-        if (tags == null) {
-            if (existing != null) {
-                // only delete the name and device tags, leave existing tags intact
-                dataPointTagsDao.deleteNameAndDeviceTagsForDataPointId(vo.getId());
-            }
-            tags = Collections.emptyMap();
-        } else if (existing != null) {
-            // we only need to delete tags when doing an update
-            dataPointTagsDao.deleteTagsForDataPointId(vo.getId());
+        if (existing == null) {
+            dataPointTagsDao.insertTagsForDataPoint(vo);
+        } else {
+            dataPointTagsDao.updateTags(vo);
         }
-
-        dataPointTagsDao.insertTagsForDataPoint(vo, tags);
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {

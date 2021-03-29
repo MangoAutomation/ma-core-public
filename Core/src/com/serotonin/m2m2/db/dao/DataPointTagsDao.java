@@ -18,6 +18,7 @@ import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Record2;
@@ -94,20 +95,17 @@ public class DataPointTagsDao extends BaseDao {
                 .execute();
     }
 
-    public int deleteNameAndDeviceTagsForDataPointId(int dataPointId) {
-        return this.create.deleteFrom(table)
-                .where(table.dataPointId.eq(dataPointId))
-                .and(DSL.or(table.tagKey.eq(NAME_TAG_KEY), table.tagKey.eq(DEVICE_TAG_KEY)))
-                .execute();
-    }
-
     /**
      * Inserts tags into the database for a DataPointVO. Also inserts the "name" and "device" tags from the data point properties.
      *
      * @param dataPoint
-     * @param tags Should not contain tag keys "name" or "device"
      */
-    public void insertTagsForDataPoint(DataPointVO dataPoint, Map<String, String> tags) {
+    public void insertTagsForDataPoint(DataPointVO dataPoint) {
+        Map<String, String> tags = dataPoint.getTags();
+        if (tags == null) throw new IllegalArgumentException("Tags cannot be null");
+        if (tags.containsKey(NAME_TAG_KEY)) throw new IllegalArgumentException("Tags cannot contain 'name'");
+        if (tags.containsKey(DEVICE_TAG_KEY)) throw new IllegalArgumentException("Tags cannot contain 'deviceName'");
+
         int dataPointId = dataPoint.getId();
         String name = dataPoint.getName();
         String deviceName = dataPoint.getDeviceName();
@@ -128,6 +126,48 @@ public class DataPointTagsDao extends BaseDao {
         b.execute();
     }
 
+    public void updateTags(DataPointVO dataPoint) {
+        Map<String, String> tags = dataPoint.getTags();
+        if (tags == null) throw new IllegalArgumentException("Tags cannot be null");
+        if (tags.containsKey(NAME_TAG_KEY)) throw new IllegalArgumentException("Tags cannot contain 'name'");
+        if (tags.containsKey(DEVICE_TAG_KEY)) throw new IllegalArgumentException("Tags cannot contain 'deviceName'");
+
+        List<Query> queries = new ArrayList<>(tags.size() + 3);
+        queries.add(DSL.deleteFrom(table).where(table.dataPointId.eq(dataPoint.getId()))
+                .and(table.tagKey.notIn(tags.keySet()))
+                .and(table.tagKey.notEqual(NAME_TAG_KEY))
+                .and(table.tagKey.notEqual(DEVICE_TAG_KEY)));
+        for (Entry<String, String> entry : tags.entrySet()) {
+            queries.add(updateTagValue(dataPoint.getId(), entry.getKey(), entry.getValue()));
+        }
+        // TODO can these be null or empty?
+        queries.add(updateTagValue(dataPoint.getId(), NAME_TAG_KEY, dataPoint.getName()));
+        queries.add(updateTagValue(dataPoint.getId(), DEVICE_TAG_KEY, dataPoint.getDeviceName()));
+        create.batch(queries).execute();
+    }
+
+    private Query updateTagValue(int dataPointId, String tagKey, String tagValue) {
+        switch (create.dialect()) {
+            case MYSQL:
+            case MARIADB:
+                // the @Supports annotation on mergeInto claims that it supports MySQL, however it does not
+                // translate/emulate the merge using "on duplicate key update" so it fails
+                return DSL.insertInto(table)
+                        .columns(table.dataPointId, table.tagKey, table.tagValue)
+                        .values(dataPointId, tagKey, tagValue)
+                        .onDuplicateKeyUpdate()
+                        .set(table.tagValue, tagValue);
+            default:
+                return DSL.mergeInto(table)
+                        .using(DSL.selectOne())
+                        .on(table.dataPointId.eq(dataPointId), table.tagKey.eq(tagKey))
+                        .whenMatchedThenUpdate()
+                        .set(table.tagValue, tagValue)
+                        .whenNotMatchedThenInsert(table.dataPointId, table.tagKey, table.tagValue)
+                        .values(dataPointId, tagKey, tagValue);
+        }
+    }
+
     /**
      * Only to be used when saving data point tags independently from the DataPointVO itself.
      * The DataPointVO tags must not be null.
@@ -135,17 +175,13 @@ public class DataPointTagsDao extends BaseDao {
      * @param dataPoint
      */
     public void saveDataPointTags(DataPointVO dataPoint) {
-        Map<String, String> tags = dataPoint.getTags();
-        if (tags == null) throw new IllegalArgumentException("Data point tags cannot be null");
-
         this.doInTransaction(txStatus -> {
-            this.deleteTagsForDataPointId(dataPoint.getId());
-            this.insertTagsForDataPoint(dataPoint, tags);
+            updateTags(dataPoint);
 
             DataPointRT rt = Common.runtimeManager.getDataPoint(dataPoint.getId());
             if (rt != null) {
                 DataPointVO rtVo = rt.getVO();
-                rtVo.setTags(tags);
+                rtVo.setTags(dataPoint.getTags());
             }
 
             DataPointDao.getInstance().notifyTagsUpdated(dataPoint);
