@@ -627,13 +627,17 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         if (tags != null) {
             for (Entry<String, String> entry : tags.entrySet()) {
                 String tagKey = entry.getKey();
-                if (tagKey == null || entry.getValue() == null) {
+                String tagValue = entry.getValue();
+                if (tagKey == null || tagValue == null) {
                     response.addContextualMessage("tags", "validate.tagCantBeNull");
                     break;
                 }
                 if (DataPointTagsDao.NAME_TAG_KEY.equals(tagKey) || DataPointTagsDao.DEVICE_TAG_KEY.equals(tagKey)) {
                     response.addContextualMessage("tags", "validate.invalidTagKey");
                     break;
+                }
+                if (tagKey.length() > 255 || tagValue.length() > 255) {
+                    response.addContextualMessage("tags." + tagKey, "validate.notLongerThan", 255);
                 }
             }
         }else {
