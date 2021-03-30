@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -478,6 +479,29 @@ public class MangoTestBase {
         dp.setDataSourceXid(dataSourceXid);
         dp.setReadPermission(readPermission);
         dp.setSetPermission(setPermission);
+
+        try {
+            return service.insert(dp);
+        } catch (ValidationException e) {
+            String failureMessage = "";
+            for (ProcessMessage m : e.getValidationResult().getMessages()) {
+                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                failureMessage += messagePart;
+            }
+            fail(failureMessage);
+            return null;
+        }
+    }
+
+    protected DataPointVO createMockDataPoint(MockDataSourceVO ds, Consumer<DataPointVO> customizer) {
+        DataPointService service = Common.getBean(DataPointService.class);
+        DataPointVO dp = new DataPointVO();
+        dp.setName(UUID.randomUUID().toString());
+        dp.setDeviceName(ds.getName());
+        dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
+        dp.setDataSourceId(ds.getId());
+
+        customizer.accept(dp);
 
         try {
             return service.insert(dp);
