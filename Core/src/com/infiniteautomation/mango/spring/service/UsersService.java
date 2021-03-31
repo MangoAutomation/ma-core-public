@@ -338,7 +338,8 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     public ProcessResult validate(User existing, User vo, PermissionHolder holder) {
         ProcessResult result = commonValidation(vo, holder);
 
-        if (!hasExplicitEditPermission(holder, existing)) {
+        boolean hasExplicitEditPermission = hasExplicitEditPermission(holder, existing);
+        if (!hasExplicitEditPermission) {
             // can only change created date if you have explicit edit permission
             if (vo.getCreated() != null) {
                 if (vo.getCreated().getTime() != existing.getCreated().getTime()) {
@@ -353,10 +354,16 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
         // validate permissions
         if (!existing.getReadPermission().equals(vo.getReadPermission())) {
+            if (!hasExplicitEditPermission) {
+                result.addContextualMessage("readPermission", "validate.mustHaveExplicitEditPermission");
+            }
             permissionService.validatePermission(result, "readPermission", holder,
                     existing.getReadPermission(), vo.getReadPermission());
         }
         if (!existing.getEditPermission().equals(vo.getEditPermission())) {
+            if (!hasExplicitEditPermission) {
+                result.addContextualMessage("editPermission", "validate.mustHaveExplicitEditPermission");
+            }
             permissionService.validatePermission(result, "editPermission", holder,
                     existing.getEditPermission(), vo.getEditPermission());
         }
