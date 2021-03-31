@@ -45,7 +45,6 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
@@ -81,7 +80,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     private final PasswordService passwordService;
     private final PermissionDefinition editSelfPermission;
     private final PermissionDefinition changeOwnUsernamePermission;
-    private final UserCreatePermission createPermission;
+    private final PermissionDefinition createPermission;
     private final ApplicationEventPublisher eventPublisher;
     private final WeakValueCache<String, User> userByUsername;
 
@@ -89,14 +88,16 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     public UsersService(UserDao dao, PermissionService permissionService,
                         SystemSettingsDao systemSettings,
                         PasswordService passwordService,
+                        @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") UserEditSelfPermission editSelfPermission,
+                        @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ChangeOwnUsernamePermissionDefinition changeOwnUsernamePermission,
                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") UserCreatePermission createPermission,
                         ApplicationEventPublisher eventPublisher,
                         Environment env) {
         super(dao, permissionService);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
-        this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-        this.changeOwnUsernamePermission = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
+        this.editSelfPermission = editSelfPermission;
+        this.changeOwnUsernamePermission = changeOwnUsernamePermission;
         this.createPermission = createPermission;
         this.eventPublisher = eventPublisher;
         this.userByUsername = new WeakValueCache<>(env.getProperty("cache.users.size", Integer.class, 1000));
@@ -531,10 +532,6 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
     @Override
     public boolean hasEditPermission(PermissionHolder holder, User vo) {
-        if (permissionService.hasAdminRole(holder)) {
-            return true;
-        }
-
         return holder.getUser() != null && holder.getUser().getId() == vo.getId() &&
                 permissionService.hasPermission(holder, editSelfPermission.getPermission()) ||
                 permissionService.hasPermission(holder, vo.getEditPermission());
@@ -542,10 +539,6 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, User vo) {
-        if (permissionService.hasAdminRole(user)) {
-            return true;
-        }
-
         return user.getUser() != null && user.getUser().getId() == vo.getId() ||
                 permissionService.hasPermission(user, vo.getReadPermission());
     }
