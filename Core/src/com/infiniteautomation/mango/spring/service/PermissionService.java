@@ -522,13 +522,12 @@ public class PermissionService implements CachingService {
 
     /**
      * Validate a permission.  This will validate that:
-     *
-     *   1. the new roles are non null
-     *   2. all new roles are not empty
-     *   3. the new roles do exist
-     *   4. the saving user will at least retain permission
-     *
-     *   If the saving user is the owner then the user does not need to have access to the permission.
+     * <ol>
+     *     <li>The roles are non null</li>
+     *     <li>All roles are not empty</li>
+     *     <li>The roles exist</li>
+     *     <li>The saving user will at least retain access</li>
+     * </ol>
      *
      * @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
@@ -538,11 +537,11 @@ public class PermissionService implements CachingService {
      */
     public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
             MangoPermission existingPermission, MangoPermission newPermission) {
+        // TODO existingPermission not used
 
-        if (holder == null) {
-            result.addContextualMessage(contextKey, "validate.userRequired");
-            return;
-        }
+        Assert.notNull(result, "result must not be null");
+        Assert.notNull(contextKey, "contextKey must not be null");
+        Assert.notNull(holder, "holder must not be null");
 
         if (newPermission == null) {
             result.addContextualMessage(contextKey, "validate.permission.null");
@@ -579,7 +578,7 @@ public class PermissionService implements CachingService {
      */
     public void validatePermissionHolderRoles(ProcessResult result, String contextKey,
             PermissionHolder holder, Set<Role> existingRoles, Set<Role> newRoles) {
-        // TODO existing roles not used
+        // TODO existingRoles not used
 
         Assert.notNull(result, "result must not be null");
         Assert.notNull(contextKey, "contextKey must not be null");

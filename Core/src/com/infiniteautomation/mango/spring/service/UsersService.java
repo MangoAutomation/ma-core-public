@@ -321,9 +321,16 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                 result.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
             }
         }
+        // validate roles
+        permissionService.validatePermissionHolderRoles(result, "roles", holder,
+                null, vo.getRoles());
 
-        //Validate roles
-        permissionService.validatePermissionHolderRoles(result, "roles", holder, null, vo.getRoles());
+        // validate permissions
+        permissionService.validatePermission(result, "readPermission", holder,
+                null, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", holder,
+                null, vo.getEditPermission());
+
         return result;
     }
 
@@ -340,8 +347,19 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             }
         }
 
-        //Validate roles
-        permissionService.validatePermissionHolderRoles(result, "roles", holder, existing.getRoles(), vo.getRoles());
+        // validate roles
+        permissionService.validatePermissionHolderRoles(result, "roles", holder,
+                existing.getRoles(), vo.getRoles());
+
+        // validate permissions
+        if (!existing.getReadPermission().equals(vo.getReadPermission())) {
+            permissionService.validatePermission(result, "readPermission", holder,
+                    existing.getReadPermission(), vo.getReadPermission());
+        }
+        if (!existing.getEditPermission().equals(vo.getEditPermission())) {
+            permissionService.validatePermission(result, "editPermission", holder,
+                    existing.getEditPermission(), vo.getEditPermission());
+        }
 
         // Things we cannot do to ourselves
         if (isSelf(holder, existing)) {
