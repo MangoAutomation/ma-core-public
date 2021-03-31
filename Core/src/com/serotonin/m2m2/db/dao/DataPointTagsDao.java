@@ -130,19 +130,22 @@ public class DataPointTagsDao extends BaseDao {
         Map<String, String> tags = dataPoint.getTags();
         if (tags == null) throw new IllegalArgumentException("Tags cannot be null");
         if (tags.containsKey(NAME_TAG_KEY)) throw new IllegalArgumentException("Tags cannot contain 'name'");
-        if (tags.containsKey(DEVICE_TAG_KEY)) throw new IllegalArgumentException("Tags cannot contain 'deviceName'");
+        if (tags.containsKey(DEVICE_TAG_KEY)) throw new IllegalArgumentException("Tags cannot contain 'device'");
 
-        List<Query> queries = new ArrayList<>(tags.size() + 3);
+        Map<String, String> allTags = new HashMap<>(tags);
+        if (dataPoint.getName() != null && !dataPoint.getName().isEmpty()) {
+            allTags.put(NAME_TAG_KEY, dataPoint.getName());
+        }
+        if (dataPoint.getDeviceName() != null && !dataPoint.getDeviceName().isEmpty()) {
+            allTags.put(DEVICE_TAG_KEY, dataPoint.getDeviceName());
+        }
+
+        List<Query> queries = new ArrayList<>(allTags.size() + 3);
         queries.add(DSL.deleteFrom(table).where(table.dataPointId.eq(dataPoint.getId()))
-                .and(table.tagKey.notIn(tags.keySet()))
-                .and(table.tagKey.notEqual(NAME_TAG_KEY))
-                .and(table.tagKey.notEqual(DEVICE_TAG_KEY)));
-        for (Entry<String, String> entry : tags.entrySet()) {
+                .and(table.tagKey.notIn(allTags.keySet())));
+        for (Entry<String, String> entry : allTags.entrySet()) {
             queries.add(updateTagValue(dataPoint.getId(), entry.getKey(), entry.getValue()));
         }
-        // TODO can these be null or empty?
-        queries.add(updateTagValue(dataPoint.getId(), NAME_TAG_KEY, dataPoint.getName()));
-        queries.add(updateTagValue(dataPoint.getId(), DEVICE_TAG_KEY, dataPoint.getDeviceName()));
         create.batch(queries).execute();
     }
 
