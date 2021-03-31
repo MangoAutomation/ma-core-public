@@ -72,7 +72,7 @@ public interface PermissionHolder {
     boolean isPermissionHolderDisabled();
 
     /**
-     * The roles for this permission holder, including all inherited roles
+     * The directly assigned roles for this permission holder, does not include inherited roles
      * @return
      */
     Set<Role> getRoles();

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -562,14 +563,13 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * Validate roles.  Used for things like a User or ScriptPermission.
-     *   This will validate that:
-     *
-     *   1. the new roles are non null
-     *   2. all new roles are not empty
-     *   3. the new roles exist
-     *   4. the user cannot not modify their own roles
-     *   5. the user cannot assign a role they do not have
+     * Validate roles.  Used for things like a User or ScriptPermission. This will validate that:
+     * <ol>
+     *     <li>The new roles are non null</li>
+     *     <li>All new roles are not empty</li>
+     *     <li>The new roles exist</li>
+     *     <li>The user cannot assign a role they do not have</li>
+     * </ol>
      *
      * @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
@@ -579,11 +579,11 @@ public class PermissionService implements CachingService {
      */
     public void validatePermissionHolderRoles(ProcessResult result, String contextKey,
             PermissionHolder holder, Set<Role> existingRoles, Set<Role> newRoles) {
+        // TODO existing roles not used
 
-        if (holder == null) {
-            result.addContextualMessage(contextKey, "validate.userRequired");
-            return;
-        }
+        Assert.notNull(result, "result must not be null");
+        Assert.notNull(contextKey, "contextKey must not be null");
+        Assert.notNull(holder, "holder must not be null");
 
         if (newRoles == null) {
             result.addContextualMessage(contextKey, "validate.permission.null");
@@ -595,17 +595,18 @@ public class PermissionService implements CachingService {
             return;
         }
 
-        Set<Role> heldRoles = holder.getRoles();
-        if (!heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
-            Set<Role> inherited = getAllInheritedRoles(holder);
-            if (!inherited.containsAll(newRoles)) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
-            }
+        Set<Role> inherited = getAllInheritedRoles(holder);
+        if (!inherited.contains(PermissionHolder.SUPERADMIN_ROLE) && !inherited.containsAll(newRoles)) {
+            result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
         }
     }
 
     private void validateRoles(ProcessResult result, String contextKey, Set<Role> roles) {
         for (Role role : roles) {
+            if (role.getXid() == null) {
+                result.addContextualMessage(contextKey, "validate.role.empty");
+                continue;
+            }
             Integer id = roleDao.getIdByXid(role.getXid());
             if (id == null) {
                 result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());

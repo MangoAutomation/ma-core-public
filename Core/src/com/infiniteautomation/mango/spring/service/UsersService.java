@@ -312,21 +312,13 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     @Override
     public ProcessResult validate(User vo, PermissionHolder holder) {
         ProcessResult result = commonValidation(vo, holder);
-        //Must not have a date created set if we are non admin
-        if (vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
-            result.addContextualMessage("created", "validate.invalidValue");
-        }
 
         if (vo.isSessionExpirationOverride()) {
-            if (!permissionService.hasAdminRole(holder)) {
-                result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
-            } else {
-                if (-1 == Common.TIME_PERIOD_CODES.getId(vo.getSessionExpirationPeriodType(), Common.TimePeriods.MILLISECONDS)) {
-                    result.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
-                }
-                if (vo.getSessionExpirationPeriods() <= 0) {
-                    result.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
-                }
+            if (-1 == Common.TIME_PERIOD_CODES.getId(vo.getSessionExpirationPeriodType(), Common.TimePeriods.MILLISECONDS)) {
+                result.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
+            }
+            if (vo.getSessionExpirationPeriods() <= 0) {
+                result.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
             }
         }
 
@@ -339,40 +331,37 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     public ProcessResult validate(User existing, User vo, PermissionHolder holder) {
         ProcessResult result = commonValidation(vo, holder);
 
-        //Must not have a different date created set if we are non admin
-        if (vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
-            if (vo.getCreated().getTime() != existing.getCreated().getTime()) {
-                result.addContextualMessage("created", "validate.invalidValue");
+        if (!hasExplicitEditPermission(holder, existing)) {
+            // can only change created date if you have explicit edit permission
+            if (vo.getCreated() != null) {
+                if (vo.getCreated().getTime() != existing.getCreated().getTime()) {
+                    result.addContextualMessage("created", "validate.invalidValue");
+                }
             }
         }
 
         //Validate roles
-        boolean savingSelf = holder.getUser() != null && holder.getUser().getId() == existing.getId();
         permissionService.validatePermissionHolderRoles(result, "roles", holder, existing.getRoles(), vo.getRoles());
 
-        //Things we cannot do to ourselves
-        if (savingSelf) {
+        // Things we cannot do to ourselves
+        if (isSelf(holder, existing)) {
             //Cannot disable
             if (vo.isDisabled()) {
                 result.addContextualMessage("disabled", "users.validate.adminDisable");
             }
 
+            // cannot remove any role from ourselves (unless superadmin)
+            // checking for added roles is done via validatePermissionHolderRoles() above
             Set<Role> heldRoles = holder.getRoles();
-            if (!heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
-                //Cannot add role you don't have
-                Set<Role> inherited = permissionService.getAllInheritedRoles(holder);
-                if (!inherited.containsAll(vo.getRoles())) {
-                    result.addContextualMessage("roles", "validate.role.invalidModification", PermissionService.implodeRoles(inherited));
-                }
-
-                //Cannot change your own roles
-                if (!Objects.equals(existing.getRoles(), vo.getRoles())) {
-                    result.addContextualMessage("roles", "validate.role.modifyOwnRoles");
+            Set<Role> newRoles = vo.getRoles();
+            if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+                // cannot remove superadmin from self
+                if (!newRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+                    result.addContextualMessage("roles", "users.validate.cannotRemoveSuperadminRole");
                 }
             } else {
-                //Cannot remove superadmin from ourself
-                if (!vo.getRoles().contains(PermissionHolder.SUPERADMIN_ROLE)) {
-                    result.addContextualMessage("roles", "users.validate.cannotRemoveSuperadminRole");
+                if (!newRoles.containsAll(heldRoles)) {
+                    result.addContextualMessage("roles", "validate.role.modifyOwnRoles");
                 }
             }
         }
@@ -415,12 +404,11 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             }
         }
 
-        Set<Role> inherited = permissionService.getAllInheritedRoles(holder);
-
-        //Every user must have the user role
-        if (!inherited.contains(PermissionHolder.USER_ROLE)) {
+        // Every user must have the user role, must be directly assigned otherwise if role inheritance changes the user may lose the role
+        if (!vo.getRoles().contains(PermissionHolder.USER_ROLE)) {
             result.addMessage("roles", new TranslatableMessage("users.validate.mustHaveUserRole"));
         }
+
         return result;
     }
 
@@ -530,17 +518,36 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         return response;
     }
 
+    public boolean isSelf(PermissionHolder holder, User vo) {
+        return holder.getUser() != null && holder.getUser().getId() == vo.getId();
+    }
+
+    public boolean canEditSelf(PermissionHolder holder, User vo) {
+        return permissionService.hasPermission(holder, editSelfPermission.getPermission());
+    }
+
+    public boolean hasExplicitEditPermission(PermissionHolder holder, User vo) {
+        return permissionService.hasPermission(holder, vo.getEditPermission());
+    }
+
+    public boolean hasExplicitReadPermission(PermissionHolder holder, User vo) {
+        return permissionService.hasPermission(holder, vo.getReadPermission());
+    }
+
     @Override
     public boolean hasEditPermission(PermissionHolder holder, User vo) {
-        return holder.getUser() != null && holder.getUser().getId() == vo.getId() &&
-                permissionService.hasPermission(holder, editSelfPermission.getPermission()) ||
-                permissionService.hasPermission(holder, vo.getEditPermission());
+        return isSelf(holder, vo) && canEditSelf(holder, vo) ||
+                hasExplicitEditPermission(holder, vo);
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, User vo) {
-        return user.getUser() != null && user.getUser().getId() == vo.getId() ||
-                permissionService.hasPermission(user, vo.getReadPermission());
+        return isSelf(user, vo) || hasExplicitReadPermission(user, vo);
+    }
+
+    @Override
+    public boolean hasDeletePermission(PermissionHolder user, User vo) {
+        return !isSelf(user, vo) && hasExplicitEditPermission(user, vo);
     }
 
     /**
