@@ -9,12 +9,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
 import org.jooq.Table;
@@ -25,11 +23,9 @@ import org.junit.Test;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
-import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
@@ -218,44 +214,6 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R e
         setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
         deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
         allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);
-    }
-
-    @FunctionalInterface
-    public static interface ServiceLayerTest {
-        void test();
-    }
-
-    /**
-     * Run a test and allow providing expected invalid properties
-     * @param test
-     * @param expectedInvalidProperties - property names (can be null if no invalid properties expected)
-     */
-    public void runTest(ServiceLayerTest test, String... expectedInvalidProperties) {
-        List<String> invalid = new ArrayList<>();
-        try {
-            test.test();
-        } catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()) {
-                if(m.getContextKey() != null) {
-                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                    failureMessage += messagePart;
-                    //Were we expecting this failure?
-                    if(ArrayUtils.contains(expectedInvalidProperties, m.getContextKey())) {
-                        invalid.add(m.getContextKey());
-                    }
-                }else {
-                    failureMessage += m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                }
-            }
-            if(expectedInvalidProperties.length > 0) {
-                if(!Arrays.equals(expectedInvalidProperties, invalid.toArray(new String[invalid.size()]))) {
-                    fail("Did not match all invalid properties but found:\n" + failureMessage  + " but expected " + Arrays.asList(expectedInvalidProperties));
-                }
-            }else if(StringUtils.isNotEmpty(failureMessage)) {
-                fail(failureMessage);
-            }
-        }
     }
 
     public Role getEditRole() {
