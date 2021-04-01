@@ -8,14 +8,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
@@ -43,18 +40,6 @@ import com.serotonin.m2m2.vo.role.Role;
 public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UsersRecord, Users, UserDao, UsersService> {
 
     public UsersServiceTest() {
-    }
-
-    @Test
-    @Override
-    public void testUpdateViaXid() {
-        //We don't have an xid
-    }
-
-    @Test()
-    @Override
-    public void testDeleteViaXid() {
-        //We don't have an xid
     }
 
     /**
@@ -95,8 +80,9 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Test
     public void testUserEditRole() {
         runTest(() -> {
-            addRoleToEditSelfPermission(readRole);
+            setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
             User vo = newVO(editUser);
+            vo.setRoles(Collections.singleton(readRole));
             User saved = service.insert(vo);
             runAs.runAs(vo, () -> {
                 saved.setName("I edited myself");
@@ -114,8 +100,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             User saved = service.insert(vo);
 
             //Ensure the ability to edit self
-            List<Role> myRoles = saved.getRoles().stream().collect(Collectors.toList());
-            addRoleToEditSelfPermission(myRoles.get(0));
+            setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
 
             runAs.runAs(saved, () -> {
                 saved.setName("I edited myself");
@@ -130,8 +115,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Test(expected = PermissionException.class)
     public void testUserEditRoleFails() {
         runTest(() -> {
-            addRoleToEditSelfPermission(editRole);
-            removeRoleFromEditSelfPermission(PermissionHolder.USER_ROLE);
+            setEditSelfPermission(MangoPermission.requireAnyRole(editRole));
             runAs.runAs(readUser, () -> {
                 User toUpdate = service.get(readUser.getId());
                 toUpdate.setName("I edited myself");
@@ -145,60 +129,6 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Test
     @Override
-    public void testCannotRemoveEditAccess() {
-        //skipped as not possible
-    }
-
-    @Test
-    @Override
-    public void testAddReadRoleUserDoesNotHave() {
-        //cannot edit another user as non-admin so skipped
-    }
-
-    @Test
-    @Override
-    public void testReadRolesCannotBeNull() {
-        //skipped as no read roles on a user
-    }
-
-    @Test
-    @Override
-    public void testCannotRemoveReadAccess() {
-        //skipped as no read roles on a user
-    }
-
-    @Test
-    @Override
-    public void testEditRolesCannotBeNull() {
-        //skipped as no edit roles
-    }
-
-    @Test
-    @Override
-    public void testCountQueryReadPermissionEnforcement() {
-        //Skipped as we don't filter in DB (yet)
-    }
-
-    @Test
-    @Override
-    public void testCountQueryEditPermissionEnforcement() {
-        //Skipped as we don't filter in DB (yet)
-    }
-
-    @Test
-    @Override
-    public void testQueryReadPermissionEnforcement() {
-        //Skipped as we don't filter in DB (yet)
-    }
-
-    @Test
-    @Override
-    public void testQueryEditPermissionEnforcement() {
-        //Skipped as we don't filter in DB (yet)
-    }
-
-    @Test
-    @Override
     public void testAddEditRoleUserDoesNotHave() {
         runTest(() -> {
             User vo = newVO(readUser);
@@ -206,12 +136,12 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             User saved = service.insert(vo);
 
             //Ensure the ability to edit self
-            List<Role> myRoles = new ArrayList<>(saved.getRoles());
-            addRoleToEditSelfPermission(myRoles.get(0));
+            setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
 
             runAs.runAs(saved, () -> {
-                myRoles.add(editRole);
-                saved.setRoles(new HashSet<>(myRoles));
+                Set<Role> newRoles = new HashSet<>(saved.getRoles());
+                newRoles.add(editRole);
+                saved.setRoles(newRoles);
                 service.update(saved.getUsername(), saved);
             });
         }, "roles");
@@ -285,8 +215,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Test
     public void testChangeUsernameWithoutPermission() {
         runTest(() -> {
-            removeRoleFromEditSelfPermission(PermissionHolder.USER_ROLE);
-            addRoleToEditSelfPermission(readRole);
+            setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
 
             Set<Set<Role>> roleSet = def.getPermission().getRoles();
@@ -312,6 +241,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         }, "username");
     }
 
+    @Test
     public void testChangeUsernameWithPermission() {
 
         //Add read role to change username permission
@@ -325,7 +255,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
 
         //Ensure they can edit self
-        addRoleToEditSelfPermission(readRole);
+        setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
 
         User vo = newVO(readUser);
         vo.setRoles(Collections.singleton(readRole));
@@ -338,21 +268,10 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         });
     }
 
-    void addRoleToEditSelfPermission(Role vo) {
+    void setEditSelfPermission(MangoPermission permission) {
         PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-        Set<Set<Role>> roleSet = def.getPermission().getRoles();
-        Set<Set<Role>> newRoles = new HashSet<>();
-        newRoles.add(Collections.singleton(vo));
-        for (Set<Role> roles : roleSet) {
-            newRoles.add(new HashSet<>(roles));
-        }
-        Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
-    }
-
-    void removeRoleFromEditSelfPermission(Role vo) {
-        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-        MangoPermission permission = def.getPermission();
-        Common.getBean(SystemPermissionService.class).update(new MangoPermission(permission.withoutRole(vo).getRoles()), def);
+        Common.getBean(SystemPermissionService.class)
+                .update(permission, def);
     }
 
     @Override
@@ -362,12 +281,12 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Override
     void setReadPermission(MangoPermission permission, User vo) {
-
+        vo.setReadPermission(permission);
     }
 
     @Override
     void setEditPermission(MangoPermission permission, User vo) {
-
+        vo.setEditPermission(permission);
     }
 
     @Override
@@ -418,7 +337,6 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         user.setPassword(Common.encrypt("usersServiceTest"));
         user.setEmail(UUID.randomUUID().toString() + "@example.com");
         user.setPhone("");
-        user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(readRole, editRole))));
         user.setDisabled(false);
         return user;
     }
@@ -429,16 +347,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         existing.setPassword(Common.encrypt("usersServiceTest2"));
         existing.setEmail(UUID.randomUUID().toString() + "@example.com");
         existing.setPhone("");
-        existing.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(readRole, editRole, setRole))));
         existing.setDisabled(false);
         return existing;
-    }
-
-
-    @Test
-    @Override
-    public void testUserCanDelete() {
-        //Nothing as you cannot delete another user unless you are superadmin
     }
 
     @Test
@@ -474,22 +384,22 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Override
     void addReadRoleToFail(Role role, User vo) {
-        vo.getRoles().add(role);
+        vo.getReadPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getReadRolesContextKey() {
-        return "roles";
+        return "readPermission";
     }
 
     @Override
     void addEditRoleToFail(Role role, User vo) {
-        throw new UnsupportedOperationException();
+        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getEditRolesContextKey() {
-        throw new UnsupportedOperationException();
+        return "editPermission";
     }
 
     @Override
@@ -509,9 +419,13 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             }
         }
         if(missing.size() > 0) {
-            String missingRoles = "";
+            StringBuilder missingRoles = new StringBuilder();
             for(Role missingRole : missing) {
-                missingRoles += "< " + missingRole.getId() + " - " + missingRole.getXid() + "> ";
+                missingRoles.append("< ")
+                        .append(missingRole.getId())
+                        .append(" - ")
+                        .append(missingRole.getXid())
+                        .append("> ");
             }
             fail("Not all roles matched, missing: " + missingRoles);
         }
