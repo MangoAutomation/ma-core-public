@@ -183,7 +183,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Test
     @Override
     public void testAddReadRoleUserDoesNotHave() {
-        expectValidationErrorRule.expectValidationException(getReadPermissionContextKey());
+        validation.expectValidationException(getReadPermissionContextKey());
         DataPointVO vo = newVO(readUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
@@ -203,7 +203,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Override
     @Test
     public void testAddEditRoleUserDoesNotHave() {
-        expectValidationErrorRule.expectValidationException(getEditPermissionContextKey());
+        validation.expectValidationException(getEditPermissionContextKey());
         DataPointVO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));

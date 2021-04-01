@@ -38,7 +38,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO, DAO>> extends MangoTestBase {
 
     @Rule
-    public ExpectValidationErrorRule expectValidationErrorRule = new ExpectValidationErrorRule();
+    public ExpectValidationErrorRule validation = new ExpectValidationErrorRule();
 
     protected RunAs runAs;
     protected SERVICE service;
