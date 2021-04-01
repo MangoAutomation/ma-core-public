@@ -52,4 +52,39 @@ public interface PointValueCacheDao {
      * @return
      */
     public List<PointValueTime> getPointValueCache(DataPointVO vo);
+
+    /**
+     * Clear all caches, for example after a full data purge
+     */
+    public void deleteAllCaches();
+
+    /**
+     * Clear cache for this point
+     * @param vo
+     */
+    public void deleteCache(DataPointVO vo);
+
+    /**
+     * Delete the cached value at this time if it exists
+     * @param vo
+     * @param timestamp
+     */
+    public void deleteCachedValue(DataPointVO vo, long timestamp);
+
+
+    /**
+     * Delete cached values before this time
+     * @param vo
+     * @param before
+     */
+    void deleteCachedValuesBefore(DataPointVO vo, long before);
+
+    /**
+     * Delete startTime <= values < endTime
+     *
+     * @param vo
+     * @param startTime
+     * @param endTime
+     */
+    void deleteCachedValuesBetween(DataPointVO vo, long startTime, long endTime);
 }

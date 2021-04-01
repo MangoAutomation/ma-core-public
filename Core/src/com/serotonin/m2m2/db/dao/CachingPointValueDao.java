@@ -72,4 +72,55 @@ public interface CachingPointValueDao extends PointValueDao, PointValueCacheDao 
         List<PointValueTime> cache = new ArrayList<>();
         return getLatestPointValues(vo, vo.getDefaultCacheSize());
     }
+
+    /**
+     * Clear all caches, for example after a full data purge
+     */
+    @Override
+    public default void deleteAllCaches() {
+        //No op by default
+    }
+
+    /**
+     * Clear cache for this point
+     * @param vo
+     */
+    @Override
+    public default void deleteCache(DataPointVO vo) {
+        //No op by default
+    }
+
+    /**
+     * Delete the cached value at this time if it exists
+     * @param vo
+     * @param timestamp
+     */
+    @Override
+    public default void deleteCachedValue(DataPointVO vo, long timestamp) {
+        //No op by default
+    }
+
+
+    /**
+     * Delete cached values before this time
+     * @param vo
+     * @param before
+     */
+    @Override
+    public default void deleteCachedValuesBefore(DataPointVO vo, long before) {
+        //No op by default
+    }
+
+    /**
+     * Delete startTime <= values < endTime
+     *
+     * @param vo
+     * @param startTime
+     * @param endTime
+     */
+    @Override
+    public default void deleteCachedValuesBetween(DataPointVO vo, long startTime, long endTime) {
+        //No op by default
+    }
+
 }
