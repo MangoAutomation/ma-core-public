@@ -141,6 +141,23 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
         //No xid
     }
 
+    @Override
+    @Test
+    public void testCountQueryReadPermissionEnforcement() {
+    }
+
+    @Override
+    @Test
+    public void testCountQueryEditPermissionEnforcement() {
+
+    }
+
+    @Override
+    @Test
+    public void testEditRolesCannotBeNull() {
+
+    }
+
     //Overrident tests
     @Override
     @Test
