@@ -58,20 +58,6 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
     }
 
     /**
-     * Does this User have data source permission? Analogous to isGrantedPermission('permissionDatasource')
-     *
-     * @return
-     */
-    public boolean hasDataSourcePermission() {
-        if (!(this.getPrincipal() instanceof PermissionHolder)) {
-            return false;
-        }
-
-        PermissionHolder user = (PermissionHolder) this.getPrincipal();
-        return permissionService.hasDataSourcePermission(user);
-    }
-
-    /**
      * Does this User have edit access for this data source
      *
      * @param xid
