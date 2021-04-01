@@ -33,6 +33,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.DataPointEventLevelSummary;
 import com.serotonin.m2m2.rt.event.EventInstance;
@@ -53,6 +54,7 @@ import net.jazdw.rql.parser.ASTNode;
 public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceDao> {
 
     private final DataPointDao dataPointDao;
+    private final EventsViewPermissionDefinition eventsViewPermission;
     /**
      * Lock used to protect access to acknowledging many events at once
      */
@@ -60,9 +62,11 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     private final Events events = Events.EVENTS;
 
     @Autowired
-    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao) {
+    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao,
+                                EventsViewPermissionDefinition eventsViewPermission) {
         super(dao, permissionService);
         this.dataPointDao = dataPointDao;
+        this.eventsViewPermission = eventsViewPermission;
     }
 
     @Override
@@ -88,7 +92,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public List<UserEventLevelSummary> getActiveSummary() throws PermissionException {
         PermissionHolder user = Common.getUser();
-        this.permissionService.ensureEventsVewPermission(user);
+        this.permissionService.ensurePermission(user, eventsViewPermission.getPermission());
 
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
         for (AlarmLevels level : AlarmLevels.values()) {
@@ -111,7 +115,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public List<UserEventLevelSummary> getUnacknowledgedSummary() {
         PermissionHolder user = Common.getUser();
-        this.permissionService.ensureEventsVewPermission(user);
+        this.permissionService.ensurePermission(user, eventsViewPermission.getPermission());
 
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
         for (AlarmLevels level : AlarmLevels.values()) {
@@ -139,7 +143,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids) throws NotFoundException, PermissionException {
         PermissionHolder user = Common.getUser();
-        this.permissionService.ensureEventsVewPermission(user);
+        this.permissionService.ensurePermission(user, eventsViewPermission.getPermission());
 
         Map<Integer, DataPointEventLevelSummary> map = new LinkedHashMap<>();
         for(String xid : dataPointXids) {
@@ -165,8 +169,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public List<EventInstance> getAllActiveUserEvents() {
         PermissionHolder user = Common.getUser();
-        this.permissionService.ensureEventsVewPermission(user);
-
+        this.permissionService.ensurePermission(user, eventsViewPermission.getPermission());
         return Common.eventManager.getAllActiveUserEvents(user);
     }
 

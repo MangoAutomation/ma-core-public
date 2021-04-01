@@ -256,17 +256,6 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * TODO Mango 4.0 remove method
-     *
-     * Ensure this user can view any events?
-     * @param user
-     */
-    public void ensureEventsVewPermission(PermissionHolder user) {
-        if (!hasEventsViewPermission(user))
-            throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getPermissionHolderName()), user);
-    }
-
-    /**
      * Ensure this permission holder is valid
      * @param user
      */
