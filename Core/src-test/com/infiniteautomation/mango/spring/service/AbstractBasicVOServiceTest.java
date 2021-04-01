@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
@@ -49,6 +50,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R e
     abstract void assertVoEqual(VO expected, VO actual);
 
     protected RoleService roleService;
+    protected SystemPermissionService systemPermissionService;
 
     protected User readUser;
     protected User editUser;
@@ -78,6 +80,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R e
     @Before
     public void setupServiceTest() {
         this.runAs = Common.getBean(RunAs.class);
+        this.systemPermissionService = Common.getBean(SystemPermissionService.class);
         setupRoles();
         service = getService();
         dao = getDao();
@@ -222,6 +225,10 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R e
 
     public RoleService getRoleService() {
         return roleService;
+    }
+
+    public String randomXid() {
+        return UUID.randomUUID().toString();
     }
 
 }
