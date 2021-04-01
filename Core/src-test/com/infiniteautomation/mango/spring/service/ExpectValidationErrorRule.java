@@ -7,6 +7,7 @@ package com.infiniteautomation.mango.spring.service;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,26 +20,34 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 
 public class ExpectValidationErrorRule implements TestRule {
 
-    @Override
-    public Statement apply(Statement base, Description description) {
-        return new ExpectValidationErrorRuleStatement(base, description);
+    private boolean validationExceptionExpected = false;
+    private Set<String> expectedKeys = Collections.emptySet();
+
+    public void expectValidationException(boolean expect) {
+        this.validationExceptionExpected = expect;
+        this.expectedKeys = Collections.emptySet();
     }
 
-    public static class ExpectValidationErrorRuleStatement extends Statement {
+    public void expectValidationException(String... keys) {
+        this.validationExceptionExpected = true;
+        this.expectedKeys = Arrays.stream(keys).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Statement apply(Statement base, Description description) {
+        ExpectValidationException annotation = description.getAnnotation(ExpectValidationException.class);
+        this.validationExceptionExpected = annotation != null;
+        if (annotation != null) {
+            this.expectedKeys = Arrays.stream(annotation.value()).collect(Collectors.toSet());
+        }
+        return new ExpectValidationErrorRuleStatement(base);
+    }
+
+    public class ExpectValidationErrorRuleStatement extends Statement {
         private final Statement base;
-        private final boolean validationExceptionExpected;
-        private final Set<String> expectedKeys;
 
-        public ExpectValidationErrorRuleStatement(Statement base, Description description) {
+        public ExpectValidationErrorRuleStatement(Statement base) {
             this.base = base;
-
-            ExpectValidationException annotation = description.getAnnotation(ExpectValidationException.class);
-            this.validationExceptionExpected = annotation != null;
-            if (annotation != null) {
-                this.expectedKeys = Arrays.stream(annotation.value()).collect(Collectors.toSet());
-            } else {
-                this.expectedKeys = null;
-            }
         }
 
         @Override
