@@ -80,6 +80,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             User vo = newVO(editUser);
             addRoleToCreatePermission(editRole);
             vo.setRoles(Collections.singleton(editRole));
+            vo.setReadPermission(MangoPermission.requireAnyRole(readRole, editRole));
+            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
             runAs.runAs(editUser, () -> {
                 service.insert(vo);
             });
