@@ -383,18 +383,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Override
-    void addReadRoleToFail(Role role, User vo) {
-        vo.getReadPermission().getRoles().add(Collections.singleton(role));
-    }
-
-    @Override
     String getReadPermissionContextKey() {
         return "readPermission";
-    }
-
-    @Override
-    void addEditRoleToFail(Role role, User vo) {
-        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override

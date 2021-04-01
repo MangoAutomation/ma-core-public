@@ -6,7 +6,6 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jooq.Condition;
@@ -22,7 +21,6 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * TODO: This test will cause NPE due to the fact that audit events are being raised and there is no audit event type for
@@ -42,22 +40,12 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
     }
 
     @Override
-    void addReadRoleToFail(Role role, EventInstanceVO vo) {
-        vo.getReadPermission().getRoles().add(Collections.singleton(role));
-    }
-
-    @Override
     String getReadPermissionContextKey() {
         return "readPermission";
     }
 
     @Override
     void setEditPermission(MangoPermission permission, EventInstanceVO vo) {
-
-    }
-
-    @Override
-    void addEditRoleToFail(Role role, EventInstanceVO vo) {
 
     }
 
@@ -114,12 +102,6 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
     @Override
     @Test
     public void testAddReadRoleUserDoesNotHave() {
-        //No edit permission
-    }
-
-    @Override
-    @Test
-    public void testCannotModifySetRoles() {
         //No edit permission
     }
 

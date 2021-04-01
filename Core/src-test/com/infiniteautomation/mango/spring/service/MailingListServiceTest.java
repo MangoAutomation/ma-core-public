@@ -201,18 +201,8 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     }
 
     @Override
-    void addReadRoleToFail(Role role, MailingList vo) {
-        vo.getReadPermission().getRoles().add(Collections.singleton(role));
-    }
-
-    @Override
     String getReadPermissionContextKey() {
         return "readPermission";
-    }
-
-    @Override
-    void addEditRoleToFail(Role role, MailingList vo) {
-        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override

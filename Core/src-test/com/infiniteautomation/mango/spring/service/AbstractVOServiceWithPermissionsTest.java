@@ -50,14 +50,6 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     abstract void setReadPermission(MangoPermission permission, VO vo);
 
     /**
-     * Get the roles and attempt to add this to the roles, should fail
-     *
-     * @param role
-     * @param vo
-     */
-    abstract void addReadRoleToFail(Role role, VO vo);
-
-    /**
      * Get the context key used in the validation of the read roles
      * @return
      */
@@ -69,14 +61,6 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
      * @param vo
      */
     abstract void setEditPermission(MangoPermission permission, VO vo);
-
-    /**
-     * Get the roles and attempt to add this to the roles, should fail
-     *
-     * @param role
-     * @param vo
-     */
-    abstract void addEditRoleToFail(Role role, VO vo);
 
     /**
      * Get the context key used in the validation of the edit roles
@@ -344,27 +328,6 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             service.get(vo.getId());
         });
     }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testCannotModifyReadRoles() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
-            VO saved = service.insert(vo);
-            addReadRoleToFail(editRole, saved);
-        });
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testCannotModifySetRoles() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
-            VO saved = service.insert(vo);
-            addEditRoleToFail(editRole, saved);
-        });
-    }
-
 
     @Test
     public void testCountQueryReadPermissionEnforcement() {

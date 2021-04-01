@@ -5,7 +5,6 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collections;
 import java.util.UUID;
 
 import com.infiniteautomation.mango.db.tables.DataSources;
@@ -19,7 +18,6 @@ import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDef
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -89,18 +87,8 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
     }
 
     @Override
-    void addReadRoleToFail(Role role, DataSourceVO vo) {
-        vo.getReadPermission().getRoles().add(Collections.singleton(role));
-    }
-
-    @Override
     String getReadPermissionContextKey() {
         return "readPermission";
-    }
-
-    @Override
-    void addEditRoleToFail(Role role, DataSourceVO vo) {
-        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override

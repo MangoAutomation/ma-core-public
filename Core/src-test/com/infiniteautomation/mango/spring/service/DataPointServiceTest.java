@@ -302,18 +302,8 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     }
 
     @Override
-    void addReadRoleToFail(Role role, DataPointVO vo) {
-        vo.getReadPermission().getRoles().add(Collections.singleton(role));
-    }
-
-    @Override
     String getReadPermissionContextKey() {
         return "readPermission";
-    }
-
-    @Override
-    void addEditRoleToFail(Role role, DataPointVO vo) {
-        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override

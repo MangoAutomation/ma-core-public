@@ -5,7 +5,6 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collections;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -18,7 +17,6 @@ import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -83,18 +81,8 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     }
 
     @Override
-    void addReadRoleToFail(Role role, JsonDataVO vo) {
-        vo.getReadPermission().getRoles().add(Collections.singleton(role));
-    }
-
-    @Override
     String getReadPermissionContextKey() {
         return "readPermission";
-    }
-
-    @Override
-    void addEditRoleToFail(Role role, JsonDataVO vo) {
-        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
