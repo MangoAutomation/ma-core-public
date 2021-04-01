@@ -71,26 +71,6 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
     }
 
     /**
-     * Does the user have read permissions to every data point in the list?
-     *
-     * @param xids
-     * @return
-     */
-    public boolean hasDataPointXidsReadPermission(String[] xids) {
-        if (!(this.getPrincipal() instanceof PermissionHolder)) {
-            return false;
-        }
-
-        PermissionHolder user = (PermissionHolder) this.getPrincipal();
-        for (String xid : xids) {
-            DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
-            if (!permissionService.hasPermission(user, vo.getReadPermission()))
-                return false;
-        }
-        return true;
-    }
-
-    /**
      * Does a user have data point set permissions?
      *
      * @param xid
