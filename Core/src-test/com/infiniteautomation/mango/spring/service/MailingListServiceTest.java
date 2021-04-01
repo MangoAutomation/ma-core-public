@@ -84,14 +84,13 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     }
 
     @Test
+    @ExpectValidationException("editPermission")
     public void testAddMissingEditRole() {
-        runTest(() -> {
-            MailingList vo = newVO(readUser);
-            Role role = new Role(10000, "new-role");
-            Set<Role> editRoles = Collections.singleton(role);
-            vo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
-            service.insert(vo);
-        }, "editPermission");
+        MailingList vo = newVO(readUser);
+        Role role = new Role(10000, "new-role");
+        Set<Role> editRoles = Collections.singleton(role);
+        vo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
+        service.insert(vo);
     }
 
     @Test
@@ -134,22 +133,21 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     }
 
     @Test
+    @ExpectValidationException("recipients[0]")
     public void testRecursiveMailingListsAreInvalid() {
-        runTest(() -> {
-            MailingList vo = newVO(readUser);
-            service.insert(vo);
-            MailingList fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            MailingList saved = fromDb;
+        MailingList vo = newVO(readUser);
+        service.insert(vo);
+        MailingList fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        MailingList saved = fromDb;
 
-            MailingList recursive = newVO(readUser);
-            List<MailingListRecipient> entries = new ArrayList<>();
-            MailingListEntry ml = new MailingListEntry();
-            ml.setMailingListId(saved.getId());
-            entries.add(ml);
-            recursive.setEntries(entries);
-            service.insert(recursive);
-        }, "recipients[0]");
+        MailingList recursive = newVO(readUser);
+        List<MailingListRecipient> entries = new ArrayList<>();
+        MailingListEntry ml = new MailingListEntry();
+        ml.setMailingListId(saved.getId());
+        entries.add(ml);
+        recursive.setEntries(entries);
+        service.insert(recursive);
     }
 
     @Override

@@ -138,36 +138,34 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     }
 
     @Test
+    @ExpectValidationException("scriptRoles")
     public void testCannotInsertUnauthorizedScriptRole() {
-        runTest(() -> {
-            addRoleToCreatePermission(editRole);
-            SetPointEventHandlerVO vo = newVO(editUser);
-            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
-            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
-            vo.setScriptRoles(permissions);
-            runAs.runAs(editUser, () -> {
-                service.insert(vo);
-            });
-        }, "scriptRoles");
+        addRoleToCreatePermission(editRole);
+        SetPointEventHandlerVO vo = newVO(editUser);
+        vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+        vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+        vo.setScriptRoles(permissions);
+        runAs.runAs(editUser, () -> {
+            service.insert(vo);
+        });
     }
 
     @Test
+    @ExpectValidationException("scriptRoles")
     public void testCannotUpdateUnauthorizedScriptRole() {
-        runTest(() -> {
-            addRoleToCreatePermission(editRole);
-            SetPointEventHandlerVO vo = newVO(editUser);
-            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
-            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
-            vo.setScriptRoles(permissions);
-            runAs.runAs(editUser, () -> {
-                SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO)service.insert(vo);
-                ScriptPermissions newPermissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
-                fromDb.setScriptRoles(newPermissions);
-                service.update(fromDb.getId(), fromDb);
-            });
-        }, "scriptRoles");
+        addRoleToCreatePermission(editRole);
+        SetPointEventHandlerVO vo = newVO(editUser);
+        vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+        vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
+        vo.setScriptRoles(permissions);
+        runAs.runAs(editUser, () -> {
+            SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO)service.insert(vo);
+            ScriptPermissions newPermissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+            fromDb.setScriptRoles(newPermissions);
+            service.update(fromDb.getId(), fromDb);
+        });
     }
 
     @Override

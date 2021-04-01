@@ -118,22 +118,21 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Test
     @Override
+    @ExpectValidationException("roles")
     public void testAddEditRoleUserDoesNotHave() {
-        runTest(() -> {
-            User vo = newVO(readUser);
-            vo.setRoles(Collections.singleton(readRole));
-            User saved = service.insert(vo);
+        User vo = newVO(readUser);
+        vo.setRoles(Collections.singleton(readRole));
+        User saved = service.insert(vo);
 
-            //Ensure the ability to edit self
-            setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
+        //Ensure the ability to edit self
+        setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
 
-            runAs.runAs(saved, () -> {
-                Set<Role> newRoles = new HashSet<>(saved.getRoles());
-                newRoles.add(editRole);
-                saved.setRoles(newRoles);
-                service.update(saved.getUsername(), saved);
-            });
-        }, "roles");
+        runAs.runAs(saved, () -> {
+            Set<Role> newRoles = new HashSet<>(saved.getRoles());
+            newRoles.add(editRole);
+            saved.setRoles(newRoles);
+            service.update(saved.getUsername(), saved);
+        });
     }
 
     @Test
@@ -174,18 +173,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Test
+    @ExpectValidationException("roles")
     public void testRemoveRolesFails() {
-        runTest(() -> {
-            User vo = newVO(readUser);
+        User vo = newVO(readUser);
 
-            vo.setRoles(Collections.singleton(readRole));
-            service.insert(vo);
-            User saved = service.get(vo.getId());
-            runAs.runAs(saved, () -> {
-                saved.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
-                service.update(saved.getUsername(), saved);
-            });
-        }, "roles");
+        vo.setRoles(Collections.singleton(readRole));
+        service.insert(vo);
+        User saved = service.get(vo.getId());
+        runAs.runAs(saved, () -> {
+            saved.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
+            service.update(saved.getUsername(), saved);
+        });
     }
 
     @Test
@@ -198,32 +196,31 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Test
+    @ExpectValidationException("username")
     public void testChangeUsernameWithoutPermission() {
-        runTest(() -> {
-            setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
-            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
+        setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
 
-            Set<Set<Role>> roleSet = def.getPermission().getRoles();
-            Set<Set<Role>> newRoles = new HashSet<>();
-            newRoles.add(Collections.singleton(editRole));
-            for (Set<Role> roles : roleSet) {
-                if (roles.contains(PermissionHolder.USER_ROLE)) {
-                    continue; //skip the user role
-                }
-                newRoles.add(roles);
+        Set<Set<Role>> roleSet = def.getPermission().getRoles();
+        Set<Set<Role>> newRoles = new HashSet<>();
+        newRoles.add(Collections.singleton(editRole));
+        for (Set<Role> roles : roleSet) {
+            if (roles.contains(PermissionHolder.USER_ROLE)) {
+                continue; //skip the user role
             }
-            Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
+            newRoles.add(roles);
+        }
+        Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
 
-            User vo = newVO(readUser);
-            vo.setRoles(Collections.singleton(readRole));
-            service.insert(vo);
-            User saved = service.get(vo.getId());
+        User vo = newVO(readUser);
+        vo.setRoles(Collections.singleton(readRole));
+        service.insert(vo);
+        User saved = service.get(vo.getId());
 
-            runAs.runAs(saved, () -> {
-                saved.setUsername(UUID.randomUUID().toString());
-                service.update(saved.getId(), saved);
-            });
-        }, "username");
+        runAs.runAs(saved, () -> {
+            saved.setUsername(UUID.randomUUID().toString());
+            service.update(saved.getId(), saved);
+        });
     }
 
     @Test

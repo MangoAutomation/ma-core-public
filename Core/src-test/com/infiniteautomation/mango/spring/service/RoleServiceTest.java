@@ -28,37 +28,33 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RolesRecord, Roles, RoleDao, RoleService> {
 
     @Test
+    @ExpectValidationException("xid")
     public void cannotInsertNewUserRole() {
-        runTest(() -> {
-            RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
-            service.insert(vo);
-        }, "xid", "xid");
+        RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
+        service.insert(vo);
     }
 
     @Test
+    @ExpectValidationException("xid")
     public void cannotInsertSuperadminRole() {
-        runTest(() -> {
-            RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
-            service.insert(vo);
-        }, "xid", "xid");
+        RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
+        service.insert(vo);
     }
 
     @Test
+    @ExpectValidationException("xid")
     public void cannotModifyUserRole() {
-        runTest(() -> {
-            RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID);
-            RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
-            service.update(vo.getXid(), updated);
-        }, "xid");
+        RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID);
+        RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
+        service.update(vo.getXid(), updated);
     }
 
     @Test
+    @ExpectValidationException("xid")
     public void cannotModifySuperadminRole() {
-        runTest(() -> {
-            RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID);
-            RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
-            service.update(vo.getXid(), updated);
-        }, "xid");
+        RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID);
+        RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
+        service.update(vo.getXid(), updated);
     }
 
     @Override
