@@ -69,7 +69,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, DataSourceVO vo) {
-        return permissionService.hasDataSourcePermission(user);
+        return permissionService.hasPermission(user, createPermission.getPermission());
     }
 
     @Override
@@ -120,7 +120,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
      * @return
      */
     public DataSourceDefinition<DataSourceVO> getDefinition(String dataSourceType, PermissionHolder user) throws NotFoundException, PermissionException {
-        permissionService.ensureDataSourcePermission(user);
+        permissionService.ensurePermission(user, createPermission.getPermission());
         DataSourceDefinition<DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
             throw new NotFoundException();

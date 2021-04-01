@@ -206,34 +206,6 @@ public class PermissionService implements CachingService {
     /**
      * TODO Mango 4.0 remove method
      *
-     * Ensure this user have the global data source permission
-     * @param user
-     * @throws PermissionException
-     */
-    public void ensureDataSourcePermission(PermissionHolder user) throws PermissionException {
-        if (!hasDataSourcePermission(user))
-            throw new PermissionException(new TranslatableMessage("permission.exception.editAnyDataSource", user.getPermissionHolderName()), user);
-    }
-
-    /**
-     * TODO Mango 4.0 remove method
-     *
-     * Does this user have the global data source permission?
-     * @param user
-     * @return
-     * @throws PermissionException
-     */
-    public boolean hasDataSourcePermission(PermissionHolder user) throws PermissionException {
-        if (!isValidPermissionHolder(user)) return false;
-
-        if(hasAdminRole(user)) return true;
-
-        return hasPermission(user, dataSourcePermission.getPermission());
-    }
-
-    /**
-     * TODO Mango 4.0 remove method
-     *
      * Does this holder have access to view this event type?
      * @param user
      * @param eventType

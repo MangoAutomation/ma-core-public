@@ -56,6 +56,7 @@ import com.serotonin.m2m2.module.MangoJavascriptContextObjectDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 import com.serotonin.m2m2.module.ScriptSourceDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -114,16 +115,19 @@ public class MangoJavaScriptService {
     private static final Object globalFunctionsLock = new Object();
 
     private final PermissionService permissionService;
+    private final DataSourcePermissionDefinition dataSourcePermissionDefinition;
     private final DataPointService dataPointService;
     private final RunAs runAs;
     private final NashornScriptEngineDefinition nashornEngineDefinition;
     private final ScriptEngineFactory nashornFactory;
 
     @Autowired
-    public MangoJavaScriptService(PermissionService permissionService, DataPointService dataPointService, RunAs runAs,
+    public MangoJavaScriptService(PermissionService permissionService, DataSourcePermissionDefinition dataSourcePermissionDefinition,
+                                  DataPointService dataPointService, RunAs runAs,
                                   ScriptEngineManager manager, List<ScriptEngineDefinition> engineDefinitions) {
         this.dataPointService = dataPointService;
         this.permissionService = permissionService;
+        this.dataSourcePermissionDefinition = dataSourcePermissionDefinition;
         this.runAs = runAs;
 
         this.nashornFactory = manager.getEngineFactories().stream()
@@ -211,7 +215,7 @@ public class MangoJavaScriptService {
      * @throws ValidationException
      */
     public void ensureValid(MangoJavaScript vo, PermissionHolder user) throws ValidationException {
-        permissionService.ensureDataSourcePermission(user);
+        permissionService.ensurePermission(user, dataSourcePermissionDefinition.getPermission());
         ProcessResult result = validate(vo, user);
         if(!result.isValid())
             throw new ValidationException(result);

@@ -110,6 +110,7 @@
 * Upgrade JSSC Serial library to 2.9.2
 * Enforce 255 character limit for tag keys and values in validation
 * Remove custom el security expressions hasDataSourcePermission, hasDataSourceXidPermission, hasDataPointXidReadPermission, hasDataPointXidsReadPermission, hasDataPointXidsSetPermission
+
 *Version 3.7.4*
 * Improve work item failure logging
 * Fix DWR bug in legacy UI where module was not being assigned to the DWR upon creation
