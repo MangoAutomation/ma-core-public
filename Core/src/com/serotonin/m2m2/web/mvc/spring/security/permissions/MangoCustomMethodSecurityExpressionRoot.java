@@ -12,11 +12,9 @@ import org.springframework.security.core.Authentication;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -68,22 +66,6 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 
         PermissionDefinition def = checkNull(ModuleRegistry.getPermissionDefinition(permissionName));
         return permissionService.hasPermission((PermissionHolder) this.getPrincipal(), def.getPermission());
-    }
-
-    /**
-     * Does a user have data point set permissions?
-     *
-     * @param xid
-     * @return
-     */
-    public boolean hasDataPointXidSetPermission(String xid) {
-        if (!(this.getPrincipal() instanceof PermissionHolder)) {
-            return false;
-        }
-
-        PermissionHolder user = (PermissionHolder) this.getPrincipal();
-        DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
-        return permissionService.hasPermission(user, vo.getSetPermission());
     }
 
     public boolean isPasswordAuthenticated() {
