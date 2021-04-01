@@ -455,16 +455,16 @@ public class PermissionService implements CachingService {
             return;
         }
 
+        boolean rolesValid = true;
         for (Set<Role> roles : newPermission.getRoles()) {
-            validateRoles(result, contextKey, roles);
-        }
-        if (!result.isValid()) {
-            return;
+            rolesValid = validateRoles(result, contextKey, roles) && rolesValid;
         }
 
-        // Ensure the user retains access to the object
-        if (!hasPermission(holder, newPermission)) {
-            result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+        if (rolesValid) {
+            // Ensure the user retains access to the object
+            if (!hasPermission(holder, newPermission)) {
+                result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+            }
         }
     }
 
@@ -507,19 +507,24 @@ public class PermissionService implements CachingService {
         }
     }
 
-    private void validateRoles(ProcessResult result, String contextKey, Set<Role> roles) {
+    private boolean validateRoles(ProcessResult result, String contextKey, Set<Role> roles) {
+        boolean valid = true;
         for (Role role : roles) {
             if (role.getXid() == null) {
                 result.addContextualMessage(contextKey, "validate.role.empty");
+                valid = false;
                 continue;
             }
             Integer id = roleDao.getIdByXid(role.getXid());
             if (id == null) {
                 result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+                valid = false;
             } else if (id != role.getId()) {
                 result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
+                valid = false;
             }
         }
+        return valid;
     }
 
     /**
