@@ -64,7 +64,8 @@ public class ExpectValidationErrorRule implements TestRule {
                             .map(ProcessMessage::getContextKey)
                             .collect(Collectors.toSet());
                     if (!expectedKeys.equals(failedKeys)) {
-                        fail(String.format("Expected ValidationException to be thrown with keys %s, but got %s", expectedKeys, failedKeys));
+                        fail(String.format("Expected ValidationException to be thrown with keys %s, but got %s",
+                                expectedKeys, e.getValidationResult().getMessages().toString()));
                     }
                 }
                 return;
