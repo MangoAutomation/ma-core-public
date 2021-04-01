@@ -61,7 +61,6 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.LinkedAccount;
 import com.serotonin.m2m2.vo.OAuth2LinkedAccount;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
@@ -281,7 +280,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
         if (vo.getCreatedTs() == null) {
             vo.setCreated(new Date(Common.timer.currentTimeMillis()));
         }
-        enforceUserRole(vo);
         super.insert(vo);
     }
 
@@ -296,7 +294,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
                 if (old1 == null) {
                     return null;
                 }
-                enforceUserRole(vo);
                 boolean passwordChanged = !old1.getPassword().equals(vo.getPassword());
                 if (passwordChanged) {
                     vo.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
@@ -323,15 +320,6 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
             // Log some information about the user object.
             LOG.error("Error updating user: " + vo, e);
             throw e;
-        }
-    }
-
-    private void enforceUserRole(User vo) {
-        Role userRole = PermissionHolder.USER_ROLE;
-        if (!vo.getRoles().contains(userRole)) {
-            Set<Role> updated = new HashSet<>(vo.getRoles());
-            updated.add(userRole);
-            vo.setRoles(Collections.unmodifiableSet(updated));
         }
     }
 

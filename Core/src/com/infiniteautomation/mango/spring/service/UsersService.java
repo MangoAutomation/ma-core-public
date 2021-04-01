@@ -429,11 +429,6 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             }
         }
 
-        // Every user must have the user role, must be directly assigned otherwise if role inheritance changes the user may lose the role
-        if (!vo.getRoles().contains(PermissionHolder.USER_ROLE)) {
-            result.addMessage("roles", new TranslatableMessage("users.validate.mustHaveUserRole"));
-        }
-
         return result;
     }
 
@@ -539,6 +534,12 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             }
         }
 
+        // Every user must have the user role, must be directly assigned otherwise if role inheritance changes the user may lose the role
+        if (vo.getRoles() != null && !vo.getRoles().contains(PermissionHolder.USER_ROLE)) {
+            Set<Role> updated = new HashSet<>(vo.getRoles());
+            updated.add(PermissionHolder.USER_ROLE);
+            vo.setRoles(Collections.unmodifiableSet(updated));
+        }
 
         return response;
     }
