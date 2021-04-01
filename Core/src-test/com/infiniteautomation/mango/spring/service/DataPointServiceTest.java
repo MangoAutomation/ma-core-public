@@ -186,19 +186,18 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Test
     @Override
     public void testAddReadRoleUserDoesNotHave() {
-        runTest(() -> {
-            DataPointVO vo = newVO(readUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                DataPointVO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
-                service.update(fromDb.getId(), fromDb);
-            });
-        }, getReadPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getReadPermissionContextKey());
+        DataPointVO vo = newVO(readUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            DataPointVO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
+            service.update(fromDb.getId(), fromDb);
+        });
     }
 
     /**
@@ -207,19 +206,18 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Override
     @Test
     public void testAddEditRoleUserDoesNotHave() {
-        runTest(() -> {
-            DataPointVO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                DataPointVO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
-                service.update(fromDb.getId(), fromDb);
-            });
-        }, getEditPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getEditPermissionContextKey());
+        DataPointVO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            DataPointVO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
+            service.update(fromDb.getId(), fromDb);
+        });
     }
 
     @Override

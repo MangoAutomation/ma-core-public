@@ -112,27 +112,25 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
 
     @Test
     public void testReadRolesCannotBeNull() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setReadPermission(null, vo);
-            service.insert(vo);
-        }, getReadPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getReadPermissionContextKey());
+        VO vo = newVO(readUser);
+        setReadPermission(null, vo);
+        service.insert(vo);
     }
 
     @Test
     public void testCannotRemoveReadAccess() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
-                service.update(fromDb.getId(), fromDb);
-            });
-        }, getReadPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getReadPermissionContextKey());
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+            service.update(fromDb.getId(), fromDb);
+        });
     }
 
     /**
@@ -140,19 +138,17 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
      */
     @Test
     public void testAddReadRoleUserDoesNotHave() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
-                service.update(fromDb.getId(), fromDb);
-            });
-
-        }, getReadPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getReadPermissionContextKey());
+        VO vo = newVO(readUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
+            service.update(fromDb.getId(), fromDb);
+        });
     }
 
     @Test
@@ -187,27 +183,25 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
 
     @Test
     public void testEditRolesCannotBeNull() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setEditPermission(null, vo);
-            service.insert(vo);
-        }, getEditPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getEditPermissionContextKey());
+        VO vo = newVO(editUser);
+        setEditPermission(null, vo);
+        service.insert(vo);
     }
 
     @Test
     public void testCannotRemoveEditAccess() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
-                service.update(fromDb.getId(), fromDb);
-            });
-        }, getEditPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getEditPermissionContextKey());
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+            service.update(fromDb.getId(), fromDb);
+        });
     }
 
     /**
@@ -215,18 +209,17 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
      */
     @Test
     public void testAddEditRoleUserDoesNotHave() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
-                service.update(fromDb.getId(), fromDb);
-            });
-        }, getEditPermissionContextKey());
+        expectValidationErrorRule.expectValidationException(getEditPermissionContextKey());
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
+            service.update(fromDb.getId(), fromDb);
+        });
     }
 
     @Test
