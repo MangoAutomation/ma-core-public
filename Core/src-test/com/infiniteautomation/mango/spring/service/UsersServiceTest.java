@@ -47,28 +47,24 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Test
     @Override
     public void testUserReadRole() {
-        runTest(() -> {
-            User vo = newVO(editUser);
-            User saved = service.insert(vo);
-            runAs.runAs(saved, () -> {
-                User fromDb = service.get(saved.getId());
-                assertVoEqual(saved, fromDb);
-            });
+        User vo = newVO(editUser);
+        User saved = service.insert(vo);
+        runAs.runAs(saved, () -> {
+            User fromDb = service.get(saved.getId());
+            assertVoEqual(saved, fromDb);
         });
     }
 
     @Test
     @Override
     public void testCreatePrivilegeSuccess() {
-        runTest(() -> {
-            User vo = newVO(editUser);
-            addRoleToCreatePermission(editRole);
-            vo.setRoles(Collections.singleton(editRole));
-            vo.setReadPermission(MangoPermission.requireAnyRole(readRole, editRole));
-            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
-            runAs.runAs(editUser, () -> {
-                service.insert(vo);
-            });
+        User vo = newVO(editUser);
+        addRoleToCreatePermission(editRole);
+        vo.setRoles(Collections.singleton(editRole));
+        vo.setReadPermission(MangoPermission.requireAnyRole(readRole, editRole));
+        vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
+        runAs.runAs(editUser, () -> {
+            service.insert(vo);
         });
     }
 
@@ -78,51 +74,45 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Override
     @Test
     public void testUserEditRole() {
-        runTest(() -> {
-            setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
-            User vo = newVO(editUser);
-            vo.setRoles(Collections.singleton(readRole));
-            User saved = service.insert(vo);
-            runAs.runAs(vo, () -> {
-                saved.setName("I edited myself");
-                service.update(saved.getUsername(), saved);
-                User updated = service.get(vo.getId());
-                assertVoEqual(saved, updated);
-            });
+        setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
+        User vo = newVO(editUser);
+        vo.setRoles(Collections.singleton(readRole));
+        User saved = service.insert(vo);
+        runAs.runAs(vo, () -> {
+            saved.setName("I edited myself");
+            service.update(saved.getUsername(), saved);
+            User updated = service.get(vo.getId());
+            assertVoEqual(saved, updated);
         });
     }
 
     @Test
     public void testUserEditRoleDefaultUser() {
-        runTest(() -> {
-            User vo = newVO(editUser);
-            User saved = service.insert(vo);
+        User vo = newVO(editUser);
+        User saved = service.insert(vo);
 
-            //Ensure the ability to edit self
-            setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        //Ensure the ability to edit self
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
 
-            runAs.runAs(saved, () -> {
-                saved.setName("I edited myself");
-                service.update(saved.getUsername(), saved);
-                User updated = service.get(saved.getId());
-                assertVoEqual(saved, updated);
-            });
+        runAs.runAs(saved, () -> {
+            saved.setName("I edited myself");
+            service.update(saved.getUsername(), saved);
+            User updated = service.get(saved.getId());
+            assertVoEqual(saved, updated);
         });
     }
 
     @Override
     @Test(expected = PermissionException.class)
     public void testUserEditRoleFails() {
-        runTest(() -> {
-            setEditSelfPermission(MangoPermission.requireAnyRole(editRole));
-            runAs.runAs(readUser, () -> {
-                User toUpdate = service.get(readUser.getId());
-                toUpdate.setName("I edited myself");
-                toUpdate.setPassword("");
-                service.update(toUpdate.getUsername(), toUpdate);
-                User updated = service.get(readUser.getId());
-                assertVoEqual(toUpdate, updated);
-            });
+        setEditSelfPermission(MangoPermission.requireAnyRole(editRole));
+        runAs.runAs(readUser, () -> {
+            User toUpdate = service.get(readUser.getId());
+            toUpdate.setName("I edited myself");
+            toUpdate.setPassword("");
+            service.update(toUpdate.getUsername(), toUpdate);
+            User updated = service.get(readUser.getId());
+            assertVoEqual(toUpdate, updated);
         });
     }
 
@@ -149,42 +139,38 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Test
     @Override
     public void testDeleteRoleUpdateVO() {
-        runTest(() -> {
-            User vo = newVO(readUser);
-            vo.setRoles(Collections.singleton(readRole));
-            service.insert(vo);
-            User fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            roleService.delete(readRole.getId());
-            //Remove the read role from the local copy
-            Set<Role> roles = new HashSet<>(fromDb.getRoles());
-            roles.remove(readRole);
-            fromDb.setRoles(roles);
-            //Check database
-            User updated = service.get(fromDb.getId());
-            assertVoEqual(fromDb, updated);
-            //Check cache
-            updated = service.get(fromDb.getUsername());
-            assertVoEqual(fromDb, updated);
-        });
+        User vo = newVO(readUser);
+        vo.setRoles(Collections.singleton(readRole));
+        service.insert(vo);
+        User fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        roleService.delete(readRole.getId());
+        //Remove the read role from the local copy
+        Set<Role> roles = new HashSet<>(fromDb.getRoles());
+        roles.remove(readRole);
+        fromDb.setRoles(roles);
+        //Check database
+        User updated = service.get(fromDb.getId());
+        assertVoEqual(fromDb, updated);
+        //Check cache
+        updated = service.get(fromDb.getUsername());
+        assertVoEqual(fromDb, updated);
     }
 
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
-        runTest(() -> {
-            User vo = insertNewVO(readUser);
-            vo.setRoles(Collections.singleton(readRole));
-            service.update(vo.getUsername(), vo);
-            User fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getId());
+        User vo = insertNewVO(readUser);
+        vo.setRoles(Collections.singleton(readRole));
+        service.update(vo.getUsername(), vo);
+        User fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        service.delete(vo.getId());
 
-            //Ensure the mappings are gone
-            assertEquals(0, getDao().getUserRoles(vo).size());
+        //Ensure the mappings are gone
+        assertEquals(0, getDao().getUserRoles(vo).size());
 
-            service.get(vo.getId());
-        });
+        service.get(vo.getId());
     }
 
     @Test

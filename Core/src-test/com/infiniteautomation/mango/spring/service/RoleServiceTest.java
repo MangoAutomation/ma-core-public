@@ -64,70 +64,64 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RolesRecord, 
     @Override
     @Test
     public void testCount() {
-        runTest(() -> {
-            List<RoleVO> all = service.dao.getAll();
-            for (RoleVO vo : all) {
-                if (!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID, vo.getXid())
-                        && !StringUtils.equals(PermissionHolder.USER_ROLE_XID, vo.getXid())
-                        && !StringUtils.equals(PermissionHolder.ANONYMOUS_ROLE_XID, vo.getXid())) {
-                    service.delete(vo.getId());
-                }
+        List<RoleVO> all = service.dao.getAll();
+        for (RoleVO vo : all) {
+            if (!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID, vo.getXid())
+                    && !StringUtils.equals(PermissionHolder.USER_ROLE_XID, vo.getXid())
+                    && !StringUtils.equals(PermissionHolder.ANONYMOUS_ROLE_XID, vo.getXid())) {
+                service.delete(vo.getId());
             }
+        }
 
-            List<RoleVO> vos = new ArrayList<>();
-            for (int i = 0; i < 5; i++) {
-                vos.add(insertNewVO(readUser));
-            }
-            assertEquals(8, service.dao.count());
-        });
+        List<RoleVO> vos = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            vos.add(insertNewVO(readUser));
+        }
+        assertEquals(8, service.dao.count());
     }
 
     @Override
     @Test
     public void testGetAll() {
-        runTest(() -> {
-            List<RoleVO> all = service.dao.getAll();
-            for (RoleVO vo : all) {
-                if (!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID, vo.getXid())
-                        && !StringUtils.equals(PermissionHolder.USER_ROLE_XID, vo.getXid())
-                        && !StringUtils.equals(PermissionHolder.ANONYMOUS_ROLE_XID, vo.getXid())) {
-                    service.delete(vo.getId());
-                }
+        List<RoleVO> all = service.dao.getAll();
+        for (RoleVO vo : all) {
+            if (!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID, vo.getXid())
+                    && !StringUtils.equals(PermissionHolder.USER_ROLE_XID, vo.getXid())
+                    && !StringUtils.equals(PermissionHolder.ANONYMOUS_ROLE_XID, vo.getXid())) {
+                service.delete(vo.getId());
             }
-            List<RoleVO> vos = new ArrayList<>();
-            vos.add(service.get(PermissionHolder.SUPERADMIN_ROLE_XID));
-            vos.add(service.get(PermissionHolder.USER_ROLE_XID));
-            vos.add(service.get(PermissionHolder.ANONYMOUS_ROLE_XID));
+        }
+        List<RoleVO> vos = new ArrayList<>();
+        vos.add(service.get(PermissionHolder.SUPERADMIN_ROLE_XID));
+        vos.add(service.get(PermissionHolder.USER_ROLE_XID));
+        vos.add(service.get(PermissionHolder.ANONYMOUS_ROLE_XID));
 
-            for (int i = 0; i < 5; i++) {
-                vos.add(insertNewVO(readUser));
-            }
-            all = service.dao.getAll();
-            for (RoleVO vo : all) {
-                RoleVO expected = null;
-                for (RoleVO e : vos) {
-                    if (e.getId() == vo.getId()) {
-                        expected = e;
-                    }
+        for (int i = 0; i < 5; i++) {
+            vos.add(insertNewVO(readUser));
+        }
+        all = service.dao.getAll();
+        for (RoleVO vo : all) {
+            RoleVO expected = null;
+            for (RoleVO e : vos) {
+                if (e.getId() == vo.getId()) {
+                    expected = e;
                 }
-                assertNotNull("Didn't find expected VO", expected);
-                assertVoEqual(expected, vo);
             }
-        });
+            assertNotNull("Didn't find expected VO", expected);
+            assertVoEqual(expected, vo);
+        }
     }
 
     @Test
     public void testQuery() {
-        runTest(() -> {
-            List<RoleVO> vos = new ArrayList<>();
-            for (int i = 0; i < 5; i++) {
-                vos.add(insertNewVO(readUser));
-            }
-            AtomicInteger count = new AtomicInteger();
-            service.buildQuery().equal("xid", vos.get(0).getXid()).query(r -> {
-                assertVoEqual(vos.get(0), r);
-                assertEquals(count.incrementAndGet(), 1);
-            });
+        List<RoleVO> vos = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            vos.add(insertNewVO(readUser));
+        }
+        AtomicInteger count = new AtomicInteger();
+        service.buildQuery().equal("xid", vos.get(0).getXid()).query(r -> {
+            assertVoEqual(vos.get(0), r);
+            assertEquals(count.incrementAndGet(), 1);
         });
     }
 

@@ -25,27 +25,23 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO, R extends Rec
 
     @Test
     public void testUpdateViaXid() {
-        runTest(() -> {
-            VO vo = insertNewVO(editUser);
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
+        VO vo = insertNewVO(editUser);
+        VO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
 
-            VO updated = updateVO(vo);
-            service.update(vo.getXid(), updated);
-            fromDb = service.get(updated.getXid());
-            assertVoEqual(updated, fromDb);
-        });
+        VO updated = updateVO(vo);
+        service.update(vo.getXid(), updated);
+        fromDb = service.get(updated.getXid());
+        assertVoEqual(updated, fromDb);
     }
 
     @Test(expected = NotFoundException.class)
     public void testDeleteViaXid() {
-        runTest(() -> {
-            VO vo = insertNewVO(editUser);
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getXid());
-            service.get(vo.getXid());
-        });
+        VO vo = insertNewVO(editUser);
+        VO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        service.delete(vo.getXid());
+        service.get(vo.getXid());
     }
 
 }

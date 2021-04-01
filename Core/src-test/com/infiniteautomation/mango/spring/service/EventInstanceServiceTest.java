@@ -145,13 +145,11 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
     @Override
     @Test
     public void testCreatePrivilegeSuccess() {
-        runTest(() -> {
-            EventInstanceVO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            // TODO is this runAs needed?
-            runAs.runAs(runAs.systemSuperadmin(), () -> {
-                service.insert(vo);
-            });
+        EventInstanceVO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        // TODO is this runAs needed?
+        runAs.runAs(runAs.systemSuperadmin(), () -> {
+            service.insert(vo);
         });
     }
 

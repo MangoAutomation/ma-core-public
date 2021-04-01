@@ -55,50 +55,44 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
 
     @Test
     public void testCreatePrivilegeSuccess() {
-        runTest(() -> {
-            EmailEventHandlerVO vo = newVO(editUser);
-            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
-            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
-            vo.setScriptRoles(permissions);
-            addRoleToCreatePermission(editRole);
-            runAs.runAs(editUser, () -> {
-                service.insert(vo);
-            });
+        EmailEventHandlerVO vo = newVO(editUser);
+        vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+        vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
+        vo.setScriptRoles(permissions);
+        addRoleToCreatePermission(editRole);
+        runAs.runAs(editUser, () -> {
+            service.insert(vo);
         });
     }
 
     @Test
     public void testDeleteRoleUpdateVO() {
-        runTest(() -> {
-            EmailEventHandlerVO vo = newVO(readUser);
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
-            vo.setScriptRoles(permissions);
-            service.insert(vo);
-            EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            roleService.delete(editRole.getId());
-            roleService.delete(readRole.getId());
-            EmailEventHandlerVO updated = (EmailEventHandlerVO) service.get(fromDb.getId());
-            fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
-            assertVoEqual(fromDb, updated);
-        });
+        EmailEventHandlerVO vo = newVO(readUser);
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+        vo.setScriptRoles(permissions);
+        service.insert(vo);
+        EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        roleService.delete(editRole.getId());
+        roleService.delete(readRole.getId());
+        EmailEventHandlerVO updated = (EmailEventHandlerVO) service.get(fromDb.getId());
+        fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
+        assertVoEqual(fromDb, updated);
     }
 
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
-        runTest(() -> {
-            EmailEventHandlerVO vo = newVO(readUser);
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
-            vo.setScriptRoles(permissions);
-            service.update(vo.getXid(), vo);
-            EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getId());
+        EmailEventHandlerVO vo = newVO(readUser);
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+        vo.setScriptRoles(permissions);
+        service.update(vo.getXid(), vo);
+        EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        service.delete(vo.getId());
 
-            service.get(vo.getId());
-        });
+        service.get(vo.getId());
     }
 
     @Test

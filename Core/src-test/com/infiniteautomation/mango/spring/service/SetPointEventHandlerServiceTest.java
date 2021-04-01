@@ -98,49 +98,43 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
 
     @Test
     public void testCreatePrivilegeSuccess() {
-        runTest(() -> {
-            SetPointEventHandlerVO vo = newVO(editUser);
-            vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
-            vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
-            vo.setScriptRoles(permissions);
-            addRoleToCreatePermission(editRole);
-            runAs.runAs(editUser, () -> {
-                service.insert(vo);
-            });
+        SetPointEventHandlerVO vo = newVO(editUser);
+        vo.setReadPermission(MangoPermission.requireAnyRole(editRole));
+        vo.setEditPermission(MangoPermission.requireAnyRole(editRole));
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(editRole));
+        vo.setScriptRoles(permissions);
+        addRoleToCreatePermission(editRole);
+        runAs.runAs(editUser, () -> {
+            service.insert(vo);
         });
     }
 
     @Test
     public void testDeleteRoleUpdateVO() {
-        runTest(() -> {
-            SetPointEventHandlerVO vo = newVO(readUser);
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
-            vo.setScriptRoles(permissions);
-            service.insert(vo);
-            SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO) service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            roleService.delete(editRole.getId());
-            roleService.delete(readRole.getId());
-            SetPointEventHandlerVO updated = (SetPointEventHandlerVO) service.get(fromDb.getId());
-            fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
-            assertVoEqual(fromDb, updated);
-        });
+        SetPointEventHandlerVO vo = newVO(readUser);
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+        vo.setScriptRoles(permissions);
+        service.insert(vo);
+        SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO) service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        roleService.delete(editRole.getId());
+        roleService.delete(readRole.getId());
+        SetPointEventHandlerVO updated = (SetPointEventHandlerVO) service.get(fromDb.getId());
+        fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
+        assertVoEqual(fromDb, updated);
     }
 
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
-        runTest(() -> {
-            SetPointEventHandlerVO vo = newVO(readUser);
-            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
-            vo.setScriptRoles(permissions);
-            service.update(vo.getXid(), vo);
-            SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO) service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getId());
-            service.get(vo.getId());
-        });
+        SetPointEventHandlerVO vo = newVO(readUser);
+        ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+        vo.setScriptRoles(permissions);
+        service.update(vo.getXid(), vo);
+        SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO) service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        service.delete(vo.getId());
+        service.get(vo.getId());
     }
 
     @Test

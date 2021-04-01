@@ -97,77 +97,67 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R e
 
     @Test
     public void testCreate() {
-        runTest(() -> {
-            VO vo = insertNewVO(readUser);
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-        });
+        VO vo = insertNewVO(readUser);
+        VO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
     }
 
     @Test
     public void testUpdate() {
-        runTest(() -> {
-            VO vo = insertNewVO(readUser);
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
+        VO vo = insertNewVO(readUser);
+        VO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
 
-            VO updated = updateVO(vo);
-            service.update(vo.getId(), updated);
-            fromDb = service.get(vo.getId());
-            assertVoEqual(updated, fromDb);
-        });
+        VO updated = updateVO(vo);
+        service.update(vo.getId(), updated);
+        fromDb = service.get(vo.getId());
+        assertVoEqual(updated, fromDb);
     }
 
     @Test(expected = NotFoundException.class)
     public void testDelete() {
-        runTest(() -> {
-            VO vo = insertNewVO(readUser);
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getId());
-            service.get(vo.getId());
-        });
+        VO vo = insertNewVO(readUser);
+        VO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        service.delete(vo.getId());
+        service.get(vo.getId());
     }
 
     @Test
     public void testCount() {
-        runTest(() -> {
-            List<VO> all = service.dao.getAll();
-            for (VO vo : all) {
-                service.delete(vo.getId());
-            }
+        List<VO> all = service.dao.getAll();
+        for (VO vo : all) {
+            service.delete(vo.getId());
+        }
 
-            List<VO> vos = new ArrayList<>();
-            for (int i = 0; i < 5; i++) {
-                vos.add(insertNewVO(readUser));
-            }
-            assertEquals(5, service.dao.count());
-        });
+        List<VO> vos = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            vos.add(insertNewVO(readUser));
+        }
+        assertEquals(5, service.dao.count());
     }
 
     @Test
     public void testGetAll() {
-        runTest(() -> {
-            List<VO> all = service.dao.getAll();
-            for (VO vo : all) {
-                service.delete(vo.getId());
-            }
-            List<VO> vos = new ArrayList<>();
-            for (int i = 0; i < 5; i++) {
-                vos.add(insertNewVO(readUser));
-            }
-            all = service.dao.getAll();
-            for (VO vo : all) {
-                VO expected = null;
-                for (VO e : vos) {
-                    if (e.getId() == vo.getId()) {
-                        expected = e;
-                    }
+        List<VO> all = service.dao.getAll();
+        for (VO vo : all) {
+            service.delete(vo.getId());
+        }
+        List<VO> vos = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            vos.add(insertNewVO(readUser));
+        }
+        all = service.dao.getAll();
+        for (VO vo : all) {
+            VO expected = null;
+            for (VO e : vos) {
+                if (e.getId() == vo.getId()) {
+                    expected = e;
                 }
-                assertNotNull("Didn't find expected VO", expected);
-                assertVoEqual(expected, vo);
             }
-        });
+            assertNotNull("Didn't find expected VO", expected);
+            assertVoEqual(expected, vo);
+        }
     }
 
     VO insertNewVO(User owner) {

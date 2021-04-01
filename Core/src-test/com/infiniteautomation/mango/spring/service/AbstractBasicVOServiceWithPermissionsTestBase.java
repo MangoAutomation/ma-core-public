@@ -91,28 +91,24 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test
     public void testCreatePrivilegeSuccess() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            addRoleToCreatePermission(editRole);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            runAs.runAs(editUser, () -> {
-                service.insert(vo);
-            });
+        VO vo = newVO(editUser);
+        addRoleToCreatePermission(editRole);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        runAs.runAs(editUser, () -> {
+            service.insert(vo);
         });
     }
 
     @Test
     public void testUserReadRole() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
 
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-            });
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
         });
     }
 
@@ -176,35 +172,31 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test
     public void testUserEditRole() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                service.update(fromDb.getId(), fromDb);
-                VO updated = service.get(fromDb.getId());
-                assertVoEqual(fromDb, updated);
-            });
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            service.update(fromDb.getId(), fromDb);
+            VO updated = service.get(fromDb.getId());
+            assertVoEqual(fromDb, updated);
         });
     }
 
     @Test(expected = PermissionException.class)
     public void testUserEditRoleFails() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                service.update(fromDb.getId(), fromDb);
-                VO updated = service.get(fromDb.getId());
-                assertVoEqual(fromDb, updated);
-            });
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            service.update(fromDb.getId(), fromDb);
+            VO updated = service.get(fromDb.getId());
+            assertVoEqual(fromDb, updated);
         });
     }
 
@@ -253,145 +245,123 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test
     public void testUserCanDelete() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            addRoleToCreatePermission(editRole);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            runAs.runAs(editUser, () -> {
-                VO newVO = service.insert(vo);
-                service.delete(newVO.getId());
-            });
+        VO vo = newVO(readUser);
+        addRoleToCreatePermission(editRole);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        runAs.runAs(editUser, () -> {
+            VO newVO = service.insert(vo);
+            service.delete(newVO.getId());
         });
     }
 
     @Test(expected = PermissionException.class)
     public void testUserDeleteFails() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            service.insert(vo);
-            runAs.runAs(editUser, () -> {
-                service.delete(vo.getId());
-            });
+        VO vo = newVO(readUser);
+        service.insert(vo);
+        runAs.runAs(editUser, () -> {
+            service.delete(vo.getId());
         });
     }
 
     @Test(expected = PermissionException.class)
     public void testSuperadminReadRole() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
-            VO saved = service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                service.get(saved.getId());
-            });
+        VO vo = newVO(readUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
+        VO saved = service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            service.get(saved.getId());
         });
     }
 
     @Test(expected = PermissionException.class)
     public void testSuperadminEditRole() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
-            VO saved = service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                VO fromDb = service.get(saved.getId());
-                assertVoEqual(saved, fromDb);
-                service.update(fromDb.getId(), fromDb);
-            });
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
+        VO saved = service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            VO fromDb = service.get(saved.getId());
+            assertVoEqual(saved, fromDb);
+            service.update(fromDb.getId(), fromDb);
         });
     }
 
     @Test
     public void testDeleteRoleUpdateVO() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
-            setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
-            service.insert(vo);
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            roleService.delete(editRole.getId());
-            roleService.delete(readRole.getId());
-            VO updated = service.get(fromDb.getId());
-            setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
-            setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
-            assertVoEqual(fromDb, updated);
-        });
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
+        service.insert(vo);
+        VO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        roleService.delete(editRole.getId());
+        roleService.delete(readRole.getId());
+        VO updated = service.get(fromDb.getId());
+        setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+        assertVoEqual(fromDb, updated);
     }
 
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
-        runTest(() -> {
-            VO vo = insertNewVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
-            setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
-            service.update(vo.getId(), vo);
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getId());
+        VO vo = insertNewVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
+        service.update(vo.getId(), vo);
+        VO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        service.delete(vo.getId());
 
-            service.get(vo.getId());
-        });
+        service.get(vo.getId());
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testCannotModifyReadRoles() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
-            VO saved = service.insert(vo);
-            addReadRoleToFail(editRole, saved);
-        });
+        VO vo = newVO(readUser);
+        setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
+        VO saved = service.insert(vo);
+        addReadRoleToFail(editRole, saved);
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testCannotModifySetRoles() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
-            VO saved = service.insert(vo);
-            addEditRoleToFail(editRole, saved);
-        });
+        VO vo = newVO(readUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
+        VO saved = service.insert(vo);
+        addEditRoleToFail(editRole, saved);
     }
 
     @Test
     public void testCountQueryReadPermissionEnforcement() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(0, count);
-            });
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
+            int count = getService().customizedCount(conditions);
+            assertEquals(0, count);
         });
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
-            service.insert(vo);
-            runAs.runAs(editUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(2, count);
-            });
+        VO vo2 = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo2);
+        service.insert(vo2);
+        runAs.runAs(editUser, () -> {
+            ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
+            int count = getService().customizedCount(conditions);
+            assertEquals(2, count);
         });
     }
 
     @Test
     public void testCountQueryEditPermissionEnforcement() {
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(0, count);
-            });
+        VO vo = newVO(readUser);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole(), editRole), vo);
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
+            int count = getService().customizedCount(conditions);
+            assertEquals(0, count);
         });
     }
 

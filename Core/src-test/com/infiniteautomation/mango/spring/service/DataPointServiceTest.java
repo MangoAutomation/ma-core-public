@@ -48,89 +48,79 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     @Test
     @Override
     public void testCreatePrivilegeSuccess() {
-        runTest(() -> {
-            DataPointVO vo = newVO(editUser);
-            addRoleToCreatePermission(editRole, vo);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
-            runAs.runAs(editUser, () -> {
-                service.insert(vo);
-            });
+        DataPointVO vo = newVO(editUser);
+        addRoleToCreatePermission(editRole, vo);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
+        runAs.runAs(editUser, () -> {
+            service.insert(vo);
         });
     }
 
     @Test
     @Override
     public void testUserCanDelete() {
-        runTest(() -> {
-            DataPointVO vo = newVO(readUser);
-            addRoleToCreatePermission(editRole, vo);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
-            service.insert(vo);
-            runAs.runAs(editUser, () -> {
-                service.delete(vo.getId());
-            });
+        DataPointVO vo = newVO(readUser);
+        addRoleToCreatePermission(editRole, vo);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
+        service.insert(vo);
+        runAs.runAs(editUser, () -> {
+            service.delete(vo.getId());
         });
     }
 
     @Test
     @Override
     public void testUserEditRole() {
-        runTest(() -> {
-            DataPointVO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-            vo.setSetPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                DataPointVO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                fromDb.setName("read user edited me");
-                service.update(fromDb.getXid(), fromDb);
-                DataPointVO updated = service.get(fromDb.getId());
-                assertVoEqual(fromDb, updated);
-            });
+        DataPointVO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            DataPointVO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            fromDb.setName("read user edited me");
+            service.update(fromDb.getXid(), fromDb);
+            DataPointVO updated = service.get(fromDb.getId());
+            assertVoEqual(fromDb, updated);
         });
     }
 
     @Test(expected = PermissionException.class)
     @Override
     public void testUserEditRoleFails() {
-        runTest(() -> {
-            DataPointVO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE), vo);
-            setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
-            vo.setSetPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                DataPointVO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);
-                fromDb.setName("read user edited me");
-                service.update(fromDb.getXid(), fromDb);
-                DataPointVO updated = service.get(fromDb.getId());
-                assertVoEqual(fromDb, updated);
-            });
+        DataPointVO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE), vo);
+        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        service.insert(vo);
+        runAs.runAs(readUser, () -> {
+            DataPointVO fromDb = service.get(vo.getId());
+            assertVoEqual(vo, fromDb);
+            fromDb.setName("read user edited me");
+            service.update(fromDb.getXid(), fromDb);
+            DataPointVO updated = service.get(fromDb.getId());
+            assertVoEqual(fromDb, updated);
         });
     }
 
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
-        runTest(() -> {
-            DataPointVO vo = insertNewVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
-            setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
-            vo.setSetPermission(MangoPermission.requireAnyRole(readRole));
-            service.update(vo.getXid(), vo);
-            DataPointVO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getId());
+        DataPointVO vo = insertNewVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(readRole));
+        service.update(vo.getXid(), vo);
+        DataPointVO fromDb = service.get(vo.getId());
+        assertVoEqual(vo, fromDb);
+        service.delete(vo.getId());
 
-            service.get(vo.getId());
-        });
+        service.get(vo.getId());
     }
 
     @Test
