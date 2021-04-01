@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -39,6 +40,9 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO, DAO>> extends MangoTestBase {
+
+    @Rule
+    public ExpectValidationErrorRule expectValidationErrorRule = new ExpectValidationErrorRule();
 
     protected RunAs runAs;
     protected SERVICE service;
