@@ -88,7 +88,7 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     }
 
     @Override
-    String getReadRolesContextKey() {
+    String getReadPermissionContextKey() {
         return "readPermission";
     }
 
@@ -98,7 +98,7 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     }
 
     @Override
-    String getEditRolesContextKey() {
+    String getEditPermissionContextKey() {
         return "editPermission";
     }
 }

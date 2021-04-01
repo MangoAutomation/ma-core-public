@@ -388,7 +388,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Override
-    String getReadRolesContextKey() {
+    String getReadPermissionContextKey() {
         return "readPermission";
     }
 
@@ -398,7 +398,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Override
-    String getEditRolesContextKey() {
+    String getEditPermissionContextKey() {
         return "editPermission";
     }
 

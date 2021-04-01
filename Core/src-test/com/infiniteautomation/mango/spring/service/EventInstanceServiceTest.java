@@ -47,7 +47,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
     }
 
     @Override
-    String getReadRolesContextKey() {
+    String getReadPermissionContextKey() {
         return "readPermission";
     }
 
@@ -62,7 +62,7 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
     }
 
     @Override
-    String getEditRolesContextKey() {
+    String getEditPermissionContextKey() {
         return null;
     }
 

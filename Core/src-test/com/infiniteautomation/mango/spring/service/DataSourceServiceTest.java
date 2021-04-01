@@ -94,7 +94,7 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
     }
 
     @Override
-    String getReadRolesContextKey() {
+    String getReadPermissionContextKey() {
         return "readPermission";
     }
 
@@ -104,7 +104,7 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
     }
 
     @Override
-    String getEditRolesContextKey() {
+    String getEditPermissionContextKey() {
         return "editPermission";
     }
 

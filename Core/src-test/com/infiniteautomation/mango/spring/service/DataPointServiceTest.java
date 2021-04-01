@@ -208,7 +208,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
                 setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getReadRolesContextKey());
+        }, getReadPermissionContextKey());
     }
 
     /**
@@ -229,7 +229,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
                 setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getEditRolesContextKey());
+        }, getEditPermissionContextKey());
     }
 
     @Override
@@ -307,7 +307,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     }
 
     @Override
-    String getReadRolesContextKey() {
+    String getReadPermissionContextKey() {
         return "readPermission";
     }
 
@@ -317,7 +317,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     }
 
     @Override
-    String getEditRolesContextKey() {
+    String getEditPermissionContextKey() {
         return "editPermission";
     }
 

@@ -61,7 +61,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
      * Get the context key used in the validation of the read roles
      * @return
      */
-    abstract String getReadRolesContextKey();
+    abstract String getReadPermissionContextKey();
 
     /**
      * Replace the edit roles with these
@@ -82,7 +82,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
      * Get the context key used in the validation of the edit roles
      * @return
      */
-    abstract String getEditRolesContextKey();
+    abstract String getEditPermissionContextKey();
 
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
@@ -138,7 +138,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(readUser);
             setReadPermission(null, vo);
             service.insert(vo);
-        }, getReadRolesContextKey());
+        }, getReadPermissionContextKey());
     }
 
     @Test
@@ -154,7 +154,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getReadRolesContextKey());
+        }, getReadPermissionContextKey());
     }
 
     /**
@@ -174,7 +174,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 service.update(fromDb.getId(), fromDb);
             });
 
-        }, getReadRolesContextKey());
+        }, getReadPermissionContextKey());
     }
 
     @Test
@@ -217,7 +217,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             VO vo = newVO(editUser);
             setEditPermission(null, vo);
             service.insert(vo);
-        }, getEditRolesContextKey());
+        }, getEditPermissionContextKey());
     }
 
     @Test
@@ -233,7 +233,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getEditRolesContextKey());
+        }, getEditPermissionContextKey());
     }
 
     /**
@@ -252,7 +252,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
                 service.update(fromDb.getId(), fromDb);
             });
-        }, getEditRolesContextKey());
+        }, getEditPermissionContextKey());
     }
 
     @Test
