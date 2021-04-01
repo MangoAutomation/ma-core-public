@@ -122,16 +122,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testAddEditRoleUserDoesNotHave() {
         User vo = newVO(readUser);
         vo.setRoles(Collections.singleton(readRole));
-        User saved = service.insert(vo);
+        service.insert(vo);
 
         //Ensure the ability to edit self
         setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
 
-        runAs.runAs(saved, () -> {
-            Set<Role> newRoles = new HashSet<>(saved.getRoles());
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            Set<Role> newRoles = new HashSet<>(self.getRoles());
             newRoles.add(editRole);
-            saved.setRoles(newRoles);
-            service.update(saved.getUsername(), saved);
+            self.setRoles(newRoles);
+            service.update(self.getId(), self);
         });
     }
 
@@ -175,14 +176,13 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Test
     @ExpectValidationException("roles")
     public void testRemoveRolesFails() {
-        User vo = newVO(readUser);
-
+        User vo = newVO(null);
         vo.setRoles(Collections.singleton(readRole));
         service.insert(vo);
-        User saved = service.get(vo.getId());
-        runAs.runAs(saved, () -> {
-            saved.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
-            service.update(saved.getUsername(), saved);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setRoles(Collections.emptySet());
+            service.update(self.getId(), self);
         });
     }
 
