@@ -146,7 +146,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
-            setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
+            setReadPermission(MangoPermission.superadminOnly(), fromDb);
             service.update(fromDb.getId(), fromDb);
         });
     }
@@ -217,7 +217,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
-            setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), fromDb);
+            setEditPermission(MangoPermission.superadminOnly(), fromDb);
             service.update(fromDb.getId(), fromDb);
         });
     }
@@ -246,7 +246,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     @Test(expected = PermissionException.class)
     public void testSuperadminReadRole() {
         VO vo = newVO(editUser);
-        setReadPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
+        setReadPermission(MangoPermission.superadminOnly(), vo);
         service.insert(vo);
         runAs.runAs(readUser, () -> {
             service.get(vo.getId());
@@ -257,7 +257,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     public void testSuperadminEditRole() {
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        setEditPermission(MangoPermission.requireAnyRole(roleService.getSuperadminRole()), vo);
+        setEditPermission(MangoPermission.superadminOnly(), vo);
         service.insert(vo);
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
