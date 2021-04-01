@@ -196,7 +196,7 @@ public class EventManagerImpl implements EventManager {
             if (type.excludeUser(user))
                 continue;
 
-            if (permissionService.hasEventTypePermission(user, type)) {
+            if (type.hasPermission(user, permissionService)) {
                 eventUserIds.add(user.getId());
                 // add email addresses for users which have been configured to receive events over a certain level
                 if (user.getReceiveAlarmEmails().value() > AlarmLevels.IGNORE.value() && alarmLevel.value() >= user.getReceiveAlarmEmails().value() && !StringUtils.isEmpty(user.getEmail()))
@@ -350,7 +350,7 @@ public class EventManagerImpl implements EventManager {
                     continue;
 
                 if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
-                    if (permissionService.hasEventTypePermission(user, type)) {
+                    if (type.hasPermission(user, permissionService)) {
                         userIdsToNotify.add(user.getId());
                     }
                 }
@@ -400,7 +400,7 @@ public class EventManagerImpl implements EventManager {
                 if (evt.getEventType().excludeUser(user))
                     continue;
 
-                if (permissionService.hasEventTypePermission(user, evt.getEventType())) {
+                if (evt.getEventType().hasPermission(user, permissionService)) {
                     userIdsToNotify.add(user.getId());
                 }
             }
@@ -453,7 +453,7 @@ public class EventManagerImpl implements EventManager {
             if (evt.getEventType().excludeUser(user))
                 continue;
 
-            if (permissionService.hasEventTypePermission(user, evt.getEventType())) {
+            if (evt.getEventType().hasPermission(user, permissionService)) {
                 //Notify All User Event Listeners of the new event
                 userIdsToNotify.add(user.getId());
             }
@@ -866,7 +866,7 @@ public class EventManagerImpl implements EventManager {
         }
 
         //Prune for user
-        userEvents.removeIf(eventInstance -> !permissionService.hasEventTypePermission(user, eventInstance.getEventType()));
+        userEvents.removeIf(eventInstance -> !eventInstance.getEventType().hasPermission(user, permissionService));
         return userEvents;
     }
 

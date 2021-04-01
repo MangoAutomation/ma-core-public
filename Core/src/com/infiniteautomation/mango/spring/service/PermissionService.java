@@ -35,9 +35,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.OwnedResource;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -201,58 +199,6 @@ public class PermissionService implements CachingService {
             }
         }
         return systemPermissions;
-    }
-
-    /**
-     * TODO Mango 4.0 remove method
-     *
-     * Does this holder have access to view this event type?
-     * @param user
-     * @param eventType
-     * @return
-     */
-    public boolean hasEventTypePermission(PermissionHolder user, EventType eventType) {
-        return hasAdminRole(user) || (hasEventsViewPermission(user) && eventType.hasPermission(user, this));
-    }
-
-    /**
-     * TODO Mango 4.0 remove method
-     *
-     * Ensure this holder has access to view this event type
-     * @param user
-     * @param eventType
-     * @throws PermissionException
-     */
-    public void ensureEventTypePermission(PermissionHolder user, EventType eventType) throws PermissionException {
-        if (!hasEventTypePermission(user, eventType))
-            throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getPermissionHolderName()), user);
-    }
-
-    /**
-     * TODO Mango 4.0 remove method
-     *
-     * Ensure this holder has access to view this event type VO
-     * @param user
-     * @param eventType
-     * @throws PermissionException
-     */
-    public void ensureEventTypePermission(PermissionHolder user, EventTypeVO eventType) throws PermissionException {
-        ensureEventTypePermission(user, eventType.getEventType());
-    }
-
-    /**
-     * TODO Mango 4.0 remove method
-     *
-     * Can this user view any events?
-     * @param user
-     * @return
-     */
-    public boolean hasEventsViewPermission (PermissionHolder user) {
-        if (!isValidPermissionHolder(user)) return false;
-
-        if(hasAdminRole(user)) return true;
-
-        return hasPermission(user, eventsViewPermission.getPermission());
     }
 
     /**

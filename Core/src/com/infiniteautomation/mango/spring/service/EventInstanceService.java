@@ -76,7 +76,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, EventInstanceVO vo) {
-        return permissionService.hasEventTypePermission(user, vo.getEventType());
+        return vo.getEventType().hasPermission(user,permissionService);
     }
 
     @Override
