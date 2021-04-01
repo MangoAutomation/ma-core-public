@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -38,9 +40,6 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UsersRecord, Users, UserDao, UsersService> {
-
-    public UsersServiceTest() {
-    }
 
     /**
      * Test that we can read ourself
@@ -338,6 +337,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         user.setEmail(UUID.randomUUID().toString() + "@example.com");
         user.setPhone("");
         user.setDisabled(false);
+        user.setReadPermission(MangoPermission.requireAnyRole(readRole));
+        user.setEditPermission(MangoPermission.requireAnyRole(editRole));
         return user;
     }
 
@@ -419,5 +420,146 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             }
             fail("Not all roles matched, missing: " + missingRoles);
         }
+    }
+
+    /**
+     * Roles
+     */
+
+    @Test
+    public void userRoleIsAlwaysAdded() {
+        User vo = newVO(null);
+        vo.setRoles(Collections.emptySet());
+        service.insert(vo);
+        assertThat(vo.getRoles(), hasItem(PermissionHolder.USER_ROLE));
+    }
+
+    @Test
+    @ExpectValidationException("roles")
+    public void cantAddRolesToSelf() {
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertNewVO(null);
+
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setRoles(Collections.singleton(editRole));
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test
+    @ExpectValidationException("roles")
+    public void cantAddRolesToSelfWithExplicitEditPermission() {
+        setEditSelfPermission(MangoPermission.superadminOnly());
+        User vo = newVO(null);
+        vo.setRoles(Collections.singleton(editRole));
+        service.insert(vo);
+
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            Set<Role> newRoles = new HashSet<>(self.getRoles());
+            newRoles.add(readRole);
+            self.setRoles(newRoles);
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test
+    public void cantRemoveRolesFromSelf() {
+
+    }
+
+    @Test
+    public void cantRemoveRolesFromSelfWithExplicitEditPermission() {
+
+    }
+
+    @Test
+    public void cantRemoveSuperadminRoleFromSelf() {
+
+    }
+
+    @Test
+    public void cantAddRolesToNewUser() {
+
+    }
+
+    @Test
+    public void cantAddRolesToUpdatedUser() {
+
+    }
+
+    @Test
+    public void superadminCanAddRolesToNewUser() {
+
+    }
+
+    @Test
+    public void superadminCanAddRolesToUpdatedUser() {
+
+    }
+
+    /**
+     * Permissions
+     */
+
+    @Test
+    public void canChangeOwnNameWithEditSelfPermission() {
+
+    }
+
+    @Test
+    public void cantChangeOwnNameWithoutEditSelfPermission() {
+
+    }
+
+    @Test
+    public void canChangeOwnNameWithExplicitPermissionOnly() {
+
+    }
+
+    @Test
+    public void cantDisableSelf() {
+
+    }
+
+    @Test
+    public void cantChangeReadPermissionOfSelf() {
+
+    }
+
+    @Test
+    public void cantChangeEditPermissionOfSelf() {
+
+    }
+
+    @Test
+    public void cantChangeCreatedTimeOfSelf() {
+
+    }
+
+    @Test
+    public void canChangeReadPermission() {
+
+    }
+
+    @Test
+    public void canChangeEditPermission() {
+
+    }
+
+    @Test
+    public void canChangeCreatedTime() {
+
+    }
+
+    @Test
+    public void cantRemoveReadAccess() {
+
+    }
+
+    @Test
+    public void cantRemoveEditAccess() {
+
     }
 }
