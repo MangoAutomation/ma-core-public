@@ -235,10 +235,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         addRoleToCreatePermission(editRole);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        // TODO is this runAs needed?
-        VO newVO = runAs.runAs(runAs.systemSuperadmin(), () -> {
-            return service.insert(vo);
-        });
+        VO newVO = service.insert(vo);
         runAs.runAs(readUser, () -> {
             service.delete(newVO.getId());
         });
