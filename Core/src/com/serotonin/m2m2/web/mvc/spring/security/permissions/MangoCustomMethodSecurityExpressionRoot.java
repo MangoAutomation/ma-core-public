@@ -13,12 +13,10 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -58,22 +56,6 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
     }
 
     /**
-     * Does this User have edit access for this data source
-     *
-     * @param xid
-     * @return
-     */
-    public boolean hasDataSourceXidPermission(String xid) {
-        if (!(this.getPrincipal() instanceof PermissionHolder)) {
-            return false;
-        }
-
-        PermissionHolder user = (PermissionHolder) this.getPrincipal();
-        DataSourceVO dsvo = checkNull(DataSourceDao.getInstance().getByXid(xid));
-        return permissionService.hasPermission(user, dsvo.getEditPermission());
-    }
-
-    /**
      * Checks if a user is granted a permission
      *
      * @param permissionName System setting key for the granted permission
@@ -86,22 +68,6 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 
         PermissionDefinition def = checkNull(ModuleRegistry.getPermissionDefinition(permissionName));
         return permissionService.hasPermission((PermissionHolder) this.getPrincipal(), def.getPermission());
-    }
-
-    /**
-     * Does a user have data point read permissions?
-     *
-     * @param xid
-     * @return
-     */
-    public boolean hasDataPointXidReadPermission(String xid) {
-        if (!(this.getPrincipal() instanceof PermissionHolder)) {
-            return false;
-        }
-
-        PermissionHolder user = (PermissionHolder) this.getPrincipal();
-        DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
-        return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
@@ -138,27 +104,6 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
         PermissionHolder user = (PermissionHolder) this.getPrincipal();
         DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
         return permissionService.hasPermission(user, vo.getSetPermission());
-    }
-
-    /**
-     * Does the user have read permissions to every data point in the list?
-     *
-     * @param xids
-     * @return
-     */
-    public boolean hasDataPointXidsSetPermission(String[] xids) {
-        if (!(this.getPrincipal() instanceof PermissionHolder)) {
-            return false;
-        }
-
-        PermissionHolder user = (PermissionHolder) this.getPrincipal();
-        for (String xid : xids) {
-            DataPointVO vo = checkNull(DataPointDao.getInstance().getByXid(xid));
-            if (!permissionService.hasPermission(user, vo.getSetPermission()))
-                return false;
-        }
-
-        return true;
     }
 
     public boolean isPasswordAuthenticated() {
