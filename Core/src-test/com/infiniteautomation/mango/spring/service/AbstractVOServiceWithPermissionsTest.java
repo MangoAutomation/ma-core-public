@@ -329,106 +329,65 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         });
     }
 
+    public int queryForName(String name) {
+        Condition c = getDao().getNameField().eq(name);
+        ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, 0);
+        AtomicInteger count = new AtomicInteger();
+        getService().customizedQuery(conditions, (item) -> {
+            count.getAndIncrement();
+            assertEquals(name, item.getName());
+        });
+        return count.get();
+    }
+
+    public int countForName(String name) {
+        Condition c = getDao().getNameField().eq(name);
+        ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, 0);
+        return getService().customizedCount(conditions);
+    }
+
     @Test
     public void testCountQueryReadPermissionEnforcement() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(0, count);
-            });
-        });
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
-            service.insert(vo);
-            runAs.runAs(editUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(2, count);
-            });
-        });
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
+        service.insert(vo);
+
+        runAs.runAs(readUser, () -> assertEquals(1, countForName(vo.getName())));
+        runAs.runAs(editUser, () -> assertEquals(0, countForName(vo.getName())));
     }
 
     @Test
     public void testCountQueryEditPermissionEnforcement() {
-        runTest(() -> {
-            VO vo = newVO(editUser);
-            setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
-            service.insert(vo);
-            runAs.runAs(editUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(0, count);
-            });
-        });
-        runTest(() -> {
-            VO vo = newVO(readUser);
-            setEditPermission(MangoPermission.requireAnyRole(readRole), vo);
-            service.insert(vo);
-            runAs.runAs(readUser, () -> {
-                ConditionSortLimit conditions = new ConditionSortLimit(null, null, null, 0);
-                int count = getService().customizedCount(conditions);
-                assertEquals(0, count);
-            });
-        });
+        VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
+        service.insert(vo);
+
+        runAs.runAs(readUser, () -> assertEquals(0, countForName(vo.getName())));
+        runAs.runAs(editUser, () -> assertEquals(1, countForName(vo.getName())));
     }
 
     @Test
     public void testQueryReadPermissionEnforcement() {
         VO vo = newVO(editUser);
-        setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
-        VO saved = service.insert(vo);
-        runAs.runAs(readUser, () -> {
-            ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
-            AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item) -> {
-                count.getAndIncrement();
-            });
-            assertEquals(0, count.get());
-        });
-        runAs.runAs(editUser, () -> {
-            Condition c = getDao().getNameField().eq(saved.getName());
-            ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
-            AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item) -> {
-                count.getAndIncrement();
-                assertEquals(saved.getName(), item.getName());
-            });
-            assertEquals(1, count.get());
-        });
+        setReadPermission(MangoPermission.requireAnyRole(readRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
+        service.insert(vo);
+
+        runAs.runAs(readUser, () -> assertEquals(1, queryForName(vo.getName())));
+        runAs.runAs(editUser, () -> assertEquals(0, queryForName(vo.getName())));
     }
 
     @Test
     public void testQueryEditPermissionEnforcement() {
         VO vo = newVO(editUser);
+        setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
         setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
-        service.insert(vo);
-        runAs.runAs(editUser, () -> {
-            ConditionSortLimit conditions = new ConditionSortLimit(null, null, 1, 0);
-            AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item) -> {
-                count.getAndIncrement();
-            });
-            assertEquals(0, count.get());
-        });
+        VO saved = service.insert(vo);
 
-        VO readable = newVO(editUser);
-        setReadPermission(MangoPermission.requireAnyRole(editRole), readable);
-        VO savedReadable = service.insert(readable);
-        runAs.runAs(editUser, () -> {
-            Condition c = getDao().getNameField().eq(savedReadable.getName());
-            ConditionSortLimit conditions = new ConditionSortLimit(c, null, null, null);
-            AtomicInteger count = new AtomicInteger();
-            getService().customizedQuery(conditions, (item) -> {
-                count.getAndIncrement();
-                assertEquals(savedReadable.getName(), item.getName());
-            });
-            assertEquals(1, count.get());
-        });
+        runAs.runAs(readUser, () -> assertEquals(0, queryForName(vo.getName())));
+        runAs.runAs(editUser, () -> assertEquals(1, queryForName(vo.getName())));
     }
 
     void addRoleToCreatePermission(Role vo) {
