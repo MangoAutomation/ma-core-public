@@ -10,11 +10,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
@@ -191,7 +194,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         User vo = newVO(readUser);
         service.insert(vo);
         vo = service.get(vo.getId());
-        vo.setUsername(UUID.randomUUID().toString());
+        vo.setUsername(randomXid());
         service.update(vo.getId(), vo);
     }
 
@@ -210,7 +213,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             }
             newRoles.add(roles);
         }
-        Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
+        systemPermissionService.update(new MangoPermission(newRoles), def);
 
         User vo = newVO(readUser);
         vo.setRoles(Collections.singleton(readRole));
@@ -218,7 +221,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         User saved = service.get(vo.getId());
 
         runAs.runAs(saved, () -> {
-            saved.setUsername(UUID.randomUUID().toString());
+            saved.setUsername(randomXid());
             service.update(saved.getId(), saved);
         });
     }
@@ -234,7 +237,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         for (Set<Role> roles : roleSet) {
             newRoles.add(new HashSet<>(roles));
         }
-        Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
+        systemPermissionService.update(new MangoPermission(newRoles), def);
 
         //Ensure they can edit self
         setEditSelfPermission(MangoPermission.requireAnyRole(readRole));
@@ -245,15 +248,20 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         User saved = service.get(vo.getId());
 
         runAs.runAs(saved, () -> {
-            saved.setUsername(UUID.randomUUID().toString());
+            saved.setUsername(randomXid());
             service.update(saved.getId(), saved);
         });
     }
 
     void setEditSelfPermission(MangoPermission permission) {
-        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-        Common.getBean(SystemPermissionService.class)
-                .update(permission, def);
+        systemPermissionService.update(permission, Common.getBean(UserEditSelfPermission.class));
+    }
+
+    public Role createUsersRole() {
+        Role createRole = createRole(randomXid(), "Create users role").getRole();
+        PermissionDefinition createPermission = Common.getBean(UserCreatePermission.class);
+        systemPermissionService.update(MangoPermission.requireAnyRole(createRole), createPermission);
+        return createRole;
     }
 
     @Override
@@ -311,17 +319,23 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     }
 
+    public User insertUser(Role... roles) {
+        User user = newVO(null);
+        user.setReadPermission(MangoPermission.requireAnyRole(readRole));
+        user.setEditPermission(MangoPermission.requireAnyRole(editRole));
+        user.setRoles(Arrays.stream(roles).collect(Collectors.toSet()));
+        return service.insert(user);
+    }
+
     @Override
     User newVO(User owner) {
         User user = new User();
         user.setName("usersServiceTest");
-        user.setUsername(UUID.randomUUID().toString());
+        user.setUsername(randomXid());
         user.setPassword(Common.encrypt("usersServiceTest"));
-        user.setEmail(UUID.randomUUID().toString() + "@example.com");
+        user.setEmail(randomXid() + "@example.com");
         user.setPhone("");
         user.setDisabled(false);
-        user.setReadPermission(MangoPermission.requireAnyRole(readRole));
-        user.setEditPermission(MangoPermission.requireAnyRole(editRole));
         return user;
     }
 
@@ -329,7 +343,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     User updateVO(User existing) {
         existing.setName("usersServiceTest2");
         existing.setPassword(Common.encrypt("usersServiceTest2"));
-        existing.setEmail(UUID.randomUUID().toString() + "@example.com");
+        existing.setEmail(randomXid() + "@example.com");
         existing.setPhone("");
         existing.setDisabled(false);
         return existing;
@@ -421,11 +435,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @ExpectValidationException("roles")
     public void cantAddRolesToSelf() {
         setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
-        User vo = insertNewVO(null);
+        User vo = newVO(null);
+        vo.setRoles(Collections.singleton(editRole));
+        vo.setEditPermission(MangoPermission.superadminOnly());
+        service.insert(vo);
 
         runAs.runAs(vo, () -> {
             User self = service.get(vo.getId());
-            self.setRoles(Collections.singleton(editRole));
+            self.setRoles(Stream.concat(
+                    self.getRoles().stream(),
+                    Stream.of(readRole)
+            ).collect(Collectors.toSet()));
             service.update(self.getId(), self);
         });
     }
@@ -433,116 +453,331 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Test
     @ExpectValidationException("roles")
     public void cantAddRolesToSelfWithExplicitEditPermission() {
-        setEditSelfPermission(MangoPermission.superadminOnly());
-        User vo = newVO(null);
-        vo.setRoles(Collections.singleton(editRole));
-        service.insert(vo);
-
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertUser(editRole);
         runAs.runAs(vo, () -> {
             User self = service.get(vo.getId());
-            Set<Role> newRoles = new HashSet<>(self.getRoles());
-            newRoles.add(readRole);
-            self.setRoles(newRoles);
+            self.setRoles(Stream.concat(
+                self.getRoles().stream(),
+                Stream.of(readRole)
+            ).collect(Collectors.toSet()));
             service.update(self.getId(), self);
         });
     }
 
     @Test
+    @ExpectValidationException("roles")
     public void cantRemoveRolesFromSelf() {
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = newVO(null);
+        vo.setRoles(new HashSet<>(Arrays.asList(editRole, readRole)));
+        vo.setEditPermission(MangoPermission.superadminOnly());
+        service.insert(vo);
 
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setRoles(self.getRoles().stream()
+                    .filter(r -> !r.equals(readRole))
+                    .collect(Collectors.toSet()));
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
+    @ExpectValidationException("roles")
     public void cantRemoveRolesFromSelfWithExplicitEditPermission() {
-
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertUser(editRole, readRole);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setRoles(self.getRoles().stream()
+                    .filter(r -> !r.equals(readRole))
+                    .collect(Collectors.toSet()));
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
-    public void cantRemoveSuperadminRoleFromSelf() {
-
+    @ExpectValidationException("roles")
+    public void superadminCantRemoveSuperadminRoleFromSelf() {
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertUser(editRole, readRole, PermissionHolder.SUPERADMIN_ROLE);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setRoles(self.getRoles().stream()
+                    .filter(r -> !r.equals(PermissionHolder.SUPERADMIN_ROLE))
+                    .collect(Collectors.toSet()));
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
-    public void cantAddRolesToNewUser() {
-
+    public void superadminCanRemoveOtherRoleFromSelf() {
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertUser(editRole, readRole, PermissionHolder.SUPERADMIN_ROLE);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setRoles(self.getRoles().stream()
+                    .filter(r -> !r.equals(readRole))
+                    .collect(Collectors.toSet()));
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
-    public void cantAddRolesToUpdatedUser() {
-
+    @ExpectValidationException("roles")
+    public void cantAddAdditionalRolesWhenCreating() {
+        Role roleToAdd = createRole(randomXid(), "Some other role").getRole();
+        Role createRole = createUsersRole();
+        User createUser = insertUser(createRole, editRole, readRole);
+        runAs.runAs(createUser, () -> {
+            insertUser(roleToAdd);
+        });
     }
 
     @Test
-    public void superadminCanAddRolesToNewUser() {
-
+    @ExpectValidationException("roles")
+    public void cantAddAdditionalRolesWhenUpdating() {
+        Role roleToAdd = createRole(randomXid(), "Some other role").getRole();
+        Role createRole = createUsersRole();
+        User createUser = insertUser(createRole, editRole, readRole);
+        User otherUser = insertUser();
+        runAs.runAs(createUser, () -> {
+            otherUser.setRoles(Collections.singleton(roleToAdd));
+            service.update(otherUser.getId(), otherUser);
+        });
     }
 
     @Test
-    public void superadminCanAddRolesToUpdatedUser() {
+    public void canAddOwnRolesWhenCreating() {
+        Role createRole = createUsersRole();
+        User createUser = insertUser(createRole, editRole, readRole);
+        runAs.runAs(createUser, () -> {
+            insertUser(readRole);
+        });
+    }
 
+    @Test
+    public void canAddOwnRolesWhenUpdating() {
+        Role createRole = createUsersRole();
+        User createUser = insertUser(createRole, editRole, readRole);
+        User otherUser = insertUser();
+        runAs.runAs(createUser, () -> {
+            otherUser.setRoles(Collections.singleton(readRole));
+            service.update(otherUser.getId(), otherUser);
+        });
+    }
+
+    @Test
+    public void superadminCanAddRolesWhenCreating() {
+        User createUser = insertUser(PermissionHolder.SUPERADMIN_ROLE);
+        runAs.runAs(createUser, () -> {
+            insertUser(readRole);
+        });
+    }
+
+    @Test
+    public void superadminCanAddRolesWhenUpdating() {
+        User createUser = insertUser(PermissionHolder.SUPERADMIN_ROLE);
+        User otherUser = insertNewVO(null);
+        runAs.runAs(createUser, () -> {
+            otherUser.setRoles(Collections.singleton(readRole));
+            service.update(otherUser.getId(), otherUser);
+        });
     }
 
     /**
      * Permissions
      */
 
-    @Test
-    public void canChangeOwnNameWithEditSelfPermission() {
-
+    @Test(expected = PermissionException.class)
+    public void cantCreateWithoutPermission() {
+        User createUser = insertNewVO(null);
+        runAs.runAs(createUser, () -> {
+            insertNewVO(null);
+        });
     }
 
     @Test
-    public void cantChangeOwnNameWithoutEditSelfPermission() {
+    @ExpectValidationException("readPermission")
+    public void cantCreateUserYouCantRead() {
+        Role createRole = createUsersRole();
+        User createUser = insertUser(editRole, createRole);
+        //noinspection Convert2MethodRef
+        runAs.runAs(createUser, () -> insertUser());
+    }
 
+    @Test
+    @ExpectValidationException("editPermission")
+    public void cantCreateUserYouCantEdit() {
+        Role createRole = createUsersRole();
+        User createUser = insertUser(readRole, createRole);
+        //noinspection Convert2MethodRef
+        runAs.runAs(createUser, () -> insertUser());
+    }
+
+
+    @Test
+    public void canChangeOwnNameWithEditSelfPermission() {
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertUser();
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setName("new name!");
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test(expected = PermissionException.class)
+    public void cantChangeOwnNameWithoutEditSelfPermission() {
+        setEditSelfPermission(MangoPermission.superadminOnly());
+        User vo = insertUser();
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setName("new name!");
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
     public void canChangeOwnNameWithExplicitPermissionOnly() {
-
+        setEditSelfPermission(MangoPermission.superadminOnly());
+        User vo = insertUser(editRole);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setName("new name!");
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
+    @ExpectValidationException("disabled")
     public void cantDisableSelf() {
-
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertUser();
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setDisabled(true);
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
-    public void cantChangeReadPermissionOfSelf() {
-
+    @ExpectValidationException("disabled")
+    public void cantDisableSelfEvenWithExplicitEditPermission() {
+        User vo = insertUser(editRole, readRole);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setDisabled(true);
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
-    public void cantChangeEditPermissionOfSelf() {
-
+    @ExpectValidationException("disabled")
+    public void cantDisableSelfEvenIfSuperadmin() {
+        User vo = insertUser(PermissionHolder.SUPERADMIN_ROLE);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setDisabled(true);
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
+    @ExpectValidationException({"readPermission", "editPermission"})
+    public void cantChangePermissionsOfSelf() {
+        setEditSelfPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+        User vo = insertUser();
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setReadPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+            self.setEditPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test
+    public void canChangePermissionsOfSelfWithExplicitPermission() {
+        Role otherRole = createRole(randomXid(), "Some other role").getRole();
+        User vo = insertUser(editRole, readRole, otherRole);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setReadPermission(MangoPermission.requireAnyRole(otherRole));
+            self.setEditPermission(MangoPermission.requireAnyRole(otherRole));
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test
+    @ExpectValidationException({"readPermission", "editPermission"})
+    public void mustRetainAccessToSelf() {
+        User vo = insertUser(editRole, readRole);
+        runAs.runAs(vo, () -> {
+            User self = service.get(vo.getId());
+            self.setReadPermission(MangoPermission.superadminOnly());
+            self.setEditPermission(MangoPermission.superadminOnly());
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test
+    public void canEditPermissions() {
+        Role otherRole = createRole(randomXid(), "Some other role").getRole();
+        User otherUser = insertUser();
+        User user = insertUser(editRole, readRole, otherRole);
+        runAs.runAs(user, () -> {
+            otherUser.setReadPermission(MangoPermission.requireAnyRole(otherRole));
+            otherUser.setEditPermission(MangoPermission.requireAnyRole(otherRole));
+            service.update(otherUser.getId(), otherUser);
+        });
+    }
+
+    @Test
+    public void canAllowAccessToRoleWeDontHold() {
+        Role otherRole = createRole(randomXid(), "Some other role").getRole();
+        User otherUser = insertUser();
+        User user = insertUser(editRole, readRole);
+        runAs.runAs(user, () -> {
+            otherUser.setReadPermission(MangoPermission.requireAnyRole(readRole, otherRole));
+            otherUser.setEditPermission(MangoPermission.requireAnyRole(editRole, otherRole));
+            service.update(otherUser.getId(), otherUser);
+        });
+    }
+
+    @Test
+    @ExpectValidationException({"readPermission", "editPermission"})
+    public void mustRetainAccess() {
+        Role otherRole = createRole(randomXid(), "Some other role").getRole();
+        User otherUser = insertUser();
+        User user = insertUser(editRole, readRole);
+        runAs.runAs(user, () -> {
+            otherUser.setReadPermission(MangoPermission.requireAnyRole(otherRole));
+            otherUser.setEditPermission(MangoPermission.requireAnyRole(otherRole));
+            service.update(otherUser.getId(), otherUser);
+        });
+    }
+
+    @Test
+    @ExpectValidationException("created")
     public void cantChangeCreatedTimeOfSelf() {
-
+        User user = insertUser();
+        runAs.runAs(user, () -> {
+            User self = service.get(user.getId());
+            self.setCreated(new Date());
+            service.update(self.getId(), self);
+        });
     }
 
     @Test
-    public void canChangeReadPermission() {
-
+    @ExpectValidationException("created")
+    public void cantChangeCreatedTimeOfSelfEvenWithExplicitPermission() {
+        User user = insertUser(editRole);
+        runAs.runAs(user, () -> {
+            User self = service.get(user.getId());
+            self.setCreated(new Date());
+            service.update(self.getId(), self);
+        });
     }
 
-    @Test
-    public void canChangeEditPermission() {
-
-    }
-
-    @Test
-    public void canChangeCreatedTime() {
-
-    }
-
-    @Test
-    public void cantRemoveReadAccess() {
-
-    }
-
-    @Test
-    public void cantRemoveEditAccess() {
-
-    }
 }
