@@ -442,6 +442,25 @@ public class PermissionService implements CachingService {
      */
     public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
                                    MangoPermission newPermission) {
+        validatePermission(result, contextKey, holder, newPermission, true);
+    }
+
+    /**
+     * Validate a permission.  This will validate that:
+     * <ol>
+     *     <li>The roles are non null</li>
+     *     <li>All roles are not empty</li>
+     *     <li>The roles exist</li>
+     *     <li>The saving user will at least retain access (if mustRetainAccess is true)</li>
+     * </ol>
+     * @param result - the result of the validation
+     * @param contextKey - the key to apply the messages to
+     * @param holder - the saving permission holder
+     * @param newPermission - the new permissions to validate
+     * @param mustRetainAccess set to true if the current user must retain access
+     */
+    public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
+                                   MangoPermission newPermission, boolean mustRetainAccess) {
 
         Assert.notNull(result, "result must not be null");
         Assert.notNull(contextKey, "contextKey must not be null");
@@ -457,7 +476,7 @@ public class PermissionService implements CachingService {
             rolesValid = validateRoles(result, contextKey, roles) && rolesValid;
         }
 
-        if (rolesValid) {
+        if (rolesValid && mustRetainAccess) {
             // Ensure the user retains access to the object
             if (!hasPermission(holder, newPermission)) {
                 result.addContextualMessage(contextKey, "validate.mustRetainPermission");

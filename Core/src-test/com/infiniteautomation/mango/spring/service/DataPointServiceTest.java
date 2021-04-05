@@ -124,8 +124,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     }
 
     @Test
-    @ExpectValidationException("setPermission")
-    public void testCannotRemoveSetAccess() {
+    public void canRemoveSetAccess() {
         DataPointVO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
@@ -164,8 +163,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     }
 
     @Test
-    @ExpectValidationException("setPermission")
-    public void testAddSetRoleUserDoesNotHave() {
+    public void addSetRoleUserDoesNotHave() {
         DataPointVO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
