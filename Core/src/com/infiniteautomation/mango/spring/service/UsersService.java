@@ -339,14 +339,6 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         ProcessResult result = commonValidation(vo, holder);
 
         boolean hasExplicitEditPermission = hasExplicitEditPermission(holder, existing);
-        if (!hasExplicitEditPermission) {
-            // can only change created date if you have explicit edit permission
-            if (vo.getCreated() != null) {
-                if (vo.getCreated().getTime() != existing.getCreated().getTime()) {
-                    result.addContextualMessage("created", "validate.invalidValue");
-                }
-            }
-        }
 
         // validate roles
         permissionService.validatePermissionHolderRoles(result, "roles", holder,
@@ -368,9 +360,20 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                     vo.getEditPermission());
         }
 
-        // Things we cannot do to ourselves
+        if (!StringUtils.isBlank(vo.getPassword())) {
+            Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(vo.getPassword());
+            if (m.matches()) {
+                String hashOrPassword = m.group(2);
+                //Can't use same one 2x
+                if (Common.checkPassword(hashOrPassword, existing.getPassword(), false)) {
+                    result.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
+                }
+            }
+        }
+
+        // Validation for when the user is modifying themselves
         if (isSelf(holder, existing)) {
-            //Cannot disable
+            // A user can never disable themselves
             if (vo.isDisabled()) {
                 result.addContextualMessage("disabled", "users.validate.adminDisable");
             }
@@ -389,43 +392,35 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                     result.addContextualMessage("roles", "validate.role.modifyOwnRoles");
                 }
             }
-        }
 
-        if (!Objects.equals(vo.getEmailVerifiedDate(), existing.getEmailVerifiedDate()) && !permissionService.hasAdminRole(holder)) {
-            result.addContextualMessage("emailVerified", "validate.invalidValue");
-        }
-
-        if (!Objects.equals(vo.getCreated(), existing.getCreated()) && !permissionService.hasAdminRole(holder)) {
-            result.addContextualMessage("created", "validate.invalidValue");
-        }
-
-        if (existing.isSessionExpirationOverride() != vo.isSessionExpirationOverride() && !permissionService.hasAdminRole(holder)) {
-            result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
-        }
-
-        if (existing.getSessionExpirationPeriods() != vo.getSessionExpirationPeriods() && !permissionService.hasAdminRole(holder)) {
-            result.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
-        }
-
-        if (!StringUtils.equals(existing.getSessionExpirationPeriodType(), vo.getSessionExpirationPeriodType()) && !permissionService.hasAdminRole(holder)) {
-            result.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
-        }
-
-        if (!StringUtils.isBlank(vo.getPassword())) {
-            Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(vo.getPassword());
-            if (m.matches()) {
-                String hashOrPassword = m.group(2);
-                //Can't use same one 2x
-                if (Common.checkPassword(hashOrPassword, existing.getPassword(), false)) {
-                    result.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
+            // only allow changing own username if they have the "permissions.user.changeUsername" permission
+            if (!StringUtils.equals(existing.getUsername(), vo.getUsername())) {
+                if (!permissionService.hasPermission(holder, changeOwnUsernamePermission.getPermission())) {
+                    result.addMessage("username", new TranslatableMessage("users.validate.cannotChangeOwnUsername"));
                 }
             }
-        }
 
-        //Ensure they can change the username if they try
-        if (!StringUtils.equals(existing.getUsername(), vo.getUsername())) {
-            if (!permissionService.hasPermission(holder, changeOwnUsernamePermission.getPermission())) {
-                result.addMessage("username", new TranslatableMessage("users.validate.cannotChangeOwnUsername"));
+            // validate fields that you can only modify if you have explicit edit permission
+            if (!hasExplicitEditPermission) {
+                if (!Objects.equals(vo.getEmailVerifiedDate(), existing.getEmailVerifiedDate())) {
+                    result.addContextualMessage("emailVerified", "validate.invalidValue");
+                }
+
+                if (!Objects.equals(vo.getCreated(), existing.getCreated())) {
+                    result.addContextualMessage("created", "validate.invalidValue");
+                }
+
+                if (existing.isSessionExpirationOverride() != vo.isSessionExpirationOverride()) {
+                    result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
+                }
+
+                if (existing.getSessionExpirationPeriods() != vo.getSessionExpirationPeriods()) {
+                    result.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
+                }
+
+                if (!StringUtils.equals(existing.getSessionExpirationPeriodType(), vo.getSessionExpirationPeriodType())) {
+                    result.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
+                }
             }
         }
 

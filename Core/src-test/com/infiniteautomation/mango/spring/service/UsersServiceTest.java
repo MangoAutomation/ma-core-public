@@ -770,12 +770,36 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Test
-    @ExpectValidationException("created")
-    public void cantChangeCreatedTimeOfSelfEvenWithExplicitPermission() {
+    public void canChangeCreatedTimeOfSelfWithExplicitPermission() {
         User user = insertUser(editRole);
         runAs.runAs(user, () -> {
             User self = service.get(user.getId());
             self.setCreated(new Date());
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test
+    @ExpectValidationException({"sessionExpirationOverride", "sessionExpirationPeriods", "sessionExpirationPeriodType"})
+    public void cantChangeSessionExpirationOfSelf() {
+        User user = insertUser();
+        runAs.runAs(user, () -> {
+            User self = service.get(user.getId());
+            self.setSessionExpirationOverride(true);
+            self.setSessionExpirationPeriods(5);
+            self.setSessionExpirationPeriodType("MINUTES");
+            service.update(self.getId(), self);
+        });
+    }
+
+    @Test
+    public void canChangeSessionExpirationOfSelfWithExplicitPermission() {
+        User user = insertUser(editRole);
+        runAs.runAs(user, () -> {
+            User self = service.get(user.getId());
+            self.setSessionExpirationOverride(true);
+            self.setSessionExpirationPeriods(5);
+            self.setSessionExpirationPeriodType("MINUTES");
             service.update(self.getId(), self);
         });
     }
