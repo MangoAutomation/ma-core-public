@@ -114,9 +114,8 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test(expected = PermissionException.class)
     public void testUserReadRoleFails() {
-        validation.expectValidationException(getReadPermissionContextKey());
         VO vo = newVO(editUser);
-        setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
+        setReadPermission(MangoPermission.superadminOnly(), vo);
         service.insert(vo);
 
         runAs.runAs(readUser, () -> {
