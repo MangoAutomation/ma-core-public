@@ -97,7 +97,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     public void validate(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
         if(vo.getScriptRoles() != null) {
-            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, null, vo.getScriptRoles().getRoles());
+            service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, vo.getScriptRoles().getRoles());
         }else {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }
@@ -112,7 +112,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
         }else {
             Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
             service.validatePermissionHolderRoles(result, "scriptRoles", savingUser,
-                    roles, vo.getScriptRoles().getRoles());
+                    vo.getScriptRoles().getRoles());
         }
     }
 

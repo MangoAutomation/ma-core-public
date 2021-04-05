@@ -473,16 +473,13 @@ public class PermissionService implements CachingService {
      *     <li>The new roles exist</li>
      *     <li>The user cannot assign a role they do not have</li>
      * </ol>
-     *
-     * @param result - the result of the validation
+     *  @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
-     * @param existingRoles - the currently saved permissions
      * @param newRoles - the new permissions to validate
      */
     public void validatePermissionHolderRoles(ProcessResult result, String contextKey,
-            PermissionHolder holder, Set<Role> existingRoles, Set<Role> newRoles) {
-        // TODO existingRoles not used
+                                              PermissionHolder holder, Set<Role> newRoles) {
 
         Assert.notNull(result, "result must not be null");
         Assert.notNull(contextKey, "contextKey must not be null");

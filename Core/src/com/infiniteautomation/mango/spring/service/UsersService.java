@@ -323,7 +323,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         }
         // validate roles
         permissionService.validatePermissionHolderRoles(result, "roles", holder,
-                null, vo.getRoles());
+                vo.getRoles());
 
         // validate permissions
         permissionService.validatePermission(result, "readPermission", holder,
@@ -350,7 +350,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
         // validate roles
         permissionService.validatePermissionHolderRoles(result, "roles", holder,
-                existing.getRoles(), vo.getRoles());
+                vo.getRoles());
 
         // validate permissions
         if (!existing.getReadPermission().equals(vo.getReadPermission())) {
