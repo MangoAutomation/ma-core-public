@@ -142,7 +142,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
-            setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+            setReadPermission(MangoPermission.superadminOnly(), fromDb);
             service.update(fromDb.getId(), fromDb);
         });
     }
@@ -184,7 +184,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     public void testUserEditRoleFails() {
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
+        setEditPermission(MangoPermission.superadminOnly(), vo);
         service.insert(vo);
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
@@ -212,7 +212,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
-            setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+            setEditPermission(MangoPermission.superadminOnly(), fromDb);
             service.update(fromDb.getId(), fromDb);
         });
     }
@@ -290,8 +290,8 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         roleService.delete(editRole.getId());
         roleService.delete(readRole.getId());
         VO updated = service.get(fromDb.getId());
-        setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
-        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+        setReadPermission(MangoPermission.superadminOnly(), fromDb);
+        setEditPermission(MangoPermission.superadminOnly(), fromDb);
         assertVoEqual(fromDb, updated);
     }
 

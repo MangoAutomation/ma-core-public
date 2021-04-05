@@ -78,7 +78,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         assertVoEqual(vo, fromDb);
 
         runAs.runAs(readUser, () -> {
-            vo.setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()));
+            vo.setEditPermission(MangoPermission.superadminOnly());
             service.update(vo.getXid(), vo);
         });
     }
@@ -100,7 +100,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         vo.setEditPermission(MangoPermission.requireAnyRole(editRoles));
         service.insert(vo);
         roleService.delete(editRole.getXid());
-        vo.setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()));
+        vo.setEditPermission(MangoPermission.superadminOnly());
         MailingList fromDb = service.get(vo.getId());
         assertVoEqual(vo, fromDb);
     }

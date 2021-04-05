@@ -101,7 +101,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     @Test(expected = PermissionException.class)
     public void testUserReadRoleFails() {
         VO vo = newVO(editUser);
-        setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
+        setReadPermission(MangoPermission.superadminOnly(), vo);
         service.insert(vo);
 
         runAs.runAs(readUser, () -> {
@@ -128,7 +128,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
-            setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+            setReadPermission(MangoPermission.superadminOnly(), fromDb);
             service.update(fromDb.getId(), fromDb);
         });
     }
@@ -170,7 +170,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     public void testUserEditRoleFails() {
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
+        setEditPermission(MangoPermission.superadminOnly(), vo);
         service.insert(vo);
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
@@ -199,7 +199,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         runAs.runAs(readUser, () -> {
             VO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
-            setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+            setEditPermission(MangoPermission.superadminOnly(), fromDb);
             service.update(fromDb.getId(), fromDb);
         });
     }
@@ -277,8 +277,8 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         roleService.delete(editRole.getId());
         roleService.delete(readRole.getId());
         VO updated = service.get(fromDb.getId());
-        setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
-        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), fromDb);
+        setReadPermission(MangoPermission.superadminOnly(), fromDb);
+        setEditPermission(MangoPermission.superadminOnly(), fromDb);
         service.update(fromDb.getId(), fromDb);
         assertVoEqual(fromDb, updated);
     }

@@ -95,7 +95,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     public void testUserEditRoleFails() {
         DataPointVO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE), vo);
-        setEditPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
+        setEditPermission(MangoPermission.superadminOnly(), vo);
         vo.setSetPermission(MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE));
         service.insert(vo);
         runAs.runAs(readUser, () -> {
