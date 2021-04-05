@@ -18,7 +18,7 @@ import org.junit.runners.model.Statement;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 
-public class ExpectValidationErrorRule implements TestRule {
+public class ExpectValidationExceptionRule implements TestRule {
 
     private boolean validationExceptionExpected = false;
     private Set<String> expectedKeys = Collections.emptySet();
@@ -40,13 +40,13 @@ public class ExpectValidationErrorRule implements TestRule {
         if (annotation != null) {
             this.expectedKeys = Arrays.stream(annotation.value()).collect(Collectors.toSet());
         }
-        return new ExpectValidationErrorRuleStatement(base);
+        return new ExpectValidationExceptionRuleStatement(base);
     }
 
-    public class ExpectValidationErrorRuleStatement extends Statement {
+    public class ExpectValidationExceptionRuleStatement extends Statement {
         private final Statement base;
 
-        public ExpectValidationErrorRuleStatement(Statement base) {
+        public ExpectValidationExceptionRuleStatement(Statement base) {
             this.base = base;
         }
 

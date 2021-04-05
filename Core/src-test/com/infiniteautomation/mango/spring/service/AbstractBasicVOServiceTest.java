@@ -22,7 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.rules.ExpectValidationErrorRule;
+import com.infiniteautomation.mango.rules.ExpectValidationExceptionRule;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
@@ -40,7 +40,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO, DAO>> extends MangoTestBase {
 
     @Rule
-    public ExpectValidationErrorRule validation = new ExpectValidationErrorRule();
+    public ExpectValidationExceptionRule validation = new ExpectValidationExceptionRule();
 
     protected RunAs runAs;
     protected SERVICE service;
