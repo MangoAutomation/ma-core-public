@@ -59,7 +59,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
      * Get the context key used in the validation of the read roles
      * @return
      */
-    abstract String getReadRolesContextKey();
+    abstract String getReadPermissionContextKey();
 
     /**
      * Replace the edit roles with these
@@ -79,7 +79,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
      * Get the context key used in the validation of the edit roles
      * @return
      */
-    abstract String getEditRolesContextKey();
+    abstract String getEditPermissionContextKey();
 
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
@@ -114,7 +114,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test(expected = PermissionException.class)
     public void testUserReadRoleFails() {
-        validation.expectValidationException(getReadRolesContextKey());
+        validation.expectValidationException(getReadPermissionContextKey());
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(Collections.emptySet()), vo);
         service.insert(vo);
@@ -127,7 +127,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test
     public void testReadRolesCannotBeNull() {
-        validation.expectValidationException(getReadRolesContextKey());
+        validation.expectValidationException(getReadPermissionContextKey());
         VO vo = newVO(readUser);
         setReadPermission(null, vo);
         service.insert(vo);
@@ -135,7 +135,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test
     public void testCannotRemoveReadAccess() {
-        validation.expectValidationException(getReadRolesContextKey());
+        validation.expectValidationException(getReadPermissionContextKey());
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
@@ -153,7 +153,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
      */
     @Test
     public void testAddReadRoleUserDoesNotHave() {
-        validation.expectValidationException(getReadRolesContextKey());
+        validation.expectValidationException(getReadPermissionContextKey());
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
@@ -197,7 +197,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     }
 
     public void testEditRolesCannotBeNull() {
-        validation.expectValidationException(getEditRolesContextKey());
+        validation.expectValidationException(getEditPermissionContextKey());
         VO vo = newVO(editUser);
         setEditPermission(null, vo);
         service.insert(vo);
@@ -205,7 +205,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
     @Test
     public void testCannotRemoveEditAccess() {
-        validation.expectValidationException(getEditRolesContextKey());
+        validation.expectValidationException(getEditPermissionContextKey());
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
@@ -223,7 +223,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
      */
     @Test
     public void testAddEditRoleUserDoesNotHave() {
-        validation.expectValidationException(getEditRolesContextKey());
+        validation.expectValidationException(getEditPermissionContextKey());
         VO vo = newVO(editUser);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);

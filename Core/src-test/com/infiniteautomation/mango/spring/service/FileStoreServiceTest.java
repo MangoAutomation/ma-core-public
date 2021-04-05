@@ -82,7 +82,7 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     }
 
     @Override
-    String getReadRolesContextKey() {
+    String getReadPermissionContextKey() {
         return "readPermission";
     }
 
@@ -92,7 +92,7 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     }
 
     @Override
-    String getEditRolesContextKey() {
+    String getEditPermissionContextKey() {
         return "writePermission";
     }
 
