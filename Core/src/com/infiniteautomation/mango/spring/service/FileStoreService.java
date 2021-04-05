@@ -63,8 +63,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
     public ProcessResult validate(FileStore vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         validateXid(result, vo);
-        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
-        permissionService.validatePermission(result, "writePermission", user, null, vo.getWritePermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "writePermission", user, vo.getWritePermission());
         return result;
     }
 
@@ -72,8 +72,8 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
     public ProcessResult validate(FileStore existing, FileStore vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         validateXid(result, vo);
-        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validatePermission(result, "writePermission", user, existing.getWritePermission(), vo.getWritePermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "writePermission", user, vo.getWritePermission());
         return result;
     }
 

@@ -68,8 +68,8 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     public ProcessResult validate(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, vo, user);
-        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, null, vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
 
         return result;
     }
@@ -78,8 +78,8 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, existing, vo, user);
-        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
         return result;
     }
 

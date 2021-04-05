@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.infiniteautomation.mango.db.tables.MailingLists;
-import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
@@ -233,8 +231,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     @Override
     public ProcessResult validate(MailingList vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, null, vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
         return result;
     }
 
@@ -243,8 +241,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         ProcessResult result = commonValidation(vo, user);
 
         //Additional checks for existing list
-        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
         return result;
     }
 

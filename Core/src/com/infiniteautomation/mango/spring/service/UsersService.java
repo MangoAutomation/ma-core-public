@@ -327,9 +327,9 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
         // validate permissions
         permissionService.validatePermission(result, "readPermission", holder,
-                null, vo.getReadPermission());
+                vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", holder,
-                null, vo.getEditPermission());
+                vo.getEditPermission());
 
         return result;
     }
@@ -358,14 +358,14 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                 result.addContextualMessage("readPermission", "validate.mustHaveExplicitEditPermission");
             }
             permissionService.validatePermission(result, "readPermission", holder,
-                    existing.getReadPermission(), vo.getReadPermission());
+                    vo.getReadPermission());
         }
         if (!existing.getEditPermission().equals(vo.getEditPermission())) {
             if (!hasExplicitEditPermission) {
                 result.addContextualMessage("editPermission", "validate.mustHaveExplicitEditPermission");
             }
             permissionService.validatePermission(result, "editPermission", holder,
-                    existing.getEditPermission(), vo.getEditPermission());
+                    vo.getEditPermission());
         }
 
         // Things we cannot do to ourselves

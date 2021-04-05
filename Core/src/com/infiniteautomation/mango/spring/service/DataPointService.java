@@ -438,9 +438,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             }
         }
 
-        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, null, vo.getEditPermission());
-        permissionService.validatePermission(result, "setPermission", user, null, vo.getSetPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
+        permissionService.validatePermission(result, "setPermission", user, vo.getSetPermission());
         return result;
     }
 
@@ -471,9 +471,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         }
 
         //Validate permissions
-        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
-        permissionService.validatePermission(result, "setPermission", user, existing.getSetPermission(), vo.getSetPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
+        permissionService.validatePermission(result, "setPermission", user, vo.getSetPermission());
         return result;
     }
 

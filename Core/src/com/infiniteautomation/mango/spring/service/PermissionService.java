@@ -435,16 +435,13 @@ public class PermissionService implements CachingService {
      *     <li>The roles exist</li>
      *     <li>The saving user will at least retain access</li>
      * </ol>
-     *
-     * @param result - the result of the validation
+     *  @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
-     * @param existingPermission - the currently saved permissions
      * @param newPermission - the new permissions to validate
      */
     public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
-            MangoPermission existingPermission, MangoPermission newPermission) {
-        // TODO existingPermission not used
+                                   MangoPermission newPermission) {
 
         Assert.notNull(result, "result must not be null");
         Assert.notNull(contextKey, "contextKey must not be null");

@@ -398,7 +398,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     @Override
     public ProcessResult validate(EventInstanceVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
 
         return result;
     }
@@ -406,7 +406,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     public ProcessResult validate(EventInstanceVO existing, EventInstanceVO vo,
             PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
 
         return result;
     }

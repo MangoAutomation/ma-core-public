@@ -16,8 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.infiniteautomation.mango.db.tables.JsonData;
-import com.infiniteautomation.mango.db.tables.records.JsonDataRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -81,8 +79,8 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     public ProcessResult validate(JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
 
-        permissionService.validatePermission(result, "readPermission", user, null, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, null, vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
 
         return result;
     }
@@ -91,8 +89,8 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     public ProcessResult validate(JsonDataVO existing, JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         //Additional checks for existing list
-        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
 
         return result;
     }

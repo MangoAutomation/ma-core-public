@@ -7,8 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.db.tables.EventDetectors;
-import com.infiniteautomation.mango.db.tables.records.EventDetectorsRecord;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
@@ -98,8 +96,8 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     @Override
     public ProcessResult validate(AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        permissionService.validatePermission(response, "readPermission", user, null, vo.getReadPermission());
-        permissionService.validatePermission(response, "editPermission", user, null, vo.getEditPermission());
+        permissionService.validatePermission(response, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(response, "editPermission", user, vo.getEditPermission());
         vo.getDefinition().validate(response, vo, user);
         return response;
     }
@@ -107,8 +105,8 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     @Override
     public ProcessResult validate(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        permissionService.validatePermission(response, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
-        permissionService.validatePermission(response, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(response, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(response, "editPermission", user, vo.getEditPermission());
 
         vo.getDefinition().validate(response, existing, vo, user);
         return response;
