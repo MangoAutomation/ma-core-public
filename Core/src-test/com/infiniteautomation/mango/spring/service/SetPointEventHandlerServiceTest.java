@@ -17,6 +17,7 @@ import com.google.common.collect.Sets;
 import com.infiniteautomation.mango.db.tables.EventHandlers;
 import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;

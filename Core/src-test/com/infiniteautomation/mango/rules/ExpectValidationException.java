@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.service;
+package com.infiniteautomation.mango.rules;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

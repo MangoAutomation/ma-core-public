@@ -16,6 +16,7 @@ import org.junit.Test;
 import com.infiniteautomation.mango.db.tables.MailingLists;
 import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;

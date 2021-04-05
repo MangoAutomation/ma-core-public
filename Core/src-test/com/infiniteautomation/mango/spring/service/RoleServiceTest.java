@@ -15,6 +15,7 @@ import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.records.RolesRecord;
+import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.User;

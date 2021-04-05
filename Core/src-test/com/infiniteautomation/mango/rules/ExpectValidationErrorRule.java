@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.service;
+package com.infiniteautomation.mango.rules;
 
 import static org.junit.Assert.fail;
 

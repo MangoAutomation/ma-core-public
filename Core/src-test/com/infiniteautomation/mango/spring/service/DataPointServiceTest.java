@@ -5,7 +5,6 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -15,6 +14,7 @@ import org.junit.Test;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;

@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.rules.ExpectValidationErrorRule;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
