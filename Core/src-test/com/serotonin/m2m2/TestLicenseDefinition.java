@@ -4,6 +4,7 @@
 package com.serotonin.m2m2;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.LicenseDefinition;
@@ -13,6 +14,8 @@ import com.serotonin.m2m2.module.LicenseDefinition;
  *
  */
 public class TestLicenseDefinition extends LicenseDefinition implements ICoreLicense {
+
+    final String guid = "2-" + UUID.randomUUID().toString();
 
     @Override
     public void licenseCheck(boolean initialization) {
@@ -26,7 +29,7 @@ public class TestLicenseDefinition extends LicenseDefinition implements ICoreLic
 
     @Override
     public String getGuid() {
-        return null;
+        return guid;
     }
 
     @Override
