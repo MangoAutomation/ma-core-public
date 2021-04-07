@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
@@ -299,6 +300,18 @@ public class PermissionService implements CachingService {
         }else {
             return inheritance.role;
         }
+    }
+
+    public Set<Role> splitMinterm(String minterm) {
+        return Arrays.stream(minterm.split(","))
+                .map(xid -> {
+                    Role role = getRole(xid);
+                    if (role == null) {
+                        throw new IllegalArgumentException("Role not found");
+                    }
+                    return role;
+                })
+                .collect(Collectors.toSet());
     }
 
     /**
