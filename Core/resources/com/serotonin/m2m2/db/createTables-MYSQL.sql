@@ -429,10 +429,11 @@ ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) R
 -- InstalledModules
 --  Thirty character restriction is from the store
 CREATE TABLE installedModules (
-	name varchar(30) not null,
-	version varchar(255) not null,
-    upgradedTimestamp BIGINT NOT NULL
-) engine=InnoDB;
+    name              VARCHAR(30)  NOT NULL,
+    version           VARCHAR(255) NOT NULL,
+    upgradedTimestamp BIGINT       NOT NULL,
+    buildTimestamp    BIGINT       NOT NULL
+) ENGINE = InnoDB;
 ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 
 --

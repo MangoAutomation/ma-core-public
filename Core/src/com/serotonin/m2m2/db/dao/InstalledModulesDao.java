@@ -28,6 +28,7 @@ public class InstalledModulesDao extends BaseDao {
                     module.setName(record.get(table.name));
                     module.setVersion(Version.valueOf(record.get(table.version)));
                     module.setUpgradedDate(new Date(record.get(table.upgradedTimestamp)));
+                    module.setBuildDate(new Date(record.get(table.buildTimestamp)));
                     return module;
                 })
                 .orElse(null);
@@ -42,9 +43,10 @@ public class InstalledModulesDao extends BaseDao {
             create.deleteFrom(table).where(table.name.eq(module.getName())).execute();
 
             create.insertInto(table)
-                    .columns(table.name, table.version, table.upgradedTimestamp)
+                    .columns(table.name, table.version, table.upgradedTimestamp, table.buildTimestamp)
                     .values(module.getName(), module.getVersion().toString(),
-                            module.getUpgradedDate().getTime())
+                            module.getUpgradedDate().getTime(),
+                            module.getBuildDate().getTime())
                     .execute();
         });
     }

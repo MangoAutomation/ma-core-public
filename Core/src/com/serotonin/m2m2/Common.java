@@ -62,7 +62,6 @@ import org.apache.logging.log4j.core.async.AsyncLoggerConfig;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
@@ -239,12 +238,11 @@ public class Common {
         return ModuleRegistry.CORE_MODULE.getLicenseAgreementVersion();
     }
 
-    public static @Nullable Date parseBuildTimestamp(String buildTimestamp) {
-        if (buildTimestamp == null) return null;
+    public static Date parseBuildTimestamp(String buildTimestamp) {
         try {
-            return Date.from(Instant.parse(buildTimestamp));
-        } catch (DateTimeParseException e) {
-            return null;
+            return Date.from(Instant.parse(Objects.requireNonNull(buildTimestamp)));
+        } catch (DateTimeParseException | NullPointerException e) {
+            throw new IllegalArgumentException("Invalid build timestamp", e);
         }
     }
 
@@ -253,7 +251,7 @@ public class Common {
      * @return
      */
     public static int getDatabaseSchemaVersion() {
-        return 39;
+        return 40;
     }
 
     public static File getLogsDir() {

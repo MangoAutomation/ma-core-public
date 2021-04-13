@@ -630,9 +630,17 @@ public class ModuleRegistry {
             throw new RuntimeException("Version from release.properties does not match compiled major version " + CompiledCoreVersion.VERSION.getMajorVersion());
         }
 
+        Date buildDate;
+        try {
+            buildDate = Common.parseBuildTimestamp(buildTimestamp);
+        } catch (IllegalArgumentException e) {
+            // ignore, use compiled build time
+            buildDate = CompiledCoreVersion.BUILD_DATE;
+        }
+
         CORE_MODULE = new CoreModule(ModuleRegistry.CORE_MODULE_NAME,
                 version,
-                Common.parseBuildTimestamp(buildTimestamp),
+                buildDate,
                 new TranslatableMessage("modules.core.description"),
                 "Radix IoT, LLC",
                 "https://radixiot.com/",

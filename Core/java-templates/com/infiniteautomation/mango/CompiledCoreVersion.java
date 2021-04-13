@@ -4,6 +4,9 @@
 
 package com.infiniteautomation.mango;
 
+import java.time.Instant;
+import java.util.Date;
+
 import com.github.zafarkhaja.semver.Version;
 
 /**
@@ -11,4 +14,5 @@ import com.github.zafarkhaja.semver.Version;
  */
 public final class CompiledCoreVersion {
     public static final Version VERSION = Version.valueOf("${project.version}");
+    public static final Date BUILD_DATE = Date.from(Instant.parse("${buildTimestamp}"));
 }
