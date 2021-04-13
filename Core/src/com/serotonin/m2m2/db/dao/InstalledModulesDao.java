@@ -53,6 +53,7 @@ public class InstalledModulesDao extends BaseDao {
         String name;
         Version version;
         Date upgradedDate;
+        Date buildDate;
 
         public String getName() {
             return name;
@@ -76,6 +77,14 @@ public class InstalledModulesDao extends BaseDao {
 
         public void setUpgradedDate(Date upgradedDate) {
             this.upgradedDate = upgradedDate;
+        }
+
+        public Date getBuildDate() {
+            return buildDate;
+        }
+
+        public void setBuildDate(Date buildDate) {
+            this.buildDate = buildDate;
         }
     }
 }

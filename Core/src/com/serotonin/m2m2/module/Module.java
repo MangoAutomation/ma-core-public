@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +74,7 @@ public class Module {
     private final Version version;
     private final Date buildDate;
     private Version previousVersion;
+    private Date previousBuildDate;
     private Date upgradedDate;
     private String licenseType;
     private final TranslatableMessage description;
@@ -184,6 +186,7 @@ public class Module {
         InstalledModule installedModule = InstalledModulesDao.instance.getInstalledModule(name);
         if (installedModule != null) {
             this.previousVersion = installedModule.getVersion();
+            this.previousBuildDate = installedModule.getBuildDate();
             this.upgradedDate = installedModule.getUpgradedDate();
         }
 
@@ -200,7 +203,7 @@ public class Module {
                 }
             }
 
-            if (previousVersion.equals(version)) {
+            if (previousVersion.equals(version) && Objects.equals(previousBuildDate, buildDate)) {
                 return false;
             } else {
                 this.upgradedDate = new Date(Common.START_TIME);
