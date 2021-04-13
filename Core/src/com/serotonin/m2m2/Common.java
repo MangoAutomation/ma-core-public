@@ -19,8 +19,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -59,6 +62,7 @@ import org.apache.logging.log4j.core.async.AsyncLoggerConfig;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
@@ -67,7 +71,6 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.github.zafarkhaja.semver.Version;
-import com.infiniteautomation.mango.CompiledCoreVersion;
 import com.infiniteautomation.mango.io.messaging.MessageManager;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
@@ -86,7 +89,6 @@ import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
-import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.InstanceLicense;
 import com.serotonin.m2m2.util.license.LicenseFeature;
@@ -216,7 +218,7 @@ public class Common {
     }
 
     public static boolean isCoreSigned() {
-        return releaseProps != null && Boolean.TRUE.toString().equals(releaseProps.getProperty("signed"));
+        return ModuleRegistry.CORE_MODULE.isSigned();
     }
 
     /*
@@ -225,57 +227,25 @@ public class Common {
      * correct version.
      */
 
-    public static final Version getVersion() {
-        return CoreVersion.INSTANCE.version;
+    public static Version getVersion() {
+        return ModuleRegistry.CORE_MODULE.getVersion();
     }
 
-    public static final Version normalizeVersion(Version version) {
+    public static Version normalizeVersion(Version version) {
         return Version.forIntegers(version.getMajorVersion(), version.getMinorVersion(), version.getPatchVersion());
     }
 
-    public static final int getLicenseAgreementVersion() {
-        return CoreVersion.INSTANCE.licenseAgreementVersion;
+    public static int getLicenseAgreementVersion() {
+        return ModuleRegistry.CORE_MODULE.getLicenseAgreementVersion();
     }
 
-    private enum CoreVersion {
-        INSTANCE();
-        final Version version;
-        //Track license agreement version to ensure the admin users have accepted the current version of our license
-        final int licenseAgreementVersion = 1;
-
-        CoreVersion() {
-            Version version = CompiledCoreVersion.VERSION;
-
-            try {
-                version = loadCoreVersionFromReleaseProperties(version);
-            } catch (Throwable t) {}
-
-            // check for possible license subversion
-            if (version.getMajorVersion() != CompiledCoreVersion.VERSION.getMajorVersion()) {
-                throw new RuntimeException("Version from release.properties does not match compiled major version " + CompiledCoreVersion.VERSION.getMajorVersion());
-            }
-
-            this.version = version;
+    public static @Nullable Date parseBuildTimestamp(String buildTimestamp) {
+        if (buildTimestamp == null) return null;
+        try {
+            return Date.from(Instant.parse(buildTimestamp));
+        } catch (DateTimeParseException e) {
+            return null;
         }
-    }
-
-    private static final Version loadCoreVersionFromReleaseProperties(Version version) {
-        if (releaseProps != null) {
-            String versionStr = releaseProps.getProperty(ModuleUtils.Constants.PROP_VERSION);
-            String buildNumberStr = releaseProps.getProperty(ModuleUtils.Constants.BUILD_NUMBER);
-
-            if (versionStr != null) {
-                try {
-                    version = Version.valueOf(versionStr);
-                } catch (com.github.zafarkhaja.semver.ParseException e) { }
-            }
-
-            if (buildNumberStr != null) {
-                version = version.setBuildMetadata(buildNumberStr);
-            }
-        }
-
-        return version;
     }
 
     /**

@@ -6,6 +6,7 @@ package com.serotonin.m2m2.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -20,11 +21,13 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.OrderComparator;
 
 import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.CompiledCoreVersion;
 import com.infiniteautomation.mango.spring.service.FileStoreService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
+import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.provider.Providers;
@@ -610,24 +613,48 @@ public class ModuleRegistry {
         return locales;
     }
 
-    public static final CoreModule CORE_MODULE = new CoreModule(ModuleRegistry.CORE_MODULE_NAME,
-            Common.getVersion(),
-            new TranslatableMessage("modules.core.description"),
-            "Radix IoT, LLC",
-            "https://radixiot.com/",
-            null, -1, Common.isCoreSigned());
+    public static final CoreModule CORE_MODULE;
+    static {
+        String buildTimestamp = Common.releaseProps.getProperty("buildTimestamp");
+        Version version;
+        try {
+            String versionStr = Common.releaseProps.getProperty(ModuleUtils.Constants.PROP_VERSION);
+            version = Version.valueOf(versionStr);
+        } catch (Exception e) {
+            // ignore, use compiled core version
+            version = CompiledCoreVersion.VERSION;
+        }
+
+        // check for possible license subversion
+        if (version.getMajorVersion() != CompiledCoreVersion.VERSION.getMajorVersion()) {
+            throw new RuntimeException("Version from release.properties does not match compiled major version " + CompiledCoreVersion.VERSION.getMajorVersion());
+        }
+
+        CORE_MODULE = new CoreModule(ModuleRegistry.CORE_MODULE_NAME,
+                version,
+                Common.parseBuildTimestamp(buildTimestamp),
+                new TranslatableMessage("modules.core.description"),
+                "Radix IoT, LLC",
+                "https://radixiot.com/",
+                null, -1,
+                Boolean.TRUE.toString().equals(Common.releaseProps.getProperty("signed")));
+    }
 
     /**
      * Class marker for special core module
      *
      * @author Terry Packer
      */
-    public static class CoreModule extends Module {
+    public static final class CoreModule extends Module {
 
-        public CoreModule(String name, Version version, TranslatableMessage description,
-                String vendor, String vendorUrl, String dependencies, int loadOrder,
-                boolean signed) {
-            super(name, version, description, vendor, vendorUrl, dependencies, loadOrder, signed);
+        //Track license agreement version to ensure the admin users have accepted the current version of our license
+        final int licenseAgreementVersion = 1;
+
+        private CoreModule(String name, Version version, Date buildDate, TranslatableMessage description,
+                          String vendor, String vendorUrl, String dependencies, int loadOrder,
+                          boolean signed) {
+
+            super(name, version, buildDate, description, vendor, vendorUrl, dependencies, loadOrder, signed);
 
             loadDefinitions(CoreModule.class.getClassLoader());
             addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
@@ -641,6 +668,10 @@ public class ModuleRegistry {
             }else {
                 return Common.license() == null ? null : Common.license().getLicenseType();
             }
+        }
+
+        public int getLicenseAgreementVersion() {
+            return licenseAgreementVersion;
         }
     }
 }

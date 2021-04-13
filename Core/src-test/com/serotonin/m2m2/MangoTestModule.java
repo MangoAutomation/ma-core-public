@@ -6,8 +6,8 @@ package com.serotonin.m2m2;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 
-import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.rt.event.type.MockEventTypeDefinition;
@@ -21,7 +21,8 @@ import com.serotonin.m2m2.rt.event.type.MockEventTypeDefinition;
  */
 public class MangoTestModule extends Module {
     public MangoTestModule(String name) {
-        super(name, Version.forIntegers(1, 0, 0), 
+        super(name, Common.getVersion(),
+                new Date(Common.START_TIME),
                 new TranslatableMessage("common.default", name), 
                 "IAS", "https://www.infiniteautomation.com", null, 1, false);
         this.addDefinition(new MockEventTypeDefinition());

@@ -17,6 +17,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.core.OrderComparator;
 
 import com.github.zafarkhaja.semver.Version;
@@ -70,6 +71,7 @@ public class Module {
 
     private final String name;
     private final Version version;
+    private final Date buildDate;
     private Version previousVersion;
     private Date upgradedDate;
     private String licenseType;
@@ -90,14 +92,16 @@ public class Module {
      *
      * @param name
      * @param version
+     * @param buildDate
      * @param description
      * @param vendor
      * @param vendorUrl
      */
-    public Module(String name, Version version, TranslatableMessage description, String vendor, String vendorUrl,
+    public Module(String name, Version version, Date buildDate, TranslatableMessage description, String vendor, String vendorUrl,
             String dependencies, int loadOrder, boolean signed) {
         this.name = name;
         this.version = version;
+        this.buildDate = buildDate;
         this.description = description;
         this.vendor = vendor;
         this.vendorUrl = vendorUrl;
@@ -280,6 +284,10 @@ public class Module {
      */
     public Version getVersion() {
         return version;
+    }
+
+    public @Nullable Date getBuildDate() {
+        return buildDate;
     }
 
     public String getNormalVersion() {
