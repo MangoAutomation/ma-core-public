@@ -147,20 +147,27 @@ public class JsonPropertyConverter extends AbstractClassConverter {
 
                 String name = prop.getNameToUse();
 
-                JsonValue propJsonValue = jsonObject.get(name);
-                if (propJsonValue == null) {
+                JsonValue propJsonValue = null;
+                boolean foundName = false;
+                if (jsonObject.containsKey(name)) {
+                    propJsonValue = jsonObject.get(name);
+                    foundName = true;
+                }else {
                     //Try the aliases
-                    if(prop.getReadAliases() != null && prop.getReadAliases().length > 0 ) {
-                        for(String readAlias : prop.getReadAliases()) {
-                            propJsonValue = jsonObject.get(readAlias);
-                            if(propJsonValue != null) {
+                    if (prop.getReadAliases() != null && prop.getReadAliases().length > 0) {
+                        for (String readAlias : prop.getReadAliases()) {
+                            if(jsonObject.containsKey(readAlias)) {
+                                propJsonValue = jsonObject.get(readAlias);
+                                foundName = true;
                                 break;
                             }
                         }
                     }
-                    if (propJsonValue == null) {
-                        continue;
-                    }
+                }
+
+                //The property is not in the JSON
+                if (!foundName) {
+                    continue;
                 }
 
                 Type propType = writeMethod.getGenericParameterTypes()[0];
@@ -180,7 +187,7 @@ public class JsonPropertyConverter extends AbstractClassConverter {
                     prop.getWriteMethod().invoke(obj, propValue);
                 }
                 catch (Exception e) {
-                    throw new JsonException("JsonException writing property '" + prop.getName() + "' of class "
+                    throw new JsonException("JsonException reading property '" + prop.getName() + "' of class "
                             + propClass.getName(), e);
                 }
             }
