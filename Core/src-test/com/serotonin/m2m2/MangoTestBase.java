@@ -108,7 +108,8 @@ public class MangoTestBase {
         properties = new MockMangoProperties();
         properties.setProperty("paths.data", dataDirectory.toString());
         Providers.add(MangoProperties.class, properties);
-
+        Providers.add(ICoreLicense.class, new TestLicenseDefinition());
+        Common.releaseProps = new Properties();
         addModule("BaseTest", new MockDataSourceDefinition());
     }
 
@@ -176,7 +177,6 @@ public class MangoTestBase {
      */
     protected static MangoTestModule addModule(String name, ModuleElementDefinition... definitions) {
         MangoTestModule module = new MangoTestModule(name);
-        module.loadDefinitions(MangoTestBase.class.getClassLoader());
         Arrays.stream(definitions).forEach(module::addDefinition);
         modules.add(module);
         return module;

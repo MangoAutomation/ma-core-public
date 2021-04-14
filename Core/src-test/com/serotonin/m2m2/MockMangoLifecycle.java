@@ -115,7 +115,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
         Providers.add(ITimedLicenseRegistrar.class, new MockTimedLicenseRegistrar());
 
-        Providers.add(ICoreLicense.class, new TestLicenseDefinition());
         Providers.add(IMangoLifecycle.class, this);
 
         //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
