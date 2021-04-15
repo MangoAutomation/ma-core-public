@@ -264,7 +264,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>dnp3-ds</artifactId>
-			<version>3.7.4-SNAPSHOT</version>
+			<version>3.7.5-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -487,7 +487,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ui</artifactId>
-			<version>3.7.8-SNAPSHOT</version>
+			<version>3.7.9-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
