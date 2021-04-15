@@ -136,19 +136,16 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     @Test
     @ExpectValidationException("recipients[0]")
     public void testRecursiveMailingListsAreInvalid() {
-        MailingList vo = newVO(readUser);
-        service.insert(vo);
-        MailingList fromDb = service.get(vo.getId());
-        assertVoEqual(vo, fromDb);
-        MailingList saved = fromDb;
+        MailingList recursiveMailingList = service.insert(newVO(readUser));
 
-        MailingList recursive = newVO(readUser);
         List<MailingListRecipient> entries = new ArrayList<>();
+        recursiveMailingList.setEntries(entries);
+
         MailingListEntry ml = new MailingListEntry();
-        ml.setMailingListId(saved.getId());
+        ml.setMailingListId(recursiveMailingList.getId());
         entries.add(ml);
-        recursive.setEntries(entries);
-        service.insert(recursive);
+
+        service.update(recursiveMailingList.getId(), recursiveMailingList);
     }
 
     @Override
