@@ -306,7 +306,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                             listIds.add(list.getId());
                         }
                         //Check to see if the top level recipient is the same as me
-                        if(listIds.add(sublist.getId())) {
+                        if(!listIds.add(sublist.getId())) {
                             result.addContextualMessage(prefix, "mailingLists.validate.listCannotContainItself");
                             return;
                         }
