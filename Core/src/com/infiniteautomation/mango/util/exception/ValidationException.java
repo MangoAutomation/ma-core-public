@@ -3,8 +3,10 @@
  */
 package com.infiniteautomation.mango.util.exception;
 
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
 
 /**
  * Thrown when validation fails. Typically from {@link com.serotonin.m2m2.vo.Validatable#ensureValid()}.
@@ -45,5 +47,22 @@ public class ValidationException extends TranslatableRuntimeException {
         return "ValidationException{" +
                 "validationResult=" + validationResult +
                 '}';
+    }
+
+    /**
+     * Create a formatted message from the validation result
+     * @return
+     */
+    public String getValidationErrorMessage(Translations translations) {
+        String failureMessage = "";
+        for(ProcessMessage m : validationResult.getMessages()) {
+            if(m.getContextKey() != null) {
+                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(translations) + "\n";
+                failureMessage += messagePart;
+            }else {
+                failureMessage += m.getContextualMessage().translate(translations) + "\n";
+            }
+        }
+        return failureMessage;
     }
 }
