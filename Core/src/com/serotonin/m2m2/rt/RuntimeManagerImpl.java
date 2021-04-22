@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -309,14 +310,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         Assert.isTrue(vo.getId() > 0, "Data source must be saved");
         Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
 
-        if (initializeDataSource(vo)) {
+        if (initializeDataSourceStartup(vo)) {
             startDataSourcePolling(vo);
-        }
-    }
-
-    private boolean initializeDataSource(DataSourceVO vo) {
-        synchronized (runningDataSources) {
-            return initializeDataSourceStartup(vo);
         }
     }
 
@@ -327,23 +322,24 @@ public class RuntimeManagerImpl implements RuntimeManager {
      */
     @Override
     public boolean initializeDataSourceStartup(DataSourceVO vo) {
-        long startTime = System.nanoTime();
+        // Ensure that the data source is enabled.
+        Assert.isTrue(vo.getId() > 0, "Data source must be saved");
+        Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
+
+        AtomicBoolean wasCreated = new AtomicBoolean();
+        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.computeIfAbsent(vo.getId(), k -> {
+            wasCreated.set(true);
+            return vo.createDataSourceRT();
+        });
 
         // If the data source is already running, just quit.
-        if (isDataSourceRunning(vo.getId()))
+        if (!wasCreated.get())
             return false;
 
-        // Ensure that the data source is enabled.
-        Assert.isTrue(vo.isEnabled(), "Data source not enabled.");
+        long startTime = System.nanoTime();
 
         // Create and initialize the runtime version of the data source.
-        DataSourceRT<? extends DataSourceVO> dataSource = vo.createDataSourceRT();
         dataSource.initialize();
-
-        // Add it to the list of running data sources.
-        synchronized(runningDataSources) {
-            runningDataSources.put(dataSource.getId(), dataSource);
-        }
 
         // Add the enabled points to the data source.
         List<DataPointWithEventDetectors> dataSourcePoints = dataPointDao.getDataPointsForDataSourceStart(vo.getId());
@@ -375,9 +371,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void stopDataSource(int dataSourceId) {
-        synchronized (runningDataSources) {
-            stopDataSourceShutdown(dataSourceId);
-        }
+        stopDataSourceShutdown(dataSourceId);
     }
 
     /**
@@ -385,7 +379,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
      */
     @Override
     public void stopDataSourceShutdown(int id) {
-        DataSourceRT<? extends DataSourceVO> dataSource = getRunningDataSource(id);
+        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.remove(id);
+        if (dataSource == null) return;
+
         try {
             long now = Common.timer.currentTimeMillis();
             //Signal we are going down
@@ -403,12 +399,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
             //Terminate all events at once
             Common.eventManager.cancelEventsForDataPoints(pointIds);
 
-            synchronized (runningDataSources) {
-                runningDataSources.remove(dataSource.getId());
-            }
-
             dataSource.terminate();
-
+            
             boolean gracefullyTerminated = true;
             try {
                 dataSource.joinTermination();
