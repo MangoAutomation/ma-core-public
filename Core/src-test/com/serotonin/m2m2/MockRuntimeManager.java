@@ -17,6 +17,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
 import com.serotonin.m2m2.rt.DataPointWithEventDetectorsAndCache;
+import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -95,7 +96,7 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) {
-        throw new IllegalStateException("Data source is not running");
+        throw new RTException("Data source is not running");
     }
 
     @Override

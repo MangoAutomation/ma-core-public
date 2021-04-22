@@ -283,7 +283,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public @NonNull DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) {
         DataSourceRT<? extends DataSourceVO> ds = runningDataSources.get(dataSourceId);
         if (ds == null) {
-            throw new IllegalStateException(String.format("Data source is not running: id=%d, type=%s",
+            throw new RTException(String.format("Data source is not running: id=%d, type=%s",
                     dataSourceId, getClass()));
         }
         return ds;
@@ -670,10 +670,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void forceDataSourcePoll(int dataSourceId) {
-        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.get(dataSourceId);
-        if(dataSource == null)
-            throw new RTException("Source is not enabled");
-
+        DataSourceRT<? extends DataSourceVO> dataSource = getRunningDataSource(dataSourceId);
         dataSource.forcePoll();
     }
 

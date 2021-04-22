@@ -57,7 +57,7 @@ public interface RuntimeManager extends ILifecycle {
      *
      * @param dataSourceId id of the data source
      * @return the data source runtime
-     * @throws IllegalStateException if the data source is not running
+     * @throws RTException if the data source is not running
      */
     DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId);
 
