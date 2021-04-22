@@ -51,6 +51,14 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Data sources
     //
+
+    /**
+     * Get a running data source's runtime object.
+     *
+     * @param dataSourceId id of the data source
+     * @return the data source runtime
+     * @throws IllegalStateException if the data source is not running
+     */
     DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId);
 
     List<? extends DataSourceRT<?>> getRunningDataSources();

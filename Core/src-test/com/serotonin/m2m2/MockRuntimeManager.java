@@ -95,8 +95,7 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) {
-
-        return null;
+        throw new IllegalStateException("Data source is not running");
     }
 
     @Override

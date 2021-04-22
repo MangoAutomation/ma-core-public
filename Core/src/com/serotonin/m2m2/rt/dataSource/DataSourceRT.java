@@ -1,6 +1,5 @@
 /*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.rt.dataSource;
 
@@ -276,16 +275,26 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     @Override
-    public void terminate() {
+    public synchronized void terminate() {
         terminated = true;
-
-        // Remove any outstanding events.
-        Common.eventManager.cancelEventsForDataSource(vo.getId());
     }
 
+    /**
+     * Waits for the data source to terminate.
+     * @throws IllegalStateException if the data source never terminates
+     */
     @Override
     public void joinTermination() {
         // no op
+    }
+
+    /**
+     * Hook for after termination is complete.
+     * @param gracefullyTerminated true if the data source terminated gracefully
+     */
+    public synchronized void postTerminate(boolean gracefullyTerminated) {
+        // Remove any outstanding events after polling has stopped
+        Common.eventManager.cancelEventsForDataSource(vo.getId());
     }
 
     //
