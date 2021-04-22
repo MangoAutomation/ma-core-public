@@ -118,6 +118,15 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         return terminated;
     }
 
+    /**
+     * @throws IllegalStateException if data source has been terminated
+     */
+    protected void ensureNotTerminated() {
+        if (terminated) {
+            throw new IllegalStateException("Data source is terminated");
+        }
+    }
+
     public void addDataPoint(DataPointRT dataPoint) {
         pointListChangeLock.readLock().lock();
         try {
@@ -176,8 +185,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @param time time at which the event will be raised
      * @param rtn true if the event can return to normal (become inactive) at some point in the future
      * @param message translatable event message
+     * @throws IllegalStateException if data source has been terminated
      */
     protected void raiseEvent(int dataSourceEventTypeId, long time, boolean rtn, TranslatableMessage message) {
+        ensureNotTerminated();
         message = new TranslatableMessage("event.ds", vo.getName(), message);
         EventStatus status = getEventStatus(dataSourceEventTypeId);
         Map<String, Object> context = Collections.singletonMap(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
@@ -198,8 +209,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      *
      * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(java.util.List)}
      * @param time time at which the event will be returned to normal (made inactive)
+     * @throws IllegalStateException if data source has been terminated
      */
     protected void returnToNormal(int dataSourceEventTypeId, long time) {
+        ensureNotTerminated();
         EventStatus status = getEventStatus(dataSourceEventTypeId);
         synchronized (status.lock) {
             //For performance ensure we have an active event to RTN
@@ -293,8 +306,18 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @param gracefullyTerminated true if the data source terminated gracefully
      */
     public synchronized void postTerminate(boolean gracefullyTerminated) {
-        // Remove any outstanding events after polling has stopped
-        Common.eventManager.cancelEventsForDataSource(vo.getId());
+        boolean anyActive = false;
+        for (EventStatus status : eventTypes.values()) {
+            if (status.active) {
+                anyActive = true;
+                break;
+            }
+        }
+
+        if (anyActive) {
+            // Remove any outstanding events after polling has stopped
+            Common.eventManager.cancelEventsForDataSource(vo.getId());
+        }
     }
 
     //
