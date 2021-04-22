@@ -5,12 +5,14 @@
 package com.serotonin.m2m2.rt.dataSource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -24,7 +26,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.ILifecycle;
@@ -54,36 +56,35 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * Note that updated versions of data points that could already be running may be added here, so implementations
      * should always check for existing instances.
      */
-    protected List<DataPointRT> addedChangedPoints = new ArrayList<DataPointRT>();
+    protected List<DataPointRT> addedChangedPoints = new ArrayList<>();
 
     /**
      * Under the expectation that most data sources will run in their own threads, the removedPoints field is used as a
      * cache for points that have been removed from the data source, so that at a convenient time for the data source
      * they can be removed from the polling.
      */
-    protected List<DataPointRT> removedPoints = new ArrayList<DataPointRT>();
+    protected List<DataPointRT> removedPoints = new ArrayList<>();
 
     /**
      * Access to either the addedPoints or removedPoints lists should be synchronized with this object's monitor.
      */
     protected final ReadWriteLock pointListChangeLock = new ReentrantReadWriteLock();
 
-    private final List<DataSourceEventType> eventTypes;
+    /**
+     * Stores a map of data source event type ids to the {@link EventStatus}
+     */
+    private final Map<Integer, EventStatus> eventTypes;
 
     private boolean terminated;
-
-    /* Thread safe set of active event types */
-    private ConcurrentHashMap<Integer, Boolean> activeRtnEventTypes;
 
     protected final VO vo;
 
     public DataSourceRT(VO vo) {
         this.vo = vo;
-        this.eventTypes = new ArrayList<DataSourceEventType>();
-        for (EventTypeVO etvo : vo.getEventTypes()) {
-            this.eventTypes.add((DataSourceEventType) etvo.getEventType());
-        }
-        this.activeRtnEventTypes = new ConcurrentHashMap<>();
+
+        this.eventTypes = Collections.unmodifiableMap(vo.getEventTypes().stream()
+                .map(e -> (DataSourceEventType) e.getEventType())
+                .collect(Collectors.toMap(DataSourceEventType::getDataSourceEventTypeId, EventStatus::new)));
     }
 
     public int getId() {
@@ -170,46 +171,53 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     /**
+     * Raises a data source event.
      *
-     * @param eventId
-     * @param time
-     * @param rtn - Can this event return to normal
-     * @param message
+     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(java.util.List)}
+     * @param time time at which the event will be raised
+     * @param rtn true if the event can return to normal (become inactive) at some point in the future
+     * @param message translatable event message
      */
-    protected void raiseEvent(int eventId, long time, boolean rtn, TranslatableMessage message) {
+    protected void raiseEvent(int dataSourceEventTypeId, long time, boolean rtn, TranslatableMessage message) {
         message = new TranslatableMessage("event.ds", vo.getName(), message);
-        DataSourceEventType type = getEventType(eventId);
+        EventStatus status = getEventStatus(dataSourceEventTypeId);
+        Map<String, Object> context = Collections.singletonMap(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
+        DataSourceEventType type = status.eventType;
 
-        Map<String, Object> context = new HashMap<String, Object>();
-        context.put(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
-
-        Common.eventManager.raiseEvent(type, time, rtn, type.getAlarmLevel(), message, context);
-        if(rtn) {
-            activeRtnEventTypes.compute(eventId, (k,v)->{
-                return true;
-            });
+        if (rtn) {
+            synchronized (status.lock) {
+                status.active = true;
+                Common.eventManager.raiseEvent(type, time, true, type.getAlarmLevel(), message, context);
+            }
+        } else {
+            Common.eventManager.raiseEvent(type, time, false, type.getAlarmLevel(), message, context);
         }
     }
 
-    protected void returnToNormal(int eventId, long time) {
-        //For performance ensure we have an active event to RTN
-        if(activeRtnEventTypes.compute(eventId, (k,v)->{
-            if(v == null || v == false)
-                return false;
-            else
-                return true;
-        })) {
-            DataSourceEventType type = getEventType(eventId);
-            Common.eventManager.returnToNormal(type, time);
+    /**
+     * Returns a data source event to normal.
+     *
+     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(java.util.List)}
+     * @param time time at which the event will be returned to normal (made inactive)
+     */
+    protected void returnToNormal(int dataSourceEventTypeId, long time) {
+        EventStatus status = getEventStatus(dataSourceEventTypeId);
+        synchronized (status.lock) {
+            //For performance ensure we have an active event to RTN
+            if (status.active) {
+                Common.eventManager.returnToNormal(status.eventType, time);
+                // only remove afterwards in case returnToNormal throws an exception
+                status.active = false;
+            }
         }
     }
 
-    private DataSourceEventType getEventType(int eventId) {
-        for (DataSourceEventType et : eventTypes) {
-            if (et.getDataSourceEventTypeId() == eventId)
-                return et;
+    private @NonNull EventStatus getEventStatus(int eventId) {
+        EventStatus status = eventTypes.get(eventId);
+        if (status == null) {
+            throw new IllegalArgumentException(String.format("Event type ID %s is not registered for this data source", eventId));
         }
-        return null;
+        return status;
     }
 
     protected TranslatableMessage getSerialExceptionMessage(Exception e, String portId) {
@@ -290,13 +298,26 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * Override to handle any situations where you need to know that a role was modified.
      *  be sure to call super for this method as it handles the edit and read permissions
      *
-     * @param event
+     * @param event dao event
      */
     public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         if (event.getType() == DaoEventType.DELETE) {
             Role deletedRole = event.getVo().getRole();
             vo.setEditPermission(vo.getEditPermission().withoutRole(deletedRole));
             vo.setReadPermission(vo.getReadPermission().withoutRole(deletedRole));
+        }
+    }
+
+    /**
+     * Stores the event type and if it is active or not
+     */
+    private static class EventStatus {
+        private final Object lock = new Object();
+        private final DataSourceEventType eventType;
+        private boolean active = false;
+
+        private EventStatus(DataSourceEventType eventType) {
+            this.eventType = eventType;
         }
     }
 }
