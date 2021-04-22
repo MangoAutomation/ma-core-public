@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -108,14 +107,6 @@ public class MockRuntimeManager implements RuntimeManager {
     public boolean isDataSourceRunning(int dataSourceId) {
 
         return false;
-    }
-
-    @Override
-    public DataSourceVO getDataSource(int dataSourceId) {
-        if(useDatabase)
-            return DataSourceDao.getInstance().get(dataSourceId);
-        else
-            return null;
     }
 
     @Override

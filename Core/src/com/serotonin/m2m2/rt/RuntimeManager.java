@@ -65,8 +65,6 @@ public interface RuntimeManager extends ILifecycle {
 
     boolean isDataSourceRunning(int dataSourceId);
 
-    DataSourceVO getDataSource(int dataSourceId);
-
     /**
      * Starts the data source.
      * @param vo The data source VO

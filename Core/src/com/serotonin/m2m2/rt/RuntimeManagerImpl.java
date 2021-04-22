@@ -301,11 +301,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public DataSourceVO getDataSource(int dataSourceId) {
-        return dataSourceDao.get(dataSourceId);
-    }
-
-    @Override
     public void startDataSource(DataSourceVO vo) {
         Assert.isTrue(vo.getId() > 0, "Data source must be saved");
         Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
