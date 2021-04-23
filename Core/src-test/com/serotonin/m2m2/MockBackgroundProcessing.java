@@ -19,6 +19,7 @@ import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.OrderedThreadPoolExecutor;
 import com.serotonin.timer.TaskWrapper;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * Dummy implementation of BackgrondProcessing for testing,
@@ -93,7 +94,7 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
             corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
         this.lowPriorityService = new ThreadPoolExecutor(corePoolSize, corePoolSize, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY, Thread.currentThread().getContextClassLoader()));
-        this.state = RUNNING;
+        this.state = ILifecycleState.RUNNING;
     }
 
     @Override

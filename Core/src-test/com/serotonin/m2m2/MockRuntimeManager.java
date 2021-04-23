@@ -30,6 +30,7 @@ import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * A mock of the runtime manager that can optionally save data to the database.
@@ -51,8 +52,8 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public int getState() {
-        return RuntimeManager.RUNNING;
+    public ILifecycleState getLifecycleState() {
+        return ILifecycleState.RUNNING;
     }
 
     @Override

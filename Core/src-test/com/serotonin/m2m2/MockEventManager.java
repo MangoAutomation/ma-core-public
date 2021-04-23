@@ -16,6 +16,7 @@ import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.util.ILifecycleState;
 
 /**
  *
@@ -37,9 +38,8 @@ public class MockEventManager extends EventManagerImpl {
     }
 
     @Override
-    public int getState() {
-
-        return 0;
+    public ILifecycleState getLifecycleState() {
+        return ILifecycleState.RUNNING;
     }
 
     @Override

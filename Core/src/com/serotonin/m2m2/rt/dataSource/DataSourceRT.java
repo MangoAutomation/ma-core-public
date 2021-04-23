@@ -29,6 +29,7 @@ import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.ILifecycle;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * Data sources are things that produce data for consumption of this system. Anything that houses, creates, manages, or
@@ -74,7 +75,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     private final Map<Integer, EventStatus> eventTypes;
 
-    private boolean terminated;
+    private volatile ILifecycleState state;
 
     protected final VO vo;
 
@@ -112,19 +113,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     protected void setPersistentData(Object persistentData) {
         DataSourceDao.getInstance().savePersistentData(vo.getId(), persistentData);
-    }
-
-    protected boolean isTerminated() {
-        return terminated;
-    }
-
-    /**
-     * @throws IllegalStateException if data source has been terminated
-     */
-    protected void ensureNotTerminated() {
-        if (terminated) {
-            throw new IllegalStateException("Data source is terminated");
-        }
     }
 
     public void addDataPoint(DataPointRT dataPoint) {
@@ -188,7 +176,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @throws IllegalStateException if data source has been terminated
      */
     protected void raiseEvent(int dataSourceEventTypeId, long time, boolean rtn, TranslatableMessage message) {
-        ensureNotTerminated();
+        ensureState(ILifecycleState.RUNNING);
         message = new TranslatableMessage("event.ds", vo.getName(), message);
         EventStatus status = getEventStatus(dataSourceEventTypeId);
         Map<String, Object> context = Collections.singletonMap(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
@@ -212,7 +200,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @throws IllegalStateException if data source has been terminated
      */
     protected void returnToNormal(int dataSourceEventTypeId, long time) {
-        ensureNotTerminated();
+        ensureState(ILifecycleState.RUNNING);
         EventStatus status = getEventStatus(dataSourceEventTypeId);
         synchronized (status.lock) {
             //For performance ensure we have an active event to RTN
@@ -261,15 +249,18 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      *  will require RuntimeManagerChanges
      */
     @Override
-    public void initialize(boolean safe) {
+    public final synchronized void initialize(boolean safe) {
+        ensureState(ILifecycleState.PRE_INITIALIZE);
+        this.state = ILifecycleState.INITIALIZING;
         if(!safe)
             initialize();
+        this.state = ILifecycleState.RUNNING;
     }
 
     /**
      * Initialize this data source
      */
-    public void initialize(){
+    protected void initialize() {
         // no op
     }
 
@@ -288,8 +279,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     @Override
-    public synchronized void terminate() {
-        terminated = true;
+    public final synchronized void terminate() {
+        ensureState(ILifecycleState.RUNNING);
+        this.state = ILifecycleState.TERMINATING;
+        terminateImpl();
     }
 
     /**
@@ -297,15 +290,26 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @throws IllegalStateException if the data source never terminates
      */
     @Override
-    public void joinTermination() {
-        // no op
+    public final synchronized void joinTermination() {
+        if (getLifecycleState() == ILifecycleState.TERMINATED) return;
+        ensureState(ILifecycleState.TERMINATING);
+        try {
+            joinTerminationImpl();
+            this.state = ILifecycleState.TERMINATED;
+        } finally {
+            postTerminate();
+        }
+    }
+
+    protected void joinTerminationImpl() {
+    }
+    protected void terminateImpl() {
     }
 
     /**
      * Hook for after termination is complete.
-     * @param gracefullyTerminated true if the data source terminated gracefully
      */
-    public synchronized void postTerminate(boolean gracefullyTerminated) {
+    protected void postTerminate() {
         boolean anyActive = false;
         for (EventStatus status : eventTypes.values()) {
             if (status.active) {
@@ -318,6 +322,11 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             // Remove any outstanding events after polling has stopped
             Common.eventManager.cancelEventsForDataSource(vo.getId());
         }
+    }
+
+    @Override
+    public ILifecycleState getLifecycleState() {
+        return state;
     }
 
     //

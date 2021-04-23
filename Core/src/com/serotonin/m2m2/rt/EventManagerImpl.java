@@ -47,6 +47,7 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.RejectedTaskReason;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * @author Matthew Lohbihler
@@ -81,7 +82,7 @@ public class EventManagerImpl implements EventManager {
      * TERMINATED
      *
      */
-    private int state = PRE_INITIALIZE;
+    private ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     public EventManagerImpl() {
 
@@ -93,7 +94,7 @@ public class EventManagerImpl implements EventManager {
      * @return
      */
     @Override
-    public int getState(){
+    public ILifecycleState getLifecycleState(){
         return state;
     }
 
@@ -114,7 +115,7 @@ public class EventManagerImpl implements EventManager {
     public void raiseEvent(EventType type, long time, boolean rtnApplicable,
             AlarmLevels alarmLevel, TranslatableMessage message,
             Map<String, Object> context) {
-        if (state != RUNNING)
+        if (state != ILifecycleState.RUNNING)
             return;
 
         long nowTimestamp = Common.timer.currentTimeMillis();
@@ -792,9 +793,9 @@ public class EventManagerImpl implements EventManager {
     //
     @Override
     public void initialize(boolean safe) {
-        if((state != PRE_INITIALIZE))
+        if((state != ILifecycleState.PRE_INITIALIZE))
             return;
-        state = INITIALIZE;
+        state = ILifecycleState.INITIALIZING;
 
         permissionService = Common.getBean(PermissionService.class);
         eventDao = Common.getBean(EventDao.class);
@@ -813,21 +814,21 @@ public class EventManagerImpl implements EventManager {
 
         lastAlarmTimestamp = Common.timer.currentTimeMillis();
         resetHighestAlarmLevel(lastAlarmTimestamp);
-        state = RUNNING;
+        state = ILifecycleState.RUNNING;
     }
 
     @Override
     public void terminate() {
-        if (state != RUNNING)
+        if (state != ILifecycleState.RUNNING)
             return;
-        state = TERMINATE;
+        state = ILifecycleState.TERMINATING;
     }
 
     @Override
     public void joinTermination() {
-        if(state != TERMINATE)
+        if(state != ILifecycleState.TERMINATING)
             return;
-        state = TERMINATED;
+        state = ILifecycleState.TERMINATED;
     }
 
     //

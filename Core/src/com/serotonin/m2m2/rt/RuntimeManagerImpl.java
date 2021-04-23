@@ -50,6 +50,7 @@ import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.util.ILifecycleState;
 
 public class RuntimeManagerImpl implements RuntimeManager {
     private static final Log LOG = LogFactory.getLog(RuntimeManagerImpl.class);
@@ -89,7 +90,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * TERMINATED
      *
      */
-    private int state = PRE_INITIALIZE;
+    private ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     public RuntimeManagerImpl(ExecutorService executorService, DataSourceDao dataSourceDao, PublisherDao publisherDao, DataPointDao dataPointDao) {
         this.executorService = executorService;
@@ -99,7 +100,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public int getState(){
+    public ILifecycleState getLifecycleState(){
         return state;
     }
 
@@ -107,12 +108,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public TranslatableMessage getStateMessage() {
         switch(state) {
             case PRE_INITIALIZE:
-            case INITIALIZE:
+            case INITIALIZING:
                 return stateMessage;
             case RUNNING:
                 return new TranslatableMessage("startup.state.running");
-            case TERMINATE:
-            case POST_TERMINATE:
+            case TERMINATING:
             case TERMINATED:
             default:
                 return new TranslatableMessage("shutdown.state.preTerminate");
@@ -124,11 +124,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     synchronized public void initialize(boolean safe) {
-        if (state != PRE_INITIALIZE)
-            return;
+        ensureState(ILifecycleState.PRE_INITIALIZE);
 
         // Set the started indicator to true.
-        state = INITIALIZE;
+        state = ILifecycleState.INITIALIZING;
 
         //Get the RTM defs from modules
         List<RuntimeManagerDefinition> defs = ModuleRegistry.getDefinitions(RuntimeManagerDefinition.class);
@@ -201,14 +200,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         }
         //This is a bit of a misnomer since we startup the data sources in separate threads and don't callback when running.
-        this.state = RUNNING;
+        this.state = ILifecycleState.RUNNING;
     }
 
     @Override
     synchronized public void terminate() {
-        if (state != RUNNING)
-            return;
-        state = TERMINATE;
+        ensureState(ILifecycleState.RUNNING);
+        state = ILifecycleState.TERMINATING;
 
         for (PublisherRT<? extends PublishedPointVO> publisher : runningPublishers)
             stopPublisher(publisher.getId());
@@ -245,9 +243,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void joinTermination() {
-        if(state != TERMINATE)
-            return;
-        state = POST_TERMINATE;
+        if (state == ILifecycleState.TERMINATED) return;
+        ensureState(ILifecycleState.TERMINATING);
 
         for (Entry<Integer, DataSourceRT<? extends DataSourceVO>> entry : runningDataSources.entrySet()) {
             DataSourceRT<? extends DataSourceVO> dataSource = entry.getValue();
@@ -258,7 +255,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 LOG.error("Error stopping data source " + dataSource.getId(), e);
             }
         }
-        state = TERMINATED;
+        state = ILifecycleState.TERMINATED;
     }
 
     private int startRTMDefs(List<RuntimeManagerDefinition> defs, boolean safe, int fromIndex, int toPriority) {
@@ -334,7 +331,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         long startTime = System.nanoTime();
 
         // Create and initialize the runtime version of the data source.
-        dataSource.initialize();
+        dataSource.initialize(false);
 
         // Add the enabled points to the data source.
         List<DataPointWithEventDetectors> dataSourcePoints = dataPointDao.getDataPointsForDataSourceStart(vo.getId());
@@ -395,20 +392,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
             Common.eventManager.cancelEventsForDataPoints(pointIds);
 
             dataSource.terminate();
-            
-            boolean gracefullyTerminated = true;
-            try {
-                dataSource.joinTermination();
-            } catch (IllegalStateException e) {
-                LOG.warn("Data source failed to terminate in a timely fashion", e);
-                gracefullyTerminated = false;
-            }
-
-            dataSource.postTerminate(gracefullyTerminated);
+            dataSource.joinTermination();
 
             LOG.info("Data source '" + dataSource.getName() + "' stopped in " + (Common.timer.currentTimeMillis() - now) + "ms");
         } catch (Exception e) {
             LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
+
+            // this is usually performed by DataSourceRT#postTerminate() however something went wrong
+            // ensure events are cancelled
+            Common.eventManager.cancelEventsForDataSource(dataSource.getId());
         }
     }
 

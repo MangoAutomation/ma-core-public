@@ -47,6 +47,7 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
+import com.serotonin.util.ILifecycleState;
 
 public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private static final Log LOG = LogFactory.getLog(DataPointRT.class);
@@ -73,6 +74,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     //Simulation Timer, or any timer implementation
     private AbstractTimer timer;
+
+    private volatile ILifecycleState state;
 
     /**
      * This is the value around which tolerance decisions will be made when determining whether to log numeric values.
@@ -777,6 +780,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     attributes, set, backdate, logged, updated, attributesChanged));
     }
 
+    @Override
+    public ILifecycleState getLifecycleState() {
+        return state;
+    }
+
     //
     //
     // Lifecycle
@@ -788,8 +796,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      */
     @Override
     public void initialize(boolean safe){
+        ensureState(ILifecycleState.PRE_INITIALIZE);
+        this.state = ILifecycleState.INITIALIZING;
         if(!safe)
             initialize();
+        this.state = ILifecycleState.RUNNING;
     }
 
     public void initialize() {
@@ -802,6 +813,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     @Override
     public void terminate() {
+        ensureState(ILifecycleState.RUNNING);
+        this.state = ILifecycleState.TERMINATING;
         terminateIntervalLogging();
 
         if (detectors != null) {
@@ -810,6 +823,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 pedRT.terminate();
             }
         }
+        this.state = ILifecycleState.TERMINATED;
     }
 
     @Override

@@ -30,6 +30,7 @@ import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
+import com.serotonin.util.ILifecycleState;
 
 abstract public class PollingDataSource<T extends PollingDataSourceVO> extends DataSourceRT<T> {
 
@@ -169,9 +170,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     protected void scheduleTimeoutImpl(long fireTime) {
         pollLock.lock();
         try {
-            if (isTerminated()) {
-                throw new IllegalStateException("Data source is terminated");
-            }
+            ensureState(ILifecycleState.RUNNING);
 
             try {
                 long startTs = Common.timer.currentTimeMillis();
@@ -271,9 +270,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     //
     @Override
     public synchronized void beginPolling() {
-        if (isTerminated()) {
-            throw new IllegalStateException("Data source is terminated");
-        }
+        ensureState(ILifecycleState.RUNNING);
         if (timerTask != null) {
             throw new IllegalStateException("Polling was already started");
         }
@@ -304,30 +301,20 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    public synchronized void terminate() {
-        if (isTerminated()) return;
+    public void terminateImpl() {
+        if (timerTask != null)
+            timerTask.cancel();
 
-        try {
-            if (timerTask != null)
-                timerTask.cancel();
-
-            Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
-            Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
-            Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
-        } finally {
-            super.terminate();
-        }
+        Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
+        Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
+        Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
     }
 
     /**
      * Waits for the current poll (if any) to complete.
      */
     @Override
-    public void joinTermination() {
-        if (!isTerminated()) {
-            throw new IllegalStateException("Data source has not been terminated");
-        }
-
+    public void joinTerminationImpl() {
         int tries = 0;
         while (++tries <= 10) {
             try {

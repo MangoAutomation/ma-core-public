@@ -21,6 +21,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.util.ILifecycle;
+import com.serotonin.util.ILifecycleState;
 
 
 /**
@@ -34,7 +35,7 @@ public interface RuntimeManager extends ILifecycle {
      *  useful if you are a task that may run before/after the RUNNING state
      * @return
      */
-    int getState();
+    ILifecycleState getLifecycleState();
 
     //
     // Lifecycle

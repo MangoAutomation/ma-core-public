@@ -19,6 +19,10 @@
 package com.serotonin.util;
 
 public interface ILifecycle {
+    default ILifecycleState getLifecycleState() {
+        throw new UnsupportedOperationException();
+    }
+
 	/**
 	 * Initialize only if not in safe mode
 	 * @param safe
@@ -37,13 +41,13 @@ public interface ILifecycle {
      * and then kill forcefully
      */
     void joinTermination();
-    
-    //States for state machines
-    public static final int NOT_STARTED = 0;
-    public static final int PRE_INITIALIZE = 10;
-    public static final int INITIALIZE = 20;
-    public static final int RUNNING = 30;
-    public static final int TERMINATE = 40;
-    public static final int POST_TERMINATE = 50;
-    public static final int TERMINATED = 60;
+
+    /**
+     * @throws IllegalStateException if not in desired state
+     */
+    default void ensureState(ILifecycleState desiredState) {
+        if (getLifecycleState() != desiredState) {
+            throw new IllegalStateException("Not in state " + desiredState);
+        }
+    }
 }
