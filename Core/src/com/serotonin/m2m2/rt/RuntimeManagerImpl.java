@@ -387,7 +387,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             // Stop the data points.
             for (DataPointRT p : dataPoints.values()) {
                 if (p.getDataSourceId() == id) {
-                    stopDataPointShutdown(p.getVO());
+                    stopDataPointShutdown(dataSource, p);
                     pointIds.add(p.getId());
                 }
             }
@@ -548,35 +548,32 @@ public class RuntimeManagerImpl implements RuntimeManager {
     /**
      * Only to be used at shutdown as synchronization has been reduced for performance
      */
-    private void stopDataPointShutdown(DataPointVO dp) {
-
-        DataPointRT p;
+    private void stopDataPointShutdown(DataSourceRT<? extends DataSourceVO> dataSource, DataPointRT dp) {
         synchronized (dataPoints) {
             // Remove this point from the data image if it is there. If not, just quit.
-            p = dataPoints.remove(dp.getId());
-        }
-        // Remove it from the data source, and terminate it.
-        if (p != null) {
-            try{
-                getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
-            }catch(Exception e){
-                LOG.error("Failed to stop point RT with ID: " + dp.getId()
-                + " stopping point."
-                , e);
+            if (!dataPoints.remove(dp.getId(), dp)) {
+                return;
             }
-            DataPointListener l = getDataPointListeners(dp.getId());
-            if (l != null)
-                try {
-                    l.pointTerminated(dp);
-                } catch(ExceptionListWrapper e) {
-                    LOG.warn("Exceptions in point terminated method.");
-                    for(Exception e2 : e.getExceptions())
-                        LOG.warn("Listener exception: " + e2.getMessage(), e2);
-                }
-            //Stop data point but don't cancel events until after to do this in bulk.
-            p.terminate();
         }
 
+        try{
+            dataSource.removeDataPoint(dp);
+        }catch(Exception e){
+            LOG.error("Failed to stop point RT with ID: " + dp.getId()
+                            + " stopping point."
+                    , e);
+        }
+        DataPointListener l = getDataPointListeners(dp.getId());
+        if (l != null)
+            try {
+                l.pointTerminated(dp.getVO());
+            } catch(ExceptionListWrapper e) {
+                LOG.warn("Exceptions in point terminated method.");
+                for(Exception e2 : e.getExceptions())
+                    LOG.warn("Listener exception: " + e2.getMessage(), e2);
+            }
+        //Stop data point but don't cancel events until after to do this in bulk.
+        dp.terminate();
     }
 
     @Override
