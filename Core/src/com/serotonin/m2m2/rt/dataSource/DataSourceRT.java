@@ -289,7 +289,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     /**
      * Waits for the data source to terminate.
-     * @throws IllegalStateException if the data source never terminates
      */
     @Override
     public final synchronized void joinTermination() {
@@ -298,12 +297,15 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         try {
             joinTerminationImpl();
             this.state = ILifecycleState.TERMINATED;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for data source to stop: " + readableIdentifier(), e);
         } finally {
             postTerminate();
         }
     }
 
-    protected void joinTerminationImpl() {
+    protected void joinTerminationImpl() throws InterruptedException {
     }
     protected void terminateImpl() {
     }
@@ -362,5 +364,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         private EventStatus(DataSourceEventType eventType) {
             this.eventType = eventType;
         }
+    }
+
+    public String readableIdentifier() {
+        return String.format("name=%s, id=%d, type=%s", getName(), getId(), getClass());
     }
 }

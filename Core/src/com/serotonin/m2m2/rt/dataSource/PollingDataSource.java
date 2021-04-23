@@ -314,21 +314,14 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
      * Waits for the current poll (if any) to complete.
      */
     @Override
-    public void joinTerminationImpl() {
+    public void joinTerminationImpl() throws InterruptedException {
         int tries = 0;
         while (++tries <= 10) {
-            try {
-                if (pollLock.tryLock(30, TimeUnit.SECONDS)) {
-                    pollLock.unlock();
-                    return;
-                }
-                LOG.warn("Waiting for data source to stop: id=" + getId() + ", type=" + getClass());
-            } catch (InterruptedException e) {
-                LOG.warn(String.format("Interrupted while waiting for data source to stop: id=%d, type=%s",
-                        getId(), getClass()));
-                Thread.currentThread().interrupt();
+            if (pollLock.tryLock(30, TimeUnit.SECONDS)) {
+                pollLock.unlock();
                 return;
             }
+            LOG.warn("Waiting for data source to stop: id=" + getId() + ", type=" + getClass());
         }
 
         throw new IllegalStateException(String.format("Timeout waiting for data source to stop: id=%d, type=%s",

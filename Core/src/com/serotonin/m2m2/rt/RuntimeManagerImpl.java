@@ -374,11 +374,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
         DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.remove(id);
         if (dataSource == null) return;
 
+        long now = Common.timer.currentTimeMillis();
         try {
-            long now = Common.timer.currentTimeMillis();
             //Signal we are going down
             dataSource.terminating();
+        } catch (Exception e) {
+            LOG.error("Failed to signal termination to data source: " + dataSource.readableIdentifier(), e);
+        }
 
+        try {
             List<Integer> pointIds = new ArrayList<>();
             // Stop the data points.
             for (DataPointRT p : dataPoints.values()) {
@@ -390,18 +394,24 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
             //Terminate all events at once
             Common.eventManager.cancelEventsForDataPoints(pointIds);
-
-            dataSource.terminate();
-            dataSource.joinTermination();
-
-            LOG.info("Data source '" + dataSource.getName() + "' stopped in " + (Common.timer.currentTimeMillis() - now) + "ms");
         } catch (Exception e) {
-            LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
-
-            // this is usually performed by DataSourceRT#postTerminate() however something went wrong
-            // ensure events are cancelled
-            Common.eventManager.cancelEventsForDataSource(dataSource.getId());
+            LOG.error("Failed to stop points for data source: " + dataSource.readableIdentifier(), e);
         }
+
+        try {
+            dataSource.terminate();
+        } catch (Exception e) {
+            LOG.error("Error while terminating data source: " + dataSource.readableIdentifier(), e);
+        }
+
+        try {
+            dataSource.joinTermination();
+        } catch (Exception e) {
+            LOG.error("Error waiting for data source to terminate: " + dataSource.readableIdentifier(), e);
+        }
+
+        LOG.info(String.format("Data source [%s] stopped in %dms",
+                dataSource.readableIdentifier(), Common.timer.currentTimeMillis() - now));
     }
 
     //
