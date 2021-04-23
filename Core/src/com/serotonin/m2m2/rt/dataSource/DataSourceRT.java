@@ -178,7 +178,8 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @throws IllegalStateException if data source has been terminated
      */
     protected void raiseEvent(int dataSourceEventTypeId, long time, boolean rtn, TranslatableMessage message) {
-        ensureState(ILifecycleState.RUNNING);
+        // Persistent TCP data source raises events while initializing
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         message = new TranslatableMessage("event.ds", vo.getName(), message);
         EventStatus status = getEventStatus(dataSourceEventTypeId);
         Map<String, Object> context = Collections.singletonMap(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
@@ -202,7 +203,8 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * @throws IllegalStateException if data source has been terminated
      */
     protected void returnToNormal(int dataSourceEventTypeId, long time) {
-        ensureState(ILifecycleState.RUNNING);
+        // Persistent TCP data source deactivates events while initializing
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         EventStatus status = getEventStatus(dataSourceEventTypeId);
         synchronized (status.lock) {
             //For performance ensure we have an active event to RTN

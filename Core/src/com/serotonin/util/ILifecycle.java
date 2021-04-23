@@ -18,6 +18,8 @@
  */
 package com.serotonin.util;
 
+import java.util.Arrays;
+
 public interface ILifecycle {
     default ILifecycleState getLifecycleState() {
         throw new UnsupportedOperationException();
@@ -48,6 +50,16 @@ public interface ILifecycle {
     default void ensureState(ILifecycleState desiredState) {
         if (getLifecycleState() != desiredState) {
             throw new IllegalStateException("Not in state " + desiredState);
+        }
+    }
+
+    /**
+     * @throws IllegalStateException if not in desired state
+     */
+    default void ensureState(ILifecycleState... desiredState) {
+        ILifecycleState currentState = getLifecycleState();
+        if (Arrays.stream(desiredState).noneMatch(s -> s == currentState)) {
+            throw new IllegalStateException("Not in state " + Arrays.toString(desiredState));
         }
     }
 }
