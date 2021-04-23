@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.rt.dataSource;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
@@ -58,11 +60,18 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
 
     /**
-     * Protects access to {@link #dataPoints}
+     * Protects access to {@link #dataPointsMap} and {@link #dataPoints}
      */
     protected final ReadWriteLock pointListChangeLock = new ReentrantReadWriteLock();
 
-    protected final Map<Integer, DataPointRT> dataPoints = new HashMap<>();
+    /**
+     * The implementor of the data source is responsible for resetting this back to false after reading the points.
+     * It is set to true every time {@link #addDataPoint(DataPointRT)} and {@link #removeDataPoint(DataPointRT)} are called.
+     */
+    protected boolean pointListChanged = false;
+
+    protected final Map<Integer, DataPointRT> dataPointsMap = new HashMap<>();
+    protected final Collection<DataPointRT> dataPoints = Collections.unmodifiableCollection(dataPointsMap.values());
 
     /**
      * Stores a map of data source event type ids to the {@link EventStatus}
@@ -117,7 +126,8 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         pointListChangeLock.writeLock().lock();
         try {
             // Replace data point
-            dataPoints.put(dataPoint.getId(), dataPoint);
+            dataPointsMap.put(dataPoint.getId(), dataPoint);
+            pointListChanged = true;
         } finally {
             pointListChangeLock.writeLock().unlock();
         }
@@ -130,7 +140,34 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         ensureState(ILifecycleState.RUNNING);
         pointListChangeLock.writeLock().lock();
         try {
-            dataPoints.remove(dataPoint.getId(), dataPoint);
+            dataPointsMap.remove(dataPoint.getId(), dataPoint);
+            pointListChanged = true;
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
+    }
+
+    public void addPoints(Collection<? extends DataPointRT> points) {
+        ensureState(ILifecycleState.RUNNING);
+        pointListChangeLock.writeLock().lock();
+        try {
+            for (DataPointRT point : points) {
+                dataPointsMap.put(point.getId(), point);
+                pointListChanged = true;
+            }
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
+    }
+
+    public void removePoints(Collection<? extends DataPointRT> points) {
+        ensureState(ILifecycleState.RUNNING);
+        pointListChangeLock.writeLock().lock();
+        try {
+            for (DataPointRT point : points) {
+                dataPointsMap.remove(point.getId(), point);
+                pointListChanged = true;
+            }
         } finally {
             pointListChangeLock.writeLock().unlock();
         }
@@ -320,7 +357,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         List<Integer> pointIds = new ArrayList<>();
         pointListChangeLock.readLock().lock();
         try {
-            for (DataPointRT p : dataPoints.values()) {
+            for (DataPointRT p : dataPoints) {
                 p.terminate(false);
                 pointIds.add(p.getId());
             }
@@ -415,14 +452,25 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         return String.format("name=%s, id=%d, type=%s", getName(), getId(), getClass());
     }
 
-    public void setAttribute(String key, Object value) {
+    public void forEachDataPoint(Consumer<? super DataPointRT> consumer) {
         pointListChangeLock.readLock().lock();
         try {
-            for (DataPointRT point : dataPoints.values()) {
-                point.setAttribute(key, value);
-            }
+            dataPoints.forEach(consumer);
         } finally {
             pointListChangeLock.readLock().unlock();
         }
+    }
+
+    public DataPointRT getPointById(int id) {
+        pointListChangeLock.readLock().lock();
+        try {
+            return dataPointsMap.get(id);
+        } finally {
+            pointListChangeLock.readLock().unlock();
+        }
+    }
+
+    public void setAttribute(String key, Object value) {
+        forEachDataPoint(point -> point.setAttribute(key, value));
     }
 }

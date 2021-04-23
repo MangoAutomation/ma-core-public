@@ -270,7 +270,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
         pointListChangeLock.readLock().lock();
         try {
-            for (DataPointRT rt : dataPoints.values()) {
+            for (DataPointRT rt : dataPoints) {
                 rt.initializeIntervalLogging(firstPollTime, quantize);
             }
         } finally {

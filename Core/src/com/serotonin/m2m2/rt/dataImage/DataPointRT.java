@@ -467,6 +467,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             return;
 
         synchronized (intervalLoggingLock) {
+            if (intervalLoggingTask != null) {
+                throw new IllegalStateException("Interval logging task already started");
+            }
 
             long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
             long delay = loggingPeriodMillis;
