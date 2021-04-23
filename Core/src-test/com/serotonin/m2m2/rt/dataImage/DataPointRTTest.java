@@ -66,7 +66,7 @@ public class DataPointRTTest extends MangoTestBase {
         SimulationTimer timer = new SimulationTimer();
         DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpVo, new ArrayList<>());
         DataPointRT rt = new DataPointRT(dp, plRt, dsVo, initialCache, dao, Common.databaseProxy.getPointValueCacheDao(), timer);
-        rt.initialize();
+        rt.initialize(false);
         rt.initializeIntervalLogging(0, false);
 
         //Test no changes

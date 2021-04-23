@@ -75,7 +75,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     private final Map<Integer, EventStatus> eventTypes;
 
-    private volatile ILifecycleState state;
+    private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     protected final VO vo;
 

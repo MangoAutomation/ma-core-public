@@ -75,7 +75,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     //Simulation Timer, or any timer implementation
     private AbstractTimer timer;
 
-    private volatile ILifecycleState state;
+    private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     /**
      * This is the value around which tolerance decisions will be made when determining whether to log numeric values.
@@ -795,7 +795,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      *
      */
     @Override
-    public void initialize(boolean safe){
+    public final synchronized void initialize(boolean safe){
         ensureState(ILifecycleState.PRE_INITIALIZE);
         this.state = ILifecycleState.INITIALIZING;
         if(!safe)
@@ -803,7 +803,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         this.state = ILifecycleState.RUNNING;
     }
 
-    public void initialize() {
+    protected void initialize() {
         // Add point event listeners
         for (PointEventDetectorRT<?> pedRT : detectors) {
             pedRT.initialize();
@@ -812,22 +812,25 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     @Override
-    public void terminate() {
+    public final synchronized void terminate() {
         ensureState(ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
-        terminateIntervalLogging();
+        try {
+            terminateIntervalLogging();
 
-        if (detectors != null) {
-            for (PointEventDetectorRT<?> pedRT : detectors) {
-                Common.runtimeManager.removeDataPointListener(vo.getId(), pedRT);
-                pedRT.terminate();
+            if (detectors != null) {
+                for (PointEventDetectorRT<?> pedRT : detectors) {
+                    Common.runtimeManager.removeDataPointListener(vo.getId(), pedRT);
+                    pedRT.terminate();
+                }
             }
+        } finally {
+            this.state = ILifecycleState.TERMINATED;
         }
-        this.state = ILifecycleState.TERMINATED;
     }
 
     @Override
-    public void joinTermination() {
+    public final synchronized void joinTermination() {
         // no op
     }
 

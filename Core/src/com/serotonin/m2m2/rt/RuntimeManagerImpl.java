@@ -507,7 +507,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         // Initialize it.
-        dataPoint.initialize();
+        dataPoint.initialize(false);
 
         //If we are a polling data source then we need to wait to start our interval logging
         // until the first poll due to quantization
