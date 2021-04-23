@@ -5,6 +5,7 @@
 package com.serotonin.m2m2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -100,7 +101,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public List<? extends DataSourceRT<?>> getRunningDataSources() {
+    public Collection<? extends DataSourceRT<?>> getRunningDataSources() {
         return new ArrayList<>();
     }
 
@@ -121,9 +122,8 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public boolean initializeDataSourceStartup(DataSourceVO vo) {
+    public void initializeDataSourceStartup(DataSourceVO vo) {
 
-        return false;
     }
 
     @Override
@@ -143,7 +143,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public List<DataPointRT> getRunningDataPoints() {
+    public Collection<DataPointRT> getRunningDataPoints() {
         return new ArrayList<>();
     }
 

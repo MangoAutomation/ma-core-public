@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.rt;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -62,7 +63,7 @@ public interface RuntimeManager extends ILifecycle {
      */
     DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId);
 
-    List<? extends DataSourceRT<?>> getRunningDataSources();
+    Collection<? extends DataSourceRT<?>> getRunningDataSources();
 
     boolean isDataSourceRunning(int dataSourceId);
 
@@ -81,10 +82,9 @@ public interface RuntimeManager extends ILifecycle {
 
     /**
      * Initialize a data source (only to be used at system startup)
-     * @param vo
-     * @return
+     * @param vo data source vo
      */
-    boolean initializeDataSourceStartup(DataSourceVO vo);
+    void initializeDataSourceStartup(DataSourceVO vo);
 
     /**
      * Stop a data source (only to be used at system shutdown)
@@ -128,7 +128,7 @@ public interface RuntimeManager extends ILifecycle {
      */
     DataPointRT getDataPoint(int dataPointId);
 
-    List<DataPointRT> getRunningDataPoints();
+    Collection<DataPointRT> getRunningDataPoints();
 
     void addDataPointListener(int dataPointId, DataPointListener l);
 

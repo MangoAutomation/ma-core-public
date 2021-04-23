@@ -41,6 +41,7 @@ import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
@@ -453,8 +454,9 @@ public class ScriptingTest extends MangoTestBase {
         public DataPointRT getDataPoint(int dataPointId) {
             DataPointVO vo = DataPointDao.getInstance().get(dataPointId);
             DataSourceVO ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
+            DataSourceRT<? extends DataSourceVO> dataSource = ds.createDataSourceRT();
             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, new ArrayList<>());
-            return new DataPointRT(dp, vo.getPointLocator().createRuntime(), ds, new ArrayList<>(),
+            return new DataPointRT(dp, vo.getPointLocator().createRuntime(), dataSource, new ArrayList<>(),
                     Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
         }
     }

@@ -22,6 +22,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.script.DataPointStateException;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
@@ -32,6 +33,7 @@ import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -202,7 +204,8 @@ public class CompiledMangoJavaScript {
                             }
                             //Generate some fake event detectors
                             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpvo, new ArrayList<>());
-                            dprt = new DataPointRT(dp, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(dpvo.getDataSourceId()),
+                            DataSourceRT<? extends DataSourceVO> dataSource = DataSourceDao.getInstance().get(dpvo.getDataSourceId()).createDataSourceRT();
+                            dprt = new DataPointRT(dp, dpvo.getPointLocator().createRuntime(), dataSource,
                                     null, Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
                             dprt.resetValues(); //otherwise variable.value will be empty
                         }else {

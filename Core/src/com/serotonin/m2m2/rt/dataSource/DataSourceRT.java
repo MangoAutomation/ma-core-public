@@ -5,12 +5,18 @@ package com.serotonin.m2m2.rt.dataSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
@@ -18,12 +24,16 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.DataPointGroupInitializer;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.role.Role;
@@ -45,8 +55,15 @@ import com.serotonin.util.ILifecycleState;
  * @author Matthew Lohbihler
  */
 abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycle {
+    private final Log log = LogFactory.getLog(DataSourceRT.class);
+
     public static final String DATA_SOURCE_EVENT_CONTEXT_KEY = "dataSource";
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
+
+    /**
+     * Protects access to {@link #addedChangedPoints} and {@link #removedPoints}
+     */
+    protected final Object addRemoveLock = new Object();
 
     /**
      * Under the expectation that most data sources will run in their own threads, the addedPoints field is used as a
@@ -56,19 +73,21 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * Note that updated versions of data points that could already be running may be added here, so implementations
      * should always check for existing instances.
      */
-    protected List<DataPointRT> addedChangedPoints = new ArrayList<>();
+    protected Set<DataPointRT> addedChangedPoints = new LinkedHashSet<>();
 
     /**
      * Under the expectation that most data sources will run in their own threads, the removedPoints field is used as a
      * cache for points that have been removed from the data source, so that at a convenient time for the data source
      * they can be removed from the polling.
      */
-    protected List<DataPointRT> removedPoints = new ArrayList<>();
+    protected Set<DataPointRT> removedPoints = new LinkedHashSet<>();
 
     /**
-     * Access to either the addedPoints or removedPoints lists should be synchronized with this object's monitor.
+     * Protects access to {@link #dataPoints}
      */
     protected final ReadWriteLock pointListChangeLock = new ReentrantReadWriteLock();
+
+    protected final Map<Integer, DataPointRT> dataPoints = new HashMap<>();
 
     /**
      * Stores a map of data source event type ids to the {@link EventStatus}
@@ -117,30 +136,52 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     public void addDataPoint(DataPointRT dataPoint) {
         ensureState(ILifecycleState.RUNNING);
-        pointListChangeLock.readLock().lock();
-        try {
-            //Further synchronize with other readers
-            synchronized(pointListChangeLock) {
-                addedChangedPoints.remove(dataPoint);
-                addedChangedPoints.add(dataPoint);
-                removedPoints.remove(dataPoint);
-            }
-        } finally {
-            pointListChangeLock.readLock().unlock();
+        synchronized (addRemoveLock) {
+            addedChangedPoints.add(dataPoint);
+            removedPoints.remove(dataPoint);
         }
     }
 
     public void removeDataPoint(DataPointRT dataPoint) {
         ensureState(ILifecycleState.RUNNING);
-        pointListChangeLock.readLock().lock();
+        synchronized (addRemoveLock) {
+            addedChangedPoints.remove(dataPoint);
+            removedPoints.add(dataPoint);
+        }
+    }
+
+    protected boolean isQuantize() {
+        return false;
+    }
+
+    protected void updateChangedPoints(long fireTime) {
+        Set<DataPointRT> pointsToAdd = Collections.emptySet();
+        Set<DataPointRT> pointsToRemove = Collections.emptySet();
+
+        synchronized (addRemoveLock) {
+            if (!addedChangedPoints.isEmpty()) {
+                pointsToAdd = addedChangedPoints;
+                addedChangedPoints = new LinkedHashSet<>();
+            }
+            if (!removedPoints.isEmpty()) {
+                pointsToRemove = removedPoints;
+                removedPoints = new LinkedHashSet<>();
+            }
+        }
+
+        pointListChangeLock.writeLock().lock();
         try {
-            //Further synchronize with other readers
-            synchronized(pointListChangeLock) {
-                addedChangedPoints.remove(dataPoint);
-                removedPoints.add(dataPoint);
+            for (DataPointRT rt : pointsToRemove) {
+                dataPoints.remove(rt.getId(), rt);
+            }
+
+            // Add the changed points and start the interval logging
+            for (DataPointRT rt : pointsToAdd) {
+                rt.initializeIntervalLogging(fireTime, isQuantize());
+                dataPoints.put(rt.getId(), rt);
             }
         } finally {
-            pointListChangeLock.readLock().unlock();
+            pointListChangeLock.writeLock().unlock();
         }
     }
 
@@ -259,6 +300,25 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         if(!safe)
             initialize();
         this.state = ILifecycleState.RUNNING;
+        initializePoints();
+    }
+
+    private void initializePoints() {
+        DataPointDao dataPointDao = Common.getBean(DataPointDao.class);
+        ExecutorService executorService = Common.getBean(ExecutorService.class);
+
+        // Add the enabled points to the data source.
+        List<DataPointWithEventDetectors> dataSourcePoints = dataPointDao.getDataPointsForDataSourceStart(getId());
+
+        //Startup multi threaded
+        int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
+        int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
+        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, pointValueCacheDao);
+        pointInitializer.initialize(dataSourcePoints, pointsPerThread);
+
+        //Signal to the data source that all points are added.
+        initialized();
     }
 
     /**
@@ -271,14 +331,14 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     /**
      * Hook to know when all points are added, the source is fully initialized
      */
-    public void initialized() {
+    protected void initialized() {
 
     }
 
     /**
      * Hook for just before points get removed from the data source
      */
-    public void terminating() {
+    protected void terminating() {
 
     }
 
@@ -286,7 +346,39 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public final synchronized void terminate() {
         ensureState(ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
+
+        try {
+            //Signal we are going down
+            terminating();
+        } catch (Exception e) {
+            log.error("Failed to signal termination to data source: " + readableIdentifier(), e);
+        }
+
+        try {
+            terminatePoints();
+        } catch (Exception e) {
+            log.error("Failed to terminate all points on data source: " + readableIdentifier(), e);
+        }
         terminateImpl();
+    }
+
+    /**
+     * Stop the data points.
+     */
+    private void terminatePoints() {
+        List<Integer> pointIds = new ArrayList<>();
+        pointListChangeLock.readLock().lock();
+        try {
+            for (DataPointRT p : dataPoints.values()) {
+                p.terminate(false);
+                pointIds.add(p.getId());
+            }
+        } finally {
+            pointListChangeLock.readLock().unlock();
+        }
+
+        //Terminate all events at once
+        Common.eventManager.cancelEventsForDataPoints(pointIds);
     }
 
     /**
@@ -370,5 +462,16 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     public String readableIdentifier() {
         return String.format("name=%s, id=%d, type=%s", getName(), getId(), getClass());
+    }
+
+    public void setAttribute(String key, Object value) {
+        pointListChangeLock.readLock().lock();
+        try {
+            for (DataPointRT point : dataPoints.values()) {
+                point.setAttribute(key, value);
+            }
+        } finally {
+            pointListChangeLock.readLock().unlock();
+        }
     }
 }

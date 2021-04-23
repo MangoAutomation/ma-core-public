@@ -22,7 +22,6 @@ import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
@@ -37,9 +36,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";
     private final Lock pollLock = new ReentrantLock();
-
-    protected List<DataPointRT> dataPoints = new ArrayList<>();
-    protected boolean pointListChanged = false;
 
     // If polling is done with millis
     protected long pollingPeriodMillis = 300000; // Default to 5 minutes just to
@@ -238,32 +234,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
     abstract protected void doPoll(long time);
 
-    protected void updateChangedPoints(long fireTime) {
-        pointListChangeLock.writeLock().lock();
-        try {
-            if (addedChangedPoints.size() > 0) {
-
-                // Remove any existing instances of the points.
-                dataPoints.removeAll(addedChangedPoints);
-
-                // Add the changed points and start the interval logging
-                for(DataPointRT rt : addedChangedPoints){
-                    rt.initializeIntervalLogging(fireTime, quantize);
-                    dataPoints.add(rt);
-                }
-                addedChangedPoints.clear();
-                pointListChanged = true;
-            }
-            if (removedPoints.size() > 0) {
-                dataPoints.removeAll(removedPoints);
-                removedPoints.clear();
-                pointListChanged = true;
-            }
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
-    }
-
     //
     //
     // Data source interface
@@ -344,4 +314,8 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         return new ArrayList<>(this.latestAbortedPollTimes);
     }
 
+    @Override
+    public boolean isQuantize() {
+        return this.quantize;
+    }
 }
