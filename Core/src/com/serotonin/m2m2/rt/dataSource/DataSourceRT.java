@@ -116,6 +116,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     public void addDataPoint(DataPointRT dataPoint) {
+        ensureState(ILifecycleState.RUNNING);
         pointListChangeLock.readLock().lock();
         try {
             //Further synchronize with other readers
@@ -130,6 +131,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     public void removeDataPoint(DataPointRT dataPoint) {
+        ensureState(ILifecycleState.RUNNING);
         pointListChangeLock.readLock().lock();
         try {
             //Further synchronize with other readers
