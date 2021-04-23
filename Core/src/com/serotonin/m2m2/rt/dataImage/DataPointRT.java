@@ -815,7 +815,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         this.state = ILifecycleState.INITIALIZING;
         if(!safe)
             initialize();
-        this.state = ILifecycleState.RUNNING;
 
         initializeDetectors();
         // If we are a polling data source then we need to wait to start our interval logging until the first poll due to quantization
@@ -826,6 +825,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         // add ourselves to the data source for the next poll
         dataSource.addDataPoint(this);
+        this.state = ILifecycleState.RUNNING;
     }
 
     private void initializeDetectors() {
@@ -855,22 +855,19 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     @Override
     public final synchronized void terminate() {
-        terminate(true);
-    }
-
-    /**
-     * Used when shutting down a data source when all events are cancelled at once.
-     * @param cancelEvents true if events for data point should be cancelled
-     */
-    public final synchronized void terminate(boolean cancelEvents) {
         ensureState(ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
         try {
-            dataSource.removeDataPoint(this);
+            boolean dataSourceTerminating = dataSource.getLifecycleState() == ILifecycleState.TERMINATING;
+            if (!dataSourceTerminating) {
+                // Data source clears all its points at once when it is terminating
+                dataSource.removeDataPoint(this);
+            }
             terminateListeners();
             terminateIntervalLogging();
             terminateDetectors();
-            if (cancelEvents) {
+            if (!dataSourceTerminating) {
+                // Data source cancels all its point events at once when it is terminating
                 Common.eventManager.cancelEventsForDataPoint(getId());
             }
         } finally {

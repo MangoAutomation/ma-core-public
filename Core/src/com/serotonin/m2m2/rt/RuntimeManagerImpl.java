@@ -353,16 +353,16 @@ public class RuntimeManagerImpl implements RuntimeManager {
         try {
             dataSource.terminate();
         } catch (Exception e) {
-            LOG.error("Error while terminating data source: " + dataSource.readableIdentifier(), e);
+            LOG.error("Error while terminating " + dataSource.readableIdentifier(), e);
         }
 
         try {
             dataSource.joinTermination();
         } catch (Exception e) {
-            LOG.error("Error waiting for data source to terminate: " + dataSource.readableIdentifier(), e);
+            LOG.error("Error while waiting for " + dataSource.readableIdentifier() + " to terminate", e);
         }
 
-        LOG.info(String.format("Data source [%s] stopped in %dms",
+        LOG.info(String.format("%s stopped in %dms",
                 dataSource.readableIdentifier(), Common.timer.currentTimeMillis() - now));
     }
 

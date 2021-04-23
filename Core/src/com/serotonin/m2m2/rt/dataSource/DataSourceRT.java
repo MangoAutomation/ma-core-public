@@ -122,8 +122,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * Do not call while holding read lock
      */
     public void addDataPoint(DataPointRT dataPoint) {
-        ensureState(ILifecycleState.RUNNING);
         pointListChangeLock.writeLock().lock();
+        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
+        dataPoint.ensureState(ILifecycleState.INITIALIZING);
         try {
             // Replace data point
             dataPointsMap.put(dataPoint.getId(), dataPoint);
@@ -137,8 +138,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * Do not call while holding read lock
      */
     public void removeDataPoint(DataPointRT dataPoint) {
-        ensureState(ILifecycleState.RUNNING);
         pointListChangeLock.writeLock().lock();
+        ensureState(ILifecycleState.RUNNING);
+        dataPoint.ensureState(ILifecycleState.TERMINATING);
         try {
             dataPointsMap.remove(dataPoint.getId(), dataPoint);
             pointListChanged = true;
@@ -148,9 +150,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     public void addPoints(Collection<? extends DataPointRT> points) {
-        ensureState(ILifecycleState.RUNNING);
         pointListChangeLock.writeLock().lock();
+        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
         try {
+            points.forEach(p -> p.ensureState(ILifecycleState.INITIALIZING));
             for (DataPointRT point : points) {
                 dataPointsMap.put(point.getId(), point);
                 pointListChanged = true;
@@ -161,9 +164,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     public void removePoints(Collection<? extends DataPointRT> points) {
-        ensureState(ILifecycleState.RUNNING);
         pointListChangeLock.writeLock().lock();
+        ensureState(ILifecycleState.RUNNING);
         try {
+            points.forEach(p -> p.ensureState(ILifecycleState.TERMINATING));
             for (DataPointRT point : points) {
                 dataPointsMap.remove(point.getId(), point);
                 pointListChanged = true;
@@ -287,8 +291,8 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         this.state = ILifecycleState.INITIALIZING;
         if(!safe)
             initialize();
-        this.state = ILifecycleState.RUNNING;
         initializePoints();
+        this.state = ILifecycleState.RUNNING;
     }
 
     private void initializePoints() {
@@ -339,13 +343,13 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             //Signal we are going down
             terminating();
         } catch (Exception e) {
-            log.error("Failed to signal termination to data source: " + readableIdentifier(), e);
+            log.error("Failed to signal termination to " + readableIdentifier(), e);
         }
 
         try {
             terminatePoints();
         } catch (Exception e) {
-            log.error("Failed to terminate all points on data source: " + readableIdentifier(), e);
+            log.error("Failed to terminate all points for " + readableIdentifier(), e);
         }
         terminateImpl();
     }
@@ -355,14 +359,17 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     private void terminatePoints() {
         List<Integer> pointIds = new ArrayList<>();
-        pointListChangeLock.readLock().lock();
+
+        pointListChangeLock.writeLock().lock();
         try {
             for (DataPointRT p : dataPoints) {
-                p.terminate(false);
+                p.terminate();
                 pointIds.add(p.getId());
             }
+            // clear all points out at once
+            dataPointsMap.clear();
         } finally {
-            pointListChangeLock.readLock().unlock();
+            pointListChangeLock.writeLock().unlock();
         }
 
         //Terminate all events at once
@@ -449,7 +456,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     public String readableIdentifier() {
-        return String.format("name=%s, id=%d, type=%s", getName(), getId(), getClass());
+        return String.format("Data source (name=%s, id=%d, type=%s)", getName(), getId(), getClass().getSimpleName());
     }
 
     public void forEachDataPoint(Consumer<? super DataPointRT> consumer) {
