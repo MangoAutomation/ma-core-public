@@ -22,6 +22,7 @@ import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
@@ -180,9 +181,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
                 incrementSuccessfulPolls();
 
-                // Check if there were changes to the data points list.
-                updateChangedPoints(fireTime);
-
                 doPollNoSync(fireTime);
 
                 // Save the poll time and duration
@@ -245,15 +243,18 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
             throw new IllegalStateException("Polling was already started");
         }
 
+        long firstPollTime = 0L;
+
         if (cronPattern == null) {
             long delay = 0;
             if (quantize){
                 // Quantize the start.
                 long now = Common.timer.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
+                firstPollTime = now + delay;
                 if(LOG.isDebugEnabled())
-                    LOG.debug("First poll should be at: " + (now + delay));
-                timerTask = new TimeoutTask(new FixedRateTrigger(new Date(now + delay), pollingPeriodMillis), this.timeoutClient);
+                    LOG.debug("First poll should be at: " + firstPollTime);
+                timerTask = new TimeoutTask(new FixedRateTrigger(new Date(firstPollTime), pollingPeriodMillis), this.timeoutClient);
             } else
                 timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this.timeoutClient);
         }
@@ -265,6 +266,15 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
                 // Should not happen
                 throw new RuntimeException(e);
             }
+        }
+
+        pointListChangeLock.readLock().lock();
+        try {
+            for (DataPointRT rt : dataPoints.values()) {
+                rt.initializeIntervalLogging(firstPollTime, quantize);
+            }
+        } finally {
+            pointListChangeLock.readLock().unlock();
         }
 
         super.beginPolling();
@@ -314,8 +324,4 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         return new ArrayList<>(this.latestAbortedPollTimes);
     }
 
-    @Override
-    public boolean isQuantize() {
-        return this.quantize;
-    }
 }

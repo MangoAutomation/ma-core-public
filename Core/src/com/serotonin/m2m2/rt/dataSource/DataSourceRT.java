@@ -6,10 +6,8 @@ package com.serotonin.m2m2.rt.dataSource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -22,7 +20,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -59,28 +56,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     public static final String DATA_SOURCE_EVENT_CONTEXT_KEY = "dataSource";
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
-
-    /**
-     * Protects access to {@link #addedChangedPoints} and {@link #removedPoints}
-     */
-    protected final Object addRemoveLock = new Object();
-
-    /**
-     * Under the expectation that most data sources will run in their own threads, the addedPoints field is used as a
-     * cache for points that have been added to the data source, so that at a convenient time for the data source they
-     * can be included in the polling.
-     *
-     * Note that updated versions of data points that could already be running may be added here, so implementations
-     * should always check for existing instances.
-     */
-    protected Set<DataPointRT> addedChangedPoints = new LinkedHashSet<>();
-
-    /**
-     * Under the expectation that most data sources will run in their own threads, the removedPoints field is used as a
-     * cache for points that have been removed from the data source, so that at a convenient time for the data source
-     * they can be removed from the polling.
-     */
-    protected Set<DataPointRT> removedPoints = new LinkedHashSet<>();
 
     /**
      * Protects access to {@link #dataPoints}
@@ -134,52 +109,28 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         DataSourceDao.getInstance().savePersistentData(vo.getId(), persistentData);
     }
 
+    /**
+     * Do not call while holding read lock
+     */
     public void addDataPoint(DataPointRT dataPoint) {
         ensureState(ILifecycleState.RUNNING);
-        synchronized (addRemoveLock) {
-            addedChangedPoints.add(dataPoint);
-            removedPoints.remove(dataPoint);
-        }
-    }
-
-    public void removeDataPoint(DataPointRT dataPoint) {
-        ensureState(ILifecycleState.RUNNING);
-        synchronized (addRemoveLock) {
-            addedChangedPoints.remove(dataPoint);
-            removedPoints.add(dataPoint);
-        }
-    }
-
-    protected boolean isQuantize() {
-        return false;
-    }
-
-    protected void updateChangedPoints(long fireTime) {
-        Set<DataPointRT> pointsToAdd = Collections.emptySet();
-        Set<DataPointRT> pointsToRemove = Collections.emptySet();
-
-        synchronized (addRemoveLock) {
-            if (!addedChangedPoints.isEmpty()) {
-                pointsToAdd = addedChangedPoints;
-                addedChangedPoints = new LinkedHashSet<>();
-            }
-            if (!removedPoints.isEmpty()) {
-                pointsToRemove = removedPoints;
-                removedPoints = new LinkedHashSet<>();
-            }
-        }
-
         pointListChangeLock.writeLock().lock();
         try {
-            for (DataPointRT rt : pointsToRemove) {
-                dataPoints.remove(rt.getId(), rt);
-            }
+            // Replace data point
+            dataPoints.put(dataPoint.getId(), dataPoint);
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
+    }
 
-            // Add the changed points and start the interval logging
-            for (DataPointRT rt : pointsToAdd) {
-                rt.initializeIntervalLogging(fireTime, isQuantize());
-                dataPoints.put(rt.getId(), rt);
-            }
+    /**
+     * Do not call while holding read lock
+     */
+    public void removeDataPoint(DataPointRT dataPoint) {
+        ensureState(ILifecycleState.RUNNING);
+        pointListChangeLock.writeLock().lock();
+        try {
+            dataPoints.remove(dataPoint.getId(), dataPoint);
         } finally {
             pointListChangeLock.writeLock().unlock();
         }
@@ -198,15 +149,15 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     abstract public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
 
     public void relinquish(DataPointRT dataPoint) {
-        throw new ShouldNeverHappenException("not implemented in " + getClass());
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
     public void forcePointRead(DataPointRT dataPoint) {
-        // No op by default. Override as required.
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
     public void forcePoll() {
-        // No op by default. Override as required.
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
     /**

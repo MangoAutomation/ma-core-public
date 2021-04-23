@@ -15,35 +15,9 @@ abstract public class EventDataSource<T extends DataSourceVO> extends DataSource
         super(vo);
     }
 
-    /**
-     * Do not call while holding read lock
-     */
-    @Override
-    public void addDataPoint(DataPointRT dataPoint) {
-        pointListChangeLock.writeLock().lock();
-        try {
-            // Replace data point
-            dataPoints.put(dataPoint.getId(), dataPoint);
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
-    }
-
-    /**
-     * Do not call while holding read lock
-     */
-    @Override
-    public void removeDataPoint(DataPointRT dataPoint) {
-        pointListChangeLock.writeLock().lock();
-        try {
-            dataPoints.remove(dataPoint.getId(), dataPoint);
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
-    }
-
     @Override
     public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
         // Typically, event based data sources cannot set point values, so don't make subclasses implement this.
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 }
