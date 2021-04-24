@@ -20,6 +20,7 @@ import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.module.Module;
+import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
@@ -57,6 +58,7 @@ public class DataPointRTTest extends MangoTestBase {
         dpVo.setLoggingType(DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL);
 
         MockDataSourceVO dsVo = new MockDataSourceVO();
+        MockDataSourceRT dataSource = dsVo.createDataSourceRT();
         MockPointLocatorRT plRt = new MockPointLocatorRT(plVo);
 
         //Setup some initial data
@@ -65,7 +67,7 @@ public class DataPointRTTest extends MangoTestBase {
 
         SimulationTimer timer = new SimulationTimer();
         DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpVo, new ArrayList<>());
-        DataPointRT rt = new DataPointRT(dp, plRt, dsVo, initialCache, dao, Common.databaseProxy.getPointValueCacheDao(), timer);
+        DataPointRT rt = new DataPointRT(dp, plRt, dataSource, initialCache, dao, Common.databaseProxy.getPointValueCacheDao(), timer);
         rt.initialize(false);
         rt.initializeIntervalLogging(0, false);
 
