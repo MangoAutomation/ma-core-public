@@ -368,6 +368,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             }
             // clear all points out at once
             dataPointsMap.clear();
+            pointListChanged = true;
         } finally {
             pointListChangeLock.writeLock().unlock();
         }

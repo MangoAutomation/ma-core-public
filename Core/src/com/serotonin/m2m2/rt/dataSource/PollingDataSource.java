@@ -281,10 +281,13 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    public void terminateImpl() {
+    public void terminating() {
         if (timerTask != null)
             timerTask.cancel();
+    }
 
+    @Override
+    public void terminateImpl() {
         Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
         Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
         Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
