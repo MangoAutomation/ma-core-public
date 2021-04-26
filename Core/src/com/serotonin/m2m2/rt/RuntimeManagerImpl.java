@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -22,8 +21,6 @@ import org.apache.commons.logging.LogFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.util.Assert;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -57,9 +54,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     private static final Log LOG = LogFactory.getLog(RuntimeManagerImpl.class);
 
     private final ConcurrentMap<Integer, DataSourceRT<? extends DataSourceVO>> runningDataSources = new ConcurrentHashMap<>();
-    private final Cache<Integer, DataPointRT> dataPointCache = Caffeine.newBuilder()
-            .weakValues()
-            .build();
+    private final ConcurrentMap<Integer, DataPointRT> dataPointCache  = new ConcurrentHashMap<>();
 
     /**
      * The list of point listeners, kept here such that listeners can be notified of point initializations (i.e. a
@@ -378,7 +373,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void stopDataPoint(int id) {
-        DataPointRT point = dataPointCache.getIfPresent(id);
+        DataPointRT point = dataPointCache.remove(id);
         if (point == null) return;
         point.terminate();
         // does nothing for now
@@ -393,16 +388,16 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPointVO.getDataSourceId());
 
-        DataPointRT dataPoint = Objects.requireNonNull(dataPointCache.get(dataPointVO.getId(), k -> new DataPointRT(
+        DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> new DataPointRT(
                 vo,
                 dataPointVO.getPointLocator().createRuntime(),
                 ds,
                 vo.getInitialCache(),
                 Common.databaseProxy.newPointValueDao(),
                 Common.databaseProxy.getPointValueCacheDao()
-        )));
+        ));
 
-        // Initialize it.
+        // Initialize it, will fail if data point is already initializing or running
         dataPoint.initialize(false);
     }
 
@@ -416,12 +411,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public DataPointRT getDataPoint(int dataPointId) {
-        return dataPointCache.getIfPresent(dataPointId);
+        return dataPointCache.get(dataPointId);
     }
 
     @Override
     public Collection<DataPointRT> getRunningDataPoints() {
-        return dataPointCache.asMap().values();
+        return dataPointCache.values();
     }
 
     @Override
@@ -448,7 +443,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void setDataPointValue(int dataPointId, PointValueTime valueTime, SetPointSource source) {
-        DataPointRT dataPoint = dataPointCache.getIfPresent(dataPointId);
+        DataPointRT dataPoint = dataPointCache.get(dataPointId);
         if (dataPoint == null)
             throw new RTException("Point is not enabled");
 
@@ -462,7 +457,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void relinquish(int dataPointId) {
-        DataPointRT dataPoint = dataPointCache.getIfPresent(dataPointId);
+        DataPointRT dataPoint = dataPointCache.get(dataPointId);
         if (dataPoint == null)
             throw new RTException("Point is not enabled");
 
@@ -478,7 +473,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void forcePointRead(int dataPointId) {
-        DataPointRT dataPoint = dataPointCache.getIfPresent(dataPointId);
+        DataPointRT dataPoint = dataPointCache.get(dataPointId);
         if (dataPoint == null)
             throw new RTException("Point is not enabled");
 

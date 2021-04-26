@@ -295,6 +295,11 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         this.state = ILifecycleState.RUNNING;
     }
 
+    /**
+     * The {@link DataPointGroupInitializer} calls
+     * {@link com.serotonin.m2m2.rt.RuntimeManagerImpl#startDataPointStartup(com.serotonin.m2m2.rt.DataPointWithEventDetectorsAndCache) startDataPointStartup()}
+     * which adds the data points to the cache in the RTM and initializes them.
+     */
     private void initializePoints() {
         DataPointDao dataPointDao = Common.getBean(DataPointDao.class);
         ExecutorService executorService = Common.getBean(ExecutorService.class);
@@ -363,7 +368,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         pointListChangeLock.writeLock().lock();
         try {
             for (DataPointRT p : dataPoints) {
-                p.terminate();
+                Common.runtimeManager.stopDataPoint(p.getId());
                 pointIds.add(p.getId());
             }
             // clear all points out at once
