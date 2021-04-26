@@ -312,6 +312,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Ensure that the data source is enabled.
         Assert.isTrue(vo.getId() > 0, "Data source must be saved");
         Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
 
         DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.computeIfAbsent(vo.getId(), k -> vo.createDataSourceRT());
 
@@ -386,6 +387,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
         DataPointVO dataPointVO = vo.getDataPoint();
         Assert.isTrue(dataPointVO.isEnabled(), "Data point not enabled");
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
 
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPointVO.getDataSourceId());
