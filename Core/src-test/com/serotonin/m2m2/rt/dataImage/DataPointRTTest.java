@@ -43,10 +43,15 @@ public class DataPointRTTest extends MangoTestBase {
      */
     @Test
     public void testIntervalOnChangeLogging() {
+        MockDataSourceVO dsVo = new MockDataSourceVO();
+        MockDataSourceRT dataSource = dsVo.createDataSourceRT();
+        dataSource.initialize(false);
+
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
         DataPointVO dpVo = new DataPointVO();
         dpVo.setId(1);
+        dpVo.setDataSourceId(dsVo.getId());
 
         //Configure Interval on change logging
         dpVo.setLoggingType(DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL);
@@ -57,8 +62,6 @@ public class DataPointRTTest extends MangoTestBase {
         dpVo.setPointLocator(plVo);
         dpVo.setLoggingType(DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL);
 
-        MockDataSourceVO dsVo = new MockDataSourceVO();
-        MockDataSourceRT dataSource = dsVo.createDataSourceRT();
         MockPointLocatorRT plRt = new MockPointLocatorRT(plVo);
 
         //Setup some initial data
@@ -69,7 +72,6 @@ public class DataPointRTTest extends MangoTestBase {
         DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpVo, new ArrayList<>());
         DataPointRT rt = new DataPointRT(dp, plRt, dataSource, initialCache, dao, Common.databaseProxy.getPointValueCacheDao(), timer);
         rt.initialize(false);
-        rt.initializeIntervalLogging(0, false);
 
         //Test no changes
         timer.fastForwardTo(5001);

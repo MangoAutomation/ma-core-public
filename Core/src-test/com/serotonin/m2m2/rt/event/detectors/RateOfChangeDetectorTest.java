@@ -57,17 +57,31 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class RateOfChangeDetectorTest extends MangoTestBase {
 
     private EventDetectorEventListener listener;
+    private MockDataSourceVO dsVo;
+    private DataSourceService dataSourceService;
 
     @Before
     public void configure() {
         this.listener = new EventDetectorEventListener();
         Common.eventManager.addUserEventListener(this.listener);
+
+        dataSourceService = Common.getBean(DataSourceService.class);
+        dsVo = new MockDataSourceVO("test", "DS_1");
+        dsVo.setEnabled(true);
+        dsVo.setUpdatePeriods(1);
+        dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
+        validate(dsVo);
+
+        dataSourceService.insert(dsVo);
     }
 
     @After
     public void tearDown() {
         Common.eventManager.removeUserEventListener(this.listener);
         Common.eventManager = new SimpleEventManager();
+
+        // removes the data source from the RTM
+        dataSourceService.delete(dsVo);
     }
 
     /**
@@ -654,14 +668,6 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      * @return
      */
     protected DataPointWithEventDetectors createDisabledPoint(double rocThreshold, Double resetThreshold, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
-        MockDataSourceVO dsVo = new MockDataSourceVO("test", "DS_1");
-        dsVo.setEnabled(true);
-        dsVo.setUpdatePeriods(1);
-        dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
-        validate(dsVo);
-        DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
-        dataSourceService.insert(dsVo);
-
         //Create point locator
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
 
