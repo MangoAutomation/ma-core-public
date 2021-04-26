@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -316,16 +317,22 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.computeIfAbsent(vo.getId(), k -> vo.createDataSourceRT());
 
+        boolean newlyCreated = dataSource.getLifecycleState() == ILifecycleState.PRE_INITIALIZE;
         long startTime = System.nanoTime();
-        // Create and initialize the runtime version of the data source.
-        dataSource.initialize(false);
-        long endTime = System.nanoTime();
 
-        long duration = endTime - startTime;
-        int took = (int)((double)duration/(double)1000000);
-        stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), took);
+        try {
+            // Create and initialize the runtime version of the data source.
+            dataSource.initialize(false);
+        } catch (Exception e) {
+            if (newlyCreated) {
+                runningDataSources.remove(vo.getId(), dataSource);
+            }
+            throw e;
+        }
 
-        LOG.info(String.format("%s took %dms to start", dataSource.readableIdentifier(), took));
+        long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), duration);
+        LOG.info(String.format("%s took %dms to start", dataSource.readableIdentifier(), duration));
     }
 
     private void startDataSourcePolling(DataSourceVO vo) {
@@ -401,8 +408,17 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 Common.databaseProxy.getPointValueCacheDao()
         ));
 
-        // Initialize it, will fail if data point is already initializing or running
-        dataPoint.initialize(false);
+        boolean newlyCreated = dataPoint.getLifecycleState() == ILifecycleState.PRE_INITIALIZE;
+
+        try {
+            // Initialize it, will fail if data point is already initializing or running
+            dataPoint.initialize(false);
+        } catch (Exception e) {
+            if (newlyCreated) {
+                dataPointCache.remove(dataPoint.getId(), dataPoint);
+            }
+            throw e;
+        }
     }
 
     @Override
