@@ -48,8 +48,9 @@ public interface ILifecycle {
      * @throws IllegalStateException if not in desired state
      */
     default void ensureState(ILifecycleState desiredState) {
+        ILifecycleState currentState = getLifecycleState();
         if (getLifecycleState() != desiredState) {
-            throw new IllegalStateException("Not in state " + desiredState);
+            throw new IllegalStateException("Should be in state " + desiredState + ", but is in state " + currentState);
         }
     }
 
@@ -59,7 +60,7 @@ public interface ILifecycle {
     default void ensureState(ILifecycleState... desiredState) {
         ILifecycleState currentState = getLifecycleState();
         if (Arrays.stream(desiredState).noneMatch(s -> s == currentState)) {
-            throw new IllegalStateException("Not in state " + Arrays.toString(desiredState));
+            throw new IllegalStateException("Should be in state " + Arrays.toString(desiredState) + ", but is in state " + currentState);
         }
     }
 }
