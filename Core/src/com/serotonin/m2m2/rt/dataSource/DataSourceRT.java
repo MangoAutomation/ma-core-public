@@ -460,7 +460,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         return String.format("Data source (name=%s, id=%d, type=%s)", getName(), getId(), getClass().getSimpleName());
     }
 
-    public void forEachDataPoint(Consumer<? super DataPointRT> consumer) {
+    protected final void forEachDataPoint(Consumer<? super DataPointRT> consumer) {
         pointListChangeLock.readLock().lock();
         try {
             dataPoints.forEach(consumer);
@@ -469,7 +469,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         }
     }
 
-    public DataPointRT getPointById(int id) {
+    protected final DataPointRT getPointById(int id) {
         pointListChangeLock.readLock().lock();
         try {
             return dataPointsMap.get(id);
@@ -478,7 +478,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         }
     }
 
-    public void setAttribute(String key, Object value) {
+    protected final void setAttribute(String key, Object value) {
         forEachDataPoint(point -> point.setAttribute(key, value));
     }
 }
