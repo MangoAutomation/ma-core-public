@@ -288,7 +288,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public boolean isDataSourceRunning(int dataSourceId) {
-        return runningDataSources.containsKey(dataSourceId);
+        DataSourceRT<? extends DataSourceVO> ds = runningDataSources.get(dataSourceId);
+        return ds != null && ds.getLifecycleState() == ILifecycleState.RUNNING;
     }
 
     @Override
@@ -404,9 +405,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public boolean isDataPointRunning(int dataPointId) {
         DataPointRT dataPoint = getDataPoint(dataPointId);
-        // TODO check implications of making this more strict
-//        return dataPoint != null && dataPoint.getLifecycleState() == ILifecycleState.RUNNING;
-        return dataPoint != null;
+        return dataPoint != null && dataPoint.getLifecycleState() == ILifecycleState.RUNNING;
     }
 
     @Override
