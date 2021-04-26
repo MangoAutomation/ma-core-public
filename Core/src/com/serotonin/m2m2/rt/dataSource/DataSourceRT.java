@@ -127,7 +127,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         dataPoint.ensureState(ILifecycleState.INITIALIZING);
         try {
             // Replace data point
-            dataPointsMap.put(dataPoint.getId(), dataPoint);
+            if (dataPointsMap.putIfAbsent(dataPoint.getId(), dataPoint) != null) {
+                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " is already present on this data source");
+            }
             pointListChanged = true;
         } finally {
             pointListChangeLock.writeLock().unlock();
@@ -142,7 +144,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         ensureState(ILifecycleState.RUNNING);
         dataPoint.ensureState(ILifecycleState.TERMINATING);
         try {
-            dataPointsMap.remove(dataPoint.getId(), dataPoint);
+            if (!dataPointsMap.remove(dataPoint.getId(), dataPoint)) {
+                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " was not present on this data source");
+            }
             pointListChanged = true;
         } finally {
             pointListChangeLock.writeLock().unlock();
@@ -155,7 +159,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         try {
             points.forEach(p -> p.ensureState(ILifecycleState.INITIALIZING));
             for (DataPointRT point : points) {
-                dataPointsMap.put(point.getId(), point);
+                if (dataPointsMap.putIfAbsent(point.getId(), point) != null) {
+                    throw new IllegalStateException("Data point with ID " + point.getId() + " is already present on this data source");
+                }
                 pointListChanged = true;
             }
         } finally {
@@ -169,7 +175,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         try {
             points.forEach(p -> p.ensureState(ILifecycleState.TERMINATING));
             for (DataPointRT point : points) {
-                dataPointsMap.remove(point.getId(), point);
+                if (!dataPointsMap.remove(point.getId(), point)) {
+                    throw new IllegalStateException("Data point with ID " + point.getId() + " was not present on this data source");
+                }
                 pointListChanged = true;
             }
         } finally {
