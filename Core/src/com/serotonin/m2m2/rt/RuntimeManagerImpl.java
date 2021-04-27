@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -315,21 +316,24 @@ public class RuntimeManagerImpl implements RuntimeManager {
         Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
 
-        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.computeIfAbsent(vo.getId(), k -> vo.createDataSourceRT());
+        AtomicBoolean created = new AtomicBoolean();
+        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.computeIfAbsent(vo.getId(), k -> {
+            created.set(true);
+            return vo.createDataSourceRT();
+        });
 
-        boolean newlyCreated = dataSource.getLifecycleState() == ILifecycleState.PRE_INITIALIZE;
+        if (!created.get()) {
+            throw new IllegalStateException("Data source already initialized");
+        }
+
         long startTime = System.nanoTime();
-
         try {
             // Create and initialize the runtime version of the data source.
             dataSource.initialize(false);
         } catch (Exception e) {
-            if (newlyCreated) {
-                runningDataSources.remove(vo.getId(), dataSource);
-            }
+            runningDataSources.remove(vo.getId(), dataSource);
             throw e;
         }
-
         long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
         stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), duration);
         LOG.info(String.format("%s took %dms to start", dataSource.readableIdentifier(), duration));
@@ -399,24 +403,28 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPointVO.getDataSourceId());
 
-        DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> new DataPointRT(
-                vo,
-                dataPointVO.getPointLocator().createRuntime(),
-                ds,
-                vo.getInitialCache(),
-                Common.databaseProxy.newPointValueDao(),
-                Common.databaseProxy.getPointValueCacheDao()
-        ));
+        AtomicBoolean created = new AtomicBoolean();
+        DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> {
+            created.set(true);
+            return new DataPointRT(
+                    vo,
+                    dataPointVO.getPointLocator().createRuntime(),
+                    ds,
+                    vo.getInitialCache(),
+                    Common.databaseProxy.newPointValueDao(),
+                    Common.databaseProxy.getPointValueCacheDao()
+            );
+        });
 
-        boolean newlyCreated = dataPoint.getLifecycleState() == ILifecycleState.PRE_INITIALIZE;
+        if (!created.get()) {
+            throw new IllegalStateException("Data point already initialized");
+        }
 
         try {
             // Initialize it, will fail if data point is already initializing or running
             dataPoint.initialize(false);
         } catch (Exception e) {
-            if (newlyCreated) {
-                dataPointCache.remove(dataPoint.getId(), dataPoint);
-            }
+            dataPointCache.remove(dataPoint.getId(), dataPoint);
             throw e;
         }
     }
