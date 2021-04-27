@@ -164,7 +164,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         successfulPollsPercentageMonitor.setValue(((double)successful/(double)(successful + unsuccessful))*100);
     }
 
-    protected void scheduleTimeoutImpl(long fireTime) {
+    protected final void scheduleTimeoutImpl(long fireTime) {
         pollLock.lock();
         try {
             ensureState(ILifecycleState.RUNNING);
@@ -181,6 +181,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
                 incrementSuccessfulPolls();
 
+                drainPendingPointsQueue(fireTime);
                 doPollNoSync(fireTime);
 
                 // Save the poll time and duration
@@ -243,15 +244,13 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
             throw new IllegalStateException("Polling was already started");
         }
 
-        long firstPollTime = 0L;
-
         if (cronPattern == null) {
             long delay = 0;
             if (quantize){
                 // Quantize the start.
                 long now = Common.timer.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
-                firstPollTime = now + delay;
+                long firstPollTime = now + delay;
                 if(LOG.isDebugEnabled())
                     LOG.debug("First poll should be at: " + firstPollTime);
                 timerTask = new TimeoutTask(new FixedRateTrigger(new Date(firstPollTime), pollingPeriodMillis), this.timeoutClient);
@@ -268,16 +267,18 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
             }
         }
 
-        pointListChangeLock.readLock().lock();
-        try {
-            for (DataPointRT rt : dataPoints) {
-                rt.initializeIntervalLogging(firstPollTime, quantize);
-            }
-        } finally {
-            pointListChangeLock.readLock().unlock();
-        }
-
         super.beginPolling();
+    }
+
+    @Override
+    public boolean inhibitIntervalLoggingInitialization() {
+        return true;
+    }
+
+    @Override
+    protected void addDataPointInternal(long time, DataPointRT dataPoint) {
+        super.addDataPointInternal(time, dataPoint);
+        dataPoint.initializeIntervalLogging(time, vo.isQuantize());
     }
 
     @Override

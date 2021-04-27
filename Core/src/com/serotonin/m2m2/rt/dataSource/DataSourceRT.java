@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -70,8 +72,29 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     protected boolean pointListChanged = false;
 
-    protected final Map<Integer, DataPointRT> dataPointsMap = new HashMap<>();
+    private final Map<Integer, DataPointRT> dataPointsMap = new HashMap<>();
+
+    /**
+     *  You must hold the read lock of {@link #pointListChangeLock} e.g. inside {@link PollingDataSource#doPoll(long)}
+     *  when accessing this collection.
+     */
     protected final Collection<DataPointRT> dataPoints = Collections.unmodifiableCollection(dataPointsMap.values());
+
+    /**
+     * Stores pending data points which are waiting to be added or removed from {@link #dataPointsMap}
+     * (usually on the next poll)
+     */
+    private final Queue<PendingPoint> pendingPoints = new ConcurrentLinkedQueue<>();
+
+    private static class PendingPoint {
+        private final DataPointRT point;
+        private final boolean remove;
+
+        private PendingPoint(DataPointRT point, boolean remove) {
+            this.point = point;
+            this.remove = remove;
+        }
+    }
 
     /**
      * Stores a map of data source event type ids to the {@link EventStatus}
@@ -119,66 +142,66 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     /**
-     * Do not call while holding read lock
+     * Queues a data point for addition to the data source's current points.
+     * @param dataPoint point to add
      */
     public void addDataPoint(DataPointRT dataPoint) {
-        pointListChangeLock.writeLock().lock();
         ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
         dataPoint.ensureState(ILifecycleState.INITIALIZING);
-        try {
-            // Replace data point
-            if (dataPointsMap.putIfAbsent(dataPoint.getId(), dataPoint) != null) {
-                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " is already present on this data source");
-            }
-            pointListChanged = true;
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
+        pendingPoints.add(new PendingPoint(dataPoint, false));
     }
 
     /**
-     * Do not call while holding read lock
+     * Queues a data point for removal from the data source's current points.
+     * @param dataPoint point to remove
      */
     public void removeDataPoint(DataPointRT dataPoint) {
-        pointListChangeLock.writeLock().lock();
         ensureState(ILifecycleState.RUNNING);
         dataPoint.ensureState(ILifecycleState.TERMINATING);
-        try {
-            if (!dataPointsMap.remove(dataPoint.getId(), dataPoint)) {
-                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " was not present on this data source");
-            }
-            pointListChanged = true;
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
+        pendingPoints.add(new PendingPoint(dataPoint, true));
     }
 
-    public void addPoints(Collection<? extends DataPointRT> points) {
-        pointListChangeLock.writeLock().lock();
-        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
-        try {
-            points.forEach(p -> p.ensureState(ILifecycleState.INITIALIZING));
-            for (DataPointRT point : points) {
-                if (dataPointsMap.putIfAbsent(point.getId(), point) != null) {
-                    throw new IllegalStateException("Data point with ID " + point.getId() + " is already present on this data source");
-                }
-                pointListChanged = true;
-            }
-        } finally {
-            pointListChangeLock.writeLock().unlock();
+    /**
+     * Immediately adds the data point to the current points. Must hold write lock of {@link #pointListChangeLock}.
+     *
+     * @param time usually the current poll time
+     * @param dataPoint data point to add
+     */
+    protected void addDataPointInternal(long time, DataPointRT dataPoint) {
+        if (dataPointsMap.putIfAbsent(dataPoint.getId(), dataPoint) != null) {
+            throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " is already present on this data source");
         }
+        pointListChanged = true;
     }
 
-    public void removePoints(Collection<? extends DataPointRT> points) {
+    /**
+     * Immediately removes the data point from the current points. Must hold write lock of {@link #pointListChangeLock}.
+     *
+     * @param time usually the current poll time
+     * @param dataPoint data point to remove
+     */
+    protected void removeDataPointInternal(long time, DataPointRT dataPoint) {
+        if (!dataPointsMap.remove(dataPoint.getId(), dataPoint)) {
+            throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " was not present on this data source");
+        }
+        pointListChanged = true;
+    }
+
+    /**
+     * Drains the pending points queue and adds/removes them from the current points.
+     *
+     * @param time usually the current poll time
+     */
+    protected void drainPendingPointsQueue(long time) {
         pointListChangeLock.writeLock().lock();
-        ensureState(ILifecycleState.RUNNING);
         try {
-            points.forEach(p -> p.ensureState(ILifecycleState.TERMINATING));
-            for (DataPointRT point : points) {
-                if (!dataPointsMap.remove(point.getId(), point)) {
-                    throw new IllegalStateException("Data point with ID " + point.getId() + " was not present on this data source");
+            PendingPoint pending;
+            while ((pending = pendingPoints.poll()) != null) {
+                if (pending.remove) {
+                    removeDataPointInternal(time, pending.point);
+                } else {
+                    addDataPointInternal(time, pending.point);
                 }
-                pointListChanged = true;
             }
         } finally {
             pointListChangeLock.writeLock().unlock();
@@ -375,6 +398,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
         pointListChangeLock.writeLock().lock();
         try {
+            drainPendingPointsQueue(Common.timer.currentTimeMillis());
             for (DataPointRT p : dataPoints) {
                 Common.runtimeManager.stopDataPoint(p.getId());
                 pointIds.add(p.getId());
@@ -493,5 +517,12 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     protected final void setAttribute(String key, Object value) {
         forEachDataPoint(point -> point.setAttribute(key, value));
+    }
+
+    /**
+     * @return true if interval logging initialization should be inhibited when a data point is initialized.
+     */
+    public boolean inhibitIntervalLoggingInitialization() {
+        return false;
     }
 }

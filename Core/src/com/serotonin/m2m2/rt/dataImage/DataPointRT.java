@@ -33,7 +33,6 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
-import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
@@ -818,7 +817,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         initializeDetectors();
         // If we are a polling data source then we need to wait to start our interval logging until the first poll due to quantization
-        if (!(dataSource instanceof PollingDataSource)) {
+        if (!dataSource.inhibitIntervalLoggingInitialization()) {
             initializeIntervalLogging(0L, false);
         }
         initializeListeners();
