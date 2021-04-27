@@ -30,6 +30,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.DataPointGroupInitializer;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -328,7 +329,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     /**
      * The {@link DataPointGroupInitializer} calls
-     * {@link com.serotonin.m2m2.rt.RuntimeManagerImpl#startDataPointStartup(com.serotonin.m2m2.rt.DataPointWithEventDetectorsAndCache) startDataPointStartup()}
+     * {@link RuntimeManager#startDataPoint(com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors, java.util.List) startDataPoint()}
      * which adds the data points to the cache in the RTM and initializes them.
      */
     private void initializePoints() {
