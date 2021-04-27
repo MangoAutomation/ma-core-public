@@ -6,7 +6,6 @@ package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -80,13 +79,10 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                 .max()
                 .orElse(0);
 
-        boolean failed = false;
-        Map<Integer, List<PointValueTime>> latestValuesMap;
+        Map<Integer, List<PointValueTime>> latestValuesMap = null;
         try {
             latestValuesMap = dao.getPointValueCaches(queryPoints, maxCacheSize);
         } catch (Exception e) {
-            latestValuesMap = new HashMap<>();
-            failed = true;
             log.warn("Failed to get latest point values for multiple points at once. " +
                     "Mango will fall back to retrieving latest point values per point which will take longer.", e);
         }
@@ -98,11 +94,8 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                 // should only be submitted as null if we failed, gets passed to com.serotonin.m2m2.rt.dataImage.PointValueCache.PointValueCache
                 // if we didn't fail then we can assume there is no value in the database
                 List<PointValueTime> cache = null;
-                if(!failed) {
-                    cache = latestValuesMap.get(dataPoint.getDataPoint().getSeriesId());
-                    if(cache == null) {
-                        cache = Collections.emptyList();
-                    }
+                if (latestValuesMap != null) {
+                    cache = latestValuesMap.getOrDefault(dataPoint.getDataPoint().getSeriesId(), Collections.emptyList());
                 }
                 Common.runtimeManager.startDataPoint(dataPoint, cache);
             } catch (Exception e) {
