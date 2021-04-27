@@ -47,7 +47,7 @@ public class DataSourceGroupInitializer extends GroupProcessor<DataSourceVO, Dat
 
     @Override
     protected DataSourceVO processItem(DataSourceVO dataSource, int itemId) {
-        Common.runtimeManager.initializeDataSourceStartup(dataSource);
+        Common.runtimeManager.startDataSource(dataSource, false);
         return dataSource;
     }
 

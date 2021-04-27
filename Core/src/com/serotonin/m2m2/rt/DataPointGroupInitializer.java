@@ -104,8 +104,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                         cache = Collections.emptyList();
                     }
                 }
-                DataPointWithEventDetectorsAndCache config = new DataPointWithEventDetectorsAndCache(dataPoint, cache);
-                Common.runtimeManager.startDataPointStartup(config);
+                Common.runtimeManager.startDataPoint(dataPoint, cache);
             } catch (Exception e) {
                 //Ensure only 1 can fail at a time
                 failedCount++;

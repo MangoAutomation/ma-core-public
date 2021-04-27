@@ -7,6 +7,8 @@ package com.serotonin.m2m2.rt;
 import java.util.Collection;
 import java.util.List;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
@@ -68,11 +70,22 @@ public interface RuntimeManager extends ILifecycle {
     boolean isDataSourceRunning(int dataSourceId);
 
     /**
+     * Starts the data source and starts it polling.
+     * @param vo The data source VO
+     * @throws IllegalArgumentException if the data source is not saved, or is not enabled
+     * @throws IllegalStateException if the data source is already running or terminated
+     */
+    default void startDataSource(DataSourceVO vo) {
+        startDataSource(vo, true);
+    }
+
+    /**
      * Starts the data source.
      * @param vo The data source VO
      * @throws IllegalArgumentException if the data source is not saved, or is not enabled
+     * @throws IllegalStateException if the data source is already running or terminated
      */
-    void startDataSource(DataSourceVO vo);
+    void startDataSource(DataSourceVO vo, boolean startPolling);
 
     /**
      * Stops the data source (if running)
@@ -80,33 +93,25 @@ public interface RuntimeManager extends ILifecycle {
      */
     void stopDataSource(int dataSourceId);
 
-    /**
-     * Initialize a data source (only to be used at system startup)
-     * @param vo data source vo
-     */
-    void initializeDataSourceStartup(DataSourceVO vo);
-
-    /**
-     * Stop a data source (only to be used at system shutdown)
-     * @param id
-     */
-    void stopDataSourceShutdown(int id);
-
     //
     //
     // Data points
     //
-    /**
-     * Start a data point, will confirm that it is enabled
-     * @param vo
-     */
-    void startDataPoint(DataPointWithEventDetectors vo);
 
     /**
-     * Only to be used at startup as synchronization has been reduced for performance
-     * @param vo
+     * Starts a data point with a null initial cache.
+     * @param vo data point with its event detectors
      */
-    void startDataPointStartup(DataPointWithEventDetectorsAndCache vo);
+    default void startDataPoint(DataPointWithEventDetectors vo) {
+        startDataPoint(vo, null);
+    }
+
+    /**
+     * Start a data point, will confirm that it is enabled
+     * @param vo data point with its event detectors
+     * @param initialCache if null then data point will retrieve from database when it is initialized
+     */
+    void startDataPoint(DataPointWithEventDetectors vo, @Nullable List<PointValueTime> initialCache);
 
     /**
      *

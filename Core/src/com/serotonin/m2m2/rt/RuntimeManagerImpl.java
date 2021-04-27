@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -162,8 +163,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Tell the data sources to start polling. Delaying the polling start gives the data points a chance to
         // initialize such that point listeners in meta points and set point handlers can run properly.
-        for (DataSourceVO config : pollingRound)
-            startDataSourcePolling(config);
+        for (DataSourceVO config : pollingRound) {
+            DataSourceRT<? extends DataSourceVO> dataSource = getRunningDataSource(config.getId());
+            dataSource.beginPolling();
+        }
 
         // Run everything else.
         startRTMDefs(defs, safe, rtmdIndex, Integer.MAX_VALUE);
@@ -295,22 +298,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void startDataSource(DataSourceVO vo) {
+    public void startDataSource(DataSourceVO vo, boolean beginPolling) {
         Assert.isTrue(vo.getId() > 0, "Data source must be saved");
         Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
 
-        initializeDataSourceStartup(vo);
-        startDataSourcePolling(vo);
-    }
-
-    /**
-     * Initializes the data source but does not start it polling.
-     *
-     * @param vo data source VO
-     * @return true if the data source was initialized, false if it was already running
-     */
-    @Override
-    public void initializeDataSourceStartup(DataSourceVO vo) {
         // Ensure that the data source is enabled.
         Assert.isTrue(vo.getId() > 0, "Data source must be saved");
         Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
@@ -337,24 +328,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
         long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
         stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), duration);
         LOG.info(String.format("%s took %dms to start", dataSource.readableIdentifier(), duration));
-    }
 
-    private void startDataSourcePolling(DataSourceVO vo) {
-        DataSourceRT<? extends DataSourceVO> dataSource = getRunningDataSource(vo.getId());
-        dataSource.beginPolling();
+        if (beginPolling) {
+            dataSource.beginPolling();
+        }
     }
 
     @Override
     public void stopDataSource(int dataSourceId) {
-        stopDataSourceShutdown(dataSourceId);
-    }
-
-    /**
-     * Should only be called at Shutdown as synchronization has been reduced for performance
-     */
-    @Override
-    public void stopDataSourceShutdown(int id) {
-        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.remove(id);
+        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.remove(dataSourceId);
         if (dataSource == null) return;
 
         long now = Common.timer.currentTimeMillis();
@@ -379,11 +361,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
     //
     // Data points
     //
-    @Override
-    public void startDataPoint(DataPointWithEventDetectors vo) {
-        DataPointWithEventDetectorsAndCache dp = new DataPointWithEventDetectorsAndCache(vo, null);
-        startDataPointStartup(dp);
-    }
 
     @Override
     public void stopDataPoint(int id) {
@@ -395,7 +372,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
+    public void startDataPoint(DataPointWithEventDetectors vo, @Nullable List<PointValueTime> initialCache) {
         DataPointVO dataPointVO = vo.getDataPoint();
         Assert.isTrue(dataPointVO.isEnabled(), "Data point not enabled");
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
@@ -410,7 +387,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                     vo,
                     dataPointVO.getPointLocator().createRuntime(),
                     ds,
-                    vo.getInitialCache(),
+                    initialCache,
                     Common.databaseProxy.newPointValueDao(),
                     Common.databaseProxy.getPointValueCacheDao()
             );

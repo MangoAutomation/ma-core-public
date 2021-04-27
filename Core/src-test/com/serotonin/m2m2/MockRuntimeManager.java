@@ -10,13 +10,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
-import com.serotonin.m2m2.rt.DataPointWithEventDetectorsAndCache;
 import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
@@ -107,27 +108,15 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public boolean isDataSourceRunning(int dataSourceId) {
-
         return false;
     }
 
     @Override
-    public void startDataSource(DataSourceVO vo) {
-
+    public void startDataSource(DataSourceVO vo, boolean startPolling) {
     }
 
     @Override
     public void stopDataSource(int dataSourceId) {
-
-    }
-
-    @Override
-    public void initializeDataSourceStartup(DataSourceVO vo) {
-
-    }
-
-    @Override
-    public void stopDataSourceShutdown(int id) {
 
     }
 
@@ -315,8 +304,8 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
-        if(useDatabase) {
+    public void startDataPoint(DataPointWithEventDetectors vo, @Nullable List<PointValueTime> initialCache) {
+        if (useDatabase) {
             vo.getDataPoint().setEnabled(true);
             DataPointDao.getInstance().saveEnabledColumn(vo.getDataPoint());
         }
