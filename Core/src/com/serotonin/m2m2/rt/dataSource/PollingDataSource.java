@@ -305,10 +305,14 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    public void terminateImpl() {
+    protected final void terminateImpl() {
         Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
         Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
         Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
+        pollingTerminate();
+    }
+
+    public void pollingTerminate() {
     }
 
     /**
