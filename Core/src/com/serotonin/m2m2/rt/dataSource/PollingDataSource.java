@@ -39,13 +39,17 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     private static final String prefix = "POLLINGDS-";
     private final Lock pollLock = new ReentrantLock();
 
+    private enum PendingPointOperation {
+        ADD, REMOVE
+    }
+
     private static class PendingPoint {
         private final DataPointRT point;
-        private final boolean remove;
+        private final PendingPointOperation operation;
 
-        private PendingPoint(DataPointRT point, boolean remove) {
+        private PendingPoint(DataPointRT point, PendingPointOperation operation) {
             this.point = point;
-            this.remove = remove;
+            this.operation = operation;
         }
     }
 
@@ -341,6 +345,20 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
+    public void addDataPoint(DataPointRT dataPoint) {
+        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
+        dataPoint.ensureState(ILifecycleState.INITIALIZING);
+        pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.ADD));
+    }
+
+    @Override
+    public void removeDataPoint(DataPointRT dataPoint) {
+        ensureState(ILifecycleState.RUNNING);
+        dataPoint.ensureState(ILifecycleState.TERMINATING);
+        pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.REMOVE));
+    }
+
+    @Override
     protected void flushPoints() {
         flushPoints(null);
     }
@@ -354,16 +372,19 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         try {
             PendingPoint pending;
             while ((pending = pendingPoints.poll()) != null) {
-                if (pending.remove) {
-                    removeDataPointInternal(pending.point);
-                    if (pollTime != null) {
-                        pointRemovedFromPoll(pending.point, pollTime);
-                    }
-                } else {
-                    addDataPointInternal(pending.point);
-                    if (pollTime != null) {
-                        pointAddedToPoll(pending.point, pollTime);
-                    }
+                switch (pending.operation) {
+                    case ADD:
+                        addDataPointInternal(pending.point);
+                        if (pollTime != null) {
+                            pointAddedToPoll(pending.point, pollTime);
+                        }
+                        break;
+                    case REMOVE:
+                        removeDataPointInternal(pending.point);
+                        if (pollTime != null) {
+                            pointRemovedFromPoll(pending.point, pollTime);
+                        }
+                        break;
                 }
             }
         } finally {
