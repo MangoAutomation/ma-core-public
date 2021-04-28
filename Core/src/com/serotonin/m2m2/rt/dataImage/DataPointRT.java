@@ -897,6 +897,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
 
         this.state = ILifecycleState.TERMINATED;
+        Common.runtimeManager.removeDataPoint(this);
     }
 
     private void terminateDetectors() {
