@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,6 +38,23 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";
     private final Lock pollLock = new ReentrantLock();
+
+    private static class PendingPoint {
+        private final DataPointRT point;
+        private final boolean remove;
+
+        private PendingPoint(DataPointRT point, boolean remove) {
+            this.point = point;
+            this.remove = remove;
+        }
+    }
+
+    /**
+     * Stores pending data points which are waiting to be added or removed from {@link #dataPointsMap}
+     * (usually on the next poll)
+     */
+    private final Queue<PendingPoint> pendingPoints = new ConcurrentLinkedQueue<>();
+
 
     // If polling is done with millis
     protected long pollingPeriodMillis = 300000; // Default to 5 minutes just to
@@ -181,7 +199,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
                 incrementSuccessfulPolls();
 
-                drainPendingPointsQueue(fireTime);
+                flushPoints(fireTime);
                 doPollNoSync(fireTime);
 
                 // Save the poll time and duration
@@ -276,12 +294,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    protected void addDataPointInternal(long time, DataPointRT dataPoint) {
-        super.addDataPointInternal(time, dataPoint);
-        dataPoint.initializeIntervalLogging(time, vo.isQuantize());
-    }
-
-    @Override
     public void terminating() {
         if (timerTask != null)
             timerTask.cancel();
@@ -328,4 +340,41 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         return new ArrayList<>(this.latestAbortedPollTimes);
     }
 
+    @Override
+    protected void flushPoints() {
+        flushPoints(null);
+    }
+
+    /**
+     * Drains the pending points queue and adds/removes them from the current points.
+     * @param pollTime the time of the poll
+     */
+    protected void flushPoints(Long pollTime) {
+        pointListChangeLock.writeLock().lock();
+        try {
+            PendingPoint pending;
+            while ((pending = pendingPoints.poll()) != null) {
+                if (pending.remove) {
+                    removeDataPointInternal(pending.point);
+                    if (pollTime != null) {
+                        pointRemovedFromPoll(pending.point, pollTime);
+                    }
+                } else {
+                    addDataPointInternal(pending.point);
+                    if (pollTime != null) {
+                        pointAddedToPoll(pending.point, pollTime);
+                    }
+                }
+            }
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
+    }
+
+    protected void pointAddedToPoll(DataPointRT point, long pollTime) {
+        point.initializeIntervalLogging(pollTime, vo.isQuantize());
+    }
+
+    protected void pointRemovedFromPoll(DataPointRT point, long pollTime) {
+    }
 }

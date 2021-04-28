@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -82,22 +80,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     protected final Collection<DataPointRT> dataPoints = Collections.unmodifiableCollection(dataPointsMap.values());
 
     /**
-     * Stores pending data points which are waiting to be added or removed from {@link #dataPointsMap}
-     * (usually on the next poll)
-     */
-    private final Queue<PendingPoint> pendingPoints = new ConcurrentLinkedQueue<>();
-
-    private static class PendingPoint {
-        private final DataPointRT point;
-        private final boolean remove;
-
-        private PendingPoint(DataPointRT point, boolean remove) {
-            this.point = point;
-            this.remove = remove;
-        }
-    }
-
-    /**
      * Stores a map of data source event type ids to the {@link EventStatus}
      */
     private final Map<Integer, EventStatus> eventTypes;
@@ -149,7 +131,12 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public void addDataPoint(DataPointRT dataPoint) {
         ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
         dataPoint.ensureState(ILifecycleState.INITIALIZING);
-        pendingPoints.add(new PendingPoint(dataPoint, false));
+        pointListChangeLock.writeLock().lock();
+        try {
+            addDataPointInternal(dataPoint);
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
     }
 
     /**
@@ -159,16 +146,20 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public void removeDataPoint(DataPointRT dataPoint) {
         ensureState(ILifecycleState.RUNNING);
         dataPoint.ensureState(ILifecycleState.TERMINATING);
-        pendingPoints.add(new PendingPoint(dataPoint, true));
+        pointListChangeLock.writeLock().lock();
+        try {
+            removeDataPointInternal(dataPoint);
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
     }
 
     /**
      * Immediately adds the data point to the current points. Must hold write lock of {@link #pointListChangeLock}.
      *
-     * @param time usually the current poll time
      * @param dataPoint data point to add
      */
-    protected void addDataPointInternal(long time, DataPointRT dataPoint) {
+    protected final void addDataPointInternal(DataPointRT dataPoint) {
         if (dataPointsMap.putIfAbsent(dataPoint.getId(), dataPoint) != null) {
             throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " is already present on this data source");
         }
@@ -178,35 +169,13 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     /**
      * Immediately removes the data point from the current points. Must hold write lock of {@link #pointListChangeLock}.
      *
-     * @param time usually the current poll time
      * @param dataPoint data point to remove
      */
-    protected void removeDataPointInternal(long time, DataPointRT dataPoint) {
+    protected final void removeDataPointInternal(DataPointRT dataPoint) {
         if (!dataPointsMap.remove(dataPoint.getId(), dataPoint)) {
             throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " was not present on this data source");
         }
         pointListChanged = true;
-    }
-
-    /**
-     * Drains the pending points queue and adds/removes them from the current points.
-     *
-     * @param time usually the current poll time
-     */
-    protected void drainPendingPointsQueue(long time) {
-        pointListChangeLock.writeLock().lock();
-        try {
-            PendingPoint pending;
-            while ((pending = pendingPoints.poll()) != null) {
-                if (pending.remove) {
-                    removeDataPointInternal(time, pending.point);
-                } else {
-                    addDataPointInternal(time, pending.point);
-                }
-            }
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
     }
 
     public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
@@ -313,17 +282,18 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     //
     // Lifecycle
     //
-    /* TODO Mango 4.0
-     * For future use if we want to allow some data sources to startup in safe mode
-     *  will require RuntimeManagerChanges
-     */
     @Override
     public final synchronized void initialize(boolean safe) {
         ensureState(ILifecycleState.PRE_INITIALIZE);
         this.state = ILifecycleState.INITIALIZING;
-        if(!safe)
+        try {
             initialize();
-        initializePoints();
+            initializePoints();
+        } catch (Exception e) {
+            terminate();
+            joinTermination();
+            throw e;
+        }
         this.state = ILifecycleState.RUNNING;
     }
 
@@ -373,7 +343,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     @Override
     public final synchronized void terminate() {
-        ensureState(ILifecycleState.RUNNING);
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
 
         try {
@@ -388,7 +358,12 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         } catch (Exception e) {
             log.error("Failed to terminate all points for " + readableIdentifier(), e);
         }
-        terminateImpl();
+
+        try {
+            terminateImpl();
+        } catch (Exception e) {
+            log.error("Failed to terminate " + readableIdentifier(), e);
+        }
     }
 
     /**
@@ -399,9 +374,10 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
         pointListChangeLock.writeLock().lock();
         try {
-            drainPendingPointsQueue(Common.timer.currentTimeMillis());
+            flushPoints();
             for (DataPointRT p : dataPoints) {
-                Common.runtimeManager.stopDataPoint(p.getId());
+                p.terminate();
+                p.joinTermination();
                 pointIds.add(p.getId());
             }
             // clear all points out at once
@@ -416,30 +392,47 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     /**
+     * Should cause any pending/queued points to be added/removed from {@link #dataPointsMap}
+     */
+    protected void flushPoints() {
+    }
+
+    /**
      * Waits for the data source to terminate.
      */
     @Override
     public final synchronized void joinTermination() {
         if (getLifecycleState() == ILifecycleState.TERMINATED) return;
         ensureState(ILifecycleState.TERMINATING);
+
         try {
             joinTerminationImpl();
-            this.state = ILifecycleState.TERMINATED;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while waiting for data source to stop: " + readableIdentifier(), e);
-        } finally {
-            postTerminate();
+            log.error("Interrupted while waiting for " + readableIdentifier() + " to stop", e);
+        } catch (Exception e) {
+            log.error("Error while waiting for " + readableIdentifier() + " to stop", e);
         }
+
+        try {
+            postTerminate();
+        } catch (Exception e) {
+            log.error("Post terminate failed for " + readableIdentifier(), e);
+        }
+
+        this.state = ILifecycleState.TERMINATED;
+        Common.runtimeManager.removeDataSource(this);
     }
 
     protected void joinTerminationImpl() throws InterruptedException {
     }
+
     protected void terminateImpl() {
     }
 
     /**
-     * Hook for after termination is complete.
+     * Hook for after termination is complete, e.g. polling has been canceled and any outstanding polls have completed.
+     * Data source will still be in TERMINATING state.
      */
     protected void postTerminate() {
         boolean anyActive = false;
@@ -498,7 +491,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         return String.format("Data source (name=%s, id=%d, type=%s)", getName(), getId(), getClass().getSimpleName());
     }
 
-    protected final void forEachDataPoint(Consumer<? super DataPointRT> consumer) {
+    protected void forEachDataPoint(Consumer<? super DataPointRT> consumer) {
         pointListChangeLock.readLock().lock();
         try {
             dataPoints.forEach(consumer);

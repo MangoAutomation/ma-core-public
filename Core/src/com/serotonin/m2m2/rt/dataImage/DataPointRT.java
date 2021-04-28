@@ -52,7 +52,7 @@ import com.serotonin.util.ILifecycle;
 import com.serotonin.util.ILifecycleState;
 
 public class DataPointRT implements IDataPointValueSource, ILifecycle {
-    private static final Log LOG = LogFactory.getLog(DataPointRT.class);
+    private final Log log = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
     private static final String prefix = "INTVL_LOG-";
 
@@ -387,7 +387,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
-            LOG.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
+            log.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime()));
             return;
         }
@@ -447,7 +447,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         //Future date check
         if (pvt.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
-            LOG.warn("Discarding point value", new Exception("Future dated value detected: pointId="
+            log.warn("Discarding point value", new Exception("Future dated value detected: pointId="
                     + vo.getId() + ", value=" + pvt.getValue().toString()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + pvt.getTime()));
             return true;
@@ -478,7 +478,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 long nextPollOffset = (nextPollTime % loggingPeriodMillis);
                 if(nextPollOffset != 0)
                     delay = loggingPeriodMillis - nextPollOffset;
-                LOG.debug("First interval log should be at: " + (nextPollTime + delay));
+                log.debug("First interval log should be at: " + (nextPollTime + delay));
             }
             Date startTime = new Date(nextPollTime + delay);
 
@@ -812,18 +812,24 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     public final synchronized void initialize(boolean safe) {
         ensureState(ILifecycleState.PRE_INITIALIZE);
         this.state = ILifecycleState.INITIALIZING;
-        if(!safe)
+
+        try {
             initialize();
+            initializeDetectors();
+            // If we are a polling data source then we need to wait to start our interval logging until the first poll due to quantization
+            if (!dataSource.inhibitIntervalLoggingInitialization()) {
+                initializeIntervalLogging(0L, false);
+            }
+            initializeListeners();
 
-        initializeDetectors();
-        // If we are a polling data source then we need to wait to start our interval logging until the first poll due to quantization
-        if (!dataSource.inhibitIntervalLoggingInitialization()) {
-            initializeIntervalLogging(0L, false);
+            // add ourselves to the data source for the next poll
+            dataSource.addDataPoint(this);
+        } catch (Exception e) {
+            terminate();
+            joinTermination();
+            throw e;
         }
-        initializeListeners();
 
-        // add ourselves to the data source for the next poll
-        dataSource.addDataPoint(this);
         this.state = ILifecycleState.RUNNING;
     }
 
@@ -840,11 +846,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             try {
                 l.pointInitialized();
             } catch (ExceptionListWrapper e) {
-                LOG.warn("Exceptions in point initialized listeners' methods.");
+                log.warn("Exceptions in point initialized listeners' methods.");
                 for (Exception e2 : e.getExceptions())
-                    LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                    log.warn("Listener exception: " + e2.getMessage(), e2);
             } catch (Exception e) {
-                LOG.warn("Exception in point initialized listener's method: " + e.getMessage(), e);
+                log.warn("Exception in point initialized listener's method: " + e.getMessage(), e);
             }
         }
     }
@@ -854,24 +860,43 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     @Override
     public final synchronized void terminate() {
-        ensureState(ILifecycleState.RUNNING);
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
+
+        boolean dataSourceTerminating = dataSource.getLifecycleState() == ILifecycleState.TERMINATING;
+        if (!dataSourceTerminating) {
+            // Data source clears all its points at once when it is terminating
+            dataSource.removeDataPoint(this);
+        }
+
         try {
-            boolean dataSourceTerminating = dataSource.getLifecycleState() == ILifecycleState.TERMINATING;
-            if (!dataSourceTerminating) {
-                // Data source clears all its points at once when it is terminating
-                dataSource.removeDataPoint(this);
-            }
             terminateListeners();
+        } catch (Exception e) {
+            log.error("Failed to terminate listeners for " + readableIdentifier(), e);
+        }
+
+        try {
             terminateIntervalLogging();
+        } catch (Exception e) {
+            log.error("Failed to terminate interval logging for " + readableIdentifier(), e);
+        }
+
+        try {
             terminateDetectors();
+        } catch (Exception e) {
+            log.error("Failed to terminate detectors for " + readableIdentifier(), e);
+        }
+
+        try {
             if (!dataSourceTerminating) {
                 // Data source cancels all its point events at once when it is terminating
                 Common.eventManager.cancelEventsForDataPoint(getId());
             }
-        } finally {
-            this.state = ILifecycleState.TERMINATED;
+        } catch (Exception e) {
+            log.error("Failed to cancel events for " + readableIdentifier(), e);
         }
+
+        this.state = ILifecycleState.TERMINATED;
     }
 
     private void terminateDetectors() {
@@ -889,9 +914,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             try {
                 l.pointTerminated(getVO());
             } catch (ExceptionListWrapper e) {
-                LOG.warn("Exceptions in point terminated method.");
+                log.warn("Exceptions in point terminated method.");
                 for (Exception e2 : e.getExceptions())
-                    LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                    log.warn("Listener exception: " + e2.getMessage(), e2);
             }
         }
     }
@@ -946,4 +971,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         return new DataPointWrapper(vo, rtWrapper);
     }
 
+    public String readableIdentifier() {
+        return String.format("Data point (name=%s, id=%d, type=%s)", getVO().getName(), getId(), getClass().getSimpleName());
+    }
 }

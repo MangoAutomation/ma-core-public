@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -299,32 +298,18 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void startDataSource(DataSourceVO vo, boolean beginPolling) {
-        Assert.isTrue(vo.getId() > 0, "Data source must be saved");
-        Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
-
-        // Ensure that the data source is enabled.
+        // Ensure that the data source is saved and enabled.
         Assert.isTrue(vo.getId() > 0, "Data source must be saved");
         Assert.isTrue(vo.isEnabled(), "Data source must be enabled");
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
 
-        AtomicBoolean created = new AtomicBoolean();
-        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.computeIfAbsent(vo.getId(), k -> {
-            created.set(true);
-            return vo.createDataSourceRT();
-        });
-
-        if (!created.get()) {
-            throw new IllegalStateException("Data source already initialized");
-        }
+        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.computeIfAbsent(vo.getId(), k -> vo.createDataSourceRT());
 
         long startTime = System.nanoTime();
-        try {
-            // Create and initialize the runtime version of the data source.
-            dataSource.initialize(false);
-        } catch (Exception e) {
-            runningDataSources.remove(vo.getId(), dataSource);
-            throw e;
-        }
+
+        // Create and initialize the runtime version of the data source.
+        dataSource.initialize(false);
+
         long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
         stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), duration);
         LOG.info(String.format("%s took %dms to start", dataSource.readableIdentifier(), duration));
@@ -336,25 +321,25 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void stopDataSource(int dataSourceId) {
-        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.remove(dataSourceId);
-        if (dataSource == null) return;
+        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.get(dataSourceId);
+        if (dataSource != null) {
+            long startTime = System.nanoTime();
 
-        long now = Common.timer.currentTimeMillis();
+            try {
+                dataSource.terminate();
+            } catch (Exception e) {
+                LOG.error("Error while terminating " + dataSource.readableIdentifier(), e);
+            }
 
-        try {
-            dataSource.terminate();
-        } catch (Exception e) {
-            LOG.error("Error while terminating " + dataSource.readableIdentifier(), e);
+            try {
+                dataSource.joinTermination();
+            } catch (Exception e) {
+                LOG.error("Error while waiting for " + dataSource.readableIdentifier() + " to terminate", e);
+            }
+
+            long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+            LOG.info(String.format("%s stopped in %dms", dataSource.readableIdentifier(), duration));
         }
-
-        try {
-            dataSource.joinTermination();
-        } catch (Exception e) {
-            LOG.error("Error while waiting for " + dataSource.readableIdentifier() + " to terminate", e);
-        }
-
-        LOG.info(String.format("%s stopped in %dms",
-                dataSource.readableIdentifier(), Common.timer.currentTimeMillis() - now));
     }
 
     //
@@ -364,25 +349,25 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void stopDataPoint(int id) {
-        DataPointRT point = dataPointCache.remove(id);
-        if (point == null) return;
-        point.terminate();
-        // does nothing for now
-        point.joinTermination();
+        DataPointRT point = dataPointCache.get(id);
+        if (point != null) {
+            point.terminate();
+            point.joinTermination();
+        }
     }
 
     @Override
     public void startDataPoint(DataPointWithEventDetectors vo, @Nullable List<PointValueTime> initialCache) {
         DataPointVO dataPointVO = vo.getDataPoint();
+        // Ensure that the data point is saved and enabled.
+        Assert.isTrue(dataPointVO.getId() > 0, "Data point must be saved");
         Assert.isTrue(dataPointVO.isEnabled(), "Data point not enabled");
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
 
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPointVO.getDataSourceId());
 
-        AtomicBoolean created = new AtomicBoolean();
         DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> {
-            created.set(true);
             return new DataPointRT(
                     vo,
                     dataPointVO.getPointLocator().createRuntime(),
@@ -393,23 +378,26 @@ public class RuntimeManagerImpl implements RuntimeManager {
             );
         });
 
-        if (!created.get()) {
-            throw new IllegalStateException("Data point already initialized");
-        }
-
-        try {
-            // Initialize it, will fail if data point is already initializing or running
-            dataPoint.initialize(false);
-        } catch (Exception e) {
-            dataPointCache.remove(dataPoint.getId(), dataPoint);
-            throw e;
-        }
+        // Initialize it, will fail if data point is already initializing or running
+        dataPoint.initialize(false);
     }
 
     @Override
     public boolean isDataPointRunning(int dataPointId) {
         DataPointRT dataPoint = getDataPoint(dataPointId);
         return dataPoint != null && dataPoint.getLifecycleState() == ILifecycleState.RUNNING;
+    }
+
+    @Override
+    public void removeDataPoint(DataPointRT dataPoint) {
+        dataPoint.ensureState(ILifecycleState.TERMINATED);
+        dataPointCache.remove(dataPoint.getId(), dataPoint);
+    }
+
+    @Override
+    public void removeDataSource(DataSourceRT<? extends DataSourceVO> dataSource) {
+        dataSource.ensureState(ILifecycleState.TERMINATED);
+        runningDataSources.remove(dataSource.getId(), dataSource);
     }
 
     @Override

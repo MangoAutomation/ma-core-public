@@ -127,6 +127,16 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
+    public void removeDataPoint(DataPointRT dataPoint) {
+
+    }
+
+    @Override
+    public void removeDataSource(DataSourceRT<? extends DataSourceVO> dataSource) {
+
+    }
+
+    @Override
     public DataPointRT getDataPoint(int dataPointId) {
         return null;
     }

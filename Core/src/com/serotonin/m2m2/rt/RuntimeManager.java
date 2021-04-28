@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- *
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.rt;
 
@@ -36,7 +35,7 @@ public interface RuntimeManager extends ILifecycle {
     /**
      * Check the state of the RuntimeManager
      *  useful if you are a task that may run before/after the RUNNING state
-     * @return
+     * @return state
      */
     ILifecycleState getLifecycleState();
 
@@ -114,22 +113,34 @@ public interface RuntimeManager extends ILifecycle {
     void startDataPoint(DataPointWithEventDetectors vo, @Nullable List<PointValueTime> initialCache);
 
     /**
-     *
-     * @param id
+     * Stop a running data point
+     * @param dataPointId id of data point
      */
-    void stopDataPoint(int id);
+    void stopDataPoint(int dataPointId);
 
     /**
-     * Is this data point running?
-     * @param dataPointId
-     * @return
+     * Check if a data point is running
+     * @param dataPointId id of data point
+     * @return true if running
      */
     boolean isDataPointRunning(int dataPointId);
 
     /**
+     * Removes a point from the running points list. Must be terminated.
+     * @param dataPoint data point to remove
+     */
+    void removeDataPoint(DataPointRT dataPoint);
+
+    /**
+     * Removes a data source from the running data sources list. Must be terminated.
+     * @param dataSource data source to remove
+     */
+    void removeDataSource(DataSourceRT<? extends DataSourceVO> dataSource);
+
+    /**
      * Get the RT of a running data point, can be null if not running
-     * @param dataPointId
-     * @return
+     * @param dataPointId id of data point
+     * @return the runtime for the data point
      */
     DataPointRT getDataPoint(int dataPointId);
 
@@ -154,7 +165,7 @@ public interface RuntimeManager extends ILifecycle {
      * underlying data source has implemented that ability.
      *
      * Currently only a few data sources implement this functionality
-     * @param dataPointId
+     * @param dataPointId id of data point
      */
     void forcePointRead(int dataPointId);
 
@@ -169,16 +180,16 @@ public interface RuntimeManager extends ILifecycle {
     long purgeDataPointValues(DataPointVO vo);
 
     /**
-     * @param vo
+     * @param vo data point VO
      */
     boolean purgeDataPointValuesWithoutCount(DataPointVO vo);
 
     /**
      * Purge a value at a given time
-     * @param vo
-     * @param ts
+     * @param vo data point VO
+     * @param ts epoch timestamp in ms
      * @param dao to aid in performance of high frequency calls
-     * @return
+     * @return number of point values purged
      */
     long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao);
 
@@ -188,8 +199,8 @@ public interface RuntimeManager extends ILifecycle {
 
     /**
      * Purge values before a given time
-     * @param vo
-     * @param before
+     * @param vo data point VO
+     * @param before epoch timestamp in ms
      * @return true if any data was deleted
      */
     boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before);
@@ -221,7 +232,7 @@ public interface RuntimeManager extends ILifecycle {
 
     /**
      * Get a message about what state we are in
-     * @return
+     * @return message indicating the runtime state
      */
     TranslatableMessage getStateMessage();
 
