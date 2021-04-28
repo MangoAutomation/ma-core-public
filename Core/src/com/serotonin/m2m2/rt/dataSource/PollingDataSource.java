@@ -373,19 +373,23 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         try {
             PendingPoint pending;
             while ((pending = pendingPoints.poll()) != null) {
-                switch (pending.operation) {
-                    case ADD:
-                        addDataPointInternal(pending.point);
-                        if (pollTime != null) {
-                            pointAddedToPoll(pending.point, pollTime);
-                        }
-                        break;
-                    case REMOVE:
-                        removeDataPointInternal(pending.point);
-                        if (pollTime != null) {
-                            pointRemovedFromPoll(pending.point, pollTime);
-                        }
-                        break;
+                try {
+                    switch (pending.operation) {
+                        case ADD:
+                            addDataPointInternal(pending.point);
+                            if (pollTime != null) {
+                                pointAddedToPoll(pending.point, pollTime);
+                            }
+                            break;
+                        case REMOVE:
+                            removeDataPointInternal(pending.point);
+                            if (pollTime != null) {
+                                pointRemovedFromPoll(pending.point, pollTime);
+                            }
+                            break;
+                    }
+                } catch (Exception e) {
+                    LOG.error("Failed to " + pending.operation + " point to list", e);
                 }
             }
         } finally {
