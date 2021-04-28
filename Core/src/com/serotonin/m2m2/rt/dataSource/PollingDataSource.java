@@ -189,7 +189,8 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     protected final void scheduleTimeoutImpl(long fireTime) {
         pollLock.lock();
         try {
-            ensureState(ILifecycleState.RUNNING);
+            // terminating is unlikely as the task task is cancelled, but can occur
+            ensureState(ILifecycleState.RUNNING, ILifecycleState.TERMINATING);
 
             try {
                 long startTs = Common.timer.currentTimeMillis();
