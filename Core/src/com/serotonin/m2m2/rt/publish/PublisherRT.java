@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -27,11 +30,14 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
+import com.serotonin.util.ILifecycle;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutClient {
+abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutClient implements ILifecycle {
+    private final Log log = LogFactory.getLog(PublisherRT.class);
     public static final int POINT_DISABLED_EVENT = 1;
     public static final int QUEUE_SIZE_WARNING_EVENT = 2;
 
@@ -48,6 +54,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     private volatile Thread jobThread;
     private SendThread sendThread;
     private TimerTask snapshotTask;
+    private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     public PublisherRT(PublisherVO<T> vo) {
         this.vo = vo;
@@ -199,6 +206,21 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     // Lifecycle
     //
     abstract public void initialize();
+    abstract public void terminateImpl();
+
+    @Override
+    public final synchronized void initialize(boolean safe) {
+        ensureState(ILifecycleState.PRE_INITIALIZE);
+        this.state = ILifecycleState.INITIALIZING;
+        try {
+            initialize();
+        } catch (Exception e) {
+            terminate();
+            joinTermination();
+            throw e;
+        }
+        this.state = ILifecycleState.RUNNING;
+    }
 
     protected void initialize(SendThread sendThread) {
         this.sendThread = sendThread;
@@ -216,35 +238,76 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         checkForDisabledPoints();
     }
 
-    public void terminate() {
-        if(sendThread != null){
-            sendThread.terminate();
-            sendThread.joinTermination();
+    @Override
+    public final synchronized void terminate() {
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
+        this.state = ILifecycleState.TERMINATING;
+
+        try {
+            terminateImpl();
+        } catch (Exception e) {
+            log.error("Failed to terminate " + readableIdentifier(), e);
         }
 
-        // Unschedule any job that is running.
-        if (snapshotTask != null)
-            snapshotTask.cancel();
+        try {
+            if (sendThread != null) {
+                sendThread.terminate();
+                sendThread.joinTermination();
+            }
+        } catch (Exception e) {
+            log.error("Failed to terminate send thread for " + readableIdentifier(), e);
+        }
 
-        // Terminate the point listeners
-        for (PublishedPointRT<T> rt : pointRTs)
-            rt.terminate();
+        try {
+            // Unschedule any job that is running.
+            if (snapshotTask != null) {
+                snapshotTask.cancel();
+            }
+        } catch (Exception e) {
+            log.error("Failed to cancel snapshot task for " + readableIdentifier(), e);
+        }
 
-        // Remove any outstanding events.
-        Common.eventManager.cancelEventsForPublisher(getId());
+        try {
+            // Terminate the point listeners
+            for (PublishedPointRT<T> rt : pointRTs) {
+                rt.terminate();
+            }
+        } catch (Exception e) {
+            log.error("Failed to terminate points for " + readableIdentifier(), e);
+        }
+
+        try {
+            // Remove any outstanding events.
+            Common.eventManager.cancelEventsForPublisher(getId());
+        } catch (Exception e) {
+            log.error("Failed to cancel events for " + readableIdentifier(), e);
+        }
     }
 
-    public void joinTermination() {
-        Thread localThread = jobThread;
-        if (localThread != null) {
-            try {
-                localThread.join(30000); // 30 seconds
+    @Override
+    public final synchronized void joinTermination() {
+        if (getLifecycleState() == ILifecycleState.TERMINATED) return;
+        ensureState(ILifecycleState.TERMINATING);
+
+        try {
+            Thread localThread = jobThread;
+            if (localThread != null) {
+                try {
+                    localThread.join(30000); // 30 seconds
+                }
+                catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                if (jobThread != null) {
+                    throw new ShouldNeverHappenException("Timeout waiting for publisher to stop: id=" + getId());
+                }
             }
-            catch (InterruptedException e) { /* no op */
-            }
-            if (jobThread != null)
-                throw new ShouldNeverHappenException("Timeout waiting for publisher to stop: id=" + getId());
+        } catch (Exception e) {
+            log.error("Error while waiting for " + readableIdentifier() + " to stop", e);
         }
+
+        this.state = ILifecycleState.TERMINATED;
+        Common.runtimeManager.removePublisher(this);
     }
 
     //
@@ -289,5 +352,15 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     @Override
     public String getTaskId() {
         return "PUB-" + vo.getXid();
+    }
+
+    @Override
+    public ILifecycleState getLifecycleState() {
+        return state;
+    }
+
+    @Override
+    public String readableIdentifier() {
+        return String.format("Publisher (name=%s, id=%d, type=%s)", getVo().getName(), getId(), getClass().getSimpleName());
     }
 }

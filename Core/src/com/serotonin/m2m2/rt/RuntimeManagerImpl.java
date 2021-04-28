@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -67,7 +66,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     /**
      * Store of enabled publishers
      */
-    private final List<PublisherRT<?>> runningPublishers = new CopyOnWriteArrayList<>();
+    private final ConcurrentMap<Integer, PublisherRT<? extends PublishedPointVO>> runningPublishers = new ConcurrentHashMap<>();
 
     private final ExecutorService executorService;
     private final DataSourceDao dataSourceDao;
@@ -206,7 +205,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         ensureState(ILifecycleState.RUNNING);
         state = ILifecycleState.TERMINATING;
 
-        for (PublisherRT<? extends PublishedPointVO> publisher : runningPublishers)
+        for (PublisherRT<? extends PublishedPointVO> publisher : runningPublishers.values())
             stopPublisher(publisher.getId());
 
         // Get the RTM defs and sort by reverse init priority.
@@ -399,6 +398,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
+    @Nullable
     public DataPointRT getDataPoint(int dataPointId) {
         return dataPointCache.get(dataPointId);
     }
@@ -588,65 +588,66 @@ public class RuntimeManagerImpl implements RuntimeManager {
     // Publishers
     //
     @Override
-    public List<PublisherRT<?>> getRunningPublishers() {
-        return new ArrayList<>(runningPublishers);
+    public Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers() {
+        return runningPublishers.values();
     }
 
     @Override
-    public PublisherRT<?> getRunningPublisher(int publisherId) {
-        for (PublisherRT<?> publisher : runningPublishers) {
-            if (publisher.getId() == publisherId)
-                return publisher;
-        }
-        return null;
+    @Nullable
+    public PublisherRT<? extends PublishedPointVO> getRunningPublisher(int publisherId) {
+        return runningPublishers.get(publisherId);
     }
 
     @Override
     public boolean isPublisherRunning(int publisherId) {
-        return getRunningPublisher(publisherId) != null;
-    }
-
-    @Override
-    public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
-        return publisherDao.get(publisherId);
+        DataSourceRT<? extends DataSourceVO> publisher = runningDataSources.get(publisherId);
+        return publisher != null && publisher.getLifecycleState() == ILifecycleState.RUNNING;
     }
 
     @Override
     public void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
+        // Ensure that the publisher is saved and enabled.
+        Assert.isTrue(vo.getId() > 0, "Publisher must be saved");
+        Assert.isTrue(vo.isEnabled(), "Publisher must be enabled");
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
+
+        PublisherRT<? extends PublishedPointVO> publisher = runningPublishers.computeIfAbsent(vo.getId(), k -> vo.createPublisherRT());
+
         long startTime = System.nanoTime();
-        synchronized (runningPublishers) {
-            // If the publisher is already running, just quit.
-            if (isPublisherRunning(vo.getId()))
-                return;
 
-            // Ensure that the publisher is enabled.
-            Assert.isTrue(vo.isEnabled(), "Publisher not enabled");
+        // Create and initialize the runtime version of the data source.
+        publisher.initialize(false);
 
-            // Create and start the runtime version of the publisher.
-            PublisherRT<?> publisher = vo.createPublisherRT();
-            publisher.initialize();
-
-            // Add it to the list of running publishers.
-            runningPublishers.add(publisher);
-        }
-
-        long endTime = System.nanoTime();
-
-        long duration = endTime - startTime;
-        LOG.info("Publisher '" + vo.getName() + "' took " + (double)duration/(double)1000000 + "ms to start");
-        stateMessage = new TranslatableMessage("runtimeManager.initialize.publisher", vo.getName(), (double)duration/(double)1000000);
+        long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        stateMessage = new TranslatableMessage("runtimeManager.initialize.publisher", vo.getName(), duration);
+        LOG.info(String.format("%s took %dms to start", publisher.readableIdentifier(), duration));
     }
 
     @Override
     public void stopPublisher(int publisherId) {
-        synchronized (runningPublishers) {
-            PublisherRT<?> publisher = getRunningPublisher(publisherId);
-            if (publisher == null)
-                return;
+        PublisherRT<? extends PublishedPointVO> publisher = runningPublishers.get(publisherId);
+        if (publisher != null) {
+            long startTime = System.nanoTime();
 
-            publisher.terminate();
-            publisher.joinTermination();
-            runningPublishers.remove(publisher);
+            try {
+                publisher.terminate();
+            } catch (Exception e) {
+                LOG.error("Error while terminating " + publisher.readableIdentifier(), e);
+            }
+
+            try {
+                publisher.joinTermination();
+            } catch (Exception e) {
+                LOG.error("Error while waiting for " + publisher.readableIdentifier() + " to terminate", e);
+            }
+
+            long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+            LOG.info(String.format("%s stopped in %dms", publisher.readableIdentifier(), duration));
         }
+    }
+
+    public void removePublisher(PublisherRT<? extends PublishedPointVO> publisher) {
+        publisher.ensureState(ILifecycleState.TERMINATED);
+        runningPublishers.remove(publisher.getId(), publisher);
     }
 }

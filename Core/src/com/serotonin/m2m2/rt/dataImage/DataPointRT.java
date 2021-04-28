@@ -972,6 +972,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         return new DataPointWrapper(vo, rtWrapper);
     }
 
+    @Override
     public String readableIdentifier() {
         return String.format("Data point (name=%s, id=%d, type=%s)", getVO().getName(), getId(), getClass().getSimpleName());
     }

@@ -142,6 +142,7 @@ public interface RuntimeManager extends ILifecycle {
      * @param dataPointId id of data point
      * @return the runtime for the data point
      */
+    @Nullable
     DataPointRT getDataPoint(int dataPointId);
 
     Collection<DataPointRT> getRunningDataPoints();
@@ -209,13 +210,12 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Publishers
     //
-    List<PublisherRT<?>> getRunningPublishers();
+    Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers();
 
-    PublisherRT<?> getRunningPublisher(int publisherId);
+    @Nullable
+    PublisherRT<? extends PublishedPointVO> getRunningPublisher(int publisherId);
 
     boolean isPublisherRunning(int publisherId);
-
-    PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId);
 
     /**
      * Starts the publisher
@@ -229,6 +229,12 @@ public interface RuntimeManager extends ILifecycle {
      * @param publisherId id of the publisher
      */
     void stopPublisher(int publisherId);
+
+    /**
+     * Removes a publisher from the running publishers list. Must be terminated.
+     * @param publisher publisher to remove
+     */
+    void removePublisher(PublisherRT<? extends PublishedPointVO> publisher);
 
     /**
      * Get a message about what state we are in

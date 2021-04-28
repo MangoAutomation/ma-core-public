@@ -63,4 +63,8 @@ public interface ILifecycle {
             throw new IllegalStateException("Should be in state " + Arrays.toString(desiredState) + ", but is in state " + currentState);
         }
     }
+
+    default String readableIdentifier() {
+        return toString();
+    }
 }

@@ -260,20 +260,17 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
-        if(useDatabase)
-            return PublisherDao.getInstance().get(publisherId);
-        else
-            return null;
-    }
-
-    @Override
     public void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
 
     }
 
     @Override
     public void stopPublisher(int publisherId) {
+
+    }
+
+    @Override
+    public void removePublisher(PublisherRT<? extends PublishedPointVO> publisher) {
 
     }
 
