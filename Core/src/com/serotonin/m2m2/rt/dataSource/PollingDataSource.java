@@ -371,10 +371,20 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         }
     }
 
+    /**
+     * Hook for when a data point is added before a poll executes
+     * @param point added point
+     * @param pollTime poll time for which the point will be added
+     */
     protected void pointAddedToPoll(DataPointRT point, long pollTime) {
         point.initializeIntervalLogging(pollTime, vo.isQuantize());
     }
 
+    /**
+     * Hook for when a data point is removed before a poll executes
+     * @param point removed point
+     * @param pollTime poll time for which the point will be removed
+     */
     protected void pointRemovedFromPoll(DataPointRT point, long pollTime) {
     }
 }
