@@ -6,7 +6,7 @@ package com.serotonin.m2m2.rt.dataSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -71,7 +71,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     protected boolean pointListChanged = false;
 
-    private final Map<Integer, DataPointRT> dataPointsMap = new HashMap<>();
+    private final Map<Integer, DataPointRT> dataPointsMap = new LinkedHashMap<>();
 
     /**
      *  You must hold the read lock of {@link #pointListChangeLock} e.g. inside {@link PollingDataSource#doPoll(long)}
