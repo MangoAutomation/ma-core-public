@@ -312,7 +312,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         pollingTerminate();
     }
 
-    public void pollingTerminate() {
+    protected void pollingTerminate() {
     }
 
     /**
