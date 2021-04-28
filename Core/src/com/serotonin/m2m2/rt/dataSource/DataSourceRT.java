@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -491,7 +492,21 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         return String.format("Data source (name=%s, id=%d, type=%s)", getName(), getId(), getClass().getSimpleName());
     }
 
-    protected void forEachDataPoint(Consumer<? super DataPointRT> consumer) {
+    /**
+     * Care must be taken to close the stream. Always use a try-with-resources statement e.g.
+     * <pre>{@code
+     * try (Stream<DataPointRT> stream = streamPoints()) {
+     *     return stream.mapToInt(DataPointRT::getId).toArray();
+     * }
+     * }</pre>
+     * @return stream of points
+     */
+    protected Stream<DataPointRT> streamPoints() {
+        pointListChangeLock.readLock().lock();
+        return dataPoints.stream().onClose(() -> pointListChangeLock.readLock().unlock());
+    }
+
+    protected void forEachPoint(Consumer<? super DataPointRT> consumer) {
         pointListChangeLock.readLock().lock();
         try {
             dataPoints.forEach(consumer);
@@ -510,7 +525,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     protected final void setAttribute(String key, Object value) {
-        forEachDataPoint(point -> point.setAttribute(key, value));
+        forEachPoint(point -> point.setAttribute(key, value));
     }
 
     /**
