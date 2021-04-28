@@ -228,14 +228,33 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     }
 
     /**
-     * Update the enabled column, should only be done via the runtime manager
-     * @param dp
+     * Update the enabled column
+     *
+     * @param dp point for which to update the enabled column
      */
     public void saveEnabledColumn(DataPointVO dp) {
-        ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", boolToChar(dp.isEnabled()), dp.getId());
-        DataPointVO old = get(dp.getId());
-        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, old));
-        this.publishAuditEvent(new ToggleAuditEvent(this.auditEventType, Common.getUser(), dp));
+        DataPointVO existing = get(dp.getId());
+        saveEnabledColumn(existing, dp.isEnabled());
+    }
+
+    /**
+     * Update the enabled column
+     *
+     * @param existing point for which to update the enabled column
+     * @param enabled if the point should be enabled or disabled
+     * @return updated data point
+     */
+    public DataPointVO saveEnabledColumn(DataPointVO existing, boolean enabled) {
+        create.update(table)
+                .set(table.enabled, boolToChar(enabled))
+                .where(table.id.eq(existing.getId()))
+                .execute();
+
+        DataPointVO result = existing.copy();
+        result.setEnabled(enabled);
+        this.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, result, existing));
+        this.publishAuditEvent(new ToggleAuditEvent<>(this.auditEventType, Common.getUser(), result));
+        return result;
     }
 
     /**

@@ -85,10 +85,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public DataSourceVO insert(DataSourceVO vo) throws PermissionException, ValidationException {
         DataSourceVO result = super.insert(vo);
-        if (result.isEnabled()) {
-            Common.runtimeManager.startDataSource(result);
-        }
-        return result;
+        return tryStart(result);
     }
 
     @Override
@@ -96,10 +93,14 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         ensureEditPermission(Common.getUser(), existing);
         Common.runtimeManager.stopDataSource(existing.getId());
         DataSourceVO result = super.update(existing, vo);
-        if (result.isEnabled()) {
-            Common.runtimeManager.startDataSource(result);
+        return tryStart(result);
+    }
+
+    private DataSourceVO tryStart(DataSourceVO vo) {
+        if (vo.isEnabled()) {
+            Common.runtimeManager.startDataSource(vo);
         }
-        return result;
+        return vo;
     }
 
     @Override
