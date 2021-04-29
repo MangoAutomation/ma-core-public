@@ -364,19 +364,20 @@ public class RuntimeManagerImpl implements RuntimeManager {
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
 
         // Only add the data point if its data source is enabled.
-        DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPointVO.getDataSourceId());
+        DataSourceRT<? extends DataSourceVO> ds = runningDataSources.get(dataPointVO.getDataSourceId());
+        if (ds != null) {
+            DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> new DataPointRT(
+                    vo,
+                    dataPointVO.getPointLocator().createRuntime(),
+                    ds,
+                    initialCache,
+                    Common.databaseProxy.newPointValueDao(),
+                    Common.databaseProxy.getPointValueCacheDao()
+            ));
 
-        DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> new DataPointRT(
-                vo,
-                dataPointVO.getPointLocator().createRuntime(),
-                ds,
-                initialCache,
-                Common.databaseProxy.newPointValueDao(),
-                Common.databaseProxy.getPointValueCacheDao()
-        ));
-
-        // Initialize it, will fail if data point is already initializing or running
-        dataPoint.initialize(false);
+            // Initialize it, will fail if data point is already initializing or running
+            dataPoint.initialize(false);
+        }
     }
 
     @Override
