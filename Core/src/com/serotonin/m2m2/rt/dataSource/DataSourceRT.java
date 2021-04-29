@@ -381,20 +381,12 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     private void terminatePoints() {
         List<Integer> pointIds = new ArrayList<>();
 
-        pointListChangeLock.writeLock().lock();
-        try {
-            flushPoints();
-            for (DataPointRT p : dataPoints) {
-                p.terminate();
-                p.joinTermination();
-                pointIds.add(p.getId());
-            }
-            // clear all points out at once
-            dataPointsMap.clear();
-            pointListChanged = true;
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
+        flushPoints();
+        forEachPoint(p -> {
+            p.terminate();
+            p.joinTermination();
+            pointIds.add(p.getId());
+        });
 
         //Terminate all events at once
         Common.eventManager.cancelEventsForDataPoints(pointIds);
