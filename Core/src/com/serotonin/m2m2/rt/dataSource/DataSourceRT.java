@@ -72,6 +72,14 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     protected boolean pointListChanged = false;
 
+    /**
+     *  Protected by {@link #pointListChangeLock}.
+     *  <p>Note: We could potentially remove explicit locking and use a ConcurrentHashMap. However this presents two problems -</p>
+     *  <ul>
+     *      <li>Potential race condition when a point is added while terminating, we must iterate over every point to terminate them</li>
+     *      <li>There is no linked version of ConcurrentHashMap so iteration will be slower</li>
+     *  </ul>
+     */
     private final Map<Integer, DataPointRT> dataPointsMap = new LinkedHashMap<>();
 
     /**
