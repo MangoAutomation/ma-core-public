@@ -88,6 +88,7 @@ public class ServerMonitoringService {
     public static final String THREAD_DAEMON_COUNT_ID = "thread.daemon_count";
     public static final String THREAD_PEAK_COUNT_ID = "thread.peak_count";
     public static final String THREAD_TOTAL_STARTED_ID = "thread.total_started";
+    public static final String MANGO_PROCESS_OPEN_FILES = "mango.system.openfiles";
 
     private final ValueMonitor<Integer> threads;
     private final ValueMonitor<Integer> idleThreads;
@@ -183,6 +184,7 @@ public class ServerMonitoringService {
 
         mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::processCpuLoadPercent).addTo(monitors).buildPollable();
         mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this.serverInfoService::systemCpuLoadPercent).addTo(monitors).buildPollable();
+        mv.<Long>create(MANGO_PROCESS_OPEN_FILES).name(new TranslatableMessage("monitor.mango.process.openFiles")).supplier(() -> this.serverInfoService.getMangoProcess().getOpenFiles()).addTo(monitors).buildPollable();
 
         mv.<Long>create(RUNTIME_UPTIME_ID).supplier(() -> {
             return runtimeBean.getUptime() / 1000;

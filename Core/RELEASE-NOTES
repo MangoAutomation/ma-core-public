@@ -112,6 +112,7 @@
 * Remove custom el security expressions hasDataSourcePermission, hasDataSourceXidPermission, hasDataPointXidReadPermission, hasDataPointXidsReadPermission, hasDataPointXidsSetPermission
 * Database upgrade that adds buildTimestamp column to installedModules table
 * Modules now require a buildTimestamp property in their module.properties file
+* Added internal metric to track open file counts for the Mango process
 
 *Version 3.7.4*
 * Improve work item failure logging
