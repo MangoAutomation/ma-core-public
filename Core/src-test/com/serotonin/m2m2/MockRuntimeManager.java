@@ -280,7 +280,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public List<PublisherRT<?>> getRunningPublishers() {
+    public Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers() {
         if(useDatabase) {
             List<PublisherRT<?>> running = new ArrayList<>();
             for(PublisherVO<?> vo : PublisherDao.getInstance().getAll()) {
