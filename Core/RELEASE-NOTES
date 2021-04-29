@@ -113,6 +113,14 @@
 * Database upgrade that adds buildTimestamp column to installedModules table
 * Modules now require a buildTimestamp property in their module.properties file
 * Added internal metric to track open file counts for the Mango process
+* Added internal metric to track virtual memory size for the Mango process
+* Added internal metric to track bytes written by the Mango process
+* Added internal metric to track bytes read by the Mango process
+* Added internal metric to track major faults (hard) by the Mango process
+* Added internal metric to track minor faults (soft) by the Mango process
+* Added internal metric to track kernel cpu time by the Mango process
+* Added internal metric to track user cpu time by the Mango process
+* Added internal metric to track Resident Set (RSS) size for the Mango process
 
 *Version 3.7.4*
 * Improve work item failure logging
