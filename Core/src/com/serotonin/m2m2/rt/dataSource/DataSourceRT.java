@@ -80,7 +80,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      *      <li>There is no linked version of ConcurrentHashMap so iteration will be slower</li>
      *  </ul>
      */
-    private final Map<Integer, DataPointRT> dataPointsMap = new LinkedHashMap<>();
+    private final Map<Integer, DataPointRT> dataPointsMap = createDataPointsMap();
 
     /**
      *  You must hold the read lock of {@link #pointListChangeLock} e.g. inside {@link PollingDataSource#doPoll(long)}
@@ -523,6 +523,15 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         } finally {
             pointListChangeLock.readLock().unlock();
         }
+    }
+
+    /**
+     * Can be used to return a different implementation, or empty map if you are going to override
+     * {@link #addDataPoint(DataPointRT)} etc.
+     * @return map to use to store data points
+     */
+    protected Map<Integer, DataPointRT> createDataPointsMap() {
+        return new LinkedHashMap<>();
     }
 
     protected final void setAttribute(String key, Object value) {
