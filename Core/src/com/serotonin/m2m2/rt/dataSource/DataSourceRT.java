@@ -133,58 +133,68 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         DataSourceDao.getInstance().savePersistentData(vo.getId(), persistentData);
     }
 
-    /**
-     * Queues a data point for addition to the data source's current points.
-     * @param dataPoint point to add
-     */
-    public void addDataPoint(DataPointRT dataPoint) {
+    public final void addDataPoint(DataPointRT dataPoint) {
         ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
         dataPoint.ensureState(ILifecycleState.INITIALIZING);
-        pointListChangeLock.writeLock().lock();
-        try {
-            addDataPointInternal(dataPoint);
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
+        addDataPointImpl(dataPoint);
+        dataPointAdded(dataPoint);
     }
 
-    /**
-     * Queues a data point for removal from the data source's current points.
-     * @param dataPoint point to remove
-     */
-    public void removeDataPoint(DataPointRT dataPoint) {
+    public final void removeDataPoint(DataPointRT dataPoint) {
         ensureState(ILifecycleState.RUNNING);
         dataPoint.ensureState(ILifecycleState.TERMINATING);
-        pointListChangeLock.writeLock().lock();
-        try {
-            removeDataPointInternal(dataPoint);
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
+        removeDataPointImpl(dataPoint);
+        dataPointRemoved(dataPoint);
     }
 
     /**
-     * Immediately adds the data point to the current points. Must hold write lock of {@link #pointListChangeLock}.
+     * Hook that is run when a data point is added.
+     * @param dataPoint point that was added
+     */
+    protected void dataPointAdded(DataPointRT dataPoint) {
+    }
+
+    /**
+     * Hook that is run when a data point is removed.
+     * @param dataPoint point that was removed
+     */
+    protected void dataPointRemoved(DataPointRT dataPoint) {
+    }
+
+    /**
+     * Adds the data point to the current points. If you override this method you should also override
+     * {@link DataSourceRT#streamPoints()}, {@link #forEachPoint(Consumer)}, and {@link #getPointById(int)}.
      *
      * @param dataPoint data point to add
      */
-    protected final void addDataPointInternal(DataPointRT dataPoint) {
-        if (dataPointsMap.putIfAbsent(dataPoint.getId(), dataPoint) != null) {
-            throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " is already present on this data source");
+    protected void addDataPointImpl(DataPointRT dataPoint) {
+        pointListChangeLock.writeLock().lock();
+        try {
+            if (dataPointsMap.putIfAbsent(dataPoint.getId(), dataPoint) != null) {
+                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " is already present on this data source");
+            }
+            pointListChanged = true;
+        } finally {
+            pointListChangeLock.writeLock().unlock();
         }
-        pointListChanged = true;
     }
 
     /**
-     * Immediately removes the data point from the current points. Must hold write lock of {@link #pointListChangeLock}.
+     * Removes the data point from the current points. If you override this method you should also override
+     * {@link DataSourceRT#streamPoints()}, {@link #forEachPoint(Consumer)}, and {@link #getPointById(int)}.
      *
      * @param dataPoint data point to remove
      */
-    protected final void removeDataPointInternal(DataPointRT dataPoint) {
-        if (!dataPointsMap.remove(dataPoint.getId(), dataPoint)) {
-            throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " was not present on this data source");
+    protected void removeDataPointImpl(DataPointRT dataPoint) {
+        pointListChangeLock.writeLock().lock();
+        try {
+            if (!dataPointsMap.remove(dataPoint.getId(), dataPoint)) {
+                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " was not present on this data source");
+            }
+            pointListChanged = true;
+        } finally {
+            pointListChangeLock.writeLock().unlock();
         }
-        pointListChanged = true;
     }
 
     public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
@@ -516,7 +526,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         }
     }
 
-    protected final DataPointRT getPointById(int id) {
+    protected DataPointRT getPointById(int id) {
         pointListChangeLock.readLock().lock();
         try {
             return dataPointsMap.get(id);
@@ -527,7 +537,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     /**
      * Can be used to return a different implementation, or empty map if you are going to override
-     * {@link #addDataPoint(DataPointRT)} etc.
+     * {@link #dataPointAdded(DataPointRT)} etc.
      * @return map to use to store data points
      */
     protected Map<Integer, DataPointRT> createDataPointsMap() {

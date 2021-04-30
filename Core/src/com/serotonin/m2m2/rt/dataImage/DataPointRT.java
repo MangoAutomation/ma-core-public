@@ -72,7 +72,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private long intervalStartTime = -1;
     private List<IValueTime> averagingValues;
     private final Object intervalLoggingLock = new Object();
-    private TimerTask intervalLoggingTask;
+    private volatile TimerTask intervalLoggingTask;
 
     //Simulation Timer, or any timer implementation
     private AbstractTimer timer;
@@ -458,17 +458,21 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     // / Interval logging
     //
-    /**
-     *
-     */
-    public void initializeIntervalLogging(long nextPollTime, boolean quantize) {
-        if(vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL && vo.getLoggingType() != DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)
-            return;
 
+    public boolean isIntervalLogging() {
+        return vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL ||
+                vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL;
+    }
+
+    public void initializeIntervalLogging(long nextPollTime, boolean quantize) {
+        if (!isIntervalLogging() || intervalLoggingTask != null) return;
+
+        // double checked lock
         synchronized (intervalLoggingLock) {
-            if (intervalLoggingTask != null) {
-                throw new IllegalStateException("Interval logging task already started");
-            }
+            // polling data sources call initializeIntervalLogging() when point is added to poll
+            // however some hybrid data sources such as BACnetDataSourceRT may call initializeIntervalLogging()
+            // earlier in response to an event.
+            if (intervalLoggingTask != null) return;
 
             long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
             long delay = loggingPeriodMillis;

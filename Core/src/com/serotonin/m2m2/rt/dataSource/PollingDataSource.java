@@ -350,16 +350,12 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    public void addDataPoint(DataPointRT dataPoint) {
-        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
-        dataPoint.ensureState(ILifecycleState.INITIALIZING);
+    public void addDataPointImpl(DataPointRT dataPoint) {
         pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.ADD));
     }
 
     @Override
-    public void removeDataPoint(DataPointRT dataPoint) {
-        ensureState(ILifecycleState.RUNNING);
-        dataPoint.ensureState(ILifecycleState.TERMINATING);
+    public void removeDataPointImpl(DataPointRT dataPoint) {
         pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.REMOVE));
     }
 
@@ -380,15 +376,15 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
                 try {
                     switch (pending.operation) {
                         case ADD:
-                            addDataPointInternal(pending.point);
+                            super.addDataPointImpl(pending.point);
                             if (pollTime != null) {
-                                pointAddedToPoll(pending.point, pollTime);
+                                dataPointAdded(pending.point, pollTime);
                             }
                             break;
                         case REMOVE:
-                            removeDataPointInternal(pending.point);
+                            super.removeDataPointImpl(pending.point);
                             if (pollTime != null) {
-                                pointRemovedFromPoll(pending.point, pollTime);
+                                dataPointRemoved(pending.point, pollTime);
                             }
                             break;
                     }
@@ -406,7 +402,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
      * @param point added point
      * @param pollTime poll time for which the point will be added
      */
-    protected void pointAddedToPoll(DataPointRT point, long pollTime) {
+    protected void dataPointAdded(DataPointRT point, long pollTime) {
         point.initializeIntervalLogging(pollTime, vo.isQuantize());
     }
 
@@ -415,6 +411,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
      * @param point removed point
      * @param pollTime poll time for which the point will be removed
      */
-    protected void pointRemovedFromPoll(DataPointRT point, long pollTime) {
+    protected void dataPointRemoved(DataPointRT point, long pollTime) {
     }
 }
