@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.Common;
@@ -80,11 +81,21 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
                 .orElse(0);
 
         Map<Integer, List<PointValueTime>> latestValuesMap = null;
-        try {
-            latestValuesMap = dao.getPointValueCaches(queryPoints, maxCacheSize);
-        } catch (Exception e) {
-            log.warn("Failed to get latest point values for multiple points at once. " +
-                    "Mango will fall back to retrieving latest point values per point which will take longer.", e);
+        if (maxCacheSize > 0) {
+            long start = System.nanoTime();
+            try {
+                latestValuesMap = dao.getPointValueCaches(queryPoints, maxCacheSize);
+                if (log.isDebugEnabled()) {
+                    long finish = System.nanoTime();
+                    log.debug("Took {} ms to retrieve latest {} point values for group {}",
+                            TimeUnit.NANOSECONDS.toMillis(finish - start), maxCacheSize, itemId);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to get latest point values for multiple points at once. " +
+                        "Mango will fall back to retrieving latest point values per point which will take longer.", e);
+            }
+        } else {
+            latestValuesMap = Collections.emptyMap();
         }
 
         //Now start them
