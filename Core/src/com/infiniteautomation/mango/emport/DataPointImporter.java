@@ -24,12 +24,12 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
-import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.util.ILifecycleState;
 
 /**
  *
@@ -164,7 +164,7 @@ public class DataPointImporter extends Importer {
 
                 boolean isNew = dp.getDataPoint().isNew();
                 try {
-                    if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+                    if(Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
                         if(isNew) {
                             dataPointService.insert(dp.getDataPoint());
                             //Update all our event detector source Ids

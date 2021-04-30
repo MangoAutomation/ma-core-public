@@ -172,12 +172,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.postInsert(vo);
         }
 
-        if(vo.isEnabled()) {
-            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
-            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
-            Common.runtimeManager.startDataPoint(dp);
-        }
-        return vo;
+        return tryStart(vo);
     }
 
     @Override
@@ -201,12 +196,15 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.postUpdate(vo);
         }
 
-        if(vo.isEnabled()) {
+        return tryStart(vo);
+    }
+
+    private DataPointVO tryStart(DataPointVO vo) {
+        if (vo.isEnabled()) {
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
             Common.runtimeManager.startDataPoint(dp);
         }
-
         return vo;
     }
 

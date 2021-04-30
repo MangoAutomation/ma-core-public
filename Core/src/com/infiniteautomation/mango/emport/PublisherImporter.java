@@ -11,9 +11,9 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
-import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.util.ILifecycleState;
 
 public class PublisherImporter extends Importer {
 
@@ -59,7 +59,7 @@ public class PublisherImporter extends Importer {
                 ctx.getReader().readInto(vo, json);
 
                 boolean isnew = vo.isNew();
-                if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+                if(Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING){
                     if (isnew) {
                         service.insert(vo);
                     } else {

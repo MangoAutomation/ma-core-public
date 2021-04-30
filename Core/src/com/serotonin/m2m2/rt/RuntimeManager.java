@@ -1,10 +1,12 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- *
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.rt;
 
+import java.util.Collection;
 import java.util.List;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -21,6 +23,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.util.ILifecycle;
+import com.serotonin.util.ILifecycleState;
 
 
 /**
@@ -32,9 +35,9 @@ public interface RuntimeManager extends ILifecycle {
     /**
      * Check the state of the RuntimeManager
      *  useful if you are a task that may run before/after the RUNNING state
-     * @return
+     * @return state
      */
-    int getState();
+    ILifecycleState getLifecycleState();
 
     //
     // Lifecycle
@@ -51,20 +54,37 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Data sources
     //
+
+    /**
+     * Get a running data source's runtime object.
+     *
+     * @param dataSourceId id of the data source
+     * @return the data source runtime
+     * @throws RTException if the data source is not running
+     */
     DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId);
 
-    List<? extends DataSourceRT<?>> getRunningDataSources();
+    Collection<? extends DataSourceRT<?>> getRunningDataSources();
 
     boolean isDataSourceRunning(int dataSourceId);
 
-    DataSourceVO getDataSource(int dataSourceId);
+    /**
+     * Starts the data source and starts it polling.
+     * @param vo The data source VO
+     * @throws IllegalArgumentException if the data source is not saved, or is not enabled
+     * @throws IllegalStateException if the data source is already running or terminated
+     */
+    default void startDataSource(DataSourceVO vo) {
+        startDataSource(vo, true);
+    }
 
     /**
      * Starts the data source.
      * @param vo The data source VO
      * @throws IllegalArgumentException if the data source is not saved, or is not enabled
+     * @throws IllegalStateException if the data source is already running or terminated
      */
-    void startDataSource(DataSourceVO vo);
+    void startDataSource(DataSourceVO vo, boolean startPolling);
 
     /**
      * Stops the data source (if running)
@@ -72,56 +92,60 @@ public interface RuntimeManager extends ILifecycle {
      */
     void stopDataSource(int dataSourceId);
 
-    /**
-     * Initialize a data source (only to be used at system startup)
-     * @param vo
-     * @return
-     */
-    boolean initializeDataSourceStartup(DataSourceVO vo);
-
-    /**
-     * Stop a data source (only to be used at system shutdown)
-     * @param id
-     */
-    void stopDataSourceShutdown(int id);
-
     //
     //
     // Data points
     //
+
+    /**
+     * Starts a data point with a null initial cache.
+     * @param vo data point with its event detectors
+     */
+    default void startDataPoint(DataPointWithEventDetectors vo) {
+        startDataPoint(vo, null);
+    }
+
     /**
      * Start a data point, will confirm that it is enabled
-     * @param vo
+     * @param vo data point with its event detectors
+     * @param initialCache if null then data point will retrieve from database when it is initialized
      */
-    void startDataPoint(DataPointWithEventDetectors vo);
+    void startDataPoint(DataPointWithEventDetectors vo, @Nullable List<PointValueTime> initialCache);
 
     /**
-     * Only to be used at startup as synchronization has been reduced for performance
-     * @param vo
+     * Stop a running data point
+     * @param dataPointId id of data point
      */
-    void startDataPointStartup(DataPointWithEventDetectorsAndCache vo);
+    void stopDataPoint(int dataPointId);
 
     /**
-     *
-     * @param id
-     */
-    void stopDataPoint(int id);
-
-    /**
-     * Is this data point running?
-     * @param dataPointId
-     * @return
+     * Check if a data point is running
+     * @param dataPointId id of data point
+     * @return true if running
      */
     boolean isDataPointRunning(int dataPointId);
 
     /**
-     * Get the RT of a running data point, can be null if not running
-     * @param dataPointId
-     * @return
+     * Removes a point from the running points list. Must be terminated.
+     * @param dataPoint data point to remove
      */
+    void removeDataPoint(DataPointRT dataPoint);
+
+    /**
+     * Removes a data source from the running data sources list. Must be terminated.
+     * @param dataSource data source to remove
+     */
+    void removeDataSource(DataSourceRT<? extends DataSourceVO> dataSource);
+
+    /**
+     * Get the RT of a running data point, can be null if not running
+     * @param dataPointId id of data point
+     * @return the runtime for the data point
+     */
+    @Nullable
     DataPointRT getDataPoint(int dataPointId);
 
-    List<DataPointRT> getRunningDataPoints();
+    Collection<DataPointRT> getRunningDataPoints();
 
     void addDataPointListener(int dataPointId, DataPointListener l);
 
@@ -142,7 +166,7 @@ public interface RuntimeManager extends ILifecycle {
      * underlying data source has implemented that ability.
      *
      * Currently only a few data sources implement this functionality
-     * @param dataPointId
+     * @param dataPointId id of data point
      */
     void forcePointRead(int dataPointId);
 
@@ -157,16 +181,16 @@ public interface RuntimeManager extends ILifecycle {
     long purgeDataPointValues(DataPointVO vo);
 
     /**
-     * @param vo
+     * @param vo data point VO
      */
     boolean purgeDataPointValuesWithoutCount(DataPointVO vo);
 
     /**
      * Purge a value at a given time
-     * @param vo
-     * @param ts
+     * @param vo data point VO
+     * @param ts epoch timestamp in ms
      * @param dao to aid in performance of high frequency calls
-     * @return
+     * @return number of point values purged
      */
     long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao);
 
@@ -176,8 +200,8 @@ public interface RuntimeManager extends ILifecycle {
 
     /**
      * Purge values before a given time
-     * @param vo
-     * @param before
+     * @param vo data point VO
+     * @param before epoch timestamp in ms
      * @return true if any data was deleted
      */
     boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before);
@@ -186,13 +210,12 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Publishers
     //
-    List<PublisherRT<?>> getRunningPublishers();
+    Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers();
 
-    PublisherRT<?> getRunningPublisher(int publisherId);
+    @Nullable
+    PublisherRT<? extends PublishedPointVO> getRunningPublisher(int publisherId);
 
     boolean isPublisherRunning(int publisherId);
-
-    PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId);
 
     /**
      * Starts the publisher
@@ -208,8 +231,14 @@ public interface RuntimeManager extends ILifecycle {
     void stopPublisher(int publisherId);
 
     /**
+     * Removes a publisher from the running publishers list. Must be terminated.
+     * @param publisher publisher to remove
+     */
+    void removePublisher(PublisherRT<? extends PublishedPointVO> publisher);
+
+    /**
      * Get a message about what state we are in
-     * @return
+     * @return message indicating the runtime state
      */
     TranslatableMessage getStateMessage();
 

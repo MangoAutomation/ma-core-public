@@ -26,7 +26,6 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PurgeDefinition;
 import com.serotonin.m2m2.module.PurgeFilterDefinition;
 import com.serotonin.m2m2.module.definitions.actions.PurgeFilter;
-import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -35,6 +34,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.TimerTask;
+import com.serotonin.util.ILifecycleState;
 
 public class DataPurge {
 
@@ -118,7 +118,7 @@ public class DataPurge {
         if (dataPoint.getLoggingType() == DataPointVO.LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
-            if (Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+            if (Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
                 boolean logMessage = false;
                 if (countPointValues) {
                     long deletedSamples = Common.runtimeManager.purgeDataPointValues(dataPoint);
@@ -160,7 +160,7 @@ public class DataPurge {
             DateTime cutoff = new DateTime(runtime);
             cutoff = DateUtils.truncateDateTime(cutoff, Common.TimePeriods.DAYS);
             cutoff = DateUtils.minus(cutoff, purgeType, purgePeriod);
-            if (Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+            if (Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
                 long millis = cutoff.getMillis();
                 for(PurgeFilter pf : purgeFilters)
                     millis = pf.adjustPurgeTime(dataPoint, millis);

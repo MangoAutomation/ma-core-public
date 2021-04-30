@@ -23,4 +23,9 @@ public class MockPublisherRT extends PublisherRT<MockPublishedPointVO> {
 
     }
 
+    @Override
+    public void terminateImpl() {
+
+    }
+
 }

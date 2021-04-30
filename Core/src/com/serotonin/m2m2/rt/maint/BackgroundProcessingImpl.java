@@ -41,6 +41,7 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.Task;
 import com.serotonin.timer.TaskWrapper;
 import com.serotonin.timer.TimerTask;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * A cheesy name for a class, i know, but it pretty much says it like it is. This class keeps an inbox of items to
@@ -59,7 +60,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     protected OrderedThreadPoolExecutor mediumPriorityService;
     protected ThreadPoolExecutor lowPriorityService;
 
-    protected int state = PRE_INITIALIZE;
+    protected ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     @Override
     public void execute(HighPriorityTask task){
@@ -312,12 +313,15 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     }
 
     @Override
-    public void initialize(boolean safe) {
-        if (state != PRE_INITIALIZE)
-            return;
+    public ILifecycleState getLifecycleState() {
+        return state;
+    }
 
+    @Override
+    public void initialize(boolean safe) {
+        ensureState(ILifecycleState.PRE_INITIALIZE);
         // Set the started indicator to true.
-        state = INITIALIZE;
+        state = ILifecycleState.INITIALIZING;
 
         try {
             this.timer = Providers.get(TimerProvider.class).getTimer();
@@ -362,14 +366,13 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
         lowPriorityService = new ThreadPoolExecutor(corePoolSize, corePoolSize, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY, Common.getModuleClassLoader()));
-        this.state = RUNNING;
+        this.state = ILifecycleState.RUNNING;
     }
 
     @Override
     public void terminate() {
-        if (state != RUNNING)
-            return;
-        state = TERMINATE;
+        ensureState(ILifecycleState.RUNNING);
+        state = ILifecycleState.TERMINATING;
 
         // Close the executor services.
         if(highPriorityService != null){
@@ -389,9 +392,8 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
     @Override
     public void joinTermination() {
-        if(state != TERMINATE)
-            return;
-        state = POST_TERMINATE;
+        if (state == ILifecycleState.TERMINATED) return;
+        ensureState(ILifecycleState.TERMINATING);
         boolean medDone = false;
         boolean lowDone = false;
 
@@ -455,7 +457,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         catch (InterruptedException e) {
             log.info("", e);
         }
-        state = TERMINATED;
+        state = ILifecycleState.TERMINATED;
     }
 
     @Override

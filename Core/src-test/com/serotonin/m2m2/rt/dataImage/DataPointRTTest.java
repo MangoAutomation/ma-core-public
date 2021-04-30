@@ -20,6 +20,7 @@ import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.module.Module;
+import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
@@ -42,10 +43,15 @@ public class DataPointRTTest extends MangoTestBase {
      */
     @Test
     public void testIntervalOnChangeLogging() {
+        MockDataSourceVO dsVo = new MockDataSourceVO();
+        MockDataSourceRT dataSource = dsVo.createDataSourceRT();
+        dataSource.initialize(false);
+
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
         DataPointVO dpVo = new DataPointVO();
         dpVo.setId(1);
+        dpVo.setDataSourceId(dsVo.getId());
 
         //Configure Interval on change logging
         dpVo.setLoggingType(DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL);
@@ -56,7 +62,6 @@ public class DataPointRTTest extends MangoTestBase {
         dpVo.setPointLocator(plVo);
         dpVo.setLoggingType(DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL);
 
-        MockDataSourceVO dsVo = new MockDataSourceVO();
         MockPointLocatorRT plRt = new MockPointLocatorRT(plVo);
 
         //Setup some initial data
@@ -65,9 +70,8 @@ public class DataPointRTTest extends MangoTestBase {
 
         SimulationTimer timer = new SimulationTimer();
         DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpVo, new ArrayList<>());
-        DataPointRT rt = new DataPointRT(dp, plRt, dsVo, initialCache, dao, Common.databaseProxy.getPointValueCacheDao(), timer);
-        rt.initialize();
-        rt.initializeIntervalLogging(0, false);
+        DataPointRT rt = new DataPointRT(dp, plRt, dataSource, initialCache, dao, Common.databaseProxy.getPointValueCacheDao(), timer);
+        rt.initialize(false);
 
         //Test no changes
         timer.fastForwardTo(5001);

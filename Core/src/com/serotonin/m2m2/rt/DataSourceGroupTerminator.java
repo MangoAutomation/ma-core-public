@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
 /**
  * This class is used at shutdown to terminate a group of data sources in parallel.
@@ -19,7 +20,7 @@ import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
  * @author Jared Wiltshire
  *
  */
-public class DataSourceGroupTerminator extends GroupProcessor<DataSourceRT<?>, Void> {
+public class DataSourceGroupTerminator extends GroupProcessor<DataSourceRT<? extends DataSourceVO>, Void> {
     private final StartPriority startPriority;
 
     public DataSourceGroupTerminator(ExecutorService executor, int maxConcurrency, StartPriority startPriority) {
@@ -28,7 +29,7 @@ public class DataSourceGroupTerminator extends GroupProcessor<DataSourceRT<?>, V
     }
 
     @Override
-    public List<Void> process(List<DataSourceRT<?>> items) {
+    public List<Void> process(List<DataSourceRT<? extends DataSourceVO>> items) {
         long startTs = 0L;
         if (log.isInfoEnabled()) {
             startTs = Common.timer.currentTimeMillis();
@@ -44,8 +45,8 @@ public class DataSourceGroupTerminator extends GroupProcessor<DataSourceRT<?>, V
     }
 
     @Override
-    protected Void processItem(DataSourceRT<?> dataSourceRT, int itemId) {
-        Common.runtimeManager.stopDataSourceShutdown(dataSourceRT.getId());
+    protected Void processItem(DataSourceRT<? extends DataSourceVO> dataSourceRT, int itemId) {
+        Common.runtimeManager.stopDataSource(dataSourceRT.getId());
         return null;
     }
 }

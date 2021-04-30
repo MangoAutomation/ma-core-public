@@ -1,33 +1,46 @@
 /*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.rt.dataSource;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.DataPointGroupInitializer;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.ILifecycle;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * Data sources are things that produce data for consumption of this system. Anything that houses, creates, manages, or
@@ -43,47 +56,53 @@ import com.serotonin.util.ILifecycle;
  * @author Matthew Lohbihler
  */
 abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycle {
+    private final Log log = LogFactory.getLog(DataSourceRT.class);
+
     public static final String DATA_SOURCE_EVENT_CONTEXT_KEY = "dataSource";
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
 
     /**
-     * Under the expectation that most data sources will run in their own threads, the addedPoints field is used as a
-     * cache for points that have been added to the data source, so that at a convenient time for the data source they
-     * can be included in the polling.
-     *
-     * Note that updated versions of data points that could already be running may be added here, so implementations
-     * should always check for existing instances.
-     */
-    protected List<DataPointRT> addedChangedPoints = new ArrayList<DataPointRT>();
-
-    /**
-     * Under the expectation that most data sources will run in their own threads, the removedPoints field is used as a
-     * cache for points that have been removed from the data source, so that at a convenient time for the data source
-     * they can be removed from the polling.
-     */
-    protected List<DataPointRT> removedPoints = new ArrayList<DataPointRT>();
-
-    /**
-     * Access to either the addedPoints or removedPoints lists should be synchronized with this object's monitor.
+     * Protects access to {@link #dataPointsMap} and {@link #dataPoints}
      */
     protected final ReadWriteLock pointListChangeLock = new ReentrantReadWriteLock();
 
-    private final List<DataSourceEventType> eventTypes;
+    /**
+     * The implementor of the data source is responsible for resetting this back to false after reading the points.
+     * It is set to true every time {@link #addDataPoint(DataPointRT)} and {@link #removeDataPoint(DataPointRT)} are called.
+     */
+    protected boolean pointListChanged = false;
 
-    private boolean terminated;
+    /**
+     *  Protected by {@link #pointListChangeLock}.
+     *  <p>Note: We could potentially remove explicit locking and use a ConcurrentHashMap. However this presents two problems -</p>
+     *  <ul>
+     *      <li>Potential race condition when a point is added while terminating, we must iterate over every point to terminate them</li>
+     *      <li>There is no linked version of ConcurrentHashMap so iteration will be slower</li>
+     *  </ul>
+     */
+    private final Map<Integer, DataPointRT> dataPointsMap = createDataPointsMap();
 
-    /* Thread safe set of active event types */
-    private ConcurrentHashMap<Integer, Boolean> activeRtnEventTypes;
+    /**
+     *  You must hold the read lock of {@link #pointListChangeLock} e.g. inside {@link PollingDataSource#doPoll(long)}
+     *  when accessing this collection.
+     */
+    protected final Collection<DataPointRT> dataPoints = Collections.unmodifiableCollection(dataPointsMap.values());
+
+    /**
+     * Stores a map of data source event type ids to the {@link EventStatus}
+     */
+    private final Map<Integer, EventStatus> eventTypes;
+
+    private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     protected final VO vo;
 
     public DataSourceRT(VO vo) {
         this.vo = vo;
-        this.eventTypes = new ArrayList<DataSourceEventType>();
-        for (EventTypeVO etvo : vo.getEventTypes()) {
-            this.eventTypes.add((DataSourceEventType) etvo.getEventType());
-        }
-        this.activeRtnEventTypes = new ConcurrentHashMap<>();
+
+        this.eventTypes = Collections.unmodifiableMap(vo.getEventTypes().stream()
+                .map(e -> (DataSourceEventType) e.getEventType())
+                .collect(Collectors.toMap(DataSourceEventType::getDataSourceEventTypeId, EventStatus::new)));
     }
 
     public int getId() {
@@ -114,34 +133,67 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         DataSourceDao.getInstance().savePersistentData(vo.getId(), persistentData);
     }
 
-    protected boolean isTerminated() {
-        return terminated;
+    public final void addDataPoint(DataPointRT dataPoint) {
+        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
+        dataPoint.ensureState(ILifecycleState.INITIALIZING);
+        addDataPointImpl(dataPoint);
+        dataPointAdded(dataPoint);
     }
 
-    public void addDataPoint(DataPointRT dataPoint) {
-        pointListChangeLock.readLock().lock();
+    public final void removeDataPoint(DataPointRT dataPoint) {
+        ensureState(ILifecycleState.RUNNING);
+        dataPoint.ensureState(ILifecycleState.TERMINATING);
+        removeDataPointImpl(dataPoint);
+        dataPointRemoved(dataPoint);
+    }
+
+    /**
+     * Hook that is run when a data point is added.
+     * @param dataPoint point that was added
+     */
+    protected void dataPointAdded(DataPointRT dataPoint) {
+    }
+
+    /**
+     * Hook that is run when a data point is removed.
+     * @param dataPoint point that was removed
+     */
+    protected void dataPointRemoved(DataPointRT dataPoint) {
+    }
+
+    /**
+     * Adds the data point to the current points. If you override this method you should also override
+     * {@link DataSourceRT#streamPoints()}, {@link #forEachPoint(Consumer)}, and {@link #getPointById(int)}.
+     *
+     * @param dataPoint data point to add
+     */
+    protected void addDataPointImpl(DataPointRT dataPoint) {
+        pointListChangeLock.writeLock().lock();
         try {
-            //Further synchronize with other readers
-            synchronized(pointListChangeLock) {
-                addedChangedPoints.remove(dataPoint);
-                addedChangedPoints.add(dataPoint);
-                removedPoints.remove(dataPoint);
+            if (dataPointsMap.putIfAbsent(dataPoint.getId(), dataPoint) != null) {
+                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " is already present on this data source");
             }
+            pointListChanged = true;
         } finally {
-            pointListChangeLock.readLock().unlock();
+            pointListChangeLock.writeLock().unlock();
         }
     }
 
-    public void removeDataPoint(DataPointRT dataPoint) {
-        pointListChangeLock.readLock().lock();
+    /**
+     * Removes the data point from the current points. If you override this method you should also override
+     * {@link DataSourceRT#streamPoints()}, {@link #forEachPoint(Consumer)}, and {@link #getPointById(int)}.
+     *
+     * @param dataPoint data point to remove
+     */
+    protected void removeDataPointImpl(DataPointRT dataPoint) {
+        pointListChangeLock.writeLock().lock();
         try {
-            //Further synchronize with other readers
-            synchronized(pointListChangeLock) {
-                addedChangedPoints.remove(dataPoint);
-                removedPoints.add(dataPoint);
+            if (!dataPointsMap.remove(dataPoint.getId(), dataPoint)) {
+                throw new IllegalStateException("Data point with ID " + dataPoint.getId() + " was not present on this data source");
             }
+            pointListChanged = true;
         } finally {
-            pointListChangeLock.readLock().unlock();
+            pointListChangeLock.writeLock().unlock();
         }
     }
 
@@ -158,58 +210,71 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     abstract public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
 
     public void relinquish(DataPointRT dataPoint) {
-        throw new ShouldNeverHappenException("not implemented in " + getClass());
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
     public void forcePointRead(DataPointRT dataPoint) {
-        // No op by default. Override as required.
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
     public void forcePoll() {
-        // No op by default. Override as required.
+        throw new UnsupportedOperationException("Not implemented for " + getClass());
     }
 
     /**
+     * Raises a data source event.
      *
-     * @param eventId
-     * @param time
-     * @param rtn - Can this event return to normal
-     * @param message
+     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(java.util.List)}
+     * @param time time at which the event will be raised
+     * @param rtn true if the event can return to normal (become inactive) at some point in the future
+     * @param message translatable event message
+     * @throws IllegalStateException if data source has been terminated
      */
-    protected void raiseEvent(int eventId, long time, boolean rtn, TranslatableMessage message) {
+    protected void raiseEvent(int dataSourceEventTypeId, long time, boolean rtn, TranslatableMessage message) {
+        // Persistent TCP data source raises events while initializing
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         message = new TranslatableMessage("event.ds", vo.getName(), message);
-        DataSourceEventType type = getEventType(eventId);
+        EventStatus status = getEventStatus(dataSourceEventTypeId);
+        Map<String, Object> context = Collections.singletonMap(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
+        DataSourceEventType type = status.eventType;
 
-        Map<String, Object> context = new HashMap<String, Object>();
-        context.put(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
-
-        Common.eventManager.raiseEvent(type, time, rtn, type.getAlarmLevel(), message, context);
-        if(rtn) {
-            activeRtnEventTypes.compute(eventId, (k,v)->{
-                return true;
-            });
+        if (rtn) {
+            synchronized (status.lock) {
+                status.active = true;
+                Common.eventManager.raiseEvent(type, time, true, type.getAlarmLevel(), message, context);
+            }
+        } else {
+            Common.eventManager.raiseEvent(type, time, false, type.getAlarmLevel(), message, context);
         }
     }
 
-    protected void returnToNormal(int eventId, long time) {
-        //For performance ensure we have an active event to RTN
-        if(activeRtnEventTypes.compute(eventId, (k,v)->{
-            if(v == null || v == false)
-                return false;
-            else
-                return true;
-        })) {
-            DataSourceEventType type = getEventType(eventId);
-            Common.eventManager.returnToNormal(type, time);
+    /**
+     * Returns a data source event to normal.
+     *
+     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(java.util.List)}
+     * @param time time at which the event will be returned to normal (made inactive)
+     * @throws IllegalStateException if data source has been terminated
+     */
+    protected void returnToNormal(int dataSourceEventTypeId, long time) {
+        // Persistent TCP data source deactivates events while initializing
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
+        EventStatus status = getEventStatus(dataSourceEventTypeId);
+        synchronized (status.lock) {
+            //For performance ensure we have an active event to RTN
+            if (status.active) {
+                Common.eventManager.returnToNormal(status.eventType, time);
+                // only remove afterwards in case returnToNormal throws an exception
+                status.active = false;
+            }
         }
     }
 
-    private DataSourceEventType getEventType(int eventId) {
-        for (DataSourceEventType et : eventTypes) {
-            if (et.getDataSourceEventTypeId() == eventId)
-                return et;
+    private @NonNull EventStatus getEventStatus(int eventId) {
+        EventStatus status = eventTypes.get(eventId);
+        if (status == null) {
+            throw new IllegalArgumentException(String.format("Event type ID %s is not registered for this data source", eventId));
         }
-        return null;
+        return status;
     }
 
     protected TranslatableMessage getSerialExceptionMessage(Exception e, String portId) {
@@ -236,48 +301,168 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     //
     // Lifecycle
     //
-    /* TODO Mango 4.0
-     * For future use if we want to allow some data sources to startup in safe mode
-     *  will require RuntimeManagerChanges
-     */
     @Override
-    public void initialize(boolean safe) {
-        if(!safe)
+    public final synchronized void initialize(boolean safe) {
+        ensureState(ILifecycleState.PRE_INITIALIZE);
+        this.state = ILifecycleState.INITIALIZING;
+        try {
             initialize();
+            initializePoints();
+        } catch (Exception e) {
+            terminate();
+            joinTermination();
+            throw e;
+        }
+        this.state = ILifecycleState.RUNNING;
+    }
+
+    /**
+     * The {@link DataPointGroupInitializer} calls
+     * {@link RuntimeManager#startDataPoint(com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors, java.util.List) startDataPoint()}
+     * which adds the data points to the cache in the RTM and initializes them.
+     */
+    private void initializePoints() {
+        DataPointDao dataPointDao = Common.getBean(DataPointDao.class);
+        ExecutorService executorService = Common.getBean(ExecutorService.class);
+
+        // Add the enabled points to the data source.
+        List<DataPointWithEventDetectors> dataSourcePoints = dataPointDao.getDataPointsForDataSourceStart(getId());
+
+        //Startup multi threaded
+        int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
+        int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
+        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, pointValueCacheDao);
+        pointInitializer.initialize(dataSourcePoints, pointsPerThread);
+
+        //Signal to the data source that all points are added.
+        initialized();
     }
 
     /**
      * Initialize this data source
      */
-    public void initialize(){
+    protected void initialize() {
         // no op
     }
 
     /**
      * Hook to know when all points are added, the source is fully initialized
      */
-    public void initialized() {
+    protected void initialized() {
 
     }
 
     /**
      * Hook for just before points get removed from the data source
      */
-    public void terminating() {
+    protected void terminating() {
 
     }
 
     @Override
-    public void terminate() {
-        terminated = true;
+    public final synchronized void terminate() {
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
+        this.state = ILifecycleState.TERMINATING;
 
-        // Remove any outstanding events.
-        Common.eventManager.cancelEventsForDataSource(vo.getId());
+        try {
+            //Signal we are going down
+            terminating();
+        } catch (Exception e) {
+            log.error("Failed to signal termination to " + readableIdentifier(), e);
+        }
+
+        try {
+            terminatePoints();
+        } catch (Exception e) {
+            log.error("Failed to terminate all points for " + readableIdentifier(), e);
+        }
+
+        try {
+            terminateImpl();
+        } catch (Exception e) {
+            log.error("Failed to terminate " + readableIdentifier(), e);
+        }
+    }
+
+    /**
+     * Stop the data points.
+     */
+    private void terminatePoints() {
+        List<Integer> pointIds = new ArrayList<>();
+
+        flushPoints();
+        forEachPoint(p -> {
+            p.terminate();
+            p.joinTermination();
+            pointIds.add(p.getId());
+        });
+
+        //Terminate all events at once
+        Common.eventManager.cancelEventsForDataPoints(pointIds);
+    }
+
+    /**
+     * Should cause any pending/queued points to be added/removed from {@link #dataPointsMap}
+     */
+    protected void flushPoints() {
+    }
+
+    /**
+     * Waits for the data source to terminate.
+     */
+    @Override
+    public final synchronized void joinTermination() {
+        if (getLifecycleState() == ILifecycleState.TERMINATED) return;
+        ensureState(ILifecycleState.TERMINATING);
+
+        try {
+            joinTerminationImpl();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while waiting for " + readableIdentifier() + " to stop", e);
+        } catch (Exception e) {
+            log.error("Error while waiting for " + readableIdentifier() + " to stop", e);
+        }
+
+        try {
+            postTerminate();
+        } catch (Exception e) {
+            log.error("Post terminate failed for " + readableIdentifier(), e);
+        }
+
+        this.state = ILifecycleState.TERMINATED;
+        Common.runtimeManager.removeDataSource(this);
+    }
+
+    protected void joinTerminationImpl() throws InterruptedException {
+    }
+
+    protected void terminateImpl() {
+    }
+
+    /**
+     * Hook for after termination is complete, e.g. polling has been canceled and any outstanding polls have completed.
+     * Data source will still be in TERMINATING state.
+     */
+    protected void postTerminate() {
+        boolean anyActive = false;
+        for (EventStatus status : eventTypes.values()) {
+            if (status.active) {
+                anyActive = true;
+                break;
+            }
+        }
+
+        if (anyActive) {
+            // Remove any outstanding events after polling has stopped
+            Common.eventManager.cancelEventsForDataSource(vo.getId());
+        }
     }
 
     @Override
-    public void joinTermination() {
-        // no op
+    public ILifecycleState getLifecycleState() {
+        return state;
     }
 
     //
@@ -290,7 +475,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * Override to handle any situations where you need to know that a role was modified.
      *  be sure to call super for this method as it handles the edit and read permissions
      *
-     * @param event
+     * @param event dao event
      */
     public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         if (event.getType() == DaoEventType.DELETE) {
@@ -298,5 +483,75 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             vo.setEditPermission(vo.getEditPermission().withoutRole(deletedRole));
             vo.setReadPermission(vo.getReadPermission().withoutRole(deletedRole));
         }
+    }
+
+    /**
+     * Stores the event type and if it is active or not
+     */
+    private static class EventStatus {
+        private final Object lock = new Object();
+        private final DataSourceEventType eventType;
+        private boolean active = false;
+
+        private EventStatus(DataSourceEventType eventType) {
+            this.eventType = eventType;
+        }
+    }
+
+    @Override
+    public String readableIdentifier() {
+        return String.format("Data source (name=%s, id=%d, type=%s)", getName(), getId(), getClass().getSimpleName());
+    }
+
+    /**
+     * Care must be taken to close the stream. Always use a try-with-resources statement e.g.
+     * <pre>{@code
+     * try (Stream<DataPointRT> stream = streamPoints()) {
+     *     return stream.mapToInt(DataPointRT::getId).toArray();
+     * }
+     * }</pre>
+     * @return stream of points
+     */
+    protected Stream<DataPointRT> streamPoints() {
+        pointListChangeLock.readLock().lock();
+        return dataPoints.stream().onClose(() -> pointListChangeLock.readLock().unlock());
+    }
+
+    protected void forEachPoint(Consumer<? super DataPointRT> consumer) {
+        pointListChangeLock.readLock().lock();
+        try {
+            dataPoints.forEach(consumer);
+        } finally {
+            pointListChangeLock.readLock().unlock();
+        }
+    }
+
+    protected DataPointRT getPointById(int id) {
+        pointListChangeLock.readLock().lock();
+        try {
+            return dataPointsMap.get(id);
+        } finally {
+            pointListChangeLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Can be used to return a different implementation, or empty map if you are going to override
+     * {@link #dataPointAdded(DataPointRT)} etc.
+     * @return map to use to store data points
+     */
+    protected Map<Integer, DataPointRT> createDataPointsMap() {
+        return new LinkedHashMap<>();
+    }
+
+    protected final void setAttribute(String key, Object value) {
+        forEachPoint(point -> point.setAttribute(key, value));
+    }
+
+    /**
+     * @return true if interval logging initialization should be inhibited when a data point is initialized.
+     */
+    public boolean inhibitIntervalLoggingInitialization() {
+        return false;
     }
 }

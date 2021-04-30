@@ -23,14 +23,7 @@ import com.serotonin.util.ILifecycle;
  *
  * @author Terry Packer
  */
-public interface EventManager extends ILifecycle{
-
-    /**
-     * Check the state of the EventManager
-     *  useful if you are a task that may run before/after the RUNNING state
-     * @return
-     */
-    int getState();
+public interface EventManager extends ILifecycle {
 
     //
     //

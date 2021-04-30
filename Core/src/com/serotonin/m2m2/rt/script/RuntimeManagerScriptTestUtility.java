@@ -2,6 +2,7 @@ package com.serotonin.m2m2.rt.script;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
@@ -10,10 +11,10 @@ import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility {
 
@@ -43,8 +44,13 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
             if(!vo.isEnabled())
                 return OPERATION_NO_CHANGE;
 
-            DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-            if(dsRt == null || !permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
+            DataSourceRT<?> dsRt;
+            try {
+                dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
+            } catch (RTException e) {
+                return OPERATION_NO_CHANGE;
+            }
+            if(!permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
                 return OPERATION_NO_CHANGE;
 
             //forcePointRead
@@ -74,8 +80,13 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
             if(!vo.isEnabled())
                 return OPERATION_NO_CHANGE;
 
-            DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
+            DataSourceRT<?> dsRt = null;
+            try {
+                dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
+            } catch (RTException e) {
+                return OPERATION_NO_CHANGE;
+            }
+            if(!permissionService.hasPermission(permissions, dsRt.getVo().getEditPermission()))
                 return OPERATION_NO_CHANGE;
 
             //Common.runtimeManager.forceDataSourcePoll(vo.getId());

@@ -5,18 +5,20 @@
 package com.serotonin.m2m2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
-import com.serotonin.m2m2.rt.DataPointWithEventDetectorsAndCache;
+import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -30,6 +32,7 @@ import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
+import com.serotonin.util.ILifecycleState;
 
 /**
  * A mock of the runtime manager that can optionally save data to the database.
@@ -51,8 +54,8 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public int getState() {
-        return RuntimeManager.RUNNING;
+    public ILifecycleState getLifecycleState() {
+        return ILifecycleState.RUNNING;
     }
 
     @Override
@@ -95,47 +98,25 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) {
-
-        return null;
+        throw new RTException("Data source is not running");
     }
 
     @Override
-    public List<? extends DataSourceRT<?>> getRunningDataSources() {
+    public Collection<? extends DataSourceRT<?>> getRunningDataSources() {
         return new ArrayList<>();
     }
 
     @Override
     public boolean isDataSourceRunning(int dataSourceId) {
-
         return false;
     }
 
     @Override
-    public DataSourceVO getDataSource(int dataSourceId) {
-        if(useDatabase)
-            return DataSourceDao.getInstance().get(dataSourceId);
-        else
-            return null;
-    }
-
-    @Override
-    public void startDataSource(DataSourceVO vo) {
-
+    public void startDataSource(DataSourceVO vo, boolean startPolling) {
     }
 
     @Override
     public void stopDataSource(int dataSourceId) {
-
-    }
-
-    @Override
-    public boolean initializeDataSourceStartup(DataSourceVO vo) {
-
-        return false;
-    }
-
-    @Override
-    public void stopDataSourceShutdown(int id) {
 
     }
 
@@ -146,12 +127,22 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
+    public void removeDataPoint(DataPointRT dataPoint) {
+
+    }
+
+    @Override
+    public void removeDataSource(DataSourceRT<? extends DataSourceVO> dataSource) {
+
+    }
+
+    @Override
     public DataPointRT getDataPoint(int dataPointId) {
         return null;
     }
 
     @Override
-    public List<DataPointRT> getRunningDataPoints() {
+    public Collection<DataPointRT> getRunningDataPoints() {
         return new ArrayList<>();
     }
 
@@ -269,14 +260,6 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
-        if(useDatabase)
-            return PublisherDao.getInstance().get(publisherId);
-        else
-            return null;
-    }
-
-    @Override
     public void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
 
     }
@@ -287,12 +270,17 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
+    public void removePublisher(PublisherRT<? extends PublishedPointVO> publisher) {
+
+    }
+
+    @Override
     public TranslatableMessage getStateMessage() {
         return new TranslatableMessage("common.default", "Mock runtime manager state message");
     }
 
     @Override
-    public List<PublisherRT<?>> getRunningPublishers() {
+    public Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers() {
         if(useDatabase) {
             List<PublisherRT<?>> running = new ArrayList<>();
             for(PublisherVO<?> vo : PublisherDao.getInstance().getAll()) {
@@ -323,8 +311,8 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void startDataPointStartup(DataPointWithEventDetectorsAndCache vo) {
-        if(useDatabase) {
+    public void startDataPoint(DataPointWithEventDetectors vo, @Nullable List<PointValueTime> initialCache) {
+        if (useDatabase) {
             vo.getDataPoint().setEnabled(true);
             DataPointDao.getInstance().saveEnabledColumn(vo.getDataPoint());
         }

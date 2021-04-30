@@ -1,24 +1,25 @@
 /*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
+
 package com.serotonin.m2m2.rt.dataSource;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.monitor.ValueMonitor;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -30,15 +31,34 @@ import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
+import com.serotonin.util.ILifecycleState;
 
 abstract public class PollingDataSource<T extends PollingDataSourceVO> extends DataSourceRT<T> {
 
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";
-    private Object terminationLock;
+    private final Lock pollLock = new ReentrantLock();
 
-    protected List<DataPointRT> dataPoints = new ArrayList<>();
-    protected boolean pointListChanged = false;
+    private enum PendingPointOperation {
+        ADD, REMOVE
+    }
+
+    private static class PendingPoint {
+        private final DataPointRT point;
+        private final PendingPointOperation operation;
+
+        private PendingPoint(DataPointRT point, PendingPointOperation operation) {
+            this.point = point;
+            this.operation = operation;
+        }
+    }
+
+    /**
+     * Stores pending data points which are waiting to be added or removed from {@link #dataPointsMap}
+     * (usually on the next poll)
+     */
+    private final Queue<PendingPoint> pendingPoints = new ConcurrentLinkedQueue<>();
+
 
     // If polling is done with millis
     protected long pollingPeriodMillis = 300000; // Default to 5 minutes just to
@@ -50,7 +70,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
     private final TimeoutClient timeoutClient;
     private TimerTask timerTask;
-    protected volatile Thread jobThread;
 
     private final AtomicBoolean lastPollSuccessful = new AtomicBoolean();
     private final AtomicLong successfulPolls = new AtomicLong();
@@ -61,7 +80,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     private final ValueMonitor<Double> successfulPollsPercentageMonitor;
     private final ConcurrentLinkedQueue<LongLongPair> latestPollTimes;
     private final ConcurrentLinkedQueue<Long> latestAbortedPollTimes;
-    private long nextAbortedPollMessageTime = 0l;
+    private long nextAbortedPollMessageTime = 0L;
     private final long abortedPollLogDelay;
 
     public PollingDataSource(T vo) {
@@ -73,8 +92,8 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
         this.quantize = vo.isQuantize();
 
-        this.latestPollTimes = new ConcurrentLinkedQueue<LongLongPair>();
-        this.latestAbortedPollTimes = new ConcurrentLinkedQueue<Long>();
+        this.latestPollTimes = new ConcurrentLinkedQueue<>();
+        this.latestAbortedPollTimes = new ConcurrentLinkedQueue<>();
         this.abortedPollLogDelay = Common.envProps.getLong("runtime.datasource.pollAbortedLogFrequency", 3600000);
         this.timeoutClient = new TimeoutClient(){
 
@@ -123,7 +142,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         return successfulPolls.get();
     }
 
-    public void incrementSuccessfulPolls(long time) {
+    protected void incrementSuccessfulPolls() {
         successfulPolls.incrementAndGet();
         currentSuccessfulPolls.incrementAndGet();
         this.lastPollSuccessful.getAndSet(true);
@@ -134,11 +153,10 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     /**
-     * Increment the unsuccessful polls
-     * and fire event if necessary
-     * @param time
+     * Increment the unsuccessful polls and fire event if necessary
+     * @param time time at which the poll was supposed to occur
      */
-    public void incrementUnsuccessfulPolls(long time) {
+    protected void incrementUnsuccessfulPolls(long time) {
         long consecutiveSuccesses = currentSuccessfulPolls.getAndSet(0);
         currentSuccessfulPollsMonitor.setValue(consecutiveSuccesses);
 
@@ -168,41 +186,40 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         successfulPollsPercentageMonitor.setValue(((double)successful/(double)(successful + unsuccessful))*100);
     }
 
-    public synchronized void scheduleTimeoutImpl(long fireTime) {
+    protected final void scheduleTimeoutImpl(long fireTime) {
+        pollLock.lock();
         try {
-            jobThread = Thread.currentThread();
+            // terminating is unlikely as the task task is cancelled, but can occur
+            ensureState(ILifecycleState.RUNNING, ILifecycleState.TERMINATING);
 
-            long startTs = Common.timer.currentTimeMillis();
+            try {
+                long startTs = Common.timer.currentTimeMillis();
 
-            // Check to see if this poll is running after it's next poll time, i.e. polls are
-            // backing up
-            if ((cronPattern == null) && ((startTs - fireTime) > pollingPeriodMillis)) {
-                incrementUnsuccessfulPolls(fireTime);
-                return;
-            }
-
-            incrementSuccessfulPolls(fireTime);
-
-            // Check if there were changes to the data points list.
-            updateChangedPoints(fireTime);
-
-            doPollNoSync(fireTime);
-
-            // Save the poll time and duration
-            long pollDuration = Common.timer.currentTimeMillis() - startTs;
-            this.latestPollTimes.add(new LongLongPair(fireTime, pollDuration));
-            this.lastPollDurationMonitor.setValue(pollDuration);
-            // Trim the Queue
-            while (this.latestPollTimes.size() > 10)
-                this.latestPollTimes.poll();
-        } finally {
-            if (terminationLock != null) {
-                synchronized (terminationLock) {
-                    terminationLock.notifyAll();
+                // Check to see if this poll is running after it's next poll time, i.e. polls are
+                // backing up
+                if ((cronPattern == null) && ((startTs - fireTime) > pollingPeriodMillis)) {
+                    incrementUnsuccessfulPolls(fireTime);
+                    return;
                 }
+
+                incrementSuccessfulPolls();
+
+                flushPoints(fireTime);
+                doPollNoSync(fireTime);
+
+                // Save the poll time and duration
+                long pollDuration = Common.timer.currentTimeMillis() - startTs;
+                this.latestPollTimes.add(new LongLongPair(fireTime, pollDuration));
+                this.lastPollDurationMonitor.setValue(pollDuration);
+                // Trim the Queue
+                while (this.latestPollTimes.size() > 10) {
+                    this.latestPollTimes.poll();
+                }
+            } finally {
+                updateSuccessfulPollQuotient();
             }
-            updateSuccessfulPollQuotient();
-            jobThread = null;
+        } finally {
+            pollLock.unlock();
         }
     }
 
@@ -226,7 +243,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
      * Override this method if you do not want the poll to synchronize on
      * pointListChangeLock
      *
-     * @param time
+     * @param time timestamp at which the poll will be performed
      */
     protected void doPollNoSync(long time) {
         pointListChangeLock.readLock().lock();
@@ -239,47 +256,27 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
     abstract protected void doPoll(long time);
 
-    protected void updateChangedPoints(long fireTime) {
-        pointListChangeLock.writeLock().lock();
-        try {
-            if (addedChangedPoints.size() > 0) {
-
-                // Remove any existing instances of the points.
-                dataPoints.removeAll(addedChangedPoints);
-
-                // Add the changed points and start the interval logging
-                for(DataPointRT rt : addedChangedPoints){
-                    rt.initializeIntervalLogging(fireTime, quantize);
-                    dataPoints.add(rt);
-                }
-                addedChangedPoints.clear();
-                pointListChanged = true;
-            }
-            if (removedPoints.size() > 0) {
-                dataPoints.removeAll(removedPoints);
-                removedPoints.clear();
-                pointListChanged = true;
-            }
-        } finally {
-            pointListChangeLock.writeLock().unlock();
-        }
-    }
-
     //
     //
     // Data source interface
     //
     @Override
-    public void beginPolling() {
+    public synchronized void beginPolling() {
+        ensureState(ILifecycleState.RUNNING);
+        if (timerTask != null) {
+            throw new IllegalStateException("Polling was already started");
+        }
+
         if (cronPattern == null) {
             long delay = 0;
             if (quantize){
                 // Quantize the start.
                 long now = Common.timer.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
+                long firstPollTime = now + delay;
                 if(LOG.isDebugEnabled())
-                    LOG.debug("First poll should be at: " + (now + delay));
-                timerTask = new TimeoutTask(new FixedRateTrigger(new Date(now + delay), pollingPeriodMillis), this.timeoutClient);
+                    LOG.debug("First poll should be at: " + firstPollTime);
+                timerTask = new TimeoutTask(new FixedRateTrigger(new Date(firstPollTime), pollingPeriodMillis), this.timeoutClient);
             } else
                 timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this.timeoutClient);
         }
@@ -297,76 +294,123 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    public void terminate() {
-        if (timerTask != null)
-            timerTask.cancel();
-
-        Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
-        Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
-        Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
-
-        super.terminate();
+    public boolean inhibitIntervalLoggingInitialization() {
+        return true;
     }
 
     @Override
-    public void joinTermination() {
-        super.joinTermination();
+    public void terminating() {
+        if (timerTask != null)
+            timerTask.cancel();
+    }
 
-        if (jobThread == null)
-            return;
+    @Override
+    protected final void terminateImpl() {
+        Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
+        Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
+        Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
+        pollingTerminate();
+    }
 
-        terminationLock = new Object();
-
-        int tries = 10;
-        while (true) {
-            synchronized (terminationLock) {
-                Thread localThread = jobThread;
-                if (localThread == null)
-                    break;
-
-                try {
-                    terminationLock.wait(30000);
-                }
-                catch (InterruptedException e) {
-                    // no op
-                }
-
-                if (jobThread != null) {
-                    if (tries-- > 0)
-                        LOG.warn("Waiting for data source to stop: id=" + getId() + ", type=" + getClass());
-                    else
-                        throw new ShouldNeverHappenException("Timeout waiting for data source to stop: id=" + getId()
-                        + ", type=" + getClass() + ", stackTrace="
-                        + Arrays.toString(localThread.getStackTrace()));
-                }
-            }
-        }
+    protected void pollingTerminate() {
     }
 
     /**
-     * Get the latest poll times and durations.  Use sparingly as this will block the polling thread
-     * @return
+     * Waits for the current poll (if any) to complete.
+     */
+    @Override
+    public void joinTerminationImpl() throws InterruptedException {
+        int tries = 0;
+        while (++tries <= 10) {
+            if (pollLock.tryLock(30, TimeUnit.SECONDS)) {
+                pollLock.unlock();
+                return;
+            }
+            LOG.warn("Waiting for data source to stop: id=" + getId() + ", type=" + getClass());
+        }
+
+        throw new IllegalStateException(String.format("Timeout waiting for data source to stop: id=%d, type=%s",
+                getId(), getClass()));
+    }
+
+    /**
+     * Get the latest poll times and durations.
+     * @return list of poll times and durations
      */
     public List<LongLongPair> getLatestPollTimes(){
-        List<LongLongPair> latestTimes = new ArrayList<LongLongPair>();
-        Iterator<LongLongPair> it = this.latestPollTimes.iterator();
-        while(it.hasNext()){
-            latestTimes.add(it.next());
-        }
-        return latestTimes;
+        return new ArrayList<>(this.latestPollTimes);
     }
 
     /**
      * Get the latest times for Aborted polls.
-     * @return
+     * @return list of timestamps for which the poll was aborted
      */
     public List<Long> getLatestAbortedPollTimes(){
-        List<Long> latestTimes = new ArrayList<Long>();
-        Iterator<Long> it = this.latestAbortedPollTimes.iterator();
-        while(it.hasNext()){
-            latestTimes.add(it.next());
-        }
-        return latestTimes;
+        return new ArrayList<>(this.latestAbortedPollTimes);
     }
 
+    @Override
+    public void addDataPointImpl(DataPointRT dataPoint) {
+        pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.ADD));
+    }
+
+    @Override
+    public void removeDataPointImpl(DataPointRT dataPoint) {
+        pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.REMOVE));
+    }
+
+    @Override
+    protected void flushPoints() {
+        flushPoints(null);
+    }
+
+    /**
+     * Drains the pending points queue and adds/removes them from the current points.
+     * @param pollTime the time of the poll
+     */
+    protected void flushPoints(Long pollTime) {
+        pointListChangeLock.writeLock().lock();
+        try {
+            PendingPoint pending;
+            while ((pending = pendingPoints.poll()) != null) {
+                try {
+                    switch (pending.operation) {
+                        case ADD:
+                            super.addDataPointImpl(pending.point);
+                            if (pollTime != null) {
+                                dataPointAdded(pending.point, pollTime);
+                            }
+                            break;
+                        case REMOVE:
+                            super.removeDataPointImpl(pending.point);
+                            if (pollTime != null) {
+                                dataPointRemoved(pending.point, pollTime);
+                            }
+                            break;
+                    }
+                } catch (Exception e) {
+                    LOG.error("Failed to " + pending.operation + " point to list", e);
+                }
+            }
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Hook for when a data point is added before a poll executes
+     * @param point added point
+     * @param pollTime poll time for which the point will be added
+     */
+    protected void dataPointAdded(DataPointRT point, long pollTime) {
+        point.initializeIntervalLogging(pollTime, vo.isQuantize());
+    }
+
+    /**
+     * Hook for when a data point is removed before a poll executes
+     * @param point removed point
+     * @param pollTime poll time for which the point will be removed
+     */
+    protected void dataPointRemoved(DataPointRT point, long pollTime) {
+    }
 }

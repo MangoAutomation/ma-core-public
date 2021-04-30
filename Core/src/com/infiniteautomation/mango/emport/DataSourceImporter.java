@@ -15,8 +15,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.util.ILifecycleState;
 
 public class DataSourceImporter extends Importer {
 
@@ -60,7 +60,7 @@ public class DataSourceImporter extends Importer {
                 // The VO was found or successfully created. Finish reading it in.
                 ctx.getReader().readInto(vo, json);
                 boolean isnew = vo.isNew();
-                if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+                if(Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
                     if(isnew) {
                         service.insert(vo);
                     }else {

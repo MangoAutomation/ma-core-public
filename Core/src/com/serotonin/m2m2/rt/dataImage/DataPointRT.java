@@ -31,10 +31,12 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
+import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.stats.IValueTime;
@@ -47,15 +49,16 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
+import com.serotonin.util.ILifecycleState;
 
 public class DataPointRT implements IDataPointValueSource, ILifecycle {
-    private static final Log LOG = LogFactory.getLog(DataPointRT.class);
+    private final Log log = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
     private static final String prefix = "INTVL_LOG-";
 
     // Configuration data.
     private final DataPointVO vo;
-    private final DataSourceVO dsVo;
+    private final DataSourceRT<? extends DataSourceVO> dataSource;
     private final PointLocatorRT<?> pointLocator;
 
     // Runtime data.
@@ -69,24 +72,30 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private long intervalStartTime = -1;
     private List<IValueTime> averagingValues;
     private final Object intervalLoggingLock = new Object();
-    private TimerTask intervalLoggingTask;
+    private volatile TimerTask intervalLoggingTask;
 
     //Simulation Timer, or any timer implementation
     private AbstractTimer timer;
+
+    private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     /**
      * This is the value around which tolerance decisions will be made when determining whether to log numeric values.
      */
     private double toleranceOrigin;
 
-    public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
+    public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource, List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
+        if (dataSource.getId() != dp.getDataPoint().getDataSourceId()) {
+            throw new IllegalStateException("Wrong data source for provided point");
+        }
+
         this.vo = dp.getDataPoint();
-        this.detectors = new ArrayList<PointEventDetectorRT<?>>();
+        this.detectors = new ArrayList<>();
         for (AbstractPointEventDetectorVO ped : dp.getEventDetectors()) {
             PointEventDetectorRT<?> pedRT = (PointEventDetectorRT<?>) ped.createRuntime();
             detectors.add(pedRT);
         }
-        this.dsVo = dsVo;
+        this.dataSource = dataSource;
         this.pointLocator = pointLocator;
         this.valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache, dao, pointValueCacheDao);
 
@@ -107,14 +116,15 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      *
      * @param vo
      * @param pointLocator
-     * @param dsVo
+     * @param dataSource
      * @param initialCache
      * @param dao
      * @param pointValueCacheDao
      * @param timer
      */
-    public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao, AbstractTimer timer) {
-        this(vo, pointLocator, dsVo, initialCache, dao, pointValueCacheDao);
+    public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource,
+                       List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao, AbstractTimer timer) {
+        this(vo, pointLocator, dataSource, initialCache, dao, pointValueCacheDao);
         this.timer = timer;
     }
 
@@ -377,7 +387,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
-            LOG.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
+            log.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime()));
             return;
         }
@@ -437,7 +447,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         //Future date check
         if (pvt.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
-            LOG.warn("Discarding point value", new Exception("Future dated value detected: pointId="
+            log.warn("Discarding point value", new Exception("Future dated value detected: pointId="
                     + vo.getId() + ", value=" + pvt.getValue().toString()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + pvt.getTime()));
             return true;
@@ -448,14 +458,21 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     // / Interval logging
     //
-    /**
-     *
-     */
-    public void initializeIntervalLogging(long nextPollTime, boolean quantize) {
-        if(vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL && vo.getLoggingType() != DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)
-            return;
 
+    public boolean isIntervalLogging() {
+        return vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL ||
+                vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL;
+    }
+
+    public void initializeIntervalLogging(long nextPollTime, boolean quantize) {
+        if (!isIntervalLogging() || intervalLoggingTask != null) return;
+
+        // double checked lock
         synchronized (intervalLoggingLock) {
+            // polling data sources call initializeIntervalLogging() when point is added to poll
+            // however some hybrid data sources such as BACnetDataSourceRT may call initializeIntervalLogging()
+            // earlier in response to an event.
+            if (intervalLoggingTask != null) return;
 
             long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
             long delay = loggingPeriodMillis;
@@ -465,7 +482,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 long nextPollOffset = (nextPollTime % loggingPeriodMillis);
                 if(nextPollOffset != 0)
                     delay = loggingPeriodMillis - nextPollOffset;
-                LOG.debug("First interval log should be at: " + (nextPollTime + delay));
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("First interval log should be at: %s (%d)", new Date(nextPollTime + delay), nextPollTime + delay));
+                }
             }
             Date startTime = new Date(nextPollTime + delay);
 
@@ -700,11 +720,15 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     public int getDataSourceId() {
-        return vo.getDataSourceId();
+        return dataSource.getId();
+    }
+
+    public DataSourceRT<? extends DataSourceVO> getDataSource() {
+        return dataSource;
     }
 
     public DataSourceVO getDataSourceVO() {
-        return dsVo;
+        return dataSource.getVo();
     }
 
     @Override
@@ -777,6 +801,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     attributes, set, backdate, logged, updated, attributesChanged));
     }
 
+    @Override
+    public ILifecycleState getLifecycleState() {
+        return state;
+    }
+
     //
     //
     // Lifecycle
@@ -787,23 +816,98 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      *
      */
     @Override
-    public void initialize(boolean safe){
-        if(!safe)
+    public final synchronized void initialize(boolean safe) {
+        ensureState(ILifecycleState.PRE_INITIALIZE);
+        this.state = ILifecycleState.INITIALIZING;
+
+        try {
             initialize();
+            initializeDetectors();
+            // If we are a polling data source then we need to wait to start our interval logging until the first poll due to quantization
+            if (!dataSource.inhibitIntervalLoggingInitialization()) {
+                initializeIntervalLogging(0L, false);
+            }
+            initializeListeners();
+
+            // add ourselves to the data source for the next poll
+            dataSource.addDataPoint(this);
+        } catch (Exception e) {
+            terminate();
+            joinTermination();
+            throw e;
+        }
+
+        this.state = ILifecycleState.RUNNING;
     }
 
-    public void initialize() {
-        // Add point event listeners
+    private void initializeDetectors() {
         for (PointEventDetectorRT<?> pedRT : detectors) {
             pedRT.initialize();
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
         }
     }
 
-    @Override
-    public void terminate() {
-        terminateIntervalLogging();
+    private void initializeListeners() {
+        DataPointListener l = Common.runtimeManager.getDataPointListeners(getId());
+        if (l != null) {
+            try {
+                l.pointInitialized();
+            } catch (ExceptionListWrapper e) {
+                log.warn("Exceptions in point initialized listeners' methods.");
+                for (Exception e2 : e.getExceptions())
+                    log.warn("Listener exception: " + e2.getMessage(), e2);
+            } catch (Exception e) {
+                log.warn("Exception in point initialized listener's method: " + e.getMessage(), e);
+            }
+        }
+    }
 
+    protected void initialize() {
+    }
+
+    @Override
+    public final synchronized void terminate() {
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
+        this.state = ILifecycleState.TERMINATING;
+
+        boolean dataSourceTerminating = dataSource.getLifecycleState() == ILifecycleState.TERMINATING;
+        if (!dataSourceTerminating) {
+            // Data source clears all its points at once when it is terminating
+            dataSource.removeDataPoint(this);
+        }
+
+        try {
+            terminateListeners();
+        } catch (Exception e) {
+            log.error("Failed to terminate listeners for " + readableIdentifier(), e);
+        }
+
+        try {
+            terminateIntervalLogging();
+        } catch (Exception e) {
+            log.error("Failed to terminate interval logging for " + readableIdentifier(), e);
+        }
+
+        try {
+            terminateDetectors();
+        } catch (Exception e) {
+            log.error("Failed to terminate detectors for " + readableIdentifier(), e);
+        }
+
+        try {
+            if (!dataSourceTerminating) {
+                // Data source cancels all its point events at once when it is terminating
+                Common.eventManager.cancelEventsForDataPoint(getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to cancel events for " + readableIdentifier(), e);
+        }
+
+        this.state = ILifecycleState.TERMINATED;
+        Common.runtimeManager.removeDataPoint(this);
+    }
+
+    private void terminateDetectors() {
         if (detectors != null) {
             for (PointEventDetectorRT<?> pedRT : detectors) {
                 Common.runtimeManager.removeDataPointListener(vo.getId(), pedRT);
@@ -812,8 +916,21 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
     }
 
+    private void terminateListeners() {
+        DataPointListener l = Common.runtimeManager.getDataPointListeners(getId());
+        if (l != null) {
+            try {
+                l.pointTerminated(getVO());
+            } catch (ExceptionListWrapper e) {
+                log.warn("Exceptions in point terminated method.");
+                for (Exception e2 : e.getExceptions())
+                    log.warn("Listener exception: " + e2.getMessage(), e2);
+            }
+        }
+    }
+
     @Override
-    public void joinTermination() {
+    public final synchronized void joinTermination() {
         // no op
     }
 
@@ -862,4 +979,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         return new DataPointWrapper(vo, rtWrapper);
     }
 
+    @Override
+    public String readableIdentifier() {
+        return String.format("Data point (name=%s, id=%d, type=%s)", getVO().getName(), getId(), getClass().getSimpleName());
+    }
 }
