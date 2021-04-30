@@ -482,7 +482,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 long nextPollOffset = (nextPollTime % loggingPeriodMillis);
                 if(nextPollOffset != 0)
                     delay = loggingPeriodMillis - nextPollOffset;
-                log.debug("First interval log should be at: " + (nextPollTime + delay));
+
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("First interval log should be at: %s (%d)", new Date(nextPollTime + delay), nextPollTime + delay));
+                }
             }
             Date startTime = new Date(nextPollTime + delay);
 
