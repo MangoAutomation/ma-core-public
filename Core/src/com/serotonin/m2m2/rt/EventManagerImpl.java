@@ -652,7 +652,7 @@ public class EventManagerImpl implements EventManager {
     }
 
     @Override
-    public void cancelEventsForDataPoints(List<Integer> pointIds) {
+    public void cancelEventsForDataPoints(Set<Integer> pointIds) {
         List<EventInstance> dataPointEvents = new ArrayList<>();
         activeEventsLock.writeLock().lock();
         try{

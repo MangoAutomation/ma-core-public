@@ -6,6 +6,7 @@ package com.serotonin.m2m2;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
@@ -124,7 +125,7 @@ public class MockEventManager extends EventManagerImpl {
     }
 
     @Override
-    public void cancelEventsForDataPoints(List<Integer> pointIds) {
+    public void cancelEventsForDataPoints(Set<Integer> pointIds) {
         if(useDatabase) {
             super.cancelEventsForDataPoints(pointIds);
         }

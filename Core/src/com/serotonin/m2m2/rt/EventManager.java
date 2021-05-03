@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
@@ -107,7 +108,7 @@ public interface EventManager extends ILifecycle {
      * Cancel active events for these Data Points
      * @param pointIds
      */
-    void cancelEventsForDataPoints(List<Integer> pointIds);
+    void cancelEventsForDataPoints(Set<Integer> pointIds);
 
     /**
      * Cancel active events for a Data Source
