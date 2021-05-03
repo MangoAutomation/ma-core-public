@@ -351,12 +351,40 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
     @Override
     public void addDataPointImpl(DataPointRT dataPoint) {
-        pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.ADD));
+        addDataPointImpl(dataPoint, true);
     }
 
     @Override
     public void removeDataPointImpl(DataPointRT dataPoint) {
-        pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.REMOVE));
+        removeDataPointImpl(dataPoint, true);
+    }
+
+    /**
+     * Add a data point to the active data points list.
+     *
+     * @param dataPoint point to add
+     * @param onNextPoll if true, will be added to the active data points list on next poll, otherwise it will be added on next immediately
+     */
+    public void addDataPointImpl(DataPointRT dataPoint, boolean onNextPoll) {
+        if (onNextPoll) {
+            pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.ADD));
+        } else {
+            super.addDataPointImpl(dataPoint);
+        }
+    }
+
+    /**
+     * Remove a data point from the active data points list.
+     *
+     * @param dataPoint point to remove
+     * @param onNextPoll if true, will be removed from the active data points list on next poll, otherwise it will be removed immediately
+     */
+    public void removeDataPointImpl(DataPointRT dataPoint, boolean onNextPoll) {
+        if (onNextPoll) {
+            pendingPoints.add(new PendingPoint(dataPoint, PendingPointOperation.REMOVE));
+        } else {
+            super.removeDataPointImpl(dataPoint);
+        }
     }
 
     @Override
@@ -376,13 +404,13 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
                 try {
                     switch (pending.operation) {
                         case ADD:
-                            super.addDataPointImpl(pending.point);
+                            addDataPointImpl(pending.point, false);
                             if (pollTime != null) {
                                 dataPointAdded(pending.point, pollTime);
                             }
                             break;
                         case REMOVE:
-                            super.removeDataPointImpl(pending.point);
+                            removeDataPointImpl(pending.point, false);
                             if (pollTime != null) {
                                 dataPointRemoved(pending.point, pollTime);
                             }
