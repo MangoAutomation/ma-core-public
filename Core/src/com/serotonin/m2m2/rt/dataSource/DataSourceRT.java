@@ -549,9 +549,12 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     /**
-     * @return true if interval logging initialization should be inhibited when a data point is initialized.
+     * Determine if interval logging should be initialized when data point is initialized.
+     *
+     * @return true if interval logging initialization should be initialized
+     * @param point point that is being initialized
      */
-    public boolean inhibitIntervalLoggingInitialization() {
-        return false;
+    public boolean shouldInitializeIntervalLogging(DataPointRT point) {
+        return true;
     }
 }

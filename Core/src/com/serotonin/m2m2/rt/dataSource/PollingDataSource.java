@@ -294,8 +294,9 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    public boolean inhibitIntervalLoggingInitialization() {
-        return true;
+    public boolean shouldInitializeIntervalLogging(DataPointRT point) {
+        // we initialize interval logging on first poll instead
+        return false;
     }
 
     @Override

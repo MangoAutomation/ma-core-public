@@ -824,7 +824,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             initialize();
             initializeDetectors();
             // If we are a polling data source then we need to wait to start our interval logging until the first poll due to quantization
-            if (!dataSource.inhibitIntervalLoggingInitialization()) {
+            if (dataSource.shouldInitializeIntervalLogging(this)) {
                 initializeIntervalLogging(0L, false);
             }
             initializeListeners();
