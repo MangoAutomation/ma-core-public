@@ -427,6 +427,12 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         }
 
         try {
+            terminateEvents();
+        } catch (Exception e) {
+            log.error("Failed to cancel events for " + readableIdentifier(), e);
+        }
+
+        try {
             postTerminate();
         } catch (Exception e) {
             log.error("Post terminate failed for " + readableIdentifier(), e);
@@ -443,15 +449,16 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     /**
-     * Hook for after termination is complete, e.g. polling has been canceled and any outstanding polls have completed.
-     * Data source will still be in TERMINATING state.
+     * Cancels ("return to normal") events for the data source.
      */
-    protected void postTerminate() {
+    private void terminateEvents() {
         boolean anyActive = false;
         for (EventStatus status : eventTypes.values()) {
-            if (status.active) {
-                anyActive = true;
-                break;
+            synchronized (status.lock) {
+                if (status.active) {
+                    anyActive = true;
+                    break;
+                }
             }
         }
 
@@ -459,6 +466,13 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             // Remove any outstanding events after polling has stopped
             Common.eventManager.cancelEventsForDataSource(vo.getId());
         }
+    }
+
+    /**
+     * Hook for after termination is complete, e.g. polling has been canceled and any outstanding polls have completed.
+     * Data source will still be in TERMINATING state.
+     */
+    protected void postTerminate() {
     }
 
     @Override
