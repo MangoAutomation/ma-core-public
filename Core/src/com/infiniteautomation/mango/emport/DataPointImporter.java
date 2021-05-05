@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -106,6 +107,16 @@ public class DataPointImporter extends Importer {
                 if(dp.getDataPoint().getChartColour() == null)
                     dp.getDataPoint().setChartColour("");
 
+                //Ensure we have a default permission since null is valid in Mango 3.x
+                if(dp.getDataPoint().getReadPermission() == null) {
+                    dp.getDataPoint().setReadPermission(new MangoPermission());
+                }
+                if(dp.getDataPoint().getEditPermission() == null) {
+                    dp.getDataPoint().setEditPermission(new MangoPermission());
+                }
+                if(dp.getDataPoint().getSetPermission() == null) {
+                    dp.getDataPoint().setSetPermission(new MangoPermission());
+                }
                 //Handle embedded event detectors
                 JsonArray pedArray = json.getJsonArray("eventDetectors");
                 if (pedArray != null) {

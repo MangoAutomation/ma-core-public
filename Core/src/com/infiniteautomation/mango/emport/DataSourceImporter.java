@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.emport;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -59,6 +60,15 @@ public class DataSourceImporter extends Importer {
             try {
                 // The VO was found or successfully created. Finish reading it in.
                 ctx.getReader().readInto(vo, json);
+
+                //Ensure we have a default permission since null is valid in Mango 3.x
+                if(vo.getReadPermission() == null) {
+                    vo.setReadPermission(new MangoPermission());
+                }
+                if(vo.getEditPermission() == null) {
+                    vo.setEditPermission(new MangoPermission());
+                }
+
                 boolean isnew = vo.isNew();
                 if(Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
                     if(isnew) {
