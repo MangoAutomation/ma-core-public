@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -20,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.SQLDialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -45,7 +45,6 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.UpgradeVersionState;
-import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
@@ -474,27 +473,31 @@ public class SystemSettingsDao extends BaseDao {
             oldValue = null;
         }
 
-        // Update the database
-        getTransactionTemplate().execute(status -> {
+        if (value == null) {
+            create.deleteFrom(table)
+                    .where(table.settingName.equal(key))
+                    .execute();
+        } else if (create.dialect() == SQLDialect.MYSQL) {
             //There is potential deadlock in MySQL here, this avoids it
-            if (Common.databaseProxy.getType() == DatabaseType.MYSQL) {
+            create.insertInto(table)
+                    .set(table.settingName, key)
+                    .set(table.settingValue, value)
+                    .onDuplicateKeyUpdate()
+                    .set(table.settingValue, value)
+                    .execute();
+        } else {
+            doInTransaction(txStatus -> {
                 // Delete any existing value.
-                if (value == null) {
-                    removeValue(key, false);
-                } else {
-                    ejt.update("insert into systemSettings values (?,?) on duplicate key update settingValue=?", key, value, value);
-                }
-            } else {
-                // Delete any existing value.
-                removeValue(key, false);
+                create.deleteFrom(table)
+                        .where(table.settingName.equal(key))
+                        .execute();
 
-                // Insert the new value if it's not null.
-                if (value != null) {
-                    ejt.update("insert into systemSettings values (?,?)", key, value);
-                }
-            }
-            return null;
-        });
+                create.insertInto(table)
+                        .set(table.settingName, key)
+                        .set(table.settingValue, value)
+                        .execute();
+            });
+        }
 
         this.updateThreadPoolSettings(key, value);
         SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingSaved(key, oldValue, value);
@@ -569,7 +572,9 @@ public class SystemSettingsDao extends BaseDao {
             FUTURE_DATE_LIMIT = -1;
         }
 
-        ejt.update("delete from systemSettings where settingName=?", key);
+        create.deleteFrom(table)
+                .where(table.settingName.equal(key))
+                .execute();
 
         if(fireEvents) {
             //Fire the event
@@ -1360,56 +1365,55 @@ public class SystemSettingsDao extends BaseDao {
      */
     public Map<String, Object> getAllSystemSettingsAsCodes() {
         Map<String, Object> settings = new HashMap<>(DEFAULT_VALUES.size());
-
-        //Start with all the defaults
-        Iterator<String> it = DEFAULT_VALUES.keySet().iterator();
-        String key;
-        while(it.hasNext()){
-            key = it.next();
-            if(!key.toLowerCase().contains("password")&&!key.startsWith(DATABASE_SCHEMA_VERSION))
-                settings.put(key, DEFAULT_VALUES.get(key));
+        for (Entry<String, Object> entry : DEFAULT_VALUES.entrySet()) {
+            String key = entry.getKey();
+            if (!key.toLowerCase().contains("password") && !key.startsWith(DATABASE_SCHEMA_VERSION)) {
+                settings.put(key, entry.getValue());
+            }
         }
 
         // Then replace anything with what is stored in the database
-        ejt.query("select settingName,settingValue from systemSettings", rs -> {
-            String settingName = rs.getString(1);
-            // Don't export any passwords or schema numbers
-            if ((!settingName.toLowerCase().contains("password")
-                    && !settingName.startsWith(DATABASE_SCHEMA_VERSION))) {
-                String settingValue = rs.getString(2);
-                if (settingValue != null) {
-                    // Convert Numbers to Integers
-                    try {
-                        settings.put(settingName, Integer.parseInt(settingValue));
-                    } catch (NumberFormatException e) {
-                        // Are we a boolean
-                        if (settingValue.equalsIgnoreCase("y")) {
-                            settings.put(settingName, Boolean.TRUE);
-                        } else if (settingValue.equalsIgnoreCase("n")) {
-                            settings.put(settingName, Boolean.FALSE);
-                        } else {
-                            // Must be a string
-                            settings.put(settingName, settingValue);
+        create.select(table.settingName, table.settingValue)
+                .from(table)
+                .forEach(record -> {
+                    String settingName = record.get(table.settingName);
+                    // Don't export any passwords or schema numbers
+                    if ((!settingName.toLowerCase().contains("password")
+                            && !settingName.startsWith(DATABASE_SCHEMA_VERSION))) {
+                        String settingValue = record.get(table.settingValue);
+                        if (settingValue != null) {
+                            // Convert Numbers to Integers
+                            try {
+                                settings.put(settingName, Integer.parseInt(settingValue));
+                            } catch (NumberFormatException e) {
+                                // Are we a boolean
+                                if (settingValue.equalsIgnoreCase("y")) {
+                                    settings.put(settingName, Boolean.TRUE);
+                                } else if (settingValue.equalsIgnoreCase("n")) {
+                                    settings.put(settingName, Boolean.FALSE);
+                                } else {
+                                    // Must be a string
+                                    settings.put(settingName, settingValue);
+                                }
+                            }
+                        }else {
+                            //If there is no default then set it to the null that was returned in the query
+                            //  this preserves the ability to save null settings values
+                            //  and also so that there is an indication that a null setting exists
+                            settings.putIfAbsent(settingName, null);
                         }
                     }
-                }else {
-                    //If there is no default then set it to the null that was returned in the query
-                    //  this preserves the ability to save null settings values
-                    //  and also so that there is an indication that a null setting exists
-                    settings.putIfAbsent(settingName, null);
-                }
-            }
-        });
+                });
 
         // Convert the Integers to Codes
-        it = settings.keySet().iterator();
-        while (it.hasNext()) {
-            key = it.next();
-            Object value = settings.get(key);
+        for (Entry<String, Object> entry : settings.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
             if (value instanceof Integer) {
                 String code = convertToCodeFromValue(key, (Integer) value);
-                if (code != null)
-                    settings.put(key, code);
+                if (code != null) {
+                    entry.setValue(code);
+                }
             }
         }
 
