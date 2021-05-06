@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -220,9 +221,11 @@ public class SystemSettingsDao extends BaseDao {
      */
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
+    @SuppressWarnings("FieldMayBeFinal")
     private ObjectMapper mapper = null;
 
     @Autowired
+    @SuppressWarnings("FieldMayBeFinal")
     private ApplicationEventPublisher eventPublisher = null;
 
 
@@ -232,6 +235,10 @@ public class SystemSettingsDao extends BaseDao {
 
     // Value cache
     private final Map<String, String> cache = new ConcurrentHashMap<>();
+
+    // Create a non-interned string instance that represents null in the database
+    @SuppressWarnings("StringOperationCanBeSimplified")
+    private static final String NULL_SETTING_VALUE = new String("");
 
     public String getValue(String key) {
         Object defaultValue = DEFAULT_VALUES.get(key);
@@ -256,9 +263,11 @@ public class SystemSettingsDao extends BaseDao {
                 .from(table)
                 .where(table.settingName.eq(k))
                 .fetchOptional(table.settingValue)
-                .orElse(null));
+                .orElse(NULL_SETTING_VALUE));
 
-        if (result == null) {
+        // Note: Do not replace with .equals(), this is on purpose!
+        //noinspection StringEquality
+        if (result == NULL_SETTING_VALUE) {
             result = defaultValue;
         }
 
@@ -457,11 +466,12 @@ public class SystemSettingsDao extends BaseDao {
 
     public void setValue(final String key, final String value) {
         // Update the cache
-        String oldValue;
-        if (value == null) {
-            oldValue = cache.remove(key);
-        } else {
-            oldValue = cache.put(key, value);
+        String oldValue = cache.put(key, value == null ? NULL_SETTING_VALUE : value);
+
+        // Note: Do not replace with .equals(), this is on purpose!
+        //noinspection StringEquality
+        if (oldValue == NULL_SETTING_VALUE) {
+            oldValue = null;
         }
 
         // Update the database
@@ -546,8 +556,13 @@ public class SystemSettingsDao extends BaseDao {
      * Remove the value and optionally fire events
      */
     private void removeValue(String key, boolean fireEvents) {
-        // Remove the value from the cache
-        String lastValue = cache.remove(key);
+        String lastValue = cache.put(key, NULL_SETTING_VALUE);
+
+        // Note: Do not replace with .equals(), this is on purpose!
+        //noinspection StringEquality
+        if (lastValue == NULL_SETTING_VALUE) {
+            lastValue = null;
+        }
 
         if(StringUtils.equals(key, FUTURE_DATE_LIMIT_PERIOD_TYPE) || StringUtils.equals(key, FUTURE_DATE_LIMIT_PERIODS)) {
             // Reset the cached values too.
@@ -594,132 +609,133 @@ public class SystemSettingsDao extends BaseDao {
      */
     private static long FUTURE_DATE_LIMIT = -1;
 
-    private static final Map<String, Object> DEFAULT_VALUES = new HashMap<>();
+    private static final Map<String, Object> DEFAULT_VALUES;
 
     static {
-        DEFAULT_VALUES.put(DATABASE_SCHEMA_VERSION, "0.7.0");
+        Map<String, Object> defaultValues = new HashMap<>();
+        defaultValues.put(DATABASE_SCHEMA_VERSION, "0.7.0");
 
-        DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_SERVER, "");
-        DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_PORT, 80);
-        DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_USERNAME, "");
-        DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_PASSWORD, "");
+        defaultValues.put(HTTP_CLIENT_PROXY_SERVER, "");
+        defaultValues.put(HTTP_CLIENT_PROXY_PORT, 80);
+        defaultValues.put(HTTP_CLIENT_PROXY_USERNAME, "");
+        defaultValues.put(HTTP_CLIENT_PROXY_PASSWORD, "");
 
-        DEFAULT_VALUES.put(EMAIL_SMTP_HOST, "");
-        DEFAULT_VALUES.put(EMAIL_SMTP_PORT, 25);
-        DEFAULT_VALUES.put(EMAIL_FROM_ADDRESS, "");
-        DEFAULT_VALUES.put(EMAIL_SMTP_USERNAME, "");
-        DEFAULT_VALUES.put(EMAIL_SMTP_PASSWORD, "");
-        DEFAULT_VALUES.put(EMAIL_FROM_NAME, "Mango Automation");
-        DEFAULT_VALUES.put(EMAIL_SEND_TIMEOUT, 60000);
+        defaultValues.put(EMAIL_SMTP_HOST, "");
+        defaultValues.put(EMAIL_SMTP_PORT, 25);
+        defaultValues.put(EMAIL_FROM_ADDRESS, "");
+        defaultValues.put(EMAIL_SMTP_USERNAME, "");
+        defaultValues.put(EMAIL_SMTP_PASSWORD, "");
+        defaultValues.put(EMAIL_FROM_NAME, "Mango Automation");
+        defaultValues.put(EMAIL_SEND_TIMEOUT, 60000);
 
-        DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(POINT_DATA_PURGE_COUNT, false);
+        defaultValues.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(POINT_DATA_PURGE_PERIODS, 1);
+        defaultValues.put(POINT_DATA_PURGE_COUNT, false);
 
-        DEFAULT_VALUES.put(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(DATA_POINT_EVENT_PURGE_PERIODS, 1);
+        defaultValues.put(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(DATA_POINT_EVENT_PURGE_PERIODS, 1);
 
-        DEFAULT_VALUES.put(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(DATA_SOURCE_EVENT_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(SYSTEM_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(SYSTEM_EVENT_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(PUBLISHER_EVENT_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(AUDIT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(AUDIT_EVENT_PURGE_PERIODS, 1);
+        defaultValues.put(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(DATA_SOURCE_EVENT_PURGE_PERIODS, 1);
+        defaultValues.put(SYSTEM_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(SYSTEM_EVENT_PURGE_PERIODS, 1);
+        defaultValues.put(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(PUBLISHER_EVENT_PURGE_PERIODS, 1);
+        defaultValues.put(AUDIT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(AUDIT_EVENT_PURGE_PERIODS, 1);
 
-        DEFAULT_VALUES.put(NONE_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(NONE_ALARM_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(INFORMATION_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(INFORMATION_ALARM_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(IMPORTANT_ALARM_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(WARNING_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(WARNING_ALARM_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(URGENT_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(URGENT_ALARM_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(CRITICAL_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(CRITICAL_ALARM_PURGE_PERIODS, 1);
-        DEFAULT_VALUES.put(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(LIFE_SAFETY_ALARM_PURGE_PERIODS, 1);
+        defaultValues.put(NONE_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(NONE_ALARM_PURGE_PERIODS, 1);
+        defaultValues.put(INFORMATION_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(INFORMATION_ALARM_PURGE_PERIODS, 1);
+        defaultValues.put(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(IMPORTANT_ALARM_PURGE_PERIODS, 1);
+        defaultValues.put(WARNING_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(WARNING_ALARM_PURGE_PERIODS, 1);
+        defaultValues.put(URGENT_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(URGENT_ALARM_PURGE_PERIODS, 1);
+        defaultValues.put(CRITICAL_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(CRITICAL_ALARM_PURGE_PERIODS, 1);
+        defaultValues.put(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(LIFE_SAFETY_ALARM_PURGE_PERIODS, 1);
 
-        DEFAULT_VALUES.put(EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
-        DEFAULT_VALUES.put(EVENT_PURGE_PERIODS, 1);
+        defaultValues.put(EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
+        defaultValues.put(EVENT_PURGE_PERIODS, 1);
 
-        DEFAULT_VALUES.put(LANGUAGE, Locale.getDefault().toString());
+        defaultValues.put(LANGUAGE, Locale.getDefault().toString());
 
-        DEFAULT_VALUES.put(HTTPDS_PROLOGUE, "");
-        DEFAULT_VALUES.put(HTTPDS_EPILOGUE, "");
-        DEFAULT_VALUES.put(FUTURE_DATE_LIMIT_PERIODS, 24);
-        DEFAULT_VALUES.put(FUTURE_DATE_LIMIT_PERIOD_TYPE, Common.TimePeriods.HOURS);
-        DEFAULT_VALUES.put(INSTANCE_DESCRIPTION, "My Mango Automation");
+        defaultValues.put(HTTPDS_PROLOGUE, "");
+        defaultValues.put(HTTPDS_EPILOGUE, "");
+        defaultValues.put(FUTURE_DATE_LIMIT_PERIODS, 24);
+        defaultValues.put(FUTURE_DATE_LIMIT_PERIOD_TYPE, Common.TimePeriods.HOURS);
+        defaultValues.put(INSTANCE_DESCRIPTION, "My Mango Automation");
 
-        DEFAULT_VALUES.put(CHART_BACKGROUND_COLOUR, "rgba(255,255,255,0)");
-        DEFAULT_VALUES.put(PLOT_BACKGROUND_COLOUR, "rgba(255,255,255,0)");
-        DEFAULT_VALUES.put(PLOT_GRIDLINE_COLOUR, "rgba(0,0,0,0.4)");
+        defaultValues.put(CHART_BACKGROUND_COLOUR, "rgba(255,255,255,0)");
+        defaultValues.put(PLOT_BACKGROUND_COLOUR, "rgba(255,255,255,0)");
+        defaultValues.put(PLOT_GRIDLINE_COLOUR, "rgba(0,0,0,0.4)");
 
         //Default Backup Settings
-        DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.getBackupPath().toString());
-        DEFAULT_VALUES.put(BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
-        DEFAULT_VALUES.put(BACKUP_PERIODS, 1);
-        DEFAULT_VALUES.put(BACKUP_FILE_COUNT, 10);
-        DEFAULT_VALUES.put(BACKUP_HOUR, 0);
-        DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
-        //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
-        //DEFAULT_VALUES.put(ALLOW_ANONYMOUS_GRAPHIC_VIEWS, false);
-        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_LOCATION, Common.getBackupPath().toString());
-        DEFAULT_VALUES.put(DATABASE_BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
-        DEFAULT_VALUES.put(DATABASE_BACKUP_PERIODS, 1);
-        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_COUNT, 10);
-        DEFAULT_VALUES.put(DATABASE_BACKUP_HOUR, 0);
-        DEFAULT_VALUES.put(DATABASE_BACKUP_MINUTE, 5);
+        defaultValues.put(BACKUP_FILE_LOCATION, Common.getBackupPath().toString());
+        defaultValues.put(BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
+        defaultValues.put(BACKUP_PERIODS, 1);
+        defaultValues.put(BACKUP_FILE_COUNT, 10);
+        defaultValues.put(BACKUP_HOUR, 0);
+        defaultValues.put(BACKUP_MINUTE, 5);
+        //Can't use boolean here... defaultValues.put(BACKUP_ENABLED, true);
+        //defaultValues.put(ALLOW_ANONYMOUS_GRAPHIC_VIEWS, false);
+        defaultValues.put(DATABASE_BACKUP_FILE_LOCATION, Common.getBackupPath().toString());
+        defaultValues.put(DATABASE_BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
+        defaultValues.put(DATABASE_BACKUP_PERIODS, 1);
+        defaultValues.put(DATABASE_BACKUP_FILE_COUNT, 10);
+        defaultValues.put(DATABASE_BACKUP_HOUR, 0);
+        defaultValues.put(DATABASE_BACKUP_MINUTE, 5);
 
-        DEFAULT_VALUES.put(HIGH_PRI_CORE_POOL_SIZE, 1);
-        DEFAULT_VALUES.put(HIGH_PRI_MAX_POOL_SIZE, 100);
-        DEFAULT_VALUES.put(MED_PRI_CORE_POOL_SIZE, 3);
-        DEFAULT_VALUES.put(LOW_PRI_CORE_POOL_SIZE, 1);
+        defaultValues.put(HIGH_PRI_CORE_POOL_SIZE, 1);
+        defaultValues.put(HIGH_PRI_MAX_POOL_SIZE, 100);
+        defaultValues.put(MED_PRI_CORE_POOL_SIZE, 3);
+        defaultValues.put(LOW_PRI_CORE_POOL_SIZE, 1);
 
-        DEFAULT_VALUES.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
+        defaultValues.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
 
-        DEFAULT_VALUES.put(DataPurge.ENABLE_POINT_DATA_PURGE, true);
-        DEFAULT_VALUES.put(DATABASE_BACKUP_ENABLED, true);
-        DEFAULT_VALUES.put(BACKUP_ENABLED, true);
+        defaultValues.put(DataPurge.ENABLE_POINT_DATA_PURGE, true);
+        defaultValues.put(DATABASE_BACKUP_ENABLED, true);
+        defaultValues.put(BACKUP_ENABLED, true);
 
         // Add module system event type defaults
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
-            DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), def.getDefaultAlarmLevel().value());
+            defaultValues.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), def.getDefaultAlarmLevel().value());
 
         // Add built-in audit event type defaults
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_HANDLER, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_TEMPLATE, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER_COMMENT, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_JSON_DATA, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_HANDLER, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_TEMPLATE, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER_COMMENT, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_JSON_DATA, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, AlarmLevels.INFORMATION.value());
+        defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION.value());
 
-        DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, Common.TimePeriods.HOURS);
-        DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIODS, 24);
+        defaultValues.put(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, Common.TimePeriods.HOURS);
+        defaultValues.put(HTTP_SESSION_TIMEOUT_PERIODS, 24);
 
-        DEFAULT_VALUES.put(PASSWORD_EXPIRATION_ENABLED, false);
-        DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIOD_TYPE, Common.TimePeriods.MONTHS);
-        DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIODS, 6);
+        defaultValues.put(PASSWORD_EXPIRATION_ENABLED, false);
+        defaultValues.put(PASSWORD_EXPIRATION_PERIOD_TYPE, Common.TimePeriods.MONTHS);
+        defaultValues.put(PASSWORD_EXPIRATION_PERIODS, 6);
 
-        DEFAULT_VALUES.put(USAGE_TRACKING_ENABLED, false);
-        DEFAULT_VALUES.put(UPGRADE_CHECKS_ENABLED, true);
-        DEFAULT_VALUES.put(LICENSE_AGREEMENT_VERSION, 0);
+        defaultValues.put(USAGE_TRACKING_ENABLED, false);
+        defaultValues.put(UPGRADE_CHECKS_ENABLED, true);
+        defaultValues.put(LICENSE_AGREEMENT_VERSION, 0);
 
-        DEFAULT_VALUES.put(RESTART_DELAY, 10);
+        defaultValues.put(RESTART_DELAY, 10);
 
         //Timeouts for tokens
-        DEFAULT_VALUES.put(EmailAddressVerificationService.EXPIRY_SYSTEM_SETTING, EmailAddressVerificationService.DEFAULT_EXPIRY_DURATION);
-        DEFAULT_VALUES.put(PasswordResetService.EXPIRY_SYSTEM_SETTING, PasswordResetService.DEFAULT_EXPIRY_DURATION);
+        defaultValues.put(EmailAddressVerificationService.EXPIRY_SYSTEM_SETTING, EmailAddressVerificationService.DEFAULT_EXPIRY_DURATION);
+        defaultValues.put(PasswordResetService.EXPIRY_SYSTEM_SETTING, PasswordResetService.DEFAULT_EXPIRY_DURATION);
 
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
-            DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), AlarmLevels.INFORMATION.value());
+            defaultValues.put(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), AlarmLevels.INFORMATION.value());
         }
 
         //Module Defaults
@@ -727,16 +743,18 @@ public class SystemSettingsDao extends BaseDao {
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
             modDefaults = def.getDefaultValues();
             if(modDefaults != null)
-                DEFAULT_VALUES.putAll(modDefaults);
+                defaultValues.putAll(modDefaults);
         }
 
-        DEFAULT_VALUES.put(PASSWORD_UPPER_CASE_COUNT, 0);
-        DEFAULT_VALUES.put(PASSWORD_LOWER_CASE_COUNT, 0);
-        DEFAULT_VALUES.put(PASSWORD_DIGIT_COUNT, 0);
-        DEFAULT_VALUES.put(PASSWORD_SPECIAL_COUNT, 0);
-        DEFAULT_VALUES.put(PASSWORD_LENGTH_MIN, 8);
-        DEFAULT_VALUES.put(PASSWORD_LENGTH_MAX, 255);
-        DEFAULT_VALUES.put(EMAIL_DISABLED, false);
+        defaultValues.put(PASSWORD_UPPER_CASE_COUNT, 0);
+        defaultValues.put(PASSWORD_LOWER_CASE_COUNT, 0);
+        defaultValues.put(PASSWORD_DIGIT_COUNT, 0);
+        defaultValues.put(PASSWORD_SPECIAL_COUNT, 0);
+        defaultValues.put(PASSWORD_LENGTH_MIN, 8);
+        defaultValues.put(PASSWORD_LENGTH_MAX, 255);
+        defaultValues.put(EMAIL_DISABLED, false);
+
+        DEFAULT_VALUES = Collections.unmodifiableMap(defaultValues);
     }
 
     /**
