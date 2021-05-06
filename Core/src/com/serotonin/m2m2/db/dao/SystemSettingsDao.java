@@ -8,8 +8,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,9 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -35,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.components.EmailAddressVerificationService;
 import com.infiniteautomation.mango.spring.components.PasswordResetService;
@@ -42,7 +38,6 @@ import com.infiniteautomation.mango.spring.events.audit.SystemSettingChangeAudit
 import com.infiniteautomation.mango.spring.events.audit.SystemSettingDeleteAuditEvent;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
@@ -92,8 +87,6 @@ public class SystemSettingsDao extends BaseDao {
 
     // Base URL to use when inserting links in emails etc
     public static final String PUBLICLY_RESOLVABLE_BASE_URL = "publiclyResolvableBaseUrl";
-    // Used if PUBLICLY_RESOLVABLE_BASE_URL is not set
-    public static final String PUBLIC_HOSTNAME = "publicHostname";
 
     // Point data purging
     public static final String POINT_DATA_PURGE_PERIOD_TYPE = "pointDataPurgePeriodType";
@@ -143,7 +136,6 @@ public class SystemSettingsDao extends BaseDao {
     public static final String LANGUAGE = "language";
 
     // Customization
-    public static final String DATASOURCE_DISPLAY_SUFFIX = ".display";
     public static final String HTTPDS_PROLOGUE = "httpdsPrologue";
     public static final String HTTPDS_EPILOGUE = "httpdsEpilogue";
     public static final String FUTURE_DATE_LIMIT_PERIODS = "futureDateLimitPeriods";
@@ -165,10 +157,6 @@ public class SystemSettingsDao extends BaseDao {
     public static final String BACKUP_FILE_COUNT = "backupFileCount";
     public static final String BACKUP_ENABLED = "backupEnabled";
 
-    // Chart API settings, null defaults
-    public static final String ALLOW_ANONYMOUS_CHART_VIEW = "allowAnonymousGraphicViews";
-    public static final String JFREE_CHART_FONT = "jfreeChartFont";
-
     public static final String DATABASE_BACKUP_FILE_LOCATION = "databaseBackupFileLocation";
     public static final String DATABASE_BACKUP_PERIOD_TYPE = "databaseBackupPeriodType";
     public static final String DATABASE_BACKUP_PERIODS = "databaseBackupPeriods";
@@ -187,10 +175,6 @@ public class SystemSettingsDao extends BaseDao {
     public static final String MED_PRI_CORE_POOL_SIZE = "mediumPriorityThreadCorePoolSize";
 
     public static final String LOW_PRI_CORE_POOL_SIZE = "lowPriorityThreadCorePoolSize";
-
-    //Site analytics
-    public static final String SITE_ANALYTICS_HEAD = "siteAnalyticsHead";
-    public static final String SITE_ANALYTICS_BODY = "siteAnalyticsBody";
 
     //Download update settings
     public static final String UPGRADE_VERSION_STATE = "upgradeVersionState";
@@ -226,10 +210,10 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_SPECIAL_COUNT = "password.rule.specialCount";
     public static final String PASSWORD_LENGTH_MIN = "password.rule.lengthMin";
     public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
-    //TODO Dictionary
-    //TODO Validation
 
-    public static final SystemSettingsDao instance = new SystemSettingsDao();
+    public static final SystemSettingsDao instance = new SystemSettingsDao(SystemSettings.SYSTEM_SETTINGS);
+
+    private final SystemSettings table;
 
     /**
      * Will remain null until the runtime context is refreshed so the JSON methods of this class should not be used early in the lifecycle.
@@ -237,11 +221,13 @@ public class SystemSettingsDao extends BaseDao {
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
     private ObjectMapper mapper = null;
+
     @Autowired
     private ApplicationEventPublisher eventPublisher = null;
 
-    private SystemSettingsDao() {
 
+    private SystemSettingsDao(SystemSettings table) {
+        this.table = table;
     }
 
     // Value cache
@@ -266,10 +252,11 @@ public class SystemSettingsDao extends BaseDao {
 
     @Deprecated
     public String getValue(String key, String defaultValue) {
-        String result = cache.computeIfAbsent(key, (k) -> {
-            return new BaseDao().queryForObject("select settingValue from systemSettings where settingName=?",
-                    new Object[] { k }, String.class, null);
-        });
+        String result = cache.computeIfAbsent(key, k -> create.select(table.settingValue)
+                .from(table)
+                .where(table.settingName.eq(k))
+                .fetchOptional(table.settingValue)
+                .orElse(null));
 
         if (result == null) {
             result = defaultValue;
@@ -319,9 +306,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * This method uses Serotonin JSON deserialization. Prefer {@link #getAsJson(String, TypeReference)}
-     * @param key
-     * @param type
-     * @return
      */
     @Deprecated
     public Object getJsonObject(String key, Type type) {
@@ -339,8 +323,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Use the Jackson DAO mapper to serialize the object to JSON
-     * @param key
-     * @param value
      */
     public void setAsJson(String key, Object value) {
         try {
@@ -352,8 +334,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Useful for validating JSON system settings where the value could be a JsonNode (if from REST) or String (if importing system setting)
-     * @param value
-     * @return
      */
     public JsonNode readAsJson(Object value) {
         try {
@@ -371,9 +351,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Useful for validating JSON system settings where the value could be a JsonNode (if from REST) or String (if importing system setting)
-     * @param value
-     * @param clazz
-     * @return
      */
     public <T> T readAsJson(Object value, Class<T> clazz) {
         try {
@@ -399,10 +376,6 @@ public class SystemSettingsDao extends BaseDao {
      * <pre>
      * MyClass&lt;String&gt; result = readAsJson(value, new TypeReference&lt;MyClass&lt;String&gt;&gt;() {});
      * </pre>
-     *
-     * @param value
-     * @param typeReference
-     * @return
      */
     public <T> T readAsJson(Object value, TypeReference<T> typeReference) {
         try {
@@ -422,10 +395,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Useful for validating JSON system settings where the value could be a JsonNode (if from REST) or String (if importing system setting)
-     * @param value
-     * @param collectionClazz
-     * @param clazz
-     * @return
      */
     public <T> T readAsJsonCollection(Object value, @SuppressWarnings("rawtypes") Class<? extends Collection> collectionClazz, Class<?> clazz) {
         ObjectMapper mapper = this.mapper;
@@ -447,8 +416,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Retrieve the system setting as a JSON node using the Jackson DAO mapper
-     * @param key
-     * @return
      */
     public JsonNode getAsJson(String key) {
         String value = this.getValue(key);
@@ -460,9 +427,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Retrieve the system setting as a JSON node using the Jackson DAO mapper
-     * @param key
-     * @param clazz
-     * @return
      */
     public <T> T getAsJson(String key, Class<T> clazz) {
         String value = this.getValue(key);
@@ -474,9 +438,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Retrieve the system setting as a JSON node using the Jackson DAO mapper
-     * @param key
-     * @param typeReference
-     * @return
      */
     public <T> T getAsJson(String key, TypeReference<T> typeReference) {
         String value = this.getValue(key);
@@ -504,28 +465,25 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         // Update the database
-        final ExtendedJdbcTemplate ejt2 = ejt;
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                //There is potential deadlock in MySQL here, this avoids it
-                if(Common.databaseProxy.getType() == DatabaseType.MYSQL) {
-                    // Delete any existing value.
-                    if(value == null) {
-                        removeValue(key, false);
-                    }else {
-                        ejt2.update("insert into systemSettings values (?,?) on duplicate key update settingValue=?", new Object[] { key, value, value });
-                    }
-                }else {
-                    // Delete any existing value.
+        getTransactionTemplate().execute(status -> {
+            //There is potential deadlock in MySQL here, this avoids it
+            if (Common.databaseProxy.getType() == DatabaseType.MYSQL) {
+                // Delete any existing value.
+                if (value == null) {
                     removeValue(key, false);
+                } else {
+                    ejt.update("insert into systemSettings values (?,?) on duplicate key update settingValue=?", key, value, value);
+                }
+            } else {
+                // Delete any existing value.
+                removeValue(key, false);
 
-                    // Insert the new value if it's not null.
-                    if (value != null) {
-                        ejt2.update("insert into systemSettings values (?,?)", new Object[]{key, value});
-                    }
+                // Insert the new value if it's not null.
+                if (value != null) {
+                    ejt.update("insert into systemSettings values (?,?)", key, value);
                 }
             }
+            return null;
         });
 
         this.updateThreadPoolSettings(key, value);
@@ -538,8 +496,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * We would usually use a SystemSettingsListener for this but if the pools are full we may not be able to spawn a thread to update Common.backgroundProcessing
-     * @param key
-     * @param value
      */
     private void updateThreadPoolSettings(String key, String value) {
         switch (key) {
@@ -568,8 +524,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * This method uses Serotonin JSON serialization. Prefer {@link #setAsJson(String, Object)}
-     * @param key
-     * @param value
      */
     @Deprecated
     public void setJsonObjectValue(String key, Object value) {
@@ -583,7 +537,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Remove the value from system settings, this will result in the default being used if there is one
-     * @param key
      */
     public void removeValue(String key) {
         removeValue(key, true);
@@ -591,8 +544,6 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Remove the value and optionally fire events
-     * @param key
-     * @param fireEvents
      */
     private void removeValue(String key, boolean fireEvents) {
         // Remove the value from the cache
@@ -603,7 +554,7 @@ public class SystemSettingsDao extends BaseDao {
             FUTURE_DATE_LIMIT = -1;
         }
 
-        ejt.update("delete from systemSettings where settingName=?", new Object[] { key });
+        ejt.update("delete from systemSettings where settingName=?", key);
 
         if(fireEvents) {
             //Fire the event
@@ -772,12 +723,11 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         //Module Defaults
-        Map<String,Object> modDefaults = null;
+        Map<String,Object> modDefaults;
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
             modDefaults = def.getDefaultValues();
             if(modDefaults != null)
                 DEFAULT_VALUES.putAll(modDefaults);
-            modDefaults = null;
         }
 
         DEFAULT_VALUES.put(PASSWORD_UPPER_CASE_COUNT, 0);
@@ -793,9 +743,6 @@ public class SystemSettingsDao extends BaseDao {
      * Save values to the table by replacing old values and inserting new ones
      * caution, there is no checking on quality of the values being saved use
      * validate() first.
-     *
-     * @param settings
-     * @throws JsonProcessingException
      */
     public void updateSettings(Map<String, Object> settings) {
         for (Entry<String, Object> entry : settings.entrySet()) {
@@ -829,16 +776,11 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     /**
-     *
      * Validate the system settings passed in, only validating settings that exist in the map.
-     *
-     * @param settings
-     * @param response
-     * @param user
      */
     public void validate(Map<String, Object> settings, ProcessResult response, PermissionHolder user) {
 
-        Object setting = null;
+        Object setting;
 
         try{
             setting = settings.get(EMAIL_CONTENT_TYPE);
@@ -939,7 +881,7 @@ public class SystemSettingsDao extends BaseDao {
                 if(setting instanceof Number)
                     settingValue = ((Number)setting).intValue();
                 else
-                    settingValue = Integer.valueOf((String)setting);
+                    settingValue = Integer.parseInt((String)setting);
                 if(settingValue <= 0)
                     response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.greaterThanZero");
             }
@@ -994,30 +936,26 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         //Validate the Hour and Minute
-        Integer backupHour = getIntValue(BACKUP_HOUR, settings);
-        if(backupHour != null)
-            if((backupHour > 23)||(backupHour<0)){
-                response.addContextualMessage(BACKUP_HOUR,
-                        "systemSettings.validation.backupHourInvalid");
-            }
+        int backupHour = getIntValue(BACKUP_HOUR, settings);
+        if((backupHour > 23)||(backupHour<0)){
+            response.addContextualMessage(BACKUP_HOUR,
+                    "systemSettings.validation.backupHourInvalid");
+        }
 
-        Integer backupMinute = getIntValue(BACKUP_MINUTE, settings);
-        if(backupMinute != null)
-            if((backupMinute > 59)||(backupMinute<0)){
-                response.addContextualMessage(BACKUP_MINUTE,
-                        "systemSettings.validation.backupMinuteInvalid");
-            }
+        int backupMinute = getIntValue(BACKUP_MINUTE, settings);
+        if((backupMinute > 59)||(backupMinute<0)){
+            response.addContextualMessage(BACKUP_MINUTE,
+                    "systemSettings.validation.backupMinuteInvalid");
+        }
 
         validatePeriodType(BACKUP_PERIOD_TYPE, settings, response);
 
         //Validate the number of backups to keep
-        Integer backupFileCount = getIntValue(BACKUP_FILE_COUNT, settings);
-        if(backupFileCount != null)
-            if(backupFileCount < 1){
-                response.addContextualMessage(BACKUP_FILE_COUNT,
-                        "systemSettings.validation.backupFileCountInvalid");
-            }
-
+        int backupFileCount = getIntValue(BACKUP_FILE_COUNT, settings);
+        if(backupFileCount < 1){
+            response.addContextualMessage(BACKUP_FILE_COUNT,
+                    "systemSettings.validation.backupFileCountInvalid");
+        }
 
         //Validate
         setting = settings.get(DATABASE_BACKUP_FILE_LOCATION);
@@ -1035,43 +973,40 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         //Validate the Hour and Minute
-        Integer databaseBackupHour = getIntValue(DATABASE_BACKUP_HOUR, settings);
-        if(databaseBackupHour != null)
-            if((databaseBackupHour > 23)||(databaseBackupHour<0)){
-                response.addContextualMessage(DATABASE_BACKUP_HOUR,
-                        "systemSettings.validation.databaseBackupHourInvalid");
-            }
+        int databaseBackupHour = getIntValue(DATABASE_BACKUP_HOUR, settings);
+        if((databaseBackupHour > 23)||(databaseBackupHour<0)){
+            response.addContextualMessage(DATABASE_BACKUP_HOUR,
+                    "systemSettings.validation.databaseBackupHourInvalid");
+        }
 
-        Integer databaseBackupMinute = getIntValue(DATABASE_BACKUP_MINUTE, settings);
-        if(databaseBackupMinute != null)
-            if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
-                response.addContextualMessage(DATABASE_BACKUP_MINUTE,
-                        "systemSettings.validation.databaseBackupMinuteInvalid");
-            }
+        int databaseBackupMinute = getIntValue(DATABASE_BACKUP_MINUTE, settings);
+        if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
+            response.addContextualMessage(DATABASE_BACKUP_MINUTE,
+                    "systemSettings.validation.databaseBackupMinuteInvalid");
+        }
 
         validatePeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings, response);
 
         //Validate the number of backups to keep
-        Integer databaseBackupFileCount = getIntValue(DATABASE_BACKUP_FILE_COUNT, settings);
-        if(databaseBackupFileCount != null)
-            if(databaseBackupFileCount < 1){
-                response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
-                        "systemSettings.validation.databaseBackupFileCountInvalid");
-            }
+        int databaseBackupFileCount = getIntValue(DATABASE_BACKUP_FILE_COUNT, settings);
+        if(databaseBackupFileCount < 1){
+            response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
+                    "systemSettings.validation.databaseBackupFileCountInvalid");
+        }
 
         //Thread Pool Sizes
-        Integer corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
-        Integer maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
+        int corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
+        int maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
 
-        if((corePoolSize != null)&&(corePoolSize < 0)){
+        if(corePoolSize < 0){
             response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", 0);
         }
 
-        if((maxPoolSize != null)&&(maxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN)){
+        if(maxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN){
             response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
         }
 
-        if((maxPoolSize != null)&&(maxPoolSize < corePoolSize)){
+        if(maxPoolSize < corePoolSize){
             response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }
 
@@ -1139,15 +1074,13 @@ public class SystemSettingsDao extends BaseDao {
             validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), settings, response);
 
         validatePeriodType(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS);
-        Integer timeoutPeriods = getIntValue(HTTP_SESSION_TIMEOUT_PERIODS, settings);
-        if(timeoutPeriods != null) {
-            if(timeoutPeriods < 1)
-                response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
-        }
+        int timeoutPeriods = getIntValue(HTTP_SESSION_TIMEOUT_PERIODS, settings);
+        if(timeoutPeriods < 1)
+            response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
 
         validatePeriodType(PASSWORD_EXPIRATION_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.SECONDS);
-        Integer passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);
-        if(passwordExpirationPeriods != null && passwordExpirationPeriods < 1)
+        int passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);
+        if(passwordExpirationPeriods < 1)
             response.addContextualMessage(PASSWORD_EXPIRATION_PERIODS, "validate.greaterThanZero");
 
         setting = settings.get(LICENSE_AGREEMENT_VERSION);
@@ -1164,8 +1097,8 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         //Validate password settings
-        Integer passwordLengthMin = getIntValue(PASSWORD_LENGTH_MIN, settings);
-        Integer passwordLengthMax = getIntValue(PASSWORD_LENGTH_MAX, settings);
+        int passwordLengthMin = getIntValue(PASSWORD_LENGTH_MIN, settings);
+        int passwordLengthMax = getIntValue(PASSWORD_LENGTH_MAX, settings);
         if(passwordLengthMin > 255) {
             response.addContextualMessage(PASSWORD_LENGTH_MIN, "validate.lessThanOrEqualTo", 255);
         }
@@ -1183,7 +1116,7 @@ public class SystemSettingsDao extends BaseDao {
             response.addContextualMessage(PASSWORD_LENGTH_MIN, "validate.lessThanOrEqualTo", passwordLengthMax);
         }
 
-        Integer passwordSetting = getIntValue(PASSWORD_UPPER_CASE_COUNT, settings);
+        int passwordSetting = getIntValue(PASSWORD_UPPER_CASE_COUNT, settings);
         if(passwordSetting != 0) {
             if (passwordSetting < 0) {
                 response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.greaterThanOrEqualTo", 0);
@@ -1217,12 +1150,6 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
 
-    /**
-     *
-     * @param key
-     * @param settings
-     * @param response
-     */
     private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
         validatePeriodType(key, settings, response, null);
     }
@@ -1301,7 +1228,6 @@ public class SystemSettingsDao extends BaseDao {
      *
      * @param key - Setting key
      * @param code - String code
-     * @return
      */
     public Integer convertToValueFromCode(String key, String code) {
         switch(key){
@@ -1332,11 +1258,11 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         //Is it an alarm level?
-        if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
+        if(key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX))
             return AlarmLevels.fromName(code).value();
 
         //Now try the SystemSettingsDefinitions
-        Integer value = null;
+        Integer value;
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
             value = def.convertToValueFromCode(key, code);
             if(value != null)
@@ -1381,11 +1307,11 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         //Check if it's an alarm level setting...
-        if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
+        if(key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX))
             return AlarmLevels.fromValue(value).name();
 
         //Now try the SystemSettingsDefinitions
-        String code = null;
+        String code;
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
             code = def.convertToCodeFromValue(key, value);
             if(code != null)
@@ -1396,11 +1322,9 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Make a copy of the map and convert any Export codes into their values
-     * @param settings
-     * @return
      */
     public Map<String, Object> convertCodesToValues(Map<String, Object> settings) {
-        Map<String, Object> values = new HashMap<String,Object>(settings);
+        Map<String, Object> values = new HashMap<>(settings);
 
         values.replaceAll((key, value) -> {
             if (value instanceof String) {
@@ -1415,11 +1339,9 @@ public class SystemSettingsDao extends BaseDao {
 
     /**
      * Return all settings (if no setting is saved return default value) whilst converting to Export Codes where necessary
-     *
-     * @return
      */
     public Map<String, Object> getAllSystemSettingsAsCodes() {
-        Map<String, Object> settings = new HashMap<String,Object>(DEFAULT_VALUES.size());
+        Map<String, Object> settings = new HashMap<>(DEFAULT_VALUES.size());
 
         //Start with all the defaults
         Iterator<String> it = DEFAULT_VALUES.keySet().iterator();
@@ -1431,37 +1353,32 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         // Then replace anything with what is stored in the database
-        ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
-
-            @Override
-            public void processRow(ResultSet rs) throws SQLException {
-                String settingName = rs.getString(1);
-                // Don't export any passwords or schema numbers
-                if ((!settingName.toLowerCase().contains("password")
-                        && !settingName.startsWith(DATABASE_SCHEMA_VERSION))) {
-                    String settingValue = rs.getString(2);
-                    if (settingValue != null) {
-                        // Convert Numbers to Integers
-                        try {
-                            settings.put(settingName, Integer.parseInt(settingValue));
-                        } catch (NumberFormatException e) {
-                            // Are we a boolean
-                            if (settingValue.equalsIgnoreCase("y")) {
-                                settings.put(settingName, Boolean.valueOf(true));
-                            } else if (settingValue.equalsIgnoreCase("n")) {
-                                settings.put(settingName, Boolean.valueOf(false));
-                            } else {
-                                // Must be a string
-                                settings.put(settingName, settingValue);
-                            }
+        ejt.query("select settingName,settingValue from systemSettings", rs -> {
+            String settingName = rs.getString(1);
+            // Don't export any passwords or schema numbers
+            if ((!settingName.toLowerCase().contains("password")
+                    && !settingName.startsWith(DATABASE_SCHEMA_VERSION))) {
+                String settingValue = rs.getString(2);
+                if (settingValue != null) {
+                    // Convert Numbers to Integers
+                    try {
+                        settings.put(settingName, Integer.parseInt(settingValue));
+                    } catch (NumberFormatException e) {
+                        // Are we a boolean
+                        if (settingValue.equalsIgnoreCase("y")) {
+                            settings.put(settingName, Boolean.TRUE);
+                        } else if (settingValue.equalsIgnoreCase("n")) {
+                            settings.put(settingName, Boolean.FALSE);
+                        } else {
+                            // Must be a string
+                            settings.put(settingName, settingValue);
                         }
-                    }else {
-                        //If there is no default then set it to the null that was returned in the query
-                        //  this preserves the ability to save null settings values
-                        //  and also so that there is an indication that a null setting exists
-                        if(settings.get(settingName) == null)
-                            settings.put(settingName, null);
                     }
+                }else {
+                    //If there is no default then set it to the null that was returned in the query
+                    //  this preserves the ability to save null settings values
+                    //  and also so that there is an indication that a null setting exists
+                    settings.putIfAbsent(settingName, null);
                 }
             }
         });
