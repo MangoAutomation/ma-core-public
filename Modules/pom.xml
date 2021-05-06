@@ -298,13 +298,13 @@
         <dependency>
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
-            <version>${project.parent.version}</version>
+            <version>4.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <artifactId>mango</artifactId>
             <groupId>com.infiniteautomation</groupId>
-            <version>${project.parent.version}</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
