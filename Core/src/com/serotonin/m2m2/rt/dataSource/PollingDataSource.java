@@ -418,7 +418,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
                             break;
                     }
                 } catch (Exception e) {
-                    LOG.error("Failed to " + pending.operation + " point to list", e);
+                    LOG.error("Failed to " + pending.operation + " data point", e);
                 }
             }
         } finally {
