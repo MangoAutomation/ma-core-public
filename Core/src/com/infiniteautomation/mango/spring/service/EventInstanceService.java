@@ -3,6 +3,31 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.tables.Events;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventInstanceDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.permissions.EventsSuperadminViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.DataPointEventLevelSummary;
+import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.UserEventLevelSummary;
+import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.event.EventInstanceVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import net.jazdw.rql.parser.ASTNode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,32 +45,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
-
-import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.db.tables.Events;
-import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.EventInstanceDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.DataPointEventLevelSummary;
-import com.serotonin.m2m2.rt.event.EventInstance;
-import com.serotonin.m2m2.rt.event.UserEventLevelSummary;
-import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.event.EventInstanceVO;
-import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-
-import net.jazdw.rql.parser.ASTNode;
-
 /**
  * @author Terry Packer
  *
@@ -55,6 +54,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     private final DataPointDao dataPointDao;
     private final EventsViewPermissionDefinition eventsViewPermission;
+    private final EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission;
     /**
      * Lock used to protect access to acknowledging many events at once
      */
@@ -63,10 +63,12 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Autowired
     public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao,
-                                EventsViewPermissionDefinition eventsViewPermission) {
+                                EventsViewPermissionDefinition eventsViewPermission,
+                                EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
         super(dao, permissionService);
         this.dataPointDao = dataPointDao;
         this.eventsViewPermission = eventsViewPermission;
+        this.eventsSuperadminViewPermission = eventsSuperadminViewPermission;
     }
 
     @Override
@@ -81,7 +83,11 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, EventInstanceVO vo) {
-        return permissionService.hasPermission(user, vo.getReadPermission());
+        if (this.permissionService.hasPermission(user, eventsSuperadminViewPermission.getPermission())) {
+            return true;
+        } else {
+            return permissionService.hasPermission(user, vo.getReadPermission());
+        }
     }
 
     /**

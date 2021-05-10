@@ -4,36 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import org.jooq.Condition;
-import org.jooq.Field;
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Select;
-import org.jooq.SelectConnectByStep;
-import org.jooq.SelectJoinStep;
-import org.jooq.SelectLimitStep;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.stereotype.Repository;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
@@ -58,6 +28,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.permissions.EventsSuperadminViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
@@ -69,8 +40,36 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-
 import net.jazdw.rql.parser.ASTNode;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
+import org.jooq.SelectLimitStep;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.stereotype.Repository;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * This is used for querying events from the database
@@ -89,16 +88,19 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     private final UserCommentDao userCommentDao;
     private final Field<Integer> commentCount;
     private final DataPointTags dataPointTags;
+    private final EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission;
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
                              PermissionService permissionService,
                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                             ApplicationEventPublisher publisher, UserCommentDao userCommentDao) {
+                             ApplicationEventPublisher publisher, UserCommentDao userCommentDao,
+                             EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
         super(null, Events.EVENTS, null, mapper, publisher, permissionService);
         this.users = Users.USERS;
         this.dataPointTagsDao = dataPointTagsDao;
         this.userCommentDao = userCommentDao;
+        this.eventsSuperadminViewPermission = eventsSuperadminViewPermission;
 
         UserComments userComments = UserComments.USER_COMMENTS;
         this.commentCount = this.create.selectCount()
@@ -166,6 +168,15 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         }
 
         return select;
+    }
+
+    @Override
+    protected <R extends Record> SelectJoinStep<R> joinPermissionsOnField(SelectJoinStep<R> select, PermissionHolder user, Field<Integer> permissionIdField){
+        if (this.permissionService.hasPermission(user, eventsSuperadminViewPermission.getPermission())) {
+            return select;
+        } else {
+            return super.joinPermissionsOnField(select ,user ,permissionIdField);
+        }
     }
 
     @Override
