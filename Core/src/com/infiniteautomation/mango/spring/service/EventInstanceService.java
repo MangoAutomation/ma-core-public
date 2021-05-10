@@ -3,6 +3,27 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
+
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.Events;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -23,27 +44,8 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import net.jazdw.rql.parser.ASTNode;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -83,11 +85,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, EventInstanceVO vo) {
-        if (this.permissionService.hasPermission(user, eventsSuperadminViewPermission.getPermission())) {
-            return true;
-        } else {
-            return permissionService.hasPermission(user, vo.getReadPermission());
-        }
+        return this.permissionService.hasPermission(user, eventsSuperadminViewPermission.getPermission()) || permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
