@@ -101,16 +101,17 @@
 * Fix bug in InputStreamEPoll to contain a security context to check permissions during runtime
 * Fix data source event type to correctly supply Reference 2 Object
 * Changes below here added in 4.0.0-beta.12
-* Database upgrade to record date that module was installed/upgraded
+* Database schema upgrade v37 to v38 - add upgradedTimestamp column to installedModules table
 * Fix NPE in UserDao that prevented startup when user's last login date was null
 * Prevent Spring from prematurely calling close()
 * Twilio module removed from bundle zip
 * Change systemd service to start after mysql instead of mysqld
 * Changes below here added in 4.0.0-beta.13
+* Database schema upgrade v38 to v39 - add readPermissionId and editPermissionId column to user table
+* Database schema upgrade v39 to v40 - add buildTimestamp column to installedModules table
 * Upgrade JSSC Serial library to 2.9.2
 * Enforce 255 character limit for tag keys and values in validation
 * Remove custom el security expressions hasDataSourcePermission, hasDataSourceXidPermission, hasDataPointXidReadPermission, hasDataPointXidsReadPermission, hasDataPointXidsSetPermission
-* Database upgrade that adds buildTimestamp column to installedModules table
 * Modules now require a buildTimestamp property in their module.properties file
 * Added internal metric to track open file counts for the Mango process
 * Added internal metric to track virtual memory size for the Mango process
@@ -121,6 +122,12 @@
 * Added internal metric to track kernel cpu time by the Mango process
 * Added internal metric to track user cpu time by the Mango process
 * Added internal metric to track Resident Set (RSS) size for the Mango process
+* Improvements around thread safety of data source and data point lifecycle (starting, stopping etc)
+* Ensure that data source / data point events are cancelled consistently on termination
+* Add system permission that allows a user to view any event
+* Allow caching null results for system setting SQL queries
+* Add a view/edit permission on every user
+* Permissions on the system permissions page are now grouped into logical groups
 
 *Version 3.7.4*
 * Improve work item failure logging
