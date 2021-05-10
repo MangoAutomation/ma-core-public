@@ -217,7 +217,7 @@ public class SystemEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        return service.hasAdminRole(user);
+        return service.hasAdminRole(user) || service.hasEventsSuperadminViewPermission(user);
     }
 
     @Override

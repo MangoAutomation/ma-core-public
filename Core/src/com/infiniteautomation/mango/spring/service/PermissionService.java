@@ -34,8 +34,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.EventsSuperadminViewPermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.OwnedResource;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -53,9 +52,8 @@ public class PermissionService implements CachingService {
     private final RoleDao roleDao;
     private final PermissionDao permissionDao;
 
-    private final DataSourcePermissionDefinition dataSourcePermission;
+    private final EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermissionDefinition;
     private final PermissionHolder systemSuperadmin;
-    private final EventsViewPermissionDefinition eventsViewPermission;
 
     //Cache of role xid to inheritance
     private final LoadingCache<String, RoleInheritance> roleHierarchyCache;
@@ -66,18 +64,15 @@ public class PermissionService implements CachingService {
 
     @Autowired
     public PermissionService(RoleDao roleDao,
-            PermissionDao permissionDao,
-            @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-    PermissionHolder systemSuperadmin,
-    DataSourcePermissionDefinition dataSourcePermission,
-    EventsViewPermissionDefinition eventsView,
+                             PermissionDao permissionDao,
+                             EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermissionDefinition,
+                             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
+                                         PermissionHolder systemSuperadmin,
                              Environment env) {
         this.roleDao = roleDao;
         this.permissionDao = permissionDao;
-
-        this.dataSourcePermission = dataSourcePermission;
+        this.eventsSuperadminViewPermissionDefinition = eventsSuperadminViewPermissionDefinition;
         this.systemSuperadmin = systemSuperadmin;
-        this.eventsViewPermission = eventsView;
         this.roleHierarchyCache = Caffeine.newBuilder()
                 .maximumSize(env.getProperty("cache.roles.size", Long.class, 1000L))
                 .build(this::loadRoleInheritance);
@@ -708,6 +703,14 @@ public class PermissionService implements CachingService {
         if (!hasAccessToResource(holder, resource)) {
             throw new PermissionException(new TranslatableMessage("permission.exception.userDoesNotOwnResource", holder.getPermissionHolderName()), holder);
         }
+    }
+
+    /**
+     * TODO Mango 4.0 temporary fix to requiring this in all EventType.hasPermission() methods
+     * @return
+     */
+    public boolean hasEventsSuperadminViewPermission(PermissionHolder holder) {
+        return hasPermission(holder, this.eventsSuperadminViewPermissionDefinition.getPermission());
     }
 
     private static final class RoleInheritance {

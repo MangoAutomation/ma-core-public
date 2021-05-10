@@ -150,7 +150,7 @@ public class DataSourceEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        return service.hasDataSourceReadPermission(user, dataSourceId);
+        return service.hasEventsSuperadminViewPermission(user) || service.hasDataSourceReadPermission(user, dataSourceId);
     }
 
     @Override

@@ -172,7 +172,7 @@ public class DataPointEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        return service.hasPermission(user, this.readPermission.get());
+        return service.hasEventsSuperadminViewPermission(user) || service.hasPermission(user, this.readPermission.get());
     }
 
     @Override

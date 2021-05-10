@@ -230,7 +230,7 @@ public class AuditEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        return service.hasAdminRole(user);
+        return service.hasEventsSuperadminViewPermission(user) || service.hasAdminRole(user);
     }
 
     @Override
