@@ -33,6 +33,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.permissions.EventsSuperadminViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.DataPointEventLevelSummary;
@@ -55,6 +56,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     private final DataPointDao dataPointDao;
     private final EventsViewPermissionDefinition eventsViewPermission;
+    private final EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission;
     /**
      * Lock used to protect access to acknowledging many events at once
      */
@@ -63,10 +65,12 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Autowired
     public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao,
-                                EventsViewPermissionDefinition eventsViewPermission) {
+                                EventsViewPermissionDefinition eventsViewPermission,
+                                EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
         super(dao, permissionService);
         this.dataPointDao = dataPointDao;
         this.eventsViewPermission = eventsViewPermission;
+        this.eventsSuperadminViewPermission = eventsSuperadminViewPermission;
     }
 
     @Override
@@ -81,7 +85,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, EventInstanceVO vo) {
-        return permissionService.hasPermission(user, vo.getReadPermission());
+        return this.permissionService.hasPermission(user, eventsSuperadminViewPermission.getPermission()) || permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**

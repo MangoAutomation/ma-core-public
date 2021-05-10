@@ -58,6 +58,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.permissions.EventsSuperadminViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
@@ -89,16 +90,19 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     private final UserCommentDao userCommentDao;
     private final Field<Integer> commentCount;
     private final DataPointTags dataPointTags;
+    private final EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission;
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
                              PermissionService permissionService,
                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                             ApplicationEventPublisher publisher, UserCommentDao userCommentDao) {
+                             ApplicationEventPublisher publisher, UserCommentDao userCommentDao,
+                             EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
         super(null, Events.EVENTS, null, mapper, publisher, permissionService);
         this.users = Users.USERS;
         this.dataPointTagsDao = dataPointTagsDao;
         this.userCommentDao = userCommentDao;
+        this.eventsSuperadminViewPermission = eventsSuperadminViewPermission;
 
         UserComments userComments = UserComments.USER_COMMENTS;
         this.commentCount = this.create.selectCount()
@@ -166,6 +170,15 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         }
 
         return select;
+    }
+
+    @Override
+    protected <R extends Record> SelectJoinStep<R> joinPermissionsOnField(SelectJoinStep<R> select, PermissionHolder user, Field<Integer> permissionIdField){
+        if (this.permissionService.hasPermission(user, eventsSuperadminViewPermission.getPermission())) {
+            return select;
+        } else {
+            return super.joinPermissionsOnField(select ,user ,permissionIdField);
+        }
     }
 
     @Override
