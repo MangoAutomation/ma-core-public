@@ -126,7 +126,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             if(level == AlarmLevels.IGNORE) {
                 continue;
             }
-            summaries.put(level, new UserEventLevelSummary(level));
+            int count = dao.countUnacknowledgedAlarms(level, user);
+            EventInstanceVO latest = dao.getLatestUnacknowledgedAlarm(level, user);
+            summaries.put(level, new UserEventLevelSummary(level, count));
         }
 
         ConditionSortLimit conditions = new ConditionSortLimit(events.ackTs.isNull(), null, null, null);

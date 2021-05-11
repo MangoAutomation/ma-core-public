@@ -20,10 +20,14 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConnectByStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
+import org.jooq.SelectSelectStep;
+import org.jooq.SortField;
+import org.jooq.SortOrder;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -305,16 +309,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                 break;
         }
         return type;
-    }
-
-    /**
-     *
-     * @param userId
-     * @param level
-     * @return
-     */
-    public int countUnsilencedEvents(int userId, AlarmLevels level) {
-        return ejt.queryForInt(getCountQuery().getSQL() + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level.value() }, 0);
     }
 
     @Override
@@ -641,5 +635,37 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
             }
             return offsetStep;
         }
+    }
+
+    /**
+     * Count all unacknowledged alarms at this level
+     * @param level
+     * @param user
+     * @return
+     */
+    public int countUnacknowledgedAlarms(AlarmLevels level, PermissionHolder user) {
+        SelectSelectStep<Record1<Integer>> count = getCountQuery();
+        SelectJoinStep<Record1<Integer>> select = count.from(table);
+        select = joinPermissions(select, user);
+        Condition condition = table.ackTs.isNull().and(table.alarmLevel.eq(level.value()));
+
+        return customizedCount(select, condition);
+    }
+
+    /**
+     * Get the latest unacknowledged alarm at this level
+     * @param level
+     * @param user
+     * @return
+     */
+    public EventInstanceVO getLatestUnacknowledgedAlarm(AlarmLevels level, PermissionHolder user) {
+        SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
+        //We don't care about the conditions for the joins in this query
+        select = joinTables(select, null);
+        select = joinPermissions(select, user);
+        Condition condition = table.ackTs.isNull().and(table.alarmLevel.eq(level.value()));
+        SelectConnectByStep<Record> afterWhere = select.where(condition);
+        SortField<Long> orderBy = table.activeTs.sort(SortOrder.DESC);
+        return afterWhere.orderBy(orderBy).limit(1).fetchOne(this::mapRecordLoadRelationalData);
     }
 }

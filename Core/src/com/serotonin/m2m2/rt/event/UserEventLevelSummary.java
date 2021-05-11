@@ -20,6 +20,11 @@ public class UserEventLevelSummary {
     public UserEventLevelSummary(AlarmLevels alarmLevel) {
         this.alarmLevel = alarmLevel;
     }
+
+    public UserEventLevelSummary(AlarmLevels alarmLevel, int count) {
+        this.alarmLevel = alarmLevel;
+        this.count = count;
+    }
     /**
      * @return the alarmLevel
      */
