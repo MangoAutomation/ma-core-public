@@ -1,27 +1,33 @@
 -==@**** Welcome ****@==-
 
-Congratulations for downloading Mango Automation! For thorough help installing and running Mango, see our article on installation in our documentation: http://help.infiniteautomation.com and feel free to post requests for help on our forum, http://infiniteautomation.com/forum/
+Congratulations on downloading Mango Automation! For thorough help installing and running Mango, see our article on installation in our documentation: https://docs-v4.mango-os.com/ and feel free to post requests for help on our forum, http://infiniteautomation.com/forum/
 
 Here are some tips to get you up and running as fast as possible:
 
 -==@**** Installation ****@==-
 
-Mango requires at least Java JDK 1.8 (also known as JDK 8) to already have been installed on your system. Infinite Automation recommends using the Oracle JDK 8. 
+Mango requires at least Java JDK 11 to already have been installed on your system. Infinite Automation recommends using OpenJDK 11. 
 You may need to set a JAVA_HOME environmental variable pointing to your JDK folder. You may also need to add the JDK's bin/ directory to the PATH environment variable.
+A full tutorial on installing OpenJDK can be found here: https://docs-v4.mango-os.com/installing-java
 
 1. Unzip the Mango zip file into any directory you like (which we'll call MA_HOME).  
 2. *nix (Linux, Unix) you may have to run "chmod +x MA_HOME/bin/*.sh" to make the script executable. *nix users almost must ensure that the Mango home directory and all subdirectories are writable by the user which runs Mango.
 
+
+
 -==@**** Startup ****@==-
 
-1. To start on *nix systems, navigate (cd) to the MA_HOME/bin/ directory. Then type "./ma.sh start" to start or "./ma.sh stop"
-2. To start on Windows systems, navigate to the MA_HOME\bin\ directory and double click ma-start.bat or type "ma-start.bat" into your command prompt.
+1. To start on *nix systems, navigate (cd) to the MA_HOME/bin/ directory. Then type "./mango-start.sh" to start or "./mango-stop.sh"
+2. To start on Windows systems, navigate to the MA_HOME\bin\ directory and double click ma-start.bat or type "mango.cmd" into your command prompt.
 3. Be sure to make sure your Mango is up to date by using the 'Check for Upgrades' button on the Modules page, within the Mango interface.
 
 -==@**** Troubleshooting ****@==-
 
-1. Make sure you have Java JDK 1.8 installed and on the PATH. You can test this by typing "java -version" into your shell or command prompt.
+1. Make sure you have Java JDK 11 installed and on the PATH. You can test this by typing "java -version" into your shell or command prompt.
 2. JAVA_HOME is set to the Java JDK install directory.  On windows usually: C:\Program Files\Java\jdk1.X.0_XX
-3. Nothing else is using tcp/udp port 8080, or change Mango to run on a different port.  See the MA_HOME/classes/env.properties file to set the new port number, and read the instructions on how to use the overrides directory to keep your env.properties persisting.
+3. Nothing else is using tcp/udp port 8080, or modify Mango to run on a different port:  
 
-If you still have trouble and you notice that console window briefly pop up and quickly close: open a command prompt and run mango from there. This will keep the error in view.  Make a post in this forum with the results of the script and we will help you diagnose the issue.
+See the MA_HOME/env.properties file to set the new port number, and read the instructions on how to use the overrides directory to keep your env.properties persisting.
+
+If you still have trouble and you notice that the console window briefly pops up and quickly closes: open command prompt and run mango from there. This will keep the error
+in view.  Post the results of the script in this forum (http://infiniteautomation.com/forum/) and we will help you diagnose the issue.
