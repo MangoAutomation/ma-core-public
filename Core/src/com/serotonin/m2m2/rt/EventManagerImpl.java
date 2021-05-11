@@ -5,11 +5,13 @@
 package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -28,7 +30,6 @@ import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
@@ -174,8 +175,10 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        if (autoAckMessage == null)
-            setHandlers(evt);
+        if (autoAckMessage == null) {
+            List<EventHandlerRT<?>> handlers = getHandlersForType(evt.getEventType());
+            evt.setHandlers(handlers);
+        }
 
         // Get id from database by inserting event immediately.
         //Check to see if we are Not Logging these
@@ -966,23 +969,27 @@ public class EventManagerImpl implements EventManager {
         return null;
     }
 
-    private void setHandlers(EventInstance evt) {
-        List<AbstractEventHandlerVO> vos = eventHandlerDao.getEventHandlers(evt.getEventType());
-        List<EventHandlerRT<?>> rts = null;
-        for (AbstractEventHandlerVO vo : vos) {
-            if (!vo.isDisabled()) {
-                if (rts == null)
-                    rts = new ArrayList<>();
-                try {
-                    EventHandlerDefinition<AbstractEventHandlerVO> definition = vo.getDefinition();
-                    rts.add(definition.createRuntime(vo));
-                } catch (Exception e) {
-                    log.error("Error creating event handler runtime", e);
-                }
-            }
+    private List<EventHandlerRT<?>> getHandlersForType(EventType type) {
+        List<AbstractEventHandlerVO> vos = eventHandlerDao.getEventHandlers(type);
+
+        if (vos.isEmpty()) {
+            return Collections.emptyList();
         }
-        if (rts != null)
-            evt.setHandlers(rts);
+
+        List<EventHandlerRT<?>> rts = vos.stream()
+                .filter(vo -> !vo.isDisabled())
+                .map(vo -> {
+                    try {
+                        return vo.getDefinition().createRuntime(vo);
+                    } catch (Exception e) {
+                        log.error("Error creating event handler runtime", e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return Collections.unmodifiableList(rts);
     }
 
     /**
@@ -994,20 +1001,18 @@ public class EventManagerImpl implements EventManager {
      * which is configured on each user or on a mailing list
      */
     private void handleRaiseEvent(EventInstance evt, Set<String> defaultAddresses) {
-        if (evt.getHandlers() != null) {
-            for (EventHandlerRT<?> h : evt.getHandlers()) {
-                h.eventRaised(evt);
+        for (EventHandlerRT<?> h : evt.getHandlers()) {
+            h.eventRaised(evt);
 
-                // If this is an email handler, remove any addresses to which it
-                // was sent from the default addresses
-                // so that the default users do not receive multiple
-                // notifications.
-                if (h instanceof EmailHandlerRT) {
-                    EmailHandlerRT eh = (EmailHandlerRT)h;
-                    if(eh.getActiveRecipients() != null) {
-                        for (String addr : eh.getActiveRecipients())
-                            defaultAddresses.remove(addr);
-                    }
+            // If this is an email handler, remove any addresses to which it
+            // was sent from the default addresses
+            // so that the default users do not receive multiple
+            // notifications.
+            if (h instanceof EmailHandlerRT) {
+                EmailHandlerRT eh = (EmailHandlerRT)h;
+                if(eh.getActiveRecipients() != null) {
+                    for (String addr : eh.getActiveRecipients())
+                        defaultAddresses.remove(addr);
                 }
             }
         }
@@ -1019,12 +1024,10 @@ public class EventManagerImpl implements EventManager {
     }
 
     private void handleInactiveEvent(EventInstance evt) {
-        if (evt.getHandlers() != null) {
-            for (EventHandlerRT<?> h : evt.getHandlers())
-                h.eventInactive(evt);
+        for (EventHandlerRT<?> h : evt.getHandlers()) {
+            h.eventInactive(evt);
         }
     }
-
 
     class EventNotifyWorkItem implements WorkItem {
         private static final String prefix = "EVENT_EVENT_NOTIFY-";

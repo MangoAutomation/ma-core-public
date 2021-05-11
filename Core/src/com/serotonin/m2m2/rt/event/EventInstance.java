@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.LazyField;
@@ -75,7 +77,7 @@ public class EventInstance implements EventInstanceI {
      */
     private List<UserCommentVO> eventComments = Collections.emptyList();
 
-    private List<EventHandlerRT<?>> handlers;
+    private List<EventHandlerRT<?>> handlers = Collections.emptyList();
 
     private Long acknowledgedTimestamp;
     private Integer acknowledgedByUserId;
@@ -232,12 +234,13 @@ public class EventInstance implements EventInstanceI {
         return rtnCause;
     }
 
+    @NonNull
     public List<EventHandlerRT<?>> getHandlers() {
         return handlers;
     }
 
-    public void setHandlers(List<EventHandlerRT<?>> handlers) {
-        this.handlers = handlers;
+    public void setHandlers(@NonNull List<EventHandlerRT<?>> handlers) {
+        this.handlers = Objects.requireNonNull(handlers);
     }
 
     @Override
