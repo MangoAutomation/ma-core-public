@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.upgrade;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -201,4 +202,19 @@ public interface PermissionMigration {
         return new MangoPermission(minterms);
     }
 
+    /**
+     * Convert an array of minterms (array of role xids) to an unsaved Mango permission.
+     * The roles contained within the permission may not exist and will have an id of -1.
+     * Used when deserializing an object from a data column in the database.
+     *
+     * @param permissionArray array of minterms
+     * @return an unsaved mango permission without
+     */
+    static MangoPermission fromArray(String[][] permissionArray) {
+        Set<Set<Role>> minterms = Arrays.stream(permissionArray).map(mt -> Arrays.stream(mt)
+                .map(xid -> new Role(Common.NEW_ID, xid))
+                .collect(Collectors.toSet())
+        ).collect(Collectors.toSet());
+        return new MangoPermission(minterms);
+    }
 }
