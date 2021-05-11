@@ -310,6 +310,25 @@ public class PermissionService implements CachingService {
     }
 
     /**
+     * Loads the roles by their XIDs and returns a new permission without any missing roles (they are silently dropped).
+     * Used when deserializing a permission from a data column. The returned permission is unsaved and will have
+     * an id of -1.
+     *
+     * @param permission a permission with roles that potentially dont exist
+     * @return an unsaved permission with roles loaded
+     */
+    public MangoPermission loadRoles(MangoPermission permission) {
+        Set<Set<Role>> minterms = permission.getRoles().stream()
+                .map(mt -> mt.stream()
+                        .map(r -> getRole(r.getXid()))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()))
+                .filter(mt -> !mt.isEmpty())
+                .collect(Collectors.toSet());
+        return new MangoPermission(minterms);
+    }
+
+    /**
      * Get a set of this role and all roles that inherit this role
      * @param roleXid
      * @return

@@ -15,6 +15,8 @@ import java.util.function.Function;
 import javax.script.ScriptEngineManager;
 import javax.sql.DataSource;
 
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -351,6 +353,11 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     @Bean
     public org.jooq.Configuration jooqConfiguration(DatabaseProxy proxy) {
         return proxy.getConfig();
+    }
+
+    @Bean
+    public DSLContext jooqContext(org.jooq.Configuration configuration) {
+        return DSL.using(configuration);
     }
 
     @Override

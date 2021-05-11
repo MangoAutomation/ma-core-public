@@ -4,10 +4,12 @@
 
 package com.serotonin.m2m2.module;
 
-import com.github.zafarkhaja.semver.Version;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import com.github.zafarkhaja.semver.Version;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 /**
  * Define upgrade actions that depend on upgrading to a specific version.  If
@@ -20,8 +22,12 @@ public abstract class UpgradeDefinition extends ModuleElementDefinition {
 
     @Autowired
     protected ExtendedJdbcTemplate ejt;
+
     @Autowired
     protected PlatformTransactionManager txManager;
+
+    @Autowired
+    protected DSLContext context;
 
     /**
      * Called after database is initialized, used to do any database related

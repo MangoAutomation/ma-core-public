@@ -66,6 +66,16 @@ public final class MangoPermission {
         this(null, minterms);
     }
 
+    /**
+     * Used when serializing a permission to store in a data column in the database.
+     * @return array of minterms (array of role xids)
+     */
+    public String[][] toArray() {
+        return roles.stream()
+                .map(mt -> mt.stream().map(Role::getXid).toArray(String[]::new))
+                .toArray(String[][]::new);
+    }
+
     // TODO Mango 4.0 review the usage of this constructor and make it private
     public MangoPermission(Integer id, Set<Set<Role>> minterms) {
         this.id = id;
