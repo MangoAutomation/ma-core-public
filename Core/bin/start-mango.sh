@@ -61,7 +61,6 @@ for f in "$MA_HOME"/m2m2-core-*.zip; do
 	    rm "$f"
 
 		chmod +x "$MA_HOME"/bin/*.sh
-		chmod +x "$MA_HOME"/bin/ext-available/*.sh
 	fi
 done
 
