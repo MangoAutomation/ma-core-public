@@ -104,7 +104,7 @@
 * Database schema upgrade v37 to v38 - add upgradedTimestamp column to installedModules table
 * Fix NPE in UserDao that prevented startup when user's last login date was null
 * Prevent Spring from prematurely calling close()
-* Twilio module removed from bundle zip
+* Twilio module removed.  Mango will not start if a previous version 4 of this module is installed so remove this module before upgrading.
 * Change systemd service to start after mysql instead of mysqld
 * Changes below here added in 4.0.0-beta.13
 * Database schema upgrade v38 to v39 - add readPermissionId and editPermissionId column to user table
