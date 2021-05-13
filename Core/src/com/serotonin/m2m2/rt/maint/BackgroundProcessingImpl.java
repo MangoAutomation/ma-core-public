@@ -375,7 +375,15 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         state = ILifecycleState.TERMINATING;
 
         // Close the executor services.
-        if(highPriorityService != null){
+        if(lowPriorityService != null) {
+            lowPriorityService.shutdown();
+        }
+
+        if(mediumPriorityService != null) {
+            mediumPriorityService.shutdown();
+        }
+
+        if(highPriorityService != null) {
             //Terminate the RealTimeTimer
             if (Common.timer.isInitialized()) {
                 List<TimerTask> tasks = Common.timer.cancel();
@@ -384,10 +392,6 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             }
             highPriorityService.shutdown();
         }
-        if(mediumPriorityService != null)
-            mediumPriorityService.shutdown();
-        if(lowPriorityService != null)
-            lowPriorityService.shutdown();
     }
 
     @Override
@@ -403,31 +407,36 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             // this thread will wait a maximum of 6 minutes.
             int rewaits = Common.envProps.getInt("runtime.shutdown.medLowTimeout", 60);
             while (rewaits > 0) {
-                if (!medDone && mediumPriorityService.awaitTermination(1, TimeUnit.SECONDS))
-                    medDone = true;
-                if (!lowDone && lowPriorityService.awaitTermination(1, TimeUnit.SECONDS))
+                if (!lowDone && lowPriorityService.awaitTermination(1, TimeUnit.SECONDS)) {
                     lowDone = true;
+                }
 
-                if (lowDone && medDone)
+                if (!medDone && mediumPriorityService.awaitTermination(1, TimeUnit.SECONDS)) {
+                    medDone = true;
+                }
+
+                if (lowDone && medDone) {
                     break;
+                }
 
-                if ((!lowDone && !medDone)&&(rewaits % 5 == 0))
+                if ((!lowDone && !medDone)&&(rewaits % 5 == 0)) {
                     log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + mediumPriorityService.getActiveCount() +
                             " active and " + mediumPriorityService.getQueue().size() + " queued medium priority tasks to complete.\n" +
                             "BackgroundProcessing waiting " + rewaits + " more seconds for " + lowPriorityService.getActiveCount() +
                             " active and " + lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
-                else if ((!medDone)&&(rewaits % 5 == 0))
-                    log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + mediumPriorityService.getActiveCount() +
-                            " active and " + mediumPriorityService.getQueue().size() + " queued medium priority tasks to complete.");
-                else if(rewaits % 5 == 0)
-                    log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + lowPriorityService.getActiveCount() +
-                            " active and " +lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
+                } else if ((!medDone) && (rewaits % 5 == 0)) {
+                        log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + mediumPriorityService.getActiveCount() +
+                                " active and " + mediumPriorityService.getQueue().size() + " queued medium priority tasks to complete.");
+                } else if(rewaits % 5 == 0) {
+                log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + lowPriorityService.getActiveCount() +
+                        " active and " + lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
+                }
                 rewaits--;
             }
 
             //Wait for the high tasks now
             rewaits = Common.envProps.getInt("runtime.shutdown.highTimeout", 60) - rewaits;
-            while(rewaits > 0){
+            while(rewaits > 0) {
                 if(highPriorityService.awaitTermination(1, TimeUnit.SECONDS))
                     break;
                 if(rewaits % 5 == 0)
@@ -437,22 +446,26 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
                 rewaits--;
             }
 
-            List<Runnable> highTasks = highPriorityService.shutdownNow();
-            if(highTasks.size() == 0)
-                log.info("All high priority tasks exited gracefully.");
-            else
-                log.info(highTasks.size() + " high priority tasks forcefully terminated.");
+            List<Runnable> lowTasks = lowPriorityService.shutdownNow();
+            if(lowTasks.size() == 0) {
+                log.info("All low priority tasks exited gracefully.");
+            } else {
+                log.info(lowTasks.size() + " low priority tasks forcefully terminated.");
+            }
 
             List<Runnable> medTasks = mediumPriorityService.shutdownNow();
-            if(medTasks.size() == 0)
+            if(medTasks.size() == 0) {
                 log.info("All medium priority tasks exited gracefully.");
-            else
+            } else {
                 log.info(medTasks.size() + " medium priority tasks forcefully terminated.");
-            List<Runnable> lowTasks = lowPriorityService.shutdownNow();
-            if(lowTasks.size() == 0)
-                log.info("All low priority tasks exited gracefully.");
-            else
-                log.info(lowTasks.size() + " low priority tasks forcefully terminated.");
+            }
+
+            List<Runnable> highTasks = highPriorityService.shutdownNow();
+            if(highTasks.size() == 0) {
+                log.info("All high priority tasks exited gracefully.");
+            } else {
+                log.info(highTasks.size() + " high priority tasks forcefully terminated.");
+            }
         }
         catch (InterruptedException e) {
             log.info("", e);
