@@ -17,6 +17,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
@@ -70,10 +71,10 @@ public class EventHandlerImporter extends Importer {
 
                 // Find the event type.
                 if (et != null) {
-                    eventTypes.add(ctx.getReader().read(EventTypeMatcher.class, et));
+                    eventTypes.add(new EventTypeMatcher(ctx.getReader().read(EventType.class, et)));
                 } else if (ets != null) {
                     for (JsonValue jsonValue : ets) {
-                        eventTypes.add(ctx.getReader().read(EventTypeMatcher.class, jsonValue));
+                        eventTypes.add(new EventTypeMatcher(ctx.getReader().read(EventType.class, jsonValue)));
                     }
                 }
 

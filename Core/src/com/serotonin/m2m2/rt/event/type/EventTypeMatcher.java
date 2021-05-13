@@ -19,7 +19,7 @@ public class EventTypeMatcher {
     }
 
     public EventTypeMatcher(@NonNull EventType other) {
-        this(other.getEventType(), other.getEventSubtype(), other.getReferenceId1(), other.getReferenceId2());
+        this(other.getEventType(), other.getEventSubtype() == null ? "" : other.getEventSubtype(), other.getReferenceId1(), other.getReferenceId2());
     }
 
     /**

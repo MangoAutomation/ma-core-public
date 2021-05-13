@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -22,7 +23,16 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
+import com.serotonin.m2m2.module.EventTypeDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.rt.event.type.DataPointEventType;
+import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
+import com.serotonin.m2m2.rt.event.type.MissingEventType;
+import com.serotonin.m2m2.rt.event.type.PublisherEventType;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 public abstract class AbstractEventHandlerVO extends AbstractVO {
@@ -158,7 +168,38 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
-        writer.writeEntry("eventTypes", this.eventTypes);
+
+        writer.writeEntry("eventTypes", this.eventTypes.stream()
+                .map(m -> createEventType(m.getEventType(), m.getEventSubtype(), m.getReferenceId1(), m.getReferenceId2()))
+                .collect(Collectors.toList()));
+    }
+
+    public EventType createEventType(String typeName, String subtypeName, Integer typeRef1, Integer typeRef2) {
+        switch (typeName) {
+            case EventType.EventTypeNames.DATA_POINT:
+                return new DataPointEventType(typeRef1, typeRef2);
+            case EventType.EventTypeNames.DATA_SOURCE:
+                return new DataSourceEventType(typeRef1, typeRef2);
+            case EventType.EventTypeNames.SYSTEM:
+                return new SystemEventType(subtypeName, typeRef1);
+            case EventType.EventTypeNames.PUBLISHER:
+                return new PublisherEventType(typeRef1, typeRef2);
+            case EventType.EventTypeNames.AUDIT:
+                return new AuditEventType(subtypeName, -1, typeRef1, null, typeRef2);
+            default:
+                EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
+                if (def == null) {
+                    //Create Missing Event Type
+                    return new MissingEventType(typeName, subtypeName, typeRef1, typeRef2);
+                } else {
+                    EventType type = def.createEventType(subtypeName, typeRef1, typeRef2);
+                    if (type == null) {
+                        //Create Missing Event type
+                        type = new MissingEventType(typeName, subtypeName, typeRef1, typeRef2);
+                    }
+                    return type;
+                }
+        }
     }
 
     @Override
