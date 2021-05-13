@@ -836,8 +836,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 terminate();
                 joinTermination();
             }catch(Exception e1) {
-                //We don't want to clobber the root cause here
-                e1.printStackTrace();
+                e.addSuppressed(e1);
             }
             throw e;
         }
