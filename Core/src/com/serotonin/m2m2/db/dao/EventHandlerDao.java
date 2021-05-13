@@ -7,6 +7,8 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.Types;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jooq.Record;
 import org.jooq.impl.DSL;
@@ -31,6 +33,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -132,19 +135,19 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         return handlers;
     }
 
-    private List<EventType> getEventTypesForHandler(int handlerId) {
-        return this.create.select(handlerMapping.fields()).
-                from(handlerMapping)
+    private List<EventTypeMatcher> getEventTypesForHandler(int handlerId) {
+        return this.create.select(handlerMapping.fields())
+                .from(handlerMapping)
                 .where(handlerMapping.eventHandlerId.equal(handlerId))
                 .fetch(this::mapEventType);
     }
 
-    private EventType mapEventType(Record record) {
+    private EventTypeMatcher mapEventType(Record record) {
         String typeName = record.get(handlerMapping.eventTypeName);
         String subtypeName = record.get(handlerMapping.eventSubtypeName);
         Integer typeRef1 = record.get(handlerMapping.eventTypeRef1);
         Integer typeRef2 = record.get(handlerMapping.eventTypeRef2);
-        return eventInstanceDao.createEventType(typeName, subtypeName, typeRef1, typeRef2);
+        return new EventTypeMatcher(typeName, subtypeName, typeRef1, typeRef2);
     }
 
     public List<String> getEventHandlerXids(EventType type) {
@@ -165,6 +168,19 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                 .fetch(this::mapRecord);
     }
 
+    public List<AbstractEventHandlerVO> enabledHandlersForType(String typeName, String subtypeName) {
+        try (Stream<Record> stream = getJoinedSelectQuery().innerJoin(handlerMapping).on(table.id.equal(handlerMapping.eventHandlerId))
+                .where(handlerMapping.eventTypeName.equal(typeName),
+                        handlerMapping.eventSubtypeName.equal(subtypeName == null ? "" : subtypeName))
+                .stream()) {
+
+            return stream.map(this::mapRecordLoadRelationalData)
+                    .filter(Objects::nonNull)
+                    .filter(AbstractEventHandlerVO::isEnabled) // cant add to SQL as its contained in serialized data
+                    .collect(Collectors.toList());
+        }
+    }
+
     @Override
     public void savePreRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
         MangoPermission readPermission = permissionService.findOrCreate(vo.getReadPermission());
@@ -179,30 +195,26 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     @Override
     public void saveRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
         if (existing == null) {
-            if(vo.getEventTypes() != null) {
-                for (EventType type : vo.getEventTypes()) {
-                    ejt.doInsert(
-                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                            new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                    type.getReferenceId1(), type.getReferenceId2()},
-                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                    Types.INTEGER});
-                }
+            for (EventTypeMatcher type : vo.getEventTypes()) {
+                ejt.doInsert(
+                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                        new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                type.getReferenceId1(), type.getReferenceId2()},
+                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                Types.INTEGER});
             }
             vo.getDefinition().saveRelationalData(existing, vo);
         } else {
             // Replace all mappings
             deleteEventHandlerMappings(vo.getId());
-            if(vo.getEventTypes() != null) {
-                for (EventType type : vo.getEventTypes()) {
-                    ejt.doInsert(
-                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                            new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                    type.getReferenceId1(), type.getReferenceId2()},
-                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                    Types.INTEGER});
+            for (EventTypeMatcher type : vo.getEventTypes()) {
+                ejt.doInsert(
+                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                        new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                type.getReferenceId1(), type.getReferenceId2()},
+                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                Types.INTEGER});
 
-                }
             }
             vo.getDefinition().saveRelationalData(existing, vo);
 

@@ -22,12 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
@@ -70,7 +70,7 @@ public class EventManagerImpl implements EventManager {
     private UserEventListener userEventMulticaster = null;
     private MailingListService mailingListService;
     private AuditEventDao auditEventDao;
-    private EventHandlerDao eventHandlerDao;
+    private EventHandlerService eventHandlerService;
     private PermissionService permissionService;
 
     /**
@@ -805,7 +805,7 @@ public class EventManagerImpl implements EventManager {
         userDao = Common.getBean(UserDao.class);
         mailingListService = Common.getBean(MailingListService.class);
         auditEventDao = Common.getBean(AuditEventDao.class);
-        eventHandlerDao = Common.getBean(EventHandlerDao.class);
+        eventHandlerService = Common.getBean(EventHandlerService.class);
 
         // Get all active events from the database.
         activeEventsLock.writeLock().lock();
@@ -970,14 +970,13 @@ public class EventManagerImpl implements EventManager {
     }
 
     private List<EventHandlerRT<?>> getHandlersForType(EventType type) {
-        List<AbstractEventHandlerVO> vos = eventHandlerDao.getEventHandlers(type);
+        List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(type);
 
         if (vos.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<EventHandlerRT<?>> rts = vos.stream()
-                .filter(vo -> !vo.isDisabled())
                 .map(vo -> {
                     try {
                         return vo.getDefinition().createRuntime(vo);

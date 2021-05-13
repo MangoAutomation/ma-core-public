@@ -7,6 +7,7 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -21,7 +22,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 public abstract class AbstractEventHandlerVO extends AbstractVO {
@@ -37,7 +38,7 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
 
     private EventHandlerDefinition<? extends AbstractEventHandlerVO> definition;
 
-    List<EventType> eventTypes = null;
+    List<EventTypeMatcher> eventTypes = Collections.emptyList();
 
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(name))
@@ -69,6 +70,10 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
         return disabled;
     }
 
+    public boolean isEnabled() {
+        return !disabled;
+    }
+
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
     }
@@ -93,14 +98,14 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
     /**
      * @return the eventTypes
      */
-    public List<EventType> getEventTypes() {
+    public List<EventTypeMatcher> getEventTypes() {
         return eventTypes;
     }
 
     /**
      * @param eventTypes the eventTypes to set
      */
-    public void setEventTypes(List<EventType> eventTypes) {
+    public void setEventTypes(List<EventTypeMatcher> eventTypes) {
         this.eventTypes = eventTypes;
     }
 

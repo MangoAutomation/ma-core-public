@@ -2,7 +2,6 @@ package com.infiniteautomation.mango.emport;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +17,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
 public class EventHandlerImporter extends Importer {
@@ -67,23 +66,18 @@ public class EventHandlerImporter extends Importer {
             try {
                 ctx.getReader().readInto(handler, json);
 
-                Set<EventType> eventTypes;
-                if(handler.getEventTypes() == null) {
-                    eventTypes = new HashSet<>();
-                }else {
-                    eventTypes = new HashSet<>(handler.getEventTypes());
-                }
+                Set<EventTypeMatcher> eventTypes = new HashSet<>(handler.getEventTypes());
+
                 // Find the event type.
-                if(et != null)
-                    eventTypes.add(ctx.getReader().read(EventType.class, et));
-                else if(ets != null) {
-                    Iterator<JsonValue> iter = ets.iterator();
-                    while(iter.hasNext())
-                        eventTypes.add(ctx.getReader().read(EventType.class, iter.next()));
+                if (et != null) {
+                    eventTypes.add(ctx.getReader().read(EventTypeMatcher.class, et));
+                } else if (ets != null) {
+                    for (JsonValue jsonValue : ets) {
+                        eventTypes.add(ctx.getReader().read(EventTypeMatcher.class, jsonValue));
+                    }
                 }
 
-                if(eventTypes.size() > 0)
-                    handler.setEventTypes(new ArrayList<>(eventTypes));
+                handler.setEventTypes(new ArrayList<>(eventTypes));
 
                 boolean isnew = handler.getId() == Common.NEW_ID;
                 if(isnew) {

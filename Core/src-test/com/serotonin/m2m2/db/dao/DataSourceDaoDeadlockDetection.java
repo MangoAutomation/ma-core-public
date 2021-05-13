@@ -7,7 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +36,7 @@ import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
@@ -273,7 +274,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             dataSourceService.insert(ds);
 
                             //Insert a mapping
-                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            myEventHandler.setEventTypes(Collections.singletonList(new EventTypeMatcher(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId()))));
                             eventHandlerService.update(eh.getXid(), myEventHandler);
 
                             dataSourceService.delete(ds);
@@ -320,7 +321,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             dataSourceService.insert(ds);
 
                             //Insert a mapping
-                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            myEventHandler.setEventTypes(Collections.singletonList(new EventTypeMatcher(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId()))));
                             eventHandlerService.update(eh.getXid(), myEventHandler);
 
                             ds.setXid(ds.getXid() + 1);
@@ -411,7 +412,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             dataSourceService.insert(ds);
 
                             //Insert a mapping
-                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            myEventHandler.setEventTypes(Collections.singletonList(new EventTypeMatcher(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId()))));
                             eventHandlerService.update(eh.getXid(), myEventHandler);
 
                             new TransactionTemplate(transactionManager).execute((status) -> {
@@ -463,7 +464,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             dataSourceService.insert(ds);
 
                             //Insert a mapping
-                            myEventHandler.setEventTypes(Arrays.asList(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId())));
+                            myEventHandler.setEventTypes(Collections.singletonList(new EventTypeMatcher(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId()))));
                             eventHandlerService.update(eh.getXid(), myEventHandler);
 
                             new TransactionTemplate(transactionManager).execute((status) -> {
