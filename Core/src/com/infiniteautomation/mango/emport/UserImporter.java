@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -60,6 +61,14 @@ public class UserImporter extends Importer {
 
             try {
                 ctx.getReader().readInto(imported, json);
+
+                //Ensure we have a default permission since null is valid in Mango 3.x
+                if(imported.getReadPermission() == null) {
+                    imported.setReadPermission(new MangoPermission());
+                }
+                if(imported.getEditPermission() == null) {
+                    imported.setEditPermission(new MangoPermission());
+                }
 
                 // check if a password algorithm was specified, if not assume it was SHA-1 (legacy JSON format)
                 if (imported.assumeSha1Algorithm()) {
