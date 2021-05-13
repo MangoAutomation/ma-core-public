@@ -21,12 +21,6 @@ public class EventTypeMatcher {
     }
 
     public EventTypeMatcher(String eventType, String eventSubtype, int referenceId1, int referenceId2) {
-        if (eventType == null && eventSubtype != null ||
-                eventSubtype == null && referenceId1 != 0 ||
-                referenceId1 == 0 && referenceId2 != 0) {
-            throw new IllegalArgumentException();
-        }
-
         this.eventType = eventType;
         this.eventSubtype = eventSubtype;
         this.referenceId1 = referenceId1;
@@ -76,7 +70,6 @@ public class EventTypeMatcher {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
         EventTypeMatcher that = (EventTypeMatcher) o;
         return referenceId1 == that.referenceId1 && referenceId2 == that.referenceId2 && Objects.equals(eventType, that.eventType) && Objects.equals(eventSubtype, that.eventSubtype);
     }
