@@ -468,7 +468,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             }
         }
         catch (InterruptedException e) {
-            log.info("", e);
+            log.info("Failure awaiting Background Processing termination", e);
         }
         state = ILifecycleState.TERMINATED;
     }

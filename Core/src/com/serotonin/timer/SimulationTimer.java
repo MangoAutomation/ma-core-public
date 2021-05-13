@@ -24,6 +24,7 @@ public class SimulationTimer extends AbstractTimer {
     private OrderedThreadPoolExecutor executorService;
     private SimulationTimeSource timeSource = new SimulationTimeSource();
     private boolean async;
+    private boolean ownsExecutor;
     
     /**
      * Create 
@@ -136,9 +137,14 @@ public class SimulationTimer extends AbstractTimer {
      * @return
      */
     public List<TimerTask> reset() {
+        if(ownsExecutor) {
+            executorService.shutdownNow();
+            init();
+        }
         List<TimerTask> tasks = getTasks();
         queue.clear();
         timeSource.setTime(0l);
+        cancelled = false;
         return tasks;
     }    
     
@@ -199,6 +205,7 @@ public class SimulationTimer extends AbstractTimer {
 
     @Override
     public void init() {
+        this.ownsExecutor = true;
         this.executorService = new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false, timeSource);
     }
 

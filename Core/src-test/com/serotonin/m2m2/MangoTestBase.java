@@ -135,14 +135,27 @@ public class MangoTestBase {
 
     @After
     public void after() {
-        Common.eventManager.purgeAllEvents();
-
-        SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
-        provider.reset();
-
+        //Tear down to simulate some form of shutdown
         for (Module module : ModuleRegistry.getModules()) {
             module.postRuntimeManagerTerminate(false);
         }
+
+        //Need to restart background processing and clear it out
+        Common.backgroundProcessing.terminate();
+        Common.backgroundProcessing.joinTermination();
+
+        for (Module module : ModuleRegistry.getModules()) {
+            module.postTerminate(false);
+        }
+
+        //Setup for next test in class
+        Common.eventManager.purgeAllEvents();
+
+        Common.backgroundProcessing = lifecycle.getBackgroundProcessing();
+        Common.backgroundProcessing.initialize(false);
+
+        SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
+        provider.reset();
 
         if(Common.databaseProxy instanceof H2InMemoryDatabaseProxy) {
             H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
@@ -151,10 +164,6 @@ public class MangoTestBase {
             } catch (Exception e) {
                 throw new ShouldNeverHappenException(e);
             }
-        }
-
-        for (Module module : ModuleRegistry.getModules()) {
-            module.postTerminate(false);
         }
     }
 

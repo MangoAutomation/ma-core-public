@@ -28,6 +28,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
@@ -264,8 +267,37 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     @Override
     public void terminate(TerminationReason reason) {
+
+        // set the authentication for the terminate thread's security context, enables the use of services requiring a user in the
+        // module lifecycle hooks
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(new PreAuthenticatedAuthenticationToken(PermissionHolder.SYSTEM_SUPERADMIN, null));
+
+        // Pre-terminate
+        for (Module module : ModuleRegistry.getModules()) {
+            try {
+                module.preTerminate(module.isMarkedForDeletion());
+            } catch (Throwable e) {
+                LOG.error("Error in preTerminate of module '" + module.getName() + "': " + e.getMessage(), e);
+            }
+        }
+
         Common.runtimeManager.terminate();
         Common.runtimeManager.joinTermination();
+
+        for (Module module : ModuleRegistry.getModules()) {
+            try {
+                module.postRuntimeManagerTerminate(module.isMarkedForDeletion());
+            } catch (Throwable e) {
+                LOG.error("Error in postRuntimeManagerTerminate of module '" + module.getName() + "': " + e.getMessage(), e);
+            }
+        }
+
+        Common.backgroundProcessing.terminate();
+        Common.backgroundProcessing.joinTermination();
+
+        Common.eventManager.terminate();
+        Common.eventManager.joinTermination();
 
         ConfigurableApplicationContext runtimeContext = (ConfigurableApplicationContext) this.runtimeContext;
         // can be null if the lifecycle didn't start completely

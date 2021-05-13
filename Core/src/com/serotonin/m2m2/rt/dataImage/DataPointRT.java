@@ -832,8 +832,13 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             // add ourselves to the data source for the next poll
             dataSource.addDataPoint(this);
         } catch (Exception e) {
-            terminate();
-            joinTermination();
+            try {
+                terminate();
+                joinTermination();
+            }catch(Exception e1) {
+                //We don't want to clobber the root cause here
+                e1.printStackTrace();
+            }
             throw e;
         }
 
