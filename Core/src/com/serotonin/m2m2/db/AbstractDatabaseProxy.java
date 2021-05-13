@@ -82,51 +82,69 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
 
         try {
+            boolean newDatabase = false;
+            String convertTypeStr = Common.envProps.getString("convert.db.type");
+            boolean willConvert = false;
+
             if (!databaseExists(ejt)) {
                 if (Common.envProps.getString("db.createTables.restoreFrom") != null) {
                     restoreTables();
                 } else {
                     createTables();
-
                     // Check if we should convert from another database.
-                    String convertTypeStr = Common.envProps.getString("convert.db.type");
                     if (!StringUtils.isBlank(convertTypeStr)) {
-                        // Found a database type from which to convert.
-                        DatabaseType convertType = DatabaseType.valueOf(convertTypeStr.toUpperCase());
-
-                        // TODO check that the convert source has the current DB version, or upgrade it if not.
-
-                        AbstractDatabaseProxy sourceProxy = getFactory().createDatabaseProxy(convertType);
-                        sourceProxy.initializeImpl("convert.");
-                        try {
-                            DBConvert convert = new DBConvert();
-                            convert.setSource(sourceProxy);
-                            convert.setTarget(this);
-                            try {
-                                convert.execute();
-                            } catch (SQLException e) {
-                                throw new ShouldNeverHappenException(e);
-                            }
-                        } finally {
-                            sourceProxy.terminate(false);
-                        }
-                    } else {
-                        doInTransaction(txStatus -> {
-                            initializeCoreDatabase(context);
-                        });
+                        willConvert = true;
+                    }else {
+                        newDatabase = true;
                     }
                 }
             }
 
-            // always make sure the schema version matches the application version.
-            DBUpgrade.checkUpgrade();
+            if(newDatabase){
+                doInTransaction(txStatus -> {
+                    initializeCoreDatabase(context);
+                });
+            }else if(!willConvert) {
+                // Make sure the core schema version matches the application version.  If we are running a conversion
+                // then the responsibility is on the User to be converting from a compatible version
+                DBUpgrade.checkUpgrade();
+            }
 
-            //Ensure the modules are upgraded/installed after the core schema is updated
+            //Ensure the modules are installed after the core schema is updated
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
                 try {
                     def.newInstallationCheck(ejt);
                 } catch (Exception e) {
                     log.error("Module " + def.getModule().getName() + " new installation check failed", e);
+                }
+            }
+
+            if(!willConvert) {
+                // Allow modules to upgrade their schemas
+                for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
+                    DBUpgrade.checkUpgrade(def, classLoader);
+                }
+            }
+
+            if(willConvert) {
+                // Found a database type from which to convert.
+                DatabaseType convertType = DatabaseType.valueOf(convertTypeStr.toUpperCase());
+
+                // TODO check that the convert source has the current DB version, or upgrade it if not.
+
+                AbstractDatabaseProxy sourceProxy = getFactory().createDatabaseProxy(convertType);
+                sourceProxy.initializeImpl("convert.");
+                try {
+                    DBConvert convert = new DBConvert();
+                    convert.setSource(sourceProxy);
+                    convert.setTarget(this);
+                    try {
+                        convert.execute();
+                    } catch (SQLException e) {
+                        throw new ShouldNeverHappenException(e);
+                    }
+                } finally {
+                    sourceProxy.terminate(false);
                 }
             }
 
@@ -149,6 +167,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                     break;
                 }
             }
+
         } catch (CannotGetJdbcConnectionException e) {
             log.fatal("Unable to connect to database of type " + getType().name(), e);
             throw e;
@@ -159,10 +178,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             log.fatal("Exception initializing database proxy: " + e.getMessage(), e);
             throw e;
         }
-
-        // Allow modules to upgrade their schemas
-        for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
-            DBUpgrade.checkUpgrade(def, classLoader);
     }
 
     private boolean databaseExists(ExtendedJdbcTemplate ejt) {
