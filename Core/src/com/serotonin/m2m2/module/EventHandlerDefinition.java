@@ -109,6 +109,8 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * @param vo
      * @param event
      */
+    @Deprecated
+    // TODO We should store the permissions as an array as per PTCP data sources/publishers
     public void handleRoleEvent(T vo, DaoEvent<? extends RoleVO> event) {
 
     }

@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2018  Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.infiniteautomation.mango.spring.service;
 
@@ -8,10 +8,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -36,19 +38,24 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Service
-public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO, EventHandlerDao> {
+public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO, EventHandlerDao> implements CachingService {
 
     private final EventHandlerCreatePermission createPermission;
 
-    private final LoadingCache<EventHandlerKey, List<AbstractEventHandlerVO>> cache = Caffeine.newBuilder()
-            .build(k -> dao.enabledHandlersForType(k.eventType, k.eventSubtype));
+    private final LoadingCache<EventHandlerKey, List<AbstractEventHandlerVO>> cache;
 
     @Autowired
     public EventHandlerService(EventHandlerDao dao,
                                PermissionService permissionService,
-                               @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventHandlerCreatePermission createPermission) {
+                               @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventHandlerCreatePermission createPermission,
+                               Environment env) {
         super(dao, permissionService);
         this.createPermission = createPermission;
+
+        this.cache = Caffeine.newBuilder()
+                .expireAfterAccess(env.getProperty("cache.eventHandlers.expire.duration", Long.class, 1L),
+                        env.getProperty("cache.eventHandlers.expire.unit", TimeUnit.class, TimeUnit.HOURS))
+                .build(k -> dao.enabledHandlersForType(k.eventType, k.eventSubtype));
     }
 
     @Override
@@ -69,20 +76,21 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         if (event.getType() == DaoEventType.DELETE) {
+            cache.invalidateAll();
             List<AbstractEventHandlerVO> all = dao.getAll();
-            all.stream().forEach((eh) -> {
-                eh.getDefinition().handleRoleEvent(eh, event);
-            });
+            all.forEach(eh -> eh.getDefinition().handleRoleEvent(eh, event));
         }
+    }
+
+    @EventListener
+    protected void handleEventHandlerEvent(DaoEvent<? extends AbstractEventHandlerVO> event) {
+        cache.invalidateAll();
     }
 
     @Override
     public ProcessResult validate(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, vo, user);
-        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
-
         return result;
     }
 
@@ -90,13 +98,15 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, existing, vo, user);
-        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
         return result;
     }
 
     private ProcessResult commonValidation(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
+
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
+
         //TODO is this true?
         //eventTypes are not validated because it assumed they
         // must be valid to be created and make it into this list
@@ -125,6 +135,11 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
             List<EventTypeMatcher> types = eh.getEventTypes();
             return hasPermission && types.stream().anyMatch(t -> t.matches(type));
         }).collect(Collectors.toList()));
+    }
+
+    @Override
+    public void clearCaches() {
+        cache.invalidateAll();
     }
 
     private static final class EventHandlerKey {
