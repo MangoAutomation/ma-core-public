@@ -5,6 +5,7 @@ package com.serotonin.m2m2.rt.dataSource;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,6 +39,7 @@ import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
+import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.ILifecycle;
@@ -571,5 +573,22 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      */
     public boolean shouldInitializeIntervalLogging(DataPointRT point) {
         return true;
+    }
+
+    /**
+     * Get the data source event types and if they are currently active.
+     *
+     * @return map of event types to boolean indicating if there is an active event of this type
+     */
+    public Map<EventTypeVO, Boolean> eventTypeStatus() {
+        Map<EventTypeVO, Boolean> statuses = new HashMap<>();
+        for (EventTypeVO vo : vo.getEventTypes()) {
+            DataSourceEventType eventType = (DataSourceEventType) vo.getEventType();
+            EventStatus status = eventTypes.get(eventType.getDataSourceEventTypeId());
+            synchronized (status.lock) {
+                statuses.put(vo, status.active);
+            }
+        }
+        return statuses;
     }
 }
