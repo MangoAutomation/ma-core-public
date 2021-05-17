@@ -136,6 +136,7 @@
 * Caching of event handlers inside the service
 * Ability for event handlers to handle acknowledgements
 * Fix for InvalidClassException thrown at startup caused by deserialization of log level in Persistent publisher
+* Change runtime termination order to first terminate low priority tasks then medium priority tasks and finally high priority tasks
 
 *Version 3.7.4*
 * Improve work item failure logging
