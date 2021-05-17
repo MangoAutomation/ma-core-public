@@ -25,6 +25,11 @@ public class ScriptEventHandlerRT extends EventHandlerRT<ScriptEventHandlerVO> {
     }
 
     @Override
+    public void eventAcknowledged(EventInstance evt) {
+        this.scriptHandlerDelegate.eventAcknowledged(evt);
+    }
+
+    @Override
     public void eventInactive(EventInstance evt) {
         this.scriptHandlerDelegate.eventInactive(evt);
     }
