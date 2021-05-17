@@ -135,6 +135,7 @@
 * Changed REST model for event types in event handlers
 * Caching of event handlers inside the service
 * Ability for event handlers to handle acknowledgements
+* Fix for InvalidClassException thrown at startup caused by deserialization of log level in Persistent publisher
 
 *Version 3.7.4*
 * Improve work item failure logging
