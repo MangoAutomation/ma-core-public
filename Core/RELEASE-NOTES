@@ -131,6 +131,10 @@
 * Changes below here added in 4.0.0-beta.14
 * Fix bug in database conversion to allow converting between database types
 * Remove invalid references to ext-available in startup script
+* Fix deserialization of permissions in some modules (Persistent publisher/data source)
+* Changed REST model for event types in event handlers
+* Caching of event handlers inside the service
+* Ability for event handlers to handle acknowledgements
 
 *Version 3.7.4*
 * Improve work item failure logging
