@@ -137,6 +137,8 @@
 * Ability for event handlers to handle acknowledgements
 * Fix for InvalidClassException thrown at startup caused by deserialization of log level in Persistent publisher
 * Change runtime termination order to first terminate low priority tasks then medium priority tasks and finally high priority tasks
+* Changes below here added in 4.0.0-beta.15
+* Upgrade Jetty to 9.4.41.v20210516
 
 *Version 3.7.4*
 * Improve work item failure logging
