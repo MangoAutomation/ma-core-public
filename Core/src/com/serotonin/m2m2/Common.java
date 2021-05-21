@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -271,6 +272,17 @@ public class Common {
         int WEEKS = 5;
         int MONTHS = 6;
         int YEARS = 7;
+
+        public static int fromTimeUnit(TimeUnit unit) {
+            switch (unit) {
+                case MILLISECONDS: return TimePeriods.MILLISECONDS;
+                case SECONDS: return TimePeriods.SECONDS;
+                case MINUTES: return TimePeriods.MINUTES;
+                case HOURS: return TimePeriods.HOURS;
+                case DAYS: return TimePeriods.DAYS;
+                default: throw new IllegalArgumentException("Unsupported time unit " + unit);
+            }
+        }
     }
 
     public static ExportCodes TIME_PERIOD_CODES = new ExportCodes();
