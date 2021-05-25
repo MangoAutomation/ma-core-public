@@ -62,7 +62,7 @@ public interface RuntimeManager extends ILifecycle {
      * @return the data source runtime
      * @throws RTException if the data source is not running
      */
-    DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId);
+    DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) throws RTException;
 
     Collection<? extends DataSourceRT<?>> getRunningDataSources();
 

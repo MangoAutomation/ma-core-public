@@ -275,7 +275,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     // Data sources
     //
     @Override
-    public @NonNull DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) {
+    public @NonNull DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) throws RTException {
         DataSourceRT<? extends DataSourceVO> ds = runningDataSources.get(dataSourceId);
         if (ds == null) {
             throw new RTException(String.format("Data source is not running: id=%d, type=%s",
