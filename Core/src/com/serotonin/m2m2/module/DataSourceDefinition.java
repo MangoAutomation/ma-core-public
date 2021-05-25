@@ -202,7 +202,7 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
 
     /**
      * Validate a point locator with access to a pre-existing point, when updating.
-     * @param repsponse
+     * @param response
      * @param existing
      * @param dpvo
      * @param dsvo
