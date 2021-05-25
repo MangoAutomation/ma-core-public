@@ -21,7 +21,10 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
@@ -207,12 +210,27 @@ public class SystemEventType extends EventType {
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
         systemEventType = getString(jsonObject, "systemType", TYPE_NAMES);
+
+        // Check xid for system events supportsReferenceId1
+        String xid = jsonObject.getString("XID");
+        if (xid != null) {
+            Integer id = getIdByXid(xid);
+            if (id == null)
+                throw new TranslatableJsonException("emport.error.eventType.invalid.reference", "XID", xid);
+            refId1 = id;
+        }
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("systemType", systemEventType);
+
+        // Set xid for system events supportsReferenceId1
+        String xid = getXidById();
+        if (xid != null) {
+            writer.writeEntry("XID", xid);
+        }
     }
 
     @Override
@@ -223,5 +241,27 @@ public class SystemEventType extends EventType {
     @Override
     public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service) {
         return MangoPermission.superadminOnly();
+    }
+
+    private String getXidById() {
+        String xid = null;
+        if (systemEventType.equals(TYPE_USER_LOGIN)) {
+            xid = UserDao.getInstance().getXidById(refId1);
+        }
+        if (systemEventType.equals(TYPE_SET_POINT_HANDLER_FAILURE)) {
+            xid = EventHandlerDao.getInstance().getXidById(refId1);
+        }
+        return xid;
+    }
+
+    private Integer getIdByXid(String xid) {
+        Integer id = null;
+        if (systemEventType.equals(TYPE_USER_LOGIN)) {
+            id = UserDao.getInstance().getIdByXid(xid);
+        }
+        if (systemEventType.equals(TYPE_SET_POINT_HANDLER_FAILURE)) {
+            id = EventHandlerDao.getInstance().getIdByXid(xid);
+        }
+        return id;
     }
 }

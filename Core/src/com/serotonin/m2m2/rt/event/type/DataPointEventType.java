@@ -159,8 +159,16 @@ public class DataPointEventType extends EventType {
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        dataPointId = getDataPointId(jsonObject, "dataPointXID");
-        pointEventDetectorId = getPointEventDetectorId(jsonObject, dataPointId, "detectorXID");
+        dataPointId = 0;
+        pointEventDetectorId = 0;
+        String pointXid = jsonObject.getString("dataPointXID");
+        String detectorXid = jsonObject.getString("detectorXID");
+        if (pointXid != null) {
+            dataPointId = getDataPointId(jsonObject, "dataPointXID");
+            if (detectorXid != null) {
+                pointEventDetectorId = getPointEventDetectorId(jsonObject, dataPointId, "detectorXID");
+            }
+        }
     }
 
     @Override
