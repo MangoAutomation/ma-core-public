@@ -9,7 +9,7 @@ Here are some tips to get you up and running as fast as possible:
 
 -==@**** Installation ****@==-
 
-Mango requires at least Java JDK 1.8 (JDK 8) to already have been installed on your system, however, Infinite Automation recommends using OpenJDK 11. 
+Mango requires at least Java JDK 1.8 (JDK 8) to already have been installed on your system, however, Radix IoT recommends using OpenJDK 11. 
 You may need to set a JAVA_HOME environmental variable pointing to your JDK folder. You may also need to add the JDK's bin/ directory to the PATH environment variable.
 A full tutorial on installing OpenJDK can be found here: https://docs-v4.mango-os.com/installing-java
 
