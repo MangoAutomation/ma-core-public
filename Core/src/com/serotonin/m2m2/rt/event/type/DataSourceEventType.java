@@ -135,17 +135,33 @@ public class DataSourceEventType extends EventType {
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        DataSourceVO ds = getDataSource(jsonObject, "XID");
-        dataSourceId = ds.getId();
-        dataSourceEventTypeId = getInt(jsonObject, "dataSourceEventType", ds.getEventCodes());
+        dataSourceId = 0;
+        dataSourceEventTypeId = 0;
+        String xid = jsonObject.getString("XID");
+        String eventType = jsonObject.getString("dataSourceEventType");
+        if (xid != null) {
+            DataSourceVO ds = getDataSource(jsonObject, "XID");
+            dataSourceId = ds.getId();
+            if (eventType != null) {
+                dataSourceEventTypeId = getInt(jsonObject, "dataSourceEventType", ds.getEventCodes());
+            }
+        }
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        DataSourceVO ds = DataSourceDao.getInstance().get(dataSourceId);
-        writer.writeEntry("XID", ds.getXid());
-        writer.writeEntry("dataSourceEventType", ds.getEventCodes().getCode(dataSourceEventTypeId));
+        String xid = null;
+        String eventType = null;
+        if(dataSourceId > 0) {
+            DataSourceVO ds = DataSourceDao.getInstance().get(dataSourceId);
+            xid = ds.getXid();
+            if (dataSourceEventTypeId > 0) {
+                eventType = ds.getEventCodes().getCode(dataSourceEventTypeId);
+            }
+        }
+        writer.writeEntry("XID", xid);
+        writer.writeEntry("dataSourceEventType", eventType);
     }
 
     @Override

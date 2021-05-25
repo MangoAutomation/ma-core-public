@@ -121,17 +121,33 @@ public class PublisherEventType extends EventType {
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        PublisherVO<?> pb = getPublisher(jsonObject, "XID");
-        publisherId = pb.getId();
-        publisherEventTypeId = getInt(jsonObject, "publisherEventTypeId", pb.getEventCodes());
+        publisherId = 0;
+        publisherEventTypeId = 0;
+        String xid = jsonObject.getString("XID");
+        String eventType = jsonObject.getString("publisherEventTypeId");
+        if (xid != null) {
+            PublisherVO<?> pb = getPublisher(jsonObject, "XID");
+            publisherId = pb.getId();
+            if (eventType != null) {
+                publisherEventTypeId = getInt(jsonObject, "publisherEventTypeId", pb.getEventCodes());
+            }
+        }
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        PublisherVO<?> pub = PublisherDao.getInstance().get(publisherId);
-        writer.writeEntry("XID", pub.getXid());
-        writer.writeEntry("publisherEventTypeId", pub.getEventCodes().getCode(publisherEventTypeId));
+        String xid = null;
+        String eventType = null;
+        if(publisherId > 0) {
+            PublisherVO<?> pub = PublisherDao.getInstance().get(publisherId);
+            xid = pub.getXid();
+            if (publisherEventTypeId > 0) {
+                eventType = pub.getEventCodes().getCode(publisherEventTypeId);
+            }
+        }
+        writer.writeEntry("XID", xid);
+        writer.writeEntry("publisherEventTypeId", eventType);
     }
 
     @Override
