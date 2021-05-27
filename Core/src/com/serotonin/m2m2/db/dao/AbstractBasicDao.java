@@ -551,6 +551,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                 .collect(Collectors.toMap(Field::getName, Function.identity(), (a,b) -> a, HashMap::new));
     }
 
+    /**
+     * Used to create custom SQL conditions for a particular RQL operator. A typical use is adding a sub-select
+     * condition for a "contains" operator.
+     *
+     * @return map of property name to {@link RQLSubSelectCondition} which creates a condition.
+     */
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
         return new HashMap<>();
     }
@@ -728,4 +734,24 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         return new QueryBuilder<T>(fieldMap, valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
     }
 
+    /**
+     * Used to extract array arguments from an ASTNode for RQL queries
+     * @param node AST node
+     * @param mappingFunction maps the objects inside the array to the desired output type
+     * @param <X> desired output type
+     * @return list of arguments
+     */
+    public <X> List<X> extractArrayArguments(ASTNode node, Function<Object, X> mappingFunction) {
+        // first argument is the field to operate on, we want to exclude this
+        List<Object> allArguments = node.getArguments();
+        List<?> arrayArguments;
+        if (allArguments.size() > 1 && allArguments.get(1) instanceof List) {
+            arrayArguments = (List<?>) allArguments.get(1);
+        } else {
+            arrayArguments = allArguments.subList(1, allArguments.size());
+        }
+        return arrayArguments.stream()
+                .map(mappingFunction)
+                .collect(Collectors.toList());
+    }
 }
