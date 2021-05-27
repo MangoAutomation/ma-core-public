@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,18 +20,21 @@ import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectOnConditionStep;
 import org.jooq.impl.DSL;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
 import com.infiniteautomation.mango.db.tables.RoleInheritance;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.role.Role;
@@ -44,24 +48,79 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     private final PermissionDao permissionDao;
+    private final BeanFactory beanFactory;
 
     // cannot inject permission service in this DAO or it would introduce a circular dependency
     @Autowired
     private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
                     ApplicationEventPublisher publisher,
-                    PermissionDao permissionDao) {
+                    PermissionDao permissionDao, BeanFactory beanFactory) {
         super(AuditEventType.TYPE_ROLE,
                 Roles.ROLES,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher, null);
         this.permissionDao = permissionDao;
+        this.beanFactory = beanFactory;
     }
 
     @Override
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
         Map<String, RQLSubSelectCondition> subselects = super.createSubSelectMap();
-        subselects.put("inherited", createInheritedRoleCondition());
-        subselects.put("inheritedBy", createInheritedByRoleCondition());
+        subselects.put("inherited", (operation, node) -> {
+            if (operation != RQLOperation.CONTAINS) {
+                throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), node.getArgument(0)));
+            }
+
+            PermissionService permissionService = beanFactory.getBean(PermissionService.class);
+            Set<Integer> roleIds = extractArrayArguments(node, o -> o == null ? null : o.toString()).stream()
+                    .filter(Objects::nonNull)
+                    .map(permissionService::getRole)
+                    .filter(Objects::nonNull)
+                    .map(Role::getId)
+                    .collect(Collectors.toSet());
+
+            SelectConditionStep<Record1<Integer>> afterWhere;
+            if (!roleIds.isEmpty()) {
+                SelectJoinStep<Record1<Integer>> select = create.select(RoleInheritance.ROLE_INHERITANCE.roleId)
+                        .from(RoleInheritance.ROLE_INHERITANCE);
+                afterWhere = select.where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.in(roleIds));
+            } else {
+                //Find all roles with no inherited roles
+                SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
+                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleInheritance.ROLE_INHERITANCE)
+                        .on(RoleInheritance.ROLE_INHERITANCE.roleId.eq(getIdField()));
+                afterWhere = afterJoin.where(RoleInheritance.ROLE_INHERITANCE.roleId.isNull());
+            }
+            return table.id.in(afterWhere.asField());
+        });
+        subselects.put("inheritedBy", (operation, node) -> {
+            if (operation != RQLOperation.CONTAINS) {
+                throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), node.getArgument(0)));
+            }
+
+            PermissionService permissionService = beanFactory.getBean(PermissionService.class);
+            Set<Integer> roleIds = extractArrayArguments(node, o -> o == null ? null : o.toString()).stream()
+                    .filter(Objects::nonNull)
+                    .map(permissionService::getRole)
+                    .filter(Objects::nonNull)
+                    .map(Role::getId)
+                    .collect(Collectors.toSet());
+
+            SelectConditionStep<Record1<Integer>> afterWhere;
+            if (!roleIds.isEmpty()) {
+                //Find all roles inherited by this role
+                SelectJoinStep<Record1<Integer>> select = create.select(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId)
+                        .from(RoleInheritance.ROLE_INHERITANCE);
+                afterWhere = select.where(RoleInheritance.ROLE_INHERITANCE.roleId.in(roleIds));
+            } else {
+                //Find all roles with that are not inherited by any role
+                SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
+                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleInheritance.ROLE_INHERITANCE)
+                        .on(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(getIdField()));
+                afterWhere = afterJoin.where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.isNull());
+            }
+            return table.id.in(afterWhere.asField());
+        });
         return subselects;
     }
 
@@ -204,84 +263,4 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
         }
     }
 
-    public RQLSubSelectCondition createInheritedRoleCondition() {
-        return (operation, node) -> {
-            List<Object> arguments = node.getArguments();
-
-            //Check the role Xid input
-            if (arguments.size() > 2) {
-                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
-            }
-
-            Object roleXid = arguments.get(1);
-            Integer roleId = null;
-
-            SelectConditionStep<Record1<Integer>> afterWhere;
-            //TODO Mango 4.0 Should really used role cache in PermissionService but there is a
-            // circular dependency if injected due to our use of the RoleDao
-            if(roleXid != null) {
-                RoleVO role = getByXid((String)roleXid);
-                if(role != null) {
-                    roleId = role.getId();
-                }
-                SelectJoinStep<Record1<Integer>> select = create.select(RoleInheritance.ROLE_INHERITANCE.roleId)
-                        .from(RoleInheritance.ROLE_INHERITANCE);
-                afterWhere = select.where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(roleId));
-            }else {
-                //Find all roles with no inherited roles
-                SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
-                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleInheritance.ROLE_INHERITANCE)
-                        .on(RoleInheritance.ROLE_INHERITANCE.roleId.eq(getIdField()));
-                afterWhere = afterJoin.where(RoleInheritance.ROLE_INHERITANCE.roleId.isNull());
-            }
-
-            switch(operation) {
-                case CONTAINS:
-                    return getIdField().in(afterWhere.asField());
-                default:
-                    throw new RQLVisitException(String.format("Unsupported node type '%s' for property '%s'", node.getName(), arguments.get(0)));
-            }
-        };
-    }
-
-    public RQLSubSelectCondition createInheritedByRoleCondition() {
-        return (operation, node) -> {
-            List<Object> arguments = node.getArguments();
-
-            //Check the role Xid input
-            if (arguments.size() > 2) {
-                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
-            }
-
-            Object roleXid = arguments.get(1);
-            Integer roleId = null;
-
-            SelectConditionStep<Record1<Integer>> afterWhere;
-            //TODO Mango 4.0 Should really used role cache in PermissionService but there is a
-            // circular dependency if injected due to our use of the RoleDao
-            if (roleXid != null) {
-                //Find all roles inherited by this role
-                RoleVO role = getByXid((String) roleXid);
-                if (role != null) {
-                    roleId = role.getId();
-                }
-                SelectJoinStep<Record1<Integer>> select = create.select(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId)
-                        .from(RoleInheritance.ROLE_INHERITANCE);
-                afterWhere = select.where(RoleInheritance.ROLE_INHERITANCE.roleId.eq(roleId));
-            } else {
-                //Find all roles with that are not inherited by any role
-                SelectJoinStep<Record1<Integer>> select = create.select(getIdField()).from(table);
-                SelectOnConditionStep<Record1<Integer>> afterJoin = select.leftJoin(RoleInheritance.ROLE_INHERITANCE)
-                        .on(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.eq(getIdField()));
-                afterWhere = afterJoin.where(RoleInheritance.ROLE_INHERITANCE.inheritedRoleId.isNull());
-            }
-
-            switch (operation) {
-                case CONTAINS:
-                    return getIdField().in(afterWhere.asField());
-                default:
-                    throw new RQLVisitException(String.format("Unsupported node type '%s' for property '%s'", node.getName(), arguments.get(0)));
-            }
-        };
-    }
 }

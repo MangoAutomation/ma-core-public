@@ -5,7 +5,6 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,8 +21,6 @@ import org.jooq.BatchBindStep;
 import org.jooq.Field;
 import org.jooq.InsertValuesStep3;
 import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -138,8 +135,36 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     @Override
     protected Map<String, RQLSubSelectCondition> createSubSelectMap() {
         Map<String, RQLSubSelectCondition> subSelectMap = super.createSubSelectMap();
-        subSelectMap.put("roles", createUserRoleCondition());
-        subSelectMap.put("inheritedRoles", createUserInheritedRoleCondition());
+        subSelectMap.put("roles", (operation, node) -> {
+            if (operation != RQLOperation.CONTAINS) {
+                throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), node.getArgument(0)));
+            }
+
+            Set<Integer> roleIds = extractArrayArguments(node, Object::toString).stream()
+                    .map(permissionService::getRole)
+                    .filter(Objects::nonNull)
+                    .map(Role::getId)
+                    .collect(Collectors.toSet());
+
+            return table.id.in(create.select(userRoleMappings.userId)
+                    .from(userRoleMappings)
+                    .where(userRoleMappings.roleId.in(roleIds)).asField());
+        });
+        subSelectMap.put("inheritedRoles", (operation, node) -> {
+            if (operation != RQLOperation.CONTAINS) {
+                throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), node.getArgument(0)));
+            }
+
+            Set<Integer> roleIds = extractArrayArguments(node, Object::toString).stream()
+                    .flatMap(xid -> permissionService.getRolesThatInherit(xid).stream())
+                    .filter(Objects::nonNull)
+                    .map(Role::getId)
+                    .collect(Collectors.toSet());
+
+            return table.id.in(create.select(userRoleMappings.userId)
+                    .from(userRoleMappings)
+                    .where(userRoleMappings.roleId.in(roleIds)).asField());
+        });
         return subSelectMap;
     }
 
@@ -577,69 +602,4 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
                 .fetch(r -> new OAuth2LinkedAccount(r.get(oauth.issuer), r.get(oauth.subject)));
     }
 
-    /**
-     * Create an RQL mapping to allow querying on user.roles
-     *
-     * @return a sub-select condition
-     */
-    public RQLSubSelectCondition createUserRoleCondition() {
-        return (operation, node) -> {
-            List<Object> arguments = node.getArguments();
-
-            //Check the role Xid input
-            if (arguments.size() > 2) {
-                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
-            }
-
-            Object roleXid = arguments.get(1);
-            Integer roleId = null;
-
-            Role role = permissionService.getRole((String) roleXid);
-            if (role != null) {
-                roleId = role.getId();
-            }
-
-            SelectConditionStep<Record1<Integer>> afterWhere = create.select(userRoleMappings.userId)
-                    .from(userRoleMappings)
-                    .where(userRoleMappings.roleId.equal(roleId));
-
-            if (operation == RQLOperation.CONTAINS) {
-                return table.id.in(afterWhere.asField());
-            }
-            throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
-        };
-    }
-
-    /**
-     * Create an RQL mapping to allow querying on user.inheritedRoles
-     *
-     * @return a sub-select condition
-     */
-    public RQLSubSelectCondition createUserInheritedRoleCondition() {
-        return (operation, node) -> {
-            List<Object> arguments = node.getArguments();
-
-            //Check the role Xid input
-            if (arguments.size() > 2) {
-                throw new RQLVisitException(String.format("Only single arguments supported for node type '%s'", node.getName()));
-            }
-
-            Object roleXid = arguments.get(1);
-            Set<Integer> roleIds = new HashSet<>();
-
-            Set<Role> inherited = permissionService.getRolesThatInherit((String) roleXid);
-            for (Role r : inherited) {
-                roleIds.add(r.getId());
-            }
-
-            SelectConditionStep<Record1<Integer>> afterWhere = UserDao.this.create.select(userRoleMappings.userId)
-                    .from(userRoleMappings)
-                    .where(userRoleMappings.roleId.in(roleIds));
-
-            if (operation == RQLOperation.CONTAINS) {
-                return table.id.in(afterWhere.asField());
-            }
-            throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), arguments.get(0)));
-        };
-    }
 }
