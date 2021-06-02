@@ -219,7 +219,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     protected T delete(T vo) throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
         ensureDeletePermission(user, vo);
-        dao.delete(vo.getId());
+        dao.delete(vo);
         return vo;
     }
 
