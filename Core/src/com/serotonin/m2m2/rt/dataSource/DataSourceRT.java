@@ -304,6 +304,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public final synchronized void initialize(boolean safe) {
         ensureState(ILifecycleState.PRE_INITIALIZE);
         this.state = ILifecycleState.INITIALIZING;
+        notifyStateChanged();
         try {
             initialize();
             initializePoints();
@@ -313,6 +314,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             throw e;
         }
         this.state = ILifecycleState.RUNNING;
+        notifyStateChanged();
     }
 
     /**
@@ -363,6 +365,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public final synchronized void terminate() {
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
+        notifyStateChanged();
 
         try {
             //Signal we are going down
@@ -437,6 +440,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         }
 
         this.state = ILifecycleState.TERMINATED;
+        notifyStateChanged();
         Common.runtimeManager.removeDataSource(this);
     }
 
@@ -586,5 +590,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             }
         }
         return statuses;
+    }
+
+    private void notifyStateChanged() {
+        DataSourceDao.getInstance().notifyStateChanged(getVo());
     }
 }

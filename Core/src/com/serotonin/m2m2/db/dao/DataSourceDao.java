@@ -29,6 +29,7 @@ import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -288,6 +289,10 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
         return this.create.select(table.readPermissionId).from(table)
                 .where(table.id.eq(dataSourceId))
                 .fetchOneInto(Integer.class);
+    }
+
+    public void notifyStateChanged(DataSourceVO vo) {
+        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.STATE_CHANGE, vo, vo));
     }
 
 }

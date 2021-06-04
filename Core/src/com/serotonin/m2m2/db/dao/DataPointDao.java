@@ -827,6 +827,10 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.eventPublisher.publishEvent(new DataPointTagsUpdatedEvent(this, dataPoint));
     }
 
+    public void notifyStateChanged(DataPointVO vo) {
+        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.STATE_CHANGE, vo, vo));
+    }
+
     @Override
     protected Map<String, Field<?>> createFieldMap() {
         Map<String, Field<?>> fields = super.createFieldMap();

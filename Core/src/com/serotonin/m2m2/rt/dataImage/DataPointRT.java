@@ -22,6 +22,7 @@ import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -819,6 +820,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     public final synchronized void initialize(boolean safe) {
         ensureState(ILifecycleState.PRE_INITIALIZE);
         this.state = ILifecycleState.INITIALIZING;
+        notifyStateChanged();
 
         try {
             initialize();
@@ -842,6 +844,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
 
         this.state = ILifecycleState.RUNNING;
+        notifyStateChanged();
     }
 
     private void initializeDetectors() {
@@ -873,6 +876,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     public final synchronized void terminate() {
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
+        notifyStateChanged();
 
         boolean dataSourceTerminating = dataSource.getLifecycleState() == ILifecycleState.TERMINATING;
         if (!dataSourceTerminating) {
@@ -908,6 +912,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
 
         this.state = ILifecycleState.TERMINATED;
+        notifyStateChanged();
         Common.runtimeManager.removeDataPoint(this);
     }
 
@@ -986,5 +991,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     @Override
     public String readableIdentifier() {
         return String.format("Data point (name=%s, id=%d, type=%s)", getVO().getName(), getId(), getClass().getSimpleName());
+    }
+
+    private void notifyStateChanged() {
+        DataPointDao.getInstance().notifyStateChanged(getVO());
     }
 }
