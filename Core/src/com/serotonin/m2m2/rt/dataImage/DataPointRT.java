@@ -998,6 +998,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     private void notifyStateChanged() {
-        dataPointDao.notifyStateChanged(getVO());
+        if (dataSource.getLifecycleState() == ILifecycleState.RUNNING) {
+            dataPointDao.notifyStateChanged(getVO());
+        }
     }
 }
