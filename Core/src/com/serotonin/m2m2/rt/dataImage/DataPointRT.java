@@ -85,6 +85,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      */
     private double toleranceOrigin;
 
+    private final DataPointDao dataPointDao;
+
     public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource, List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
         if (dataSource.getId() != dp.getDataPoint().getDataSourceId()) {
             throw new IllegalStateException("Wrong data source for provided point");
@@ -110,6 +112,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 toleranceOrigin = pvt.getDoubleValue();
             return pvt;
         });
+
+        this.dataPointDao = Common.getBean(DataPointDao.class);
     }
 
     /**
@@ -994,6 +998,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     private void notifyStateChanged() {
-        DataPointDao.getInstance().notifyStateChanged(getVO());
+        dataPointDao.notifyStateChanged(getVO());
     }
 }

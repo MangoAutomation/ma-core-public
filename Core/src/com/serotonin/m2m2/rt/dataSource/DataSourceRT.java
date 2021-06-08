@@ -100,12 +100,16 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     protected final VO vo;
 
+    private final DataSourceDao dataSourceDao;
+
     public DataSourceRT(VO vo) {
         this.vo = vo;
 
         this.eventTypes = Collections.unmodifiableMap(vo.getEventTypes().stream()
                 .map(e -> (DataSourceEventType) e.getEventType())
                 .collect(Collectors.toMap(DataSourceEventType::getDataSourceEventTypeId, EventStatus::new)));
+
+        this.dataSourceDao = Common.getBean(DataSourceDao.class);
     }
 
     public int getId() {
@@ -593,6 +597,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     private void notifyStateChanged() {
-        DataSourceDao.getInstance().notifyStateChanged(getVo());
+        dataSourceDao.notifyStateChanged(getVo());
     }
 }
