@@ -100,12 +100,16 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     protected final VO vo;
 
+    private final DataSourceDao dataSourceDao;
+
     public DataSourceRT(VO vo) {
         this.vo = vo;
 
         this.eventTypes = Collections.unmodifiableMap(vo.getEventTypes().stream()
                 .map(e -> (DataSourceEventType) e.getEventType())
                 .collect(Collectors.toMap(DataSourceEventType::getDataSourceEventTypeId, EventStatus::new)));
+
+        this.dataSourceDao = Common.getBean(DataSourceDao.class);
     }
 
     public int getId() {
@@ -304,6 +308,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public final synchronized void initialize(boolean safe) {
         ensureState(ILifecycleState.PRE_INITIALIZE);
         this.state = ILifecycleState.INITIALIZING;
+        notifyStateChanged();
         try {
             initialize();
             initializePoints();
@@ -313,6 +318,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             throw e;
         }
         this.state = ILifecycleState.RUNNING;
+        notifyStateChanged();
     }
 
     /**
@@ -363,6 +369,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     public final synchronized void terminate() {
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
+        notifyStateChanged();
 
         try {
             //Signal we are going down
@@ -437,6 +444,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         }
 
         this.state = ILifecycleState.TERMINATED;
+        notifyStateChanged();
         Common.runtimeManager.removeDataSource(this);
     }
 
@@ -586,5 +594,9 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
             }
         }
         return statuses;
+    }
+
+    private void notifyStateChanged() {
+        dataSourceDao.notifyStateChanged(getVo());
     }
 }

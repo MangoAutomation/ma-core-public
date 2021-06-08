@@ -4,5 +4,5 @@
 package com.infiniteautomation.mango.spring.events;
 
 public enum DaoEventType {
-    CREATE, UPDATE, DELETE;
+    CREATE, UPDATE, DELETE, STATE_CHANGE;
 }
