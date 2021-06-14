@@ -483,6 +483,11 @@ with Springfox 3.
             <version>${slf4jVersion}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jul</artifactId>
+            <version>${log4jVersion}</version>
+        </dependency>
+        <dependency>
             <!-- For log4j2 async logging -->
             <groupId>com.lmax</groupId>
             <artifactId>disruptor</artifactId>
