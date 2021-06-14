@@ -57,6 +57,7 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
+import com.infiniteautomation.mango.spring.events.StateChangeEvent;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.ToggleAuditEvent;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -81,6 +82,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
+import com.serotonin.util.ILifecycleState;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -827,8 +829,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.eventPublisher.publishEvent(new DataPointTagsUpdatedEvent(this, dataPoint));
     }
 
-    public void notifyStateChanged(DataPointVO vo) {
-        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.STATE_CHANGE, vo, vo));
+    public void notifyStateChanged(DataPointVO vo, ILifecycleState state) {
+        eventPublisher.publishEvent(new StateChangeEvent<>(this, state, vo));
     }
 
     @Override

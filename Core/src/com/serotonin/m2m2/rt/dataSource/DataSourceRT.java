@@ -597,6 +597,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     private void notifyStateChanged() {
-        dataSourceDao.notifyStateChanged(getVo());
+        dataSourceDao.notifyStateChanged(getVo(), state);
     }
 }

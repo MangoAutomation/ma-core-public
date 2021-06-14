@@ -29,8 +29,8 @@ import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.spring.events.StateChangeEvent;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -42,6 +42,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.util.ILifecycleState;
 import com.serotonin.util.SerializationHelper;
 
 @Repository()
@@ -291,8 +292,8 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
                 .fetchOneInto(Integer.class);
     }
 
-    public void notifyStateChanged(DataSourceVO vo) {
-        eventPublisher.publishEvent(new DaoEvent<>(this, DaoEventType.STATE_CHANGE, vo, vo));
+    public void notifyStateChanged(DataSourceVO vo, ILifecycleState state) {
+        eventPublisher.publishEvent(new StateChangeEvent<>(this, state, vo));
     }
 
 }

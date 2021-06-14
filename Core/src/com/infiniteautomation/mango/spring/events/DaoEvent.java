@@ -28,8 +28,6 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
      * @param source
      * @param type
      * @param vo
-     * @param originalXid
-     * @param updatedFields
      */
     public DaoEvent(AbstractBasicDao<T,?,?> source, DaoEventType type, T vo) {
         super(source);
@@ -47,7 +45,7 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
      * @param source
      * @param type
      * @param vo
-     * @param originalXid
+     * @param originalVo
      */
     public DaoEvent(AbstractBasicDao<T,?,?> source, DaoEventType type, T vo, T originalVo) {
         super(source);
