@@ -3,11 +3,13 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jooq.Condition;
 import org.jooq.Field;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
@@ -239,9 +241,9 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      * Query for VOs with a callback for each row, filtering within the database is supported
-     * by the conditions input, if dao does not using database filtering you must manually filter on permissions
-     * @param conditions
-     * @param callback
+     * by the conditions input, if DAO does not use database filtering you must manually filter on permissions
+     * @param conditions SQL conditions to restrict results, with additional sorting, limit and offset
+     * @param callback called for every result returned
      */
     public void customizedQuery(ConditionSortLimit conditions, Consumer<T> callback) {
         PermissionHolder user = Common.getUser();
@@ -249,6 +251,30 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
             dao.loadRelationalData(item);
             callback.accept(item);
         });
+    }
+
+    /**
+     * Query for VOs with a callback for each row, filtering within the database is supported
+     * by the conditions input, if DAO does not use database filtering you must manually filter on permissions
+     *
+     * @param condition SQL conditions to restrict results
+     * @param callback called for every result returned
+     */
+    public void customizedQuery(Condition condition, Consumer<T> callback) {
+        customizedQuery(new ConditionSortLimit(condition, null, null, null), callback);
+    }
+
+    /**
+     * Query for VOs, filtering within the database is supported
+     * by the conditions input, if DAO does not use database filtering you must manually filter on permissions
+     *
+     * @param condition SQL conditions to restrict results
+     * @return list of results
+     */
+    public List<T> customizedQuery(Condition condition) {
+        List<T> list = new ArrayList<>();
+        customizedQuery(new ConditionSortLimit(condition, null, null, null), list::add);
+        return list;
     }
 
     /**
