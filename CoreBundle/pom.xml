@@ -193,12 +193,6 @@
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>mbus-ds</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>serial-ds</artifactId>
             <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>

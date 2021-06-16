@@ -140,6 +140,8 @@
 * Changes below here added in 4.0.0-beta.15
 * Upgrade Jetty to 9.4.41.v20210516
 * Add new event type STATE_CHANGE to DaoEventType
+* Changes below here added in 4.0.0-beta.16
+* Removed MBus module ensure this is deleted from your instance before upgrading
 
 *Version 3.7.4*
 * Improve work item failure logging
