@@ -172,19 +172,25 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Start the publishers that are enabled
         long pubStart = Common.timer.currentTimeMillis();
         List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getAll();
-        LOG.info("Starting " + publishers.size() + " Publishers...");
+        //Sort into a list of only enabled publishers
+        List<PublisherVO<? extends PublishedPointVO>> publishersToStart = new ArrayList<>();
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
-            LOG.info("Starting publisher: " + vo.getName());
             if (vo.isEnabled()) {
+               publishersToStart.add(vo);
+            }
+        }
+        LOG.info("Starting " + publishersToStart.size() + " Publishers...");
+        for (PublisherVO<? extends PublishedPointVO> vo : publishersToStart) {
                 if (safe) {
                     vo.setEnabled(false);
                     publisherDao.update(vo.getId(), vo);
                 }
-                else
+                else {
+                    LOG.info("Starting publisher: " + vo.getName());
                     startPublisher(vo);
-            }
+                }
         }
-        LOG.info(publishers.size() + " Publisher's started in " +  (Common.timer.currentTimeMillis() - pubStart) + "ms");
+        LOG.info(publishersToStart.size() + " Publisher's started in " +  (Common.timer.currentTimeMillis() - pubStart) + "ms");
 
         //Schedule the Backup Tasks if necessary
         if(!safe){
