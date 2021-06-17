@@ -142,6 +142,7 @@
 * Add new event type STATE_CHANGE to DaoEventType
 * Changes below here added in 4.0.0-beta.16
 * Removed MBus module ensure this is deleted from your instance before upgrading
+* Adding Apache Commons Compress as a core dependency
 
 *Version 3.7.4*
 * Improve work item failure logging
