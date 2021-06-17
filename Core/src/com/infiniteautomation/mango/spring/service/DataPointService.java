@@ -303,7 +303,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 dao.saveEnabledColumn(vo);
                 return true;
             }else if(!enabledInDB && enabled) {
-                DataPointDao.getInstance().saveEnabledColumn(vo);
+                dao.saveEnabledColumn(vo);
                 return true;
             }
         }else {
@@ -317,8 +317,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 //Not running, so start it
                 List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
                 DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
-                Common.runtimeManager.startDataPoint(dp);
                 dao.saveEnabledColumn(vo);
+                Common.runtimeManager.startDataPoint(dp);
                 return true;
             }else if(enabled && restart) {
                 //May be running or not, will either start or restart it (stopping a non running point will do nothing which is ok)
