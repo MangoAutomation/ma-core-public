@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -441,7 +442,28 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
         Select<Record> select = applySortLimitOffset(conditionStep, conditions);
         try (Stream<Record> stream = select.stream()) {
-            stream.map(this::mapEventCountsRecord).forEach(callback);
+            stream.map(record -> {
+                AlarmPointTagCount result = new AlarmPointTagCount();
+                result.setXid(record.get(dataPoints.xid));
+                result.setName(record.get(dataPoints.name));
+                result.setDeviceName(record.get(dataPoints.deviceName));
+                result.setMessage(readTranslatableMessage(record.get(eventCounts.field(table.message))));
+                result.setAlarmLevel(AlarmLevels.fromValue(record.get(eventCounts.field(table.alarmLevel))));
+                result.setCount(record.get(eventCounts.field(count)));
+                result.setLatestActiveTs(record.get(eventCounts.field(latestActive)));
+                result.setLatestRtnTs(record.get(eventCounts.field(latestRtn)));
+
+                Map<String, String> tags = new HashMap<>();
+                for (Entry<String, Field<String>> entry : tagFields.entrySet()) {
+                    String value = record.get(entry.getValue());
+                    if (value != null) {
+                        tags.put(entry.getKey(), value);
+                    }
+                }
+                result.setTags(tags);
+
+                return result;
+            }).forEach(callback);
         }
     }
 
@@ -484,20 +506,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                 .where(eventConditions)
                 .groupBy(table.typeRef1, table.typeRef2, table.message, table.alarmLevel)
                 .asTable(eventCounts.getUnqualifiedName());
-    }
-
-    private AlarmPointTagCount mapEventCountsRecord(Record r) {
-        AlarmPointTagCount result = new AlarmPointTagCount();
-        result.setXid(r.get(dataPoints.xid));
-        result.setName(r.get(dataPoints.name));
-        result.setDeviceName(r.get(dataPoints.deviceName));
-        result.setMessage(readTranslatableMessage(r.get(eventCounts.field(table.message))));
-        result.setAlarmLevel(AlarmLevels.fromValue(r.get(eventCounts.field(table.alarmLevel))));
-        result.setCount(r.get(eventCounts.field(count)));
-        result.setLatestActiveTs(r.get(eventCounts.field(latestActive)));
-        result.setLatestRtnTs(r.get(eventCounts.field(latestRtn)));
-        result.setTags(Collections.emptyMap());
-        return result;
     }
 
     public ConditionSortLimitWithTagKeys createEventCountsConditions(ASTNode rql) {
