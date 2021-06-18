@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
 package com.infiniteautomation.mango.db.query;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jooq.Condition;
-import org.jooq.Name;
+import org.jooq.Field;
 import org.jooq.SortField;
 
 /**
@@ -17,19 +17,19 @@ import org.jooq.SortField;
  * @author Jared Wiltshire
  */
 public class ConditionSortLimitWithTagKeys extends ConditionSortLimit {
-    private final Map<String, Name> tagKeyToColumn;
+    private final Map<String, Field<String>> tagFields;
 
-    public ConditionSortLimitWithTagKeys(Condition condition, List<SortField<?>> sort, Integer limit, Integer offset, Map<String, Name> tagKeyToColumn) {
+    public ConditionSortLimitWithTagKeys(Condition condition, List<SortField<?>> sort, Integer limit, Integer offset, Map<String, Field<String>> tagFields) {
         super(condition, sort, limit, offset);
-        this.tagKeyToColumn = tagKeyToColumn;
+        this.tagFields = tagFields;
     }
 
-    public Map<String, Name> getTagKeyToColumn() {
-        return tagKeyToColumn;
+    public Map<String, Field<String>> getTagFields() {
+        return tagFields;
     }
 
     @Override
     public ConditionSortLimitWithTagKeys withNullLimitOffset() {
-        return new ConditionSortLimitWithTagKeys(condition, sort, null, null, tagKeyToColumn);
+        return new ConditionSortLimitWithTagKeys(condition, sort, null, null, tagFields);
     }
 }

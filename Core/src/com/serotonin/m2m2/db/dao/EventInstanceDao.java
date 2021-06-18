@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2013 Infinite Automation Software. All rights reserved.
- * @author Terry Packer
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.db.dao;
 
@@ -12,13 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
@@ -30,7 +27,6 @@ import org.jooq.SortField;
 import org.jooq.SortOrder;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -93,8 +89,10 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     private final DataPointTagsDao dataPointTagsDao;
     private final UserCommentDao userCommentDao;
     private final Field<Integer> commentCount;
-    private final DataPointTags dataPointTags;
     private final EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission;
+
+    private final DataPoints dataPoints = DataPoints.DATA_POINTS;
+    private final DataPointTags dataPointTags = DataPointTags.DATA_POINT_TAGS;
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
@@ -114,7 +112,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                 .where(userComments.commentType.eq(UserCommentVO.TYPE_EVENT),
                         userComments.typeKey.eq(table.id))
                 .asField("commentCount");
-        dataPointTags = DataPointTags.DATA_POINT_TAGS;
     }
 
     /**
@@ -158,19 +155,13 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-
         select = select.leftJoin(users).on(users.id.eq(table.ackUserId));
 
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
-            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
-            if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> tagsPivot = dataPointTagsDao.createTagPivotTable(tagKeyToColumn);
-                select = select.leftJoin(tagsPivot).on(
+            Map<String, Field<String>> tagFields = ((ConditionSortLimitWithTagKeys) conditions).getTagFields();
+            select = dataPointTagsDao.joinTags(select, table.typeRef1, tagFields,
                         table.typeName.eq(EventType.EventTypeNames.DATA_POINT),
-                        table.subTypeName.isNull(),
-                        table.typeRef1.eq(tagsPivot.field(dataPointTags.dataPointId))
-                );
-            }
+                        table.subTypeName.isNull());
         }
 
         return select;
@@ -417,22 +408,22 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
             Consumer<AlarmPointTagCount> callback) {
 
         ConditionSortLimit conditions =  rqlToDataPointEventCountCondition(rql);
-        Map<String, Name> tags;
+        Map<String, Field<String>> tagFields;
         if(conditions instanceof  ConditionSortLimitWithTagKeys) {
             ConditionSortLimitWithTagKeys tagConditionSortLimit = (ConditionSortLimitWithTagKeys)conditions;
-            if(tagConditionSortLimit.getTagKeyToColumn().size() == 0) {
-                tags = Collections.emptyMap();
+            if(tagConditionSortLimit.getTagFields().size() == 0) {
+                tagFields = Collections.emptyMap();
             }else{
-                tags = tagConditionSortLimit.getTagKeyToColumn();
+                tagFields = tagConditionSortLimit.getTagFields();
             }
         }else{
-            tags = Collections.emptyMap();
+            tagFields = Collections.emptyMap();
         }
 
         final Select<?> query = createDataPointEventCountsQuery(conditions, from, to, false, user);
         String sql = query.getSQL();
         List<Object> arguments = query.getBindValues();
-        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+        Object[] argumentsArray = arguments.toArray(new Object[0]);
         LogStopWatch stopWatch = null;
         if (useMetrics) {
             stopWatch = new LogStopWatch();
@@ -453,7 +444,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                         int columnIndex = 1;
                         try {
                             //Find the tag this is for
-                            for(String tag : tags.keySet()) {
+                            for(String tag : tagFields.keySet()) {
                                 String tagValue = rs.getString(columnIndex);
                                 columnIndex++;
                                 if(rs.wasNull()) {
@@ -498,33 +489,27 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
      * @param user
      * @return
      */
-    public int countDataPointEventCountsByRQL(ASTNode rql,
-        Long from,
-        Long to,
-        PermissionHolder user) {
-        ConditionSortLimit conditions =  rqlToDataPointEventCountCondition(rql);
+    public int countDataPointEventCountsByRQL(ASTNode rql, Long from, Long to, PermissionHolder user) {
+        ConditionSortLimit conditions = rqlToDataPointEventCountCondition(rql);
         final Select<?> query = createDataPointEventCountsQuery(conditions, from, to, true, user);
-        return query.fetchOneInto(Integer.class);
+        return query.fetchSingleInto(Integer.class);
     }
 
     private ConditionSortLimit rqlToDataPointEventCountCondition(ASTNode rql) {
         //Setup Mappings
-        DataPoints dataPoints = DataPoints.DATA_POINTS;
-        Events events = Events.EVENTS;
 
         Map<String, Field<?>> fieldMap = new HashMap<>();
         fieldMap.put("xid", dataPoints.xid);
         fieldMap.put("name", dataPoints.name);
         fieldMap.put("deviceName", dataPoints.deviceName);
-        fieldMap.put("message", events.message);
-        fieldMap.put("alarmLevel", events.alarmLevel);
-        fieldMap.put("count", DSL.field(events.getQualifiedName().append("count")));
-        fieldMap.put("latestActive", events.activeTs);
-        fieldMap.put("latestRtn", events.rtnTs);
+        fieldMap.put("message", table.message);
+        fieldMap.put("alarmLevel", table.alarmLevel);
+        fieldMap.put("count", DSL.field(table.getQualifiedName().append("count")));
+        fieldMap.put("latestActive", table.activeTs);
+        fieldMap.put("latestRtn", table.rtnTs);
 
         RQLToConditionWithTagKeys rqlToCondition = new RQLToConditionWithTagKeys(fieldMap, this.valueConverterMap);
-        ConditionSortLimit conditions = rqlToCondition.visit(rql);
-        return conditions;
+        return rqlToCondition.visit(rql);
     }
 
     /**
@@ -541,85 +526,68 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                                                                         Long to,
                                                                         boolean countQuery,
                                                                         PermissionHolder user) {
-        Events events = Events.EVENTS;
-        DataPoints dataPoints = DataPoints.DATA_POINTS;
-        Name tagsAlias = DSL.name(DataPointTagsDao.TAGS_PIVOT_ALIAS);
-        DataPointTags dataPointTags = DataPointTags.DATA_POINT_TAGS.as(tagsAlias);
 
         List<Field<?>> joinSelectFields = new ArrayList<>();
         joinSelectFields.add(dataPointTags.dataPointId);
 
-        Map<String, Name> tags;
-        if(conditions instanceof  ConditionSortLimitWithTagKeys) {
-            ConditionSortLimitWithTagKeys tagConditionSortLimit = (ConditionSortLimitWithTagKeys)conditions;
-            if(tagConditionSortLimit.getTagKeyToColumn().size() == 0) {
-                tags = Collections.emptyMap();
-            }else{
-                tags = tagConditionSortLimit.getTagKeyToColumn();
-            }
-        }else{
-            tags = Collections.emptyMap();
-        }
-
-        List<Field<String>> tagFields = new ArrayList<>();
-        for(Entry<String, Name> entry : tags.entrySet()) {
-            Field<String> tagField = DSL.field(tagsAlias.append(entry.getValue()), SQLDataType.VARCHAR(255).nullable(false));
-            tagFields.add(tagField);
-            joinSelectFields.add(DSL.max(DSL.case_().when(dataPointTags.tagKey.eq(entry.getKey()), dataPointTags.tagValue)).as(entry.getValue()));
+        Map<String, Field<String>> tagFields = Collections.emptyMap();
+        if (conditions instanceof ConditionSortLimitWithTagKeys) {
+            ConditionSortLimitWithTagKeys tagConditionSortLimit = (ConditionSortLimitWithTagKeys) conditions;
+            tagFields = tagConditionSortLimit.getTagFields();
         }
 
         Table<?> joinSelectTable = this.create.select(joinSelectFields).from(dataPointTags)
                 .groupBy(dataPointTags.dataPointId).asTable(dataPointTags);
 
         //Outer Select
-        List<Field<?>> outerSelectFields = new ArrayList<>();
+        List<Field<?>> outerSelectFields = null;
         if(!countQuery) {
-            outerSelectFields.addAll(tagFields);
+            outerSelectFields = new ArrayList<>(tagFields.values());
             outerSelectFields.add(dataPoints.xid);
             outerSelectFields.add(dataPoints.name);
             outerSelectFields.add(dataPoints.deviceName);
-            outerSelectFields.add(events.message);
-            outerSelectFields.add(events.alarmLevel);
-            outerSelectFields.add(DSL.field(events.getQualifiedName().append("count")));
-            outerSelectFields.add(events.activeTs);
-            outerSelectFields.add(events.rtnTs);
+            outerSelectFields.add(table.message);
+            outerSelectFields.add(table.alarmLevel);
+            outerSelectFields.add(DSL.field(table.getQualifiedName().append("count")));
+            outerSelectFields.add(table.activeTs);
+            outerSelectFields.add(table.rtnTs);
         }
 
         //Inner Select
         List<Field<?>> innerSelectFields = new ArrayList<>();
-        innerSelectFields.add(events.typeRef1);
-        innerSelectFields.add(events.message);
-        innerSelectFields.add(DSL.max(events.alarmLevel).as(events.alarmLevel));
-        Field<?> count = DSL.count(events.typeRef1).as("count");
+        innerSelectFields.add(table.typeRef1);
+        innerSelectFields.add(table.message);
+        innerSelectFields.add(DSL.max(table.alarmLevel).as(table.alarmLevel));
+        Field<?> count = DSL.count(table.typeRef1).as("count");
         innerSelectFields.add(count);
-        innerSelectFields.add(DSL.max(events.activeTs).as(events.activeTs));
-        innerSelectFields.add(DSL.max(events.rtnTs).as(events.rtnTs));
+        innerSelectFields.add(DSL.max(table.activeTs).as(table.activeTs));
+        innerSelectFields.add(DSL.max(table.rtnTs).as(table.rtnTs));
 
-        Condition eventsConditions = events.typeName.eq("DATA_POINT");
+        Condition eventsConditions = table.typeName.eq("DATA_POINT");
         if(from != null){
-            eventsConditions = DSL.and(eventsConditions, events.activeTs.greaterOrEqual(from));
+            eventsConditions = DSL.and(eventsConditions, table.activeTs.greaterOrEqual(from));
         }
         if(to != null){
-            eventsConditions = DSL.and(eventsConditions, events.activeTs.lessThan(to));
+            eventsConditions = DSL.and(eventsConditions, table.activeTs.lessThan(to));
         }
 
         SelectJoinStep<Record> innerSelect = this.create.select(innerSelectFields)
-                .from(events);
+                .from(table);
         innerSelect = joinPermissions(innerSelect, user);
         Table<?> innerSelectTable = innerSelect
                 .where(eventsConditions)
-                .groupBy(events.typeRef1, events.typeRef2, events.message, events.alarmLevel).asTable(events);
+                .groupBy(table.typeRef1, table.typeRef2, table.message, table.alarmLevel).asTable(table);
 
         SelectConnectByStep<Record> afterWhere;
         if(countQuery) {
             return this.create.selectCount().from(innerSelectTable)
-                    .leftJoin(dataPoints).on(dataPoints.id.eq(events.typeRef1))
+                    .leftJoin(dataPoints).on(dataPoints.id.eq(table.typeRef1))
                     .leftOuterJoin(joinSelectTable)
                     .on(dataPointTags.dataPointId.eq(dataPoints.id))
                     .where(conditions.getCondition());
         }else {
             afterWhere = this.create.select(outerSelectFields).from(innerSelectTable)
-                    .leftJoin(dataPoints).on(dataPoints.id.eq(events.typeRef1))
+                    .leftJoin(dataPoints).on(dataPoints.id.eq(table.typeRef1))
                     .leftOuterJoin(joinSelectTable)
                     .on(dataPointTags.dataPointId.eq(dataPoints.id))
                     .where(conditions.getCondition());

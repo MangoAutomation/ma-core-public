@@ -22,12 +22,10 @@ import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Cursor;
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
-import org.jooq.Table;
 import org.jooq.exception.NoDataFoundException;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -792,16 +790,10 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        select = select.join(dataSources)
-                .on(DSL.field(dataSources.id)
-                        .eq(table.dataSourceId));
-
+        select = select.join(dataSources).on(dataSources.id.eq(table.dataSourceId));
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
-            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
-            if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> tagsPivot = dataPointTagsDao.createTagPivotTable(tagKeyToColumn);
-                return select.leftJoin(tagsPivot).on(table.id.eq(tagsPivot.field(dataPointTags.dataPointId)));
-            }
+            Map<String, Field<String>> tagFields = ((ConditionSortLimitWithTagKeys) conditions).getTagFields();
+            select = dataPointTagsDao.joinTags(select, table.id, tagFields);
         }
         return select;
     }
@@ -888,7 +880,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private static class DataPointQueryBuilder extends QueryBuilder<DataPointVO> {
 
         int tagIndex = 0;
-        final Map<String, Name> tagKeyToColumn = new HashMap<>();
+        final Map<String, Field<String>> tagFields = new HashMap<>();
 
         protected DataPointQueryBuilder(Map<String, Field<?>> fields,
                 Map<String, Function<Object, Object>> valueConverter,
@@ -907,17 +899,16 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
                 return super.getField(fieldName);
             }
 
-            Name columnName = columnNameForTagKey(tagKey);
-            return DSL.field(DataPointTagsDao.TAGS_PIVOT_ALIAS.append(columnName));
+            return getTagField(tagKey).coerce(Object.class);
         }
 
-        private Name columnNameForTagKey(String tagKey) {
-            return tagKeyToColumn.computeIfAbsent(tagKey, k -> DSL.name("key" + tagIndex++));
+        private Field<String> getTagField(String tagKey) {
+            return tagFields.computeIfAbsent(tagKey, k -> DataPointTags.DATA_POINT_TAGS.as("key" + tagIndex++).tagValue);
         }
 
         @Override
         protected ConditionSortLimit createConditionSortLimit(Condition condition, List<SortField<?>> sort, Integer limit, Integer offset) {
-            return new ConditionSortLimitWithTagKeys(condition, sort, limit, offset, tagKeyToColumn);
+            return new ConditionSortLimitWithTagKeys(condition, sort, limit, offset, tagFields);
         }
     }
 }

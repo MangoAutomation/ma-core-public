@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
 package com.infiniteautomation.mango.db.query;
@@ -9,12 +9,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Name;
-import org.jooq.impl.DSL;
 
-import com.serotonin.m2m2.db.dao.DataPointTagsDao;
+import com.infiniteautomation.mango.db.tables.DataPointTags;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -30,7 +29,7 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
     public static final int TAGS_PREFIX_LENGTH = TAGS_PREFIX.length();
 
     int tagIndex = 0;
-    final Map<String, Name> tagKeyToColumn = new HashMap<>();
+    final Map<String, Field<String>> tagFields = new HashMap<>();
     final boolean allPropertiesAreTags;
 
     /**
@@ -44,10 +43,11 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
     /**
      * This constructor is used when joining tags onto another table e.g. the data points table
      *
-     * @param fieldMapping
-     * @param valueConverterMap
+     * @param fieldMapping map of RQL property name to SQL field
+     * @param valueConverterMap map of field name to a converter function, converter function converts RQL arguments to a value able to be compared to the SQL field
      */
-    public RQLToConditionWithTagKeys(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
+    public RQLToConditionWithTagKeys(@NonNull Map<String, Field<?>> fieldMapping,
+                                     @NonNull Map<String, Function<Object, Object>> valueConverterMap) {
         super(Collections.emptyMap(), fieldMapping, valueConverterMap);
         this.allPropertiesAreTags = false;
     }
@@ -56,8 +56,8 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
     public ConditionSortLimitWithTagKeys visit(ASTNode node) {
         try {
             Condition condition = visitNode(node);
-            return new ConditionSortLimitWithTagKeys(condition, sortFields, limit, offset, tagKeyToColumn);
-        } catch(Exception e) {
+            return new ConditionSortLimitWithTagKeys(condition, sortFields, limit, offset, tagFields);
+        } catch (Exception e) {
             throw new RQLVisitException("Exception while visiting RQL node", e);
         }
     }
@@ -75,11 +75,10 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
             return super.getField(property);
         }
 
-        Name columnName = columnNameForTagKey(tagKey);
-        return (Field<T>) DSL.field(DataPointTagsDao.TAGS_PIVOT_ALIAS.append(columnName));
+        return (Field<T>) getTagField(tagKey);
     }
 
-    public Name columnNameForTagKey(String tagKey) {
-        return tagKeyToColumn.computeIfAbsent(tagKey, k -> DSL.name("key" + tagIndex++));
+    public Field<String> getTagField(String tagKey) {
+        return tagFields.computeIfAbsent(tagKey, k -> DataPointTags.DATA_POINT_TAGS.as("key" + tagIndex++).tagValue);
     }
 }

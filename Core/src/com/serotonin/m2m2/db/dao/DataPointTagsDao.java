@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
 package com.serotonin.m2m2.db.dao;
@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -25,7 +24,7 @@ import org.jooq.Record2;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
-import org.jooq.Table;
+import org.jooq.SelectOnConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -51,7 +50,6 @@ import net.jazdw.rql.parser.ASTNode;
 public class DataPointTagsDao extends BaseDao {
     private static final LazyInitializer<DataPointTagsDao> springInstance = new LazyInitializer<>();
 
-    public static final Name TAGS_PIVOT_ALIAS = DSL.name("tagsPivot");
     public static final String DEVICE_TAG_KEY = "device";
     public static final String NAME_TAG_KEY = "name";
 
@@ -244,15 +242,14 @@ public class DataPointTagsDao extends BaseDao {
 
         Set<String> keys = new HashSet<>(restrictions.keySet());
         keys.add(tagKey);
-        Map<String, Name> tagKeyToColumn = tagKeyToColumn(keys);
-        Name tagKeyColumn = tagKeyToColumn.get(tagKey);
+        Map<String, Field<String>> tagFields = getTagFields(keys);
 
         List<Condition> conditions = restrictions.entrySet().stream()
-                .map(e -> DSL.field(TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue()))
+                .map(e -> tagFields.get(e.getKey()).eq(e.getValue()))
                 .collect(Collectors.toCollection(ArrayList::new));
         Condition allConditions = DSL.and(conditions);
 
-        return getTagValuesForKey(tagKeyColumn, tagKeyToColumn, allConditions, user);
+        return getTagValuesForKey(tagKey, tagFields, allConditions, user);
     }
 
     /**
@@ -264,7 +261,8 @@ public class DataPointTagsDao extends BaseDao {
      */
     public Set<String> getTagValuesForKey(String tagKey, ASTNode restrictions, PermissionHolder user) {
         RQLToConditionWithTagKeys visitor = new RQLToConditionWithTagKeys();
-        Name tagKeyColumn = visitor.columnNameForTagKey(tagKey);
+        // ensures that the tagKey we are querying on gets added to the tagKey -> field map
+        visitor.getTagField(tagKey);
 
         List<Condition> conditionList = new ArrayList<>();
         ConditionSortLimitWithTagKeys conditions = visitor.visit(restrictions);
@@ -273,27 +271,19 @@ public class DataPointTagsDao extends BaseDao {
         }
         Condition allConditions = DSL.and(conditionList);
 
-        Map<String, Name> tagKeyToColumn = conditions.getTagKeyToColumn();
-
-        return getTagValuesForKey(tagKeyColumn, tagKeyToColumn, allConditions, user);
+        return getTagValuesForKey(tagKey, conditions.getTagFields(), allConditions, user);
     }
 
-    private Set<String> getTagValuesForKey(Name tagKeyColumn, Map<String, Name> tagKeyToColumn, Condition allConditions, PermissionHolder user) {
-        Table<Record> tagsPivot = createTagPivotTable(tagKeyToColumn).asTable().as(TAGS_PIVOT_ALIAS);
-
-        SelectJoinStep<Record1<String>> query = this.create
-                .selectDistinct(tagsPivot.field(tagKeyColumn, String.class))
-                .from(tagsPivot);
+    private Set<String> getTagValuesForKey(String tagKey, Map<String, Field<String>> tagFields, Condition allConditions, PermissionHolder user) {
+        Field<String> tagField = tagFields.get(tagKey);
+        SelectJoinStep<Record1<String>> select = create.selectDistinct(tagField).from(dataPointTable);
+        select = joinTags(select, dataPointTable.id, tagFields);
 
         if (!permissionService.hasAdminRole(user)) {
-            query = query.join(dataPointTable).on(dataPointTable.id.eq(tagsPivot.field(table.dataPointId)));
-
-            ConditionSortLimit csl = new ConditionSortLimit(allConditions, null, null, null);
-            query = DataPointDao.getInstance().joinPermissions(query, user);
-            allConditions = csl.getCondition();
+            select = DataPointDao.getInstance().joinPermissions(select, user);
         }
 
-        Select<Record1<String>> result = query.where(allConditions);
+        Select<Record1<String>> result = select.where(allConditions);
         try (Stream<Record1<String>> stream = result.stream()) {
             return stream.map(Record1::value1).collect(Collectors.toSet());
         }
@@ -303,33 +293,35 @@ public class DataPointTagsDao extends BaseDao {
      * This method does not filter the tags based on the data point permissions. It should only be used
      * when joining onto the data points table (the filtering happens there post-join).
      *
-     * @param tagKeyToColumn
-     * @return
+     * @param select table to join onto
+     * @param pointIdField data point id field to join on
+     * @param tagFields map of tag key to field
+     * @param joinConditions additional conditions to add to join on clause
+     * @return joined table
      */
-    Table<Record> createTagPivotTable(Map<String, Name> tagKeyToColumn) {
-        List<Field<?>> fields = new ArrayList<>(tagKeyToColumn.size() + 1);
-        fields.add(table.dataPointId);
-
-        for (Entry<String, Name> entry : tagKeyToColumn.entrySet()) {
-            fields.add(DSL.max(DSL.when(table.tagKey.eq(entry.getKey()), table.tagValue)).as(entry.getValue()));
+    public <R extends Record> SelectJoinStep<R> joinTags(SelectJoinStep<R> select, Field<Integer> pointIdField, Map<String, Field<String>> tagFields, Condition... joinConditions) {
+        // left join tags table once per tag key
+        for (Map.Entry<String, Field<String>> entry : tagFields.entrySet()) {
+            Field<String> tagField = entry.getValue();
+            DataPointTags tagsAs = table.as(tagField.getQualifiedName().qualifier());
+            SelectOnConditionStep<R> onConditionStep = select.leftOuterJoin(tagsAs)
+                    .on(pointIdField.eq(tagsAs.dataPointId), tagsAs.tagKey.eq(entry.getKey()));
+            // prevents "and true" being added to rendered SQL when there are no additional conditions
+            select = joinConditions.length > 0 ? onConditionStep.and(DSL.and(joinConditions)) : onConditionStep;
         }
-
-        return DSL.select(fields).from(table)
-                .groupBy(table.dataPointId)
-                .asTable().as(TAGS_PIVOT_ALIAS);
+        return select;
     }
 
     /**
      * Maps tag keys to generic keyX to prevent SQL injection
      * @return
      */
-    Map<String, Name> tagKeyToColumn(Set<String> tagKeys) {
-        int i = 1;
-        Map<String, Name> tagNameToColumn = new HashMap<>(tagKeys.size());
+    Map<String, Field<String>> getTagFields(Set<String> tagKeys) {
+        int i = 0;
+        Map<String, Field<String>> tagFields = new HashMap<>(tagKeys.size());
         for (String key : tagKeys) {
-            String fieldName = String.format("key%d", i++);
-            tagNameToColumn.put(key, DSL.name(fieldName));
+            tagFields.put(key, DataPointTags.DATA_POINT_TAGS.as("key" + i++).tagValue);
         }
-        return tagNameToColumn;
+        return tagFields;
     }
 }
