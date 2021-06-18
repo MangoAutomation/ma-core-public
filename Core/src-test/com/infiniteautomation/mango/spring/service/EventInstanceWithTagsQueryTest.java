@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.RQLUtils;
@@ -155,10 +156,6 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
             insertEvents(point1, detector1, 5, AlarmLevels.URGENT);
             insertEvents(point2, detector2, 5, AlarmLevels.CRITICAL);
 
-            List<String> keys = allTags.keySet().stream().collect(Collectors.toList());
-            List<String> values = new ArrayList<>();
-            keys.forEach(key -> values.add(allTags.get(key)));
-
             AtomicInteger count = new AtomicInteger();
             service.query(createRql(point1.getTags(), true), (evt) -> {
                 count.getAndIncrement();
@@ -182,7 +179,8 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
         runAs.runAs(point2User, () -> {
             //Create the query
             ASTNode ast = RQLUtils.parseRQLtoAST(createRql(allTags, false));
-            int count = service.countDataPointEventCountsByRQL(ast, null, null);
+            ConditionSortLimitWithTagKeys conditions = service.createEventCountsConditions(ast);
+            int count = service.countDataPointEventCountsByRQL(conditions, null, null);
             Assert.assertEquals(1, count);
         });
     }
@@ -196,7 +194,8 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
 
             //Create the query
             ASTNode ast = RQLUtils.parseRQLtoAST(createRql(allTags, false));
-            int count = service.countDataPointEventCountsByRQL(ast, null, null);
+            ConditionSortLimitWithTagKeys conditions = service.createEventCountsConditions(ast);
+            int count = service.countDataPointEventCountsByRQL(conditions, null, null);
             Assert.assertEquals(2, count);
         });
     }
@@ -214,7 +213,8 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
             //Create the query
             ASTNode ast = RQLUtils.parseRQLtoAST(createRql(allTags, false));
             AtomicInteger count = new AtomicInteger();
-            service.queryDataPointEventCountsByRQL(ast, null, null, (row) -> {
+            ConditionSortLimitWithTagKeys conditions = service.createEventCountsConditions(ast);
+            service.queryDataPointEventCountsByRQL(conditions, null, null, (row) -> {
                 count.getAndIncrement();
                 //What point is this row for
                 if(row.getName().equals(point1.getName())) {
@@ -245,7 +245,8 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
             //Create the query
             ASTNode ast = RQLUtils.parseRQLtoAST(createRql(allTags, false));
             AtomicInteger count = new AtomicInteger();
-            service.queryDataPointEventCountsByRQL(ast, null, null, (row) -> {
+            ConditionSortLimitWithTagKeys conditions = service.createEventCountsConditions(ast);
+            service.queryDataPointEventCountsByRQL(conditions, null, null, (row) -> {
                 count.getAndIncrement();
                 //What point is this row for
                 if(row.getName().equals(point1.getName())) {
