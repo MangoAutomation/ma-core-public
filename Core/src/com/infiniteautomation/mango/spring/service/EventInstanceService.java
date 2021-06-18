@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.tables.Events;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
@@ -324,80 +325,106 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         }
     }
 
+    public ConditionSortLimitWithTagKeys createEventCountsConditions(ASTNode rql) {
+        return dao.createEventCountsConditions(rql);
+    }
+
     /**
      * Count events for a set of tags and rql on events and data points
      */
-    public int countDataPointEventCountsByRQL(ASTNode rql, Long from, Long to) {
-        PermissionHolder user = Common.getUser();
-        return this.dao.countDataPointEventCountsByRQL(rql, from, to, user);
+    public int countDataPointEventCountsByRQL(ConditionSortLimitWithTagKeys conditions, Long from, Long to) {
+        return this.dao.countDataPointEventCountsByRQL(conditions, from, to, Common.getUser());
     }
 
     /**
      * Query events for a set of tags
      *
      */
-    public void queryDataPointEventCountsByRQL(ASTNode rql, Long from, Long to, Consumer<AlarmPointTagCount> callback) {
-        PermissionHolder user = Common.getUser();
-        this.dao.queryDataPointEventCountsByRQL(rql, from, to, user, callback);
+    public void queryDataPointEventCountsByRQL(ConditionSortLimitWithTagKeys conditions, Long from, Long to, Consumer<AlarmPointTagCount> callback) {
+        this.dao.queryDataPointEventCountsByRQL(conditions, from, to, Common.getUser(), callback);
     }
 
     public static class AlarmPointTagCount {
-        private final String xid;
-        private final String name;
-        private final String deviceName;
-        private final TranslatableMessage message;
-        private final AlarmLevels alarmLevel;
-        private final int count;
-        private final Long latestActiveTs;
-        private final Long latestRtnTs;
-        private final Map<String,String> tags;
-        /**
-         * @param xid
-         * @param name
-         * @param deviceName
-         * @param alarmLevel
-         * @param count
-         * @param latestActiveTs
-         * @param latestRtnTs
-         * @param tags
-         */
-        public AlarmPointTagCount(String xid, String name, String deviceName,
-                TranslatableMessage message, AlarmLevels alarmLevel,
-                int count, Long latestActiveTs, Long latestRtnTs, Map<String,String> tags) {
-            super();
-            this.xid = xid;
-            this.name = name;
-            this.deviceName = deviceName;
-            this.message = message;
-            this.alarmLevel = alarmLevel;
-            this.count = count;
-            this.latestActiveTs = latestActiveTs;
-            this.latestRtnTs = latestRtnTs;
-            this.tags = tags;
-        }
+        private String xid;
+        private String name;
+        private String deviceName;
+        private TranslatableMessage message;
+        private AlarmLevels alarmLevel;
+        private int count;
+        private Long latestActiveTs;
+        private Long latestRtnTs;
+        private Map<String,String> tags;
+
         public String getXid() {
             return xid;
         }
+
+        public void setXid(String xid) {
+            this.xid = xid;
+        }
+
         public String getName() {
             return name;
         }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
         public String getDeviceName() {
             return deviceName;
         }
+
+        public void setDeviceName(String deviceName) {
+            this.deviceName = deviceName;
+        }
+
         public TranslatableMessage getMessage() {
             return message;
         }
+
+        public void setMessage(TranslatableMessage message) {
+            this.message = message;
+        }
+
         public AlarmLevels getAlarmLevel() {
             return alarmLevel;
         }
+
+        public void setAlarmLevel(AlarmLevels alarmLevel) {
+            this.alarmLevel = alarmLevel;
+        }
+
         public int getCount() {
             return count;
         }
-        public Long getLatestActiveTs() { return latestActiveTs; }
-        public Long getLatestRtnTs() { return latestRtnTs; }
 
-        public Map<String,String> getTags() {
+        public void setCount(int count) {
+            this.count = count;
+        }
+
+        public Long getLatestActiveTs() {
+            return latestActiveTs;
+        }
+
+        public void setLatestActiveTs(Long latestActiveTs) {
+            this.latestActiveTs = latestActiveTs;
+        }
+
+        public Long getLatestRtnTs() {
+            return latestRtnTs;
+        }
+
+        public void setLatestRtnTs(Long latestRtnTs) {
+            this.latestRtnTs = latestRtnTs;
+        }
+
+        public Map<String, String> getTags() {
             return tags;
+        }
+
+        public void setTags(Map<String, String> tags) {
+            this.tags = tags;
         }
     }
 

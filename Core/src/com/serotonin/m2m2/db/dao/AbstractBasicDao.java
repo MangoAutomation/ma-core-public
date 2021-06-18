@@ -36,6 +36,7 @@ import org.jooq.Select;
 import org.jooq.SelectConnectByStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
+import org.jooq.SelectOrderByStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
@@ -493,18 +494,31 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     @Override
     public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<?>> sort, Integer limit, Integer offset,
             Consumer<T> callback) {
-
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
-        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
-        Select<Record> offsetStep = afterSort;
+        customizedQuery(applySortLimitOffset(afterWhere, sort, limit, offset), callback);
+    }
+
+    public <X extends Record> @NonNull Select<X> applySortLimitOffset(
+            @NonNull SelectOrderByStep<X> select,
+            @NonNull ConditionSortLimit conditions) {
+        return applySortLimitOffset(select, conditions.getSort(), conditions.getLimit(), conditions.getOffset());
+    }
+
+    public <X extends Record> @NonNull Select<X> applySortLimitOffset(
+            @NonNull SelectOrderByStep<X> select,
+            @Nullable List<SortField<?>> sort,
+            @Nullable Integer limit,
+            @Nullable Integer offset) {
+
+        SelectLimitStep<X> limitStep = sort == null ? select : select.orderBy(sort);
         if (limit != null) {
             if (offset != null) {
-                offsetStep = afterSort.limit(offset, limit);
+                return limitStep.limit(offset, limit);
             } else {
-                offsetStep = afterSort.limit(limit);
+                return limitStep.limit(limit);
             }
         }
-        customizedQuery(offsetStep, callback);
+        return limitStep;
     }
 
     @Override
