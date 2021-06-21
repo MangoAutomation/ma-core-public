@@ -18,6 +18,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Record6;
@@ -96,16 +97,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     private final Field<Integer> count = DSL.count(table.id).as("count");
     private final Field<Long> latestActive = DSL.max(table.activeTs).as("latestActive");
     private final Field<Long> latestRtn = DSL.max(table.rtnTs).as("latestRtn");
-
-    // pseudo-table with alias so we can grab fields
-    private final Table<Record6<Integer, String, Integer, Integer, Long, Long>> eventCounts = DSL.select(
-            table.typeRef1,
-            table.message,
-            table.alarmLevel,
-            count,
-            latestActive,
-            latestRtn
-    ).from(table).asTable("eventCounts");
+    private final Name eventCounts = DSL.name("eventCounts");
 
     private final Map<String, Field<?>> eventCountsFields;
 
@@ -114,7 +106,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                              PermissionService permissionService,
                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
                              ApplicationEventPublisher publisher, UserCommentDao userCommentDao,
-                             EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
+                             @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
         super(null, Events.EVENTS, null, mapper, publisher, permissionService);
         this.users = Users.USERS;
         this.dataPointTagsDao = dataPointTagsDao;
@@ -128,11 +120,22 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                         userComments.typeKey.eq(table.id))
                 .asField("commentCount");
 
+
+        // pseudo-table with alias so we can grab fields from with correct qualified name
+        Table<Record6<Integer, String, Integer, Integer, Long, Long>> eventCountsTable = DSL.select(
+                table.typeRef1,
+                table.message,
+                table.alarmLevel,
+                count,
+                latestActive,
+                latestRtn
+        ).from(table).asTable(eventCounts);
+
         Map<String, Field<?>> eventCountsFields = new HashMap<>();
         eventCountsFields.put("xid", dataPoints.xid);
         eventCountsFields.put("name", dataPoints.name);
         eventCountsFields.put("deviceName", dataPoints.deviceName);
-        for (Field<?> field : eventCounts.fields()) {
+        for (Field<?> field : eventCountsTable.fields()) {
             eventCountsFields.put(field.getName(), field);
         }
         this.eventCountsFields = Collections.unmodifiableMap(eventCountsFields);
@@ -140,7 +143,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static EventInstanceDao getInstance() {
         return springInstance.get();
@@ -209,7 +211,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
     }
 
     @Override
-    public EventInstanceVO mapRecord(Record record) {
+    public @NonNull EventInstanceVO mapRecord(@NonNull Record record) {
         EventInstanceVO event = new EventInstanceVO();
         event.setId(record.get(table.id));
 
@@ -447,11 +449,11 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
                 result.setXid(record.get(dataPoints.xid));
                 result.setName(record.get(dataPoints.name));
                 result.setDeviceName(record.get(dataPoints.deviceName));
-                result.setMessage(readTranslatableMessage(record.get(eventCounts.field(table.message))));
-                result.setAlarmLevel(AlarmLevels.fromValue(record.get(eventCounts.field(table.alarmLevel))));
-                result.setCount(record.get(eventCounts.field(count)));
-                result.setLatestActiveTs(record.get(eventCounts.field(latestActive)));
-                result.setLatestRtnTs(record.get(eventCounts.field(latestRtn)));
+                result.setMessage(readTranslatableMessage(record.get(eventCountsTable.field(table.message))));
+                result.setAlarmLevel(AlarmLevels.fromValue(record.get(eventCountsTable.field(table.alarmLevel))));
+                result.setCount(record.get(eventCountsTable.field(count)));
+                result.setLatestActiveTs(record.get(eventCountsTable.field(latestActive)));
+                result.setLatestRtnTs(record.get(eventCountsTable.field(latestRtn)));
 
                 Map<String, String> tags = new HashMap<>();
                 for (Entry<String, Field<String>> entry : tagFields.entrySet()) {
@@ -505,7 +507,7 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
         ).from(table), user)
                 .where(eventConditions)
                 .groupBy(table.typeRef1, table.typeRef2, table.message, table.alarmLevel)
-                .asTable(eventCounts.getUnqualifiedName());
+                .asTable(eventCounts);
     }
 
     public ConditionSortLimitWithTagKeys createEventCountsConditions(ASTNode rql) {
@@ -515,9 +517,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
     /**
      * Count all unacknowledged alarms at this level
-     * @param level
-     * @param user
-     * @return
      */
     public int countUnacknowledgedAlarms(AlarmLevels level, PermissionHolder user) {
         SelectSelectStep<Record1<Integer>> count = getCountQuery();
@@ -530,9 +529,6 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
     /**
      * Get the latest unacknowledged alarm at this level
-     * @param level
-     * @param user
-     * @return
      */
     public EventInstanceVO getLatestUnacknowledgedAlarm(AlarmLevels level, PermissionHolder user) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
