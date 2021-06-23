@@ -28,6 +28,7 @@ import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermi
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
@@ -85,6 +86,22 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     @EventListener
     protected void handleEventHandlerEvent(DaoEvent<? extends AbstractEventHandlerVO> event) {
         cache.invalidateAll();
+    }
+
+    @EventListener
+    protected void handleEventDetectorEvent(DaoEvent<? extends AbstractEventDetectorVO> event) {
+        AbstractEventDetectorVO detector = event.getVo();
+        EventType eventType = detector.getEventType().getEventType();
+        cache.invalidate(new EventHandlerKey(eventType));
+
+        // should not be possible for the event type to change, but just in case
+        if (event.getType() == DaoEventType.UPDATE) {
+            AbstractEventDetectorVO oldDetector = event.getOriginalVo();
+            EventType oldType = oldDetector.getEventType().getEventType();
+            if (!eventType.equals(oldType)) {
+                cache.invalidate(new EventHandlerKey(oldType));
+            }
+        }
     }
 
     @Override
@@ -145,6 +162,10 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     private static final class EventHandlerKey {
         private final String eventType;
         private final String eventSubtype;
+
+        public EventHandlerKey(EventType type) {
+            this(type.getEventType(), type.getEventSubtype());
+        }
 
         public EventHandlerKey(String eventType, String eventSubtype) {
             this.eventType = eventType;
