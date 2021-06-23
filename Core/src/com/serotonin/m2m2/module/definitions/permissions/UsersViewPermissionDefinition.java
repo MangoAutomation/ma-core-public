@@ -1,21 +1,18 @@
-/**
- * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
- * @author Terry Packer
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.PermissionGroup;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
- * TODO Mango 4.0 no longer used? Should we use this in the UI to hide/show the users menu item?
  *
- * Permission to view the users page
+ * Permission to view the users page, only used in front end. Doesn't control access to user profile page.
  *
  * @author Terry Packer
+ * @author Jared Wiltshire
  *
  */
 public class UsersViewPermissionDefinition extends PermissionDefinition{
@@ -30,11 +27,6 @@ public class UsersViewPermissionDefinition extends PermissionDefinition{
     @Override
     public String getPermissionTypeName() {
         return PERMISSION;
-    }
-
-    @Override
-    protected MangoPermission getDefaultPermission() {
-        return MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE);
     }
 
     @Override
