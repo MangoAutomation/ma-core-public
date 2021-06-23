@@ -543,7 +543,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         return holder.getUser() != null && holder.getUser().getId() == vo.getId();
     }
 
-    public boolean canEditSelf(PermissionHolder holder, User vo) {
+    public boolean canEditSelf(PermissionHolder holder) {
         return permissionService.hasPermission(holder, editSelfPermission.getPermission());
     }
 
@@ -557,7 +557,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
     @Override
     public boolean hasEditPermission(PermissionHolder holder, User vo) {
-        return isSelf(holder, vo) && canEditSelf(holder, vo) ||
+        return isSelf(holder, vo) && canEditSelf(holder) ||
                 hasExplicitEditPermission(holder, vo);
     }
 
