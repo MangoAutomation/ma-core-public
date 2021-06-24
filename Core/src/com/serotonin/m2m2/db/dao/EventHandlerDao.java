@@ -169,11 +169,10 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     public List<AbstractEventHandlerVO> enabledHandlersForType(String typeName, String subtypeName) {
-        try (Stream<Record> stream = getJoinedSelectQuery().innerJoin(handlerMapping).on(table.id.equal(handlerMapping.eventHandlerId))
-                .where(handlerMapping.eventTypeName.equal(typeName),
-                        handlerMapping.eventSubtypeName.equal(subtypeName == null ? "" : subtypeName))
-                .stream()) {
-
+        try (Stream<Record> stream = getJoinedSelectQuery().whereExists(this.create.selectOne().from(handlerMapping).where(
+                table.id.eq(handlerMapping.eventHandlerId)
+                        .and(handlerMapping.eventTypeName.eq(typeName)
+                                .and(handlerMapping.eventSubtypeName.eq(subtypeName)))).limit(1)).stream()) {
             return stream.map(this::mapRecordLoadRelationalData)
                     .filter(Objects::nonNull)
                     .filter(AbstractEventHandlerVO::isEnabled) // cant add to SQL as its contained in serialized data
