@@ -89,6 +89,7 @@ public class DataPurge {
             }
 
             pointValueDao.deleteOrphanedPointValueAnnotations();
+            int deletedTimeSeries = dataPointDao.deleteOrphanedTimeSeries();
 
             if (countPointValues) {
                 log.info("Data purge ended, " + deletedSamples + " point values were deleted");
@@ -96,6 +97,10 @@ public class DataPurge {
                 log.info("Data purge ended, unknown number of point values were deleted");
             } else {
                 log.info("Data purge ended, no point values were deleted");
+            }
+
+            if (deletedTimeSeries > 0) {
+                log.info("Time series purged, total deleted: " + deletedTimeSeries );
             }
         }else{
             log.info("Purge for data points not enabled, skipping.");

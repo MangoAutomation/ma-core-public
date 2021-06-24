@@ -668,6 +668,16 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
                 .value1() == 1;
     }
 
+    /**
+     * Checks if a Time series is not linked to a datapoint. If true, deletes that time series
+     * @return amount of time series deleted
+     */
+    public int deleteOrphanedTimeSeries() {
+        return this.create.deleteFrom(TimeSeries.TIME_SERIES)
+                .whereNotExists(DSL.select().from(DataPoints.DATA_POINTS).where(DataPoints.DATA_POINTS.id.eq(TimeSeries.TIME_SERIES.id)))
+                .execute();
+    }
+
     @Override
     public void savePreRelationalData(DataPointVO existing, DataPointVO vo) {
         //Shall we generate a new series ID?
