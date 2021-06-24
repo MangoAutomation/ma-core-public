@@ -48,6 +48,9 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
             throws PermissionException, ValidationException {
         vo = super.insert(vo);
 
+        // ensure that handlerXids is populated on save
+        dao.loadRelationalData(vo);
+
         if(restartSource)
             vo.getDefinition().restartSource(vo);
 
