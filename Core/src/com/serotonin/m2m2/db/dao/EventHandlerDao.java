@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
- * @author Terry Packer
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.db.dao;
 
@@ -10,7 +9,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Select;
+import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,7 +42,7 @@ import com.serotonin.util.SerializationHelper;
 
 /**
  * @author Terry Packer
- *
+ * @author Jared Wiltshire
  */
 @Repository()
 public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, EventHandlersRecord, EventHandlers> {
@@ -65,24 +68,21 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     private final EventHandlersMapping handlerMapping;
-    private final EventInstanceDao eventInstanceDao;
 
     @Autowired
     private EventHandlerDao(PermissionService permissionService,
                             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                            ApplicationEventPublisher publisher, EventInstanceDao eventInstanceDao) {
+                            ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_HANDLER,
                 EventHandlers.EVENT_HANDLERS,
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher, permissionService);
-        this.eventInstanceDao = eventInstanceDao;
 
         this.handlerMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
     }
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static EventHandlerDao getInstance() {
         return springInstance.get();
@@ -106,7 +106,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     @Override
-    public AbstractEventHandlerVO mapRecord(Record record) {
+    public @NonNull AbstractEventHandlerVO mapRecord(@NonNull Record record) {
         AbstractEventHandlerVO h = (AbstractEventHandlerVO) SerializationHelper.readObjectInContextFromArray(record.get(table.data));
         h.setId(record.get(table.id));
         h.setXid(record.get(table.xid));
@@ -150,29 +150,39 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         return new EventTypeMatcher(typeName, subtypeName, typeRef1, typeRef2);
     }
 
+    private Select<Record1<Integer>> whereMappingExists(String typeName, String subtypeName, Integer ref1, Integer ref2) {
+        SelectConditionStep<Record1<Integer>> select = DSL.select(DSL.one()).from(handlerMapping)
+                .where(table.id.eq(handlerMapping.eventHandlerId),
+                        handlerMapping.eventTypeName.equal(typeName),
+                        handlerMapping.eventSubtypeName.equal(subtypeName == null ? "" : subtypeName));
+
+        if (ref1 != null && ref2 != null) {
+            select = select.and(DSL.and(
+                DSL.or(handlerMapping.eventTypeRef1.equal(0), handlerMapping.eventTypeRef1.equal(ref1)),
+                DSL.or(handlerMapping.eventTypeRef2.equal(0), handlerMapping.eventTypeRef2.equal(ref2))
+            ));
+        }
+
+        return select;
+    }
+
     public List<String> getEventHandlerXids(EventType type) {
-        return create.select(table.xid).from(table).innerJoin(handlerMapping).on(table.id.equal(handlerMapping.eventHandlerId))
-                .where(handlerMapping.eventTypeName.equal(type.getEventType()),
-                        handlerMapping.eventSubtypeName.equal(type.getEventSubtype() == null ? "" : type.getEventSubtype()),
-                        DSL.or(handlerMapping.eventTypeRef1.equal(0), handlerMapping.eventTypeRef1.equal(type.getReferenceId1())),
-                        DSL.or(handlerMapping.eventTypeRef2.equal(0), handlerMapping.eventTypeRef2.equal(type.getReferenceId2())))
+        return create.select(table.xid).from(table)
+                .whereExists(whereMappingExists(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()))
                 .fetch(table.xid);
     }
 
     private List<AbstractEventHandlerVO> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
-        return getJoinedSelectQuery().innerJoin(handlerMapping).on(table.id.equal(handlerMapping.eventHandlerId))
-                .where(handlerMapping.eventTypeName.equal(typeName),
-                        handlerMapping.eventSubtypeName.equal(subtypeName == null ? "" : subtypeName),
-                        DSL.or(handlerMapping.eventTypeRef1.equal(0), handlerMapping.eventTypeRef1.equal(ref1)),
-                        DSL.or(handlerMapping.eventTypeRef2.equal(0), handlerMapping.eventTypeRef2.equal(ref2)))
+        return getJoinedSelectQuery()
+                .whereExists(whereMappingExists(typeName, subtypeName, ref1, ref2))
                 .fetch(this::mapRecord);
     }
 
     public List<AbstractEventHandlerVO> enabledHandlersForType(String typeName, String subtypeName) {
-        try (Stream<Record> stream = getJoinedSelectQuery().whereExists(this.create.selectOne().from(handlerMapping).where(
-                table.id.eq(handlerMapping.eventHandlerId)
-                        .and(handlerMapping.eventTypeName.eq(typeName)
-                                .and(handlerMapping.eventSubtypeName.eq(subtypeName)))).limit(1)).stream()) {
+        try (Stream<Record> stream = getJoinedSelectQuery()
+                .whereExists(whereMappingExists(typeName, subtypeName, null, null))
+                .stream()) {
+
             return stream.map(this::mapRecordLoadRelationalData)
                     .filter(Objects::nonNull)
                     .filter(AbstractEventHandlerVO::isEnabled) // cant add to SQL as its contained in serialized data
@@ -277,7 +287,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         else {
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
                 @Override
-                protected void doInTransactionWithoutResult(TransactionStatus arg0) {
+                protected void doInTransactionWithoutResult(@NonNull TransactionStatus arg0) {
                     deleteEventHandlerMapping(handlerId, type);
                     ejt.doInsert("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
                             new Object[] {handlerId, type.getEventType(), type.getEventSubtype() == null ? "" : type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
@@ -296,8 +306,8 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
      * Add a mapping for an existing event handler for an event type,
      *   this assumes that no mapping already exists.  Either this is from a new event detector
      *   or the mappings have been removed for this event detector prior to calling
-     * @param eventHandlerXid
-     * @param type
+     * @param eventHandlerXid event handler xid
+     * @param type type to add mapping for
      */
     public void saveEventHandlerMapping(String eventHandlerXid, EventType type) {
         Integer id = getIdByXid(eventHandlerXid);
@@ -309,13 +319,13 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
      * Add a mapping for an existing event handler for an event type,
      *   this assumes that no mapping already exists.  If this is possibly a
      *   duplicate mapping one should use addEventHandlerMappingIfMissing()
-     * @param eventHandlerId
-     * @param type
+     * @param eventHandlerId event handler id
+     * @param type type to add mapping for
      */
     public void saveEventHandlerMapping(int eventHandlerId, EventType type) {
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
-            protected void doInTransactionWithoutResult(TransactionStatus arg0) {
+            protected void doInTransactionWithoutResult(@NonNull TransactionStatus arg0) {
                 ejt.doInsert(
                         "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
                         new Object[] {eventHandlerId, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
@@ -328,7 +338,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
     /**
      * Delete all mappings for this event type
-     * @param type
+     * @param type type to delete mappings for
      */
     public void deleteEventHandlerMappings(EventType type) {
         if(type.getEventSubtype() == null)
