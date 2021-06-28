@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.mail.internet.AddressException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -60,17 +61,19 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     private final PublicUrlService publicUrlService;
     private final RunAs runAs;
     private final PageResolver pageResolver;
+    private final SystemSettingsDao systemSettingsDao;
 
     @Autowired
     public PasswordResetService(
             PermissionService permissionService,
             UsersService usersService,
-            PublicUrlService publicUrlService, RunAs runAs, PageResolver pageResolver) {
+            PublicUrlService publicUrlService, RunAs runAs, PageResolver pageResolver, SystemSettingsDao systemSettingsDao) {
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.runAs = runAs;
         this.pageResolver = pageResolver;
+        this.systemSettingsDao = systemSettingsDao;
     }
 
     @Override
@@ -94,14 +97,14 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
 
     @Override
     protected void saveKeyPair(KeyPair keyPair) {
-        SystemSettingsDao.instance.setValue(PUBLIC_KEY_SYSTEM_SETTING, keyToString(keyPair.getPublic()));
-        SystemSettingsDao.instance.setValue(PRIVATE_KEY_SYSTEM_SETTING, keyToString(keyPair.getPrivate()));
+        systemSettingsDao.setValue(PUBLIC_KEY_SYSTEM_SETTING, keyToString(keyPair.getPublic()));
+        systemSettingsDao.setValue(PRIVATE_KEY_SYSTEM_SETTING, keyToString(keyPair.getPrivate()));
     }
 
     @Override
     protected KeyPair loadKeyPair() {
-        String publicKeyStr = SystemSettingsDao.instance.getValue(PUBLIC_KEY_SYSTEM_SETTING);
-        String privateKeyStr = SystemSettingsDao.instance.getValue(PRIVATE_KEY_SYSTEM_SETTING);
+        String publicKeyStr = systemSettingsDao.getValue(PUBLIC_KEY_SYSTEM_SETTING);
+        String privateKeyStr = systemSettingsDao.getValue(PRIVATE_KEY_SYSTEM_SETTING);
 
         if (publicKeyStr != null && !publicKeyStr.isEmpty() && privateKeyStr != null && !privateKeyStr.isEmpty()) {
             return keysToKeyPair(publicKeyStr, privateKeyStr);
@@ -131,7 +134,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         }
 
         if (expirationDate == null) {
-            int expiryDuration = SystemSettingsDao.instance.getIntValue(EXPIRY_SYSTEM_SETTING);
+            int expiryDuration = systemSettingsDao.getIntValue(EXPIRY_SYSTEM_SETTING);
             expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000L);
         }
 
@@ -202,5 +205,26 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         } catch (TemplateException | IOException | AddressException e) {
             log.error("Couldn't send password reset email", e);
         }
+    }
+
+    public User systemSetup(String password, Map<String, Object> settings) {
+        PermissionHolder holder = Common.getUser();
+
+        if (!permissionService.hasAdminRole(holder)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.mustBeAdmin"), holder);
+        }
+
+        User user = holder.getUser();
+        if (!Common.checkPassword("admin", user.getPassword())) {
+            throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
+        }
+
+        // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
+        User copy = usersService.get(user.getId());
+        copy.setPlainTextPassword(password);
+        usersService.ensureValid(copy, holder);
+
+        systemSettingsDao.updateSettings(settings);
+        return usersService.update(user, copy);
     }
 }
