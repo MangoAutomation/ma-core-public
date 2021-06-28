@@ -143,6 +143,12 @@
 * Changes below here added in 4.0.0-beta.16
 * Removed MBus module ensure this is deleted from your instance before upgrading
 * Adding Apache Commons Compress as a core dependency
+* Changes below here added in 4.0.0-beta.17
+* Improve query performance when using data point tags
+* Fix Event Handler bug introduced in beta.14 from in-memory caching
+* Change default permission for Users page from all users to superadmin only
+* Changes below here added in 4.0.0-beta.18
+* Nightly purge any orphaned id rows in the timeSeries database table which are rows not linked to a data point
 
 *Version 3.7.4*
 * Improve work item failure logging
