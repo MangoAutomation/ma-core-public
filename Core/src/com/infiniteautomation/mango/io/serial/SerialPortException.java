@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
- * @author Terry Packer
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.infiniteautomation.mango.io.serial;
 

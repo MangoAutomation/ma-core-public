@@ -1,6 +1,5 @@
 /*
-	Copyright (C) 2013 Infinite Automation. All rights reserved.
-	@author Phillip Dunlap
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.rt.event.detectors;
 

@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
- * @author Phillip Dunlap
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.infiniteautomation.mango.io.serial.virtual;
 

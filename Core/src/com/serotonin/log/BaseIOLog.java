@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2014 Infinite Automation Software and Serotonin Software. All rights reserved.
- * @author Terry Packer, Matthew Lohbihler 
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.log;
 

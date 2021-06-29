@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
- * @author Jared Wiltshire
+/*
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.db.upgrade;
 

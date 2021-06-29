@@ -1,6 +1,5 @@
 /*
- *   Copyright (C) 2020 Infinite Automation Systems Inc. All rights reserved.
- *   @author Matthew Lohbihler,Terry Packer
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.infiniteautomation.mango.emport;
 

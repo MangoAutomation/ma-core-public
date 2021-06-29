@@ -1,6 +1,5 @@
 /*
-    Copyright (C) 2016 Infinite Automation Systems Inc. All rights reserved.
-    @author Terry Packer
+ * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.vo.event;
 
