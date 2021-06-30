@@ -160,6 +160,7 @@ fi
 if [ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/keytool" ]; then
   keytool_cmd="$JAVA_HOME/bin/keytool"
 elif [ -x "$(command -v keytool)" ]; then
+  # shellcheck disable=SC2034
   keytool_cmd=keytool
 fi
 
