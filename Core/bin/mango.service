@@ -10,7 +10,7 @@ EnvironmentFile=/etc/environment
 Environment=mango_appender_stdout_level=error "mango_appender_stdout_pattern=%%-5p (%%C.%%M:%%L) - %%m %%n"
 Type=forking
 WorkingDirectory=/opt/mango
-PIDFile=/opt/mango/bin/ma.pid
+PIDFile=/opt/mango/ma.pid
 ExecStart=/opt/mango/bin/start-mango.sh
 SuccessExitStatus=0 SIGINT SIGTERM 130 143
 Restart=always

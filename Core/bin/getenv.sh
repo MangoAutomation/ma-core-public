@@ -83,14 +83,15 @@ mango_upgrade() {
 
 mango_start() {
   echo "Mango installation/home directory is $mango_paths_home"
+  echo "Mango data path is $mango_paths_data"
 
-  if [ -e "$mango_pid_file" ]; then
-    mango_pid="$(cat "$mango_pid_file")"
+  if [ -e "$mango_paths_pid_file" ]; then
+    mango_pid="$(cat "$mango_paths_pid_file")"
     if ps -p "$mango_pid" >/dev/null 2>&1; then
       err "Mango is already running with PID $mango_pid"
     fi
     # Clean up old PID file
-    rm -f "$mango_pid_file"
+    rm -f "$mango_paths_pid_file"
   fi
 
   # Set the working directory to the Mango installation/home directory
@@ -117,7 +118,7 @@ mango_start() {
     com.serotonin.m2m2.Main &
 
   mango_pid=$!
-  echo $mango_pid >"$mango_pid_file"
+  echo $mango_pid >"$mango_paths_pid_file"
   echo "Mango started (PID $mango_pid)"
 }
 
@@ -126,10 +127,10 @@ mango_stop() {
   [ -z "$SIGNAL" ] && SIGNAL=TERM
 
   if [ -z "$mango_pid" ]; then
-    if [ -e "$mango_pid_file" ]; then
-      mango_pid="$(cat "$mango_pid_file")"
+    if [ -e "$mango_paths_pid_file" ]; then
+      mango_pid="$(cat "$mango_paths_pid_file")"
     else
-      err "Mango PID file $mango_pid_file does not exist, did you start Mango using start-mango.sh?"
+      err "Mango PID file $mango_paths_pid_file does not exist, did you start Mango using start-mango.sh?"
     fi
   fi
 
@@ -139,7 +140,7 @@ mango_stop() {
   done
 
   # Clean up PID file
-  rm -f "$mango_pid_file"
+  rm -f "$mango_paths_pid_file"
 }
 
 if [ -z "$mango_script_dir" ]; then
@@ -189,9 +190,11 @@ if [ ! -e "$mango_config" ]; then
   err "Can't find Mango config (env.properties), please set mango_config or MA_ENV_PROPERTIES"
 fi
 
-mango_pid_file="$mango_paths_home/bin/ma.pid"
-# TODO locate data path
-# TODO pid file location
+[ -z "$mango_paths_data" ] && mango_paths_data="$(get_prop "paths.data" "$mango_paths_home")"
+mango_paths_data="$(resolve_path "$mango_paths_home" "$mango_paths_data")"
+[ -z "$mango_paths_pid_file" ] && mango_paths_pid_file="$(get_prop "paths.pid.file" "$mango_paths_data/ma.pid")"
+mango_paths_pid_file="$(resolve_path "$mango_paths_data" "$mango_paths_pid_file")"
+
 # TODO start options location
 # TODO default keystore location
-# TODO Modify get_prop to accept an env variable argument and check the env arg first
+# TODO change install script to use new paths
