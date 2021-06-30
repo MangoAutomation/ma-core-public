@@ -149,6 +149,12 @@
 * Change default permission for Users page from all users to superadmin only
 * Changes below here added in 4.0.0-beta.18
 * Nightly purge any orphaned id rows in the timeSeries database table which are rows not linked to a data point
+* PID file used by start-mango.sh now defaults to ${paths.data}/ma.pid, ensure your systemd service file is up to date
+* PID file used by start-mango.sh is now configurable via env property "paths.pid.file"
+* ${ssl.keystore.location} is now relative to ${paths.data}, please check your keystore location
+* ${ssl.keystore.location} now defaults to keystore.p12
+* Location of start-options.sh now defaults to ${paths.data}/start-options.sh
+* Location of start-options.sh is now configurable via ${paths.start.options}
 
 *Version 3.7.4*
 * Improve work item failure logging
