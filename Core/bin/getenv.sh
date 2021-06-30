@@ -170,26 +170,34 @@ elif [ -x "$(command -v jar)" ]; then
   jar_cmd=jar
 fi
 
-# Mango home search path:
-# $mango_paths_home
-# $MA_HOME
-# Directory up from where this script is located
-[ -z "$mango_paths_home" ] && mango_paths_home="$MA_HOME"
-[ -z "$mango_paths_home" ] && mango_paths_home="$(dirname -- "$mango_script_dir")"
-if [ ! -e "$mango_paths_home/release.signed" ] && [ ! -e "$mango_paths_home/release.properties" ]; then
-  err "Can't find Mango installation/home directory, please set mango_paths_home or MA_HOME"
-fi
+# take our best guess at home directory so we can try and locate the config file
+guessed_home="$mango_paths_home"
+[ -z "$guessed_home" ] && guessed_home="$MA_HOME"
+[ -z "$guessed_home" ] && guessed_home="$(dirname -- "$mango_script_dir")"
 
 # Config file (env.properties) search path:
 # $mango_config
-# $MA_ENV_PROPERTIES
-# $MA_HOME/overrides/properties/env.properties
-# $MA_HOME/env.properties
+# $MA_ENV_PROPERTIES (legacy environment variable)
+# $guessed_home/overrides/properties/env.properties (legacy location)
+# $guessed_home/env.properties (default location when data directory is same as home directory)
 [ -z "$mango_config" ] && mango_config="$MA_ENV_PROPERTIES"
-[ -z "$mango_config" ] && mango_config="$mango_paths_home/overrides/properties/env.properties"
-[ -z "$mango_config" ] && mango_config="$mango_paths_home/env.properties"
+[ -z "$mango_config" ] && mango_config="$guessed_home/overrides/properties/env.properties"
+[ -z "$mango_config" ] && mango_config="$guessed_home/env.properties"
 if [ ! -e "$mango_config" ]; then
   err "Can't find Mango config (env.properties), please set mango_config or MA_ENV_PROPERTIES"
+fi
+
+# Once we have located the config file we can definitively know the home path.
+# Mango home search path:
+# $mango_paths_home
+# $MA_HOME (legacy environment variable)
+# paths.home property from config file
+# Directory up from where this script is located (fallback)
+[ -z "$mango_paths_home" ] && mango_paths_home="$MA_HOME"
+[ -z "$mango_paths_home" ] && mango_paths_home="$(get_prop "paths.home")"
+[ -z "$mango_paths_home" ] && mango_paths_home="$(dirname -- "$mango_script_dir")"
+if [ ! -e "$mango_paths_home/release.signed" ] && [ ! -e "$mango_paths_home/release.properties" ]; then
+  err "Can't find Mango installation/home directory, please set mango_paths_home or MA_HOME"
 fi
 
 [ -z "$mango_paths_data" ] && mango_paths_data="$(get_prop "paths.data" "$mango_paths_home")"
