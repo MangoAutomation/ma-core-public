@@ -151,7 +151,7 @@ public class KeyStoreWatcher {
 
         private KeyStoreParameters() {
             String keyStore = env.getProperty("ssl.keystore.location");
-            this.keystorePath = keyStore != null ? Common.MA_HOME_PATH.resolve(keyStore).normalize() : null;
+            this.keystorePath = keyStore != null ? Common.MA_DATA_PATH.resolve(keyStore).normalize() : null;
             this.keystorePassword = env.getProperty("ssl.keystore.password");
             this.keyPassword = env.getProperty("ssl.key.password");
             this.watchFile = env.getProperty("ssl.keystore.watchFile", Boolean.class, false);

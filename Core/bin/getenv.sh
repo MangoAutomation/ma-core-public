@@ -31,8 +31,8 @@ resolve_path() {
 
 mango_keystore_properties() {
   if [ -z "$MA_KEYSTORE" ]; then
-    keystore="$(get_prop "ssl.keystore.location" "$mango_paths_home/overrides/keystore.p12")"
-    MA_KEYSTORE="$(resolve_path "$mango_paths_home" "$keystore")"
+    keystore="$(get_prop "ssl.keystore.location" "keystore.p12")"
+    MA_KEYSTORE="$(resolve_path "$mango_paths_data" "$keystore")"
   fi
 
   if [ -z "$MA_KEYSTORE_PASSWORD" ]; then
