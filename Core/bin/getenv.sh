@@ -103,8 +103,9 @@ mango_start() {
   # Construct the Java classpath
   MA_CP="$mango_paths_home/lib/*"
 
-  if [ -e "$mango_paths_home/overrides/start-options.sh" ]; then
-    . "$mango_paths_home/overrides/start-options.sh"
+  if [ -e "$mango_paths_start_options" ]; then
+    # shellcheck source=start_options.sh
+    . "$mango_paths_start_options"
   fi
 
   if [ -n "$MA_JAVA_OPTS" ]; then
@@ -194,7 +195,7 @@ fi
 mango_paths_data="$(resolve_path "$mango_paths_home" "$mango_paths_data")"
 [ -z "$mango_paths_pid_file" ] && mango_paths_pid_file="$(get_prop "paths.pid.file" "$mango_paths_data/ma.pid")"
 mango_paths_pid_file="$(resolve_path "$mango_paths_data" "$mango_paths_pid_file")"
+[ -z "$mango_paths_start_options" ] && mango_paths_start_options="$(get_prop "paths.start.options" "$mango_paths_data/start-options.sh")"
+mango_paths_start_options="$(resolve_path "$mango_paths_data" "$mango_paths_start_options")"
 
-# TODO start options location
-# TODO default keystore location
 # TODO change install script to use new paths
