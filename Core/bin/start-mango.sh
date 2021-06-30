@@ -1,115 +1,83 @@
 #!/bin/sh
 
 #
-# Copyright (C) 2019 Infinite Automation Systems Inc. All rights reserved.
+# Copyright (C) 2021 Radix IoT LLC. All rights reserved.
 # @author Jared Wiltshire
 # @author Matthew Lohbihler
 #
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-OPTIONS="$1"
+# set options from arguments
+for arg in "$@"; do
+  case "$arg" in
+  wait) mango_wait=true ;;
+  esac
+done
 
-# Only set MA_HOME if not already set
-[ -z "$MA_HOME" ] && MA_HOME="$(dirname -- "$SCRIPT_DIR")"
+mango_script_dir="$(cd "$(dirname "$0")" && pwd -P)"
+. "$mango_script_dir"/getenv.sh
 
-if [ ! -d "$MA_HOME" ]; then
-    echo 'Error: MA_HOME is not set or is not a directory'
-    exit 1
-fi
+echo "Mango installation/home directory is $mango_paths_home"
 
-echo "MA_HOME is $MA_HOME"
-
-if [ -e "$MA_HOME"/bin/ma.pid ]; then
-	PID="$(cat "$MA_HOME"/bin/ma.pid)"
-	if ps -p "$PID" > /dev/null 2>&1; then
-		echo "Mango is already running at PID $PID"
-		exit 2
-	fi
-	# Clean up old PID file
-	rm -f "$MA_HOME"/bin/ma.pid
-fi
-
-# This will ensure that the logs are written to the correct directories.
-cd "$MA_HOME"
-
-# Determine the Java home
-if [ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
-    EXECJAVA="$JAVA_HOME/bin/java"
-elif [ -x "$(command -v java)" ]; then
-    EXECJAVA=java
-else
-	echo "JAVA_HOME not set and java not found on path"
-	exit 3
-fi
-
-jar_cmd="$(command -v jar)" || true
-[ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/jar" ] && jar_cmd="$JAVA_HOME/bin/jar"
-mango_unzip() {
-  file="$1"
-  if [ ! -x "$(command -v unzip)" ]; then
-    unzip -q -o "$file"
-  elif [ -x "$jar_cmd" ]; then
-    "$jar_cmd" xf "$file"
-  else
-    echo "Can't find command to extract zip file, please install unzip"
-    exit 3
+pid_file="$mango_paths_home/bin/ma.pid"
+if [ -e "$pid_file" ]; then
+  PID="$(cat "$pid_file")"
+  if ps -p "$PID" >/dev/null 2>&1; then
+    err "Mango is already running with PID $PID"
   fi
-}
+  # Clean up old PID file
+  rm -f "$pid_file"
+fi
+
+# Set the working directory to the Mango installation/home directory
+cd "$mango_paths_home"
 
 # Check for core upgrade
-for f in "$MA_HOME"/m2m2-core-*.zip; do
-	if [ -r "$f" ]; then
-		echo "Upgrading Mango installation from zip file $f"
+for f in "$mango_paths_home"/m2m2-core-*.zip; do
+  if [ -r "$f" ]; then
+    echo "Upgrading Mango installation from zip file $f"
 
-		# Delete jars and work dir
-		rm -f "$MA_HOME"/lib/*.jar
-		rm -rf "$MA_HOME"/work
+    # Delete jars and work dir
+    rm -f "$mango_paths_home"/lib/*.jar
+    rm -rf "$mango_paths_home"/work
 
-		# Delete the release properties files
-		rm -f "$MA_HOME"/release.properties
-		rm -f "$MA_HOME"/release.signed
+    # Delete the release properties files
+    rm -f "$mango_paths_home"/release.properties
+    rm -f "$mango_paths_home"/release.signed
 
-		# Unzip core. The exact name is unknown, but there should only be one, so iterate
-		mango_unzip "$f" "."
+    # Unzip core. The exact name is unknown, but there should only be one, so iterate
+    mango_unzip "$f" "$mango_paths_home"
     rm -f "$f"
 
-		chmod +x "$MA_HOME"/bin/*.sh
-	fi
+    chmod +x "$mango_paths_home"/bin/*.sh
+  fi
 done
 
 # Construct the Java classpath
-MA_CP="$MA_HOME/lib/*"
+MA_CP="$mango_paths_home/lib/*"
 
-if [ -e "$MA_HOME/overrides/start-options.sh" ]; then
-	. "$MA_HOME/overrides/start-options.sh"
+if [ -e "$mango_paths_home/overrides/start-options.sh" ]; then
+  . "$mango_paths_home/overrides/start-options.sh"
 fi
 
 if [ -n "$MA_JAVA_OPTS" ]; then
-	echo "Starting Mango with options '$MA_JAVA_OPTS'"
+  echo "Starting Mango with options '$MA_JAVA_OPTS'"
 else
-	echo "Starting Mango"
+  echo "Starting Mango"
 fi
 
 CLASSPATH="$MA_CP" \
-"$EXECJAVA" $MA_JAVA_OPTS -server \
-	"-Dmango.paths.home=$MA_HOME" \
-	com.serotonin.m2m2.Main &
+  "$java_cmd" $MA_JAVA_OPTS -server \
+  com.serotonin.m2m2.Main &
 
 PID=$!
-echo $PID > "$MA_HOME"/bin/ma.pid
-echo "Mango started with process ID: $PID"
+echo $PID >"$pid_file"
+echo "Mango started (PID $PID)"
 
-if [ "$OPTIONS" = 'wait' ]; then
-  # sends SIGTERM to Mango and waits for it to exit
-  stop_mango() {
-    echo "Stopping Mango with process ID: $PID"
-    kill $PID
-    wait $PID
-  }
+if [ "$mango_wait" = true ]; then
   # trap the SIGINT signal (Ctrl-C) and stop mango
-  trap stop_mango INT TERM
+  trap mango_stop INT TERM
   # needed for trap to work
   set +e
   # wait for Mango to exit
