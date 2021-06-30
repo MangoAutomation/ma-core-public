@@ -48,9 +48,15 @@ mango_keystore_properties() {
   fi
 }
 
+mango_ensure_unzip() {
+  if [ ! -x "$(command -v unzip)" ] && [ ! -x "$jar_cmd" ]; then
+    err "Can't find command to extract zip file, please install unzip"
+  fi
+}
+
 mango_unzip() {
   file="$1"
-  if [ ! -x "$(command -v unzip)" ]; then
+  if [ -x "$(command -v unzip)" ]; then
     unzip -q -o "$file"
   elif [ -x "$jar_cmd" ]; then
     "$jar_cmd" xf "$file"
@@ -60,19 +66,21 @@ mango_unzip() {
 }
 
 mango_upgrade() {
+  # Unzip core. The exact name is unknown, but there should only be one, so iterate
   for f in "$mango_paths_home"/m2m2-core-*.zip; do
     if [ -r "$f" ]; then
       echo "Upgrading Mango installation from zip file $f"
+      # ensure unzip is available before deleting anything
+      mango_ensure_unzip
 
-      # Delete jars and work dir
+      # Delete jars and work dir, some old jars may not be included in a new zip and we dont want them on the classpath
       rm -f "$mango_paths_home"/lib/*.jar
       rm -rf "$mango_paths_home"/work
 
-      # Delete the release properties files
+      # Delete the release files in case we move from unsigned to signed or vice versa
       rm -f "$mango_paths_home"/release.properties
       rm -f "$mango_paths_home"/release.signed
 
-      # Unzip core. The exact name is unknown, but there should only be one, so iterate
       mango_unzip "$f" "$mango_paths_home"
       rm -f "$f"
 
