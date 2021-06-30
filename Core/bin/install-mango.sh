@@ -204,7 +204,8 @@ StartLimitIntervalSec=0
 
 [Service]
 EnvironmentFile=/etc/environment
-Environment=mango_config=$MA_ENV_FILE
+Environment=mango_appender_stdout_level=error \"mango_appender_stdout_pattern=%%-5p (%%C.%%M:%%L) - %%m %%n\"
+Environment=\"mango_config=$MA_ENV_FILE\"
 Type=forking
 WorkingDirectory=$MA_HOME
 PIDFile=$MA_DATA/ma.pid
