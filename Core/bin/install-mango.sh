@@ -8,12 +8,29 @@ set -e
 
 mango_script_dir="$(cd "$(dirname "$0")" && pwd -P)"
 
-# Prompts the user for input, uses the second argument as the default
+# Prompts the user for input
+# Arguments:
+#   prompt text
+#   default if user hits enter
 prompt() {
   printf "%s [%s]: " "$1" "$2" >/dev/tty
   read -r result
   [ -z "$result" ] && result="$2"
   printf "%s" "$result"
+}
+
+# Prompts the user for input
+# Arguments:
+#   confirmation text
+confirm() {
+  prompt_text="$1"
+  confirm=''
+  return_value=1
+  while [ "$confirm" != 'yes' ] && [ "$confirm" != 'no' ]; do
+    confirm="$(prompt "$prompt_text" 'no')"
+  done
+  [ "$confirm" = 'yes' ] && return_value=0
+  return $return_value
 }
 
 err() {
@@ -33,8 +50,21 @@ fi
 # Create the MA_HOME directory if it does not exist
 if [ ! -d "$MA_HOME" ]; then
   mkdir "$MA_HOME"
-  echo "Created MA_HOME directory '$MA_HOME'."
+  echo "Created installation/home directory '$MA_HOME'."
 fi
+
+if [ -z "$MA_DATA" ]; then
+  MA_DATA="$(prompt 'Where should we store Mango data?' "/opt/mango-data")"
+fi
+
+# Create the MA_DATA directory if it does not exist
+if [ ! -d "$MA_DATA" ]; then
+  mkdir "$MA_DATA"
+  echo "Created data directory '$MA_DATA'."
+fi
+
+# set env.properties location
+MA_ENV_FILE="$MA_DATA/env.properties"
 
 if [ -z "$MA_USER" ]; then
   MA_USER="$(prompt 'Which OS user should Mango run as? (Will be created if it does not exist)' 'mango')"
@@ -50,7 +80,7 @@ if [ ! "$(id -u "$MA_USER" 2>/dev/null)" ]; then
     err "Can't create user '$MA_USER' as useradd command does not exist."
   fi
 
-  "$USER_ADD_CMD" --system --no-create-home --home-dir "$MA_HOME" --shell "$NO_LOGIN_SHELL" --comment 'Mango Automation' "$MA_USER"
+  "$USER_ADD_CMD" --system --no-create-home --home-dir "$MA_DATA" --shell "$NO_LOGIN_SHELL" --comment 'Mango Automation' "$MA_USER"
   echo "Created user '$MA_USER'."
 fi
 [ -z "$MA_GROUP" ] && MA_GROUP="$(id -gn "$MA_USER")"
@@ -95,16 +125,12 @@ fi
 
 # Remove any old files in MA_HOME
 if [ "$(find "$MA_HOME" -mindepth 1 -maxdepth 1)" ]; then
-  while [ "$MA_CONFIRM_DELETE" != 'yes' ] && [ "$MA_CONFIRM_DELETE" != 'no' ]; do
-    prompt_text="Installation directory is not empty, delete all files in '$MA_HOME'? (May contain H2 databases and time series databases)"
-    MA_CONFIRM_DELETE="$(prompt "$prompt_text" 'no')"
-  done
-
-  if [ "$MA_CONFIRM_DELETE" = 'no' ]; then
+  prompt_text="Installation directory is not empty, delete all files in '$MA_HOME'? (May contain H2 databases and time series databases)"
+  if [ "$MA_CONFIRM_DELETE" = 'yes' ] || confirm "$prompt_text"; then
+    find "$MA_HOME" -mindepth 1 -maxdepth 1 -exec rm -r '{}' \;
+  else
     err "Can't continue without deleting"
   fi
-
-  find "$MA_HOME" -mindepth 1 -maxdepth 1 -exec rm -r '{}' \;
 fi
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
@@ -126,9 +152,9 @@ jar_cmd="$(command -v jar)" || true
 [ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/jar" ] && jar_cmd="$JAVA_HOME/bin/jar"
 
 if [ -x "$(command -v unzip)" ]; then
-  unzip "$MA_CORE_ZIP" -d "$MA_HOME"
+  unzip -q "$MA_CORE_ZIP" -d "$MA_HOME"
 elif [ -x "$jar_cmd" ]; then
-  cd "$MA_HOME" && "$jar_cmd" xvf "$MA_CORE_ZIP"
+  cd "$MA_HOME" && "$jar_cmd" xf "$MA_CORE_ZIP"
 else
   err "Can't find command to extract zip file, please install unzip"
 fi
@@ -136,64 +162,74 @@ fi
 [ "$MA_DELETE_ZIP" = true ] && rm -f "$MA_CORE_ZIP"
 
 # Create an overrides env.properties file
-mkdir "$MA_HOME"/overrides
-mkdir "$MA_HOME"/overrides/properties
-MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
-if [ "$MA_DB_TYPE" = 'mysql' ]; then
-  echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME" >"$MA_ENV_FILE"
-elif [ "$MA_DB_TYPE" = 'h2' ]; then
-  echo "db.url=jdbc:h2:$MA_HOME/databases/$MA_DB_NAME" >"$MA_ENV_FILE"
-else
-  err "Unknown database type $MA_DB_TYPE"
-fi
-
-echo "db.type=$MA_DB_TYPE
+MA_ENV_FILE="$MA_DATA/env.properties"
+prompt_text="Config file '$MA_ENV_FILE' exists, overwrite it?"
+if [ ! -e "$MA_ENV_FILE" ] || confirm "$prompt_text"; then
+  echo "paths.data=$MA_DATA" >"$MA_ENV_FILE";
+  if [ "$MA_DB_TYPE" = 'mysql' ]; then
+    echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME" >>"$MA_ENV_FILE"
+  elif [ "$MA_DB_TYPE" = 'h2' ]; then
+    echo "db.url=jdbc:h2:databases/$MA_DB_NAME" >>"$MA_ENV_FILE"
+  else
+    err "Unknown database type $MA_DB_TYPE"
+  fi
+  echo "db.type=$MA_DB_TYPE
 db.username=$MA_DB_USER
 db.password=$MA_DB_PASSWORD
 web.openBrowserOnStartup=false
 ssl.on=true
-ssl.keystore.location=$MA_HOME/overrides/keystore.p12
+ssl.keystore.location=keystore.p12
 ssl.keystore.password=$(openssl rand -base64 24)" >>"$MA_ENV_FILE"
+fi
 
 chmod 600 "$MA_ENV_FILE"
 
 chmod +x "$MA_HOME"/bin/*.sh
-cp "$MA_HOME/bin/start-options.sh" "$MA_HOME/overrides/"
+cp "$MA_HOME/bin/start-options.sh" "$MA_DATA"
 
 # generate a default self signed SSL/TLS certificate
-"$MA_HOME"/bin/genkey.sh
+prompt_text="Key store '$MA_DATA/keystore.p12' exists, overwrite it?"
+if [ ! -e "$MA_DATA/keystore.p12" ] || confirm "$prompt_text"; then
+  [ -e "$MA_DATA/keystore.p12" ] && rm -f "$MA_DATA/keystore.p12"
+  mango_config="$MA_ENV_FILE" "$MA_HOME/bin/genkey.sh"
+fi
 
-# create a new systemd service file in overrides
-echo "[Unit]
+# create a new systemd service file in data directory
+prompt_text="Systemd service file '$MA_DATA/mango.service' exists, overwrite it?"
+if [ ! -e "$MA_DATA/mango.service" ] || confirm "$prompt_text"; then
+  echo "[Unit]
 Description=Mango Automation
 After=mysqld.service
 StartLimitIntervalSec=0
 
 [Service]
 EnvironmentFile=/etc/environment
+Environment=mango_config=$MA_ENV_FILE
 Type=forking
 WorkingDirectory=$MA_HOME
-PIDFile=$MA_HOME/bin/ma.pid
+PIDFile=$MA_DATA/ma.pid
 ExecStart=$MA_HOME/bin/start-mango.sh
 SuccessExitStatus=0 SIGINT SIGTERM 130 143
 Restart=always
 RestartSec=5s
 User=$MA_USER
 NoNewPrivileges=true
+LimitNOFILE=1048576
 
 [Install]
-WantedBy=multi-user.target" >"$MA_HOME"/overrides/mango.service
+WantedBy=multi-user.target" >"$MA_DATA/mango.service"
+fi
 
-chown -R "$MA_USER":"$MA_GROUP" "$MA_HOME"
+chown -R "$MA_USER":"$MA_GROUP" "$MA_HOME" "$MA_DATA"
 
 # Stop and remove any existing mango service
 if [ -x "$(command -v systemctl)" ] && [ -d /etc/systemd/system ]; then
   # link the new service file into /etc
-  systemctl link "$MA_HOME"/overrides/mango.service
+  systemctl link "$MA_DATA/mango.service"
 
-  # enable the sytemd service (but dont start Mango)
+  # enable the systemd service (but dont start Mango)
   systemctl enable "$MA_SERVICE_NAME"
   echo "Mango was installed successfully. Type 'systemctl start $MA_SERVICE_NAME' to start Mango."
 else
-  echo "Mango was installed successfully. Type 'sudo -u $MA_USER $MA_HOME/bin/start-mango.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
+  echo "Mango was installed successfully. Type 'sudo -u $MA_USER mango_config=$MA_ENV_FILE $MA_HOME/bin/start-mango.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
 fi
