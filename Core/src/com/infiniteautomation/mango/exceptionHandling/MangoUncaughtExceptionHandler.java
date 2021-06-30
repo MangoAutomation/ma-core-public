@@ -15,18 +15,11 @@ public class MangoUncaughtExceptionHandler implements Thread.UncaughtExceptionHa
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        if(!exitOnOutOfMemoryError(t, e)) {
-            log.error("Uncaught exception in thread " + t.getName(), e);
-        }
-    }
-
-    public static boolean exitOnOutOfMemoryError(Thread t, Throwable e) {
         if(e instanceof OutOfMemoryError) {
             log.error("Uncaught Out Of Memory exception in thread " + t.getName() + " Mango will now terminate.", e);
             System.exit(1);
-            return true;
         }else {
-            return false;
+            log.error("Uncaught exception in thread " + t.getName(), e);
         }
     }
 }
