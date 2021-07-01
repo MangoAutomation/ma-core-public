@@ -3,7 +3,9 @@
  */
 package com.infiniteautomation.mango.bootstrap;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -16,8 +18,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Used to setup the classpath correctly then start Mango. Handles unzipping the core zip bundle if it is the
@@ -28,17 +33,24 @@ import java.util.Optional;
 @SuppressWarnings("unused")
 public class MangoBootstrap {
 
+    public static final String MAIN_CLASS = "com.serotonin.m2m2.Main";
+
     public static void main(String[] args) throws Exception {
         MangoBootstrap bootstrap = new MangoBootstrap()
-                .addJarsFromDirectory(Paths.get("lib"));
+                .addJarDirectory(Paths.get("lib"));
 
         CoreUpgrade upgrade = new CoreUpgrade(bootstrap.getInstallationDirectory());
         upgrade.upgrade();
 
-        bootstrap.startMango(args);
+        Optional<String> fork = Arrays.stream(args).filter("-fork"::equals).findAny();
+        if (fork.isPresent()) {
+            bootstrap.forkMango();
+        } else {
+            bootstrap.startMango();
+        }
     }
 
-    private final List<URL> urls = new ArrayList<>();
+    private final List<ClassPathEntry> classPath = new ArrayList<>();
     private final Path workingDirectory;
     private final Path installationDirectory;
     private final Path configFile;
@@ -69,22 +81,55 @@ public class MangoBootstrap {
      * @return class loader that can be used to start Mango
      */
     public URLClassLoader createClassLoader(ClassLoader parent) {
-        return new URLClassLoader(urls.toArray(new URL[0]), parent);
+        URL[] urls = classPath.stream()
+                .flatMap(e -> e.jarDirectory ? listJars(e.path) : Stream.of(e.path))
+                .map(this::pathToUrl)
+                .toArray(URL[]::new);
+        return new URLClassLoader(urls, parent);
+    }
+
+    private Stream<Path> listJars(Path directory) {
+        try {
+            return Files.list(directory)
+                    .filter(p -> p.toString().endsWith(".jar"));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**
      * Starts Mango without forking
-     * @param args passed to the Mango main method
      */
-    public void startMango(String... args) throws Exception {
+    public void startMango() throws Exception {
         // ensure Mango Core can find Mango home
         System.setProperty("mango.paths.home", installationDirectory.toString());
         System.setProperty("mango.config", configFile.toString());
 
         ClassLoader classLoader = createClassLoader();
-        Class<?> mainClass = classLoader.loadClass("com.serotonin.m2m2.Main");
+        Class<?> mainClass = classLoader.loadClass(MAIN_CLASS);
         Method mainMethod = mainClass.getMethod("main", String[].class);
-        mainMethod.invoke(null, (Object) args);
+        mainMethod.invoke(null, (Object) new String[0]);
+    }
+
+    /**
+     * Forks and starts Mango in a new process.
+     */
+    public void forkMango() throws Exception {
+        ProcessBuilder builder = new ProcessBuilder()
+                .command("java", "-server", MAIN_CLASS)
+                .inheritIO();
+
+        String classPath = this.classPath.stream()
+                .map(e -> e.jarDirectory ? e.path.toString() + File.separator + "*" : e.path.toString())
+                .collect(Collectors.joining(File.pathSeparator));
+
+        Map<String, String> env = builder.environment();
+        env.put("CLASSPATH", classPath);
+        env.put("mango_paths_home", installationDirectory.toString());
+        env.put("mango_config", configFile.toString());
+
+        Process process = builder.start();
+        process.waitFor();
     }
 
     /**
@@ -92,16 +137,10 @@ public class MangoBootstrap {
      * @param directory relative to installation directory
      * @return this
      */
-    public MangoBootstrap addJarsFromDirectory(Path directory) {
+    public MangoBootstrap addJarDirectory(Path directory) {
         Path d = installationDirectory.resolve(directory);
         if (Files.isDirectory(d)) {
-            try {
-                Files.list(d)
-                        .filter(p -> p.toString().endsWith(".jar"))
-                        .forEach(this::addPathInternal);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            classPath.add(new ClassPathEntry(d, true));
         }
         return this;
     }
@@ -114,14 +153,14 @@ public class MangoBootstrap {
     public MangoBootstrap addPath(Path path) {
         Path p = installationDirectory.resolve(path);
         if (Files.exists(p)) {
-            addPathInternal(p);
+            classPath.add(new ClassPathEntry(p));
         }
         return this;
     }
 
-    private void addPathInternal(Path path) {
+    private URL pathToUrl(Path path) {
         try {
-            urls.add(path.toUri().toURL());
+            return path.toUri().toURL();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
@@ -202,5 +241,19 @@ public class MangoBootstrap {
 
     public boolean isInstallationDirectory(Path testMaHome) {
         return Files.isRegularFile(testMaHome.resolve("release.properties")) || Files.isRegularFile(testMaHome.resolve("release.signed"));
+    }
+
+    private static class ClassPathEntry {
+        final Path path;
+        final boolean jarDirectory;
+
+        private ClassPathEntry(Path path) {
+            this(path, false);
+        }
+
+        private ClassPathEntry(Path path, boolean jarDirectory) {
+            this.path = path;
+            this.jarDirectory = jarDirectory;
+        }
     }
 }
