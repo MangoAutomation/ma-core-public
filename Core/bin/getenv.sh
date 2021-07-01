@@ -15,7 +15,11 @@ err() {
 # function for getting values from env.properties file
 # does not support multiline properties or properties containing = sign
 get_prop() {
-  awk -v name="$1" -v dval="$2" -F = '$1==name{print $2; f=1; exit} END{if(f!=1){print dval}}' "$mango_config"
+  if [ -f "$mango_config" ]; then
+    awk -v name="$1" -v dval="$2" -F = '$1==name{print $2; f=1; exit} END{if(f!=1){print dval}}' "$mango_config"
+  else
+    printf %s "$2"
+  fi
 }
 
 is_relative() {
@@ -92,7 +96,7 @@ mango_start() {
   echo "Mango installation/home directory is $mango_paths_home"
   echo "Mango data path is $mango_paths_data"
 
-  if [ -e "$mango_paths_pid_file" ]; then
+  if [ -f "$mango_paths_pid_file" ]; then
     mango_pid="$(cat "$mango_paths_pid_file")"
     if ps -p "$mango_pid" >/dev/null 2>&1; then
       err "Mango is already running with PID $mango_pid"
@@ -110,7 +114,7 @@ mango_start() {
   # Construct the Java classpath
   MA_CP="$mango_paths_home/lib/*"
 
-  if [ -e "$mango_paths_start_options" ]; then
+  if [ -f "$mango_paths_start_options" ]; then
     # shellcheck source=start_options.sh
     . "$mango_paths_start_options"
   fi
@@ -135,7 +139,7 @@ mango_stop() {
   [ -z "$SIGNAL" ] && SIGNAL=TERM
 
   if [ -z "$mango_pid" ]; then
-    if [ -e "$mango_paths_pid_file" ]; then
+    if [ -f "$mango_paths_pid_file" ]; then
       mango_pid="$(cat "$mango_paths_pid_file")"
     else
       err "Mango PID file $mango_paths_pid_file does not exist, did you start Mango using start-mango.sh?"
@@ -183,7 +187,7 @@ fi
 # Directory up from where this script is located (fallback)
 [ -z "$mango_paths_home" ] && mango_paths_home="$MA_HOME"
 [ -z "$mango_paths_home" ] && mango_paths_home="$(dirname -- "$mango_script_dir")"
-if [ ! -e "$mango_paths_home/release.signed" ] && [ ! -e "$mango_paths_home/release.properties" ]; then
+if [ ! -f "$mango_paths_home/release.signed" ] && [ ! -f "$mango_paths_home/release.properties" ]; then
   err "Can't find Mango installation/home directory, please set mango_paths_home or MA_HOME"
 fi
 
@@ -193,12 +197,8 @@ fi
 # $mango_paths_home/overrides/properties/env.properties (legacy location)
 # $mango_paths_home/env.properties (default location when data directory is same as home directory)
 [ -z "$mango_config" ] && mango_config="$MA_ENV_PROPERTIES"
-[ -z "$mango_config" ] && mango_config="$mango_paths_home/overrides/properties/env.properties"
-[ -z "$mango_config" ] && mango_config="$mango_paths_home/env.properties"
-if [ ! -e "$mango_config" ]; then
-  err "Can't find Mango config (env.properties), please set mango_config or MA_ENV_PROPERTIES"
-fi
-
+[ -z "$mango_config" ] && [ -f "$mango_paths_home/overrides/properties/env.properties" ] && mango_config="$mango_paths_home/overrides/properties/env.properties"
+[ -z "$mango_config" ] && [ -f "$mango_paths_home/env.properties" ] && mango_config="$mango_paths_home/env.properties"
 
 [ -z "$mango_paths_data" ] && mango_paths_data="$(get_prop "paths.data" "$mango_paths_home")"
 mango_paths_data="$(resolve_path "$mango_paths_home" "$mango_paths_data")"
