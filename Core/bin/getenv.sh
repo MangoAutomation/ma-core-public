@@ -75,7 +75,6 @@ mango_upgrade() {
 
       # Delete jars and work dir, some old jars may not be included in a new zip and we dont want them on the classpath
       rm -f "$mango_paths_home"/lib/*.jar
-      rm -rf "$mango_paths_home"/work
 
       # Delete the release files in case we move from unsigned to signed or vice versa
       rm -f "$mango_paths_home"/release.properties
