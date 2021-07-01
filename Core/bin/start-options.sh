@@ -33,6 +33,6 @@
 # Out of memory handling, Mango leverages in memory caches and as such any OOM error is considered fatal
 #  and all possible attempts will be made to terminate the JVM gracefully from within Mango.  These options should be enabled
 #  for all production systems.  Ensure your JVM supports them.
-#-XX:+ExitOnOutOfMemoryError
-#-XX:+HeapDumpOnOutOfMemoryError
-#-XX:HeapDumpPath=<pathname>
+#MA_JAVA_OPTS="$MA_JAVA_OPTS -XX:+ExitOnOutOfMemoryError"
+#MA_JAVA_OPTS="$MA_JAVA_OPTS -XX:+HeapDumpOnOutOfMemoryError"
+#MA_JAVA_OPTS="$MA_JAVA_OPTS -XX:HeapDumpPath=<pathname>"
