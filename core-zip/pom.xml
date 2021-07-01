@@ -118,10 +118,5 @@
             <artifactId>ma-bootstrap</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>ma-windows-service</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>

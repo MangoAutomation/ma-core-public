@@ -30,11 +30,9 @@
         <dependencySet>
             <includes>
                 <include>com.infiniteautomation.mango:ma-bootstrap</include>
-                <include>com.infiniteautomation.mango:ma-windows-service</include>
             </includes>
             <outputDirectory>boot</outputDirectory>
-            <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}
-            </outputFileNameMapping>
+            <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
