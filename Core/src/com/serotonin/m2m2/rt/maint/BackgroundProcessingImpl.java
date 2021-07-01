@@ -504,7 +504,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      * @author Terry Packer
      *
      */
-    public class RejectableWorkItemRunnable extends Task{
+    public class RejectableWorkItemRunnable extends Task {
 
         final WorkItem item;
         final TaskRejectionHandler rejectionHandler;
@@ -520,7 +520,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             try {
                 item.execute();
             }
-            catch (Throwable t) {
+            catch (Exception t) {
                 log.error("Error in work item", t);
             }
         }
@@ -566,7 +566,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             SecurityContextHolder.setContext(this.delegateSecurityContext);
             try {
                 item.execute();
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 String message = "Error in work item ";
                 if (item.getDescription() != null) {
                     message += item.getDescription();

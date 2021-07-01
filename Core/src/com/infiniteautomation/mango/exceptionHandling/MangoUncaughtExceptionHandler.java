@@ -7,15 +7,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Jared Wiltshire
+ * @author Jared Wiltshire, Terry Packer
  */
 public class MangoUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private static final Logger log = LoggerFactory.getLogger(MangoUncaughtExceptionHandler.class);
 
     @Override
     public void uncaughtException(Thread t, Throwable e) {
-        log.error("Uncaught exception in thread " + t.getName(), e);
+        if(e instanceof OutOfMemoryError) {
+            log.error("Uncaught Out Of Memory exception in thread " + t.getName() + " Mango will now terminate.", e);
+            System.exit(1);
+        }else {
+            log.error("Uncaught exception in thread " + t.getName(), e);
+        }
     }
-
 }

@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.eventMulticaster;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.Executor;
 
 import javax.annotation.PostConstruct;
@@ -18,6 +19,7 @@ import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
+import org.springframework.util.ErrorHandler;
 
 /**
  * A spring event multicaster that can propagate events to other multicasters. Typically used to propagate events from the
@@ -28,7 +30,7 @@ import org.springframework.core.ResolvableType;
 
 public class PropagatingEventMulticaster extends SimpleApplicationEventMulticaster {
 
-    private final Log log = LogFactory.getLog(PropagatingEventMulticaster.class);
+    private final static Log log = LogFactory.getLog(PropagatingEventMulticaster.class);
 
     private final ApplicationContext context;
     private final EventMulticasterRegistry registry;
@@ -43,6 +45,7 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
     @PostConstruct
     protected void init() {
         this.registry.register(this);
+        this.setErrorHandler(new EventMulticasterErrorHandler());
     }
 
     @PreDestroy
@@ -101,6 +104,27 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
 
         for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
             invokeListener(listener, event);
+        }
+    }
+
+    /**
+     * Handle all event multicasting errors by logging them.  Exit Mango on OOM errors
+     */
+    private static class EventMulticasterErrorHandler implements ErrorHandler {
+
+        @Override
+        public void handleError(Throwable t) {
+            if(t instanceof UndeclaredThrowableException) {
+                Throwable source = ((UndeclaredThrowableException)t).getUndeclaredThrowable();
+                if (source instanceof OutOfMemoryError) {
+                    log.fatal("Out Of Memory exception in thread " + Thread.currentThread().getName() + " Mango will now terminate.", source);
+                    System.exit(1);
+                }else {
+                    log.error("Error multicasting event", source);
+                }
+            } else {
+                log.error("Error multicasting event", t);
+            }
         }
     }
 }
