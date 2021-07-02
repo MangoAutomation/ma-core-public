@@ -276,7 +276,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             User updated = (User) existing.copy();
             updated.setEmail(verifiedEmail);
             updated.setEmailVerifiedDate(token.getBody().getIssuedAt());
-            return this.usersService.update(existing, updated);
+            return this.usersService.update(existing.getId(), updated);
         });
     }
 

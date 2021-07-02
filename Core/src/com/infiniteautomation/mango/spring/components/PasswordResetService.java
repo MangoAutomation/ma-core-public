@@ -162,7 +162,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         // we copy the user so that when we set the new password it doesn't modify the cached instance
         User updated = (User) existing.copy();
         updated.setPlainTextPassword(newPassword);
-        return runAs.runAs(runAs.systemSuperadmin(), () -> usersService.update(existing, updated));
+        return runAs.runAs(runAs.systemSuperadmin(), () -> usersService.update(existing.getId(), updated));
     }
 
     public void sendEmail(String username, String email) {

@@ -84,7 +84,7 @@ public class UserImporter extends Importer {
                         usersService.insert(imported);
                         addSuccessMessage(true, "emport.user.prefix", username);
                     }else {
-                        usersService.update(existing, imported);
+                        usersService.update(existing.getId(), imported);
                         addSuccessMessage(false, "emport.user.prefix", username);
                     }
                     linkAccounts(imported.getId());
