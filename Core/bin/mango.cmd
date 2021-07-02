@@ -3,5 +3,5 @@ setlocal
 if exist mango.cmd (
     cd ..
 )
-java -cp lib\* com.serotonin.m2m2.Main
+java -jar boot\ma-bootstrap.jar
 endlocal
