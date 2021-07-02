@@ -156,6 +156,7 @@
 * ${ssl.keystore.location} now defaults to keystore.p12
 * Location of start-options.sh now defaults to ${paths.data}/start-options.sh
 * Location of start-options.sh is now configurable via ${paths.start.options}
+* Mango will now exit with application specific exit statuses under certain conditions (restart, license error, initialization error)
 
 *Version 3.7.4*
 * Improve work item failure logging
