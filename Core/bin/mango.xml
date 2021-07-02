@@ -3,11 +3,18 @@
   -->
 
 <!--
-This is a Windows service wrapper configuration for WinSW - https://github.com/winsw/winsw/releases
-1. Copy this configuration somewhere and edit the paths below
-2. Download WinSW
-3. winsw install mango.xml
-4. winsw start mango.xml
+This is a Windows service wrapper configuration for WinSW 2.x
+
+1. Copy this configuration to your Mango data directory (%mango_paths_data%)
+2. Edit the env variables in the configuration to suit your installation
+3. Download the latest WinSW 2.x release from https://github.com/winsw/winsw/releases (.NET Core packaging recommended, e.g. WinSW-x64.exe)
+4. Place WinSW in the Mango data directory and rename to mango.exe
+5. Open a command prompt (cmd.exe)
+6. Change directory to your Mango data directory
+7. Run "mango install" to install the service
+8. Run "mango start" to start the service
+9. You can run "services.msc" for a GUI to start and stop the service
+10. Please see the WinSW documentation for more configuration options - https://github.com/winsw/winsw/tree/master
 -->
 <service>
     <id>mango</id>
@@ -16,11 +23,13 @@ This is a Windows service wrapper configuration for WinSW - https://github.com/w
 
     <env name="mango_paths_home" value="C:\mango"/>
     <env name="mango_paths_data" value="C:\mango_data"/>
-    <env name="mango_config" value="C:\mango_data\env.properties"/>
+    <env name="mango_config" value="C:\mango_data\mango.properties"/>
 
     <workingdirectory>%mango_paths_home%</workingdirectory>
     <executable>java</executable>
-    <arguments>-cp %mango_paths_home%\lib\* com.serotonin.m2m2.Main</arguments>
+    <arguments>-jar %mango_paths_home%\boot\ma-bootstrap.jar</arguments>
+    <!-- Mango does its own logging -->
     <log mode="none"/>
     <onfailure action="restart" delay="10 sec"/>
+    <stoptimeout>300sec</stoptimeout>
 </service>
