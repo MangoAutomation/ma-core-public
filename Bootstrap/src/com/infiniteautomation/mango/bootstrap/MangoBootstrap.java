@@ -42,8 +42,11 @@ public class MangoBootstrap {
         upgrade.upgrade();
 
         Optional<String> fork = Arrays.stream(args).filter("-fork"::equals).findAny();
+
         if (fork.isPresent()) {
-            bootstrap.forkMango();
+            Optional<String> wait = Arrays.stream(args).filter("-wait"::equals).findAny();
+            Optional<String> io = Arrays.stream(args).filter("-io"::equals).findAny();
+            bootstrap.forkMango(wait.isPresent(), io.isPresent());
         } else {
             bootstrap.startMango();
         }
@@ -114,7 +117,7 @@ public class MangoBootstrap {
     /**
      * Forks and starts Mango in a new process.
      */
-    public void forkMango() throws Exception {
+    public void forkMango(boolean wait, boolean io) throws Exception {
         String javaCmd = "java";
         Path javaHome = getPath(System.getenv("JAVA_HOME"));
         if (javaHome != null && Files.isDirectory(javaHome)) {
@@ -122,8 +125,11 @@ public class MangoBootstrap {
         }
 
         ProcessBuilder builder = new ProcessBuilder()
-                .command(javaCmd, "-server", MAIN_CLASS)
-                .inheritIO();
+                .command(javaCmd, "-server", MAIN_CLASS);
+
+        if (io) {
+            builder.inheritIO();
+        }
 
         String classPath = this.classPath.stream()
                 .map(e -> e.jarDirectory ? e.path.toString() + File.separator + "*" : e.path.toString())
@@ -134,7 +140,10 @@ public class MangoBootstrap {
         env.put("mango_paths_home", installationDirectory.toString());
         env.put("mango_config", configFile.toString());
 
-        builder.start();
+        Process process = builder.start();
+        if (wait) {
+            process.waitFor();
+        }
     }
 
     /**
