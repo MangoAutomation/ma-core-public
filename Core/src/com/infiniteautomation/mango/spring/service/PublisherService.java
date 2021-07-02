@@ -79,7 +79,7 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     }
 
     @Override
-    public PublisherVO<? extends PublishedPointVO> update(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, ValidationException {
+    protected PublisherVO<? extends PublishedPointVO> update(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, ValidationException {
         ensureEditPermission(Common.getUser(), existing);
         Common.runtimeManager.stopPublisher(existing.getId());
         PublisherVO<? extends PublishedPointVO> result = super.update(existing, vo);
@@ -91,7 +91,7 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
 
 
     @Override
-    public PublisherVO<? extends PublishedPointVO> delete(PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, NotFoundException {
+    protected PublisherVO<? extends PublishedPointVO> delete(PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, NotFoundException {
         ensureDeletePermission(Common.getUser(), vo);
         Common.runtimeManager.stopPublisher(vo.getId());
         PublisherVO<? extends PublishedPointVO> result = super.delete(vo);

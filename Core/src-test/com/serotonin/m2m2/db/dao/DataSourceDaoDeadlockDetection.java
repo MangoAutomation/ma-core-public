@@ -92,10 +92,10 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             DataPointVO dp = createMockDataPoint(ds, new MockPointLocatorVO());
 
                             //Delete point
-                            dataPointService.delete(dp);
+                            dataPointService.delete(dp.getId());
 
                             //Delete data source
-                            dataSourceService.delete(ds);
+                            dataSourceService.delete(ds.getId());
 
                             successes.getAndIncrement();
                         }
@@ -152,7 +152,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             createMockDataPoint(ds, new MockPointLocatorVO());
 
                             //Delete data source
-                            dataSourceService.delete(ds);
+                            dataSourceService.delete(ds.getId());
                             successes.getAndIncrement();
                         }
                     }catch(Exception e){
@@ -277,7 +277,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             myEventHandler.setEventTypes(Collections.singletonList(new EventTypeMatcher(new DataSourceEventType(ds.getId(), ds.getPollAbortedExceptionEventId()))));
                             eventHandlerService.update(eh.getXid(), myEventHandler);
 
-                            dataSourceService.delete(ds);
+                            dataSourceService.delete(ds.getId());
 
                             successes.getAndIncrement();
                         }

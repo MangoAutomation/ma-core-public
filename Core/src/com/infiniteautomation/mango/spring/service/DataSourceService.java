@@ -89,7 +89,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     }
 
     @Override
-    public DataSourceVO update(DataSourceVO existing, DataSourceVO vo) throws PermissionException, ValidationException {
+    protected DataSourceVO update(DataSourceVO existing, DataSourceVO vo) throws PermissionException, ValidationException {
         ensureEditPermission(Common.getUser(), existing);
         Common.runtimeManager.stopDataSource(existing.getId());
         DataSourceVO result = super.update(existing, vo);
@@ -104,7 +104,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     }
 
     @Override
-    public DataSourceVO delete(DataSourceVO vo) throws PermissionException, NotFoundException {
+    protected DataSourceVO delete(DataSourceVO vo) throws PermissionException, NotFoundException {
         ensureDeletePermission(Common.getUser(), vo);
         Common.runtimeManager.stopDataSource(vo.getId());
         DataSourceVO result = super.delete(vo);

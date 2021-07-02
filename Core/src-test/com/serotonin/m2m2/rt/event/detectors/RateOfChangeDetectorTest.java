@@ -81,7 +81,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         Common.eventManager = new SimpleEventManager();
 
         // removes the data source from the RTM
-        dataSourceService.delete(dsVo);
+        dataSourceService.delete(dsVo.getId());
     }
 
     /**

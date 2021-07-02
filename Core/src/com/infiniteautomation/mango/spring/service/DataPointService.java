@@ -176,7 +176,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
 
     @Override
-    public DataPointVO update(DataPointVO existing, DataPointVO vo) throws PermissionException, ValidationException {
+    protected DataPointVO update(DataPointVO existing, DataPointVO vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
 
         ensureEditPermission(user, existing);
@@ -209,7 +209,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
 
     @Override
-    public DataPointVO delete(DataPointVO vo)
+    protected DataPointVO delete(DataPointVO vo)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
 

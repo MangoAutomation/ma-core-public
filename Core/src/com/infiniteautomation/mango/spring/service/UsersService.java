@@ -227,7 +227,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     }
 
     @Override
-    public User update(User existing, User vo) throws PermissionException, ValidationException {
+    protected User update(User existing, User vo) throws PermissionException, ValidationException {
         PermissionHolder currentUser = Common.getUser();
         ensureEditPermission(currentUser, existing);
         vo.setId(existing.getId());
@@ -260,7 +260,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     }
 
     @Override
-    public User delete(User vo) throws PermissionException, NotFoundException {
+    protected User delete(User vo) throws PermissionException, NotFoundException {
         PermissionHolder currentUser = Common.getUser();
         ensureEditPermission(currentUser, vo);
 
