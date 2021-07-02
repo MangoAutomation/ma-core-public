@@ -12,6 +12,7 @@ Type=forking
 WorkingDirectory=/opt/mango
 PIDFile=/opt/mango/ma.pid
 ExecStart=/opt/mango/bin/start-mango.sh
+# Exit status will be 128 + signal code if process terminates due to a signal (SIGINT = 130, SIGTERM = 143)
 SuccessExitStatus=0 SIGINT SIGTERM 130 143
 Restart=always
 RestartSec=5s
