@@ -115,8 +115,14 @@ public class MangoBootstrap {
      * Forks and starts Mango in a new process.
      */
     public void forkMango() throws Exception {
+        String javaCmd = "java";
+        Path javaHome = getPath(System.getenv("JAVA_HOME"));
+        if (javaHome != null && Files.isDirectory(javaHome)) {
+            javaCmd = javaHome.resolve(Paths.get("bin", "java")).toString();
+        }
+
         ProcessBuilder builder = new ProcessBuilder()
-                .command("java", "-server", MAIN_CLASS)
+                .command(javaCmd, "-server", MAIN_CLASS)
                 .inheritIO();
 
         String classPath = this.classPath.stream()
