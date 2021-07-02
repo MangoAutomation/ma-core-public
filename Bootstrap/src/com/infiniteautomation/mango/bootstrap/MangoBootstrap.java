@@ -30,7 +30,6 @@ import java.util.stream.Stream;
  *
  * @author Jared Wiltshire
  */
-@SuppressWarnings("unused")
 public class MangoBootstrap {
 
     public static final String MAIN_CLASS = "com.serotonin.m2m2.Main";
@@ -65,6 +64,7 @@ public class MangoBootstrap {
         return installationDirectory;
     }
 
+    @SuppressWarnings("unused")
     public Path getConfigFile() {
         return configFile;
     }
@@ -128,8 +128,7 @@ public class MangoBootstrap {
         env.put("mango_paths_home", installationDirectory.toString());
         env.put("mango_config", configFile.toString());
 
-        Process process = builder.start();
-        process.waitFor();
+        builder.start();
     }
 
     /**
@@ -150,6 +149,7 @@ public class MangoBootstrap {
      * @param path relative to installation directory
      * @return this
      */
+    @SuppressWarnings("unused")
     public MangoBootstrap addPath(Path path) {
         Path p = installationDirectory.resolve(path);
         if (Files.exists(p)) {
