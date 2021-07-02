@@ -21,6 +21,8 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.ErrorHandler;
 
+import com.serotonin.m2m2.TerminationReason;
+
 /**
  * A spring event multicaster that can propagate events to other multicasters. Typically used to propagate events from the
  * runtime context (e.g. DAO events) to the spring web context (e.g. to notify web sockets)
@@ -118,7 +120,7 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
                 Throwable source = ((UndeclaredThrowableException)t).getUndeclaredThrowable();
                 if (source instanceof OutOfMemoryError) {
                     log.fatal("Out Of Memory exception in thread " + Thread.currentThread().getName() + " Mango will now terminate.", source);
-                    System.exit(1);
+                    System.exit(TerminationReason.OUT_OF_MEMORY_ERROR.getExitStatus());
                 }else {
                     log.error("Error multicasting event", source);
                 }
