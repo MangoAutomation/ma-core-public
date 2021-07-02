@@ -731,7 +731,7 @@ public class SystemSettingsDao extends BaseDao {
         defaultValues.put(UPGRADE_CHECKS_ENABLED, true);
         defaultValues.put(LICENSE_AGREEMENT_VERSION, 0);
 
-        defaultValues.put(RESTART_DELAY, 10);
+        defaultValues.put(RESTART_DELAY, 0);
 
         //Timeouts for tokens
         defaultValues.put(EmailAddressVerificationService.EXPIRY_SYSTEM_SETTING, EmailAddressVerificationService.DEFAULT_EXPIRY_DURATION);
