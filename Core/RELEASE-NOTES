@@ -148,6 +148,7 @@
 * Fix Event Handler bug introduced in beta.14 from in-memory caching
 * Change default permission for Users page from all users to superadmin only
 * Changes below here added in 4.0.0-beta.18
+* Mango will now terminate itself on the majority of situations that cause Out Of Memory errors it is recommended to use the OOM flags in the start-options.sh file to exit the jvm on these errors though
 * Nightly purge any orphaned id rows in the timeSeries database table which are rows not linked to a data point
 * PID file used by start-mango.sh now defaults to ${paths.data}/ma.pid, ensure your systemd service file is up to date
 * PID file used by start-mango.sh is now configurable via env property "paths.pid.file"
