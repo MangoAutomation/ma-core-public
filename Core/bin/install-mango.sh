@@ -74,7 +74,7 @@ if [ ! "$(id -u "$MA_USER" 2>/dev/null)" ]; then
 
   USER_ADD_CMD="$(command -v useradd)" || true
   if [ ! -x "$USER_ADD_CMD" ]; then
-    err "Can't create user '$MA_USER' as useradd command does not exist."
+    err "Can't create user '$MA_USER' as useradd command does not exist. Either specify another username, or manually create the user."
   fi
 
   "$USER_ADD_CMD" --system --no-create-home --home-dir "$MA_DATA" --shell "$NO_LOGIN_SHELL" --comment 'Mango Automation' "$MA_USER"
