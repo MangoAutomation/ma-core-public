@@ -54,7 +54,7 @@ public class DefaultMangoProperties implements MangoProperties {
         // Load the environment properties
         Properties properties;
         try {
-            properties = MangoProperties.loadFromResources("env.properties");
+            properties = MangoProperties.loadFromResources("mango.properties");
             if (Files.isReadable(envPropertiesPath)) {
                 try (Reader reader = Files.newBufferedReader(envPropertiesPath)) {
                     properties.load(reader);

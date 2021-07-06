@@ -63,9 +63,6 @@ if [ ! -d "$MA_DATA" ]; then
   echo "Created data directory '$MA_DATA'."
 fi
 
-# set env.properties location
-MA_ENV_FILE="$MA_DATA/env.properties"
-
 if [ -z "$MA_USER" ]; then
   MA_USER="$(prompt 'Which OS user should Mango run as? (Will be created if it does not exist)' 'mango')"
 fi
@@ -162,7 +159,7 @@ fi
 [ "$MA_DELETE_ZIP" = true ] && rm -f "$MA_CORE_ZIP"
 
 # Create an overrides env.properties file
-MA_ENV_FILE="$MA_DATA/env.properties"
+MA_ENV_FILE="$MA_DATA/mango.properties"
 prompt_text="Config file '$MA_ENV_FILE' exists, overwrite it?"
 if [ ! -e "$MA_ENV_FILE" ] || confirm "$prompt_text"; then
   echo "paths.data=$MA_DATA" >"$MA_ENV_FILE";

@@ -63,7 +63,7 @@ public class EnvPropertiesWatcher {
                     this.scheduledTask = scheduledExecutorService.scheduleWithFixedDelay(this::doCheck, 10, 10, TimeUnit.SECONDS);
                 }
             } catch (IOException e) {
-                log.error("Can't watch env.properties file for changes", e);
+                log.error("Can't watch config file for changes", e);
             }
         }
     }
@@ -100,7 +100,7 @@ public class EnvPropertiesWatcher {
                 key.reset();
             }
         } catch (Exception e) {
-            log.error("Error checking env.properties file for changes", e);
+            log.error("Error checking config file for changes", e);
         }
     }
 
@@ -109,7 +109,7 @@ public class EnvPropertiesWatcher {
             mangoProperties.reload();
             eventPublisher.publishEvent(new EnvPropertiesReloadedEvent());
         } catch (Exception e) {
-            log.error("Error reloading env.properties file", e);
+            log.error("Error reloading config file", e);
         }
     }
 

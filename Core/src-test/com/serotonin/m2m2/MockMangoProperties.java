@@ -23,7 +23,7 @@ public class MockMangoProperties implements MangoProperties {
 
     public MockMangoProperties() {
         try {
-            this.properties = MangoProperties.loadFromResources("env.properties");
+            this.properties = MangoProperties.loadFromResources("mango.properties");
             this.properties.putAll(MangoProperties.loadFromEnvironment());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
