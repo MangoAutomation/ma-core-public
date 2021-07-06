@@ -157,6 +157,7 @@
 * Location of start-options.sh now defaults to ${paths.data}/start-options.sh
 * Location of start-options.sh is now configurable via ${paths.start.options}
 * Mango will now exit with application specific exit statuses under certain conditions (restart, license error, initialization error)
+* The Mango configuration file env.properties is now named mango.properties, Mango will still check for env.properties and use that if mango.properties is not found.
 
 *Version 3.7.4*
 * Improve work item failure logging
