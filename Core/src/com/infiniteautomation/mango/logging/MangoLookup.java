@@ -14,7 +14,7 @@ import com.serotonin.provider.Providers;
 import com.serotonin.util.properties.MangoProperties;
 
 /**
- * Allows you to access env.properties via ${mango:property.name} in log4j2.xml files
+ * Allows you to access properties from the config file via ${mango:property.name} in log4j2.xml files
  */
 @Plugin(name = "mango", category = StrLookup.CATEGORY)
 public class MangoLookup implements StrLookup {

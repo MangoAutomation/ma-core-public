@@ -80,7 +80,7 @@ public class UpgradeDownloader extends HighPriorityTask {
             log.info("UpgradeDownloader started");
             String baseStoreUrl = Common.envProps.getString("store.url");
             if (StringUtils.isEmpty(baseStoreUrl)) {
-                log.info("Upgrade download not started as store.url is blank in env.properties.");
+                log.info("Upgrade download not started as store.url is blank in configuration file.");
                 for (ModuleNotificationListener listener : listeners)
                     listener.upgradeStateChanged(UpgradeState.DONE);
                 return;

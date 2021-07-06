@@ -19,8 +19,8 @@ import org.apache.commons.text.StringSubstitutor;
  * <ol>
  *     <li>Java system properties</li>
  *     <li>Environment variables</li>
- *     <li>User supplied env.properties file</li>
- *     <li>Mango built-in env.properties file</li>
+ *     <li>User supplied config file</li>
+ *     <li>Mango built-in config file</li>
  * </ol>
  *
  * <p>

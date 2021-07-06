@@ -74,7 +74,7 @@ public class MangoSessionHandler extends SessionHandler {
     }
 
     /**
-     * Custom SessionCookieConfig that gets values from env.properties
+     * Custom SessionCookieConfig that gets values from environment / config file.
      */
     public class MangoSessionCookieConfig implements SessionCookieConfig {
         @Override

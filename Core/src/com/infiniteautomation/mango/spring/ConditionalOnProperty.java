@@ -17,7 +17,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 import com.infiniteautomation.mango.spring.ConditionalOnProperty.ConditionalOnPropertyCondition;
 
 /**
- * Provides a way to conditionally enable a Spring component/service based on a property (env.properties, environment variable, Java system property)
+ * Provides a way to conditionally enable a Spring component/service based on a property (mango.properties, environment variable, Java system property)
  *
  * @author Jared Wiltshire
  */

@@ -117,8 +117,8 @@ public class ModulesService {
             // Send the request
             String baseUrl = env.getProperty("store.url");
             if (StringUtils.isEmpty(baseUrl)) {
-                log.info("No consistency check performed as no store.url is defined in env.properties.");
-                return "No consistency check performed as no store.url is defined in env.properties.";
+                log.info("No consistency check performed as no store.url is defined in configuration file.");
+                return "No consistency check performed as no store.url is defined in configuration file.";
             }
             baseUrl += "/servlet/consistencyCheck";
 
@@ -315,7 +315,7 @@ public class ModulesService {
         // Send the request
         String baseUrl = env.getProperty("store.url");
         if (StringUtils.isEmpty(baseUrl)) {
-            log.info("No version check performed as no store.url is defined in env.properties.");
+            log.info("No version check performed as no store.url is defined in configuration file.");
             return null;
         }
         baseUrl += "/servlet/versionCheck";

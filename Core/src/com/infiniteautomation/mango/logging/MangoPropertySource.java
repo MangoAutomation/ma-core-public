@@ -11,7 +11,7 @@ import com.serotonin.util.properties.MangoProperties;
 
 /**
  * Allows configuring <a href="https://logging.apache.org/log4j/2.x/manual/configuration.html#System_Properties"> log4j properties</a>
- * via env.properties file
+ * via config file
  */
 public class MangoPropertySource implements PropertySource {
 

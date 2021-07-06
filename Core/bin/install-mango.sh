@@ -158,7 +158,7 @@ fi
 
 [ "$MA_DELETE_ZIP" = true ] && rm -f "$MA_CORE_ZIP"
 
-# Create an overrides env.properties file
+# Create an overrides config file
 MA_ENV_FILE="$MA_DATA/mango.properties"
 prompt_text="Config file '$MA_ENV_FILE' exists, overwrite it?"
 if [ ! -e "$MA_ENV_FILE" ] || confirm "$prompt_text"; then

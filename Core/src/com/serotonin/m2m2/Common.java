@@ -524,7 +524,7 @@ public class Common {
             MessageDigest md = MessageDigest.getInstance(alg);
             if (md == null)
                 throw new ShouldNeverHappenException("MessageDigest algorithm " + alg
-                        + " not found. Set the 'security.hashAlgorithm' property in env.properties appropriately. "
+                        + " not found. Set the 'security.hashAlgorithm' property in configuration file appropriately. "
                         + "Use 'NONE' for no hashing.");
             md.update(plaintext.getBytes(StandardCharsets.UTF_8));
             byte raw[] = md.digest();

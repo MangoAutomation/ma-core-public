@@ -26,7 +26,7 @@ import jssc.SerialPortEventListener;
  * Serial port input stream that reads the serial bytes into a queue and fires events to listeners
  *
  * Windows machines use interrupt driven events, all others poll the port for new data
- * @see env.properties
+ * See configuration properties
  *  serial.port.eventQueueSize
  *  serial.port.linux.readPeriods
  *  serial.port.linux.readPeriodType

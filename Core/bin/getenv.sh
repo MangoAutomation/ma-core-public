@@ -12,7 +12,7 @@ err() {
   exit 1
 }
 
-# function for getting values from env.properties file
+# function for getting values from config file
 # does not support multiline properties or properties containing = sign
 get_prop() {
   if [ -n "$mango_config" ] && [ -f "$mango_config" ]; then

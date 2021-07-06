@@ -246,7 +246,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     /**
      * Should create the DataSource, does not do conversion etc
-     * @param propertyPrefix string to prefix in front of env.properties when getting connection URL etc
+     * @param propertyPrefix string to prefix in front of property name when getting connection URL etc
      */
     abstract protected void initializeImpl(String propertyPrefix);
 
