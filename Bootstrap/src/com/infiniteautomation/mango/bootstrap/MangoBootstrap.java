@@ -181,6 +181,18 @@ public class MangoBootstrap {
         }
     }
 
+    /**
+     * Config file (mango.properties) search path:
+     * $mango_config
+     * $MA_ENV_PROPERTIES (legacy environment variable)
+     * $mango_paths_data/mango.properties
+     * $mango_paths_data/env.properties
+     * ~/mango.properties
+     * $mango_paths_home/env.properties (legacy location)
+     * $mango_paths_home/overrides/properties/env.properties (legacy location)
+     *
+     * @return path to config file
+     */
     private Path configurationFile() {
         Optional<Path> explicitlySpecified = Arrays.stream(new Path[]{
                 getPath(System.getProperty("mango.config")),
@@ -193,27 +205,32 @@ public class MangoBootstrap {
             return explicitlySpecified.get().toAbsolutePath().normalize();
         }
 
-        // if data path is set via env variable, use that by default instead of install directory
-        Path dataDirectory = Arrays.stream(new Path[]{
+        Optional<Path> dataDirectory = Arrays.stream(new Path[]{
                 getPath(System.getProperty("mango.paths.data"), installationDirectory),
                 getPath(System.getenv("mango_paths_data"), installationDirectory)
         }).filter(Objects::nonNull)
-                .findFirst()
-                .orElse(installationDirectory);
-
+                .findFirst();
         Path userHome = getPath(System.getProperty("user.home"));
 
-        Optional<Path> existingPaths = Arrays.stream(new Path[]{
-                installationDirectory.resolve(Paths.get("overrides", "properties", "env.properties")),
-                installationDirectory.resolve(Paths.get("env.properties")),
-                dataDirectory.resolve(Paths.get("env.properties")),
-                dataDirectory.resolve(Paths.get("mango.properties")),
-                userHome != null ? userHome.resolve("mango.properties") : null,
-        }).filter(Objects::nonNull)
+        List<Path> configPaths = new ArrayList<>();
+        if (dataDirectory.isPresent()) {
+            Path dir = dataDirectory.get();
+            configPaths.add(dir.resolve("mango.properties"));
+            configPaths.add(dir.resolve("env.properties"));
+        }
+        if (userHome != null) {
+            configPaths.add(userHome.resolve("mango.properties"));
+        }
+        configPaths.add(installationDirectory.resolve(Paths.get("env.properties")));
+        configPaths.add(installationDirectory.resolve(Paths.get("overrides", "properties", "env.properties")));
+
+        Optional<Path> existingPaths = configPaths.stream()
+                .filter(Objects::nonNull)
                 .filter(Files::exists)
                 .findFirst();
 
-        return existingPaths.orElse(dataDirectory.resolve("mango.properties")).toAbsolutePath().normalize();
+        Path defaultLocation = dataDirectory.orElse(installationDirectory).resolve("mango.properties");
+        return existingPaths.orElse(defaultLocation).toAbsolutePath().normalize();
     }
 
     private Path installationDirectory() {

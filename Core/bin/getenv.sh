@@ -15,7 +15,7 @@ err() {
 # function for getting values from env.properties file
 # does not support multiline properties or properties containing = sign
 get_prop() {
-  if [ -f "$mango_config" ]; then
+  if [ -n "$mango_config" ] && [ -f "$mango_config" ]; then
     awk -v name="$1" -v dval="$2" -F = '$1==name{print $2; f=1; exit} END{if(f!=1){print dval}}' "$mango_config"
   else
     printf %s "$2"
@@ -191,14 +191,29 @@ if [ ! -f "$mango_paths_home/release.signed" ] && [ ! -f "$mango_paths_home/rele
   err "Can't find Mango installation/home directory, please set mango_paths_home or MA_HOME"
 fi
 
-# Config file (env.properties) search path:
+# Config file (mango.properties) search path:
 # $mango_config
 # $MA_ENV_PROPERTIES (legacy environment variable)
+# $mango_paths_data/mango.properties
+# $mango_paths_data/env.properties
+# ~/mango.properties
+# $mango_paths_home/env.properties (legacy location)
 # $mango_paths_home/overrides/properties/env.properties (legacy location)
-# $mango_paths_home/env.properties (default location when data directory is same as home directory)
-[ -z "$mango_config" ] && mango_config="$MA_ENV_PROPERTIES"
-[ -z "$mango_config" ] && [ -f "$mango_paths_home/overrides/properties/env.properties" ] && mango_config="$mango_paths_home/overrides/properties/env.properties"
-[ -z "$mango_config" ] && [ -f "$mango_paths_home/env.properties" ] && mango_config="$mango_paths_home/env.properties"
+if [ -z "$mango_config" ]; then
+  if [ -n "$MA_ENV_PROPERTIES" ]; then
+    mango_config="$MA_ENV_PROPERTIES"
+  elif [ -n "$mango_paths_data" ] && [ -f "$mango_paths_data/mango.properties" ]; then
+    mango_config="$mango_paths_data/mango.properties"
+  elif [ -n "$mango_paths_data" ] && [ -f "$mango_paths_data/env.properties" ]; then
+    mango_config="$mango_paths_data/env.properties"
+  elif [ -n "$HOME" ] && [ -f "$HOME/mango.properties" ]; then
+    mango_config="$HOME/mango.properties"
+  elif [ -f "$mango_paths_home/env.properties" ]; then
+    mango_config="$mango_paths_home/env.properties"
+  elif [ -f "$mango_paths_home/overrides/properties/env.properties" ]; then
+    mango_config="$mango_paths_home/overrides/properties/env.properties"
+  fi
+fi
 
 [ -z "$mango_paths_data" ] && mango_paths_data="$(get_prop "paths.data" "$mango_paths_home")"
 mango_paths_data="$(resolve_path "$mango_paths_home" "$mango_paths_data")"
