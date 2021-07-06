@@ -73,7 +73,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
-import com.serotonin.util.properties.EnvPropertiesWatcher;
+import com.serotonin.util.properties.MangoConfigurationWatcher;
 import com.serotonin.util.properties.MangoProperties;
 
 /**
@@ -363,7 +363,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         AnnotationConfigApplicationContext context = (AnnotationConfigApplicationContext) applicationContext;
-        context.register(EnvPropertiesWatcher.class);
+        context.register(MangoConfigurationWatcher.class);
     }
 
     @Bean

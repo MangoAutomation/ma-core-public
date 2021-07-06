@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
-import com.serotonin.util.properties.EnvPropertiesWatcher.EnvPropertiesReloadedEvent;
+import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
 /**
  * @author Jared Wiltshire
@@ -58,7 +58,7 @@ public class KeyStoreWatcher {
     }
 
     @EventListener
-    protected synchronized void envPropertiesReloaded(EnvPropertiesReloadedEvent event) {
+    protected synchronized void envPropertiesReloaded(MangoConfigurationReloadedEvent event) {
         KeyStoreParameters newParams = new KeyStoreParameters();
         boolean paramsChanged = !params.equals(newParams);
         this.params = newParams;

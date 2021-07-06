@@ -27,10 +27,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
+ * Watches the Mango configuration file for changes (mango.properties, formerly env.properties)
  * @author Jared Wiltshire
  */
 @Component
-public class EnvPropertiesWatcher {
+public class MangoConfigurationWatcher {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final DefaultMangoProperties mangoProperties;
@@ -42,8 +43,8 @@ public class EnvPropertiesWatcher {
     private ScheduledFuture<?> scheduledTask;
 
     @Autowired
-    public EnvPropertiesWatcher(MangoProperties mangoProperties, ScheduledExecutorService scheduledExecutorService,
-                                ExecutorService executorService, ApplicationEventPublisher eventPublisher) {
+    public MangoConfigurationWatcher(MangoProperties mangoProperties, ScheduledExecutorService scheduledExecutorService,
+                                     ExecutorService executorService, ApplicationEventPublisher eventPublisher) {
 
         this.mangoProperties = mangoProperties instanceof DefaultMangoProperties ? (DefaultMangoProperties) mangoProperties : null;
         this.scheduledExecutorService = scheduledExecutorService;
@@ -107,15 +108,15 @@ public class EnvPropertiesWatcher {
     private void reloadAndFireEvent() {
         try {
             mangoProperties.reload();
-            eventPublisher.publishEvent(new EnvPropertiesReloadedEvent());
+            eventPublisher.publishEvent(new MangoConfigurationReloadedEvent());
         } catch (Exception e) {
             log.error("Error reloading config file", e);
         }
     }
 
-    public class EnvPropertiesReloadedEvent extends ApplicationEvent {
-        private EnvPropertiesReloadedEvent() {
-            super(EnvPropertiesWatcher.this);
+    public class MangoConfigurationReloadedEvent extends ApplicationEvent {
+        private MangoConfigurationReloadedEvent() {
+            super(MangoConfigurationWatcher.this);
         }
     }
 }
