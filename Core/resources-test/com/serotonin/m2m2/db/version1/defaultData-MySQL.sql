@@ -1,6 +1,6 @@
 --    This is data for the original version 1 Mango Schema for use to test upgrades to the schema
 --
---    Copyright (C) 2018 Infinite Automation Inc. All rights reserved.
+--    Copyright (C) 2021 Radix IoT LLC. All rights reserved.
 --    @author Terry Packer
 --
 

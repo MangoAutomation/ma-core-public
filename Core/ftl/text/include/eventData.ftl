@@ -1,5 +1,5 @@
 <#--
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
+    Copyright (C) 2021 Radix IoT LLC. All rights reserved.
     @author Matthew Lohbihler
 -->
 <#include "alarmLevel.ftl">${evt.activeTimestamp?number_to_datetime?string["yyyy/MM/dd HH:mm:ss"]} - <@fmt message=evt.message/>
