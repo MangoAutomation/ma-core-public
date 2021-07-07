@@ -35,18 +35,35 @@ public class MangoBootstrap {
     public static final String MAIN_CLASS = "com.serotonin.m2m2.Main";
 
     public static void main(String[] args) throws Exception {
+        Map<String, String> argumentMap = Arrays.stream(args)
+                .filter(a -> a.startsWith("-"))
+                .map(a -> a.startsWith("--") ? a.substring(2) : a.substring(1))
+                .map(a -> a.split("=", 2))
+                .collect(Collectors.toMap(a -> a[0], a -> a.length > 1 ? a[1] : ""));
+
+        if (argumentMap.containsKey("help")) {
+            System.out.println(
+                    "Starts Mango, automatically sets up the required classpath. \n" +
+                    "If your OS is configured to associate jar files with java, \n" +
+                    "you can double click this jar to run Mango.\n" +
+                    "\n" +
+                    "\t-help\t\tDisplays this help message.\n" +
+                    "\t-fork\t\tStarts Mango in a new java process.\n" +
+                    "\t-wait\t\tFork only. Waits for the child process (Mango) to complete before exiting.\n" +
+                    "\t-io\t\t\tFork only. Causes IO (stdin/stdout/stderr) to be inherited by the child process.\n"
+            );
+            return;
+        }
+
         MangoBootstrap bootstrap = new MangoBootstrap()
                 .addJarDirectory(Paths.get("lib"));
 
         CoreUpgrade upgrade = new CoreUpgrade(bootstrap.getInstallationDirectory());
         upgrade.upgrade();
 
-        Optional<String> fork = Arrays.stream(args).filter("-fork"::equals).findAny();
 
-        if (fork.isPresent()) {
-            Optional<String> wait = Arrays.stream(args).filter("-wait"::equals).findAny();
-            Optional<String> io = Arrays.stream(args).filter("-io"::equals).findAny();
-            bootstrap.forkMango(wait.isPresent(), io.isPresent());
+        if (argumentMap.containsKey("fork")) {
+            bootstrap.forkMango(argumentMap.containsKey("wait"), argumentMap.containsKey("io"));
         } else {
             bootstrap.startMango();
         }
