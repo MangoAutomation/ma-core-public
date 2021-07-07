@@ -1,9 +1,10 @@
 FROM azul/zulu-openjdk:11
 
-ENV MA_HOME=/opt/mango
-WORKDIR "$MA_HOME"
+ENV mango_paths_home=/opt/mango
+ENV mango_paths_data=/opt/mango-data
+WORKDIR "$mango_paths_home"
 EXPOSE 8080
-ENV CLASSPATH="$MA_HOME/lib/*"
+ENV CLASSPATH="$mango_paths_home/lib/*"
 ENTRYPOINT ["java"]
 CMD ["com.serotonin.m2m2.Main"]
 
