@@ -147,7 +147,7 @@
 * Improve query performance when using data point tags
 * Fix Event Handler bug introduced in beta.14 from in-memory caching
 * Change default permission for Users page from all users to superadmin only
-* Changes below here added in 4.0.0-beta.18
+* Changes below here added in 4.0.0-rc.1
 * Mango will now terminate itself on the majority of situations that cause Out Of Memory errors it is recommended to use the OOM flags in the start-options.sh file to exit the jvm on these errors though
 * Nightly purge any orphaned id rows in the timeSeries database table which are rows not linked to a data point
 * PID file used by start-mango.sh now defaults to ${paths.data}/ma.pid, ensure your systemd service file is up to date
@@ -158,6 +158,10 @@
 * Location of start-options.sh is now configurable via ${paths.start.options}
 * Mango will now exit with application specific exit statuses under certain conditions (restart, license error, initialization error)
 * The Mango configuration file env.properties is now named mango.properties, Mango will still check for env.properties and use that if mango.properties is not found.
+* Changes below here added in 4.0.0-rc.1
+* Log INFO messages at startup showing the user Mango is running under, the install directory, the data directory and config file
+* Mango will not attempt to create config file (mango.properties) in $mango_paths_home
+* Mango will fail to start if it cannot create config file in either $mango_paths_data or $HOME (user's home directory)
 
 *Version 3.7.4*
 * Improve work item failure logging
