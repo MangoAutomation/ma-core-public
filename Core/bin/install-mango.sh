@@ -229,5 +229,5 @@ if [ -x "$(command -v systemctl)" ] && [ -d /etc/systemd/system ]; then
   systemctl enable "$MA_SERVICE_NAME"
   echo "Mango was installed successfully. Type 'systemctl start $MA_SERVICE_NAME' to start Mango."
 else
-  echo "Mango was installed successfully. Type 'sudo -u $MA_USER mango_config=$MA_ENV_FILE $MA_HOME/bin/start-mango.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
+  echo "Mango was installed successfully. Type 'sudo -u $MA_USER $MA_HOME/bin/start-mango.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
 fi
