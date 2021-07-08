@@ -1,1 +1,0 @@
-Add any properties files to override core properties here.

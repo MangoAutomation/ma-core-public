@@ -25,7 +25,6 @@
                 <include>RELEASE-NOTES</include>
                 <include>ftl/**</include>
                 <include>web/**</include>
-                <include>overrides/properties/Readme.txt</include>
             </includes>
             <excludes>
                 <exclude>web/WEB-INF/filedata/**</exclude>
