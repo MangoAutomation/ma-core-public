@@ -12,8 +12,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.db.tables.Roles;
-import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
@@ -43,13 +41,13 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, RoleVO vo) {
-        return permissionService.isValidPermissionHolder(user);
+        if (!permissionService.isValidPermissionHolder(user)) return false;
+        Set<Role> heldRoles = permissionService.getAllInheritedRoles(user);
+        return heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE) || heldRoles.contains(vo.getRole());
     }
 
-
     @Override
-    public RoleVO delete(RoleVO vo)
-            throws PermissionException, NotFoundException {
+    public RoleVO delete(RoleVO vo) throws PermissionException, NotFoundException {
         //Cannot delete the 'user' or 'superadmin' roles
         if (StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
             PermissionHolder user = Common.getUser();
@@ -135,8 +133,8 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
     /**
      * Make sure no role is re-used in its hierarchy
      *
-     * @param role
-     * @param used
+     * @param role role to search for
+     * @param used seen roles
      * @return - true is role was already used somewhere in its inheritance
      */
     private boolean recursivelyCheckForUsedRoles(Role role, Set<Role> used) {
@@ -154,27 +152,21 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
     }
 
     /**
-     * Get the superadmin role
-     *
-     * @return
+     * @return the superadmin role
      */
     public Role getSuperadminRole() {
         return PermissionHolder.SUPERADMIN_ROLE;
     }
 
     /**
-     * Get the default user role
-     *
-     * @return
+     * @return the user role
      */
     public Role getUserRole() {
         return PermissionHolder.USER_ROLE;
     }
 
     /**
-     * Get the default anonymous role
-     *
-     * @return
+     * @return the anonymous role
      */
     public Role getAnonymousRole() {
         return PermissionHolder.ANONYMOUS_ROLE;
