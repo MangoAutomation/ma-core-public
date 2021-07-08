@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.infiniteautomation.mango</groupId>
         <artifactId>mango-parent</artifactId>
-        <version>4.0.0-rc.2</version>
+        <version>4.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -111,345 +111,345 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ascii-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>envcan-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>internal-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>lang-de</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>lang-en</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>lang-es</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>lang-fi</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>lang-nl</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>lang-pt</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>lang-zh</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>log4j-reset</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>maintenance-events</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-api</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>serial-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>sql-console</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>virtual-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>vmstat-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>watchlist</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <!-- ma-modules-private -->
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>bacnet-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>controlcore-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>datafile-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>dnp3-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>http-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>log4j-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>meta-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>modbus-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>onewire-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>opcda-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>persistent-pub-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>pid-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>pop3-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>scripting-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>snmp-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>sql-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ssh-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>globalscripts</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>tcpip-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>zwave-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <!-- ma-modules-proprietary -->
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>egauge-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>excel-reports</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mangoes-configuration</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-nosql-database</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mqtt-client-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mqtt-sparkplug-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>dashboard-designer</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ui</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>haystack-ds-pub</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>advanced-scheduler</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-iotools</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>cloud-connect</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>slack-publisher</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>graaljs</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>groovy</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>line-protocol-ds</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>timescale-db</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ldap-authentication</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>map-db-latest-values</artifactId>
-            <version>4.0.0-rc.2</version>
+            <version>4.0.0-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
     </dependencies>
