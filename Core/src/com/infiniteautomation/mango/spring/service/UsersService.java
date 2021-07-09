@@ -350,14 +350,14 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                 result.addContextualMessage("readPermission", "validate.mustHaveExplicitEditPermission");
             }
             permissionService.validatePermission(result, "readPermission", holder,
-                    vo.getReadPermission());
+                    existing.getReadPermission(), vo.getReadPermission());
         }
         if (!existing.getEditPermission().equals(vo.getEditPermission())) {
             if (!hasExplicitEditPermission) {
                 result.addContextualMessage("editPermission", "validate.mustHaveExplicitEditPermission");
             }
             permissionService.validatePermission(result, "editPermission", holder,
-                    vo.getEditPermission());
+                    existing.getEditPermission(), vo.getEditPermission());
         }
 
         if (!StringUtils.isBlank(vo.getPassword())) {

@@ -241,8 +241,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         ProcessResult result = commonValidation(vo, user);
 
         //Additional checks for existing list
-        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
         return result;
     }
 

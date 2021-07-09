@@ -107,6 +107,10 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     @Override
     public ProcessResult validate(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
+
+        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
+
         vo.getDefinition().validate(result, vo, user);
         return result;
     }
@@ -114,15 +118,16 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     @Override
     public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
+
+        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
+
         vo.getDefinition().validate(result, existing, vo, user);
         return result;
     }
 
     private ProcessResult commonValidation(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
-
-        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
 
         //TODO is this true?
         //eventTypes are not validated because it assumed they

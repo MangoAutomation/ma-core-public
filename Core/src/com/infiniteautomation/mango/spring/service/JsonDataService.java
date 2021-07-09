@@ -89,8 +89,8 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     public ProcessResult validate(JsonDataVO existing, JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         //Additional checks for existing list
-        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
-        permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
+        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
 
         return result;
     }

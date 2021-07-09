@@ -223,8 +223,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public ProcessResult validate(DataSourceVO existing, DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        permissionService.validatePermission(response, "editPermission", user, vo.getEditPermission());
-        permissionService.validatePermission(response, "readPermission", user, vo.getReadPermission());
+        permissionService.validatePermission(response, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validatePermission(response, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
 
         //Ensure matching data source types
         if(!StringUtils.equals(existing.getDefinition().getDataSourceTypeName(), vo.getDefinition().getDataSourceTypeName())) {
