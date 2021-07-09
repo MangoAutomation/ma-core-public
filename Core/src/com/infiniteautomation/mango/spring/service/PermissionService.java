@@ -7,11 +7,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.infiniteautomation.mango.cache.BidirectionalCache;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -46,6 +46,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Terry Packer
  *
  */
+@SuppressWarnings("JavaDoc")
 @Service
 public class PermissionService implements CachingService {
 
@@ -53,7 +54,6 @@ public class PermissionService implements CachingService {
     private final PermissionDao permissionDao;
 
     private final EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermissionDefinition;
-    private final PermissionHolder systemSuperadmin;
 
     //Cache of role xid to inheritance
     private final LoadingCache<String, RoleInheritance> roleHierarchyCache;
@@ -65,14 +65,11 @@ public class PermissionService implements CachingService {
     @Autowired
     public PermissionService(RoleDao roleDao,
                              PermissionDao permissionDao,
-                             EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermissionDefinition,
-                             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-                                         PermissionHolder systemSuperadmin,
+                             @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermissionDefinition,
                              Environment env) {
         this.roleDao = roleDao;
         this.permissionDao = permissionDao;
         this.eventsSuperadminViewPermissionDefinition = eventsSuperadminViewPermissionDefinition;
-        this.systemSuperadmin = systemSuperadmin;
         this.roleHierarchyCache = Caffeine.newBuilder()
                 .maximumSize(env.getProperty("cache.roles.size", Long.class, 1000L))
                 .build(this::loadRoleInheritance);
@@ -455,21 +452,28 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * Validate a permission.  This will validate that:
-     * <ol>
-     *     <li>The roles are non null</li>
-     *     <li>All roles are not empty</li>
-     *     <li>The roles exist</li>
-     *     <li>The saving user will at least retain access</li>
-     * </ol>
-     *  @param result - the result of the validation
-     * @param contextKey - the key to apply the messages to
-     * @param holder - the saving permission holder
-     * @param newPermission - the new permissions to validate
+     * See {@link #validatePermission(ProcessResult, String, PermissionHolder, MangoPermission, MangoPermission, boolean)}
+     */
+    public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
+                                   @Nullable MangoPermission existingPermission, MangoPermission newPermission) {
+        validatePermission(result, contextKey, holder, existingPermission, newPermission, true);
+    }
+
+    /**
+     * See {@link #validatePermission(ProcessResult, String, PermissionHolder, MangoPermission, MangoPermission, boolean)}
      */
     public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
                                    MangoPermission newPermission) {
-        validatePermission(result, contextKey, holder, newPermission, true);
+        validatePermission(result, contextKey, holder, null, newPermission, true);
+    }
+
+    /**
+     * See {@link #validatePermission(ProcessResult, String, PermissionHolder, MangoPermission, MangoPermission, boolean)}
+     */
+    public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
+                                   MangoPermission newPermission,
+                                   boolean mustRetainAccess) {
+        validatePermission(result, contextKey, holder, null, newPermission, mustRetainAccess);
     }
 
     /**
@@ -478,16 +482,20 @@ public class PermissionService implements CachingService {
      *     <li>The roles are non null</li>
      *     <li>All roles are not empty</li>
      *     <li>The roles exist</li>
-     *     <li>The saving user will at least retain access (if mustRetainAccess is true)</li>
+     *     <li>The current user cannot add the user or anonymous role unless they have the superadmin role</li>
+     *     <li>The current user cannot add any roles that they do not hold</li>
+     *     <li>The current user will retain access to this permission (if mustRetainAccess is true)</li>
      * </ol>
      * @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
+     * @param existingPermission - the existing permission (may be null)
      * @param newPermission - the new permissions to validate
      * @param mustRetainAccess set to true if the current user must retain access
      */
     public void validatePermission(ProcessResult result, String contextKey, PermissionHolder holder,
-                                   MangoPermission newPermission, boolean mustRetainAccess) {
+                                   @Nullable MangoPermission existingPermission, MangoPermission newPermission,
+                                   boolean mustRetainAccess) {
 
         Assert.notNull(result, "result must not be null");
         Assert.notNull(contextKey, "contextKey must not be null");
@@ -507,6 +515,27 @@ public class PermissionService implements CachingService {
             // Ensure the user retains access to the object
             if (!hasPermission(holder, newPermission)) {
                 result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+            }
+        }
+
+        Set<Role> inherited = getAllInheritedRoles(holder);
+        if (!inherited.contains(PermissionHolder.SUPERADMIN_ROLE)) {
+            Set<Set<Role>> existingMinterms = existingPermission != null ? existingPermission.getRoles() : Collections.emptySet();
+            Set<Set<Role>> minterms = newPermission.getRoles();
+            for (Set<Role> minterm : minterms) {
+                if (!existingMinterms.contains(minterm)) {
+                    if (minterm.contains(PermissionHolder.USER_ROLE)) {
+                        result.addContextualMessage(contextKey, "validate.permission.cantAddRoleSuperadminOnly", PermissionHolder.USER_ROLE.getXid());
+                    }
+                    if (minterm.contains(PermissionHolder.ANONYMOUS_ROLE)) {
+                        result.addContextualMessage(contextKey, "validate.permission.cantAddRoleSuperadminOnly", PermissionHolder.ANONYMOUS_ROLE.getXid());
+                    }
+                    Optional<Role> notHeldRole = minterm.stream().filter(r -> !inherited.contains(r)).findAny();
+                    //noinspection OptionalIsPresent
+                    if (notHeldRole.isPresent()) {
+                        result.addContextualMessage(contextKey, "validate.permission.cantAddRole", notHeldRole.get().getXid());
+                    }
+                }
             }
         }
     }
@@ -647,6 +676,7 @@ public class PermissionService implements CachingService {
      * Keep our cache up to date by evicting changed roles
      * @param event
      */
+    @SuppressWarnings("SpringEventListenerInspection")
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         switch(event.getType()) {
