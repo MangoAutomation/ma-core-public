@@ -35,8 +35,10 @@ import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
@@ -48,7 +50,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     private final PermissionDao permissionDao;
-    private final BeanFactory beanFactory;
+    private final LazyInitSupplier<PermissionService> permissionServiceSupplier;
 
     // cannot inject permission service in this DAO or it would introduce a circular dependency
     @Autowired
@@ -60,7 +62,8 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher, null);
         this.permissionDao = permissionDao;
-        this.beanFactory = beanFactory;
+
+        this.permissionServiceSupplier = new LazyInitSupplier<>(() -> beanFactory.getBean(PermissionService.class));
     }
 
     @Override
@@ -71,7 +74,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
                 throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), node.getArgument(0)));
             }
 
-            PermissionService permissionService = beanFactory.getBean(PermissionService.class);
+            PermissionService permissionService = permissionServiceSupplier.get();
             Set<Integer> roleIds = extractArrayArguments(node, o -> o == null ? null : o.toString()).stream()
                     .filter(Objects::nonNull)
                     .map(permissionService::getRole)
@@ -98,7 +101,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
                 throw new RQLVisitException(String.format("Unsupported node type '%s' for field '%s'", node.getName(), node.getArgument(0)));
             }
 
-            PermissionService permissionService = beanFactory.getBean(PermissionService.class);
+            PermissionService permissionService = permissionServiceSupplier.get();
             Set<Integer> roleIds = extractArrayArguments(node, o -> o == null ? null : o.toString()).stream()
                     .filter(Objects::nonNull)
                     .map(permissionService::getRole)
@@ -263,4 +266,14 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
         }
     }
 
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, PermissionHolder user) {
+        PermissionService permissionService = permissionServiceSupplier.get();
+        Set<Role> heldRoles = permissionService.getAllInheritedRoles(user);
+        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE))  {
+            return select;
+        }
+        List<String> xids = heldRoles.stream().map(Role::getXid).collect(Collectors.toList());
+        return select.innerJoin(DSL.selectOne()).on(table.xid.in(xids));
+    }
 }
