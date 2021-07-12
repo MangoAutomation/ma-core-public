@@ -284,11 +284,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @param callback
      */
     public void customizedQuery(ASTNode conditions, Consumer<T> callback) {
-        PermissionHolder user = Common.getUser();
-        dao.customizedQuery(dao.rqlToCondition(conditions, null, null, null), user, (item) ->{
-            dao.loadRelationalData(item);
-            callback.accept(item);
-        });
+        customizedQuery(dao.rqlToCondition(conditions, null, null, null), callback);
     }
 
     /**
@@ -307,8 +303,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @return
      */
     public int customizedCount(ASTNode conditions) {
-        PermissionHolder user = Common.getUser();
-        return dao.customizedCount(dao.rqlToCondition(conditions, null, null, null), user);
+        return customizedCount(dao.rqlToCondition(conditions, null, null, null));
     }
 
     /**
