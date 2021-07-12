@@ -470,6 +470,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         options.put("IFEXISTS", "TRUE");
 
         Properties connectionProperties = getConnectionProperties(propertyPrefix);
+        Path dbPath = getDbPathFromUrl(url);
 
         try (URLClassLoader jarLoader = loadLegacyJar()) {
             Class<?> driverManager = Class.forName("org.h2.Driver", false, jarLoader);
@@ -478,7 +479,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             Field instance = driverManager.getDeclaredField("INSTANCE");
             instance.setAccessible(true);
 
-            String configuredUrl = configureURL(url, options);
+            String configuredUrl = configureURL("jdbc:h2:" + dbPath, options);
             try (Connection c = (Connection) connect.invoke(instance.get(driverManager), configuredUrl, connectionProperties)){
                 dumpToFile(dumpPath, c);
             }
