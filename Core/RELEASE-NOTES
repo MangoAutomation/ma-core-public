@@ -169,6 +169,7 @@
 * Database upgrade to remove incorrect non-null constraint on users table locale column
 * Fix ma-scale-to directive in dashboards
 * Fix Modbus publisher failing to initialize
+* Fix a problem with upgrading H2 1.4.196 databases
 
 *Version 3.7.4*
 * Improve work item failure logging
