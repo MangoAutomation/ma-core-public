@@ -46,7 +46,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     private final EventType queueSizeWarningEventType;
 
     private final PublisherVO<T> vo;
-    protected final List<PublishedPointRT<T>> pointRTs = new ArrayList<PublishedPointRT<T>>();
+    protected final List<PublishedPointRT<T>> pointRTs = new ArrayList<>();
     protected final PublishQueue<T, PointValueTime> queue;
     protected final AttributePublishQueue<T> attributesChangedQueue;
     private boolean pointEventActive;
@@ -59,8 +59,8 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         this.vo = vo;
         queue = createPublishQueue(vo);
         attributesChangedQueue = createAttirbutesChangedQueue();
-        pointDisabledEventType = new PublisherEventType(this.getVo(), POINT_DISABLED_EVENT);
-        queueSizeWarningEventType = new PublisherEventType(this.getVo(), QUEUE_SIZE_WARNING_EVENT);
+        pointDisabledEventType = new PublisherEventType(vo, POINT_DISABLED_EVENT);
+        queueSizeWarningEventType = new PublisherEventType(vo, QUEUE_SIZE_WARNING_EVENT);
     }
 
     public int getId() {
@@ -68,21 +68,19 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     }
 
     protected PublishQueue<T, PointValueTime> createPublishQueue(PublisherVO<T> vo) {
-        return new PublishQueue<T, PointValueTime>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
+        return new PublishQueue<>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
     protected AttributePublishQueue<T> createAttirbutesChangedQueue() {
-        return new AttributePublishQueue<T>(vo.getPoints().size());
+        return new AttributePublishQueue<>(vo.getPoints().size());
     }
 
-    public PublisherVO<T> getVo() {
+    public final PublisherVO<T> getVo() {
         return vo;
     }
 
     /**
      * Override to handle any situations where you need to know that a role was modified.
-     *
-     * @param event
      */
     public void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
 
@@ -111,7 +109,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
             @SuppressWarnings("unchecked")
             Map<String, Object> map = (Map<String, Object>) PublisherDao.getInstance().getPersistentData(vo.getId());
             if (map == null)
-                map = new HashMap<String, Object>();
+                map = new HashMap<>();
 
             map.put(key, persistentData);
 
@@ -195,7 +193,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     }
 
     protected Map<String, Object> createEventContext() {
-        Map<String, Object> context = new HashMap<String, Object>();
+        Map<String, Object> context = new HashMap<>();
         context.put("publisher", vo);
         return context;
     }
@@ -226,7 +224,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         sendThread.initialize(false);
 
         for (T p : vo.getPoints())
-            pointRTs.add(new PublishedPointRT<T>(p, this));
+            pointRTs.add(new PublishedPointRT<>(p, this));
 
         if (vo.isSendSnapshot()) {
             // Add a schedule to send the snapshot
