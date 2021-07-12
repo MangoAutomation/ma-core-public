@@ -162,6 +162,13 @@
 * Log INFO messages at startup showing the user Mango is running under, the install directory, the data directory and config file
 * Mango will not attempt to create config file (mango.properties) in $mango_paths_home
 * Mango will fail to start if it cannot create config file in either $mango_paths_data or $HOME (user's home directory)
+* Changes below here added in 4.0.0-rc.3
+* Fix deadlock when Mango lifecycle initialization throws exception
+* Remove overrides directory from zip bundle
+* Changes below here added in 4.0.0-rc.4
+* Database upgrade to remove incorrect non-null constraint on users table locale column
+* Fix ma-scale-to directive in dashboards
+* Fix Modbus publisher failing to initialize
 
 *Version 3.7.4*
 * Improve work item failure logging
