@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 public class LazyInitSupplier<T> extends LazyInitializer<T> implements Supplier<T> {
 
     final Supplier<T> delegate;
-    volatile T value;
 
     /**
      * @param delegate must not return null
