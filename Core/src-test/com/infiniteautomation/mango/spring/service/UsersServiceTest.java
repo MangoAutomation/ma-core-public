@@ -735,7 +735,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Test
-    public void canAllowAccessToRoleWeDontHold() {
+    @ExpectValidationException({"readPermission", "editPermission"})
+    public void cannotAllowAccessToRoleWeDontHold() {
         Role otherRole = createRole(randomXid(), "Some other role").getRole();
         User otherUser = insertUser();
         User user = insertUser(editRole, readRole);

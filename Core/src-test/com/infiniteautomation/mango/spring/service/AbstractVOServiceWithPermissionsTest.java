@@ -80,8 +80,8 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     public void testCreatePrivilegeSuccess() {
         VO vo = newVO(editUser);
         addRoleToCreatePermission(editRole);
-        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
         runAs.runAs(editUser, () -> {
             service.insert(vo);
         });
