@@ -17,11 +17,6 @@ prompt() {
 	printf "%s" "$result"
 }
 
-# Used to download updated scripts from git main branch
-get_script() {
-	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
-}
-
 if [ -z "$MA_HOME" ]; then
 	DEFAULT_HOME=/opt/mango
     CHECK_DIR="$(dirname -- "$SCRIPT_DIR")"
@@ -110,7 +105,7 @@ if [ "$(find "$MA_HOME" -mindepth 1 -maxdepth 1)" ]; then
 fi
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
-	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '3.6.6')"
+	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '3.7.7')"
 fi
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_BUNDLE_TYPE" ]; then
@@ -161,7 +156,7 @@ chmod 600 "$MA_ENV_FILE"
 
 # Used to download updated scripts from git main branch
 get_script() {
-	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
+	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/3.7.x/Core/scripts/$1" > "$MA_HOME/bin/$1"
 }
 
 get_script start-mango.sh
