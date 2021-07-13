@@ -7,10 +7,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.Roles;
@@ -18,7 +22,9 @@ import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
@@ -70,9 +76,8 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RolesRecord, 
             }
         }
 
-        List<RoleVO> vos = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            vos.add(insertNewVO(readUser));
+            insertNewVO(readUser);
         }
         assertEquals(8, service.dao.count());
     }
@@ -122,6 +127,71 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RolesRecord, 
         });
     }
 
+    @Test
+    public void adminCanSeeAllRoles() {
+        RoleVO vo = insertNewVO(readUser);
+        Set<String> roleXids = service.list().stream()
+                .map(AbstractVO::getXid)
+                .collect(Collectors.toSet());
+
+        Assert.assertTrue("Should see anonymous role", roleXids.contains(PermissionHolder.ANONYMOUS_ROLE_XID));
+        Assert.assertTrue("Should see user role", roleXids.contains(PermissionHolder.USER_ROLE_XID));
+        Assert.assertTrue("Should see superadmin role", roleXids.contains(PermissionHolder.SUPERADMIN_ROLE_XID));
+        Assert.assertTrue("Superadmin should see all roles", roleXids.contains(vo.getXid()));
+    }
+
+    @Test
+    public void userCanOnlySeeOwnRoles() {
+        RoleVO inheritedRole = insertNewVO(readUser);
+        RoleVO directlyAssignedRole = newVO(readUser);
+        directlyAssignedRole.setInherited(Collections.singleton(inheritedRole.getRole()));
+        service.insert(directlyAssignedRole);
+        RoleVO roleUserDoesNotHave = insertNewVO(readUser);
+
+        User testUser = createUser("test-user@example.com", "test-user@example.com",
+                "test-user@example.com", "test-user@example.com", directlyAssignedRole.getRole());
+
+        runAs.runAs(testUser, () -> {
+            Set<String> roleXids = service.list().stream()
+                    .map(AbstractVO::getXid)
+                    .collect(Collectors.toSet());
+
+            Assert.assertTrue("Should see anonymous role", roleXids.contains(PermissionHolder.ANONYMOUS_ROLE_XID));
+            Assert.assertTrue("Should see user role", roleXids.contains(PermissionHolder.USER_ROLE_XID));
+            Assert.assertTrue("Should see directly assigned role", roleXids.contains(directlyAssignedRole.getXid()));
+            Assert.assertTrue("Should see inherited role", roleXids.contains(inheritedRole.getXid()));
+            Assert.assertFalse("Should not see role that user does not have", roleXids.contains(roleUserDoesNotHave.getXid()));
+        });
+    }
+
+    @Test
+    public void canGetRoleUserHas() {
+        RoleVO roleUserHas = insertNewVO(readUser);
+
+        User testUser = createUser("test-user@example.com", "test-user@example.com",
+                "test-user@example.com", "test-user@example.com", roleUserHas.getRole());
+
+        runAs.runAs(testUser, () -> {
+            RoleVO role = service.get(roleUserHas.getXid());
+            assertEquals(role.getXid(), roleUserHas.getXid());
+            assertEquals(role.getName(), roleUserHas.getName());
+            assertEquals(role.getId(), roleUserHas.getId());
+        });
+    }
+
+    @Test(expected = PermissionException.class)
+    public void cantGetRoleUserDoesNotHave() {
+        RoleVO roleUserHas = insertNewVO(readUser);
+        RoleVO roleUserDoesNotHave = insertNewVO(readUser);
+
+        User testUser = createUser("test-user@example.com", "test-user@example.com",
+                "test-user@example.com", "test-user@example.com", roleUserHas.getRole());
+
+        runAs.runAs(testUser, () -> {
+            service.get(roleUserDoesNotHave.getXid());
+        });
+    }
+
     @Override
     RoleService getService() {
         return Common.getBean(RoleService.class);
@@ -141,8 +211,7 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RolesRecord, 
 
     @Override
     RoleVO newVO(User owner) {
-        RoleVO vo = new RoleVO(Common.NEW_ID, dao.generateUniqueXid(), "default test role");
-        return vo;
+        return new RoleVO(Common.NEW_ID, dao.generateUniqueXid(), "default test role");
     }
 
     @Override
