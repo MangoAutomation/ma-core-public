@@ -50,9 +50,9 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     public void testCreatePrivilegeSuccess() {
         DataPointVO vo = newVO(editUser);
         addRoleToCreatePermission(editRole, vo);
-        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        vo.setSetPermission(MangoPermission.requireAnyRole(roleService.getUserRole()));
+        setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
+        vo.setSetPermission(MangoPermission.requireAnyRole(editRole));
         runAs.runAs(editUser, () -> {
             service.insert(vo);
         });

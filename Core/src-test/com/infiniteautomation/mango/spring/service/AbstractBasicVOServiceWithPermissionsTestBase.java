@@ -93,8 +93,8 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     public void testCreatePrivilegeSuccess() {
         VO vo = newVO(editUser);
         addRoleToCreatePermission(editRole);
-        setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
-        setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        setReadPermission(MangoPermission.requireAnyRole(editRole), vo);
+        setEditPermission(MangoPermission.requireAnyRole(editRole), vo);
         runAs.runAs(editUser, () -> {
             service.insert(vo);
         });
@@ -241,8 +241,8 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         addRoleToCreatePermission(editRole);
         setReadPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
         setEditPermission(MangoPermission.requireAnyRole(roleService.getUserRole()), vo);
+        VO newVO = service.insert(vo);
         runAs.runAs(editUser, () -> {
-            VO newVO = service.insert(vo);
             service.delete(newVO.getId());
         });
     }
