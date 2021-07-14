@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.collect.Sets;
 import com.infiniteautomation.mango.cache.BidirectionalCache;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -521,20 +522,20 @@ public class PermissionService implements CachingService {
         Set<Role> inherited = getAllInheritedRoles(holder);
         if (!inherited.contains(PermissionHolder.SUPERADMIN_ROLE)) {
             Set<Set<Role>> existingMinterms = existingPermission != null ? existingPermission.getRoles() : Collections.emptySet();
-            Set<Set<Role>> minterms = newPermission.getRoles();
-            for (Set<Role> minterm : minterms) {
-                if (!existingMinterms.contains(minterm)) {
-                    if (minterm.contains(PermissionHolder.USER_ROLE)) {
-                        result.addContextualMessage(contextKey, "validate.permission.cantAddRoleSuperadminOnly", PermissionHolder.USER_ROLE.getXid());
-                    }
-                    if (minterm.contains(PermissionHolder.ANONYMOUS_ROLE)) {
-                        result.addContextualMessage(contextKey, "validate.permission.cantAddRoleSuperadminOnly", PermissionHolder.ANONYMOUS_ROLE.getXid());
-                    }
-                    Optional<Role> notHeldRole = minterm.stream().filter(r -> !inherited.contains(r)).findAny();
-                    //noinspection OptionalIsPresent
-                    if (notHeldRole.isPresent()) {
-                        result.addContextualMessage(contextKey, "validate.permission.cantAddRole", notHeldRole.get().getXid());
-                    }
+            // changed contains all minterms which have been added or removed
+            Set<Set<Role>> changed = Sets.symmetricDifference(existingMinterms, newPermission.getRoles());
+
+            for (Set<Role> minterm : changed) {
+                if (minterm.contains(PermissionHolder.USER_ROLE)) {
+                    result.addContextualMessage(contextKey, "validate.permission.cantAddRoleSuperadminOnly", PermissionHolder.USER_ROLE.getXid());
+                }
+                if (minterm.contains(PermissionHolder.ANONYMOUS_ROLE)) {
+                    result.addContextualMessage(contextKey, "validate.permission.cantAddRoleSuperadminOnly", PermissionHolder.ANONYMOUS_ROLE.getXid());
+                }
+                Optional<Role> notHeldRole = minterm.stream().filter(r -> !inherited.contains(r)).findAny();
+                //noinspection OptionalIsPresent
+                if (notHeldRole.isPresent()) {
+                    result.addContextualMessage(contextKey, "validate.permission.cantAddRole", notHeldRole.get().getXid());
                 }
             }
         }
