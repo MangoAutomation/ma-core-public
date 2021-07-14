@@ -14,14 +14,20 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.rules.ExpectValidationException;
+import com.infiniteautomation.mango.rules.ExpectValidationExceptionRule;
+import com.infiniteautomation.mango.spring.components.RunAs;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -38,25 +44,46 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 public class PermissionServiceTest extends MangoTestBase {
 
-    protected RoleService roleService;
-    protected PermissionService permissionService;
-    protected DataSourceService dataSourceService;
-    protected DataPointService dataPointService;
-    protected UsersService usersService;
+    @Rule
+    public ExpectValidationExceptionRule validation = new ExpectValidationExceptionRule();
 
-    protected PermissionHolder systemSuperadmin;
+    RoleService roleService;
+    PermissionService permissionService;
+    DataSourceService dataSourceService;
+    DataPointService dataPointService;
+    UsersService usersService;
+    RunAs runAs;
 
-    public PermissionServiceTest() {
-    }
+    Role common;
+    Role org1;
+    Role org2;
+    Role org1GroupA;
+    Role org2GroupA;
+    User superadmin;
+    User testUserOrg1;
+    User testUserOrg2;
 
     @Before
     public void setupRoles() {
-        roleService = Common.getBean(RoleService.class);
-        permissionService = Common.getBean(PermissionService.class);
-        dataSourceService = Common.getBean(DataSourceService.class);
-        dataPointService = Common.getBean(DataPointService.class);
-        usersService = Common.getBean(UsersService.class);
-        systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
+        this.roleService = Common.getBean(RoleService.class);
+        this.permissionService = Common.getBean(PermissionService.class);
+        this.dataSourceService = Common.getBean(DataSourceService.class);
+        this.dataPointService = Common.getBean(DataPointService.class);
+        this.usersService = Common.getBean(UsersService.class);
+        this.runAs = Common.getBean(RunAs.class);
+
+        this.common = createRole("common", "Common role").getRole();
+        this.org1 = createRole("org1", "Organization 1").getRole();
+        this.org2 = createRole("org2", "Organization 2").getRole();
+        this.org1GroupA = createRole("org1_groupA", "Organization 1, Group A", org1).getRole();
+        this.org2GroupA = createRole("org2_groupA", "Organization 2, Group A", org2).getRole();
+
+        this.superadmin = createUser("superadmin@example.com", "superadmin@example.com",
+                "superadmin@example.com", "superadmin@example.com", PermissionHolder.SUPERADMIN_ROLE);
+        this.testUserOrg1 = createUser("test-user-org1@example.com", "test-user-org1@example.com",
+                "test-user-org1@example.com", "test-user-org1@example.com", common, org1GroupA);
+        this.testUserOrg2 = createUser("test-user-org2@example.com", "test-user-org2@example.com",
+                "test-user-org2@example.com", "test-user-org2@example.com", common, org2GroupA);
     }
 
     MockDataSourceVO createDataSource(Role editRole) {
@@ -430,5 +457,152 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureHasAllPermissionsFailNullEntry() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
         permissionService.ensurePermission(testUser, MangoPermission.requireAllRoles((Role) null));
+    }
+
+    private void validatePermission(MangoPermission oldPermission, MangoPermission newPermission) {
+        ProcessResult result = new ProcessResult();
+        permissionService.validatePermission(result, "permission", Common.getUser(), oldPermission, newPermission);
+        if (!result.isValid()) {
+            throw new ValidationException(result);
+        }
+    }
+
+    /**
+     * Adding user role is not allowed for regular users.
+     */
+    @Test
+    @ExpectValidationException("permission")
+    public void cantAddUserRole() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(MangoPermission.superadminOnly(),
+                MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE)));
+    }
+
+    /**
+     * Adding user role is allowed for admins.
+     */
+    @Test
+    public void adminCanAddUserRole() {
+        runAs.runAs(superadmin, () -> validatePermission(MangoPermission.superadminOnly(),
+                MangoPermission.requireAnyRole(PermissionHolder.USER_ROLE)));
+    }
+
+    /**
+     * Adding anonymous role is not allowed for regular users.
+     */
+    @Test
+    @ExpectValidationException("permission")
+    public void cantAddAnonymousRole() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(MangoPermission.superadminOnly(),
+                MangoPermission.requireAnyRole(PermissionHolder.ANONYMOUS_ROLE)));
+    }
+
+    /**
+     * Adding anonymous role is allowed for admins.
+     */
+    @Test
+    public void adminCanAddAnonymousRole() {
+        runAs.runAs(superadmin, () -> validatePermission(MangoPermission.superadminOnly(),
+                MangoPermission.requireAnyRole(PermissionHolder.ANONYMOUS_ROLE)));
+    }
+
+    /**
+     * Adding a role you hold (directly assigned) is allowed, even if you do not hold other roles in the permission.
+     */
+    @Test
+    public void canAddRoleDirect() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(MangoPermission.requireAnyRole(org2),
+                MangoPermission.requireAnyRole(org2, org1GroupA)));
+    }
+
+    /**
+     * Adding a role you hold (inherited) is allowed, even if you do not hold other roles in the permission.
+     */
+    @Test
+    public void canAddRoleInherited() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(MangoPermission.requireAnyRole(org2),
+                MangoPermission.requireAnyRole(org2, org1)));
+    }
+
+    /**
+     * Create a permission with role you hold (directly assigned) is allowed
+     */
+    @Test
+    public void canCreateWithOwnRoleDirect() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(null,
+                MangoPermission.requireAnyRole(org1GroupA)));
+    }
+
+    /**
+     * Create a permission with role you hold (inherited) is allowed
+     */
+    @Test
+    public void canCreateWithOwnRoleInherited() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(null,
+                MangoPermission.requireAnyRole(org1)));
+    }
+
+    /**
+     * Adding a role you do not hold is not allowed
+     */
+    @Test
+    @ExpectValidationException("permission")
+    public void cannotAddRole() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(MangoPermission.requireAnyRole(org1),
+                MangoPermission.requireAnyRole(org1, org2)));
+    }
+
+    /**
+     * Superadmin can add any role
+     */
+    @Test
+    public void adminCanAddAnyRole() {
+        runAs.runAs(superadmin, () -> validatePermission(MangoPermission.requireAnyRole(org1),
+                MangoPermission.requireAnyRole(org1, org2)));
+    }
+
+    /**
+     * Cannot remove a role you do not hold
+     */
+    @Test
+    @ExpectValidationException("permission")
+    public void cannotRemoveRole() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(MangoPermission.requireAnyRole(org2, org1),
+                MangoPermission.requireAnyRole(org1)));
+    }
+
+    /**
+     * Cannot modify a minterm containing roles you do not hold (adding roles)
+     */
+    @Test
+    @ExpectValidationException("permission")
+    public void cantModifyMintermAddRole() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(
+                MangoPermission.builder()
+                        .minterm(org2)
+                        .minterm(org1)
+                        .build(),
+                MangoPermission.builder()
+                        .minterm(org2, common)
+                        .minterm(org1)
+                        .build()
+        ));
+    }
+
+    /**
+     * Cannot modify a minterm containing roles you do not hold (removing roles)
+     */
+    @Test
+    @ExpectValidationException("permission")
+    public void cantModifyMintermRemoveRole() {
+        runAs.runAs(testUserOrg1, () -> validatePermission(
+                MangoPermission.builder()
+                        .minterm(org2, common)
+                        .minterm(org1)
+                        .build(),
+                MangoPermission.builder()
+                        .minterm(common)
+                        .minterm(org1)
+                        .build()
+        ));
     }
 }
