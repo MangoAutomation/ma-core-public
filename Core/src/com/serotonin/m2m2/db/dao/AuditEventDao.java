@@ -72,7 +72,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
 
     @Override
     public AuditEventInstanceVO mapRecord(Record record) {
-        int i=0;
         AuditEventInstanceVO vo = new AuditEventInstanceVO();
         vo.setId(record.get(table.id));
         vo.setTypeName(record.get(table.typeName));
@@ -100,7 +99,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
         writer.writeObject(value);
         return stringWriter.toString();
-
     }
 
     /**
@@ -121,8 +119,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
      * @return
      */
     public int purgeAllEvents(){
-        return ejt.update("delete from audit");
-
+        return create.deleteFrom(table).execute();
     }
 
     /**
@@ -131,7 +128,9 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
      * @return
      */
     public int purgeEventsBefore(final long time) {
-        return ejt.update("delete from audit where ts<?", new Object[] {time});
+        return create.deleteFrom(table)
+                .where(table.ts.lessThan(time))
+                .execute();
     }
 
     /**
@@ -140,6 +139,8 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
      * @return
      */
     public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {
-        return ejt.update("delete from audit where ts<? and alarmLevel=?", new Object[] {time, alarmLevel.value()});
+        return create.deleteFrom(table)
+                .where(table.ts.lessThan(time), table.alarmLevel.eq(alarmLevel.value()))
+                .execute();
     }
 }

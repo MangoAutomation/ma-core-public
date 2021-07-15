@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.serotonin.db.TransactionCapable;
@@ -71,8 +72,12 @@ public abstract class BaseDao implements TransactionCapable {
     }
 
     protected boolean isXidUnique(String xid, int excludeId, String tableName) {
-        return ejt.queryForInt("select count(*) from " + tableName + " where xid=? and id<>?", new Object[] { xid,
-                excludeId }, 0) == 0;
+        int count = create.selectCount()
+                .from(tableName)
+                .where(DSL.field("xid").eq(xid), DSL.field("id").ne(excludeId))
+                .fetchSingle()
+                .value1();
+        return count == 0;
     }
 
     /**
