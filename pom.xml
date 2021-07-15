@@ -322,7 +322,7 @@
                         but we have to do this in order to have modules
                         outside the core repo -->
                     <commitByProject>true</commitByProject>
-                    <preparationGoals>-Pcommit-package-json clean deploy scm:add scm:checkin</preparationGoals>
+                    <preparationGoals>-Pcommit-package-json -Pstore-upload clean deploy scm:add scm:checkin</preparationGoals>
                     <completionGoals>-Pcommit-package-json clean deploy scm:add scm:checkin</completionGoals>
                     <tagNameFormat>${project.name}-v@{project.version}</tagNameFormat>
                 </configuration>
