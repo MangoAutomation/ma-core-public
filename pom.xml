@@ -192,6 +192,14 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.2.0</version>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
@@ -317,14 +325,19 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
+                    <!-- release:prepare -->
+                    <arguments>-DskipTests -Dmaven.javadoc.skip=true</arguments>
                     <pushChanges>false</pushChanges>
-                    <!-- This generates a lot of commits
-                        but we have to do this in order to have modules
-                        outside the core repo -->
-                    <commitByProject>true</commitByProject>
-                    <preparationGoals>-Pcommit-package-json -Pstore-upload clean deploy scm:add scm:checkin</preparationGoals>
-                    <completionGoals>-Pcommit-package-json clean deploy scm:add scm:checkin</completionGoals>
-                    <tagNameFormat>${project.name}-v@{project.version}</tagNameFormat>
+
+                    <preparationGoals>-Pcommit-package-json clean verify scm:add</preparationGoals>
+                    <completionGoals>-Pcommit-package-json clean install scm:add</completionGoals>
+
+<!--                    <tagNameFormat>${project.name}-v@{project.version}</tagNameFormat>-->
+
+                    <!-- release:perform -->
+                    <localCheckout>true</localCheckout>
+                    <releaseProfiles>store-upload</releaseProfiles>
+                    <goals>install</goals>
                 </configuration>
             </plugin>
             <plugin>
