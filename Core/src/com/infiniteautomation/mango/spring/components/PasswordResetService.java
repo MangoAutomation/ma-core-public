@@ -225,6 +225,6 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         usersService.ensureValid(copy, holder);
 
         systemSettingsDao.updateSettings(settings);
-        return usersService.update(user, copy);
+        return usersService.update(user.getId(), copy);
     }
 }
