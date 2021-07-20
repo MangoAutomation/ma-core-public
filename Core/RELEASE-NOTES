@@ -1,5 +1,7 @@
-*Version 4.1.0*
-* Upgraded for Mango 4.1.0
+*Mango 4.1.0*
+* Filter roles so users can only see their own roles
+* Users can only add/remove their own roles from permissions
+* Only superadmin users can add/remove user or anonymous role from permissions
 
 *Mango 4.0.0*
 * Completely remove legacy UI
