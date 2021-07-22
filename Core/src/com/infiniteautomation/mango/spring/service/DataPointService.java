@@ -344,6 +344,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
             DataPointVO dataPointCopy = dataPoint.copy();
             dataPointCopy.setId(Common.NEW_ID);
+            dataPointCopy.setSeriesId(Common.NEW_ID);
             dataPointCopy.setXid(dao.generateUniqueXid());
             dataPointCopy.setName(dataPoint.getName());
             dataPointCopy.setDeviceName(newDeviceName);
