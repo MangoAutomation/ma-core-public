@@ -148,7 +148,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     public final void removeDataPoint(DataPointRT dataPoint) {
-        ensureState(ILifecycleState.RUNNING);
+        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
         dataPoint.ensureState(ILifecycleState.TERMINATING);
         removeDataPointImpl(dataPoint);
         dataPointRemoved(dataPoint);
