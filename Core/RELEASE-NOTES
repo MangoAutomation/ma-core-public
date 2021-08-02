@@ -1,3 +1,6 @@
+*Mango 4.1.1*
+* Fix for deserializing chart renderers in legacy data point blob columns
+
 *Mango 4.1.0*
 * Filter roles so users can only see their own roles
 * Users can only add/remove their own roles from permissions
