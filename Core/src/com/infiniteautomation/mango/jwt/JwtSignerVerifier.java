@@ -21,6 +21,8 @@ import java.util.Date;
 import javax.annotation.PostConstruct;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 
@@ -48,10 +50,10 @@ public abstract class JwtSignerVerifier<T> {
     private KeyPair keyPair;
     private JwtParser parser;
 
-    protected final Log log;
+    protected final Logger log;
 
     protected JwtSignerVerifier() {
-        this.log = LogFactory.getLog(this.getClass());
+        this.log = LoggerFactory.getLogger(this.getClass());
     }
 
     @PostConstruct

@@ -5,6 +5,9 @@ package com.serotonin.log;
 
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Helper class to generate timing log output
@@ -17,11 +20,11 @@ public class LogStopWatch {
     static final String closeDuration = " ms] message[";
     static final String close = "] ";
 
-    final transient Log logger;
+    final transient Logger logger;
     final long startTime;
 
     public LogStopWatch() {
-        logger = LogFactory.getLog(LogStopWatch.class);
+        logger = LoggerFactory.getLogger(LogStopWatch.class);
         startTime = System.nanoTime();
     }
 
