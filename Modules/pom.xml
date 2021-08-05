@@ -239,7 +239,7 @@
                                 <goal>yarn</goal>
                             </goals>
                             <configuration>
-                                <arguments>install --production=false --frozen-lockfile</arguments>
+                                <arguments>install --production=false --frozen-lockfile --mutex network</arguments>
                             </configuration>
                         </execution>
                         <execution>
