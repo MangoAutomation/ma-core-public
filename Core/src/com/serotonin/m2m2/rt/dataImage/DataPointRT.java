@@ -351,14 +351,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     newValue.getTime(), source.getSetPointSourceMessage());
         }
 
-        // Ignore historical values.
-        if (pointValue.get() == null || newValue.getTime() >= pointValue.get().getTime()) {
-            PointValueTime oldValue = pointValue.get();
-            pointValue.set(newValue);
-            fireEvents(oldValue, newValue, null, source != null, false, logValue, true, false);
-        }
-        else
-            fireEvents(null, newValue, null, false, true, logValue, false, false);
+        PointValueTime oldValue = pointValue.get();
+        pointValue.set(newValue);
+        fireEvents(oldValue, newValue, null, source != null, backdated, logValue, saveValue, false);
+
     }
 
     public static enum FireEvents {
