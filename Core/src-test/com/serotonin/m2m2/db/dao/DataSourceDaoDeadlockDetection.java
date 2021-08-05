@@ -16,8 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Test;
 import org.slf4j.Logger;

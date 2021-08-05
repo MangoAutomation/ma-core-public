@@ -14,8 +14,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.mail.internet.InternetAddress;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

@@ -16,8 +16,6 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.impl.DSL;

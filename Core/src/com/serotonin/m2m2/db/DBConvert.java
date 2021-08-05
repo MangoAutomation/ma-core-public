@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jooq.Field;
 import org.jooq.Table;
 import org.slf4j.Logger;

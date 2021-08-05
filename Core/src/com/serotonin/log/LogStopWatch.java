@@ -5,8 +5,6 @@ package com.serotonin.log;
 
 import java.util.function.Supplier;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Helper class to generate timing log output

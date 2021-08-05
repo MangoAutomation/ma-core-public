@@ -28,8 +28,6 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;

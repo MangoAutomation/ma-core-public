@@ -26,8 +26,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

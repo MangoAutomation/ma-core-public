@@ -16,8 +16,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Cursor;
 import org.jooq.Field;
