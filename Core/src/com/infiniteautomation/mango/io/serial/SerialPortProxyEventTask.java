@@ -3,8 +3,8 @@
  */
 package com.infiniteautomation.mango.io.serial;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 
@@ -13,7 +13,7 @@ import com.serotonin.m2m2.Common;
  *
  */
 public class SerialPortProxyEventTask {
-	private final Log LOG = LogFactory.getLog(SerialPortProxyEventTask.class);
+	private final Logger LOG = LoggerFactory.getLogger(SerialPortProxyEventTask.class);
 	
 	private SerialPortProxyEventListener listener;
 	private SerialPortProxyEvent event;
@@ -37,7 +37,7 @@ public class SerialPortProxyEventTask {
 			this.event.setTimeExecuted(Common.timer.currentTimeMillis());
 			listener.serialEvent(this.event);
 		}catch(Exception e){
-			LOG.error(e);
+			LOG.error("An error occurred", e);
 		}
 	}
 	

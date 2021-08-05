@@ -25,9 +25,9 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -42,7 +42,7 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
 public class DatabaseBackupWorkItem implements WorkItem {
-    private static final Log LOG = LogFactory.getLog(DatabaseBackupWorkItem.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DatabaseBackupWorkItem.class);
     // Used for filename and property value for last run
     public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss";
 
@@ -213,7 +213,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 }
 
             } catch (Exception e) {
-                LOG.warn(e);
+                LOG.warn("Error", e);
                 failed = true;
                 backupFailed(this.filename, e.getMessage());
             }finally{
@@ -273,7 +273,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                     DatabaseBackupWorkItem.queueBackup(backupLocation);
                 }
             } catch (Exception e) {
-                LOG.error(e);
+                LOG.error("An error occurred", e);
                 SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
                         Common.timer.currentTimeMillis(), false,
                         new TranslatableMessage("event.backup.failure", "no file", e.getMessage()));
@@ -436,7 +436,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 backupFailed(backupPath.toString(), "Process exit status: "+processComplete);
             }
         } catch (Exception e) {
-            LOG.error(e, e.getCause());
+            LOG.error("An error occurred", e);
             backupFailed(backupPath.toString(), e.getMessage());
         }
     }
@@ -480,7 +480,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 zis.closeEntry();
                 zis.close();
             } catch (IOException ex) {
-                LOG.error(ex, ex.getCause());
+                LOG.error("Error", ex);
                 return new TranslatableMessage("systemSettings.databaseRestoreFailed", ex.getMessage());
             }
 
@@ -501,10 +501,10 @@ public class DatabaseBackupWorkItem implements WorkItem {
             }
 
         } catch (IOException ioe) {
-            LOG.error(ioe, ioe.getCause());
+            LOG.error("Error", ioe);
             status = new TranslatableMessage("systemSettings.databaseRestoreFailed", ioe.getMessage());
         } catch (Exception e) {
-            LOG.error(e, e.getCause());
+            LOG.error("An error occurred", e);
             new TranslatableMessage("systemSettings.databaseRestoreFailed", e.getMessage());
         }finally{
             if(sqlFile.exists())

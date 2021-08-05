@@ -24,6 +24,8 @@ import java.util.function.Consumer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -54,6 +56,7 @@ import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.util.MapWrap;
 import com.serotonin.m2m2.util.MapWrapConverter;
 import com.serotonin.m2m2.view.text.BaseTextRenderer;
+import com.serotonin.m2m2.view.text.BaseTextRenderer.Resolver;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipientResolver;
@@ -77,7 +80,7 @@ import freemarker.template.DefaultObjectWrapper;
  */
 public class MockMangoLifecycle implements IMangoLifecycle {
 
-    static Log LOG = LogFactory.getLog(MockMangoLifecycle.class);
+    static Logger LOG = LoggerFactory.getLogger(MockMangoLifecycle.class);
     protected List<Module> modules;
     private final List<Runnable> STARTUP_TASKS = new ArrayList<>();
     private final List<Runnable> SHUTDOWN_TASKS = new ArrayList<>();
@@ -131,7 +134,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Providers.add(TimerProvider.class, getSimulationTimerProvider());
 
         Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
-        Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
+        Common.JSON_CONTEXT.addResolver(new Resolver(), TextRenderer.class);
         Common.JSON_CONTEXT.addResolver(new MailingListRecipientResolver(), MailingListRecipient.class);
         Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);
         Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);

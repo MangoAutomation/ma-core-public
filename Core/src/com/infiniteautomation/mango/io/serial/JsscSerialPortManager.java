@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -27,7 +29,7 @@ public class JsscSerialPortManager {
     
     public static final JsscSerialPortManager instance = new JsscSerialPortManager();
     
-    private final Log LOG = LogFactory.getLog(JsscSerialPortManager.class);
+    private final Logger LOG = LoggerFactory.getLogger(JsscSerialPortManager.class);
     private final ScheduledThreadPoolExecutor readExecutor;
     final BlockingQueue<SerialPortProxyEventTask> eventQueue;
     private Thread eventProcessor;

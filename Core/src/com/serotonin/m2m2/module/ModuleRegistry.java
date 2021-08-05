@@ -17,6 +17,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.OrderComparator;
 
 import com.github.zafarkhaja.semver.Version;
@@ -27,6 +29,7 @@ import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
 import com.serotonin.m2m2.shared.ModuleUtils;
+import com.serotonin.m2m2.shared.ModuleUtils.Constants;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.provider.Providers;
@@ -37,7 +40,7 @@ import com.serotonin.provider.Providers;
  * @author Matthew Lohbihler
  */
 public class ModuleRegistry {
-    static final Log LOG = LogFactory.getLog(ModuleRegistry.class);
+    static final Logger LOG = LoggerFactory.getLogger(ModuleRegistry.class);
 
     public static final String CORE_MODULE_NAME = "core";
 
@@ -617,7 +620,7 @@ public class ModuleRegistry {
         String buildTimestamp = Common.releaseProps.getProperty("buildTimestamp");
         Version version;
         try {
-            String versionStr = Common.releaseProps.getProperty(ModuleUtils.Constants.PROP_VERSION);
+            String versionStr = Common.releaseProps.getProperty(Constants.PROP_VERSION);
             version = Version.valueOf(versionStr);
         } catch (Exception e) {
             // ignore, use compiled core version

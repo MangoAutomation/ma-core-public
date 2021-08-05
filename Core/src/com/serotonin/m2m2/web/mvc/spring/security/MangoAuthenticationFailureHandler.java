@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -43,7 +45,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
 @Component
 public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
-    private static final Log log = LogFactory.getLog(MangoAuthenticationFailureHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(MangoAuthenticationFailureHandler.class);
 
     private final RequestMatcher browserHtmlRequestMatcher;
     private final RunAs runAs;

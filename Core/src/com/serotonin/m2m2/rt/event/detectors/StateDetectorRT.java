@@ -5,6 +5,8 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -22,7 +24,7 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
         super(vo);
     }
 
-    private final Log log = LogFactory.getLog(StateDetectorRT.class);
+    private final Logger log = LoggerFactory.getLogger(StateDetectorRT.class);
 
     /**
      * State field. Whether the state has been detected or not. This field is used to prevent multiple events being

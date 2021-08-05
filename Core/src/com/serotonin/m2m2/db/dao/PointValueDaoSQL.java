@@ -46,6 +46,8 @@ import org.jooq.SelectLimitStep;
 import org.jooq.SelectOnConditionStep;
 import org.jooq.SelectUnionStep;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.RecoverableDataAccessException;
@@ -96,7 +98,7 @@ import com.serotonin.util.queue.ObjectQueue;
 
 public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
 
-    private final Log log = LogFactory.getLog(PointValueDaoSQL.class);
+    private final Logger log = LoggerFactory.getLogger(PointValueDaoSQL.class);
 
     private final ConcurrentLinkedQueue<UnsavedPointValue> unsavedPointValues = new ConcurrentLinkedQueue<>();
 
@@ -1181,7 +1183,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     static class BatchWriteBehind implements WorkItem {
         private static final ObjectQueue<BatchWriteBehindEntry> ENTRIES = new ObjectQueue<>();
         private static final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<>();
-        private static final Log LOG = LogFactory.getLog(BatchWriteBehind.class);
+        private static final Logger LOG = LoggerFactory.getLogger(BatchWriteBehind.class);
         private static final int SPAWN_THRESHOLD = 10000;
         private static final int MAX_INSTANCES = 5;
         private static final int MAX_ROWS;

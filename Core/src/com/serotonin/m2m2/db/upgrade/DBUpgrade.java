@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -23,12 +25,12 @@ import com.serotonin.m2m2.module.ModuleRegistry;
  * 'Upgrade[version]', where '[version]' is the version that the class upgrades <b>from</b>. The subclass must be in
  * this package.
  *
- * <p>Ensure that you update {@link com.serotonin.m2m2.Common#getDatabaseSchemaVersion()} when implementing upgrades</p>
+ * <p>Ensure that you update {@link Common#getDatabaseSchemaVersion()} when implementing upgrades</p>
  *
  * @author Matthew Lohbihler
  */
 abstract public class DBUpgrade extends BaseDao {
-    private static final Log LOG = LogFactory.getLog(DBUpgrade.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DBUpgrade.class);
     protected static final String DEFAULT_DATABASE_TYPE = "*";
 
     public static void checkUpgrade() {

@@ -18,6 +18,8 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -46,7 +48,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
  * @author Terry Packer
  */
 public class H2InMemoryDatabaseProxy implements DatabaseProxy {
-    private final Log log = LogFactory.getLog(H2InMemoryDatabaseProxy.class);
+    private final Logger log = LoggerFactory.getLogger(H2InMemoryDatabaseProxy.class);
 
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;

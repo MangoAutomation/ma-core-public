@@ -5,12 +5,15 @@ package com.infiniteautomation.mango.spring;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 import org.springframework.core.Ordered;
 
+import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 
@@ -20,14 +23,14 @@ import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
  */
 public class SystemSettingsListenerProcessor implements DestructionAwareBeanPostProcessor, BeanFactoryAware, Ordered {
 
-    private static final Log LOG = LogFactory.getLog(SystemSettingsListenerProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SystemSettingsListenerProcessor.class);
 
     private BeanFactory beanFactory;
     private SystemSettingsEventDispatcher dispatcher;
 
     /**
      * Beans which extend SystemSettingsListenerDefinition will be added to the dispatcher twice but it wont matter as the dispatcher uses a Set
-     * (Lifecyle calls {@link com.serotonin.m2m2.module.SystemSettingsListenerDefinition#registerListener()}).
+     * (Lifecyle calls {@link SystemSettingsListenerDefinition#registerListener()}).
      */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {

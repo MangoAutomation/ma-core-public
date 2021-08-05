@@ -4,15 +4,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.serotonin.m2m2.db.DatabaseType;
 
 public class Upgrade9 extends DBUpgrade {
-    private final Log LOG = LogFactory.getLog(Upgrade9.class);
+    private final Logger LOG = LoggerFactory.getLogger(Upgrade9.class);
 
     @Override
     public void upgrade() throws Exception {
@@ -37,7 +40,7 @@ public class Upgrade9 extends DBUpgrade {
                     }
                 });
 
-        for (Map.Entry<Integer, String> e : dsPermission.entrySet())
+        for (Entry<Integer, String> e : dsPermission.entrySet())
             ejt.update("UPDATE dataSources SET editPermission=? WHERE id=?", e.getValue(), e.getKey());
 
         // Now the data point data
@@ -60,9 +63,9 @@ public class Upgrade9 extends DBUpgrade {
                     }
                 });
 
-        for (Map.Entry<Integer, String> e : dpReadPermission.entrySet())
+        for (Entry<Integer, String> e : dpReadPermission.entrySet())
             ejt.update("UPDATE dataPoints SET readPermission=? WHERE id=?", e.getValue(), e.getKey());
-        for (Map.Entry<Integer, String> e : dpSetPermission.entrySet())
+        for (Entry<Integer, String> e : dpSetPermission.entrySet())
             ejt.update("UPDATE dataPoints SET setPermission=? WHERE id=?", e.getValue(), e.getKey());
 
         // Goodbye permission tables.

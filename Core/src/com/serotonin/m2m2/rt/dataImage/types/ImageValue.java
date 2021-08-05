@@ -13,6 +13,8 @@ import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
@@ -29,7 +31,7 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
     private static final String FILENAME_PREFIX = "img";
 
     public static final int TYPE_JPG = 1;
-    private static final Log LOG = LogFactory.getLog(ImageValue.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ImageValue.class);
     private static final String[] TYPES = { "", "jpg" };
 
     private long id = Common.NEW_ID;

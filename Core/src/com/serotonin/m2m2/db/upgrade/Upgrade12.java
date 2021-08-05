@@ -19,6 +19,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -52,6 +54,7 @@ import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerD
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventHandlerVO;
@@ -86,7 +89,7 @@ import com.serotonin.util.SerializationHelper;
  */
 public class Upgrade12 extends DBUpgrade {
 
-    private final Log LOG = LogFactory.getLog(Upgrade12.class);
+    private final Logger LOG = LoggerFactory.getLogger(Upgrade12.class);
 
     private ObjectMapper mapper = new ObjectMapper();
     private String mysqlDatabaseName = "";
@@ -268,7 +271,7 @@ public class Upgrade12 extends DBUpgrade {
             backupAuditEvents(os);
 
             //Remove audit events
-            int removed = this.ejt.update("DELETE FROM events WHERE typeName=?", new Object[]{EventType.EventTypeNames.AUDIT});
+            int removed = this.ejt.update("DELETE FROM events WHERE typeName=?", new Object[]{EventTypeNames.AUDIT});
             String removedString = new String("Deleted " + removed + " AUDIT events from the events table.\n");
             os.write(removedString.getBytes(StandardCharsets.UTF_8));
 
@@ -429,7 +432,7 @@ public class Upgrade12 extends DBUpgrade {
         EventRowCallbackHandler handler = new EventRowCallbackHandler(backupFile, os);
         try{
             handler.open();
-            this.ejt.query("SELECT subtypeName,typeRef1,typeRef2,activeTs,alarmLevel,message from events where typeName=?", new Object[]{EventType.EventTypeNames.AUDIT}, handler);
+            this.ejt.query("SELECT subtypeName,typeRef1,typeRef2,activeTs,alarmLevel,message from events where typeName=?", new Object[]{EventTypeNames.AUDIT}, handler);
             handler.close();
         }catch(IOException e){
             LOG.error(e.getMessage(), e);

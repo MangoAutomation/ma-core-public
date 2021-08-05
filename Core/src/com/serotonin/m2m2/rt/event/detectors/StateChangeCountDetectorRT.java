@@ -9,13 +9,15 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
 
 public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCountDetectorVO> {
-    private final Log log = LogFactory.getLog(StateChangeCountDetectorRT.class);
+    private final Logger log = LoggerFactory.getLogger(StateChangeCountDetectorRT.class);
 
     /**
      * State field. The point values that have accumulated so far. Each call to pointChanged will drop off the values

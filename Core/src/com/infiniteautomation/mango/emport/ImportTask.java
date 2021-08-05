@@ -12,6 +12,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
@@ -46,7 +48,7 @@ import com.serotonin.util.ProgressiveTaskListener;
  */
 public class ImportTask extends ProgressiveTask {
 
-    private static Log LOG = LogFactory.getLog(ImportTask.class);
+    private static Logger LOG = LoggerFactory.getLogger(ImportTask.class);
 
     protected final ImportContext importContext;
     protected float progress = 0f;

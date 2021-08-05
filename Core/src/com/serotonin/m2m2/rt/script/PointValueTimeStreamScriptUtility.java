@@ -15,6 +15,8 @@ import java.util.TimeZone;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
@@ -47,7 +49,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
  */
 public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
-    private static final Log LOG = LogFactory.getLog(PointValueTimeStreamScriptUtility.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PointValueTimeStreamScriptUtility.class);
     public static final String CONTEXT_KEY = "PointValueQuery";
 
     private final DataPointService dataPointService;

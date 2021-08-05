@@ -12,9 +12,12 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -28,8 +31,10 @@ import com.serotonin.m2m2.module.definitions.actions.PurgeFilter;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.DataPointVO.LoggingTypes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.TimerTask;
@@ -39,7 +44,7 @@ public class DataPurge {
 
     public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
 
-    private static final Log log = LogFactory.getLog(DataPurge.class);
+    private static final Logger log = LoggerFactory.getLogger(DataPurge.class);
     private long runtime;
     private final DataPointDao dataPointDao = DataPointDao.getInstance();
     private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
@@ -119,7 +124,7 @@ public class DataPurge {
     }
 
     private void purgePoint(DataPointVO dataPoint, boolean countPointValues, List<PurgeFilter> purgeFilters) {
-        if (dataPoint.getLoggingType() == DataPointVO.LoggingTypes.NONE){
+        if (dataPoint.getLoggingType() == LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
             if (Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
@@ -162,7 +167,7 @@ public class DataPurge {
 
             // No matter when this purge actually runs, we want it to act like it's midnight.
             DateTime cutoff = new DateTime(runtime);
-            cutoff = DateUtils.truncateDateTime(cutoff, Common.TimePeriods.DAYS);
+            cutoff = DateUtils.truncateDateTime(cutoff, TimePeriods.DAYS);
             cutoff = DateUtils.minus(cutoff, purgeType, purgePeriod);
             if (Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
                 long millis = cutoff.getMillis();
@@ -225,7 +230,7 @@ public class DataPurge {
      * Purge Events corresponding to the system settings
      */
     private void eventPurge() {
-        DateTime cutoffTruncated = DateUtils.truncateDateTime(new DateTime(runtime), Common.TimePeriods.DAYS);
+        DateTime cutoffTruncated = DateUtils.truncateDateTime(new DateTime(runtime), TimePeriods.DAYS);
 
         //Purge All Events at this rate
         DateTime cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE),
@@ -235,27 +240,27 @@ public class DataPurge {
         //Purge Data Point Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
-        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventType.EventTypeNames.DATA_POINT);
+        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.DATA_POINT);
 
         //Purge the Data Source Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
-        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.DATA_SOURCE);
+        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.DATA_SOURCE);
 
         //Purge the Data Source Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
-        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.SYSTEM);
+        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.SYSTEM);
 
         //Purge the Data Source Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
-        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.PUBLISHER);
+        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.PUBLISHER);
 
         //Purge the Data Source Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
-        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.AUDIT);
+        this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.AUDIT);
 
         //Purge Alarm Level NONE
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE),

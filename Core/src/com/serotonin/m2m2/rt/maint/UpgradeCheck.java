@@ -5,6 +5,8 @@ package com.serotonin.m2m2.rt.maint;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.infiniteautomation.mango.spring.service.ModulesService;
@@ -23,7 +25,7 @@ import com.serotonin.timer.TimerTask;
  */
 public class UpgradeCheck extends TimerTask {
 
-    private final Log log = LogFactory.getLog(UpgradeCheck.class);
+    private final Logger log = LoggerFactory.getLogger(UpgradeCheck.class);
     private static final long DELAY_TIMEOUT = 1000 * 10; // Run initially after 10 seconds
     private static final long PERIOD_TIMEOUT = 1000 * 60 * 60 * 24; // Run every 24 hours.
 

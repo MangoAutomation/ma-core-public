@@ -9,6 +9,8 @@ import java.nio.file.Path;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.Common;
@@ -21,7 +23,7 @@ import com.serotonin.m2m2.vo.FileStore;
  * @author Terry Packer
  */
 public abstract class FileStoreDefinition extends ModuleElementDefinition {
-    protected static final Log LOG = LogFactory.getLog(FileStoreDefinition.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(FileStoreDefinition.class);
 
     /**
      * The translation for the name of the store

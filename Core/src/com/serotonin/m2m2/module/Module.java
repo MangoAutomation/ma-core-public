@@ -15,8 +15,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.OrderComparator;
 
 import com.github.zafarkhaja.semver.Version;
@@ -39,7 +39,7 @@ import com.serotonin.m2m2.util.license.ModuleLicense;
  */
 public class Module {
 
-    private static final Log LOG = LogFactory.getLog(Module.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Module.class);
 
     public static final String MODULE_DATA_ENV_PROP = "moduleData.location";
     public static final String MODULE_DATA_ENV_PROP_DEFAULT = "data";

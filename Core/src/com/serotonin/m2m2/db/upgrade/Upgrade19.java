@@ -10,8 +10,8 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -22,7 +22,7 @@ import com.serotonin.util.SerializationHelper;
 
 public class Upgrade19 extends DBUpgrade {
 
-    private final Log LOG = LogFactory.getLog(Upgrade19.class);
+    private final Logger LOG = LoggerFactory.getLogger(Upgrade19.class);
 
     @Override
     protected void upgrade() throws Exception {

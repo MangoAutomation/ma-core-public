@@ -5,9 +5,11 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class TimerThread extends Thread {
-    private static final Log LOG = LogFactory.getLog(TimerThread.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TimerThread.class);
 
     /**
      * This flag is set to false by the reaper to inform us that there are no more live references to our Timer object.
@@ -38,7 +40,7 @@ class TimerThread extends Thread {
             mainLoop();
         }
         catch (Throwable t) {
-            LOG.fatal("TimerThread failed", t);
+            LOG.error("TimerThread failed", t);
         }
         finally {
             // Someone killed this Thread, behave as if Timer was cancelled

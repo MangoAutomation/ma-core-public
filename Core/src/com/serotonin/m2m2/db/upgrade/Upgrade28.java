@@ -16,6 +16,8 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseType;
@@ -35,7 +37,7 @@ import com.serotonin.m2m2.db.DatabaseType;
  */
 public class Upgrade28 extends DBUpgrade {
 
-    private final Log LOG = LogFactory.getLog(Upgrade28.class);
+    private final Logger LOG = LoggerFactory.getLogger(Upgrade28.class);
 
     @Override
     protected void upgrade() throws Exception {

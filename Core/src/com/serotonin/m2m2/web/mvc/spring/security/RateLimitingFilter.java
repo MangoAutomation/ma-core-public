@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -28,7 +30,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Jared Wiltshire
  */
 public class RateLimitingFilter extends OncePerRequestFilter {
-    private final Log log = LogFactory.getLog(RateLimitingFilter.class);
+    private final Logger log = LoggerFactory.getLogger(RateLimitingFilter.class);
     private final RequestMatcher requestMatcher;
     private final RateLimiter<String> ipRateLimiter;
     private final RateLimiter<Integer> userRateLimiter;

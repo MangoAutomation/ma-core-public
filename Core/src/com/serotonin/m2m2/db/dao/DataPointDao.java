@@ -27,6 +27,8 @@ import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
 import org.jooq.exception.NoDataFoundException;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,6 +73,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
@@ -89,7 +92,7 @@ import com.serotonin.util.SerializationHelper;
  */
 @Repository()
 public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, DataPoints> {
-    static final Log LOG = LogFactory.getLog(DataPointDao.class);
+    static final Logger LOG = LoggerFactory.getLogger(DataPointDao.class);
 
     private final DataPointTagsDao dataPointTagsDao;
     private final EventDetectorDao eventDetectorDao;
@@ -339,7 +342,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         //delete event handler mappings
 
         create.deleteFrom(eventHandlersMapping)
-        .where(eventHandlersMapping.eventTypeName.eq(EventType.EventTypeNames.DATA_POINT),
+        .where(eventHandlersMapping.eventTypeName.eq(EventTypeNames.DATA_POINT),
                 eventHandlersMapping.eventTypeRef1.in(ids)).execute();
 
         //delete user comments
@@ -753,7 +756,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     public void deleteRelationalData(DataPointVO vo) {
         //delete event handler mappings
         create.deleteFrom(eventHandlersMapping)
-        .where(eventHandlersMapping.eventTypeName.eq(EventType.EventTypeNames.DATA_POINT),
+        .where(eventHandlersMapping.eventTypeName.eq(EventTypeNames.DATA_POINT),
                 eventHandlersMapping.eventTypeRef1.eq(vo.getId())).execute();
 
         //delete user comments

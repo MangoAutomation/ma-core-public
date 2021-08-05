@@ -32,6 +32,8 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -87,7 +89,7 @@ import com.serotonin.util.properties.MangoProperties;
  */
 public class MangoTestBase {
 
-    protected final Log LOG = LogFactory.getLog(MangoTestBase.class);
+    protected final Logger LOG = LoggerFactory.getLogger(MangoTestBase.class);
 
     protected static MockMangoLifecycle lifecycle;
     protected static List<Module> modules = new ArrayList<>();

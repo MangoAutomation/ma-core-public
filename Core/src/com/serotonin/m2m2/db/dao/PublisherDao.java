@@ -21,6 +21,8 @@ import org.apache.commons.logging.LogFactory;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,6 +45,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.util.SerializationHelper;
@@ -57,7 +60,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
         return Common.getRuntimeContext().getBean(PublisherDao.class);
     });
 
-    static final Log LOG = LogFactory.getLog(PublisherDao.class);
+    static final Logger LOG = LoggerFactory.getLogger(PublisherDao.class);
 
     private final DataPointDao dataPointDao;
 
@@ -227,7 +230,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
 
     @Override
     public void deleteRelationalData(PublisherVO<?> vo) {
-        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", EventType.EventTypeNames.PUBLISHER, vo.getId());
+        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", EventTypeNames.PUBLISHER, vo.getId());
         vo.getDefinition().deleteRelationalData(vo);
     }
 

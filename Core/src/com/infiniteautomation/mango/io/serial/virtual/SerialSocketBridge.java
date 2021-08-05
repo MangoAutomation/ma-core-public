@@ -10,6 +10,8 @@ import java.net.Socket;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
@@ -25,7 +27,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortProxy;
  */
 public class SerialSocketBridge extends SerialPortProxy{
 
-	private final static Log LOG = LogFactory.getLog(SerialSocketBridge.class);
+	private final static Logger LOG = LoggerFactory.getLogger(SerialSocketBridge.class);
 	 
 	private String address;
 	private int port;

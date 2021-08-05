@@ -5,6 +5,8 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
@@ -28,7 +30,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 @Component
 public class MangoSecurityEventListener {
 
-    private static final Log LOG = LogFactory.getLog(MangoSecurityEventListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MangoSecurityEventListener.class);
     private final UserDao userDao;
 
     @Autowired

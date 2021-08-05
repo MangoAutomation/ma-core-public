@@ -8,6 +8,8 @@ import java.io.OutputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.io.serial.SerialPortOutputStream;
 
@@ -19,7 +21,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortOutputStream;
  */
 public class SerialSocketBridgeOutputStream extends SerialPortOutputStream {
 
-	private final static Log LOG = LogFactory.getLog(SerialSocketBridgeOutputStream.class);
+	private final static Logger LOG = LoggerFactory.getLogger(SerialSocketBridgeOutputStream.class);
 	
 	private OutputStream stream;
 	

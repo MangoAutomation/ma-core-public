@@ -5,13 +5,15 @@ package com.serotonin.m2m2.rt.publish;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.serotonin.m2m2.Common;
 import com.serotonin.util.ILifecycle;
 
 abstract public class SendThread extends Thread implements ILifecycle {
-    private static final Log LOG = LogFactory.getLog(SendThread.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SendThread.class);
     private boolean running;
     private final RunAs runAs;
 

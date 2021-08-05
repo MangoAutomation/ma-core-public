@@ -11,8 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class RollingIOLog extends BaseIOLog{
 	
-    private static final Log LOG = LogFactory.getLog(RollingIOLog.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RollingIOLog.class);
     
     //New Members
     protected int fileSize;
@@ -81,7 +81,7 @@ public class RollingIOLog extends BaseIOLog{
                 }
 	        	
             }catch(IOException e){
-            	LOG.error(e);
+                LOG.error("An error occurred", e);
             }
              
             createOut();

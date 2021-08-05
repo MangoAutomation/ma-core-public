@@ -20,10 +20,10 @@ import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.ShouldNeverHappenException;
@@ -38,13 +38,14 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
+import com.serotonin.m2m2.shared.ModuleUtils.Constants;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.provider.Providers;
 import com.serotonin.web.http.HttpUtils4;
 
 public class UpgradeDownloader extends HighPriorityTask {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final List<StringStringPair> modules;
     private final boolean backup;
     private final boolean restart;
@@ -186,10 +187,10 @@ public class UpgradeDownloader extends HighPriorityTask {
                     expectedProperties.put("version", version.toString());
                     boolean signed = true;
                     try (ZipFile module = new ZipFile(outFile)) {
-                        ZipEntry propertiesFile = module.getEntry(ModuleUtils.Constants.MODULE_SIGNED);
+                        ZipEntry propertiesFile = module.getEntry(Constants.MODULE_SIGNED);
                         if (propertiesFile == null) {
                             signed = false;
-                            propertiesFile = module.getEntry(ModuleUtils.Constants.MODULE_PROPERTIES);
+                            propertiesFile = module.getEntry(Constants.MODULE_PROPERTIES);
                             if (propertiesFile == null) {
                                 log.warn("Module missing properties file.");
                                 throw new ShouldNeverHappenException("Module missing properties file.");
@@ -198,7 +199,7 @@ public class UpgradeDownloader extends HighPriorityTask {
                         InputStream in = module.getInputStream(propertiesFile);
                         Common.verifyProperties(in, signed, expectedProperties);
                     } catch (Exception e) {
-                        log.warn(e);
+                        log.warn("Error", e);
                         throw new ShouldNeverHappenException(e);
                     }
                 }
@@ -219,7 +220,7 @@ public class UpgradeDownloader extends HighPriorityTask {
             }
 
             for (File file : files) {
-                File targetDir = file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + ModuleRegistry.CORE_MODULE_NAME) ? coreDir : moduleDir;
+                File targetDir = file.getName().startsWith(Constants.MODULE_PREFIX + ModuleRegistry.CORE_MODULE_NAME) ? coreDir : moduleDir;
 
                 try {
                     FileUtils.moveFileToDirectory(file, targetDir, false);
@@ -230,7 +231,7 @@ public class UpgradeDownloader extends HighPriorityTask {
                     for (ModuleNotificationListener listener : listeners)
                         listener.upgradeError(error);
                     cleanDownloads();
-                    log.warn(e);
+                    log.warn("Error", e);
                     throw new ShouldNeverHappenException(e);
                 }
             }
@@ -239,7 +240,7 @@ public class UpgradeDownloader extends HighPriorityTask {
             try {
                 FileUtils.deleteDirectory(tempDir);
             } catch (IOException e) {
-                log.warn(e);
+                log.warn("Error", e);
             }
 
             // Final chance to be cancelled....
@@ -296,7 +297,7 @@ public class UpgradeDownloader extends HighPriorityTask {
             File[] files = targetDir.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile() && file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + name)) {
+                    if (file.isFile() && file.getName().startsWith(Constants.MODULE_PREFIX + name)) {
                         Files.delete(file.toPath());
                     }
                 }

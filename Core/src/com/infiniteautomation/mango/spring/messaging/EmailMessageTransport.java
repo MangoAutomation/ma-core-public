@@ -16,6 +16,8 @@ import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.io.messaging.Message;
@@ -40,7 +42,7 @@ import com.serotonin.web.mail.EmailSender;
 @Service()
 public class EmailMessageTransport implements MessageTransport {
 
-    private static final Log LOG = LogFactory.getLog(EmailMessageTransport.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EmailMessageTransport.class);
     private final List<MessageReceivedListener> listeners = new CopyOnWriteArrayList<MessageReceivedListener>();
 
     @Override

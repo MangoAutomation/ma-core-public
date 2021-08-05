@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -29,7 +31,7 @@ import oshi.software.os.OperatingSystem;
 @Service
 public class ServerInformationService {
 
-    private static final Log LOG = LogFactory.getLog(ServerInformationService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ServerInformationService.class);
 
     private HardwareAbstractionLayer hal;
     private OperatingSystem os;
@@ -60,7 +62,7 @@ public class ServerInformationService {
             this.failedToLoad = false;
         }catch(Throwable e) {
             //If no JNA is supported
-            LOG.fatal("Server Information Service failed to start, no data will be availble on server hardware or processes", e);
+            LOG.error("Server Information Service failed to start, no data will be availble on server hardware or processes", e);
             this.hal = null;
             this.os = null;
             this.pid = -1;

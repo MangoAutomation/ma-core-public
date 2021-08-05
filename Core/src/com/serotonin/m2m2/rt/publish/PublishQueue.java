@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -20,7 +22,7 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
  * @author Matthew Lohbihler
  */
 public class PublishQueue<T extends PublishedPointVO, V> {
-    private static final Log LOG = LogFactory.getLog(PublishQueue.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PublishQueue.class);
     private static final long SIZE_CHECK_DELAY = 5000;
 
     protected final ConcurrentLinkedQueue<PublishQueueEntry<T, V>> queue = new ConcurrentLinkedQueue<PublishQueueEntry<T, V>>();

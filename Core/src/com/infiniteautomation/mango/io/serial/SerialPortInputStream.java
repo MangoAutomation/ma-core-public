@@ -8,6 +8,8 @@ import java.io.InputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Terry Packer
@@ -15,7 +17,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public abstract class SerialPortInputStream extends InputStream{
 
-	private final Log LOG = LogFactory.getLog(SerialPortInputStream.class);
+	private final Logger LOG = LoggerFactory.getLogger(SerialPortInputStream.class);
     private final Object closeLock = new Object();
     private volatile boolean closed = false;
 

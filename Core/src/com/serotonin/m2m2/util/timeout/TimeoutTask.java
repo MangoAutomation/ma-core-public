@@ -7,6 +7,8 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.timer.AbstractTimer;
@@ -22,7 +24,7 @@ import com.serotonin.timer.TimerTrigger;
  */
 public class TimeoutTask extends TimerTask {
 	
-	private final Log LOG = LogFactory.getLog(TimeoutTask.class);
+	private final Logger LOG = LoggerFactory.getLogger(TimeoutTask.class);
 	
     private final TimeoutClient client;
     

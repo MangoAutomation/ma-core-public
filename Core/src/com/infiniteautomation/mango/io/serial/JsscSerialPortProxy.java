@@ -6,8 +6,8 @@ package com.infiniteautomation.mango.io.serial;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 
@@ -19,7 +19,7 @@ import jssc.SerialPort;
  */
 public class JsscSerialPortProxy extends SerialPortProxy {
 	
-    private final Log LOG = LogFactory.getLog(JsscSerialPortProxy.class);
+    private final Logger LOG = LoggerFactory.getLogger(JsscSerialPortProxy.class);
 
     private int baudRate = -1;
     private FlowControl flowControlIn = FlowControl.NONE;
@@ -81,21 +81,21 @@ public class JsscSerialPortProxy extends SerialPortProxy {
             this.is.close();
         }
         catch (IOException e) {
-            LOG.error(e);
+            LOG.error("An error occurred", e);
             ex = e;
         }
         try {
             this.os.close();
         }
         catch (IOException e) {
-            LOG.error(e);
+            LOG.error("An error occurred", e);
             ex = e;
         }
         try {
             this.port.closePort();
         }
         catch (jssc.SerialPortException e) {
-            LOG.error(e);
+            LOG.error("An error occurred", e);
             ex = e;
         }
 

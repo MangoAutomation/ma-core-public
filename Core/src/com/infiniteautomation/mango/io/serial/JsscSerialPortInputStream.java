@@ -9,8 +9,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
@@ -36,7 +36,7 @@ import jssc.SerialPortEventListener;
  */
 public class JsscSerialPortInputStream extends SerialPortInputStream implements SerialPortEventListener {
 
-    private final Log LOG = LogFactory.getLog(JsscSerialPortInputStream.class);
+    private final Logger LOG = LoggerFactory.getLogger(JsscSerialPortInputStream.class);
     protected final LinkedBlockingQueue<Byte> dataStream;
     protected final SerialPort port;
     protected final List<SerialPortProxyEventListener> listeners;
@@ -77,15 +77,15 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
                             for (final SerialPortProxyEventListener listener : listeners){
                                 SerialPortProxyEventTask task = new SerialPortProxyEventTask(listener, upstreamEvent);
                                 if(!JsscSerialPortManager.instance.addEvent(task))
-                                    LOG.fatal("Serial Port Problem, Listener task queue full, data will be lost!  Increase serial.port.eventQueueSize to avoid this.");
+                                    LOG.error("Serial Port Problem, Listener task queue full, data will be lost!  Increase serial.port.eventQueueSize to avoid this.");
                             }
                         }
                     }
                 }
                 catch (jssc.SerialPortException e) {
-                    LOG.error(e);
+                    LOG.error("An error occurred", e);
                 }catch(Exception e) {
-                    LOG.error(e);
+                    LOG.error("An error occurred", e);
                 }
             }, readPollPeriod, readPollPeriodType);
         }
@@ -168,7 +168,7 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
 
             }
             catch (Exception e) {
-                LOG.error(e);
+                LOG.error("An error occurred", e);
             }
 
             if (listeners.size() > 0) {
@@ -177,7 +177,7 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
                 for (final SerialPortProxyEventListener listener : listeners){
                     SerialPortProxyEventTask task = new SerialPortProxyEventTask(listener, upstreamEvent);
                     if(!JsscSerialPortManager.instance.addEvent(task))
-                        LOG.fatal("Serial Port Problem, Listener task queue full, data will be lost!  Increase serial.port.eventQueueSize to avoid this.");
+                        LOG.error("Serial Port Problem, Listener task queue full, data will be lost!  Increase serial.port.eventQueueSize to avoid this.");
                 }
             }
 

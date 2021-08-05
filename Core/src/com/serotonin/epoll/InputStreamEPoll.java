@@ -11,13 +11,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Poll input streams for input in a single Thread
  *
  */
 public class InputStreamEPoll implements Runnable {
-    static final Log LOG = LogFactory.getLog(InputStreamEPoll.class);
+    static final Logger LOG = LoggerFactory.getLogger(InputStreamEPoll.class);
 
     private final List<InputStreamWrapper> wrappers = new CopyOnWriteArrayList<InputStreamWrapper>();
     private volatile boolean terminated;

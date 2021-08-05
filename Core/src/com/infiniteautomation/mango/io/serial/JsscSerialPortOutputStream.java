@@ -6,9 +6,12 @@ package com.infiniteautomation.mango.io.serial;
 import java.io.IOException;
 
 import jssc.SerialPort;
+import jssc.SerialPortException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -16,7 +19,7 @@ import org.apache.commons.logging.LogFactory;
  * 
  */
 public class JsscSerialPortOutputStream extends SerialPortOutputStream{
-	private final Log LOG = LogFactory.getLog(JsscSerialPortOutputStream.class);
+	private final Logger LOG = LoggerFactory.getLogger(JsscSerialPortOutputStream.class);
     private SerialPort port;
 
     public JsscSerialPortOutputStream(SerialPort port) {
@@ -38,7 +41,7 @@ public class JsscSerialPortOutputStream extends SerialPortOutputStream{
                 port.writeByte(b);
             }
         }
-        catch (jssc.SerialPortException e) {
+        catch (SerialPortException e) {
             throw new IOException(e);
         }
     }

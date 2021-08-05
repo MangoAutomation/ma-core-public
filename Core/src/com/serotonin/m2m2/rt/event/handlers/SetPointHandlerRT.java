@@ -10,6 +10,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
@@ -43,7 +45,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
 public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> implements SetPointSource {
-    private static final Log LOG = LogFactory.getLog(SetPointHandlerRT.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetPointHandlerRT.class);
  
     private MangoJavaScriptService service;
 

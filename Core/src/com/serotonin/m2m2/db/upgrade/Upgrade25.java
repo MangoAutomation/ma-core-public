@@ -10,6 +10,8 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseType;
@@ -22,7 +24,7 @@ import com.serotonin.m2m2.db.DatabaseType;
  * @author Terry Packer
  */
 public class Upgrade25 extends DBUpgrade {
-    private final Log LOG = LogFactory.getLog(Upgrade25.class);
+    private final Logger LOG = LoggerFactory.getLogger(Upgrade25.class);
 
     @Override
     protected void upgrade() throws Exception {

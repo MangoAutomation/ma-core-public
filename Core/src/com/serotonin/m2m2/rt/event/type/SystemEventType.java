@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -34,7 +36,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 @JsonEntity
 public class SystemEventType extends EventType {
-    private static final Log LOG = LogFactory.getLog(SystemEventType.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SystemEventType.class);
 
     //
     //
@@ -135,7 +137,7 @@ public class SystemEventType extends EventType {
 
     @Override
     public String getEventType() {
-        return EventType.EventTypeNames.SYSTEM;
+        return EventTypeNames.SYSTEM;
     }
 
     @Override

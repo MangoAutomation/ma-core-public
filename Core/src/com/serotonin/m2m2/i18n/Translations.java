@@ -19,9 +19,11 @@ import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Translations {
-    private static final Log LOG = LogFactory.getLog(Translations.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Translations.class);
 
     private static final String BASE_NAME = "i18n";
     private static final Map<Locale, Translations> TRANSLATIONS_CACHE = new ConcurrentHashMap<Locale, Translations>();

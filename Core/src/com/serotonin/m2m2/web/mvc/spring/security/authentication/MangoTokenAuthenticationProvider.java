@@ -5,6 +5,8 @@ package com.serotonin.m2m2.web.mvc.spring.security.authentication;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -39,7 +41,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 public class MangoTokenAuthenticationProvider implements AuthenticationProvider {
     private final TokenAuthenticationService tokenAuthenticationService;
     private final UserDetailsChecker userDetailsChecker;
-    private Log log = LogFactory.getLog(MangoTokenAuthenticationProvider.class);
+    private Logger log = LoggerFactory.getLogger(MangoTokenAuthenticationProvider.class);
 
     @Autowired
     public MangoTokenAuthenticationProvider(TokenAuthenticationService jwtService, UserDetailsChecker userDetailsChecker) {

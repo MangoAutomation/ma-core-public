@@ -5,6 +5,8 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -29,7 +31,7 @@ import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
  * @author Matthew Lohbihler
  */
 public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogLowLimitDetectorVO> {
-    private final Log log = LogFactory.getLog(AnalogLowLimitDetectorRT.class);
+    private final Logger log = LoggerFactory.getLogger(AnalogLowLimitDetectorRT.class);
 
     /**
      * State field. Whether the low limit is currently active or not. This field is used to prevent multiple events

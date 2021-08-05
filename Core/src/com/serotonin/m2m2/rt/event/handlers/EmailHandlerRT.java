@@ -24,6 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
@@ -75,11 +77,13 @@ import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailAttachment;
+import com.serotonin.web.mail.EmailAttachment.FileAttachment;
 import com.serotonin.web.mail.EmailContent;
 import com.serotonin.web.mail.EmailInline;
+import com.serotonin.web.mail.EmailInline.FileInline;
 
 public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implements ModelTimeoutClient<EventInstance>, SetPointSource {
-    private static final Log LOG = LogFactory.getLog(EmailHandlerRT.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EmailHandlerRT.class);
     public static final String DO_NOT_SEND_KEY = "CANCEL";
 
     private TimerTask escalationTask;
@@ -481,7 +485,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             }
 
             for (String s : inlineImages.getImageList())
-                content.addInline(new EmailInline.FileInline(s, Common.WEB.resolve(s).toFile()));
+                content.addInline(new FileInline(s, Common.WEB.resolve(s).toFile()));
 
             if(toAddrs.length > 0)
                 EmailWorkItem.queueEmail(toAddrs, content, postEmail);
@@ -540,7 +544,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 zipOut.closeEntry();
                 zipOut.close();
 
-                content.addAttachment(new EmailAttachment.FileAttachment(file.getName() + ".zip", zipFile));
+                content.addAttachment(new FileAttachment(file.getName() + ".zip", zipFile));
 
                 return zipFile;
             }

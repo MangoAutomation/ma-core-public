@@ -15,6 +15,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.timer.FixedRateTrigger;
@@ -33,7 +35,7 @@ import com.serotonin.timer.TimerTask;
  */
 public class TaskRejectionHandler extends TimerTask implements RejectedExecutionHandler{
 	
-	final Log log = LogFactory.getLog(TaskRejectionHandler.class);
+	final Logger log = LoggerFactory.getLogger(TaskRejectionHandler.class);
 	
 	/* Period after which Task Rejection Stats become removeable */
 	private long staleTaskStatsPeriod = 100000000;
@@ -106,7 +108,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 			wrapper.getTask().rejectedAsDelegate(reason);
 			this.rejectedTask(reason);
 		}else{
-			log.fatal("SHOULD NOT HAPPEN: " + r.toString());
+			log.error("SHOULD NOT HAPPEN: " + r.toString());
 		}
 	}
 	

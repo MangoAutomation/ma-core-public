@@ -7,6 +7,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.zaxxer.hikari.HikariConfig;
@@ -16,7 +18,7 @@ import com.zaxxer.hikari.HikariDataSource;
  * @author Matthew Lohbihler
  */
 abstract public class BasePooledProxy extends AbstractDatabaseProxy {
-    private final Log log = LogFactory.getLog(BasePooledProxy.class);
+    private final Logger log = LoggerFactory.getLogger(BasePooledProxy.class);
     private HikariDataSource dataSource;
 
     public BasePooledProxy(DatabaseProxyFactory factory, boolean useMetrics) {

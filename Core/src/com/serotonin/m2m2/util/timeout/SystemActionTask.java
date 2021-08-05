@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.timer.TimerTask;
@@ -23,7 +25,7 @@ public abstract class SystemActionTask extends TimerTask {
 	public static final int PRIORITY_HIGH = WorkItem.PRIORITY_HIGH;
 	public static final int PRIORITY_MEDIUM = WorkItem.PRIORITY_MEDIUM;
 	
-	protected static final Log LOG = LogFactory.getLog(SystemActionTask.class);
+	protected static final Logger LOG = LoggerFactory.getLogger(SystemActionTask.class);
 	
 	/**
 	 * Thread safe results for progressive tracking

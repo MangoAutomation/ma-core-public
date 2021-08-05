@@ -15,12 +15,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import org.apache.commons.io.comparator.LastModifiedFileComparator;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.service.EmportService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -33,7 +32,7 @@ import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
 public class BackupWorkItem implements WorkItem {
-    private static final Log LOG = LogFactory.getLog(BackupWorkItem.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BackupWorkItem.class);
     private static final String TASK_ID = "CONFIG_BACKUP";
 
     public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; //Used to for filename and property value for last run
@@ -186,7 +185,7 @@ public class BackupWorkItem implements WorkItem {
                 }
 
             } catch (Exception e) {
-                LOG.warn(e);
+                LOG.warn("Error", e);
                 failed = true;
                 SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
                         Common.timer.currentTimeMillis(), false, new TranslatableMessage(
@@ -250,7 +249,7 @@ public class BackupWorkItem implements WorkItem {
                     BackupWorkItem.queueBackup(backupLocation);
                 }
             }catch(Exception e){
-                LOG.error(e);
+                LOG.error("An error occurred", e);
                 SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_BACKUP_FAILURE),
                         Common.timer.currentTimeMillis(), false,
                         new TranslatableMessage("event.backup.failure", "no file", e.getMessage()));

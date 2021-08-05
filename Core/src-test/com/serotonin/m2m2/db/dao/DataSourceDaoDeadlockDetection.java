@@ -20,6 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -36,6 +38,7 @@ import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -51,7 +54,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
-    static final Log LOG = LogFactory.getLog(DataSourceDaoDeadlockDetection.class);
+    static final Logger LOG = LoggerFactory.getLogger(DataSourceDaoDeadlockDetection.class);
 
     /**
      * See the deadlock when you insert data source, then point,
@@ -418,7 +421,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                             new TransactionTemplate(transactionManager).execute((status) -> {
                                 //The order of these statements matters for deadlock, we must always lock groups of tables in the same order
                                 ejt.update("DELETE FROM dataSources WHERE id=?", new Object[]{ds.getId()});
-                                ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[]{EventType.EventTypeNames.DATA_SOURCE, ds.getId()});
+                                ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[]{EventTypeNames.DATA_SOURCE, ds.getId()});
 
                                 return null;
                             });

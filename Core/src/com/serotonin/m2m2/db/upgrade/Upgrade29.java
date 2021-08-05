@@ -14,6 +14,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
 
@@ -42,7 +44,7 @@ import java.util.stream.Collectors;
  */
 public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
-    private final Log LOG = LogFactory.getLog(Upgrade29.class);
+    private final Logger LOG = LoggerFactory.getLogger(Upgrade29.class);
     private final Map<MangoPermission, MangoPermission> permissionCache = new HashMap<>();
     private final Map<Role, Role> roleCache = new HashMap<>();
 

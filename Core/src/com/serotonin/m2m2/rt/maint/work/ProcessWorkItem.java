@@ -12,6 +12,8 @@ import java.lang.reflect.Field;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.io.StreamUtils;
@@ -24,7 +26,7 @@ import com.serotonin.timer.RejectedTaskReason;
  * @author Matthew Lohbihler
  */
 public class ProcessWorkItem implements WorkItem {
-    static final Log LOG = LogFactory.getLog(ProcessWorkItem.class);
+    static final Logger LOG = LoggerFactory.getLogger(ProcessWorkItem.class);
 
     public static void queueProcess(String command, int timeoutSeconds) {
         ProcessWorkItem item = new ProcessWorkItem(command, timeoutSeconds);

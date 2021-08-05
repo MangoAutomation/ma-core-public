@@ -12,6 +12,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
@@ -22,7 +24,7 @@ import com.serotonin.m2m2.db.DatabaseType;
  */
 public class Upgrade21 extends DBUpgrade {
 
-    private final Log LOG = LogFactory.getLog(Upgrade21.class);
+    private final Logger LOG = LoggerFactory.getLogger(Upgrade21.class);
 
     @Override
     protected void upgrade() throws Exception {

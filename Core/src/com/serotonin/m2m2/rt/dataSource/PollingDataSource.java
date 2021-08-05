@@ -18,6 +18,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.db.pair.LongLongPair;
@@ -35,7 +37,7 @@ import com.serotonin.util.ILifecycleState;
 
 abstract public class PollingDataSource<T extends PollingDataSourceVO> extends DataSourceRT<T> {
 
-    private final Log LOG = LogFactory.getLog(PollingDataSource.class);
+    private final Logger LOG = LoggerFactory.getLogger(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";
     private final Lock pollLock = new ReentrantLock();
 

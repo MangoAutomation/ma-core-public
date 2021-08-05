@@ -10,6 +10,8 @@ import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -27,7 +29,7 @@ import com.serotonin.web.mail.EmailSender;
  *
  */
 public class EmailWorkItem implements WorkItem {
-    private static final Log LOG = LogFactory.getLog(EmailWorkItem.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EmailWorkItem.class);
 
     public EmailWorkItem(InternetAddress[] toAddrs, String subject, EmailContent content, PostEmailRunnable[] postSendExecution) {
         this.toAddresses = toAddrs;

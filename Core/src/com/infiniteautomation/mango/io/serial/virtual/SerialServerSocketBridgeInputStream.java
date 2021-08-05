@@ -10,12 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.io.serial.SerialPortInputStream;
 import com.serotonin.ShouldNeverHappenException;
 
 public class SerialServerSocketBridgeInputStream extends SerialPortInputStream {
-    private static final Log LOG = LogFactory.getLog(SerialServerSocketBridgeInputStream.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SerialServerSocketBridgeInputStream.class);
     
 	private InputStream stream = null;
 	private ByteArrayInputStream bufferStream = null;

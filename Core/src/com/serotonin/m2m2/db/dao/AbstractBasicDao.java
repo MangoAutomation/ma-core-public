@@ -45,6 +45,8 @@ import org.jooq.exception.DataAccessException;
 import org.jooq.exception.NoDataFoundException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -82,7 +84,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  */
 public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Record, TABLE extends Table<R>> extends BaseDao implements AbstractBasicVOAccess<T> {
-    protected Log LOG = LogFactory.getLog(getClass());
+    protected Logger LOG = LoggerFactory.getLogger(getClass());
 
     // Retry all insert/update/delete that throw transient exceptions (e.g. transactions that deadlock)
     protected final int transactionRetries = Common.envProps.getInt("db.transaction.retries", 5);
@@ -210,7 +212,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                         return result;
                     });
                     break;
-                } catch (org.jooq.exception.DataAccessException e) {
+                } catch (DataAccessException e) {
                     if (!(e.getCause() instanceof SQLTransientException) || tries == 0) {
                         throw e;
                     }
@@ -270,7 +272,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                     saveRelationalData(null, vo);
                 });
                 break;
-            } catch (org.jooq.exception.DataAccessException e) {
+            } catch (DataAccessException e) {
                 if (!(e.getCause() instanceof SQLTransientException) || tries == 0) {
                     throw e;
                 }
@@ -313,7 +315,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
                     saveRelationalData(existing, vo);
                 });
                 break;
-            } catch (org.jooq.exception.DataAccessException e) {
+            } catch (DataAccessException e) {
                 if (!(e.getCause() instanceof SQLTransientException) || tries == 0) {
                     throw e;
                 }

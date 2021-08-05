@@ -23,6 +23,8 @@ import org.apache.commons.io.output.NullWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 
@@ -31,7 +33,7 @@ import com.serotonin.m2m2.Common;
  *
  */
 public class ProcessLog implements Closeable {
-    private static final Log LOG = LogFactory.getLog(ProcessLog.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ProcessLog.class);
 
     private static final Object lock = new Object();
     private static List<ProcessLog> processLogs = new CopyOnWriteArrayList<ProcessLog>();

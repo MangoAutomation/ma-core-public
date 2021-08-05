@@ -5,6 +5,8 @@ package com.serotonin.m2m2.rt.script;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.spring.components.RunAs;
@@ -34,7 +36,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     public static final String CONTEXT_KEY = "RuntimeManager";
 
-    private static final Log LOG = LogFactory.getLog(RuntimeManagerScriptUtility.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RuntimeManagerScriptUtility.class);
 
     protected static final int DOES_NOT_EXIST = -1;  //Point or Data Soure Does not exist
     protected static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state

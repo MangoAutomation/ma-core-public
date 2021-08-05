@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessingImpl;
@@ -32,7 +34,7 @@ import com.serotonin.util.ILifecycleState;
  * @author Terry Packer
  */
 public class MockBackgroundProcessing extends BackgroundProcessingImpl {
-    final Log log = LogFactory.getLog(MockBackgroundProcessing.class);
+    final Logger log = LoggerFactory.getLogger(MockBackgroundProcessing.class);
 
     public MockBackgroundProcessing() {
         this(null);

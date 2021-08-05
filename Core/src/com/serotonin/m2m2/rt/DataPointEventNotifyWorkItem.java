@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -20,7 +22,7 @@ import com.serotonin.timer.Task;
 
 public class DataPointEventNotifyWorkItem implements WorkItem {
 
-    private static final Log LOG = LogFactory.getLog(DataPointEventNotifyWorkItem.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DataPointEventNotifyWorkItem.class);
 
     private static final String descriptionPrefix = "Point event for: ";
     private static final String prefix = "EN-";

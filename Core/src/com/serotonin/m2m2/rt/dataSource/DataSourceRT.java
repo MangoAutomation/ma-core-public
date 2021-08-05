@@ -21,6 +21,8 @@ import java.util.stream.Stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -59,7 +61,7 @@ import com.serotonin.util.ILifecycleState;
  * @author Matthew Lohbihler
  */
 abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycle {
-    private final Log log = LogFactory.getLog(DataSourceRT.class);
+    private final Logger log = LoggerFactory.getLogger(DataSourceRT.class);
 
     public static final String DATA_SOURCE_EVENT_CONTEXT_KEY = "dataSource";
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
@@ -231,7 +233,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     /**
      * Raises a data source event.
      *
-     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(java.util.List)}
+     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(List)}
      * @param time time at which the event will be raised
      * @param rtn true if the event can return to normal (become inactive) at some point in the future
      * @param message translatable event message
@@ -256,7 +258,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     /**
      * Returns a data source event to normal.
      *
-     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(java.util.List)}
+     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(List)}
      * @param time time at which the event will be returned to normal (made inactive)
      * @throws IllegalStateException if data source has been terminated
      */
@@ -323,7 +325,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
     /**
      * The {@link DataPointGroupInitializer} calls
-     * {@link RuntimeManager#startDataPoint(com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors, java.util.List) startDataPoint()}
+     * {@link RuntimeManager#startDataPoint(DataPointWithEventDetectors, List) startDataPoint()}
      * which adds the data points to the cache in the RTM and initializes them.
      */
     private void initializePoints() {

@@ -13,6 +13,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,6 +42,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.util.ILifecycleState;
 import com.serotonin.util.SerializationHelper;
@@ -47,7 +50,7 @@ import com.serotonin.util.SerializationHelper;
 @Repository()
 public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord, DataSources> {
 
-    static final Log LOG = LogFactory.getLog(DataSourceDao.class);
+    static final Logger LOG = LoggerFactory.getLogger(DataSourceDao.class);
 
     private static final LazyInitSupplier<DataSourceDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(DataSourceDao.class);
@@ -264,7 +267,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     @Override
     public void deleteRelationalData(DataSourceVO vo) {
         create.deleteFrom(eventHandlersMapping)
-        .where(eventHandlersMapping.eventTypeName.eq(EventType.EventTypeNames.DATA_SOURCE),
+        .where(eventHandlersMapping.eventTypeName.eq(EventTypeNames.DATA_SOURCE),
                 eventHandlersMapping.eventTypeRef1.eq(vo.getId())).execute();
 
         vo.getDefinition().deleteRelationalData(vo);

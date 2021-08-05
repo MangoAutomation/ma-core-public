@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -34,7 +36,7 @@ public class AuditEventType extends EventType {
     //
     // Static stuff
     //
-    private static final Log LOG = LogFactory.getLog(AuditEventType.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AuditEventType.class);
 
     public static final String AUDIT_SETTINGS_PREFIX = "auditEventAlarmLevel.";
 
@@ -128,7 +130,7 @@ public class AuditEventType extends EventType {
 
     @Override
     public String getEventType() {
-        return EventType.EventTypeNames.AUDIT;
+        return EventTypeNames.AUDIT;
     }
 
     @Override

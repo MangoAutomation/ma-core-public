@@ -21,6 +21,8 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 @Service
 public class DiskUsageMonitoringService {
 
-    private final Log log = LogFactory.getLog(DiskUsageMonitoringService.class);
+    private final Logger log = LoggerFactory.getLogger(DiskUsageMonitoringService.class);
 
     public static final String MA_HOME_PARTITION_TOTAL_SPACE = "internal.monitor.MA_HOME_PARTITION_TOTAL_SPACE";
     public static final String MA_HOME_PARTITION_USABLE_SPACE = "internal.monitor.MA_HOME_PARTITION_USABLE_SPACE";

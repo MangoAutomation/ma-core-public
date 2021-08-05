@@ -22,6 +22,8 @@ import org.jooq.Field;
 import org.jooq.InsertValuesStep3;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -66,7 +68,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
  */
 @Repository
 public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
-    private static final Log LOG = LogFactory.getLog(UserDao.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserDao.class);
 
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(UserDao.class));
 

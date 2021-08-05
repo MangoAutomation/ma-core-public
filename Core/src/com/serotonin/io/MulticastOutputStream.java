@@ -7,9 +7,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MulticastOutputStream extends OutputStream {
-    static final Log LOG = LogFactory.getLog(MulticastOutputStream.class);
+    static final Logger LOG = LoggerFactory.getLogger(MulticastOutputStream.class);
 
     private final List<OutputStream> streams = new CopyOnWriteArrayList<>();
     private IOExceptionHandler exceptionHandler = new IOExceptionHandler() {

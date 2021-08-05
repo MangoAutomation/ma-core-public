@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -34,14 +35,14 @@ import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -50,7 +51,7 @@ import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 
 public class H2Proxy extends AbstractDatabaseProxy {
-    private static final Log LOG = LogFactory.getLog(H2Proxy.class);
+    private static final Logger LOG = LoggerFactory.getLogger(H2Proxy.class);
 
     //The version of h2 at which we upgrade the page store could also do this each time h2 is upgraded via Constants.getVersion()
     public static final int H2_PAGE_STORE_UPGRADE_VERSION = 196;
@@ -113,7 +114,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 this.web = Server.createWebServer(webArgs);
                 this.web.start();
             } catch (SQLException e) {
-                LOG.error(e);
+                LOG.error("An error occurred", e);
             }
         }
     }
@@ -267,7 +268,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private String configureURL(String url, Map<String, String> options) {
         StringBuilder urlWithOptions = new StringBuilder(url);
-        for (Map.Entry<String, String> entry: options.entrySet()) {
+        for (Entry<String, String> entry: options.entrySet()) {
             urlWithOptions.append(";")
                     .append(entry.getKey())
                     .append("=")

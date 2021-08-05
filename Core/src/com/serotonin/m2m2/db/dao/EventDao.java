@@ -26,6 +26,8 @@ import org.jooq.SelectJoinStep;
 import org.jooq.Table;
 import org.jooq.UpdateConditionStep;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
@@ -60,6 +62,7 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -78,7 +81,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 @Repository
 public class EventDao extends BaseDao {
-    private static final Log LOG = LogFactory.getLog(EventDao.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EventDao.class);
 
     private static final LazyInitSupplier<EventDao> instance = new LazyInitSupplier<>(() -> Common.getBean(EventDao.class));
 
@@ -106,7 +109,7 @@ public class EventDao extends BaseDao {
     }
 
     public void saveEvent(EventInstance event) {
-        if (event.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)) {
+        if (event.getEventType().getEventType().equals(EventTypeNames.AUDIT)) {
             AuditEventInstanceVO vo = new AuditEventInstanceVO();
             AuditEventType type = (AuditEventType) event.getEventType();
             vo.setTypeName(type.getEventSubtype());
@@ -489,15 +492,15 @@ public class EventDao extends BaseDao {
         String typeName = rs.getString(offset);
         String subtypeName = rs.getString(offset + 1);
         EventType type;
-        if (typeName.equals(EventType.EventTypeNames.DATA_POINT))
+        if (typeName.equals(EventTypeNames.DATA_POINT))
             type = new DataPointEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
-        else if (typeName.equals(EventType.EventTypeNames.DATA_SOURCE))
+        else if (typeName.equals(EventTypeNames.DATA_SOURCE))
             type = new DataSourceEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
-        else if (typeName.equals(EventType.EventTypeNames.SYSTEM))
+        else if (typeName.equals(EventTypeNames.SYSTEM))
             type = new SystemEventType(subtypeName, rs.getInt(offset + 2));
-        else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
+        else if (typeName.equals(EventTypeNames.PUBLISHER))
             type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
-        else if (typeName.equals(EventType.EventTypeNames.AUDIT))
+        else if (typeName.equals(EventTypeNames.AUDIT))
             type = new AuditEventType(subtypeName, -1, rs.getInt(offset + 3)); //TODO allow tracking the various types of audit events...
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);

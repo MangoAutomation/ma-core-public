@@ -5,6 +5,8 @@ package com.serotonin.m2m2.rt.event.detectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -21,7 +23,7 @@ import com.serotonin.util.queue.ObjectQueue;
  * @author Matthew Lohbihler
  */
 public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessDetectorVO> {
-    private final Log log = LogFactory.getLog(SmoothnessDetectorRT.class);
+    private final Logger log = LoggerFactory.getLogger(SmoothnessDetectorRT.class);
 
     /**
      * State field. The current boxcar.

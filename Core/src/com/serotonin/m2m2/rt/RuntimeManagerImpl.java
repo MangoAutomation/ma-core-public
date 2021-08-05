@@ -20,6 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -31,6 +33,7 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
+import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointEventMulticaster;
@@ -52,7 +55,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.util.ILifecycleState;
 
 public class RuntimeManagerImpl implements RuntimeManager {
-    private static final Log LOG = LogFactory.getLog(RuntimeManagerImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RuntimeManagerImpl.class);
 
     private final ConcurrentMap<Integer, DataSourceRT<? extends DataSourceVO>> runningDataSources = new ConcurrentHashMap<>();
     private final ConcurrentMap<Integer, DataPointRT> dataPointCache  = new ConcurrentHashMap<>();
@@ -133,7 +136,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
         List<DataSourceVO> configs = dataSourceDao.getAll();
-        Map<DataSourceDefinition.StartPriority, List<DataSourceVO>> priorityMap = new HashMap<>();
+        Map<StartPriority, List<DataSourceVO>> priorityMap = new HashMap<>();
         for (DataSourceVO config : configs) {
             if (config.isEnabled()) {
                 if (safe) {
@@ -150,7 +153,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Initialize the prioritized data sources. Start the polling later.
         List<DataSourceVO> pollingRound = new ArrayList<>();
         int startupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 1);
-        for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
+        for (StartPriority startPriority : StartPriority.values()) {
             List<DataSourceVO> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
                 DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(
@@ -222,7 +225,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int rtmdIndex = stopRTMDefs(defs, 0, 5);
 
         // Stop data sources in reverse start priority order.
-        Map<DataSourceDefinition.StartPriority, List<DataSourceRT<? extends DataSourceVO>>> priorityMap = new HashMap<>();
+        Map<StartPriority, List<DataSourceRT<? extends DataSourceVO>>> priorityMap = new HashMap<>();
         for (Entry<Integer, DataSourceRT<? extends DataSourceVO>> entry : runningDataSources.entrySet()) {
             DataSourceRT<? extends DataSourceVO> rt = entry.getValue();
             List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.computeIfAbsent(rt.getVo().getDefinition().getStartPriority(), k -> new ArrayList<>());
@@ -230,7 +233,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         int dataSourceShutdownThreads = Common.envProps.getInt("runtime.datasource.shutdownThreads", 1);
-        DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
+        StartPriority[] priorities = StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
             List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {

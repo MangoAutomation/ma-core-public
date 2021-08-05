@@ -4,6 +4,8 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Extends the timer task to prevent tasks from running concurrently. This is useful when a job is run regularly on a
@@ -13,7 +15,7 @@ import org.apache.commons.logging.LogFactory;
  * @author Matthew Lohbihler
  */
 abstract public class NonConcurrentTask extends TimerTask {
-    private static final Log LOG = LogFactory.getLog(NonConcurrentTask.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NonConcurrentTask.class);
 
     private Thread thread;
     private long threadRuntime;

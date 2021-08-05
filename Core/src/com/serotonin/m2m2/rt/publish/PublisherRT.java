@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.ShouldNeverHappenException;
@@ -36,7 +38,7 @@ import com.serotonin.util.ILifecycleState;
  * @author Matthew Lohbihler
  */
 abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutClient implements ILifecycle {
-    private final Log log = LogFactory.getLog(PublisherRT.class);
+    private final Logger log = LoggerFactory.getLogger(PublisherRT.class);
     public static final int POINT_DISABLED_EVENT = 1;
     public static final int QUEUE_SIZE_WARNING_EVENT = 2;
 

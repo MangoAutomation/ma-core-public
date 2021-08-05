@@ -12,6 +12,8 @@ import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -33,7 +35,7 @@ import com.serotonin.timer.TimerTask;
  */
 public class RateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<RateOfChangeDetectorVO> {
 
-    private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
+    private final Logger log = LoggerFactory.getLogger(RateOfChangeDetectorRT.class);
 
     /**
      * State field. Whether the event is currently active or not. This field is used to prevent multiple events being

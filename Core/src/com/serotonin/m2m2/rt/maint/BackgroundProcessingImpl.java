@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -49,7 +51,7 @@ import com.serotonin.util.ILifecycleState;
  * @author Matthew Lohbihler
  */
 public class BackgroundProcessingImpl implements BackgroundProcessing {
-    final Log log = LogFactory.getLog(BackgroundProcessingImpl.class);
+    final Logger log = LoggerFactory.getLogger(BackgroundProcessingImpl.class);
 
     //Private access to our timer
     protected AbstractTimer timer;
@@ -94,7 +96,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
                 lowPriorityService.execute(new WorkItemRunnable(item));
             }
         }catch(RejectedExecutionException e){
-            log.fatal(new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()).translate(Common.getTranslations()), e);
+            log.error(new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()).translate(Common.getTranslations()), e);
         }
     }
 

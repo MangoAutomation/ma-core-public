@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The waiting room is a place for request messages to hang out while awaiting their responses.
@@ -12,7 +14,7 @@ import org.apache.commons.logging.LogFactory;
  * @author Matthew Lohbihler
  */
 class WaitingRoom {
-    private static final Log LOG = LogFactory.getLog(WaitingRoom.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WaitingRoom.class);
 
     private final Map<WaitingRoomKey, Member> waitHere = new HashMap<WaitingRoomKey, Member>();
 

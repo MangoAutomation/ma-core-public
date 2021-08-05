@@ -11,6 +11,8 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -32,7 +34,7 @@ import com.serotonin.m2m2.TerminationReason;
 
 public class PropagatingEventMulticaster extends SimpleApplicationEventMulticaster {
 
-    private final static Log log = LogFactory.getLog(PropagatingEventMulticaster.class);
+    private final static Logger log = LoggerFactory.getLogger(PropagatingEventMulticaster.class);
 
     private final ApplicationContext context;
     private final EventMulticasterRegistry registry;
@@ -119,7 +121,7 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
             if(t instanceof UndeclaredThrowableException) {
                 Throwable source = ((UndeclaredThrowableException)t).getUndeclaredThrowable();
                 if (source instanceof OutOfMemoryError) {
-                    log.fatal("Out Of Memory exception in thread " + Thread.currentThread().getName() + " Mango will now terminate.", source);
+                    log.error("Out Of Memory exception in thread " + Thread.currentThread().getName() + " Mango will now terminate.", source);
                     System.exit(TerminationReason.OUT_OF_MEMORY_ERROR.getExitStatus());
                 }else {
                     log.error("Error multicasting event", source);

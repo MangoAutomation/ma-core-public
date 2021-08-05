@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
@@ -39,6 +41,7 @@ import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.ExceptionListWrapper;
@@ -53,7 +56,7 @@ import com.serotonin.util.ILifecycleState;
  * @author Matthew Lohbihler
  */
 public class EventManagerImpl implements EventManager {
-    private final Log log = LogFactory.getLog(EventManagerImpl.class);
+    private final Logger log = LoggerFactory.getLogger(EventManagerImpl.class);
     private static final int RECENT_EVENT_PERIOD = 1000 * 60 * 10; // 10
     // minutes.
 
@@ -203,7 +206,7 @@ public class EventManagerImpl implements EventManager {
                     emailUsers.add(user.getEmail());
 
                 //Notify All User Event Listeners of the new event
-                if ((alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
+                if ((alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventTypeNames.AUDIT))) {
                     userIdsToNotify.add(user.getId());
                 }
             }
@@ -219,7 +222,7 @@ public class EventManagerImpl implements EventManager {
                 RecipientListEntryType.USER));
 
         //No Audit or Do Not Log events are User Events
-        if ((eventUserIds.size() > 0) && (alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
+        if ((eventUserIds.size() > 0) && (alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventTypeNames.AUDIT))) {
             if (autoAckMessage == null)
                 lastAlarmTimestamp = Common.timer.currentTimeMillis();
         }
@@ -240,7 +243,7 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        if ((autoAckMessage != null) && (alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)))
+        if ((autoAckMessage != null) && (alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventTypeNames.AUDIT)))
             this.acknowledgeEvent(evt, time, null, autoAckMessage);
         else {
             if (evt.isRtnApplicable()) {
@@ -591,7 +594,7 @@ public class EventManagerImpl implements EventManager {
             recentEventsLock.writeLock().unlock();
         }
 
-        if(EventType.EventTypeNames.AUDIT.equals(typeName)) {
+        if(EventTypeNames.AUDIT.equals(typeName)) {
             return auditEventDao.purgeEventsBefore(time);
         }else {
             return eventDao.purgeEventsBefore(time, typeName);

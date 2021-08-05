@@ -9,9 +9,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RealTimeTimer extends AbstractTimer {
-    protected static final Log LOG = LogFactory.getLog(RealTimeTimer.class);
+    protected static final Logger LOG = LoggerFactory.getLogger(RealTimeTimer.class);
 
     /**
      * The timer task queue. This data structure is shared with the timer thread. The timer produces tasks, via its

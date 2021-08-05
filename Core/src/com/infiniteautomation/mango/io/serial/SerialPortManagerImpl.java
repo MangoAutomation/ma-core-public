@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig.SerialPortTypes;
@@ -31,7 +33,7 @@ import jssc.SerialPortList;
  */
 public class SerialPortManagerImpl implements SerialPortManager {
 
-    private final Log LOG = LogFactory.getLog(SerialPortManagerImpl.class);
+    private final Logger LOG = LoggerFactory.getLogger(SerialPortManagerImpl.class);
 
     private final ReadWriteLock lock;
     private final List<SerialPortIdentifier> freePorts;

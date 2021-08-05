@@ -18,10 +18,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -42,7 +42,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
-    private final Log log = LogFactory.getLog(AbstractDatabaseProxy.class);
+    private final Logger log = LoggerFactory.getLogger(AbstractDatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
     private PointValueCacheProxy pointValueCacheProxy;
     private final boolean useMetrics;
@@ -168,13 +168,13 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             }
 
         } catch (CannotGetJdbcConnectionException e) {
-            log.fatal("Unable to connect to database of type " + getType().name(), e);
+            log.error("Unable to connect to database of type " + getType().name(), e);
             throw e;
         } catch (IOException e) {
-            log.fatal("Exception initializing database proxy: " + e.getMessage(), e);
+            log.error("Exception initializing database proxy: " + e.getMessage(), e);
             throw new UncheckedIOException(e);
         } catch (Exception e) {
-            log.fatal("Exception initializing database proxy: " + e.getMessage(), e);
+            log.error("Exception initializing database proxy: " + e.getMessage(), e);
             throw e;
         }
     }

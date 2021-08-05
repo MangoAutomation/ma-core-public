@@ -12,6 +12,8 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.io.NullWriter;
 import com.serotonin.io.StreamUtils;
@@ -22,7 +24,7 @@ import com.serotonin.io.StreamUtils;
  */
 public abstract class BaseIOLog {
     
-	private static final Log LOG = LogFactory.getLog(BaseIOLog.class);
+	private static final Logger LOG = LoggerFactory.getLogger(BaseIOLog.class);
 	
 	protected static final String DATE_FORMAT = "yyyy/MM/dd-HH:mm:ss,SSS";
     protected final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
