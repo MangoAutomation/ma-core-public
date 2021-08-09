@@ -194,8 +194,21 @@ public interface RuntimeManager extends ILifecycle {
      */
     long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao);
 
+    /**
+     * Purge values before a given time
+     * @param vo data point VO
+     * @param before epoch timestamp in ms
+     * @return count of values deleted
+     */
     long purgeDataPointValues(DataPointVO vo, long before);
 
+    /**
+     * Purge values between a time range inclusive of startTime exclusive of endTime
+     * @param vo data point VO
+     * @param startTime epoch timestamp in ms
+     * @param endTime epoch timestamp in ms
+     * @return count of values deleted
+     */
     long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime);
 
     /**
