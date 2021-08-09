@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.monitor.MonitoredValues;
@@ -66,7 +67,9 @@ public class DiskUsageMonitoringService {
 
     private final ExecutorService executor;
     private final ScheduledExecutorService scheduledExecutor;
+    private final boolean enabled;
     private final long period;
+    private final Environment env;
 
     private final ValueMonitor<Double> maHomePartitionTotalSpace;
     private final ValueMonitor<Double> maHomePartitionUsableSpace;
@@ -102,19 +105,22 @@ public class DiskUsageMonitoringService {
     /**
      *
      * @param scheduledExecutor
+     * @param enabled - enable/disable service polling
      * @param period - how often to recalculate the usage
-     * @param monitorDirectories - monitor file stores and ma_home specifically (will require more CPU)
      */
     @Autowired
     private DiskUsageMonitoringService(ExecutorService executor,
             ScheduledExecutorService scheduledExecutor,
+            @Value("${internal.monitor.diskUsage.enabled:true}") boolean enabled,
             @Value("${internal.monitor.diskUsage.pollPeriod:1800000}") Long period,
-            @Value("${internal.monitor.diskUsage.monitorDirectories:false}") boolean monitorDirectories,
-            MonitoredValues monitoredValues) {
+            MonitoredValues monitoredValues,
+            Environment env) {
 
         this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
         this.period = period;
+        this.enabled = enabled;
+        this.env = env;
 
         maHomePartitionTotalSpace = monitoredValues.<Double>create(MA_HOME_PARTITION_TOTAL_SPACE)
                 .name(new TranslatableMessage(MA_HOME_PARTITION_TOTAL_SPACE))
@@ -157,28 +163,26 @@ public class DiskUsageMonitoringService {
                 .name(new TranslatableMessage(FILESTORE_PARTITION_USED_SPACE))
                 .build();
 
-        if (monitorDirectories) {
-            maHomeSize = monitoredValues.<Double>create(MA_HOME_SIZE)
-                    .name(new TranslatableMessage(MA_HOME_SIZE))
-                    .build();
+        maHomeSize = monitoredValues.<Double>create(MA_HOME_SIZE)
+                .name(new TranslatableMessage(MA_HOME_SIZE))
+                .build();
 
-            //Setup all filestores
-            ModuleRegistry.getFileStoreDefinitions().values().forEach(fs-> {
-                ValueMonitor<Double> monitor = monitoredValues.<Double>create(FILE_STORE_SIZE_PREFIX + fs.getStoreName())
-                        .name(new TranslatableMessage("internal.monitor.fileStoreSize", fs.getStoreDescription()))
-                        .build();
-                this.fileStoreMonitors.put(fs.getStoreName(), monitor);
-            });
-        } else {
-            maHomeSize = null;
-        }
+        //Setup all filestores
+        ModuleRegistry.getFileStoreDefinitions().values().forEach(fs-> {
+            ValueMonitor<Double> monitor = monitoredValues.<Double>create(FILE_STORE_SIZE_PREFIX + fs.getStoreName())
+                    .name(new TranslatableMessage("internal.monitor.fileStoreSize", fs.getStoreDescription()))
+                    .build();
+            this.fileStoreMonitors.put(fs.getStoreName(), monitor);
+        });
     }
 
     @PostConstruct
     private void postConstruct() {
-        this.scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
-            executor.execute(this::doPoll);
-        }, 0, this.period, TimeUnit.MILLISECONDS);
+        if (this.enabled) {
+            this.scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
+                executor.execute(this::doPoll);
+            }, 0, this.period, TimeUnit.MILLISECONDS);
+        }
     }
 
     @PreDestroy
@@ -236,18 +240,18 @@ public class DiskUsageMonitoringService {
             log.error("Unable to get Filestore partition usage", e);
         }
 
-        if (this.maHomeSize != null) {
+        if (env.getProperty("internal.monitor.diskUsage.monitorDirectories", Boolean.class, false)) {
             maHomeSize.setValue(getGiB(getSize(Common.MA_HOME_PATH.toFile())));
+
+            fileStoreMonitors.forEach((key, value) -> {
+                Path rootPath = ModuleRegistry.getFileStoreDefinition(key).getRootPath();
+                value.setValue(getGiB(getSize(rootPath.toFile())));
+            });
         }
 
         long now = Common.timer.currentTimeMillis();
         this.sqlDatabaseSize.poll(now);
         this.noSqlDatabaseSize.poll(now);
-
-        fileStoreMonitors.forEach((key, value) -> {
-            Path rootPath = ModuleRegistry.getFileStoreDefinition(key).getRootPath();
-            value.setValue(getGiB(getSize(rootPath.toFile())));
-        });
     }
 
     /**
@@ -271,18 +275,22 @@ public class DiskUsageMonitoringService {
      * @return
      */
     private Double getSqlDatabaseSizeMB() {
-        long last = this.lastSqlDatabaseSizePollTime;
-        long now = Common.timer.currentTimeMillis();
-        if(now < last + MIN_SQL_DISK_SIZE_POLL_PERIOD) {
+        if (env.getProperty("internal.monitor.diskUsage.monitorSql", Boolean.class, false)) {
+            long last = this.lastSqlDatabaseSizePollTime;
+            long now = Common.timer.currentTimeMillis();
+            if (now < last + MIN_SQL_DISK_SIZE_POLL_PERIOD) {
+                return this.lastSqlDatabaseSize;
+            }
+            this.lastSqlDatabaseSizePollTime = now;
+            try {
+                this.lastSqlDatabaseSize = getGiB(Common.databaseProxy.getDatabaseSizeInBytes());
+            } catch (UnsupportedOperationException e) {
+                // not supported
+            }
             return this.lastSqlDatabaseSize;
+        } else {
+            return 0.0d;
         }
-        this.lastSqlDatabaseSizePollTime = now;
-        try {
-            this.lastSqlDatabaseSize = getGiB(Common.databaseProxy.getDatabaseSizeInBytes());
-        } catch (UnsupportedOperationException e) {
-            // not supported
-        }
-        return this.lastSqlDatabaseSize;
     }
 
     /**
@@ -290,19 +298,23 @@ public class DiskUsageMonitoringService {
      * @return
      */
     private Double getNoSqlDatabaseSizeMB() {
-        long last = this.lastNoSqlDatabaseSizePollTime;
-        long now = Common.timer.currentTimeMillis();
-        if(now < last + MIN_NOSQL_DISK_SIZE_POLL_PERIOD) {
+        if (env.getProperty("internal.monitor.diskUsage.monitorTsdb", Boolean.class, false)) {
+            long last = this.lastNoSqlDatabaseSizePollTime;
+            long now = Common.timer.currentTimeMillis();
+            if (now < last + MIN_NOSQL_DISK_SIZE_POLL_PERIOD) {
+                return this.lastNoSqlDatabaseSize;
+            }
+            this.lastNoSqlDatabaseSizePollTime = now;
+            if (Common.databaseProxy.getNoSQLProxy() != null) {
+                String pointDataStoreName = Common.envProps.getString("db.nosql.pointDataStoreName", "mangoTSDB");
+                this.lastNoSqlDatabaseSize = getGiB(Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointDataStoreName));
+            } else {
+                this.lastNoSqlDatabaseSize = 0d;
+            }
             return this.lastNoSqlDatabaseSize;
+        } else {
+            return 0.0d;
         }
-        this.lastNoSqlDatabaseSizePollTime = now;
-        if (Common.databaseProxy.getNoSQLProxy() != null) {
-            String pointDataStoreName = Common.envProps.getString("db.nosql.pointDataStoreName", "mangoTSDB");
-            this.lastNoSqlDatabaseSize = getGiB(Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointDataStoreName));
-        }else {
-            this.lastNoSqlDatabaseSize = 0d;
-        }
-        return this.lastNoSqlDatabaseSize;
     }
 
     /**
