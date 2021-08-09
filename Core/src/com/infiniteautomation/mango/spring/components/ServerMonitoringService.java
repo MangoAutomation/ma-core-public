@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.monitor.MonitoredValues;
@@ -131,24 +132,22 @@ public class ServerMonitoringService {
     private final long period;
     private volatile ScheduledFuture<?> scheduledFuture;
     private final IMangoLifecycle lifecycle;
-    private final ServerInformationService serverInfoService;
     private final Set<ValueMonitor<?>> monitors = new HashSet<>();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-
     @Autowired
     private ServerMonitoringService(ExecutorService executor,
-            ScheduledExecutorService scheduledExecutor,
-            @Value("${internal.monitor.pollPeriod:10000}") long period,
-            IMangoLifecycle lifecycle,
-            ServerInformationService serverInfoService,
-            MonitoredValues mv) {
+                                    ScheduledExecutorService scheduledExecutor,
+                                    @Value("${internal.monitor.pollPeriod:10000}") long period,
+                                    IMangoLifecycle lifecycle,
+                                    ServerInformationService serverInfoService,
+                                    MonitoredValues mv,
+                                    Environment env) {
 
         this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
         this.period = period;
         this.lifecycle = lifecycle;
-        this.serverInfoService = serverInfoService;
 
         threads = mv.<Integer>create(SERVER_THREADS).name(new TranslatableMessage(SERVER_THREADS)).build();
         idleThreads = mv.<Integer>create(SERVER_IDLE_THREADS).name(new TranslatableMessage(SERVER_IDLE_THREADS)).build();
@@ -156,13 +155,6 @@ public class ServerMonitoringService {
 
         maxStackHeight = mv.<Integer>create(MAX_STACK_HEIGHT_MONITOR_ID).name( new TranslatableMessage("internal.monitor.MONITOR_STACK_HEIGHT")).build();
         threadCount = mv.<Integer>create(THREAD_COUNT_MONITOR_ID).name( new TranslatableMessage("internal.monitor.MONITOR_THREAD_COUNT")).build();
-
-        mv.<Integer>create(AVAILABLE_PROCESSORS_ID)
-        .name(new TranslatableMessage("java.monitor.JAVA_PROCESSORS"))
-        .supplier(() -> this.serverInfoService.availableProcessors().size())
-        .addTo(monitors)
-        .uploadToStore(true)
-        .buildPollable();
 
         javaMaxMemory = mv.<Integer>create(MAX_MEMORY_ID)
                 .name(new TranslatableMessage("java.monitor.JAVA_MAX_MEMORY"))
@@ -189,20 +181,38 @@ public class ServerMonitoringService {
         uptime = mv.<Double>create(SYSTEM_UPTIME_MONITOR_ID).name(new TranslatableMessage("internal.monitor.SYSTEM_UPTIME")).build();
         userSessions = mv.<Integer>create(USER_SESSION_MONITOR_ID).name(new TranslatableMessage("internal.monitor.USER_SESSION_COUNT")).build();
 
-        mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).supplier(() -> this.serverInfoService.systemLoadAverage(1)).addTo(monitors).buildPollable();
+        if (env.getProperty("internal.monitor.enableOperatingSystemInfo", boolean.class, true)) {
+            mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).function((ts) -> serverInfoService.systemLoadAverage(1)).addTo(monitors).buildPollable();
 
-        mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::processCpuLoadPercent).addTo(monitors).buildPollable();
-        mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this.serverInfoService::systemCpuLoadPercent).addTo(monitors).buildPollable();
+            mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).function(serverInfoService::processCpuLoadPercent).addTo(monitors).buildPollable();
+            mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).function(serverInfoService::systemCpuLoadPercent).addTo(monitors).buildPollable();
 
-        mv.<Long>create(MANGO_PROCESS_OPEN_FILES).name(new TranslatableMessage("monitor.mango.process.openFiles")).supplier(() -> this.serverInfoService.getMangoProcess().getOpenFiles()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_VIRTUAL_SIZE).name(new TranslatableMessage("monitor.mango.process.virtualSize")).supplier(() -> this.serverInfoService.getMangoProcess().getVirtualSize()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_BYTES_WRITTEN).name(new TranslatableMessage("monitor.mango.process.bytesWritten")).supplier(() -> this.serverInfoService.getMangoProcess().getBytesWritten()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_BYTES_READ).name(new TranslatableMessage("monitor.mango.process.bytesRead")).supplier(() -> this.serverInfoService.getMangoProcess().getBytesRead()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_MAJOR_FAULTS).name(new TranslatableMessage("monitor.mango.process.majorFaults")).supplier(() -> this.serverInfoService.getMangoProcess().getMajorFaults()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_MINOR_FAULTS).name(new TranslatableMessage("monitor.mango.process.minorFaults")).supplier(() -> this.serverInfoService.getMangoProcess().getMinorFaults()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_KERNEL_TIME).name(new TranslatableMessage("monitor.mango.process.kernelTime")).supplier(() -> this.serverInfoService.getMangoProcess().getKernelTime()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_USER_TIME).name(new TranslatableMessage("monitor.mango.process.userTime")).supplier(() -> this.serverInfoService.getMangoProcess().getUserTime()).addTo(monitors).buildPollable();
-        mv.<Long>create(MANGO_PROCESS_RESIDENT_SET_SIZE).name(new TranslatableMessage("monitor.mango.process.residentSetSize")).supplier(() -> this.serverInfoService.getMangoProcess().getResidentSetSize()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_OPEN_FILES).name(new TranslatableMessage("monitor.mango.process.openFiles"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getOpenFiles()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_VIRTUAL_SIZE).name(new TranslatableMessage("monitor.mango.process.virtualSize"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getVirtualSize()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_BYTES_WRITTEN).name(new TranslatableMessage("monitor.mango.process.bytesWritten"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getBytesWritten()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_BYTES_READ).name(new TranslatableMessage("monitor.mango.process.bytesRead"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getBytesRead()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_MAJOR_FAULTS).name(new TranslatableMessage("monitor.mango.process.majorFaults"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getMajorFaults()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_MINOR_FAULTS).name(new TranslatableMessage("monitor.mango.process.minorFaults"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getMinorFaults()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_KERNEL_TIME).name(new TranslatableMessage("monitor.mango.process.kernelTime"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getKernelTime()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_USER_TIME).name(new TranslatableMessage("monitor.mango.process.userTime"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getUserTime()).addTo(monitors).buildPollable();
+            mv.<Long>create(MANGO_PROCESS_RESIDENT_SET_SIZE).name(new TranslatableMessage("monitor.mango.process.residentSetSize"))
+                    .function(ts -> serverInfoService.updateProcessAttributes(ts).getResidentSetSize()).addTo(monitors).buildPollable();
+
+            mv.<Integer>create(AVAILABLE_PROCESSORS_ID)
+                    .name(new TranslatableMessage("java.monitor.JAVA_PROCESSORS"))
+                    .supplier(() -> serverInfoService.availableProcessors().size())
+                    .addTo(monitors)
+                    .uploadToStore(true)
+                    .buildPollable();
+        }
 
         mv.<Long>create(RUNTIME_UPTIME_ID).supplier(() -> {
             return runtimeBean.getUptime() / 1000;

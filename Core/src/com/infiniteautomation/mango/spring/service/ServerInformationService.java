@@ -9,11 +9,12 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.ProcessResult;
 
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -30,40 +31,46 @@ import oshi.software.os.OperatingSystem;
 public class ServerInformationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServerInformationService.class);
+    private final Environment env;
 
     private HardwareAbstractionLayer hal;
     private OperatingSystem os;
     private boolean failedToLoad;
 
-
     //Mango Process ID
-    private int pid;
+    private final Object mutex = new Object();
+    private OSProcess process;
+    private volatile long processUpdateTime = Long.MIN_VALUE;
 
     //Process CPU Load
-    private long previousProcessTime = -1;
-    private long lastProcessCpuPollTime;
-    private Double lastProcessLoad;
-    private static final long MIN_PROCESS_LOAD_POLL_PERIOD = 1000;
+    private volatile Double processCpuUsage;
+    private volatile long processCpuUsageUpdateTime = Long.MIN_VALUE;
+    private long previousProcessTime;
 
     //System CPU Load
-    private long lastTicks[];
-    private long lastSystemCpuPollTime;
-    private Double lastSystemCpuLoad;
-    private static final long MIN_CPU_LOAD_POLL_PERIOD = 1000;
+    private volatile Double systemLoad;
+    private volatile long systemLoadUpdateTime = Long.MIN_VALUE;
+    private long[] previousSystemLoadTicks;
 
-    public ServerInformationService() {
+    // minimum period for CPU usage and system load
+    private static final long MIN_PERIOD_CPU_AND_LOAD = 1000;
+
+    @Autowired
+    public ServerInformationService(Environment env) {
+        this.env = env;
+
         try {
             SystemInfo si = new SystemInfo();
             this.hal = si.getHardware();
             this.os = si.getOperatingSystem();
-            this.pid = os.getProcessId();
+            this.process = os.getProcess(os.getProcessId());
             this.failedToLoad = false;
-        }catch(Throwable e) {
+        } catch(Throwable e) {
             //If no JNA is supported
             LOG.error("Server Information Service failed to start, no data will be availble on server hardware or processes", e);
             this.hal = null;
             this.os = null;
-            this.pid = -1;
+            this.process = null;
             this.failedToLoad = true;
         }
     }
@@ -97,7 +104,31 @@ public class ServerInformationService {
      * @return
      */
     public OSProcess getMangoProcess() {
-        return os.getProcess(this.pid);
+        return process;
+    }
+
+    /**
+     * Updates the processAttributes when the timestamp is newer than last time the attributes were updated.
+     *
+     * @param ts current time
+     * @return the process
+     */
+    public OSProcess updateProcessAttributes(long ts) {
+        if (ts > processUpdateTime) {
+            synchronized (mutex) {
+                if (ts > processUpdateTime) {
+                    if (process != null) {
+                        process.updateAttributes();
+                    }
+                    this.processUpdateTime = ts;
+                }
+            }
+        }
+        return process;
+    }
+
+    public Double processCpuLoadPercent() {
+        return processCpuLoadPercent(Common.timer.currentTimeMillis());
     }
 
     /**
@@ -111,99 +142,82 @@ public class ServerInformationService {
      *
      * @return
      */
-    public Double processCpuLoadPercent() {
-        if(failedToLoad) {
+    public Double processCpuLoadPercent(long timestamp) {
+        if (failedToLoad) {
             return null;
         }
+
         //https://github.com/oshi/oshi/issues/359
-        long lpcpt = this.lastProcessCpuPollTime;
-        long now = Common.timer.currentTimeMillis();
-        if(now < lpcpt + MIN_PROCESS_LOAD_POLL_PERIOD) {
-            return this.lastProcessLoad;
+        long lastUpdateTime = processCpuUsageUpdateTime;
+        if (timestamp > lastUpdateTime + MIN_PERIOD_CPU_AND_LOAD) {
+            synchronized (mutex) {
+                if (timestamp > lastUpdateTime + MIN_PERIOD_CPU_AND_LOAD) {
+                    CentralProcessor processor = getProcessor();
+                    int cpuCount = processor.getLogicalProcessorCount();
+                    OSProcess process = updateProcessAttributes(timestamp);
+
+                    long processTime = process.getKernelTime() + process.getUserTime();
+                    long period = timestamp - processCpuUsageUpdateTime;
+
+                    if (lastUpdateTime > Long.MIN_VALUE && period > 0) {
+                        // If we have both a previous and a current time
+                        // we can calculate the CPU usage
+                        long processTimeDelta = processTime - previousProcessTime;
+                        this.processCpuUsage = ((processTimeDelta / ((double) period)) / cpuCount) * 100.0D;
+                    }
+                    this.previousProcessTime = processTime;
+                    this.processCpuUsageUpdateTime = timestamp;
+                }
+            }
         }
 
-        CentralProcessor processor = getProcessor();
-        int cpuCount = processor.getLogicalProcessorCount();
-        OSProcess p = getMangoProcess();
-
-        if(this.lastProcessCpuPollTime == 0) {
-            this.lastProcessCpuPollTime = now;
-            return null;
-        }
-
-        long currentTime = p.getKernelTime() + p.getUserTime();
-        long processCpuPollPeriod = now - this.lastProcessCpuPollTime;
-        this.lastProcessCpuPollTime = now;
-
-        if(previousProcessTime > 0 && processCpuPollPeriod > 0) {
-            // If we have both a previous and a current time
-            // we can calculate the CPU usage
-            long timeDifference = currentTime - previousProcessTime;
-            this.lastProcessLoad = ((timeDifference / ((double) processCpuPollPeriod)) / cpuCount)*100d;
-        }
-        previousProcessTime = currentTime;
-        return this.lastProcessLoad;
+        return this.processCpuUsage;
     }
 
     /**
      * Get the load average
+     *
      * @param increment - 1=1 minute, 2=5 minute, 3=15 minute
      * @return
      */
     public Double systemLoadAverage(int increment) throws ValidationException {
-        if(failedToLoad) {
+        if (failedToLoad) {
             return null;
         }
-
-        if(increment < 1 || increment > 3) {
-            ProcessResult result = new ProcessResult();
-            result.addContextualMessage("increment", "validate.invalidValue");
-        }
-
         CentralProcessor processor = getProcessor();
         double[] loadAverage = processor.getSystemLoadAverage(increment);
-
         return loadAverage[increment - 1];
+    }
+
+    public Double systemCpuLoadPercent() {
+        return systemCpuLoadPercent(Common.timer.currentTimeMillis());
     }
 
     /**
      * Returns the "recent cpu usage" for the whole system by counting ticks from a previous call
-     *
-     *  This is limited to only allow an updated value every
-     *  MIN_CPU_LOAD_POLL_PERIOD ms to increase accuracy.
-     *
-     *  This is mildly thread safe in terms of accuracy, as
-     *   it is possible to call this faster than desired
-     *   but will only result is slightly less accurate readings
      */
-    public Double systemCpuLoadPercent() {
-        if(failedToLoad) {
+    public Double systemCpuLoadPercent(long timestamp) {
+        if (failedToLoad) {
             return null;
         }
 
-        long lpcpt = this.lastSystemCpuPollTime;
-        long now = Common.timer.currentTimeMillis();
-        if(now < lpcpt + MIN_CPU_LOAD_POLL_PERIOD) {
-            return this.lastSystemCpuLoad;
+        long lastUpdateTime = systemLoadUpdateTime;
+        if (timestamp > lastUpdateTime + MIN_PERIOD_CPU_AND_LOAD) {
+            synchronized (mutex) {
+                if (timestamp > lastUpdateTime + MIN_PERIOD_CPU_AND_LOAD) {
+                    CentralProcessor processor = getProcessor();
+
+                    long[] ticks = processor.getSystemCpuLoadTicks();
+                    if (previousSystemLoadTicks != null) {
+                        this.systemLoad = processor.getSystemCpuLoadBetweenTicks(previousSystemLoadTicks) * 100.0D;
+                    }
+                    this.previousSystemLoadTicks = ticks;
+                    this.systemLoadUpdateTime = timestamp;
+                }
+            }
         }
 
-        CentralProcessor processor = getProcessor();
-
-        if(this.lastSystemCpuPollTime == 0) {
-            this.lastSystemCpuPollTime = now;
-            return null;
-        }
-
-        if(this.lastTicks == null) {
-            this.lastTicks = processor.getSystemCpuLoadTicks();
-            this.lastSystemCpuPollTime = now;
-            return null;
-        }else {
-            double load = processor.getSystemCpuLoadBetweenTicks(this.lastTicks)*100d;
-            this.lastTicks = processor.getSystemCpuLoadTicks();
-            this.lastSystemCpuPollTime = now;
-            return load;
-        }
+        return this.systemLoad;
     }
 
     /**

@@ -1,6 +1,8 @@
 *4.1.3*
-* Add properties to enable/disable disk usage monitoring for SQL and TSDB directories
+* Add properties to enable/disable disk usage monitoring for SQL and TSDB directories (internal.monitor.diskUsage.monitorSql and internal.monitor.diskUsage.monitorTsdb)
 * Disable disk usage monitoring for SQL and TSDB directories by default
+* Add property to enable/disable use of OSHI native library for metrics (internal.monitor.enableOperatingSystemInfo)
+* Only get and update the process once when polling OSHI native library
 
 *4.1.2*
 * Fix bug in data point notify events to more accurately fire the correct event types that control meta points and event detectors
