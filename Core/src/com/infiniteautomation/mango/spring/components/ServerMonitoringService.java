@@ -9,7 +9,6 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.management.ThreadMXBean;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -49,10 +48,6 @@ public class ServerMonitoringService {
     public static final String SERVER_THREADS = "internal.monitor.SERVER_THREADS";
     public static final String SERVER_IDLE_THREADS = "internal.monitor.SERVER_IDLE_THREADS";
     public static final String SERVER_QUEUE_SIZE = "internal.monitor.SERVER_QUEUE_SIZE";
-
-    //JVM Metrics
-    public static final String MAX_STACK_HEIGHT_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.maxStackHeight";
-    public static final String THREAD_COUNT_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.threadCount";
 
     //DB Metrics
     public static final String DB_ACTIVE_CONNECTIONS_MONITOR_ID = "com.serotonin.m2m2.rt.maint.WorkItemMonitor.dbActiveConnections";
@@ -103,8 +98,6 @@ public class ServerMonitoringService {
     private final ValueMonitor<Integer> threads;
     private final ValueMonitor<Integer> idleThreads;
     private final ValueMonitor<Integer> queueSize;
-    private final ValueMonitor<Integer> maxStackHeight;
-    private final ValueMonitor<Integer> threadCount;
     private final ValueMonitor<Integer> javaMaxMemory;
     private final ValueMonitor<Integer> javaUsedMemory;
     private final ValueMonitor<Integer> javaFreeMemory;
@@ -152,9 +145,6 @@ public class ServerMonitoringService {
         threads = mv.<Integer>create(SERVER_THREADS).name(new TranslatableMessage(SERVER_THREADS)).build();
         idleThreads = mv.<Integer>create(SERVER_IDLE_THREADS).name(new TranslatableMessage(SERVER_IDLE_THREADS)).build();
         queueSize = mv.<Integer>create(SERVER_QUEUE_SIZE).name(new TranslatableMessage(SERVER_QUEUE_SIZE)).build();
-
-        maxStackHeight = mv.<Integer>create(MAX_STACK_HEIGHT_MONITOR_ID).name( new TranslatableMessage("internal.monitor.MONITOR_STACK_HEIGHT")).build();
-        threadCount = mv.<Integer>create(THREAD_COUNT_MONITOR_ID).name( new TranslatableMessage("internal.monitor.MONITOR_THREAD_COUNT")).build();
 
         javaMaxMemory = mv.<Integer>create(MAX_MEMORY_ID)
                 .name(new TranslatableMessage("java.monitor.JAVA_MAX_MEMORY"))
@@ -258,20 +248,6 @@ public class ServerMonitoringService {
             lowPriorityActive.setValue(Common.backgroundProcessing.getLowPriorityServiceActiveCount());
             lowPriorityWaiting.setValue(Common.backgroundProcessing.getLowPriorityServiceQueueSize());
         }
-
-        // Check the stack heights
-        int max = 0;
-        Collection<StackTraceElement[]> stacks = Thread.getAllStackTraces().values();
-        int count = stacks.size();
-        for (StackTraceElement[] stack : stacks) {
-            if (max < stack.length)
-                max = stack.length;
-            if (stack.length == 0)
-                // Don't include inactive threads
-                count--;
-        }
-        threadCount.setValue(count);
-        maxStackHeight.setValue(max);
 
         if(Common.databaseProxy != null){
             dbActiveConnections.setValue(Common.databaseProxy.getActiveConnections());
