@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -128,6 +129,8 @@ public class ServerMonitoringService {
     private final Set<ValueMonitor<?>> monitors = new HashSet<>();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    private final ReentrantLock pollLock = new ReentrantLock();
+
     @Autowired
     private ServerMonitoringService(ExecutorService executor,
                                     ScheduledExecutorService scheduledExecutor,
@@ -219,7 +222,7 @@ public class ServerMonitoringService {
     @PostConstruct
     private void postConstruct() {
         this.scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
-            executor.execute(this::doPoll);
+            executor.execute(this::tryPoll);
         }, 0, this.period, TimeUnit.MILLISECONDS);
     }
 
@@ -228,6 +231,21 @@ public class ServerMonitoringService {
         ScheduledFuture<?> scheduledFuture = this.scheduledFuture;
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
+        }
+    }
+
+    private void tryPoll() {
+        boolean locked = pollLock.tryLock();
+        try {
+            if (locked) {
+                doPoll();
+            } else {
+                log.error("Previous poll was still running");
+            }
+        } finally {
+            if (locked) {
+                pollLock.unlock();
+            }
         }
     }
 

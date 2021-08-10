@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -102,6 +103,8 @@ public class DiskUsageMonitoringService {
     private long lastSqlDatabaseSizePollTime;
     private static final long MIN_SQL_DISK_SIZE_POLL_PERIOD = 1000 * 60 * 60 * 6;
 
+    private final ReentrantLock pollLock = new ReentrantLock();
+
     /**
      *
      * @param scheduledExecutor
@@ -180,7 +183,7 @@ public class DiskUsageMonitoringService {
     private void postConstruct() {
         if (this.enabled) {
             this.scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
-                executor.execute(this::doPoll);
+                executor.execute(this::tryPoll);
             }, 0, this.period, TimeUnit.MILLISECONDS);
         }
     }
@@ -190,6 +193,21 @@ public class DiskUsageMonitoringService {
         ScheduledFuture<?> scheduledFuture = this.scheduledFuture;
         if (scheduledFuture != null) {
             scheduledFuture.cancel(true);
+        }
+    }
+
+    private void tryPoll() {
+        boolean locked = pollLock.tryLock();
+        try {
+            if (locked) {
+                doPoll();
+            } else {
+                log.error("Previous poll was still running");
+            }
+        } finally {
+            if (locked) {
+                pollLock.unlock();
+            }
         }
     }
 

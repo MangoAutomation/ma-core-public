@@ -4,6 +4,7 @@
 * Add property to enable/disable use of OSHI native library for metrics (internal.monitor.enableOperatingSystemInfo)
 * Only get and update the process once when polling OSHI native library
 * Remove system metrics that called getAllStackTraces(): com.serotonin.m2m2.rt.maint.WorkItemMonitor.maxStackHeight and com.serotonin.m2m2.rt.maint.WorkItemMonitor.threadCount
+* Dont allow concurrent polling for metrics in ServerMonitoringService and DiskMonitoringService
 
 *4.1.2*
 * Fix bug in data point notify events to more accurately fire the correct event types that control meta points and event detectors
