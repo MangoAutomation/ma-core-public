@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -43,7 +42,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
  * @author Terry Packer
  */
 @Service
-public class ServerMonitoringService {
+public class ServerMonitoringService extends PollingService {
 
     //Jetty Server metrics
     public static final String SERVER_THREADS = "internal.monitor.SERVER_THREADS";
@@ -128,8 +127,6 @@ public class ServerMonitoringService {
     private final IMangoLifecycle lifecycle;
     private final Set<ValueMonitor<?>> monitors = new HashSet<>();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
-
-    private final ReentrantLock pollLock = new ReentrantLock();
 
     @Autowired
     private ServerMonitoringService(ExecutorService executor,
@@ -234,22 +231,8 @@ public class ServerMonitoringService {
         }
     }
 
-    private void tryPoll() {
-        boolean locked = pollLock.tryLock();
-        try {
-            if (locked) {
-                doPoll();
-            } else {
-                log.error("Previous poll was still running");
-            }
-        } finally {
-            if (locked) {
-                pollLock.unlock();
-            }
-        }
-    }
-
-    private void doPoll() {
+    @Override
+    protected void doPoll() {
         ServerStatus status = lifecycle.getServerStatus();
         threads.setValue(status.getThreads());
         idleThreads.setValue(status.getIdleThreads());

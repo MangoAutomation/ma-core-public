@@ -14,14 +14,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
@@ -41,9 +38,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
  *
  */
 @Service
-public class DiskUsageMonitoringService {
-
-    private final Logger log = LoggerFactory.getLogger(DiskUsageMonitoringService.class);
+public class DiskUsageMonitoringService extends PollingService {
 
     public static final String MA_HOME_PARTITION_TOTAL_SPACE = "internal.monitor.MA_HOME_PARTITION_TOTAL_SPACE";
     public static final String MA_HOME_PARTITION_USABLE_SPACE = "internal.monitor.MA_HOME_PARTITION_USABLE_SPACE";
@@ -102,8 +97,6 @@ public class DiskUsageMonitoringService {
     private Double lastSqlDatabaseSize;
     private long lastSqlDatabaseSizePollTime;
     private static final long MIN_SQL_DISK_SIZE_POLL_PERIOD = 1000 * 60 * 60 * 6;
-
-    private final ReentrantLock pollLock = new ReentrantLock();
 
     /**
      *
@@ -196,22 +189,8 @@ public class DiskUsageMonitoringService {
         }
     }
 
-    private void tryPoll() {
-        boolean locked = pollLock.tryLock();
-        try {
-            if (locked) {
-                doPoll();
-            } else {
-                log.error("Previous poll was still running");
-            }
-        } finally {
-            if (locked) {
-                pollLock.unlock();
-            }
-        }
-    }
-
-    private void doPoll() {
+    @Override
+    protected void doPoll() {
         //Volume information for MA Home Partition
         try {
             FileStore store = Files.getFileStore(Common.MA_HOME_PATH);
