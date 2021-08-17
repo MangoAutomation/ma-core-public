@@ -4,14 +4,18 @@
  */
 package com.serotonin.util;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
 /**
  * @author Matthew Lohbihler
  */
 public class IpAddressUtils {
-    private static final Pattern IPV6_REGEX = Pattern.compile("[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}"+
-            ":[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}:[0-9a-fA-F]{1,4}");
+    private static final Pattern IPV6_REGEX = Pattern.compile("[0-9a-fA-F*]{1,4}:[0-9a-fA-F*]{1,4}:[0-9a-fA-F*]{1,4}:[0-9a-fA-F*]{1,4}"+
+            ":[0-9a-fA-F*]{1,4}:[0-9a-fA-F*]{1,4}:[0-9a-fA-F*]{1,4}:[0-9a-fA-F*]{1,4}");
     private static final int IPV4_BASE = 10;
     private static final int IPV6_BASE = 16;
     
@@ -27,25 +31,33 @@ public class IpAddressUtils {
     }
     
     public static boolean ipWhiteListCheck(String[] allowedIps, String remoteIp) throws IpWhiteListException {
-        String[] remoteIpParts = remoteIp.split("\\.");
-        if (remoteIpParts.length != 4) {
-            remoteIpParts = remoteIp.split(":");
-            if(remoteIpParts.length != 8)
-                throw new IpWhiteListException("Invalid remote IP address: "+ remoteIp);
-            
-            for (int i=0; i<allowedIps.length; i++) {
-                if (isIpv6(allowedIps[i]) && ipv6WhiteListCheckImpl(allowedIps[i], remoteIp, remoteIpParts))
-                    return true;
-            }
-            
+        InetAddress address;
+        try {
+            address = InetAddress.getByName(remoteIp);
+        } catch (UnknownHostException e) {
             return false;
         }
         
-        for (int i=0; i<allowedIps.length; i++) {
-            if (!isIpv6(allowedIps[i]) && ipWhiteListCheckImpl(allowedIps[i], remoteIp, remoteIpParts))
-                return true;
+        String cleanIp = address.getHostAddress();
+        if (address instanceof Inet6Address) {
+            String [] remoteIpParts = cleanIp.split(":");
+            if(remoteIpParts.length != 8)
+                throw new IpWhiteListException("Invalid remote IP address: "+ remoteIp);
+
+            for (int i=0; i<allowedIps.length; i++) {
+                if (isIpv6(allowedIps[i]) && ipv6WhiteListCheckImpl(allowedIps[i], cleanIp, remoteIpParts))
+                    return true;
+            }
+        } else if (address instanceof Inet4Address) {
+            String[] remoteIpParts = cleanIp.split("\\.");
+            if(remoteIpParts.length != 4)
+                throw new IpWhiteListException("Invalid remote IP address: "+ remoteIp);
+
+            for (int i=0; i<allowedIps.length; i++) {
+                if (!isIpv6(allowedIps[i]) && ipWhiteListCheckImpl(allowedIps[i], cleanIp, remoteIpParts))
+                    return true;
+            }
         }
-        
         return false;
     }
     
