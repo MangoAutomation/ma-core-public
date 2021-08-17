@@ -383,7 +383,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ui</artifactId>
-            <version>4.1.1-SNAPSHOT</version>
+            <version>4.1.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
