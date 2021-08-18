@@ -1,5 +1,6 @@
 *4.2.0*
 * Fix bugs in ipv6 network tools to accurately whitelist ipv6 addresses, would previously blacklist all ipv6
+* Fix bugs when importing data points that include event detectors after exceeding the amount of data points allowed by the licence
 
 *4.1.3*
 * Add properties to enable/disable disk usage monitoring for SQL and TSDB directories (internal.monitor.diskUsage.monitorSql and internal.monitor.diskUsage.monitorTsdb)
