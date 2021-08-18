@@ -188,10 +188,16 @@ public class DataPointImporter extends Importer {
                                 ed.setSourceId(dp.getDataPoint().getId());
                             }
                         }
+                        //validating if the dp was, in fact, added.
+                        dataPointService.get(dp.getDataPoint().getId());
+
                         addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     }else{
                         addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
                     }
+                }catch (NotFoundException e){
+                    //the data point was not added correctly
+                    addFailureMessage("emport.dataPoint.prefix", xid, e.getMessage());
                 } catch(LicenseViolatedException e) {
                     addFailureMessage(new ProcessMessage(e.getErrorMessage()));
                 }
