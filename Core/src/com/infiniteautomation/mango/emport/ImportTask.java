@@ -24,7 +24,6 @@ import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
-import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -309,8 +308,6 @@ public class ImportTask extends ProgressiveTask {
             while(listIt.hasNext()) {
                 AbstractPointEventDetectorVO ed = listIt.next();
                 try {
-                    //looking if the data point exists prior to adding the event detector
-                    dataPointService.get(dp.getDataPoint().getXid());
 
                     if(ed.isNew()) {
                         eventDetectorService.insertAndReload(ed, false);
@@ -322,9 +319,6 @@ public class ImportTask extends ProgressiveTask {
 
                     //Reload into the RT
                     dataPointService.reloadDataPoint(dp.getDataPoint().getXid());
-                }catch (NotFoundException e){
-                    //The data point do not exist.
-                    importContext.getResult().addGenericMessage("emport.eventDetector.noDataPoint", new Object[]{ed.getXid(),dp.getDataPoint().getXid()});
                 }catch(ValidationException e) {
                     importContext.copyValidationMessages(e.getValidationResult(), "emport.eventDetector.prefix", ed.getXid());
                 }catch(Exception e) {
