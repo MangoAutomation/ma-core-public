@@ -20,7 +20,6 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
@@ -90,7 +89,6 @@ public class DataPointImporter extends Importer {
         if(existingMapping != null) {
             dp.getEventDetectors().addAll(existingMapping.getEventDetectors());
         }
-        dataPointMap.put(xid, dp);
 
         if (dp != null) {
 
@@ -188,20 +186,33 @@ public class DataPointImporter extends Importer {
                                 ed.setSourceId(dp.getDataPoint().getId());
                             }
                         }
+
+                        dataPointMap.put(xid, dp);
+
                         addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     }else{
                         addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
                     }
-                } catch(LicenseViolatedException e) {
-                    addFailureMessage(new ProcessMessage(e.getErrorMessage()));
+                }catch(LicenseViolatedException e) {
+                    addFailureMessage("emport.DataPoint.notImported", e.getErrorMessage(), xid);
+                    addDetectorsFailureMessage(dp,xid);
                 }
             }catch(ValidationException e) {
                 setValidationMessages(e.getValidationResult(), "emport.dataPoint.prefix", xid);
+                addDetectorsFailureMessage(dp,xid);
             }catch (TranslatableJsonException e) {
                 addFailureMessage("emport.dataPoint.prefix", xid, e.getMsg());
+                addDetectorsFailureMessage(dp,xid);
             }catch (JsonException e) {
                 addFailureMessage("emport.dataPoint.prefix", xid, getJsonExceptionMessage(e));
+                addDetectorsFailureMessage(dp,xid);
             }
+        }
+    }
+
+    private void addDetectorsFailureMessage(DataPointWithEventDetectors dp, String xid){
+        if(dp.getEventDetectors().size() > 0){
+            addFailureMessage("emport.DataPoint.detectorsSkipped", xid );
         }
     }
 }
