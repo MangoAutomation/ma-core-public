@@ -195,14 +195,24 @@ public class DataPointImporter extends Importer {
                     }
                 }catch(LicenseViolatedException e) {
                     addFailureMessage("emport.DataPoint.notImported", e.getErrorMessage(), xid);
+                    addDetectorsFailureMessage(dp,xid);
                 }
             }catch(ValidationException e) {
                 setValidationMessages(e.getValidationResult(), "emport.dataPoint.prefix", xid);
+                addDetectorsFailureMessage(dp,xid);
             }catch (TranslatableJsonException e) {
                 addFailureMessage("emport.dataPoint.prefix", xid, e.getMsg());
+                addDetectorsFailureMessage(dp,xid);
             }catch (JsonException e) {
                 addFailureMessage("emport.dataPoint.prefix", xid, getJsonExceptionMessage(e));
+                addDetectorsFailureMessage(dp,xid);
             }
+        }
+    }
+
+    private void addDetectorsFailureMessage(DataPointWithEventDetectors dp, String xid){
+        if(dp.getEventDetectors().size() > 0){
+            addFailureMessage("emport.DataPoint.detectorsSkipped", xid );
         }
     }
 }
