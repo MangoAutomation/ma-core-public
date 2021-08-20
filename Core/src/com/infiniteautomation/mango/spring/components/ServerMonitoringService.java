@@ -12,6 +12,7 @@ import java.math.RoundingMode;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +95,7 @@ public class ServerMonitoringService extends PollingService {
     public static final String MANGO_PROCESS_KERNEL_TIME = "mango.process.kernelTime";
     public static final String MANGO_PROCESS_USER_TIME = "mango.process.userTime";
     public static final String MANGO_PROCESS_RESIDENT_SET_SIZE = "mango.process.residentSetSize";
+    public static final String FORK_JOIN_POOL_SIZE = "mango.process.forkJoinPool";
 
     private final ValueMonitor<Integer> threads;
     private final ValueMonitor<Integer> idleThreads;
@@ -195,6 +197,8 @@ public class ServerMonitoringService extends PollingService {
                     .function(ts -> serverInfoService.updateProcessAttributes(ts).getUserTime()).addTo(monitors).buildPollable();
             mv.<Long>create(MANGO_PROCESS_RESIDENT_SET_SIZE).name(new TranslatableMessage("monitor.mango.process.residentSetSize"))
                     .function(ts -> serverInfoService.updateProcessAttributes(ts).getResidentSetSize()).addTo(monitors).buildPollable();
+            mv.<Long>create(FORK_JOIN_POOL_SIZE).name(new TranslatableMessage("monitor.forkJoinPool.commonPoolSize"))
+                    .function(ts -> Long.valueOf(ForkJoinPool.commonPool().getPoolSize())).addTo(monitors).buildPollable();
 
             mv.<Integer>create(AVAILABLE_PROCESSORS_ID)
                     .name(new TranslatableMessage("java.monitor.JAVA_PROCESSORS"))
