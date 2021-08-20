@@ -1,4 +1,4 @@
-![Mango Logo](https://github.com/infiniteautomation/ma-core-public/blob/main/Core/web/images/logo.png)  
+![Mango Logo](https://github.com/MangoAutomation/ma-core-public/blob/main/Core/web/images/logo.png)  
 
 [![DepShield Badge](https://depshield.sonatype.org/badges/infiniteautomation/ma-core-public/depshield.svg)](https://depshield.github.io)  
 
@@ -112,4 +112,4 @@ Hear sounds when alarms are raised in Mango.
 
 ## Contributing to Mango
 
-Mango is open source and always looking for suggestions and additions.  Please review our guidelines for contributions [here](https://github.com/infiniteautomation/.github/blob/master/CONTRIBUTING.md)
+Mango is open source and always looking for suggestions and additions.  Please review our guidelines for contributions [here](https://github.com/MangoAutomation/.github/blob/master/CONTRIBUTING.md)
