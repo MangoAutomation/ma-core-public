@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import net.jazdw.rql.parser.ASTNode;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -26,12 +27,8 @@ import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-import net.jazdw.rql.parser.ASTNode;
-
 /**
- * TODO Mango 4.0 extract interface
  * @author Terry Packer
- *
  */
 public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO extends AbstractBasicVOAccess<T>> {
 
