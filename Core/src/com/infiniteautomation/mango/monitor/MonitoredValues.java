@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.monitor;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,16 +14,37 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.DynamicMBean;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanInfo;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
 
 /**
  * List of Values Monitored for Mango
  *
  * @author Matthew Lohbihler, Terry Packer
  */
-public class MonitoredValues {
+public class MonitoredValues implements DynamicMBean {
 
     private final Map<String, ValueMonitor<?>> monitors = new ConcurrentHashMap<>();
+
+    public MonitoredValues() {
+        MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
+        try {
+            ObjectName objectName = new ObjectName("com.radixiot.mango:name=" + MonitoredValues.class.getSimpleName());
+            platformMBeanServer.registerMBean(this, objectName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Adds monitor, if ID already exists it will be replaced by the new monitor.
@@ -124,5 +146,49 @@ public class MonitoredValues {
             }
             return monitor;
         }
+    }
+
+    @Override
+    public void setAttribute(Attribute attribute) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AttributeList getAttributes(String[] attributes) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AttributeList setAttributes(AttributeList attributes) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object invoke(String actionName, Object[] params, String[] signature) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Object getAttribute(String attribute) throws AttributeNotFoundException {
+        ValueMonitor<?> monitor = monitors.get(attribute);
+        if (monitor == null) throw new AttributeNotFoundException();
+        return monitor.getValue();
+    }
+
+    @Override
+    public MBeanInfo getMBeanInfo() {
+        Translations translations;
+        try {
+            translations = Common.getTranslations();
+        } catch (NullPointerException e) {
+            translations = null;
+        }
+        Translations finalTranslations = translations;
+
+        MBeanAttributeInfo[] attributes = monitors.values().stream().map(v -> new MBeanAttributeInfo(v.getId(), "",
+                finalTranslations != null ? v.getName().translate(finalTranslations) : v.getId(),
+                true, false, false)).toArray(MBeanAttributeInfo[]::new);
+        return new MBeanInfo(getClass().getName(), "Internal monitored values", attributes,
+                null, null, null);
     }
 }
