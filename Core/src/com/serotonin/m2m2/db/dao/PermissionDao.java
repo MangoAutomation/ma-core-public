@@ -3,10 +3,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.default_;
-import static org.jooq.impl.DSL.when;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -33,6 +29,8 @@ import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.vo.role.Role;
+
+import static org.jooq.impl.DSL.*;
 
 /**
  * NOTE: Permissions are cached, usage of tjos dao should be limited to within the PermissionService
@@ -103,8 +101,8 @@ public class PermissionDao extends BaseDao {
                             mintermId = rs.getInt(minterIdIndex);
                         }
                     }
-                    MangoPermission permission = new MangoPermission(id, roleSet);
-                    return permission;
+                    MangoPermission permission = new MangoPermission(roleSet);
+                    return permission.withId(id);
                 }else {
                     return new MangoPermission(id);
                 }

@@ -76,8 +76,12 @@ public final class MangoPermission {
                 .toArray(String[][]::new);
     }
 
-    // TODO Mango 4.0 review the usage of this constructor and make it private
-    public MangoPermission(Integer id, Set<Set<Role>> minterms) {
+    /**
+     * Construct a permission that must already exist in the database
+     * @param id
+     * @param minterms
+     */
+    private MangoPermission(Integer id, Set<Set<Role>> minterms) {
         this.id = id;
 
         if (minterms == null) {

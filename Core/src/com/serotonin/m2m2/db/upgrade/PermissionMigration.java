@@ -89,8 +89,8 @@ public interface PermissionMigration {
                                         mintermId = rs.getInt(minterIdIndex);
                                     }
                                 }
-                                MangoPermission permission = new MangoPermission(id, roleSet);
-                                return permission;
+                                MangoPermission permission = new MangoPermission(roleSet);
+                                return permission.withId(id);
                             }else {
                                 return new MangoPermission(id);
                             }
@@ -119,8 +119,8 @@ public interface PermissionMigration {
                 mintermIds.add(getOrCreateMinterm(savedRoles));
             }
             Integer id = getOrCreatePermission(mintermIds);
-            MangoPermission saved = new MangoPermission(id, minterms);
-            return saved;
+            MangoPermission saved = new MangoPermission(minterms);
+            return saved.withId(id);
         });
     }
 
