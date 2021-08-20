@@ -357,14 +357,14 @@
         </plugins>
     </build>
     <issueManagement>
-        <url>https://github.com/infiniteautomation/ma-core-public/issues</url>
+        <url>https://github.com/MangoAutomation/ma-core-public/issues</url>
         <system>github</system>
     </issueManagement>
     <scm>
-        <url>https://github.com/infiniteautomation/ma-core-public</url>
-        <connection>scm:git:https://github.com/infiniteautomation/ma-core-public.git</connection>
+        <url>https://github.com/MangoAutomation/ma-core-public</url>
+        <connection>scm:git:https://github.com/MangoAutomation/ma-core-public.git</connection>
         <developerConnection>
-            scm:git:[push=]https://github.com/infiniteautomation/ma-core-public.git[fetch=]https://github.com/infiniteautomation/ma-core-public.git
+            scm:git:[push=]https://github.com/MangoAutomation/ma-core-public.git[fetch=]https://github.com/MangoAutomation/ma-core-public.git
         </developerConnection>
         <tag>HEAD</tag>
     </scm>

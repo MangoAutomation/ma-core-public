@@ -77,7 +77,7 @@
                             <goal>deploy</goal>
                         </goals>
                         <configuration>
-                            <altDeploymentRepository>github::https://maven.pkg.github.com/infiniteautomation/ma-core-public</altDeploymentRepository>
+                            <altDeploymentRepository>github::https://maven.pkg.github.com/MangoAutomation/ma-core-public</altDeploymentRepository>
                         </configuration>
                     </execution>
                 </executions>
