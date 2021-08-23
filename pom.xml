@@ -333,7 +333,7 @@
                 <version>2.8.1</version>
                 <configuration>
                     <rulesUri>
-                        https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/versions-plugin-rules.xml
+                        https://raw.githubusercontent.com/MangoAutomation/ma-core-public/main/versions-plugin-rules.xml
                     </rulesUri>
                 </configuration>
             </plugin>
