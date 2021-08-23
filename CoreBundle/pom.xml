@@ -9,6 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mango-bundle</artifactId>
     <name>Mango Core bundle</name>
+    <version>4.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <build>
         <plugins>
@@ -88,24 +89,24 @@
         <dependency>
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
-            <version>${project.parent.version}</version>
+            <version>4.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
-            <version>${project.parent.version}</version>
+            <version>4.2.0-SNAPSHOT</version>
             <classifier>resources</classifier>
             <type>zip</type>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ma-priv</artifactId>
-            <version>${project.parent.version}</version>
+            <version>4.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ma-bootstrap</artifactId>
-            <version>${project.parent.version}</version>
+            <version>4.2.0-SNAPSHOT</version>
         </dependency>
         <!-- ma-modules-public -->
         <dependency>
