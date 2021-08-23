@@ -360,7 +360,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-nosql-database</artifactId>
-            <version>4.1.1-SNAPSHOT</version>
+            <version>4.1.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
@@ -456,7 +456,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>chronicle-point-value-cache</artifactId>
-            <version>4.1.0-SNAPSHOT</version>
+            <version>4.1.1-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
     </dependencies>
