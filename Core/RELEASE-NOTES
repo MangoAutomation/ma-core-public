@@ -1,12 +1,15 @@
-*Mango 4.1.1*
+*Version 4.1.2*
+* Fix for log messages being discarded due to being logged at fatal level
+
+*Version 4.1.1*
 * Fix for deserializing chart renderers in legacy data point blob columns
 
-*Mango 4.1.0*
+*Version 4.1.0*
 * Filter roles so users can only see their own roles
 * Users can only add/remove their own roles from permissions
 * Only superadmin users can add/remove user or anonymous role from permissions
 
-*Mango 4.0.0*
+*Version 4.0.0*
 * Completely remove legacy UI
 * Remove REST v1 api
 * Add new role table and roles to replace legacy permission strings, the upgrade will convert all permission strings into unique roles and ensure that the permissions remain the same
