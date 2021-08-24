@@ -20,12 +20,12 @@ public class LogStopWatch {
     static final String closeDuration = " ms] message[";
     static final String close = "] ";
 
-    final transient Logger logger;
-    final long startTime;
+    private final transient Logger logger;
+    private long startTime;
 
     public LogStopWatch() {
         logger = LoggerFactory.getLogger(LogStopWatch.class);
-        startTime = System.nanoTime();
+        reset();
     }
 
     /**
@@ -90,6 +90,11 @@ public class LogStopWatch {
     public long getElapsedTime() {
         return (System.nanoTime() - startTime) / 1000000;
     }
+
+    /**
+     * Reset the start time to now
+     */
+    public void reset() {startTime = System.nanoTime();}
 
     private String createMessage(long duration, Supplier<String> message) {
         StringBuilder builder = new StringBuilder();
