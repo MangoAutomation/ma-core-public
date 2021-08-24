@@ -11,8 +11,13 @@
 * Remove system metrics that called getAllStackTraces(): com.serotonin.m2m2.rt.maint.WorkItemMonitor.maxStackHeight and com.serotonin.m2m2.rt.maint.WorkItemMonitor.threadCount
 * Dont allow concurrent polling for metrics in ServerMonitoringService and DiskMonitoringService
 
+*Version 4.1.3*
+* Fix Docker image to include correct bundle version
+* Fix Mango API module version in bundle
+
 *Version 4.1.2*
 * Fix for log messages being discarded due to being logged at fatal level
+* Update bundle modules - mango-nosql-database v4.1.1, ui v4.1.1
 
 *Version 4.1.1*
 * Fix for deserializing chart renderers in legacy data point blob columns
