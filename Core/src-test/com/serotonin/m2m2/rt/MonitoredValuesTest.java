@@ -10,19 +10,19 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
-import com.infiniteautomation.mango.monitor.MonitoredValues;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.MangoTestBase;
 
 /**
  * @author Jared Wiltshire
  */
-public class MonitoredValuesTest {
+public class MonitoredValuesTest extends MangoTestBase {
 
     private final ExecutorService executor = Executors.newFixedThreadPool(2);
 
     @Test
     public void testMonitoredValues() throws Exception {
-        MonitoredValues monitoredValues = new MonitoredValues();
-        AtomicIntegerMonitor monitor = monitoredValues.create("test.monitor").buildAtomic();
+        AtomicIntegerMonitor monitor = Common.MONITORED_VALUES.create("test.monitor").buildAtomic();
 
         int count = 1000;
 
