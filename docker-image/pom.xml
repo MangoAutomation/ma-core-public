@@ -11,7 +11,7 @@
     <name>Mango Docker image</name>
     <packaging>pom</packaging>
     <properties>
-        <docker.repository>ghcr.io/MangoAutomation/mango</docker.repository>
+        <docker.repository>ghcr.io/mangoautomation/mango</docker.repository>
     </properties>
     <build>
         <plugins>
