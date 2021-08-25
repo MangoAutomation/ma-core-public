@@ -14,9 +14,9 @@
         <log4jVersion>2.13.3</log4jVersion>
         <slf4jVersion>1.8.0-beta4</slf4jVersion>
         <jacksonVersion>2.12.1</jacksonVersion>
-        <coreApiVersion>${parsedParentVersion.majorVersion}.${parsedParentVersion.minorVersion}</coreApiVersion>
-        <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}
-        </noSnapshotVer>
+        <mangoVersion>4.2.0-SNAPSHOT</mangoVersion>
+        <coreApiVersion>${coreVersion.majorVersion}.${coreVersion.minorVersion}</coreApiVersion>
+        <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
         <compilerSourceVersion>1.8</compilerSourceVersion>
         <compilerTargetVersion>1.8</compilerTargetVersion>
         <compilerReleaseVersion>8</compilerReleaseVersion>
@@ -283,9 +283,16 @@
                     <artifactId>maven-remote-resources-plugin</artifactId>
                     <version>1.7.0</version>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -298,13 +305,13 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>parse-parent-version</id>
+                        <id>parse-core-version</id>
                         <goals>
                             <goal>parse-version</goal>
                         </goals>
                         <configuration>
-                            <propertyPrefix>parsedParentVersion</propertyPrefix>
-                            <versionString>${project.parent.version}</versionString>
+                            <propertyPrefix>coreVersion</propertyPrefix>
+                            <versionString>${mangoVersion}</versionString>
                         </configuration>
                     </execution>
                 </executions>

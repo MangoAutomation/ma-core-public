@@ -165,7 +165,7 @@
                     <artifactId>maven-remote-resources-plugin</artifactId>
                     <configuration>
                         <resourceBundles>
-                            <resourceBundle>com.infiniteautomation:mango:4.2.0-SNAPSHOT</resourceBundle>
+                            <resourceBundle>com.infiniteautomation:mango:${mangoVersion}</resourceBundle>
                         </resourceBundles>
                         <attachToMain>false</attachToMain>
                         <attachToTest>false</attachToTest>
