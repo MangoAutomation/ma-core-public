@@ -165,7 +165,7 @@
                     <artifactId>maven-remote-resources-plugin</artifactId>
                     <configuration>
                         <resourceBundles>
-                            <resourceBundle>com.infiniteautomation:mango:4.1.4-SNAPSHOT</resourceBundle>
+                            <resourceBundle>com.infiniteautomation:mango:${mangoVersion}</resourceBundle>
                         </resourceBundles>
                         <attachToMain>false</attachToMain>
                         <attachToTest>false</attachToTest>
@@ -239,7 +239,7 @@
                                 <goal>yarn</goal>
                             </goals>
                             <configuration>
-                                <arguments>install --production=false --frozen-lockfile</arguments>
+                                <arguments>install --production=false --frozen-lockfile --mutex network</arguments>
                             </configuration>
                         </execution>
                         <execution>
@@ -298,13 +298,13 @@
         <dependency>
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
-            <version>4.1.4-SNAPSHOT</version>
+            <version>4.2.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <artifactId>mango</artifactId>
             <groupId>com.infiniteautomation</groupId>
-            <version>4.1.4-SNAPSHOT</version>
+            <version>4.2.0-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
