@@ -104,6 +104,16 @@ fi
 [ -z "$MA_DB_USER" ] && MA_DB_USER=mango
 [ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD="$(openssl rand -base64 24)"
 
+while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_USERNAME" ]; do
+  MA_DB_USERNAME="$(prompt 'MySQL username?' 'root')"
+done
+while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_HOST" ]; do
+  MA_DB_HOST="$(prompt 'MySQL hostname?' 'localhost')"
+done
+while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_PORT" ]; do
+  MA_DB_PORT="$(prompt 'MySQL port?' '3306')"
+done
+
 while [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
   prompt_text="Drop SQL database '$MA_DB_NAME' and user '$MA_DB_USER'? (If they exist)"
   MA_CONFIRM_DROP="$(prompt "$prompt_text" 'no')"
@@ -111,13 +121,13 @@ done
 
 if [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" = 'yes' ]; then
   echo "DROP DATABASE IF EXISTS $MA_DB_NAME;
-		DROP USER IF EXISTS '$MA_DB_USER'@'localhost';" | mysql -u root
+		DROP USER IF EXISTS '$MA_DB_USER'@'$MA_DB_HOST';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
 fi
 
 if [ "$MA_DB_TYPE" = 'mysql' ]; then
   echo "CREATE DATABASE IF NOT EXISTS $MA_DB_NAME;
-	CREATE USER IF NOT EXISTS '$MA_DB_USER'@'localhost' IDENTIFIED BY '$MA_DB_PASSWORD';
-	GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'localhost';" | mysql -u root
+	CREATE USER IF NOT EXISTS '$MA_DB_USER'@'$MA_DB_HOST' IDENTIFIED BY '$MA_DB_PASSWORD';
+	GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'$MA_DB_HOST';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
 fi
 
 # Remove any old files in MA_HOME
@@ -164,7 +174,7 @@ prompt_text="Config file '$MA_ENV_FILE' exists, overwrite it?"
 if [ ! -e "$MA_ENV_FILE" ] || confirm "$prompt_text"; then
   echo "paths.data=$MA_DATA" >"$MA_ENV_FILE";
   if [ "$MA_DB_TYPE" = 'mysql' ]; then
-    echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME" >>"$MA_ENV_FILE"
+    echo "db.url=jdbc:mysql://$MA_DB_HOST:$MA_DB_PORT/$MA_DB_NAME" >>"$MA_ENV_FILE"
   elif [ "$MA_DB_TYPE" = 'h2' ]; then
     echo "db.url=jdbc:h2:databases/$MA_DB_NAME" >>"$MA_ENV_FILE"
   else
