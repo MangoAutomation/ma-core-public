@@ -106,6 +106,7 @@ fi
 
 while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_USERNAME" ]; do
   MA_DB_USERNAME="$(prompt 'MySQL username?' 'root')"
+  echo "NOTE: Password must be supplied via .my.cnf file or via MYSQL_PWD env variable"
 done
 while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_HOST" ]; do
   MA_DB_HOST="$(prompt 'MySQL hostname?' 'localhost')"
@@ -121,13 +122,13 @@ done
 
 if [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" = 'yes' ]; then
   echo "DROP DATABASE IF EXISTS $MA_DB_NAME;
-		DROP USER IF EXISTS '$MA_DB_USER'@'$MA_DB_HOST';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
+		DROP USER IF EXISTS '$MA_DB_USER'@'%';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
 fi
 
 if [ "$MA_DB_TYPE" = 'mysql' ]; then
   echo "CREATE DATABASE IF NOT EXISTS $MA_DB_NAME;
-	CREATE USER IF NOT EXISTS '$MA_DB_USER'@'$MA_DB_HOST' IDENTIFIED BY '$MA_DB_PASSWORD';
-	GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'$MA_DB_HOST';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
+	CREATE USER IF NOT EXISTS '$MA_DB_USER'@'%' IDENTIFIED BY '$MA_DB_PASSWORD';
+	GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'%';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
 fi
 
 # Remove any old files in MA_HOME
