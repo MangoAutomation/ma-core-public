@@ -104,31 +104,35 @@ fi
 [ -z "$MA_DB_USER" ] && MA_DB_USER=mango
 [ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD="$(openssl rand -base64 24)"
 
-while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_USERNAME" ]; do
-  MA_DB_USERNAME="$(prompt 'MySQL username?' 'root')"
-  echo "NOTE: Password must be supplied via .my.cnf file or via MYSQL_PWD env variable"
-done
-while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_HOST" ]; do
-  MA_DB_HOST="$(prompt 'MySQL hostname?' 'localhost')"
-done
-while [ "$MA_DB_TYPE" = 'mysql' ] && [ -z "$MA_DB_PORT" ]; do
-  MA_DB_PORT="$(prompt 'MySQL port?' '3306')"
-done
-
-while [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
-  prompt_text="Drop SQL database '$MA_DB_NAME' and user '$MA_DB_USER'? (If they exist)"
-  MA_CONFIRM_DROP="$(prompt "$prompt_text" 'no')"
-done
-
-if [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" = 'yes' ]; then
-  echo "DROP DATABASE IF EXISTS $MA_DB_NAME;
-		DROP USER IF EXISTS '$MA_DB_USER'@'%';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
-fi
-
 if [ "$MA_DB_TYPE" = 'mysql' ]; then
-  echo "CREATE DATABASE IF NOT EXISTS $MA_DB_NAME;
-	CREATE USER IF NOT EXISTS '$MA_DB_USER'@'%' IDENTIFIED BY '$MA_DB_PASSWORD';
-	GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'%';" | mysql -u "$MA_DB_USERNAME" -h "$MA_DB_HOST" -P "$MA_DB_PORT"
+  while [ -z "$MA_DB_HOST" ]; do
+    MA_DB_HOST="$(prompt 'MySQL hostname?' 'localhost')"
+  done
+  while [ -z "$MA_DB_PORT" ]; do
+    MA_DB_PORT="$(prompt 'MySQL port?' '3306')"
+  done
+
+  while [ "$MA_DB_CREATE" != 'yes' ] && [ "$MA_DB_CREATE" != 'no' ]; do
+    prompt_text="Create MySQL database '$MA_DB_NAME' and user '$MA_DB_USER'?"
+    MA_DB_CREATE="$(prompt "$prompt_text" 'yes')"
+  done
+
+  if [ "$MA_DB_CREATE" = 'yes' ]; then
+    echo "NOTE: MySQL admin username/password must be supplied via a .mylogin.cnf file"
+
+    while [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
+      MA_CONFIRM_DROP="$(prompt 'Drop MySQL database and user if they already exist?' 'no')"
+    done
+
+    if [ "$MA_CONFIRM_DROP" = 'yes' ]; then
+      echo "DROP DATABASE IF EXISTS $MA_DB_NAME;
+      DROP USER IF EXISTS '$MA_DB_USER'@'%';" | mysql
+    fi
+
+    echo "CREATE DATABASE IF NOT EXISTS $MA_DB_NAME;
+    CREATE USER IF NOT EXISTS '$MA_DB_USER'@'%' IDENTIFIED BY '$MA_DB_PASSWORD';
+    GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'%';" | mysql
+  fi
 fi
 
 # Remove any old files in MA_HOME
