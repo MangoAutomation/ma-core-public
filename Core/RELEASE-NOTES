@@ -1,5 +1,4 @@
 *Version 4.2.0*
-* Upgraded for Mango 4.2.0
 * Fix bugs in ipv6 network tools to accurately whitelist ipv6 addresses, would previously blacklist all ipv6
 * Fix bugs when importing data points that include event detectors after exceeding the amount of data points allowed by the license
 * Availability to monitor the common pool size inside ForkJoinPool, as an internal point for metrics.
