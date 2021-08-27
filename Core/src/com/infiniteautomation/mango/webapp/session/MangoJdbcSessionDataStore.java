@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +30,7 @@ import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
 import com.serotonin.m2m2.vo.MangoSessionDataVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
+import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
 /**
  *
@@ -41,14 +44,18 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
     private final MangoSessionDataDao sessionDao;
     private final ApplicationEventPublisher eventPublisher;
     private final RunAs runAs;
+    private final Environment env;
 
     @Autowired
     public MangoJdbcSessionDataStore(UsersService userService, MangoSessionDataDao sessionDao,
-                                     ApplicationEventPublisher publisher, RunAs runAs) {
+                                     ApplicationEventPublisher publisher, RunAs runAs, Environment env) {
         this.userService = userService;
         this.sessionDao = sessionDao;
         this.eventPublisher = publisher;
         this.runAs = runAs;
+        this.env = env;
+
+        updatePersistPeriod();
     }
 
     @Override
@@ -215,4 +222,14 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
     public void add(MangoSessionDataVO vo) {
         sessionDao.insert(vo);
     }
+
+    @EventListener
+    public void propertiesReloaded(MangoConfigurationReloadedEvent event) {
+        updatePersistPeriod();
+    }
+
+    private void updatePersistPeriod() {
+        this.setSavePeriodSec(env.getProperty("sessionCookie.persistPeriodSeconds", Integer.class, 30));
+    }
+
 }
