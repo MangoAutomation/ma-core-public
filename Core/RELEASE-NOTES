@@ -10,6 +10,7 @@
 * Only get and update the process once when polling OSHI native library
 * Remove system metrics that called getAllStackTraces(): com.serotonin.m2m2.rt.maint.WorkItemMonitor.maxStackHeight and com.serotonin.m2m2.rt.maint.WorkItemMonitor.threadCount
 * Dont allow concurrent polling for metrics in ServerMonitoringService and DiskMonitoringService
+* Fix bug where "sessionCookie.persistPeriodSeconds" setting was ignored
 
 *Version 4.1.3*
 * Fix Docker image to include correct bundle version
