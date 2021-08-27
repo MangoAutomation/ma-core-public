@@ -172,7 +172,11 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.postInsert(vo);
         }
 
-        return tryStart(vo);
+        if (vo.isEnabled()) {
+            // the data point cannot have detectors if it was just inserted, don't query for detectors
+            Common.runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, Collections.emptyList()));
+        }
+        return vo;
     }
 
     @Override
@@ -196,14 +200,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.postUpdate(vo);
         }
 
-        return tryStart(vo);
-    }
-
-    private DataPointVO tryStart(DataPointVO vo) {
         if (vo.isEnabled()) {
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
-            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
-            Common.runtimeManager.startDataPoint(dp);
+            Common.runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, detectors));
         }
         return vo;
     }
@@ -358,10 +357,10 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             insert(dataPointCopy);
 
             //Insert new event detectors
-            List<AbstractPointEventDetectorVO> detectors = EventDetectorDao.getInstance().getWithSource(dataPoint.getId(), dataPointCopy);
+            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(dataPoint.getId(), dataPointCopy);
             for (AbstractPointEventDetectorVO ped : detectors) {
                 ped.setId(Common.NEW_ID);
-                ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
+                ped.setXid(eventDetectorDao.generateUniqueXid());
                 eventDetectorDao.insert(ped);
             }
             if(dataPoint.isEnabled()) {
@@ -420,7 +419,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     public ProcessResult validate(DataPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
 
-        DataSourceVO dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
+        DataSourceVO dsvo = dataSourceDao.get(vo.getDataSourceId());
         if(dsvo == null) {
             result.addContextualMessage("dataSourceId", "validate.invalidValue");
             return result;
@@ -452,7 +451,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             result.addContextualMessage("dataSourceId", "validate.dataPoint.pointChangeDataSource");
         }
 
-        DataSourceVO dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
+        DataSourceVO dsvo = dataSourceDao.get(vo.getDataSourceId());
         if(dsvo == null) {
             result.addContextualMessage("dataSourceId", "validate.invalidValue");
             return result;
