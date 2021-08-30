@@ -69,8 +69,11 @@ public final class ConcurrentProcessor<T, R> {
             QueuedItem<T, R> item;
             while ((item = queue.poll()) != null) {
                 try {
-                    R result = function.apply(item.item);
-                    item.future.complete(result);
+                    // check if future was cancelled etc
+                    if (!item.future.isDone()) {
+                        R result = function.apply(item.item);
+                        item.future.complete(result);
+                    }
                 } catch (Exception e) {
                     item.future.completeExceptionally(e);
                 }
