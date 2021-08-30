@@ -11,8 +11,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.annotation.PostConstruct;
+
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import com.infiniteautomation.mango.async.ConcurrentProcessor;
@@ -40,7 +43,13 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     protected final DAO dao;
     protected final PermissionService permissionService;
-    protected final ConcurrentProcessor<BasicAsyncOperation<T>, T> concurrentProcessor;
+    protected ConcurrentProcessor<BasicAsyncOperation<T>, T> concurrentProcessor;
+
+    @Autowired
+    protected Environment env;
+
+    @Autowired
+    protected ExecutorService executorService;
 
     /**
      * Service
@@ -50,10 +59,13 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     public AbstractBasicVOService(DAO dao, PermissionService permissionService) {
         this.dao = dao;
         this.permissionService = permissionService;
+    }
 
-        Environment env = Common.getBean(Environment.class);
-        ExecutorService executorService = Common.getBean(ExecutorService.class);
-
+    /**
+     * TODO move to constructor injection
+     */
+    @PostConstruct
+    private void postConstruct() {
         int defaultMaxConcurrency = env.getProperty("services.maxConcurrency", Integer.class, 10);
         int maxConcurrency = env.getProperty("services." + getClass().getSimpleName() + ".maxConcurrency", Integer.class, defaultMaxConcurrency);
         this.concurrentProcessor = new ConcurrentProcessor<>(this::doAsyncOperation, maxConcurrency, executorService);
