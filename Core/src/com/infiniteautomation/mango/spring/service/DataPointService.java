@@ -8,8 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -27,10 +25,8 @@ import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.async.MaxConcurrencyProcessor;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -89,18 +85,14 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     private final EventDetectorDao eventDetectorDao;
     private final List<DataPointChangeDefinition> changeDefinitions;
     private final DataPoints dataPoints = DataPoints.DATA_POINTS;
-    private final MaxConcurrencyProcessor<DataPointVO, DataPointVO> asyncInserter;
 
     @Autowired
     public DataPointService(DataPointDao dao, DataSourceDao dataSourceDao, EventDetectorDao eventDetectorDao,
-                            PermissionService permissionService, ExecutorService executorService, Environment env) {
+                            PermissionService permissionService) {
         super(dao, permissionService);
         this.dataSourceDao = dataSourceDao;
         this.eventDetectorDao = eventDetectorDao;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
-
-        int maxConcurrency = env.getProperty("services." + getClass().getSimpleName() + ".maxConcurrency", Integer.class, 10);
-        this.asyncInserter = new MaxConcurrencyProcessor<>(this::insert, maxConcurrency, executorService);
     }
 
     @Override
@@ -186,10 +178,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             Common.runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, Collections.emptyList()));
         }
         return vo;
-    }
-
-    public CompletionStage<DataPointVO> asyncInsert(DataPointVO vo) {
-        return asyncInserter.add(vo);
     }
 
     @Override

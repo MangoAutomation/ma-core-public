@@ -4,5 +4,11 @@
 package com.infiniteautomation.mango.spring.events;
 
 public enum DaoEventType {
-    CREATE, UPDATE, DELETE;
+    /**
+     * Not used for events
+     */
+    GET,
+    CREATE,
+    UPDATE,
+    DELETE;
 }

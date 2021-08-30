@@ -14,12 +14,14 @@ import java.util.concurrent.Semaphore;
 import java.util.function.Function;
 
 /**
+ * Queues items for processing, allows for a fixed number of concurrent operations at a time using a shared executor.
+ *
  * @author Jared Wiltshire
  * @param <T> input type
  * @param <R> result type
  */
-public final class MaxConcurrencyProcessor<T, R> {
-    static class QueuedItem<T, R> {
+public final class ConcurrentProcessor<T, R> {
+    private static class QueuedItem<T, R> {
         final CompletableFuture<R> future = new CompletableFuture<>();
         final T item;
 
@@ -28,17 +30,23 @@ public final class MaxConcurrencyProcessor<T, R> {
         }
     }
 
-    final Queue<QueuedItem<T, R>> queue = new ConcurrentLinkedQueue<>();
-    final Semaphore semaphore;
-    final ExecutorService executorService;
-    final Function<T, R> function;
+    private final Queue<QueuedItem<T, R>> queue = new ConcurrentLinkedQueue<>();
+    private final Semaphore semaphore;
+    private final ExecutorService executorService;
+    private final Function<T, R> function;
 
-    public MaxConcurrencyProcessor(Function<T, R> function, int maxConcurrency, ExecutorService executorService) {
+    public ConcurrentProcessor(Function<T, R> function, int maxConcurrency, ExecutorService executorService) {
         this.function = function;
         this.semaphore = new Semaphore(maxConcurrency);
         this.executorService = executorService;
     }
 
+    /**
+     * Adds an item to the queue for processing.
+     *
+     * @param item item to be processed
+     * @return future that will be completed when item was processed
+     */
     public CompletionStage<R> add(T item) {
         QueuedItem<T, R> queuedItem = new QueuedItem<>(item);
         queue.add(queuedItem);
