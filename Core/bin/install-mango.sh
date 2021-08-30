@@ -141,7 +141,7 @@ fi
 # Download and extract the Mango enterprise archive
 if [ ! -f "$MA_CORE_ZIP" ]; then
   MA_CORE_ZIP=$(mktemp)
-  curl "https://store.infiniteautomation.com/downloads/fullCores/${MA_BUNDLE_TYPE}-m2m2-core-${MA_VERSION}.zip" >"$MA_CORE_ZIP"
+  curl "https://store.mango-os.com/downloads/fullCores/${MA_BUNDLE_TYPE}-m2m2-core-${MA_VERSION}.zip" >"$MA_CORE_ZIP"
   MA_DELETE_ZIP=true
 fi
 
