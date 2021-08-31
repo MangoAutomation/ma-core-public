@@ -17,23 +17,6 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-jetty-alpn-agent</id>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.mortbay.jetty.alpn</groupId>
-                                    <artifactId>jetty-alpn-agent</artifactId>
-                                    <version>${jetty.alpn.version}</version>
-                                </artifactItem>
-                            </artifactItems>
-                            <stripVersion>true</stripVersion>
-                            <stripClassifier>true</stripClassifier>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>copy-legacy-h2</id>
                         <goals>
                             <goal>copy</goal>

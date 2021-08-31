@@ -3,9 +3,6 @@
 #MA_JAVA_OPTS="$MA_JAVA_OPTS -Xms5g -Xmx5g"
 #MA_JAVA_OPTS="$MA_JAVA_OPTS -Xms10g -Xmx10g"
 
-# Enable ALPN for HTTP/2 support on Java versions < 9
-#MA_JAVA_OPTS="$MA_JAVA_OPTS -javaagent:$MA_HOME/boot/jetty-alpn-agent.jar"
-
 # Java version >=9 compatibility options
 #MA_JAVA_OPTS="$MA_JAVA_OPTS --add-modules java.activation,java.xml.bind"
 
