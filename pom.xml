@@ -17,9 +17,9 @@
         <mangoVersion>4.2.0-SNAPSHOT</mangoVersion>
         <coreApiVersion>${coreVersion.majorVersion}.${coreVersion.minorVersion}</coreApiVersion>
         <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
-        <compilerSourceVersion>1.8</compilerSourceVersion>
-        <compilerTargetVersion>1.8</compilerTargetVersion>
-        <compilerReleaseVersion>8</compilerReleaseVersion>
+        <compilerSourceVersion>11</compilerSourceVersion>
+        <compilerTargetVersion>11</compilerTargetVersion>
+        <compilerReleaseVersion>11</compilerReleaseVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
         <buildTimestamp>${maven.build.timestamp}</buildTimestamp>
@@ -28,7 +28,6 @@
         <junitVersion>4.13.1</junitVersion>
         <asm.version>9.0</asm.version>
         <spotbugs.version>4.2.0</spotbugs.version>
-        <jetty.alpn.version>2.0.10</jetty.alpn.version>
         <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
         <mango.store.pugin.version>1.1.1</mango.store.pugin.version>
         <jooq.version>3.14.4</jooq.version>
@@ -100,22 +99,6 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>javac-release</id>
-            <activation>
-                <jdk>[1.9,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <release>${compilerReleaseVersion}</release>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
     <build>
         <directory>maven-target</directory>
@@ -151,6 +134,7 @@
                     <configuration>
                         <source>${compilerSourceVersion}</source>
                         <target>${compilerTargetVersion}</target>
+                        <release>${compilerReleaseVersion}</release>
                     </configuration>
                 </plugin>
                 <plugin>

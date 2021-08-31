@@ -47,25 +47,6 @@
                 <!-- they are added to the core bundle assembly separately, we can remove these at some point -->
                 <executions>
                     <execution>
-                        <id>copy-jetty-alpn-agent</id>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.mortbay.jetty.alpn</groupId>
-                                    <artifactId>jetty-alpn-agent</artifactId>
-                                    <version>${jetty.alpn.version}</version>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${project.basedir}/boot/</outputDirectory>
-                            <stripVersion>true</stripVersion>
-                            <stripClassifier>true</stripClassifier>
-                            <skip>false</skip>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>copy-legacy-h2</id>
                         <goals>
                             <goal>copy</goal>
@@ -344,17 +325,6 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-alpn-java-client</artifactId>
-            <version>${jettyVersion}</version>
-        </dependency>
-        <!-- ALPN Support for Java 8 (Still need alpn-boot.jar) -->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-alpn-openjdk8-server</artifactId>
-            <version>${jettyVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-alpn-openjdk8-client</artifactId>
             <version>${jettyVersion}</version>
         </dependency>
         <dependency>
