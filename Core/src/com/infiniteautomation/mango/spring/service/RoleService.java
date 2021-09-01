@@ -30,8 +30,8 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
 
     @Autowired
-    public RoleService(RoleDao dao, PermissionService permissionService) {
-        super(dao, permissionService);
+    public RoleService(RoleDao dao, ServiceDependencies dependencies) {
+        super(dao, dependencies);
     }
 
     @Override

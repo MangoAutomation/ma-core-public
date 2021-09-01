@@ -87,9 +87,11 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     private final DataPoints dataPoints = DataPoints.DATA_POINTS;
 
     @Autowired
-    public DataPointService(DataPointDao dao, DataSourceDao dataSourceDao, EventDetectorDao eventDetectorDao,
-                            PermissionService permissionService) {
-        super(dao, permissionService);
+    public DataPointService(DataPointDao dao,
+                            ServiceDependencies dependencies,
+                            DataSourceDao dataSourceDao,
+                            EventDetectorDao eventDetectorDao) {
+        super(dao, dependencies);
         this.dataSourceDao = dataSourceDao;
         this.eventDetectorDao = eventDetectorDao;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();

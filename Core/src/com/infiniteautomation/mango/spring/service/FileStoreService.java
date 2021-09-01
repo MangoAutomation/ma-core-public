@@ -49,8 +49,10 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
     public static final Pattern INVALID_XID_CHARACTERS = Pattern.compile("[./\\\\]");
 
     @Autowired
-    public FileStoreService(FileStoreDao dao, PermissionService permissionService, UserFileStoreCreatePermissionDefinition createPermission) {
-        super(dao, permissionService);
+    public FileStoreService(FileStoreDao dao,
+                            ServiceDependencies dependencies,
+                            @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") UserFileStoreCreatePermissionDefinition createPermission) {
+        super(dao, dependencies);
         this.createPermission = createPermission;
     }
 

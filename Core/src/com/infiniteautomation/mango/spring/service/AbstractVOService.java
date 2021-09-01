@@ -30,10 +30,10 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
     /**
      *
      * @param dao
-     * @param permissionService
+     * @param dependencies dependencies for service
      */
-    public AbstractVOService(DAO dao, PermissionService permissionService) {
-        super(dao, permissionService);
+    public AbstractVOService(DAO dao, ServiceDependencies dependencies) {
+        super(dao, dependencies);
     }
 
     /**

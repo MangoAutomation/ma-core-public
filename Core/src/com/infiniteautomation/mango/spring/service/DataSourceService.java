@@ -45,10 +45,11 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     private final RunAs runAs;
 
     @Autowired
-    public DataSourceService(DataSourceDao dao, PermissionService permissionService,
+    public DataSourceService(DataSourceDao dao, ServiceDependencies dependencies,
                              DataPointService dataPointService,
-                             DataSourcePermissionDefinition createPermission, RunAs runAs) {
-        super(dao, permissionService);
+                             @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataSourcePermissionDefinition createPermission,
+                             RunAs runAs) {
+        super(dao, dependencies);
         this.dataPointService = dataPointService;
         this.createPermission = createPermission;
         this.runAs = runAs;

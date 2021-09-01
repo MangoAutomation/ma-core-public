@@ -37,8 +37,8 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     private final RunAs runAs;
 
     @Autowired
-    public PublisherService(PublisherDao dao, PermissionService permissionService, RunAs runAs) {
-        super(dao, permissionService);
+    public PublisherService(PublisherDao dao, ServiceDependencies dependencies, RunAs runAs) {
+        super(dao, dependencies);
         this.runAs = runAs;
     }
 

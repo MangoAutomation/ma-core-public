@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -47,10 +46,9 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
 
     @Autowired
     public EventHandlerService(EventHandlerDao dao,
-                               PermissionService permissionService,
-                               @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventHandlerCreatePermission createPermission,
-                               Environment env) {
-        super(dao, permissionService);
+                               ServiceDependencies dependencies,
+                               @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventHandlerCreatePermission createPermission) {
+        super(dao, dependencies);
         this.createPermission = createPermission;
 
         this.cache = Caffeine.newBuilder()

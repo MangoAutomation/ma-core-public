@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -85,15 +84,15 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     private final WeakValueCache<String, User> userByUsername;
 
     @Autowired
-    public UsersService(UserDao dao, PermissionService permissionService,
+    public UsersService(UserDao dao,
+                        ServiceDependencies dependencies,
                         SystemSettingsDao systemSettings,
                         PasswordService passwordService,
                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") UserEditSelfPermission editSelfPermission,
                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ChangeOwnUsernamePermissionDefinition changeOwnUsernamePermission,
                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") UserCreatePermission createPermission,
-                        ApplicationEventPublisher eventPublisher,
-                        Environment env) {
-        super(dao, permissionService);
+                        ApplicationEventPublisher eventPublisher) {
+        super(dao, dependencies);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
         this.editSelfPermission = editSelfPermission;

@@ -8,8 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.db.tables.UserComments;
-import com.infiniteautomation.mango.db.tables.records.UserCommentsRecord;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -37,10 +35,13 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     private final EventInstanceDao eventInstanceDao;
 
     @Autowired
-    public UserCommentService(UserCommentDao dao, UserDao userDao,
-            PermissionService permissionService, DataPointDao dataPointDao,
-            JsonDataDao jsonDataDao, EventInstanceDao eventInstanceDao) {
-        super(dao, permissionService);
+    public UserCommentService(UserCommentDao dao,
+                              ServiceDependencies dependencies,
+                              UserDao userDao,
+                              DataPointDao dataPointDao,
+                              JsonDataDao jsonDataDao,
+                              EventInstanceDao eventInstanceDao) {
+        super(dao, dependencies);
         this.userDao = userDao;
         this.dataPointDao = dataPointDao;
         this.jsonDataDao = jsonDataDao;

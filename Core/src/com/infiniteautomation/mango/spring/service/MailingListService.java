@@ -52,12 +52,15 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     private final Cache<Integer, MailingList> cache;
 
     @Autowired
-    public MailingListService(MailingListDao dao, PermissionService permissionService, UserDao userDao, MailingListCreatePermission createPermission) {
-        super(dao, permissionService);
+    public MailingListService(MailingListDao dao,
+                              ServiceDependencies dependencies,
+                              UserDao userDao,
+                              @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") MailingListCreatePermission createPermission) {
+        super(dao, dependencies);
         this.userDao = userDao;
         this.createPermission = createPermission;
         this.cache = Caffeine.newBuilder().build();
-        this.dao.getAll().stream().forEach(ml -> this.cache.put(ml.getId(), ml));
+        this.dao.getAll().forEach(ml -> this.cache.put(ml.getId(), ml));
     }
 
     /**

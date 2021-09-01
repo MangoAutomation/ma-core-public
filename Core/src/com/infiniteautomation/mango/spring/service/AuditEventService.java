@@ -48,8 +48,8 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
     private final Logger log = LoggerFactory.getLogger(AuditEventService.class);
 
     @Autowired
-    public AuditEventService(AuditEventDao dao, PermissionService permissionService) {
-        super(dao, permissionService);
+    public AuditEventService(AuditEventDao dao, ServiceDependencies dependencies) {
+        super(dao, dependencies);
     }
 
     @Override

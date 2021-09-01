@@ -38,9 +38,11 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     private final ObjectMapper mapper;
 
     @Autowired
-    public JsonDataService(JsonDataDao dao, PermissionService permissionService, JsonDataCreatePermissionDefinition createPermission,
+    public JsonDataService(JsonDataDao dao,
+                           ServiceDependencies dependencies,
+                           @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") JsonDataCreatePermissionDefinition createPermission,
                            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper) {
-        super(dao, permissionService);
+        super(dao, dependencies);
         this.createPermission = createPermission;
         this.mapper = mapper;
     }

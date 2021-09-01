@@ -65,10 +65,12 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     private final Events events = Events.EVENTS;
 
     @Autowired
-    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointDao dataPointDao,
-                                EventsViewPermissionDefinition eventsViewPermission,
-                                EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
-        super(dao, permissionService);
+    public EventInstanceService(EventInstanceDao dao,
+                                ServiceDependencies dependencies,
+                                DataPointDao dataPointDao,
+                                @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsViewPermissionDefinition eventsViewPermission,
+                                @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
+        super(dao, dependencies);
         this.dataPointDao = dataPointDao;
         this.eventsViewPermission = eventsViewPermission;
         this.eventsSuperadminViewPermission = eventsSuperadminViewPermission;
