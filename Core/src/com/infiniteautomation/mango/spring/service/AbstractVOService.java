@@ -3,8 +3,11 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.concurrent.CompletionStage;
+
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -135,4 +138,44 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
         return dao.generateUniqueXid();
     }
 
+    protected static class AsyncOperation<T> extends BasicAsyncOperation<T> {
+        final String xid;
+
+        protected AsyncOperation(DaoEventType operation, String xid) {
+            this(operation, xid, null);
+        }
+
+        protected AsyncOperation(DaoEventType operation, String xid, T vo) {
+            super(operation, Common.NEW_ID, vo);
+            this.xid = xid;
+        }
+    }
+
+    @Override
+    protected T doAsyncOperation(BasicAsyncOperation<T> operation) {
+        if (operation instanceof AsyncOperation) {
+            AsyncOperation<T> operationXid = (AsyncOperation<T>) operation;
+            switch (operationXid.type) {
+                case GET:
+                    return get(operationXid.xid);
+                case UPDATE:
+                    return update(operationXid.xid, operationXid.vo);
+                case DELETE:
+                    return delete(operationXid.xid);
+            }
+        }
+        return super.doAsyncOperation(operation);
+    }
+
+    public CompletionStage<T> getAsync(String xid) {
+        return concurrentProcessor.add(new AsyncOperation<>(DaoEventType.GET, xid));
+    }
+
+    public CompletionStage<T> deleteAsync(String xid) {
+        return concurrentProcessor.add(new AsyncOperation<>(DaoEventType.DELETE, xid));
+    }
+
+    public CompletionStage<T> updateAsync(String xid, T vo) {
+        return concurrentProcessor.add(new AsyncOperation<>(DaoEventType.UPDATE, xid, vo));
+    }
 }

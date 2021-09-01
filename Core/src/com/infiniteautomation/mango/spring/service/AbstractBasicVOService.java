@@ -6,15 +6,22 @@ package com.infiniteautomation.mango.spring.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import net.jazdw.rql.parser.ASTNode;
+
+import javax.annotation.PostConstruct;
 
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
+import com.infiniteautomation.mango.async.ConcurrentProcessor;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -27,6 +34,8 @@ import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
+import net.jazdw.rql.parser.ASTNode;
+
 /**
  * @author Terry Packer
  */
@@ -34,6 +43,13 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     protected final DAO dao;
     protected final PermissionService permissionService;
+    protected ConcurrentProcessor<BasicAsyncOperation<T>, T> concurrentProcessor;
+
+    @Autowired
+    protected Environment env;
+
+    @Autowired
+    protected ExecutorService executorService;
 
     /**
      * Service
@@ -43,6 +59,16 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     public AbstractBasicVOService(DAO dao, PermissionService permissionService) {
         this.dao = dao;
         this.permissionService = permissionService;
+    }
+
+    /**
+     * TODO move to constructor injection
+     */
+    @PostConstruct
+    private void postConstruct() {
+        int defaultMaxConcurrency = env.getProperty("services.maxConcurrency", Integer.class, 10);
+        int maxConcurrency = env.getProperty("services." + getClass().getSimpleName() + ".maxConcurrency", Integer.class, defaultMaxConcurrency);
+        this.concurrentProcessor = new ConcurrentProcessor<>(this::doAsyncOperation, maxConcurrency, executorService);
     }
 
     /**
@@ -400,5 +426,52 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     public QueryBuilder<T> buildQuery() {
         return dao.buildQuery(Common.getUser());
+    }
+
+    protected static class BasicAsyncOperation<T> {
+        final DaoEventType type;
+        final T vo;
+        final int id;
+
+        protected BasicAsyncOperation(DaoEventType type, int id) {
+            this(type, id, null);
+        }
+
+        protected BasicAsyncOperation(DaoEventType type, int id, T vo) {
+            this.type = type;
+            this.vo = vo;
+            this.id = id;
+        }
+    }
+
+    protected T doAsyncOperation(BasicAsyncOperation<T> operation) {
+        switch (operation.type) {
+            case GET:
+                return get(operation.id);
+            case CREATE:
+                return insert(operation.vo);
+            case UPDATE:
+                return update(operation.id, operation.vo);
+            case DELETE:
+                return delete(operation.id);
+            default:
+                throw new IllegalStateException("Unknown operation " + operation.type);
+        }
+    }
+
+    public CompletionStage<T> getAsync(int id) {
+        return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.GET, id));
+    }
+
+    public CompletionStage<T> insertAsync(T vo) {
+        return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.CREATE, Common.NEW_ID, vo));
+    }
+
+    public CompletionStage<T> deleteAsync(int id) {
+        return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.DELETE, id));
+    }
+
+    public CompletionStage<T> updateAsync(int id, T vo) {
+        return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.UPDATE, id, vo));
     }
 }
