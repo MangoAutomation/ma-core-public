@@ -1,4 +1,5 @@
 *Version 4.2.0*
+* Mango is now built for Java 11, it is now a hard requirement to use Java 11 or higher to run Mango
 * Fix bugs in ipv6 network tools to accurately whitelist ipv6 addresses, would previously blacklist all ipv6
 * Fix bugs when importing data points that include event detectors after exceeding the amount of data points allowed by the license
 * Availability to monitor the common pool size inside ForkJoinPool, as an internal point for metrics.
