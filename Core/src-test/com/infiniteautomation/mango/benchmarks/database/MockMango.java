@@ -15,7 +15,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -42,12 +41,7 @@ public class MockMango extends MangoTestBase {
             try {
                 service.update(vo.getId(), vo);
             } catch (ValidationException e) {
-                String failureMessage = "";
-                for (ProcessMessage m : e.getValidationResult().getMessages()) {
-                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                    failureMessage += messagePart;
-                }
-                fail(failureMessage);
+                fail(e.getValidationErrorMessage(Common.getTranslations()));
             }
             updateEventDetectorDefinition.baseCreateEventDetectorVO(point.getId());
             eventDetectorsService.insert(updateEventDetectorDefinition.baseCreateEventDetectorVO(point.getId()));
