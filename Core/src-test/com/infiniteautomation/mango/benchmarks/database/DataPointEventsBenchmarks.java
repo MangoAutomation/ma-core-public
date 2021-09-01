@@ -37,6 +37,7 @@ import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
@@ -98,8 +99,8 @@ public class DataPointEventsBenchmarks {
                     if (detectors.size() > 0) {
                         DataPointEventType type = new DataPointEventType((DataPointVO) point, detectors.get(0));
                         HashMap context = new HashMap();
-                        context.put(POINT_EVENT_DETECTOR, detectors.get(0));
-                        context.put(DATA_POINT, point);
+                        context.put(PointEventDetectorRT.EVENT_DETECTOR_CONTEXT_KEY, detectors.get(0));
+                        context.put(PointEventDetectorRT.DATA_POINT_CONTEXT_KEY, point);
 
                         AtomicInteger eventCount = new AtomicInteger();
                         for (int i = 0; i < params.eventsPerDataPoint; i++) {
