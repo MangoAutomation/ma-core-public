@@ -77,7 +77,7 @@
                     <plugin>
                         <groupId>com.infiniteautomation</groupId>
                         <artifactId>mango-store-maven-plugin</artifactId>
-                        <version>${mango.store.pugin.version}</version>
+                        <version>${mango.store.plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>mango-store-upload</id>

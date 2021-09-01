@@ -29,7 +29,7 @@
         <asm.version>9.0</asm.version>
         <spotbugs.version>4.2.0</spotbugs.version>
         <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
-        <mango.store.pugin.version>1.1.1</mango.store.pugin.version>
+        <mango.store.plugin.version>1.1.1</mango.store.plugin.version>
         <jooq.version>3.14.4</jooq.version>
         <kotlin.version>1.4.32</kotlin.version>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
