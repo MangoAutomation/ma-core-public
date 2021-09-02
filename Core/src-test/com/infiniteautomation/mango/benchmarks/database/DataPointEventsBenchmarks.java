@@ -50,7 +50,8 @@ import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 @State(Scope.Benchmark)
-public class DataPointEventsBenchmarks {
+public class DataPointEventsBenchmarks extends MangoBenchmark {
+
     public static final String ID = "id";
     public static final String POINT_EVENT_DETECTOR = "pointEventDetector";
     public static final String DATA_POINT = "dataPoint";
@@ -146,36 +147,11 @@ public class DataPointEventsBenchmarks {
     @Measurement(iterations = 1, batchSize = 5)
     @Warmup(iterations = 0)
     @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    public void insertSpeed(DataPointEventsBenchmarks.BenchmarkParams params) {
-        DataPointService service = Common.getBean(DataPointService.class);
-        RunAs runAs = Common.getBean(RunAs.class);
-        runAs.runAs(runAs.systemSuperadmin(), () -> {
-            List<IDataPoint> points = base.getMango().createMockDataPointsWithDetectors(params.dataPointCount);
-            for (IDataPoint point :
-                    points) {
-                //System.out.println(((DataPointVO) point).getName());
-                service.buildQuery().sort(ID, true).query(pointAux -> {
-                    List<AbstractPointEventDetectorVO> detectors = EventDetectorDao.getInstance().getWithSource(point.getId(), (DataPointVO) point);
-                    if (detectors.size() > 0) {
-                        DataPointEventType type = new DataPointEventType((DataPointVO) point, detectors.get(0));
-                        HashMap context = new HashMap();
-                        context.put(PointEventDetectorRT.EVENT_DETECTOR_CONTEXT_KEY, detectors.get(0));
-                        context.put(PointEventDetectorRT.DATA_POINT_CONTEXT_KEY, point);
-
-                        AtomicInteger eventCount = new AtomicInteger();
-                        for (int i = 0; i < params.eventsPerDataPoint; i++) {
-
-                            Common.eventManager.raiseEvent(type,
-                                    Common.timer.currentTimeMillis(),
-                                    false, AlarmLevels.INFORMATION,
-                                    new TranslatableMessage(LITERAL, BENCHMARK_DATA_POINT_EVENT_FOR + point.getName()),
-                                    context);
-
-                            eventCount.getAndIncrement();
-                        }
-                        //System.out.println("Raised " + params.eventsPerDataPoint +  " events for point  " + point.getName());
-                    }
-                }, params.limit, 0);
+    public void queryEvents(BenchmarkParams params, Blackhole blackhole) throws IOException {
+        AtomicInteger count = new AtomicInteger();
+        params.eventInstanceService.list(evt -> {
+            if(params.loadReadPermission) {
+                evt.getReadPermission();
             }
             count.getAndIncrement();
             blackhole.consume(evt);
@@ -183,28 +159,29 @@ public class DataPointEventsBenchmarks {
         Assert.assertEquals(params.dataPoints, count.get());
     }
 
-    @BeforeClass
-    public static void staticSetup() throws IOException {
-        System.out.println("Before class");
-        MangoTestBase.staticSetup();
-    }
+    @Benchmark
+    @Threads(1)
+    @Fork(1)
+    @BenchmarkMode({Mode.SampleTime})
+    @Measurement(iterations = 1, batchSize = 5)
+    @Warmup(iterations = 0)
+    @OutputTimeUnit(TimeUnit.MILLISECONDS)
+    public void queryEventsByDataPointTag(BenchmarkParams params, Blackhole blackhole) throws IOException {
+        //TODO there is a bug where we cannot use the QueryBuilder from this service to query on tags
+        AtomicInteger count = new AtomicInteger();
+        String rql = params.tags.entrySet()
+                .stream()
+                .map(entry -> "eq(tags." + entry.getKey() + "," + entry.getValue() + ")")
+                .collect(Collectors.joining("&"));
 
-    @Before
-    public void before() {
-        System.out.println("Before");
-        base.before();
-        dataSourceService = Common.getBean(DataSourceService.class);
-    }
+        params.eventInstanceService.query(rql, evt -> {
+            if(params.loadReadPermission) {
+                evt.getReadPermission();
+            }
+            count.getAndIncrement();
+            blackhole.consume(evt);
+        });
 
-    @After
-    public void after() {
-        System.out.println("After");
-        base.after();
-    }
-
-    @AfterClass
-    public static void staticTearDown() throws IOException {
-        System.out.println("After class");
-        MangoTestBase.staticTearDown();
+        Assert.assertEquals(params.dataPoints, count.get());
     }
 }
