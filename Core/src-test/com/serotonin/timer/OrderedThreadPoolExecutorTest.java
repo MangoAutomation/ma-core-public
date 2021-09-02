@@ -5,7 +5,9 @@ package com.serotonin.timer;
 
 import static org.junit.Assert.fail;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -46,14 +48,16 @@ public class OrderedThreadPoolExecutorTest {
         final List<TestTask> processed = new ArrayList<>();
         final AtomicLong time = new AtomicLong();
         final AtomicBoolean poolRejection = new AtomicBoolean();
-        
+
+        IgnoreExpectedException handler = new IgnoreExpectedException();
+
         OrderedThreadPoolExecutor exe = new OrderedThreadPoolExecutor(
                 0,
                 3,
                 60L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(),
-                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader()),
+                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader(), handler),
                 new RejectedExecutionHandler() {
                     
                     @Override
@@ -117,6 +121,8 @@ public class OrderedThreadPoolExecutorTest {
             if(test.rejectionFailure())
                 fail(test.rejectionFailureDescription);
         }
+
+        handler.throwIfNotEmpty();
     }
     
     /**
@@ -136,6 +142,8 @@ public class OrderedThreadPoolExecutorTest {
         final List<TestTask> processed = new ArrayList<>();
         final AtomicLong time = new AtomicLong();
         final AtomicBoolean poolRejection = new AtomicBoolean();
+
+        IgnoreExpectedException handler = new IgnoreExpectedException();
         
         OrderedThreadPoolExecutor exe = new OrderedThreadPoolExecutor(
                 0,
@@ -143,7 +151,7 @@ public class OrderedThreadPoolExecutorTest {
                 60L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(),
-                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader()),
+                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader(), handler),
                 new RejectedExecutionHandler() {
                     
                     @Override
@@ -203,6 +211,8 @@ public class OrderedThreadPoolExecutorTest {
             if(test.rejectionFailure())
                 fail(test.rejectionFailureDescription);
         }
+
+        handler.throwIfNotEmpty();
     }
 
     /**
@@ -222,6 +232,8 @@ public class OrderedThreadPoolExecutorTest {
         final List<TestTask> processed = new ArrayList<>();
         final AtomicLong time = new AtomicLong();
         final AtomicBoolean poolRejection = new AtomicBoolean();
+
+        IgnoreExpectedException handler = new IgnoreExpectedException();
         
         OrderedThreadPoolExecutor exe = new OrderedThreadPoolExecutor(
                 0,
@@ -229,7 +241,7 @@ public class OrderedThreadPoolExecutorTest {
                 60L,
                 TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(),
-                new MangoThreadFactory("high", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader()),
+                new MangoThreadFactory("high", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader(), handler),
                 new RejectedExecutionHandler() {
                     
                     @Override
@@ -284,6 +296,39 @@ public class OrderedThreadPoolExecutorTest {
             if(test.rejectionFailure())
                 fail(test.rejectionFailureDescription);
         }
+
+        handler.throwIfNotEmpty();
+    }
+
+    public static class IgnoreExpectedException implements UncaughtExceptionHandler {
+
+        final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<>());
+
+        @Override
+        public void uncaughtException(Thread t, Throwable e) {
+            if (!(e instanceof ExpectedException)) {
+                exceptions.add(e);
+            }
+        }
+
+        public List<Throwable> getExceptions() {
+            return exceptions;
+        }
+
+        public void throwIfNotEmpty() {
+            if (!exceptions.isEmpty()) {
+                RuntimeException e = new RuntimeException("Uncaught exceptions in tasks");
+                for (Throwable t : exceptions) {
+                    e.addSuppressed(t);
+                }
+                throw e;
+            }
+        }
+    }
+
+    public static class ExpectedException extends RuntimeException {
+        public ExpectedException() {
+        }
     }
     
     class TestTask extends Task {
@@ -321,7 +366,7 @@ public class OrderedThreadPoolExecutorTest {
                 System.out.println("running task " + runId);
             try { Thread.sleep(sleepMs); } catch (InterruptedException e) { }
             if(throwException)
-                throw new RuntimeException("Purposeful exception");
+                throw new ExpectedException();
         }
 
         @Override

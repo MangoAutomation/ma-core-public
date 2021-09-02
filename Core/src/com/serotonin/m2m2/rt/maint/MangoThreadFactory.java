@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.rt.maint;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -19,17 +20,29 @@ public class MangoThreadFactory implements ThreadFactory {
 	private final ThreadFactory factory;
 	private final int priority;
 	private final ClassLoader contextClassLoader;
-	
+	private final UncaughtExceptionHandler uncaughtExceptionHandler;
+
 	/**
-	 * 
 	 * @param namePrefix
 	 * @param threadPriority
+	 * @param moduleClassLoader
 	 */
-	public MangoThreadFactory(String namePrefix, int threadPriority, ClassLoader moduleClassLoader){
+	public MangoThreadFactory(String namePrefix, int threadPriority, ClassLoader moduleClassLoader) {
+		this(namePrefix, threadPriority, moduleClassLoader, null);
+	}
+
+	/**
+	 * @param namePrefix
+	 * @param threadPriority
+	 * @param moduleClassLoader
+	 * @param uncaughtExceptionHandler
+	 */
+	public MangoThreadFactory(String namePrefix, int threadPriority, ClassLoader moduleClassLoader, UncaughtExceptionHandler uncaughtExceptionHandler){
 		this.prefix = namePrefix + "-";
 		this.priority = threadPriority;
 		this.factory = Executors.defaultThreadFactory();
 		this.contextClassLoader = moduleClassLoader;
+		this.uncaughtExceptionHandler = uncaughtExceptionHandler;
 	}
 
 	@Override
@@ -43,6 +56,9 @@ public class MangoThreadFactory implements ThreadFactory {
 		t.setName(name);
 		t.setPriority(priority);
 		t.setContextClassLoader(contextClassLoader);
+		if (uncaughtExceptionHandler != null) {
+			t.setUncaughtExceptionHandler(uncaughtExceptionHandler);
+		}
 		return t;
 	}
 	

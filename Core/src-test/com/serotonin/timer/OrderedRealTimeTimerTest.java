@@ -20,8 +20,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.serotonin.m2m2.MockMangoProperties;
+import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.provider.Providers;
+import com.serotonin.timer.OrderedThreadPoolExecutorTest.ExpectedException;
+import com.serotonin.timer.OrderedThreadPoolExecutorTest.IgnoreExpectedException;
 import com.serotonin.util.properties.MangoProperties;
 
 /**
@@ -310,6 +313,7 @@ public class OrderedRealTimeTimerTest {
      */
     @Test
     public void testTimerThreadRejectionExceptions() throws InterruptedException {
+        IgnoreExpectedException handler = new IgnoreExpectedException();
         OrderedRealTimeTimer timer = new OrderedRealTimeTimer();
         OrderedThreadPoolExecutor executor = new OrderedThreadPoolExecutor(
                 0,
@@ -317,6 +321,7 @@ public class OrderedRealTimeTimerTest {
                 30L,
                 TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(),
+                new MangoThreadFactory("high", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader(), handler),
                 false,
                 timer.getTimeSource());
         timer.init(executor, Thread.MAX_PRIORITY);
@@ -371,7 +376,7 @@ public class OrderedRealTimeTimerTest {
                     @Override
                     public void rejected(RejectedTaskReason reason) {
                         //Throw exception here and ensure it doesn't kill the timer thread
-                        throw new RuntimeException("Purposeful rejected exception.");
+                        throw new ExpectedException();
                     }
                 }, timer);
 
@@ -379,6 +384,8 @@ public class OrderedRealTimeTimerTest {
         //This will be set to false if the Timer Thread Fails
         Assert.assertEquals(timer.thread.newTasksMayBeScheduled, true);
         //TODO Cleanup and shutdown timer?
+
+        handler.throwIfNotEmpty();
     }
 
 }
