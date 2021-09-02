@@ -403,6 +403,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
             // only backup the data not included create database
             List<String> args = new ArrayList<>();
             args.add(dumpExePath);
+            args.add("--single-transaction");
+            args.add("--skip-lock-tables");
             args.add("-h" + (host.isEmpty() ? "localhost" : host));
             args.add("-P" + port);
             args.add("-u" + user);
