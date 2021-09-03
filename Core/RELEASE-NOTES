@@ -13,6 +13,7 @@
 * Fix bug where "sessionCookie.persistPeriodSeconds" setting was ignored
 * Add setup page to configure admin password and locale on first login
 * Move timezone env property use to be before Logging initializes so logging uses this timezone
+* Add comma separated env property for MySQL backups to allow passing options to mysqldump, for large systems use db.mysql.extraDumpArgs=--single-transaction,--skip-lock-tables
 
 *Version 4.1.3*
 * Fix Docker image to include correct bundle version

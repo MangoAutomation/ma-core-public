@@ -403,6 +403,10 @@ public class DatabaseBackupWorkItem implements WorkItem {
             // only backup the data not included create database
             List<String> args = new ArrayList<>();
             args.add(dumpExePath);
+            String[] extraDumpArgs = Common.envProps.getStringArray("db.mysql.extraDumpArgs");
+            for(String arg : extraDumpArgs) {
+                args.add(arg);
+            }
             args.add("-h" + (host.isEmpty() ? "localhost" : host));
             args.add("-P" + port);
             args.add("-u" + user);
@@ -430,10 +434,10 @@ public class DatabaseBackupWorkItem implements WorkItem {
                     // Delete the sql file
                     Files.deleteIfExists(sqlFile);
                 }
-                LOG.info("Backup created successfully for " + database + " in " + host + ":" + port);
+                LOG.info("Backup created successfully for " + database + " using MySQL " + host + ":" + port + " at " + backupPath);
             } else {
-                LOG.info("Could not create the backup for " + database + " in " + host + ":" + port);
-                backupFailed(backupPath.toString(), "Process exit status: "+processComplete);
+                LOG.info("Could not create the backup for " + database + " using MySQL " + host + ":" + port + " at " + backupPath);
+                backupFailed(backupPath.toString(), "Process exit status: " + processComplete);
             }
         } catch (Exception e) {
             LOG.error("An error occurred", e);

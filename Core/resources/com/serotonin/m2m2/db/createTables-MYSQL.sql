@@ -6,6 +6,7 @@
 -- Make sure that everything get created with utf8mb4 as the charset.
 -- Collation is full unicode comparison, case-insensitive
 alter database default character set utf8mb4 collate utf8mb4_unicode_ci;
+set default_storage_engine=innodb;
 
 --
 -- System settings
@@ -13,7 +14,7 @@ create table systemSettings (
   settingName varchar(64) not null,
   settingValue longtext,
   primary key (settingName)
-) engine=InnoDB;
+);
 
 
 --
@@ -25,7 +26,7 @@ CREATE TABLE roles (
 	xid varchar(100) not null,
 	name varchar(255) not null,
   	primary key (id)
-) engine=InnoDB;
+);
 ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
 
 --
@@ -40,34 +41,34 @@ ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleI
 ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
 
 CREATE TABLE minterms (
-  id int(11) NOT NULL AUTO_INCREMENT,
+  id int NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (id)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE mintermsRoles (
-  mintermId int(11) NOT NULL,
-  roleId int(11) NOT NULL,
+  mintermId int NOT NULL,
+  roleId int NOT NULL,
   UNIQUE KEY mintermsRolesIdx1 (mintermId, roleId),
   KEY mintermsRolesFk1Idx (mintermId),
   KEY mintermsRolesFk2Idx (roleId),
   CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE permissions (
-  id int(11) NOT NULL AUTO_INCREMENT,
+  id int NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (id)
-) ENGINE=InnoDB;
+);
 
 CREATE TABLE permissionsMinterms (
-  permissionId int(11) NOT NULL,
-  mintermId int(11) NOT NULL,
+  permissionId int NOT NULL,
+  mintermId int NOT NULL,
   UNIQUE KEY permissionsMintermsIdx1 (permissionId, mintermId),
   KEY permissionsMintermsFk1Idx (permissionId),
   KEY permissionsMintermsFk2Idx (mintermId),
   CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION,
   CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB;
+);
 
 --
 -- System wide permissions
@@ -110,7 +111,7 @@ create table users (
   readPermissionId int not null,
   editPermissionId int not null,
   primary key (id)
-) engine=InnoDB;
+);
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
 ALTER TABLE users ADD CONSTRAINT email_unique UNIQUE(email);
 ALTER TABLE users ADD CONSTRAINT usersFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
@@ -135,7 +136,7 @@ ALTER TABLE oAuth2Users ADD CONSTRAINT oAuth2UsersUn1 UNIQUE (issuer, subject);
 CREATE TABLE userRoleMappings (
 	roleId int not null,
 	userId int not null
-) engine=InnoDB;
+);
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
@@ -150,7 +151,7 @@ create table userComments (
   ts bigint not null,
   commentText varchar(1024) not null,
   primary key (id)
-) engine=InnoDB;
+);
 alter table userComments add constraint userCommentsFk1 foreign key (userId) references users(id);
 alter table userComments add constraint userCommentsUn1 unique (xid);
 ALTER TABLE userComments ADD INDEX userComments_performance1 (`commentType` ASC, `typeKey` ASC);
@@ -165,7 +166,7 @@ create table mailingLists (
   readPermissionId INT NOT NULL,
   editPermissionId INT NOT NULL,
   primary key (id)
-) engine=InnoDB;
+);
 alter table mailingLists add constraint mailingListsUn1 unique (xid);
 ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
@@ -173,7 +174,7 @@ ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk2 FOREIGN KEY (editPermiss
 create table mailingListInactive (
   mailingListId int not null,
   inactiveInterval int not null
-) engine=InnoDB;
+);
 alter table mailingListInactive add constraint mailingListInactiveFk1 foreign key (mailingListId)
   references mailingLists(id) on delete cascade;
 
@@ -182,7 +183,7 @@ create table mailingListMembers (
   typeId int not null,
   userId int,
   address varchar(255)
-) engine=InnoDB;
+);
 alter table mailingListMembers add constraint mailingListMembersFk1 foreign key (mailingListId)
   references mailingLists(id) on delete cascade;
 
@@ -201,7 +202,7 @@ create table dataSources (
   readPermissionId INT NOT NULL,
   editPermissionId INT NOT NULL,
   primary key (id)
-) engine=InnoDB;
+);
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
@@ -211,7 +212,7 @@ ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
 CREATE TABLE timeSeries (
 	id int NOT NULL auto_increment,
 	PRIMARY KEY (id)
-) engine=InnoDB;
+);
 
 --
 --
@@ -245,7 +246,7 @@ CREATE TABLE dataPoints (
   editPermissionId INT NOT NULL,
   setPermissionId INT NOT NULL,
   primary key (id)
-) engine=InnoDB;
+);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
@@ -263,7 +264,7 @@ CREATE TABLE dataPointTags (
   dataPointId INT NOT NULL,
   tagKey VARCHAR(255) NOT NULL,
   tagValue VARCHAR(255) NOT NULL
-) engine=InnoDB;
+);
 ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId ASC, tagKey ASC);
 ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;
 CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
@@ -282,7 +283,7 @@ create table pointValues (
   pointValue double,
   ts bigint not null,
   primary key (id)
-) engine=InnoDB;
+);
 create index pointValuesIdx1 on pointValues (dataPointId, ts);
 
 create table pointValueAnnotations (
@@ -291,7 +292,7 @@ create table pointValueAnnotations (
   textPointValueLong longtext,
   sourceMessage longtext,
   primary key (pointValueId)
-) engine=InnoDB;
+);
 
 --
 --
@@ -308,7 +309,7 @@ CREATE TABLE eventDetectors (
   readPermissionId INT NOT NULL,
   editPermissionId INT NOT NULL,
   PRIMARY KEY (id)
-)engine=InnoDB;
+);
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
 ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
@@ -335,7 +336,7 @@ create table events (
   alternateAckSource longtext,
   readPermissionId INT NOT NULL,
   primary key (id)
-) engine=InnoDB;
+);
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
 ALTER TABLE events ADD CONSTRAINT eventsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 alter table events add index performance1 (activeTs ASC);
@@ -355,7 +356,7 @@ create table eventHandlers (
   editPermissionId INT NOT NULL,
   data longblob not null,
   primary key (id)
-) engine=InnoDB;
+);
 alter table eventHandlers add constraint eventHandlersUn1 unique (xid);
 ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
@@ -368,7 +369,7 @@ CREATE TABLE eventHandlersMapping (
   eventSubtypeName varchar(32) NOT NULL DEFAULT '',
   eventTypeRef1 int NOT NULL,
   eventTypeRef2 int NOT NULL
-)engine=InnoDB;
+);
 ALTER TABLE eventHandlersMapping ADD CONSTRAINT eventHandlersFk1 FOREIGN KEY (eventHandlerId) REFERENCES eventHandlers(id) ON DELETE CASCADE;
 ALTER TABLE eventHandlersMapping ADD CONSTRAINT handlerMappingUniqueness UNIQUE(eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2);
 
@@ -387,7 +388,7 @@ CREATE TABLE audit (
   context longtext,
   message varchar(255),
   PRIMARY KEY (id)
-)engine=InnoDB;
+);
 CREATE INDEX tsIndex ON audit (ts ASC);
 CREATE INDEX userIdIndex ON audit (userId ASC);
 CREATE INDEX typeNameIndex ON audit (typeName ASC);
@@ -404,7 +405,7 @@ create table publishers (
   data longblob not null,
   rtdata longblob,
   primary key (id)
-) engine=InnoDB;
+);
 alter table publishers add constraint publishersUn1 unique (xid);
 
 --
@@ -419,7 +420,7 @@ CREATE TABLE jsonData (
   	readPermissionId INT NOT NULL,
     editPermissionId INT NOT NULL,
     primary key (id)
-) engine=InnoDB;
+);
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
@@ -433,7 +434,7 @@ CREATE TABLE installedModules (
     version           VARCHAR(255) NOT NULL,
     upgradedTimestamp BIGINT       NOT NULL,
     buildTimestamp    BIGINT       NOT NULL
-) ENGINE = InnoDB;
+);
 ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 
 --
@@ -447,7 +448,7 @@ CREATE TABLE fileStores (
 	readPermissionId INT NOT NULL,
     writePermissionId INT NOT NULL,
 	PRIMARY KEY (id)
-) engine=InnoDB;
+);
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (xid);
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
@@ -470,6 +471,6 @@ CREATE TABLE mangoSessionData (
 	maxInterval BIGINT,
 	userId INT,
 	primary key (sessionId, contextPath, virtualHost)
-)engine=InnoDB;
+);
 CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);
 CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);
