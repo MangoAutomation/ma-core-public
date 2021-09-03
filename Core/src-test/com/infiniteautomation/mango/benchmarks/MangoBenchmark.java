@@ -16,10 +16,21 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.DatabaseProxyFactory;
+import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.DefaultDatabaseProxyFactory;
 
 /**
  * Base helper class for Mango Benchmarks using JMH.
+ *
+ * Support for database proxies is available if you set the VM args:
+ * -Dmango.db.benchmark=true
+ * -Dmango.db.type=mysql
+ * -Dmango.db.url=jdbc:mysql://localhost/mango-benchmark
+ * -Dmango.db.username=mango
+ * -Dmango.db.password=mango
  *
  * The mock Mango lifecycle must be managed by these annotations
  *  in the subclass:
@@ -52,6 +63,15 @@ public abstract class MangoBenchmark {
             MangoTestBase.staticSetup();
         } catch (IOException e) {
             fail(e.getMessage());
+        }
+
+        //Detect and set database if requested
+        if(Common.envProps.getBoolean("db.benchmark", false)) {
+            String type = Common.envProps.getString("db.type", "h2");
+            DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
+            DatabaseProxyFactory factory = new DefaultDatabaseProxyFactory();
+            Common.databaseProxy = factory.createDatabaseProxy(databaseType);
+            Common.databaseProxy.initialize(null);
         }
         params.mango.before();
     }
