@@ -47,10 +47,7 @@ public class DefaultPingUtility extends ScriptUtility implements PingUtility {
 
         Float min = null, max = null, avg = null, pl = null;
         var process = Runtime.getRuntime().exec(command);
-        var success = process.waitFor() == 0;
-        if (!success) {
-            throw new IOException("Ping process failed");
-        }
+        process.waitFor();
 
         try (var stream = process.getInputStream()) {
             var output = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
