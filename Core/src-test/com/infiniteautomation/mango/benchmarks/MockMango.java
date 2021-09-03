@@ -6,6 +6,9 @@
 
 package com.infiniteautomation.mango.benchmarks;
 
+import static org.junit.Assert.fail;
+
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +121,16 @@ public class MockMango extends MangoTestBase {
                 proxy.clean();
             } catch (Exception e) {
                 throw new ShouldNeverHappenException(e);
+            }
+        }else {
+            try {
+                String databaseName = Common.databaseProxy.getDataSource().getConnection().getCatalog();
+                Common.databaseProxy.getDataSource().getConnection().createStatement().executeUpdate("DROP DATABASE `" + databaseName + "`");
+                Common.databaseProxy.getDataSource().getConnection().createStatement().executeUpdate("CREATE DATABASE `" + databaseName + "`");
+                Common.databaseProxy.initialize(null);
+                //TODO Reset caches...
+            } catch (SQLException e) {
+                fail(e.getMessage());
             }
         }
     }
