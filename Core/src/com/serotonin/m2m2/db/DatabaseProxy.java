@@ -216,8 +216,6 @@ public interface DatabaseProxy extends TransactionCapable {
                 .values(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Integer.toString(Common.getDatabaseSchemaVersion()))
                 .execute();
 
-        // TODO Mango 4.0 we should a setup page where on first login the admin chooses the locale, timezone and sets a new password
-
         context.insertInto(r, r.id, r.xid, r.name)
                 .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), Common.translate("roles.superadmin"))
                 .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), Common.translate("roles.user"))
@@ -238,12 +236,14 @@ public interface DatabaseProxy extends TransactionCapable {
                 .get(permissions.id);
 
         if (Common.envProps.getBoolean("initialize.admin.create")) {
-            long created = System.currentTimeMillis();
+            long createdTs = System.currentTimeMillis();
+            String defaultPassword = Common.envProps.getProperty("initialize.admin.password");
+            long passwordChangeTs = defaultPassword.equals("admin") ? createdTs : createdTs + 1;
 
             int adminId = context.insertInto(u)
                     .set(u.name, Common.translate("users.defaultAdministratorName"))
                     .set(u.username, Common.envProps.getProperty("initialize.admin.username"))
-                    .set(u.password, Common.encrypt(Common.envProps.getProperty("initialize.admin.password")))
+                    .set(u.password, Common.encrypt(defaultPassword))
                     .set(u.email, Common.envProps.getProperty("initialize.admin.email"))
                     .set(u.phone, "")
                     .set(u.disabled, BaseDao.boolToChar(false))
@@ -254,9 +254,9 @@ public interface DatabaseProxy extends TransactionCapable {
                     .set(u.muted, BaseDao.boolToChar(true))
                     .set(u.tokenVersion, 1)
                     .set(u.passwordVersion, 1)
-                    .set(u.passwordChangeTimestamp, created)
+                    .set(u.passwordChangeTimestamp, passwordChangeTs)
                     .set(u.sessionExpirationOverride, BaseDao.boolToChar(false))
-                    .set(u.createdTs, created)
+                    .set(u.createdTs, createdTs)
                     .set(u.readPermissionId, adminOnlyPermissionId)
                     .set(u.editPermissionId, adminOnlyPermissionId)
                     .returningResult(u.id)

@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -62,6 +63,7 @@ import org.apache.logging.log4j.core.async.AsyncLoggerConfig;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
@@ -727,6 +729,18 @@ public class Common {
         systemLanguage = null;
         systemLocale = null;
         systemTranslations = null;
+    }
+
+    public static void setSystemTimezone(String zoneId) {
+        // https://docs.oracle.com/javase/8/docs/api/java/util/TimeZone.html#getTimeZone-java.lang.String-
+        // Returns: the specified TimeZone, or the GMT zone if the given ID cannot be understood.
+        TimeZone tz = TimeZone.getTimeZone(zoneId);
+
+        // Check if return value from getTimeZone is valid
+        if (tz == null || !tz.getID().equals(zoneId))
+            throw new IllegalArgumentException("Timezone for given zone id not found: " + zoneId);
+        TimeZone.setDefault(tz);
+        DateTimeZone.setDefault(DateTimeZone.forID(zoneId));
     }
 
     public static List<StringStringPair> getLanguages() {
