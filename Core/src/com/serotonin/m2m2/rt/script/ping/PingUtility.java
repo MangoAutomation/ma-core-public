@@ -28,7 +28,21 @@ public interface PingUtility {
      * @throws IOException if error occurs pinging host
      * @throws InterruptedException if interrupted while waiting for ping process
      */
-    PingStats ping(String hostname, int count) throws IOException, InterruptedException;
+    default PingStats ping(String hostname, int count) throws IOException, InterruptedException {
+        return ping(hostname, count, 5000);
+    }
+
+    /**
+     * Executes ping command in external process, gets all stats (avg, min, max, packet loss)
+     *
+     * @param hostname host/ip to ping
+     * @param count number of ICMP echo requests to send
+     * @param timeout time to wait for each reply in ms
+     * @return ping stats
+     * @throws IOException if error occurs pinging host
+     * @throws InterruptedException if interrupted while waiting for ping process
+     */
+    PingStats ping(String hostname, int count, int timeout) throws IOException, InterruptedException;
 
     /**
      * Checks if host is reachable using Java API.

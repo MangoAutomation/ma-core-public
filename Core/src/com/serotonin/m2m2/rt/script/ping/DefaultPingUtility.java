@@ -41,9 +41,15 @@ public class DefaultPingUtility extends ScriptUtility implements PingUtility {
     }
 
     @Override
-    public PingStats ping(String hostname, int count) throws IOException, InterruptedException {
+    public PingStats ping(String hostname, int count, int timeout) throws IOException, InterruptedException {
         var countArg = isWindows ? "-n" : "-c";
-        var command = new String[] {"ping", countArg, "1", hostname};
+        var timeoutArg = isWindows ? "-w" : "-W";
+        var command = new String[] {
+                "ping",
+                countArg, Integer.toString(count),
+                timeoutArg, Integer.toString(isWindows ? timeout : timeout / 1000),
+                hostname
+        };
 
         Float min = null, max = null, avg = null, pl = null;
         var process = Runtime.getRuntime().exec(command);

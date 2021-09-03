@@ -23,7 +23,7 @@ public class TestPingUtility extends ScriptUtility implements PingUtility {
     }
 
     @Override
-    public PingStats ping(String hostname, int count) {
+    public PingStats ping(String hostname, int count, int timeout) {
         return new PingStats(count, 9f, 11f, 10f, 0f);
     }
 
