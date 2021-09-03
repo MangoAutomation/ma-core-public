@@ -18,7 +18,8 @@ import com.serotonin.m2m2.module.definitions.script.PingUtilityDefinition;
 public class DefaultPingUtility extends ScriptUtility implements PingUtility {
 
     private final boolean isWindows;
-    private final Pattern pattern;
+    private final Pattern minMaxAvgPattern;
+    private final Pattern packetLossPattern;
 
     public DefaultPingUtility(MangoJavaScriptService service, PermissionService permissionService) {
         super(service, permissionService);
@@ -26,9 +27,11 @@ public class DefaultPingUtility extends ScriptUtility implements PingUtility {
         var os = java.lang.System.getProperty("os.name");
         this.isWindows = os != null && os.toLowerCase().contains("windows");
         if (isWindows) {
-            this.pattern = Pattern.compile("Minimum = \\d+ms, Maximum = \\d+ms, Average = (\\d+)ms");
+            this.minMaxAvgPattern = Pattern.compile("Minimum = (?<min>\\d+)ms, Maximum = (?<max>\\d+)ms, Average = (?<avg>\\d+)ms");
+            this.packetLossPattern = Pattern.compile("\\((?<pl>\\d+)% loss\\)");
         } else {
-            this.pattern = Pattern.compile("rtt min/avg/max/mdev = [\\d.]+/[\\d.]+/([\\d.]+)/[\\d.]+ ms");
+            this.minMaxAvgPattern = Pattern.compile("rtt min/avg/max/mdev = (?<min>[\\d.]+)/(?<avg>[\\d.]+)/(?<max>[\\d.]+)/[\\d.]+ ms");
+            this.packetLossPattern = Pattern.compile("(?<pl>\\d+)% packet loss");
         }
     }
 
@@ -38,11 +41,11 @@ public class DefaultPingUtility extends ScriptUtility implements PingUtility {
     }
 
     @Override
-    public float ping(String hostname, int count) throws IOException, InterruptedException {
+    public PingStats ping(String hostname, int count) throws IOException, InterruptedException {
         var countArg = isWindows ? "-n" : "-c";
         var command = new String[] {"ping", countArg, "1", hostname};
 
-        var avgRtt = -1f;
+        Float min = null, max = null, avg = null, pl = null;
         var process = Runtime.getRuntime().exec(command);
         var success = process.waitFor() == 0;
         if (!success) {
@@ -51,13 +54,20 @@ public class DefaultPingUtility extends ScriptUtility implements PingUtility {
 
         try (var stream = process.getInputStream()) {
             var output = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-            Matcher matcher = pattern.matcher(output);
-            if (matcher.find()) {
-                avgRtt = Float.parseFloat(matcher.group(1));
+            Matcher minMaxAvgMatcher = minMaxAvgPattern.matcher(output);
+            if (minMaxAvgMatcher.find()) {
+                min = Float.parseFloat(minMaxAvgMatcher.group("min"));
+                max = Float.parseFloat(minMaxAvgMatcher.group("max"));
+                avg = Float.parseFloat(minMaxAvgMatcher.group("avg"));
+            }
+
+            Matcher packetLossMatcher = packetLossPattern.matcher(output);
+            if (packetLossMatcher.find()) {
+                pl = Float.parseFloat(packetLossMatcher.group("pl"));
             }
         }
 
-        return avgRtt;
+        return new PingStats(count, min, max, avg, pl);
     }
 
     @Override

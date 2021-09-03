@@ -23,8 +23,8 @@ public class TestPingUtility extends ScriptUtility implements PingUtility {
     }
 
     @Override
-    public float ping(String hostname, int count) {
-        return 10f;
+    public PingStats ping(String hostname, int count) {
+        return new PingStats(count, 9f, 11f, 10f, 0f);
     }
 
     @Override
