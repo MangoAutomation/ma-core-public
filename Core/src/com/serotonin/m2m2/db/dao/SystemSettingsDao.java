@@ -14,12 +14,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTimeZone;
 import org.jooq.SQLDialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -135,9 +133,6 @@ public class SystemSettingsDao extends BaseDao {
 
     // i18n
     public static final String LANGUAGE = "language";
-
-    // Timezone
-    public static final String TIMEZONE = "timezone";
 
     // Customization
     public static final String HTTPDS_PROLOGUE = "httpdsPrologue";
@@ -672,7 +667,6 @@ public class SystemSettingsDao extends BaseDao {
         defaultValues.put(EVENT_PURGE_PERIODS, 1);
 
         defaultValues.put(LANGUAGE, Locale.getDefault().toString());
-        defaultValues.put(TIMEZONE, DateTimeZone.getDefault().getID());
 
         defaultValues.put(HTTPDS_PROLOGUE, "");
         defaultValues.put(HTTPDS_EPILOGUE, "");
@@ -867,23 +861,6 @@ public class SystemSettingsDao extends BaseDao {
                 }
             }else {
                 response.addContextualMessage(LANGUAGE, "validate.invalidValue");
-            }
-        }
-
-        setting = settings.get(TIMEZONE);
-        if(setting != null) {
-            if(setting instanceof String) {
-                String zoneId = (String) setting;
-
-                // https://docs.oracle.com/javase/8/docs/api/java/util/TimeZone.html#getTimeZone-java.lang.String-
-                // Returns: the specified TimeZone, or the GMT zone if the given ID cannot be understood.
-                TimeZone tz = TimeZone.getTimeZone(zoneId);
-
-                // Check if return value from getTimeZone is valid
-                if(tz == null || !tz.getID().equals(zoneId))
-                    response.addContextualMessage(TIMEZONE, "validate.invalidValue");
-            } else {
-                response.addContextualMessage(TIMEZONE, "validate.invalidValue");
             }
         }
 
