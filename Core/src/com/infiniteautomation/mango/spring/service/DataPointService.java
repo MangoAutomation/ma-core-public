@@ -50,6 +50,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.DataPointPermissionDefinition;
 import com.serotonin.m2m2.rt.RTException;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -85,16 +86,19 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     private final EventDetectorDao eventDetectorDao;
     private final List<DataPointChangeDefinition> changeDefinitions;
     private final DataPoints dataPoints = DataPoints.DATA_POINTS;
+    private final DataPointPermissionDefinition dataPointPermissionDefinition;
 
     @Autowired
     public DataPointService(DataPointDao dao,
                             ServiceDependencies dependencies,
                             DataSourceDao dataSourceDao,
-                            EventDetectorDao eventDetectorDao) {
+                            EventDetectorDao eventDetectorDao,
+                            DataPointPermissionDefinition dataPointPermissionDefinition) {
         super(dao, dependencies);
         this.dataSourceDao = dataSourceDao;
         this.eventDetectorDao = eventDetectorDao;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
+        this.dataPointPermissionDefinition = dataPointPermissionDefinition;
     }
 
     @Override
@@ -114,7 +118,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, DataPointVO vo) {
-        return permissionService.hasPermission(user, vo.getReadPermission());
+        return this.permissionService.hasPermission(user, dataPointPermissionDefinition.getPermission()) || permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
@@ -490,8 +494,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
 
         if(vo.getPointLocator() != null){
-            if (vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC && (vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE ||
-                    vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)) {
+            if (vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC && (vo.getLoggingType() == LoggingTypes.ON_CHANGE ||
+                    vo.getLoggingType() == LoggingTypes.ON_CHANGE_INTERVAL)) {
                 if (vo.getTolerance() < 0)
                     response.addContextualMessage("tolerance", "validate.cannotBeNegative");
             }
@@ -582,7 +586,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             response.addContextualMessage("simplifyType", "validate.invalidValue");
         else if(vo.getSimplifyType() == SimplifyTypes.TARGET && vo.getSimplifyTarget() < 10)
             response.addContextualMessage("simplifyTarget", "validate.greaterThan", 10);
-        else if(vo.getSimplifyType() != DataPointVO.SimplifyTypes.NONE && (vo.getPointLocator().getDataTypeId() == DataTypes.ALPHANUMERIC ||
+        else if(vo.getSimplifyType() != SimplifyTypes.NONE && (vo.getPointLocator().getDataTypeId() == DataTypes.ALPHANUMERIC ||
                 vo.getPointLocator().getDataTypeId() == DataTypes.IMAGE))
             response.addContextualMessage("simplifyType", "validate.cannotSimplifyType", DataTypes.getDataTypeMessage(vo.getPointLocator().getDataTypeId()));
 
