@@ -9,8 +9,10 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -56,8 +58,8 @@ public class OrderedThreadPoolExecutorTest {
         final String taskId = "TSK_FAIL";
         final int taskCount = 100;
         final long timeStep = 1;
-        final List<TestTask> toProcess = new ArrayList<>();
-        final List<TestTask> processed = new ArrayList<>();
+        final List<TestTask> tasks = new ArrayList<>();
+        final Queue<Integer> executionOrder = new LinkedList<>();
         final AtomicLong time = new AtomicLong();
         final AtomicBoolean poolRejection = new AtomicBoolean();
         final AtomicInteger tasksProcessed = new AtomicInteger();
@@ -83,22 +85,21 @@ public class OrderedThreadPoolExecutorTest {
         //Generate tasks to run in order
         CompletableFuture[] all = new CompletableFuture[taskCount];
         for(int i=0; i<taskCount; i++) {
+            AtomicInteger tId = new AtomicInteger(i);
             TestTask task = new TestTask("Failure", taskId, Task.UNLIMITED_QUEUE_SIZE, i, true,
-                    -1, i, processed);
+                    -1, i, () -> {
+                executionOrder.add(tId.get());
+            });
             all[i] = task.getWork();
-            toProcess.add(task);
+            tasks.add(task);
         }
-        
-        //Startup a new thread that inserts tasks
-        new Thread() {
-            public void run() {
-                for(TestTask task : toProcess) {
-                    log.debug("Scheduling " + task.runId);
-                    exe.execute(new TaskWrapper(task, time.getAndAdd(timeStep)));
-                }
-            };
-        }.start();
-        
+
+        //Execute the tasks
+        for(TestTask task : tasks) {
+            log.debug("Scheduling " + task.runId);
+            exe.execute(new TaskWrapper(task, time.getAndAdd(timeStep)));
+        }
+
         //Ensure all tasks ran
         try {
             CompletableFuture.allOf(all).get();
@@ -116,14 +117,26 @@ public class OrderedThreadPoolExecutorTest {
         Assert.assertEquals(poolRejection.get(), false);
         
         //Check again to make sure they actually ran
-        Assert.assertEquals(toProcess.size(), processed.size());
-        
-        for(int i=0; i<toProcess.size(); i++) {
-            Assert.assertEquals(toProcess.get(i).runId, processed.get(i).runId);
+        int ran = 0;
+        try {
+            for (TestTask task : tasks) {
+                if (task.getWork().get() == null) {
+                    ran++;
+                }
+            }
+        } catch (ExecutionException e) {
+            log.error("Failed to get result", e);
+            fail(e.getMessage());
         }
+        Assert.assertEquals(tasks.size(), ran);
+
+        AtomicInteger order = new AtomicInteger();
+        executionOrder.stream().forEach(o -> {
+            Assert.assertEquals((long)order.getAndIncrement(), (long)o);
+        });
         
         //Check for rejection failures
-        for(TestTask test : toProcess) {
+        for(TestTask test : tasks) {
             log.debug(test.toString());
             if(test.rejectionFailure())
                 fail(test.rejectionFailureDescription);
@@ -140,8 +153,8 @@ public class OrderedThreadPoolExecutorTest {
         final int taskCount = 20;
         final int queueSize = 10;
         final long timeStep = 1;
-        final List<TestTask> toProcess = new ArrayList<>();
-        final List<TestTask> processed = new ArrayList<>();
+        final List<TestTask> tasks = new ArrayList<>();
+        final Queue<Integer> executionOrder = new LinkedList<>();
         final AtomicLong time = new AtomicLong();
         final AtomicBoolean poolRejection = new AtomicBoolean();
 
@@ -171,18 +184,21 @@ public class OrderedThreadPoolExecutorTest {
             TestTask task;
             if(i > queueSize -1) {
                 task = new TestTask("Failure", taskId, queueSize, i, false,
-                        RejectedTaskReason.TASK_QUEUE_FULL, i, processed);
+                        RejectedTaskReason.TASK_QUEUE_FULL, i);
             }else {
-                task = new DelayedTestTask("Failure", taskId, queueSize, i, false,
-                        -1, processed);
+                AtomicInteger tId = new AtomicInteger(i);
+                task = new DelayedTestTask("Should run", taskId, queueSize, i, false,
+                        -1, () -> {
+                    executionOrder.add(tId.get());
+                });
                 waitingOn.add(task.getWork());
             }
             all[i] = task.getWork();
-            toProcess.add(task);
+            tasks.add(task);
         }
 
         //Submit the tasks
-        for(TestTask task : toProcess) {
+        for(TestTask task : tasks) {
             log.debug("Scheduling " + task.runId);
             exe.execute(new TaskWrapper(task, time.getAndAdd(timeStep)));
         }
@@ -190,7 +206,7 @@ public class OrderedThreadPoolExecutorTest {
         //All tasks necessary should have been rejected so we can
         //  release the waiting tasks
         for(CompletableFuture work : waitingOn) {
-            work.complete(null);
+            work.complete(1);
         }
 
         //Ensure all tasks ran
@@ -211,15 +227,27 @@ public class OrderedThreadPoolExecutorTest {
         Assert.assertEquals(poolRejection.get(), false);
 
         //Check again to make sure they actually ran (a full queue + the first task)
-        Assert.assertEquals(queueSize + 1, processed.size());
-
-        //Check processed tasks
-        for(int i=0; i<processed.size(); i++) {
-            Assert.assertEquals(toProcess.get(i).runId, processed.get(i).runId);
+        int ran = 0;
+        try {
+            for (TestTask task : tasks) {
+                if (task.getWork().get() != null) {
+                    ran++;
+                }
+            }
+        } catch (ExecutionException e) {
+            log.error("Failed to get result", e);
+            fail(e.getMessage());
         }
+        Assert.assertEquals(queueSize + 1, ran);
+
+        //Check processed task order
+        AtomicInteger order = new AtomicInteger();
+        executionOrder.stream().forEach(o -> {
+            Assert.assertEquals((long)order.getAndIncrement(), (long)o);
+        });
 
         //Check for rejection failures
-        for(TestTask test : toProcess) {
+        for(TestTask test : tasks) {
             log.debug(test.toString());
             if(test.rejectionFailure())
                 fail(test.rejectionFailureDescription);
@@ -240,13 +268,12 @@ public class OrderedThreadPoolExecutorTest {
         final int taskCount = 20;
         final int poolSize = 3;
         final long timeStep = 1;
-        final List<TestTask> toProcess = new ArrayList<>();
-        final List<TestTask> processed = new ArrayList<>();
         final AtomicLong time = new AtomicLong();
         final AtomicBoolean poolRejection = new AtomicBoolean();
 
         IgnoreExpectedException handler = new IgnoreExpectedException();
 
+        List<TestTask> tasks = new ArrayList<>();
         Map<Integer, CompletableFuture> futureMap = new HashMap<>();
         OrderedThreadPoolExecutor exe = new OrderedThreadPoolExecutor(
                 0,
@@ -275,19 +302,19 @@ public class OrderedThreadPoolExecutorTest {
         for(int i=0; i<taskCount; i++) {
             TestTask task;
             if(i > poolSize) {
-                task = new TestTask("Failure", taskId + i, 0, i, false,
-                        RejectedTaskReason.POOL_FULL, i, processed);
+                task = new TestTask("Rejected", taskId + i, 0, i, false,
+                        RejectedTaskReason.POOL_FULL, i);
             }else {
-                task = new DelayedTestTask("Failure", taskId + i, 0, i, false,
-                        -1, processed);
+                task = new DelayedTestTask("Should Run", taskId + i, 0, i, false,
+                        -1);
                 waitingOn.add(task.getWork());
             }
             all[i] = task.getWork();
-            toProcess.add(task);
+            tasks.add(task);
         }
 
         //Submit all tasks for processing
-        for(TestTask task : toProcess) {
+        for(TestTask task : tasks) {
             log.debug("Scheduling " + task.runId);
             exe.execute(new TaskWrapper(task, time.getAndAdd(timeStep)));
         }
@@ -295,7 +322,7 @@ public class OrderedThreadPoolExecutorTest {
         //All tasks necessary should have been rejected so we can
         //  release the waiting tasks
         for(CompletableFuture work : waitingOn) {
-            work.complete(null);
+            work.complete(1);
         }
 
         //Ensure all tasks ran
@@ -316,9 +343,20 @@ public class OrderedThreadPoolExecutorTest {
         Assert.assertEquals(true, poolRejection.get());
 
         //Check again to make sure they actually ran
-        Assert.assertEquals(poolSize, processed.size());
+        int ran = 0;
+        try {
+            for (TestTask task : tasks) {
+                if (task.getWork().get() != null) {
+                    ran++;
+                }
+            }
+        } catch (ExecutionException e) {
+            log.error("Failed to get result", e);
+            fail(e.getMessage());
+        }
+        Assert.assertEquals(poolSize, ran);
 
-        for(TestTask test : toProcess) {
+        for(TestTask test : tasks) {
             log.debug(test.toString());
             if(test.rejectionFailure()) {
                 fail(test.rejectionFailureDescription);
@@ -366,33 +404,53 @@ public class OrderedThreadPoolExecutorTest {
         final boolean throwException;
         final int rejectCode;
         final T result;
-        final List<TestTask> processed;
         final CompletableFuture<T> work;
+        final Runnable r;
         long runtime = -1;
         String rejectedDescription = null;
         String rejectionFailureDescription = null;
 
+
         public TestTask(String name, String id, int queueSize, int runId, boolean throwException, int rejectCode,
-                        T result,  final List<TestTask> processed) {
-            this(name, id, queueSize, runId, throwException, rejectCode, result, new CompletableFuture<>(), processed);
+                        T result) {
+            this(name, id, queueSize, runId, throwException, rejectCode, result, new CompletableFuture<>(), null);
+        }
+
+        /**
+         *
+         * @param name
+         * @param id
+         * @param queueSize
+         * @param runId
+         * @param throwException
+         * @param rejectCode
+         * @param result
+         * @param r - run at start of task
+         */
+        public TestTask(String name, String id, int queueSize, int runId, boolean throwException, int rejectCode,
+                        T result, Runnable r) {
+            this(name, id, queueSize, runId, throwException, rejectCode, result, new CompletableFuture<>(), r);
         }
 
         public TestTask(String name, String id, int queueSize, int runId, boolean throwException, int rejectCode,
-                        T result,  CompletableFuture<T> work, final List<TestTask> processed) {
+                        T result,  CompletableFuture<T> work, Runnable r) {
             super(name, id, queueSize);
             this.runId = runId;
             this.rejectCode = rejectCode;
             this.result = result;
             this.throwException = throwException;
-            this.processed = processed;
             this.work = work;
+            this.r = r;
         }
 
         @Override
         public void run(long runtime) {
             this.runtime = runtime;
-            this.processed.add(this);
             log.debug("Running task " + runId);
+
+            if(r != null) {
+                r.run();
+            }
 
             if(throwException) {
                 ExpectedException e = new ExpectedException();
@@ -441,15 +499,32 @@ public class OrderedThreadPoolExecutorTest {
      */
     class DelayedTestTask extends TestTask<Void> {
         public DelayedTestTask(String name, String id, int queueSize, int runId,
-                               boolean throwException, int rejectCode, List<TestTask> processed) {
-            super(name, id, queueSize, runId, throwException, rejectCode, null, processed);
+                               boolean throwException, int rejectCode) {
+            super(name, id, queueSize, runId, throwException, rejectCode, null, null);
+        }
+
+        /**
+         *
+         * @param name
+         * @param id
+         * @param queueSize
+         * @param runId
+         * @param throwException
+         * @param rejectCode
+         * @param r - execute before waiting on the future to be completed
+         */
+        public DelayedTestTask(String name, String id, int queueSize, int runId,
+                               boolean throwException, int rejectCode, Runnable r) {
+            super(name, id, queueSize, runId, throwException, rejectCode, null, r);
         }
 
         @Override
         public void run(long runtime) {
             log.debug("Running task " + runId);
             this.runtime = runtime;
-            this.processed.add(this);
+            if(r != null) {
+                r.run();
+            }
             try {
                 this.work.get();
             } catch (InterruptedException e) {
