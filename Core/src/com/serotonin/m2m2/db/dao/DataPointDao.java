@@ -69,8 +69,8 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.DataPointPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -106,13 +106,16 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private final EventHandlersMapping eventHandlersMapping;
     private final DataPointTags dataPointTags;
 
+    private final DataPointPermissionDefinition dataPointPermissionDefinition;
+
     @Autowired
     private DataPointDao(
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
             ApplicationEventPublisher publisher,
             DataPointTagsDao dataPointTagsDao,
-            EventDetectorDao eventDetectorDao) {
+            EventDetectorDao eventDetectorDao,
+            DataPointPermissionDefinition dataPointPermissionDefinition) {
 
         super(AuditEventType.TYPE_DATA_POINT, DataPoints.DATA_POINTS,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
@@ -120,6 +123,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
+        this.dataPointPermissionDefinition = dataPointPermissionDefinition;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
 
         this.eventDetectors = EventDetectors.EVENT_DETECTORS;
@@ -786,6 +790,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
             .execute();
         }catch(Exception e) {
             //Probably in use by another point (2 points on the same series)
+        }
+    }
+
+    @Override
+    protected <R extends Record> SelectJoinStep<R> joinPermissionsOnField(SelectJoinStep<R> select, PermissionHolder user, Field<Integer> permissionIdField){
+        if (this.permissionService.hasPermission(user, dataPointPermissionDefinition.getPermission())) {
+            return select;
+        } else {
+            return super.joinPermissionsOnField(select ,user ,permissionIdField);
         }
     }
 
