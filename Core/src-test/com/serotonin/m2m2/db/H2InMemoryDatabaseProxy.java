@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.sql.DataSource;
@@ -48,7 +49,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     private final Logger log = LoggerFactory.getLogger(H2InMemoryDatabaseProxy.class);
 
-    protected String databaseName = "test";
+    protected String databaseName = UUID.randomUUID().toString();
     protected JdbcConnectionPool dataSource;
     protected NoSQLProxy noSQLProxy;
     protected PointValueCacheProxy pointValueCacheProxy;
