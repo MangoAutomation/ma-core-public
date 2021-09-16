@@ -37,6 +37,8 @@ import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigRes
 import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseProxyFactory;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.FreemarkerTemplateLoaderDefinition;
@@ -53,7 +55,6 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.util.MapWrap;
 import com.serotonin.m2m2.util.MapWrapConverter;
-import com.serotonin.m2m2.view.text.BaseTextRenderer;
 import com.serotonin.m2m2.view.text.BaseTextRenderer.Resolver;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
@@ -91,9 +92,16 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
     protected ApplicationContext runtimeContext;
+    private DatabaseProxyFactory databaseProxyFactory;
 
     public MockMangoLifecycle(List<Module> modules) {
         this.modules = modules;
+        this.databaseProxyFactory = (type) -> {
+            // ignores type
+            boolean enableWebConsole = Common.envProps.getBoolean("db.web.start");
+            int webPort = Common.envProps.getInt("db.web.port");
+            return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
+        };
     }
 
     /**
@@ -148,12 +156,12 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         // and so if you try to restart the database it doesn't get the new connection
         // for each new test.
         //Start the Database so we can use Daos (Base Dao requires this)
-        if(Common.databaseProxy == null) {
-            Common.databaseProxy = getDatabaseProxy();
+        if (Common.databaseProxy == null) {
+            String type = Common.envProps.getString("db.type", "h2");
+            DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
+            Common.databaseProxy = databaseProxyFactory.createDatabaseProxy(databaseType);
         }
-
-        if(Common.databaseProxy != null)
-            Common.databaseProxy.initialize(null);
+        Common.databaseProxy.initialize(getClass().getClassLoader());
 
         //Setup the Spring Context
         this.runtimeContext = springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
@@ -393,6 +401,10 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
         else
             return this.db;
+    }
+
+    public void setDatabaseProxyFactory(DatabaseProxyFactory databaseProxyFactory) {
+        this.databaseProxyFactory = databaseProxyFactory;
     }
 
     protected RuntimeManager getRuntimeManager() {

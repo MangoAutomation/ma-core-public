@@ -176,12 +176,15 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         DBUpgrade.checkUpgrade();
 
         // Check if we are using NoSQL and use the first enabled proxy
-        List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
-        for(NoSQLProxy proxy : proxies) {
-            if (proxy.isEnabled()) {
-                noSQLProxy = proxy;
-                noSQLProxy.initialize();
-                break;
+        if (noSQLProxy != null) {
+            noSQLProxy.initialize();
+        } else {
+            List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
+            for (NoSQLProxy proxy : proxies) {
+                if (proxy.isEnabled()) {
+                    noSQLProxy = proxy;
+                    break;
+                }
             }
         }
 
