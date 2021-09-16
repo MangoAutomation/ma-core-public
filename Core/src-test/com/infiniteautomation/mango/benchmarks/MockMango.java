@@ -6,8 +6,7 @@
 
 package com.infiniteautomation.mango.benchmarks;
 
-import static org.junit.Assert.fail;
-
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +16,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
+
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.serotonin.ShouldNeverHappenException;
@@ -24,10 +29,10 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -37,30 +42,24 @@ import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 /**
  * Base class for benchmarking Mango
  */
+@State(Scope.Benchmark)
 public class MockMango extends MangoTestBase {
 
-    private final MockMangoLifecycle lifeycle;
+    protected final MockMangoLifecycle lifecycle;
 
     public MockMango() {
-        this.lifeycle = new MockMangoLifecycle(modules);
+        this.lifecycle = new MockMangoLifecycle(modules);
     }
-
 
     /**
      * Create points asynchronously and wait for all to be created
-     *
-     * @param count
-     * @param tags
-     * @return
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
-    public List<IDataPoint> createDataPoints(int count, Map<String, String> tags) throws ExecutionException, InterruptedException {
+    public List<DataPointVO> createDataPoints(int count, Map<String, String> tags) throws ExecutionException, InterruptedException {
         MockDataSourceVO ds = createMockDataSource();
         DataPointService service = Common.getBean(DataPointService.class);
         List<CompletableFuture<DataPointVO>> points = new ArrayList<>();
 
-        for(int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             DataPointVO dp = new DataPointVO();
             dp.setName(UUID.randomUUID().toString());
             dp.setDeviceName(ds.getName());
@@ -70,28 +69,21 @@ public class MockMango extends MangoTestBase {
             points.add(service.insertAsync(dp).toCompletableFuture());
 
         }
-        return CompletableFuture.allOf(points.toArray(new CompletableFuture[points.size()]))
-                .thenApply(ignored -> points.stream().map(f -> (IDataPoint)f.join())
-                .collect(Collectors.toList())).get();
+        return CompletableFuture.allOf(points.toArray(new CompletableFuture[0]))
+                .thenApply(ignored -> points.stream().map(CompletableFuture::join)
+                        .collect(Collectors.toList())).get();
     }
 
     /**
      * Create data points and event detectors asynchronously, waiting until all are created
-     *
-     * @param dataPointCount
-     * @param tags
-     * @param detectorsPerPoint
-     * @return
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
-    public List<IDataPoint> createMockDataPointsWithDetectors(int dataPointCount, Map<String, String> tags, int detectorsPerPoint) throws ExecutionException, InterruptedException {
-        List<IDataPoint> points = createDataPoints(dataPointCount, tags);
+    public List<DataPointVO> createMockDataPointsWithDetectors(int dataPointCount, Map<String, String> tags, int detectorsPerPoint) throws ExecutionException, InterruptedException {
+        List<DataPointVO> points = createDataPoints(dataPointCount, tags);
         EventDetectorDefinition<?> updateEventDetectorDefinition = ModuleRegistry.getEventDetectorDefinition("UPDATE");
         List<CompletableFuture<AbstractEventDetectorVO>> detectors = new ArrayList<>();
         EventDetectorsService eventDetectorsService = Common.getBean(EventDetectorsService.class);
         for (IDataPoint point : points) {
-            for(int i=0; i<detectorsPerPoint; i++) {
+            for (int i = 0; i < detectorsPerPoint; i++) {
                 detectors.add(eventDetectorsService
                         .insertAsync(updateEventDetectorDefinition.baseCreateEventDetectorVO(point.getId()))
                         .toCompletableFuture());
@@ -99,8 +91,8 @@ public class MockMango extends MangoTestBase {
             }
         }
         //Wait for all detectors to be created
-        CompletableFuture.allOf(detectors.toArray(new CompletableFuture[detectors.size()]))
-                .thenApply(ignored -> detectors.stream().map(f -> (AbstractEventDetectorVO)f.join())
+        CompletableFuture.allOf(detectors.toArray(new CompletableFuture[0]))
+                .thenApply(ignored -> detectors.stream().map(CompletableFuture::join)
                         .collect(Collectors.toList())).get();
         return points;
     }
@@ -108,38 +100,75 @@ public class MockMango extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        return lifeycle;
+        return lifecycle;
     }
 
     /**
-     * Drop and re-create all tables
+     * Hook that runs before the lifecycle is initialized
      */
-    public void resetDatabase() {
-        if(Common.databaseProxy instanceof H2InMemoryDatabaseProxy) {
+    protected void preInitialize() throws Exception {
+
+    }
+
+    /**
+     * Common logic to initialize Mango before the trial.  Note this
+     * will only work with Fork > 0.
+     * @param setSecurityContext not used, simply pulls in {@link SetSecurityContext}
+     */
+    @Setup(Level.Trial)
+    public void setupTrial(@SuppressWarnings("unused") SetSecurityContext setSecurityContext) throws Exception {
+        MangoTestBase.staticSetup();
+        preInitialize();
+        before();
+    }
+
+    /**
+     * Reset the database after every iteration
+     */
+    @TearDown(Level.Iteration)
+    public void tearDownIteration() throws SQLException {
+        if (Common.databaseProxy instanceof H2InMemoryDatabaseProxy) {
             H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
             try {
                 proxy.clean();
             } catch (Exception e) {
                 throw new ShouldNeverHappenException(e);
             }
-        }else {
-            try {
-                String databaseName = Common.databaseProxy.getDataSource().getConnection().getCatalog();
-                Common.databaseProxy.getDataSource().getConnection().createStatement().executeUpdate("DROP DATABASE `" + databaseName + "`");
-                Common.databaseProxy.getDataSource().getConnection().createStatement().executeUpdate("CREATE DATABASE `" + databaseName + "`");
-                Common.databaseProxy.initialize(null);
-                //TODO Reset caches...
-            } catch (SQLException e) {
-                fail(e.getMessage());
+        } else if (Common.databaseProxy.getType() == DatabaseType.MYSQL) {
+            // H2 does not support DROP database
+
+            try (var connection = Common.databaseProxy.getDataSource().getConnection()) {
+                String databaseName = connection.getCatalog();
+                try (var statement = connection.createStatement()) {
+                    statement.executeUpdate(String.format("DROP DATABASE `%s`", databaseName));
+                }
+                try (var statement = connection.createStatement()) {
+                    statement.executeUpdate(String.format("CREATE DATABASE `%s`", databaseName));
+                }
             }
+            Common.databaseProxy.initialize(null);
+            //TODO Reset caches...
         }
     }
 
     /**
-     * Set the event manager implementation
-     * @param eventManager
+     * Common logic to shutdown Mango after a trial. Note this
+     * will only work with Fork > 0
      */
-    public void setEventManager(EventManager eventManager) {
-        this.lifeycle.setEventManager(eventManager);
+    @TearDown(Level.Trial)
+    public void tearDownTrial() throws IOException {
+        after();
+        MangoTestBase.staticTearDown();
+    }
+
+    /**
+     * Sets the security context in each thread
+     */
+    @State(Scope.Thread)
+    public static class SetSecurityContext {
+        @Setup
+        public void setup() {
+            MangoTestBase.setSuperadminAuthentication();
+        }
     }
 }

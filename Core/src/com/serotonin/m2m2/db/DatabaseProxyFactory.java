@@ -6,5 +6,5 @@ package com.serotonin.m2m2.db;
 
 @FunctionalInterface
 public interface DatabaseProxyFactory {
-    AbstractDatabaseProxy createDatabaseProxy(DatabaseType type);
+    DatabaseProxy createDatabaseProxy(DatabaseType type);
 }
