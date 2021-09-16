@@ -131,7 +131,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
                 // TODO check that the convert source has the current DB version, or upgrade it if not.
 
-                AbstractDatabaseProxy sourceProxy = getFactory().createDatabaseProxy(convertType);
+                AbstractDatabaseProxy sourceProxy = (AbstractDatabaseProxy) getFactory().createDatabaseProxy(convertType);
                 sourceProxy.initializeImpl("convert.");
                 try {
                     DBConvert convert = new DBConvert();
@@ -148,12 +148,16 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             }
 
             // Check if we are using NoSQL and use the first enabled proxy
-            List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
-            for(NoSQLProxy proxy : proxies) {
-                if (proxy.isEnabled()) {
-                    noSQLProxy = proxy;
-                    noSQLProxy.initialize();
-                    break;
+            if (noSQLProxy != null) {
+                noSQLProxy.initialize();
+            } else {
+                List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
+                for (NoSQLProxy proxy : proxies) {
+                    if (proxy.isEnabled()) {
+                        noSQLProxy = proxy;
+                        noSQLProxy.initialize();
+                        break;
+                    }
                 }
             }
 

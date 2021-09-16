@@ -6,8 +6,6 @@
 
 package com.infiniteautomation.mango.benchmarks;
 
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -50,20 +48,14 @@ import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 @State(Scope.Benchmark)
 public class MockMango extends MangoTestBase {
 
-    private final MockMangoLifecycle lifeycle;
+    protected final MockMangoLifecycle lifecycle;
 
     public MockMango() {
-        this.lifeycle = new MockMangoLifecycle(modules);
+        this.lifecycle = new MockMangoLifecycle(modules);
     }
 
     /**
      * Create points asynchronously and wait for all to be created
-     *
-     * @param count
-     * @param tags
-     * @return
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
     public List<DataPointVO> createDataPoints(int count, Map<String, String> tags) throws ExecutionException, InterruptedException {
         MockDataSourceVO ds = createMockDataSource();
@@ -80,20 +72,13 @@ public class MockMango extends MangoTestBase {
             points.add(service.insertAsync(dp).toCompletableFuture());
 
         }
-        return CompletableFuture.allOf(points.toArray(new CompletableFuture[points.size()]))
+        return CompletableFuture.allOf(points.toArray(new CompletableFuture[0]))
                 .thenApply(ignored -> points.stream().map(CompletableFuture::join)
                         .collect(Collectors.toList())).get();
     }
 
     /**
      * Create data points and event detectors asynchronously, waiting until all are created
-     *
-     * @param dataPointCount
-     * @param tags
-     * @param detectorsPerPoint
-     * @return
-     * @throws ExecutionException
-     * @throws InterruptedException
      */
     public List<DataPointVO> createMockDataPointsWithDetectors(int dataPointCount, Map<String, String> tags, int detectorsPerPoint) throws ExecutionException, InterruptedException {
         List<DataPointVO> points = createDataPoints(dataPointCount, tags);
@@ -118,16 +103,19 @@ public class MockMango extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        return lifeycle;
+        return lifecycle;
     }
 
     /**
      * Set the event manager implementation
-     *
-     * @param eventManager
      */
     public void setEventManager(EventManager eventManager) {
-        this.lifeycle.setEventManager(eventManager);
+        this.lifecycle.setEventManager(eventManager);
+    }
+
+    @Setup(Level.Trial)
+    public void setupSecurityContext(SetSecurityContext setSecurityContext) {
+        // no-op
     }
 
     /**
@@ -135,7 +123,7 @@ public class MockMango extends MangoTestBase {
      * will only work with Fork > 0
      */
     @Setup(Level.Trial)
-    public void setupTrial(SetSecurityContext ssc) throws IOException {
+    public void setupTrial() throws Exception {
         MangoTestBase.staticSetup();
 
         //Detect and set database if requested
@@ -153,7 +141,7 @@ public class MockMango extends MangoTestBase {
      * Reset the database after every iteration
      */
     @TearDown(Level.Iteration)
-    public void tearDownIteration() {
+    public void tearDownIteration() throws SQLException {
         if (Common.databaseProxy instanceof H2InMemoryDatabaseProxy) {
             H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
             try {
@@ -161,22 +149,20 @@ public class MockMango extends MangoTestBase {
             } catch (Exception e) {
                 throw new ShouldNeverHappenException(e);
             }
-        } else {
-            try {
-                try (var connection = Common.databaseProxy.getDataSource().getConnection()) {
-                    String databaseName = connection.getCatalog();
-                    try (var statement = connection.createStatement()) {
-                        statement.executeUpdate(String.format("DROP DATABASE `%s`", databaseName));
-                    }
-                    try (var statement = connection.createStatement()) {
-                        statement.executeUpdate(String.format("CREATE DATABASE `%s`", databaseName));
-                    }
+        } else if (Common.databaseProxy.getType() == DatabaseType.MYSQL) {
+            // H2 does not support DROP database
+
+            try (var connection = Common.databaseProxy.getDataSource().getConnection()) {
+                String databaseName = connection.getCatalog();
+                try (var statement = connection.createStatement()) {
+                    statement.executeUpdate(String.format("DROP DATABASE `%s`", databaseName));
                 }
-                Common.databaseProxy.initialize(null);
-                //TODO Reset caches...
-            } catch (SQLException e) {
-                fail(e.getMessage());
+                try (var statement = connection.createStatement()) {
+                    statement.executeUpdate(String.format("CREATE DATABASE `%s`", databaseName));
+                }
             }
+            Common.databaseProxy.initialize(null);
+            //TODO Reset caches...
         }
     }
 
