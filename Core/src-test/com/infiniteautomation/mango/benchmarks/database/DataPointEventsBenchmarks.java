@@ -43,7 +43,6 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 public class DataPointEventsBenchmarks extends BenchmarkRunner {
@@ -89,7 +88,7 @@ public class DataPointEventsBenchmarks extends BenchmarkRunner {
 
         @Setup(Level.Iteration)
         public void setupIteration() {
-            List<IDataPoint> points = null;
+            List<DataPointVO> points = null;
             try {
                 for(int i=0; i<tagsPerPoint; i++) {
                     tags.put("tag-" + i, UUID.randomUUID().toString());
@@ -100,10 +99,10 @@ public class DataPointEventsBenchmarks extends BenchmarkRunner {
                 fail(e.getMessage());
             }
 
-            for (IDataPoint point : points) {
-                List<AbstractPointEventDetectorVO> detectors = EventDetectorDao.getInstance().getWithSource(point.getId(), (DataPointVO) point);
+            for (DataPointVO point : points) {
+                List<AbstractPointEventDetectorVO> detectors = EventDetectorDao.getInstance().getWithSource(point.getId(), point);
                 if (detectors.size() > 0) {
-                    DataPointEventType type = new DataPointEventType((DataPointVO) point, detectors.get(0));
+                    DataPointEventType type = new DataPointEventType(point, detectors.get(0));
                     HashMap<String, Object> context = new HashMap<>();
                     context.put(PointEventDetectorRT.EVENT_DETECTOR_CONTEXT_KEY, detectors.get(0));
                     context.put(PointEventDetectorRT.DATA_POINT_CONTEXT_KEY, point);

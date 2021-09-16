@@ -65,7 +65,7 @@ public class MockMango extends MangoTestBase {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public List<IDataPoint> createDataPoints(int count, Map<String, String> tags) throws ExecutionException, InterruptedException {
+    public List<DataPointVO> createDataPoints(int count, Map<String, String> tags) throws ExecutionException, InterruptedException {
         MockDataSourceVO ds = createMockDataSource();
         DataPointService service = Common.getBean(DataPointService.class);
         List<CompletableFuture<DataPointVO>> points = new ArrayList<>();
@@ -81,7 +81,7 @@ public class MockMango extends MangoTestBase {
 
         }
         return CompletableFuture.allOf(points.toArray(new CompletableFuture[points.size()]))
-                .thenApply(ignored -> points.stream().map(f -> (IDataPoint) f.join())
+                .thenApply(ignored -> points.stream().map(CompletableFuture::join)
                         .collect(Collectors.toList())).get();
     }
 
@@ -95,8 +95,8 @@ public class MockMango extends MangoTestBase {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public List<IDataPoint> createMockDataPointsWithDetectors(int dataPointCount, Map<String, String> tags, int detectorsPerPoint) throws ExecutionException, InterruptedException {
-        List<IDataPoint> points = createDataPoints(dataPointCount, tags);
+    public List<DataPointVO> createMockDataPointsWithDetectors(int dataPointCount, Map<String, String> tags, int detectorsPerPoint) throws ExecutionException, InterruptedException {
+        List<DataPointVO> points = createDataPoints(dataPointCount, tags);
         EventDetectorDefinition<?> updateEventDetectorDefinition = ModuleRegistry.getEventDetectorDefinition("UPDATE");
         List<CompletableFuture<AbstractEventDetectorVO>> detectors = new ArrayList<>();
         EventDetectorsService eventDetectorsService = Common.getBean(EventDetectorsService.class);
