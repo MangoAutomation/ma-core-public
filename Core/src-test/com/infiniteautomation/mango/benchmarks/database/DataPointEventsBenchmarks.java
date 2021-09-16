@@ -28,15 +28,12 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
-import com.infiniteautomation.mango.benchmarks.MangoBenchmark;
-import com.infiniteautomation.mango.benchmarks.MangoBenchmarkParameters;
-import com.infiniteautomation.mango.spring.components.RunAs;
-import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.benchmarks.BenchmarkRunner;
+import com.infiniteautomation.mango.benchmarks.MockMango;
 import com.infiniteautomation.mango.spring.service.EventInstanceService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
@@ -49,17 +46,20 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
-@State(Scope.Benchmark)
-public class DataPointEventsBenchmarks extends MangoBenchmark {
+public class DataPointEventsBenchmarks extends BenchmarkRunner {
 
-    public static final String ID = "id";
-    public static final String POINT_EVENT_DETECTOR = "pointEventDetector";
-    public static final String DATA_POINT = "dataPoint";
     public static final String LITERAL = "literal";
     public static final String BENCHMARK_DATA_POINT_EVENT_FOR = "Benchmark data point event for  ";
 
+    public static class RealEventManagerMockMango extends MockMango {
+        public RealEventManagerMockMango() {
+            super();
+            setEventManager(new EventManagerImpl());
+        }
+    }
+
     @State(Scope.Benchmark)
-    public static class BenchmarkParams extends MangoBenchmarkParameters {
+    public static class BenchmarkParams {
 
         @Param({"1", "100", "1000"})
         public int dataPoints;
@@ -78,32 +78,24 @@ public class DataPointEventsBenchmarks extends MangoBenchmark {
 
         public EventInstanceService eventInstanceService;
         public Map<String, String> tags = new HashMap<>();
-    }
 
-    @Setup(Level.Trial)
-    public void setupTrial(BenchmarkParams params) {
-        params.mango.setEventManager(new EventManagerImpl());
-        super.setupTrial(params);
-        params.eventInstanceService = Common.getBean(EventInstanceService.class);
-    }
+        public MockMango mango;
 
-    @Setup(Level.Iteration)
-    public void setupIteration(BenchmarkParams params) {
-        DataPointService service = Common.getBean(DataPointService.class);
-        RunAs runAs = Common.getBean(RunAs.class);
-        AtomicInteger eventCount = new AtomicInteger();
+        @Setup(Level.Trial)
+        public void setupTrial(RealEventManagerMockMango mockMango) {
+            this.mango = mockMango;
+            this.eventInstanceService = Common.getBean(EventInstanceService.class);
+        }
 
-        runAs.runAs(runAs.systemSuperadmin(), () -> {
+        @Setup(Level.Iteration)
+        public void setupIteration() {
             List<IDataPoint> points = null;
             try {
-                for(int i=0; i<params.tagsPerPoint; i++) {
-                    params.tags.put("tag-" + i, UUID.randomUUID().toString());
+                for(int i=0; i<tagsPerPoint; i++) {
+                    tags.put("tag-" + i, UUID.randomUUID().toString());
                 }
-                points = params.mango.createMockDataPointsWithDetectors(params.dataPoints, params.tags, params.eventsPerEventDetector);
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-                fail(e.getMessage());
-            } catch (InterruptedException e) {
+                points = mango.createMockDataPointsWithDetectors(dataPoints, tags, eventsPerEventDetector);
+            } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
             }
@@ -112,32 +104,20 @@ public class DataPointEventsBenchmarks extends MangoBenchmark {
                 List<AbstractPointEventDetectorVO> detectors = EventDetectorDao.getInstance().getWithSource(point.getId(), (DataPointVO) point);
                 if (detectors.size() > 0) {
                     DataPointEventType type = new DataPointEventType((DataPointVO) point, detectors.get(0));
-                    HashMap context = new HashMap();
+                    HashMap<String, Object> context = new HashMap<>();
                     context.put(PointEventDetectorRT.EVENT_DETECTOR_CONTEXT_KEY, detectors.get(0));
                     context.put(PointEventDetectorRT.DATA_POINT_CONTEXT_KEY, point);
 
-                    for (int i = 0; i < params.eventsPerEventDetector; i++) {
+                    for (int i = 0; i < eventsPerEventDetector; i++) {
                         Common.eventManager.raiseEvent(type,
                                 Common.timer.currentTimeMillis(),
                                 false, AlarmLevels.INFORMATION,
                                 new TranslatableMessage(LITERAL, BENCHMARK_DATA_POINT_EVENT_FOR + point.getName()),
                                 context);
-
-                        eventCount.getAndIncrement();
                     }
                 }
             }
-        });
-    }
-
-    @TearDown(Level.Iteration)
-    public void tearDownIteration(BenchmarkParams params) {
-        super.tearDownIteration(params);
-    }
-
-    @TearDown(Level.Trial)
-    public void tearDownTrial(BenchmarkParams params) {
-        super.tearDownTrial(params);
+        }
     }
 
     @Benchmark
