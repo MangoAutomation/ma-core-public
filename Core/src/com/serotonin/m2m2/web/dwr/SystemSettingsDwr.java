@@ -405,18 +405,18 @@ public class SystemSettingsDwr extends BaseDwr {
 
         SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
 
-        if(highPriorityCorePoolSize > 0){
-            systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, highPriorityCorePoolSize);
-        }else{
-            response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
-        }
-
         if(highPriorityMaxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN){
             response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
         }else if(highPriorityMaxPoolSize < highPriorityCorePoolSize){
             response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }else{
             systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, highPriorityMaxPoolSize);
+        }
+
+        if(highPriorityCorePoolSize > 0){
+            systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, highPriorityCorePoolSize);
+        }else{
+            response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
         }
 
         //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a
@@ -560,7 +560,7 @@ public class SystemSettingsDwr extends BaseDwr {
         ProcessResult result = new ProcessResult();
         List<ProcessMessage> messages = new ArrayList<>();
         User user = Common.getHttpUser();
-        
+
         String existingDataSource = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE);
         Permissions.validatePermissions(result, SystemSettingsDao.PERMISSION_DATASOURCE, user, false, Permissions.explodePermissionGroups(existingDataSource), Permissions.explodePermissionGroups(datasource));
 

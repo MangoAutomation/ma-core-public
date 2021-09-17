@@ -1,6 +1,7 @@
 *Version 3.7.8*
 * Upgrade Jetty webserver to 9.4.43.v20210629 to fix performance issues
 * Remove ssl.alpn.debug env property, this is now enabled by configuring log4j logger for the org.eclipse.jetty.alpn.server package
+* Fix bug where setting the high priority core thread pool greater than 100 would cause Mango to fail to start
 
 *Version 3.7.7*
 * Fix syntax error in database type check for MySQL databases

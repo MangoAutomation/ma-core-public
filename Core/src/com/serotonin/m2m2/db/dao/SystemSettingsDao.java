@@ -70,7 +70,7 @@ import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
  * Dao access for system settings,
  *  this class is a spring bean declared in the MangoRuntimeContextConfiguration,
  *  as such it is not annotated as a bean here.
- * 
+ *
  * @author Jared Wiltshire
  */
 public class SystemSettingsDao extends BaseDao {
@@ -237,9 +237,9 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
     //TODO Dictionary
     //TODO Validation
-    
+
     public static final SystemSettingsDao instance = new SystemSettingsDao();
-    
+
     /**
      * Will remain null until the runtime context is refreshed so the JSON methods of this class should not be used early in the lifecycle.
      */
@@ -783,7 +783,7 @@ public class SystemSettingsDao extends BaseDao {
 
         DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
         DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
-        
+
         DEFAULT_VALUES.put(PASSWORD_UPPER_CASE_COUNT, 0);
         DEFAULT_VALUES.put(PASSWORD_LOWER_CASE_COUNT, 0);
         DEFAULT_VALUES.put(PASSWORD_DIGIT_COUNT, 0);
@@ -801,6 +801,8 @@ public class SystemSettingsDao extends BaseDao {
      * @throws JsonProcessingException
      */
     public void updateSettings(Map<String, Object> settings) {
+        Map<String, String> threadPoolSettings = new HashMap<>();
+
         for (Entry<String, Object> entry : settings.entrySet()) {
             String setting = entry.getKey();
             // Lookup the setting to see if it exists
@@ -827,7 +829,23 @@ public class SystemSettingsDao extends BaseDao {
             } else {
                 stringValue = value.toString();
             }
-            setValue(setting, stringValue);
+            switch(setting) {
+                case HIGH_PRI_CORE_POOL_SIZE:
+                case HIGH_PRI_MAX_POOL_SIZE:
+                    threadPoolSettings.put(setting, stringValue);
+                    break;
+                default:
+                    setValue(setting, stringValue);
+            }
+
+        }
+
+        //Finally update high thread pool settings in order
+        if(threadPoolSettings.containsKey(HIGH_PRI_MAX_POOL_SIZE)) {
+            setValue(HIGH_PRI_MAX_POOL_SIZE, threadPoolSettings.get(HIGH_PRI_MAX_POOL_SIZE));
+        }
+        if(threadPoolSettings.containsKey(HIGH_PRI_CORE_POOL_SIZE)) {
+            setValue(HIGH_PRI_CORE_POOL_SIZE, threadPoolSettings.get(HIGH_PRI_CORE_POOL_SIZE));
         }
     }
 
@@ -1197,7 +1215,7 @@ public class SystemSettingsDao extends BaseDao {
                 response.addContextualMessage(PUBLICLY_RESOLVABLE_BASE_URL, "validate.invalidValue");
             }
         }
-        
+
         //Validate password settings
         Integer passwordLengthMin = getIntValue(PASSWORD_LENGTH_MIN, settings);
         Integer passwordLengthMax = getIntValue(PASSWORD_LENGTH_MAX, settings);
@@ -1217,7 +1235,7 @@ public class SystemSettingsDao extends BaseDao {
             response.addContextualMessage(PASSWORD_LENGTH_MAX, "validate.greaterThanOrEqualTo", passwordLengthMin);
             response.addContextualMessage(PASSWORD_LENGTH_MIN, "validate.lessThanOrEqualTo", passwordLengthMax);
         }
-        
+
         Integer passwordSetting = getIntValue(PASSWORD_UPPER_CASE_COUNT, settings);
         if(passwordSetting != 0) {
             if (passwordSetting < 0) {
