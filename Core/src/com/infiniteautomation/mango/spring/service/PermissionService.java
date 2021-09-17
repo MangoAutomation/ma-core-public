@@ -632,7 +632,7 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * TODO Mango 4.0 remove
+     * TODO Mango 4.2 remove
      * Turn a set of RoleVOs into a comma separated list for display in a message
      * @param roles
      * @return
@@ -642,7 +642,7 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * TODO Mango 4.0 remove
+     * TODO Mango 4.2 remove
      * Turn a set of roles into a comma separated list for display in a message
      * @param roles
      * @return
@@ -756,7 +756,7 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * TODO Mango 4.0 temporary fix to requiring this in all EventType.hasPermission() methods
+     * TODO Mango 4.2 temporary fix to requiring this in all EventType.hasPermission() methods
      * @return
      */
     public boolean hasEventsSuperadminViewPermission(PermissionHolder holder) {

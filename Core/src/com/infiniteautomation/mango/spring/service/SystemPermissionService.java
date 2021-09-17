@@ -4,6 +4,14 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Collection;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -12,13 +20,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemPermissionDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-
-import java.util.Collection;
-import java.util.Objects;
 
 /**
  *
@@ -74,7 +75,7 @@ public class SystemPermissionService {
             throw new ValidationException(validation);
         }
 
-        //TODO Mango 4.0 Transaction rollback etc?
+        //TODO Mango 4.2 Transaction rollback etc?
         dao.update(def.getPermissionTypeName(), def.getPermission(), permission);
         def.setPermission(permission);
         this.eventPublisher.publishEvent(new SystemPermissionUpdated(def));

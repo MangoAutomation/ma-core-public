@@ -19,7 +19,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
- * TODO Mango 4.0 re-think if we want these in the mapping table
  *
  * More aptly named ScriptPermissionHolder but since this has been serialized into the DB it is what it is
  *

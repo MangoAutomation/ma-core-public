@@ -34,14 +34,14 @@ public class RoleConverter extends ImmutableClassConverter {
         writer.quote(((Role)value).getXid());
     }
 
-    //TODO Mango 4.0 improve performance as role dao is not available at construct time
+    //TODO Mango 4.2 improve performance with lazy field as role dao is not available at construct time
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
         RoleVO role = Common.getBean(RoleDao.class).getByXid(jsonValue.toString());
         if(role != null) {
             return role.getRole();
         }else {
-            //TODO mango 4.0? throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), "scriptPermissions");
+            //TODO mango 4.2? throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), "scriptPermissions");
             return new Role(Common.NEW_ID, jsonValue.toString());
         }
     }

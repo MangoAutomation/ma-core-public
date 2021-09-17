@@ -25,7 +25,7 @@ public class MangoCachingSessionDataStore extends CachingSessionDataStore implem
 
     @Override
     public boolean deleteSessionsForUser(int id) {
-        // TODO Mango 4.0 this does not remove sessions from either L1 cache (DefaultSessionCache) or L2 cache (SessionDataMap)
+        // TODO Mango 4.2 this does not remove sessions from either L1 cache (DefaultSessionCache) or L2 cache (SessionDataMap)
         return delegate.deleteSessionsForUser(id);
     }
 

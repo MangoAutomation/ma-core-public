@@ -10,14 +10,14 @@ import org.eclipse.jetty.server.session.SessionDataStore;
 import com.serotonin.m2m2.vo.MangoSessionDataVO;
 
 /**
- * TODO Mango 4.0 remove all the methods which are used only for testing
+ * TODO Mango 4.2 remove all the methods which are used only for testing
  *
  * @author Terry Packer
  */
 public interface MangoSessionDataStore extends SessionDataStore {
 
     /**
-     * TODO Mango 4.0 do we even need to do this?
+     * TODO Mango 4.2 do we even need to do this?
      * Delete all stored sessions for this user
      * @param id
      */

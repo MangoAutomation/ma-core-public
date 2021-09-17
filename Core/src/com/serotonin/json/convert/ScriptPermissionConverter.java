@@ -52,7 +52,7 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
         writer.writeObject(roles);
     }
 
-    //TODO Mango 4.0 improve performance as PermissionService is not available at construct time
+    //TODO Mango 4.2 improve performance with lazy field as PermissionService is not available at construct time
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
         Set<Role> roles = new HashSet<>();

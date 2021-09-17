@@ -13,7 +13,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
- * TODO Mango 4.0 Set configurable limit on the cache, it is currently unbounded.
+ * TODO Mango 4.2 Set configurable limit on the cache, it is currently unbounded.
  * We may not even need this L2 cache or the CachingSessionDataStore, there is already a L1 cache which stores
  * the sessions in a map.
  *
