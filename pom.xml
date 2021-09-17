@@ -6,7 +6,7 @@
  <name>Mango Parent</name>
  <packaging>pom</packaging>
  <properties>
-  <jettyVersion>9.4.23.v20191118</jettyVersion>
+  <jettyVersion>9.4.43.v20210629</jettyVersion>
   <springVersion>5.1.7.RELEASE</springVersion>
   <springSecurityVersion>5.1.5.RELEASE</springSecurityVersion>
   <log4jVersion>2.10.0</log4jVersion>
