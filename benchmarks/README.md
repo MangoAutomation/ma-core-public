@@ -32,7 +32,7 @@ java -cp <cp> com.infiniteautomation.mango.benchmarks.tsdb.Insert -p threads=1C 
 #### com.infiniteautomation.mango.benchmarks.tsdb.Insert
 name | default | options | description
 --- | --- | --- | ---
-threads | 1,1C | number > 0 | Number of threads writing to TSDB, use "C" suffix to multiply by number of CPU cores
-points | 100,1000 | number > 0 | Number of data points, use "C" suffix to multiply by number of CPU cores
+threads | 1C | number > 0 | Number of threads writing to TSDB, use "C" suffix to multiply by number of CPU cores
+points | 1000 | number > 0 | Number of data points, use "C" suffix to multiply by number of CPU cores
 databaseType | h2 | h2, h2:mem, mysql | SQL database type
-implementation | sql,ias-tsdb | sql,ias-tsdb | PointValueDao implementation
+implementation | sql, ias-tsdb | sql, ias-tsdb | PointValueDao implementation

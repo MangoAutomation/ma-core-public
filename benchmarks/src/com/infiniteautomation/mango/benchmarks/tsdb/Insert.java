@@ -53,8 +53,8 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public class Insert {
     public static final String THREADS_PARAM = "threads";
     public static final String POINTS_PARAM = "points";
-    public static final Collection<String> DEFAULT_THREADS = List.of("1", "1C");
-    public static final Collection<String> DEFAULT_POINTS = List.of("100", "1000");
+    public static final Collection<String> DEFAULT_THREADS = Collections.singletonList("1C");
+    public static final Collection<String> DEFAULT_POINTS = Collections.singletonList("1000");
     public final static int NUM_CPU_CORES = Runtime.getRuntime().availableProcessors();
 
     public static void main(String[] args) throws RunnerException, CommandLineOptionException {
