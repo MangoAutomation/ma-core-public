@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.benchmarks.tsdb;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -23,7 +24,6 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.results.RunResult;
@@ -31,6 +31,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.format.OutputFormat;
 import org.openjdk.jmh.runner.format.OutputFormatFactory;
+import org.openjdk.jmh.runner.options.CommandLineOptionException;
+import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.openjdk.jmh.runner.options.VerboseMode;
@@ -49,28 +51,54 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 public class Insert {
+    public static final String THREADS_PARAM = "threads";
+    public static final String POINTS_PARAM = "points";
+    public static final Collection<String> DEFAULT_THREADS = List.of("1", "1C");
+    public static final Collection<String> DEFAULT_POINTS = List.of("100", "1000");
+
+    public static void main(String[] args) throws RunnerException, CommandLineOptionException {
+        CommandLineOptions cmdOptions = new CommandLineOptions(args);
+        new Insert().runBenchmark(cmdOptions);
+    }
+
+    @Test
+    public void runBenchmark() throws RunnerException {
+        runBenchmark(new OptionsBuilder().build());
+    }
 
     /**
      * We cannot parameterize the Threads and OperationsPerInvocation annotations, so we must do it ourselves
      * programmatically, combine the results, then output them to stdout
      */
-    @Test
-    public void runBenchmark() throws RunnerException {
+    private void runBenchmark(Options options) throws RunnerException {
         int processors = Runtime.getRuntime().availableProcessors();
         List<RunResult> results = new ArrayList<>();
 
+        int[] threadsParams = options.getParameter(THREADS_PARAM)
+                .orElse(DEFAULT_THREADS)
+                .stream()
+                .mapToInt(s -> {
+                    if (s.endsWith("C")) {
+                        float multiplier = Float.parseFloat(s.substring(0, s.length() - 1));
+                        return (int) multiplier * processors;
+                    }
+                    return Integer.parseInt(s);
+                }).toArray();
 
-        int[] threadsParams = new int[] {1, processors};
-        int[] pointsParams = new int[] {100, 1_000};
+        int[] pointsParams = options.getParameter(POINTS_PARAM)
+                .orElse(DEFAULT_POINTS)
+                .stream()
+                .mapToInt(Integer::parseInt).toArray();
 
         for (int threads : threadsParams) {
             for (int points : pointsParams) {
                 Options opts = new OptionsBuilder()
+                        .parent(options)
                         .include(getClass().getName())
                         .threads(threads)
                         .operationsPerInvocation(points / threads)
-                        .param("threads", Integer.toString(threads))
-                        .param("points", Integer.toString(points))
+                        .param(THREADS_PARAM, Integer.toString(threads))
+                        .param(POINTS_PARAM, Integer.toString(points))
                         //.verbosity(VerboseMode.SILENT)
                         .build();
 
@@ -87,7 +115,7 @@ public class Insert {
 
     public static class TsdbMockMango extends MockMango {
         //@Param({"h2:memory", "h2"})
-        @Param("h2")
+        @Param({"h2"})
         String databaseType;
 
         @Param({"PointValueDaoSQL", "MangoNoSqlPointValueDao"})
@@ -164,11 +192,10 @@ public class Insert {
     }
 
     @Benchmark
-    @Threads(1)
     @Fork(value = 1, warmups = 0)
     @BenchmarkMode(Mode.Throughput)
-    @Warmup(iterations = 1, time = 10)
-    @Measurement(iterations = 3, time = 60)
+    @Warmup(iterations = 0, time = 1)
+    @Measurement(iterations = 1, time = 1)
     @OutputTimeUnit(TimeUnit.SECONDS)
     public void insert(TsdbMockMango mango, PerThreadState perThreadState, Blackhole blackhole) {
         for (DataPointVO point : perThreadState.points) {
