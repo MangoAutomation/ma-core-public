@@ -20,7 +20,7 @@ java -cp "maven-target/benchmarks-4.2.0-SNAPSHOT.jar:maven-target/dependency/*" 
 ## Setting parameters and benchmark options
 
 Use [JHM command line syntax](https://github.com/guozheng/jmh-tutorial/blob/master/README.md) to set parameters and benchmark options.
-You can set multiple options for each parameter and every permutation will be benchmarked.
+You can set multiple options for each parameter and every combination will be benchmarked.
 Example:
 
 ```shell
