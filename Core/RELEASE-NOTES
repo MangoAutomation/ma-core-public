@@ -1,6 +1,8 @@
 *Version 4.2.1*
 * Add new datapoint permission definition to allow users to vew all data points.
 * Enable exposing Jetty statistics via JMX (configurable via properties "web.enableJmx" and "web.connectionStatistics")
+* Upgrade Jetty webserver to 9.4.43.v20210629
+* Remove ssl.alpn.debug env property, this is now enabled by configuring log4j logger for the org.eclipse.jetty.alpn.server package
 
 *Version 4.2.0*
 * Mango is now built for Java 11, it is now a hard requirement to use Java 11 or higher to run Mango
