@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.infiniteautomation.mango.benchmarks.database;
+package com.infiniteautomation.mango.benchmarks.tsdb;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class TsdbBenchmark {
+public class Insert {
 
     /**
      * We cannot parameterize the Threads and OperationsPerInvocation annotations, so we must do it ourselves
