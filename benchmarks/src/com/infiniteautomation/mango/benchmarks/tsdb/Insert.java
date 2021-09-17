@@ -55,6 +55,7 @@ public class Insert {
     public static final String POINTS_PARAM = "points";
     public static final Collection<String> DEFAULT_THREADS = List.of("1", "1C");
     public static final Collection<String> DEFAULT_POINTS = List.of("100", "1000");
+    public final static int NUM_CPU_CORES = Runtime.getRuntime().availableProcessors();
 
     public static void main(String[] args) throws RunnerException, CommandLineOptionException {
         CommandLineOptions cmdOptions = new CommandLineOptions(args);
@@ -71,24 +72,17 @@ public class Insert {
      * programmatically, combine the results, then output them to stdout
      */
     private void runBenchmark(Options options) throws RunnerException {
-        int processors = Runtime.getRuntime().availableProcessors();
         List<RunResult> results = new ArrayList<>();
 
         int[] threadsParams = options.getParameter(THREADS_PARAM)
                 .orElse(DEFAULT_THREADS)
                 .stream()
-                .mapToInt(s -> {
-                    if (s.endsWith("C")) {
-                        float multiplier = Float.parseFloat(s.substring(0, s.length() - 1));
-                        return (int) multiplier * processors;
-                    }
-                    return Integer.parseInt(s);
-                }).toArray();
+                .mapToInt(this::parseCpuMultiplier).toArray();
 
         int[] pointsParams = options.getParameter(POINTS_PARAM)
                 .orElse(DEFAULT_POINTS)
                 .stream()
-                .mapToInt(Integer::parseInt).toArray();
+                .mapToInt(this::parseCpuMultiplier).toArray();
 
         for (int threads : threadsParams) {
             for (int points : pointsParams) {
@@ -113,13 +107,21 @@ public class Insert {
         outputFormat.endRun(results);
     }
 
+    private int parseCpuMultiplier(String param) {
+        if (param.endsWith("C")) {
+            float multiplier = Float.parseFloat(param.substring(0, param.length() - 1));
+            return (int) multiplier * NUM_CPU_CORES;
+        }
+        return Integer.parseInt(param);
+    }
+
     public static class TsdbMockMango extends MockMango {
         //@Param({"h2:memory", "h2"})
         @Param({"h2"})
         String databaseType;
 
-        @Param({"PointValueDaoSQL", "MangoNoSqlPointValueDao"})
-        String pointValueDaoClass;
+        @Param({"sql", "ias-tsdb"})
+        String implementation;
 
         @Param({"1"})
         int threads;
@@ -145,8 +147,8 @@ public class Insert {
                     dbProxy = delegate.createDatabaseProxy(DatabaseType.valueOf(databaseType.toUpperCase()));
                 }
 
-                switch(pointValueDaoClass) {
-                    case "MangoNoSqlPointValueDao": {
+                switch(implementation) {
+                    case "ias-tsdb": {
                         try {
                             Class<?> proxyClass = getClass().getClassLoader().loadClass("com.infiniteautomation.nosql.MangoNoSqlProxy");
                             Constructor<?> constructor = proxyClass.getConstructor();
@@ -157,7 +159,7 @@ public class Insert {
                         }
                         break;
                     }
-                    case "PointValueDaoSQL": {
+                    case "sql": {
                         // no-op, this is the default PointValueDao
                         break;
                     }
