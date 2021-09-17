@@ -29,13 +29,10 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.db.DatabaseProxyFactory;
 import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.DefaultDatabaseProxyFactory;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -106,16 +103,13 @@ public class MockMango extends MangoTestBase {
         return lifecycle;
     }
 
-    /**
-     * Set the event manager implementation
-     */
-    public void setEventManager(EventManager eventManager) {
-        this.lifecycle.setEventManager(eventManager);
-    }
-
     @Setup(Level.Trial)
     public void setupSecurityContext(SetSecurityContext setSecurityContext) {
         // no-op
+    }
+
+    protected void preInitialize() throws Exception {
+
     }
 
     /**
@@ -125,15 +119,7 @@ public class MockMango extends MangoTestBase {
     @Setup(Level.Trial)
     public void setupTrial() throws Exception {
         MangoTestBase.staticSetup();
-
-        //Detect and set database if requested
-        if(Common.envProps.getBoolean("db.benchmark", false)) {
-            String type = Common.envProps.getString("db.type", "h2");
-            DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
-            DatabaseProxyFactory factory = new DefaultDatabaseProxyFactory();
-            Common.databaseProxy = factory.createDatabaseProxy(databaseType);
-            Common.databaseProxy.initialize(null);
-        }
+        preInitialize();
         before();
     }
 

@@ -5,11 +5,14 @@
 package com.infiniteautomation.mango.benchmarks.database;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -23,10 +26,18 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.results.RunResult;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.format.OutputFormat;
+import org.openjdk.jmh.runner.format.OutputFormatFactory;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
+import org.openjdk.jmh.runner.options.VerboseMode;
 
-import com.infiniteautomation.mango.benchmarks.BenchmarkRunner;
 import com.infiniteautomation.mango.benchmarks.MockMango;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseProxyFactory;
 import com.serotonin.m2m2.db.DatabaseType;
@@ -37,19 +48,58 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class TsdbBenchmark extends BenchmarkRunner {
+public class TsdbBenchmark {
+
+    @Test
+    public void runBenchmark() throws RunnerException {
+        int processors = Runtime.getRuntime().availableProcessors();
+        List<RunResult> results = new ArrayList<>();
+
+        int[] threadsParams = new int[] {1, processors};
+        int[] pointsParams = new int[] {100, 1_000};
+
+        for (int threads : threadsParams) {
+            for (int points : pointsParams) {
+                Options opts = new OptionsBuilder()
+                        .include(getClass().getName())
+                        .threads(threads)
+                        .operationsPerInvocation(points / threads)
+                        .param("threads", Integer.toString(threads))
+                        .param("points", Integer.toString(points))
+                        //.verbosity(VerboseMode.SILENT)
+                        .build();
+
+                results.addAll(new Runner(opts).run());
+            }
+        }
+
+        results.sort(RunResult.DEFAULT_SORT_COMPARATOR);
+
+        OutputFormat outputFormat = OutputFormatFactory.createFormatInstance(System.out, VerboseMode.NORMAL);
+        outputFormat.endRun(results);
+    }
 
     public static class TsdbMockMango extends MockMango {
-        @Param({"h2:memory", "h2"})
+        //@Param({"h2:memory", "h2"})
+        @Param("h2")
         String databaseType;
 
         @Param({"PointValueDaoSQL", "MangoNoSqlPointValueDao"})
         String pointValueDaoClass;
 
+        @Param({"1"})
+        int threads;
+
+        @Param({"1"})
+        int points;
+
         PointValueDao pvDao;
 
         @Override
-        public void setupTrial() throws Exception {
+        protected void preInitialize() {
+            MockMangoProperties props = (MockMangoProperties) Common.envProps;
+            props.setProperty("db.nosql.maxOpenFiles", Integer.toString(points * 2));
+
             DatabaseProxyFactory delegate = new DefaultDatabaseProxyFactory();
             lifecycle.setDatabaseProxyFactory((type) -> {
                 // ignore type from properties
@@ -74,7 +124,7 @@ public class TsdbBenchmark extends BenchmarkRunner {
                         break;
                     }
                     case "PointValueDaoSQL": {
-                        // no-op
+                        // no-op, this is the default PointValueDao
                         break;
                     }
                     default: throw new UnsupportedOperationException();
@@ -82,8 +132,6 @@ public class TsdbBenchmark extends BenchmarkRunner {
 
                 return dbProxy;
             });
-
-            super.setupTrial();
         }
 
         @Setup
@@ -96,16 +144,16 @@ public class TsdbBenchmark extends BenchmarkRunner {
     public static class PerThreadState {
 
         final Random random = new Random();
-        DataPointVO point;
+        List<DataPointVO> points;
         long timestamp = 0;
 
         @Setup
         public void setup(TsdbMockMango mango) throws ExecutionException, InterruptedException {
-            point = mango.createDataPoints(1, Collections.emptyMap()).get(0);
+            this.points = mango.createDataPoints(mango.points / mango.threads, Collections.emptyMap());
         }
 
         public PointValueTime newValue() {
-            return new PointValueTime(random.nextDouble(), timestamp++);
+            return new PointValueTime(random.nextDouble(), timestamp);
         }
     }
 
@@ -114,22 +162,14 @@ public class TsdbBenchmark extends BenchmarkRunner {
     @Fork(value = 1, warmups = 0)
     @BenchmarkMode(Mode.Throughput)
     @Warmup(iterations = 1, time = 10)
-    @Measurement(iterations = 1, time = 10)
+    @Measurement(iterations = 3, time = 60)
     @OutputTimeUnit(TimeUnit.SECONDS)
-    public void singleThreadInsert(TsdbMockMango mango, PerThreadState perThreadState, Blackhole blackhole) {
-        PointValueTime result = mango.pvDao.savePointValueSync(perThreadState.point, perThreadState.newValue(), null);
-        blackhole.consume(result);
+    public void insert(TsdbMockMango mango, PerThreadState perThreadState, Blackhole blackhole) {
+        for (DataPointVO point : perThreadState.points) {
+            PointValueTime v = mango.pvDao.savePointValueSync(point, perThreadState.newValue(), null);
+            blackhole.consume(v);
+        }
+        perThreadState.timestamp += 1000;
     }
 
-    @Benchmark
-    @Threads(Threads.MAX)
-    @Fork(value = 1, warmups = 0)
-    @BenchmarkMode(Mode.Throughput)
-    @Warmup(iterations = 1, time = 10)
-    @Measurement(iterations = 1, time = 10)
-    @OutputTimeUnit(TimeUnit.SECONDS)
-    public void multiThreadInsert(TsdbMockMango mango, PerThreadState perThreadState, Blackhole blackhole) {
-        PointValueTime result = mango.pvDao.savePointValueSync(perThreadState.point, perThreadState.newValue(), null);
-        blackhole.consume(result);
-    }
 }

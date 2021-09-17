@@ -36,6 +36,9 @@ import com.infiniteautomation.mango.benchmarks.BenchmarkRunner;
 import com.infiniteautomation.mango.benchmarks.MockMango;
 import com.infiniteautomation.mango.spring.service.EventInstanceService;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxyFactory;
+import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.DefaultDatabaseProxyFactory;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.EventManagerImpl;
@@ -51,9 +54,19 @@ public class DataPointEventsBenchmarks extends BenchmarkRunner {
     public static final String BENCHMARK_DATA_POINT_EVENT_FOR = "Benchmark data point event for  ";
 
     public static class RealEventManagerMockMango extends MockMango {
-        public RealEventManagerMockMango() {
-            super();
-            setEventManager(new EventManagerImpl());
+
+        @Override
+        protected void preInitialize() throws Exception {
+            lifecycle.setEventManager(new EventManagerImpl());
+
+            //Detect and set database if requested
+            if(Common.envProps.getBoolean("db.benchmark", false)) {
+                String type = Common.envProps.getString("db.type", "h2");
+                DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
+                DatabaseProxyFactory factory = new DefaultDatabaseProxyFactory();
+                Common.databaseProxy = factory.createDatabaseProxy(databaseType);
+                Common.databaseProxy.initialize(null);
+            }
         }
     }
 
