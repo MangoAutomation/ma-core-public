@@ -100,7 +100,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     private ProcessResult commonValidation(JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         try{
-            JsonDataDao.getInstance().writeValueAsString(vo.getJsonData());
+            dao.writeValueAsString(vo.getJsonData());
         }catch(Exception e){
             result.addMessage("jsonData", new TranslatableMessage("common.default", e.getMessage()));
         }
@@ -109,7 +109,6 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
 
     /**
      * Update a store without touching its data.
-     * TODO Mango 4.0 change to generate update statement just for other fields
      *
      * @param xid
      * @param item
@@ -180,7 +179,6 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
      *
      * @param xid
      * @param pointer RFC 6901 JSON pointer
-     * @param data
      */
     public JsonNode deleteDataAtPointer(String xid, String pointer) {
         return this.dao.withLockedRow(xid, (txStatus) -> {
