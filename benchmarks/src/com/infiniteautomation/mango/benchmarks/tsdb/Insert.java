@@ -194,8 +194,8 @@ public class Insert {
     @Benchmark
     @Fork(value = 1, warmups = 0)
     @BenchmarkMode(Mode.Throughput)
-    @Warmup(iterations = 0, time = 1)
-    @Measurement(iterations = 1, time = 1)
+    @Warmup(iterations = 2, time = 60)
+    @Measurement(iterations = 5, time = 60)
     @OutputTimeUnit(TimeUnit.SECONDS)
     public void insert(TsdbMockMango mango, PerThreadState perThreadState, Blackhole blackhole) {
         for (DataPointVO point : perThreadState.points) {
