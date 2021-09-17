@@ -103,21 +103,20 @@ public class MockMango extends MangoTestBase {
         return lifecycle;
     }
 
-    @Setup(Level.Trial)
-    public void setupSecurityContext(SetSecurityContext setSecurityContext) {
-        // no-op
-    }
-
+    /**
+     * Hook that runs before the lifecycle is initialized
+     */
     protected void preInitialize() throws Exception {
 
     }
 
     /**
      * Common logic to initialize Mango before the trial.  Note this
-     * will only work with Fork > 0
+     * will only work with Fork > 0.
+     * @param setSecurityContext not used, simply pulls in {@link SetSecurityContext}
      */
     @Setup(Level.Trial)
-    public void setupTrial() throws Exception {
+    public void setupTrial(@SuppressWarnings("unused") SetSecurityContext setSecurityContext) throws Exception {
         MangoTestBase.staticSetup();
         preInitialize();
         before();
@@ -162,6 +161,9 @@ public class MockMango extends MangoTestBase {
         MangoTestBase.staticTearDown();
     }
 
+    /**
+     * Sets the security context in each thread
+     */
     @State(Scope.Thread)
     public static class SetSecurityContext {
         @Setup

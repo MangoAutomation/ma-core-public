@@ -50,10 +50,15 @@ import com.serotonin.m2m2.vo.DataPointVO;
 
 public class TsdbBenchmark {
 
+    /**
+     * We cannot parameterize the Threads and OperationsPerInvocation annotations, so we must do it ourselves
+     * programmatically, combine the results, then output them to stdout
+     */
     @Test
     public void runBenchmark() throws RunnerException {
         int processors = Runtime.getRuntime().availableProcessors();
         List<RunResult> results = new ArrayList<>();
+
 
         int[] threadsParams = new int[] {1, processors};
         int[] pointsParams = new int[] {100, 1_000};
@@ -73,6 +78,7 @@ public class TsdbBenchmark {
             }
         }
 
+        // sort the results for more legible output
         results.sort(RunResult.DEFAULT_SORT_COMPARATOR);
 
         OutputFormat outputFormat = OutputFormatFactory.createFormatInstance(System.out, VerboseMode.NORMAL);
