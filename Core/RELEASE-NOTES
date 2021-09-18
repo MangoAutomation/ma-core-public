@@ -3,6 +3,7 @@
 * Enable exposing Jetty statistics via JMX (configurable via properties "web.enableJmx" and "web.connectionStatistics")
 * Upgrade Jetty webserver to 9.4.43.v20210629
 * Remove ssl.alpn.debug env property, this is now enabled by configuring log4j logger for the org.eclipse.jetty.alpn.server package
+* Adding monitored values to the PointValueDaoSQL to track the number of point values saved (sync and async) per second.
 
 *Version 4.2.0*
 * Mango is now built for Java 11, it is now a hard requirement to use Java 11 or higher to run Mango
