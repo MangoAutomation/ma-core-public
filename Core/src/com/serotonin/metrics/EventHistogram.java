@@ -2,6 +2,8 @@ package com.serotonin.metrics;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.serotonin.m2m2.Common;
+
 /**
  * This class counts temporal occurrences of some user-defined event (the definition of which is irrelevant to this
  * class), and maintains the counts in an array representing a histogram of the events. The expected use case for this
@@ -34,7 +36,7 @@ public class EventHistogram {
         this.bucketSize = bucketSize;
         this.buckets = new int[buckets];
         position = 0;
-        lastTime.set(System.currentTimeMillis() / bucketSize);
+        lastTime.set(Common.timer.currentTimeMillis() / bucketSize);
     }
 
     public void hit() {
@@ -66,7 +68,7 @@ public class EventHistogram {
     }
 
     private void update() {
-        long thisTime = System.currentTimeMillis() / bucketSize;
+        long thisTime = Common.timer.currentTimeMillis() / bucketSize;
         int diff = (int) (thisTime - lastTime.getAndSet(thisTime));
 
         while (diff > 0) {
