@@ -104,6 +104,21 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     private final PointValues pv = PointValues.POINT_VALUES;
     private final DataPoints dp = DataPoints.DATA_POINTS;
 
+    public static final String SYNC_INSERTS_SPEED_COUNTER_ID = "com.serotonin.m2m2.db.dao.PointValueDaoSQL.SYNC_INSERTS_SPEED_COUNTER";
+    private static final ValueMonitor<Integer> SYNC_INSERTS_SPEED_COUNTER = Common.MONITORED_VALUES.<Integer>create(SYNC_INSERTS_SPEED_COUNTER_ID)
+                    .name(new TranslatableMessage("internal.monitor.SYNC_INSERTS_SPEED_COUNTER_ID"))
+                    .value(0)
+                    .build();
+
+    public static final String ASYNC_INSERTS_SPEED_COUNTER_ID = "com.serotonin.m2m2.db.dao.PointValueDaoSQL.ASYNC_INSERTS_SPEED_COUNTER";
+    private static final ValueMonitor<Integer> ASYNC_INSERTS_SPEED_COUNTER = Common.MONITORED_VALUES.<Integer>create(ASYNC_INSERTS_SPEED_COUNTER_ID)
+            .name(new TranslatableMessage("internal.monitor.ASYNC_INSERTS_SPEED_COUNTER_ID"))
+            .value(0)
+            .build();
+
+    private static final EventHistogram syncCallsCounter = new EventHistogram(1000, 2);
+    private static final EventHistogram asyncCallsCounter = new EventHistogram(1000, 2);
+
     public PointValueDaoSQL() {
         super();
     }
@@ -117,6 +132,8 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
      */
     @Override
     public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+        syncCallsCounter.hit();
+        SYNC_INSERTS_SPEED_COUNTER.setValue(syncCallsCounter.getEventCounts()[0]);
         long id = savePointValueImpl(vo, pointValue, source, false);
 
         PointValueTime savedPointValue;
@@ -131,7 +148,6 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
                 retries--;
             }
         }
-
         return savedPointValue;
     }
 
@@ -141,6 +157,9 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     @Override
     public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
         savePointValueImpl(vo, pointValue, source, true);
+        asyncCallsCounter.hit();
+        ASYNC_INSERTS_SPEED_COUNTER.setValue(asyncCallsCounter.getEventCounts()[0] / 1);
+
     }
 
     long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, final SetPointSource source,
