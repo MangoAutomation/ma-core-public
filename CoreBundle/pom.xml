@@ -432,12 +432,6 @@
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>map-db-latest-values</artifactId>
-            <version>4.3.0-SNAPSHOT</version>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>chronicle-point-value-cache</artifactId>
             <version>4.3.0-SNAPSHOT</version>
             <type>zip</type>
