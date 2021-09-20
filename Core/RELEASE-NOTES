@@ -1,3 +1,6 @@
+*Version 4.3.0*
+* Upgraded for Mango 4.3.0
+
 *Version 4.2.1*
 * Add new datapoint permission definition to allow users to vew all data points.
 * Enable exposing Jetty statistics via JMX (configurable via properties "web.enableJmx" and "web.connectionStatistics")
