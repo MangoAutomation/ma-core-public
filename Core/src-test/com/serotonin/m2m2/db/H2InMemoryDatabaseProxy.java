@@ -183,6 +183,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             for (NoSQLProxy proxy : proxies) {
                 if (proxy.isEnabled()) {
                     noSQLProxy = proxy;
+                    noSQLProxy.initialize();
                     break;
                 }
             }
