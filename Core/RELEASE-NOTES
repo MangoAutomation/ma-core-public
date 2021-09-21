@@ -1,5 +1,7 @@
 *Version 4.3.0*
 * Upgraded for Mango 4.3.0
+* Adding monitored values to the PointValueDaoSQL to track the number of point values saved (sync and async) per second.
+
 
 *Version 4.2.1*
 * Add new datapoint permission definition to allow users to vew all data points.
