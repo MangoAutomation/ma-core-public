@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;

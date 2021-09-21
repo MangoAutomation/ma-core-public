@@ -8,7 +8,7 @@
 package com.serotonin.m2m2.db;
 
 import com.github.zafarkhaja.semver.Version;
-import com.serotonin.m2m2.db.dao.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 
 /**

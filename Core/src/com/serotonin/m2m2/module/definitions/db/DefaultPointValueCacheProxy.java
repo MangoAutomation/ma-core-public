@@ -8,7 +8,7 @@ package com.serotonin.m2m2.module.definitions.db;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.PointValueCacheProxy;
-import com.serotonin.m2m2.db.dao.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 
 /**
  * Default implementation of proxy to use if none are module defined

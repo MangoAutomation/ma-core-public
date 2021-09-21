@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.infiniteautomation.mango.util.LazyField;
-import com.serotonin.m2m2.db.dao.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 

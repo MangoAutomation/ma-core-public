@@ -1,11 +1,8 @@
 /*
- *
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
- * @Author Terry Packer
- *
  */
 
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.pointvalue;
 
 import java.util.List;
 import java.util.Map;
