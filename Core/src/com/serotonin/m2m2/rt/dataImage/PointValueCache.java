@@ -60,7 +60,10 @@ public class PointValueCache {
             if (defaultSize == 0) {
                 this.cache = Collections.emptyList();
             } else if (defaultSize == 1) {
-                this.cache = Collections.singletonList(pvt);
+                var existing = cache;
+                if (existing == null || existing.isEmpty() || existing.get(0).getTime() <= pvt.getTime()) {
+                    this.cache = Collections.singletonList(pvt);
+                }
             } else {
                 var existing = cache;
                 this.cache = new ArrayList<>(existing.size() + 1);
