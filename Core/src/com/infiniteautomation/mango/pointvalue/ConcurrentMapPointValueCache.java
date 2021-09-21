@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -32,24 +33,22 @@ public class ConcurrentMapPointValueCache implements PointValueCacheDao {
     }
 
     @Override
-    public List<PointValueTime> expandPointValueCache(DataPointVO vo, int newSize, List<PointValueTime> currentCache) {
-        if (currentCache.size() >= newSize) return currentCache;
-
+    public List<PointValueTime> loadCache(DataPointVO vo, int size) {
         return this.cache.compute(vo.getSeriesId(), (k, v) -> {
-            if (v == null || v.size() < newSize) {
-                v = pointValueDao.getLatestPointValues(vo, newSize);
+            if (v == null || v.size() < size) {
+                v = pointValueDao.getLatestPointValues(vo, size);
             }
             return v;
         });
     }
 
     @Override
-    public void updatePointValueCache(DataPointVO vo, List<PointValueTime> values) {
+    public void updateCache(DataPointVO vo, List<PointValueTime> values) {
         this.cache.put(vo.getSeriesId(), values);
     }
 
     @Override
-    public Map<Integer, List<PointValueTime>> getPointValueCaches(List<DataPointVO> vos, Integer size) {
+    public Map<Integer, List<PointValueTime>> loadCaches(List<DataPointVO> vos, int size) {
         Map<Integer, List<PointValueTime>> result = new HashMap<>(vos.size());
         List<DataPointVO> missingPoints = new ArrayList<>();
 
@@ -99,13 +98,8 @@ public class ConcurrentMapPointValueCache implements PointValueCacheDao {
     }
 
     @Override
-    public List<PointValueTime> getPointValueCache(DataPointVO vo) {
-        return cache.getOrDefault(vo.getSeriesId(), Collections.emptyList());
-    }
-
-    @Override
-    public void deleteAllCaches() {
-        this.cache.clear();
+    public Optional<List<PointValueTime>> getCache(DataPointVO vo) {
+        return Optional.ofNullable(cache.get(vo.getSeriesId()));
     }
 
     @Override
@@ -114,17 +108,17 @@ public class ConcurrentMapPointValueCache implements PointValueCacheDao {
     }
 
     @Override
-    public void deleteCachedValue(DataPointVO vo, long timestamp) {
+    public void removeValueAt(DataPointVO vo, long timestamp) {
         removeValues(vo, value -> value.getTime() == timestamp);
     }
 
     @Override
-    public void deleteCachedValuesBefore(DataPointVO vo, long before) {
+    public void removeValuesBefore(DataPointVO vo, long before) {
         removeValues(vo, value -> value.getTime() < before);
     }
 
     @Override
-    public void deleteCachedValuesBetween(DataPointVO vo, long startTime, long endTime) {
+    public void removeValuesBetween(DataPointVO vo, long startTime, long endTime) {
         removeValues(vo, value -> value.getTime() >= startTime && value.getTime() < endTime);
     }
 

@@ -207,7 +207,6 @@ public class CompiledMangoJavaScript {
                             DataSourceRT<? extends DataSourceVO> dataSource = DataSourceDao.getInstance().get(dpvo.getDataSourceId()).createDataSourceRT();
                             dprt = new DataPointRT(dp, dpvo.getPointLocator().createRuntime(), dataSource,
                                     null, Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
-                            dprt.resetValues(); //otherwise variable.value will be empty
                         }else {
                             throw new DataPointStateException(variable.getDataPointId(), new TranslatableMessage(
                                     "event.script.contextPointDisabled", variable.getVariableName(), dpvo.getXid()));

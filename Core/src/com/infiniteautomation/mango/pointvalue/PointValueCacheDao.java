@@ -4,12 +4,13 @@
 
 package com.infiniteautomation.mango.pointvalue;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
-
 
 /**
  * Access to persistent storage of data point caches.
@@ -17,71 +18,81 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public interface PointValueCacheDao {
 
     /**
-     * Expand the cache for a data point, get new values from the point value dao and merge them in time descending order
-     * @param vo
-     * @param size - size of list to return
-     * @param existing - current cache (DO NOT MODIFY)
-     * @return - values or empty list never null
-     */
-    public List<PointValueTime> expandPointValueCache(DataPointVO vo, int size, List<PointValueTime> existing);
-
-    /**
-     * Update the list of latest point values, should represent the current point's cache and
-     * be in time descending order
-     * @param vo
-     * @param values
-     */
-    public void updatePointValueCache(DataPointVO vo, List<PointValueTime> values);
-
-    /**
-     * Get the latest values for a group of data points in time descending order
+     * Get the latest values for a data point from the cache, loading from the underlying DAO if needed.
+     * Values in the list should be in time descending order (i.e. latest values first).
      *
-     * @param vos
-     * @param size - size of all lists, may be ignored if store contains only the cache store.  If overlaid onto
-     *             a PointValueDao then this is required and will be used.
-     * @return - Map of vo.seriesId to list where list is never null
+     * @param vo data point
+     * @param size number of point values to be loaded (if cache does not contain values for the point)
+     * @return list of latest values (never null), list may not be modifiable
      */
-    public Map<Integer, List<PointValueTime>> getPointValueCaches(List<DataPointVO> vos, Integer size);
+    List<PointValueTime> loadCache(DataPointVO vo, int size);
 
     /**
-     * Get the cache for a point value from the store, may be empty but never null
-     * @param vo
-     * @return
-     */
-    public List<PointValueTime> getPointValueCache(DataPointVO vo);
-
-    /**
-     * Clear all caches, for example after a full data purge
-     */
-    public void deleteAllCaches();
-
-    /**
-     * Clear cache for this point
-     * @param vo
-     */
-    public void deleteCache(DataPointVO vo);
-
-    /**
-     * Delete the cached value at this time if it exists
-     * @param vo
-     * @param timestamp
-     */
-    public void deleteCachedValue(DataPointVO vo, long timestamp);
-
-
-    /**
-     * Delete cached values before this time
-     * @param vo
-     * @param before
-     */
-    void deleteCachedValuesBefore(DataPointVO vo, long before);
-
-    /**
-     * Delete startTime <= values < endTime
+     * Update a point's list of latest values. e.g. when a new value is read from a device the value
+     * should be prepended to the cache and passed to this function.
      *
-     * @param vo
-     * @param startTime
-     * @param endTime
+     * @param vo data point
+     * @param values latest values for the point in time descending order (i.e. latest values first)
      */
-    void deleteCachedValuesBetween(DataPointVO vo, long startTime, long endTime);
+    void updateCache(DataPointVO vo, List<PointValueTime> values);
+
+    /**
+     * Get the latest values for a set of data points from the cache, loading from the underlying DAO if needed.
+     * Values in the lists should be in time descending order (i.e. latest values first).
+     *
+     * @param vos data points
+     * @param size number of point values to be loaded for each point (if cache does not contain values for the point)
+     * @return map of datapoint seriesId to list of latest values (never null), lists may not be modifiable
+     */
+    Map<Integer, List<PointValueTime>> loadCaches(List<DataPointVO> vos, int size);
+
+    /**
+     * Get the cache for a point value from the store. Does not load from the underlying DAO, optional will be
+     * empty if no values are loaded for the data point.
+     *
+     * @param vo data point
+     * @return optional list of cached point values in time descending order (i.e. latest values first), list may not be modifiable
+     */
+    Optional<List<PointValueTime>> getCache(DataPointVO vo);
+
+    /**
+     * Delete cache for this point, e.g. when point is deleted.
+     *
+     * @param vo data point
+     */
+    void deleteCache(DataPointVO vo);
+
+    /**
+     * Remove all values for the point, e.g. on purge
+     * This should not delete the cache entry, but set it to an empty list.
+     *
+     * @param vo data point
+     */
+    default void removeAllValues(DataPointVO vo) {
+        updateCache(vo, Collections.emptyList());
+    }
+
+    /**
+     * Clear the cached value at this time if it exists
+     * @param vo data point
+     * @param timestamp epoch timestamp, time of value to remove
+     */
+    void removeValueAt(DataPointVO vo, long timestamp);
+
+    /**
+     * Clear cached values before this time (exclusive, a value at this time will not be removed).
+     *
+     * @param vo data point
+     * @param before epoch timestamp, values before this time will be removed
+     */
+    void removeValuesBefore(DataPointVO vo, long before);
+
+    /**
+     * Clear startTime <= values < endTime
+     *
+     * @param vo data point
+     * @param startTime epoch timestamp, values after this time will be removed
+     * @param endTime epoch timestamp, values before this time will be removed
+     */
+    void removeValuesBetween(DataPointVO vo, long startTime, long endTime);
 }

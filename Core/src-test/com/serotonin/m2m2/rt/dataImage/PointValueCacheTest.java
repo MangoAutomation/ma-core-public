@@ -93,7 +93,7 @@ public class PointValueCacheTest extends MangoTestBase {
         PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
         List<PointValueTime> initialCache = createCache(vo, 5);
         PointValueCache cache = new PointValueCache(vo, 5, initialCache, dao, pointValueCacheDao);
-        cache.reset();
+        cache.invalidate(true);
 
         List<PointValueTime> latest = cache.getLatestPointValues(5);
         for(int i=0; i<5; i++) {

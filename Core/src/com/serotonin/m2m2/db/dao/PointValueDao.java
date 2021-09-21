@@ -21,6 +21,8 @@ package com.serotonin.m2m2.db.dao;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.serotonin.db.WideQueryCallback;
@@ -35,12 +37,12 @@ public interface PointValueDao {
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
-    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, SetPointSource source);
+    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
-    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source);
+    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
 
     /**
      * Get the point values >= since

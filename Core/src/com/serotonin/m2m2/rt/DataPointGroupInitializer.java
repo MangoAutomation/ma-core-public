@@ -84,7 +84,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
         if (maxCacheSize > 0) {
             long start = System.nanoTime();
             try {
-                latestValuesMap = dao.getPointValueCaches(queryPoints, maxCacheSize);
+                latestValuesMap = dao.loadCaches(queryPoints, maxCacheSize);
                 if (log.isDebugEnabled()) {
                     long finish = System.nanoTime();
                     log.debug("Took {} ms to retrieve latest {} point values for group {}",

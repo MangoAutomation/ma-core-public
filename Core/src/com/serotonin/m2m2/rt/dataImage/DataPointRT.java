@@ -498,7 +498,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     if(averagingValues.size() > 0) {
                         AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, null, averagingValues);
                         PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
-                        valueCache.logPointValueAsync(newValue, null);
+                        // Save the new value and get a point value time back that has the id and annotations set, as appropriate.
+                        valueCache.savePointValueAsync(newValue, null);
                         //Fire logged Events
                         fireEvents(null, newValue, null, false, false, true, false, false);
                         averagingValues.clear();
@@ -678,7 +679,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     return;
                 }
 
-                valueCache.logPointValueAsync(newValue, null);
+                // Save the new value and get a point value time back that has the id and annotations set, as appropriate.
+                valueCache.savePointValueAsync(newValue, null);
                 //Fire logged Events
                 fireEvents(null, newValue, null, false, false, true, false, false);
             }
@@ -688,15 +690,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     // / Purging
     //
-    public void resetValues() {
-        valueCache.reset();
-        if (vo.getLoggingType() != LoggingTypes.NONE) {
-            pointValue.set(valueCache.getLatestPointValue());
-        }
+    public void invalidateCache() {
+        invalidateCache(true);
     }
 
-    public void resetValues(long before) {
-        valueCache.reset(before);
+    public void invalidateCache(boolean invalidatePersisted) {
+        valueCache.invalidate(invalidatePersisted);
         if (vo.getLoggingType() != LoggingTypes.NONE) {
             pointValue.set(valueCache.getLatestPointValue());
         }

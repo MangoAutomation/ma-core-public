@@ -74,10 +74,8 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.timer.TimerTask;
-import com.serotonin.web.mail.EmailAttachment;
 import com.serotonin.web.mail.EmailAttachment.FileAttachment;
 import com.serotonin.web.mail.EmailContent;
-import com.serotonin.web.mail.EmailInline;
 import com.serotonin.web.mail.EmailInline.FileInline;
 
 public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implements ModelTimeoutClient<EventInstance>, SetPointSource {
@@ -414,7 +412,6 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                         DataSourceRT<? extends DataSourceVO> dataSource = DataSourceDao.getInstance().get(targetVo.getDataSourceId()).createDataSourceRT();
                         dprt = new DataPointRT(dp, targetVo.getPointLocator().createRuntime(), dataSource,
                                 null, Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
-                        dprt.resetValues();
                     }
                     context.put(pair.getValue(), dprt);
                 }
