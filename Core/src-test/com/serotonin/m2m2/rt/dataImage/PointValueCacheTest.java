@@ -79,7 +79,7 @@ public class PointValueCacheTest extends MangoTestBase {
             Assert.assertEquals(initialCache.get(i).getTime(), latest.get(i).getTime());
         }
 
-        Assert.assertEquals(5, cache.getCacheContents().size());
+        Assert.assertEquals(1, cache.getCacheContents().size());
     }
 
     /**
