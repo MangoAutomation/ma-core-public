@@ -116,8 +116,9 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
             .value(0)
             .build();
 
-    private static final EventHistogram syncCallsCounter = new EventHistogram(1000, 2);
-    private static final EventHistogram asyncCallsCounter = new EventHistogram(1000, 2);
+    //TODO Mango 4.3 These are static since this class is not a singleton and must be shared across instances
+    private static final EventHistogram SYNC_CALLS_COUNTER = new EventHistogram(5000, 2);
+    private static final EventHistogram ASYNC_CALLS_COUNTER = new EventHistogram(5000, 2);
 
     public PointValueDaoSQL() {
         super();
@@ -132,8 +133,8 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
      */
     @Override
     public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
-        syncCallsCounter.hit();
-        SYNC_INSERTS_SPEED_COUNTER.setValue(syncCallsCounter.getEventCounts()[0]);
+        SYNC_CALLS_COUNTER.hit();
+        SYNC_INSERTS_SPEED_COUNTER.setValue(SYNC_CALLS_COUNTER.getEventCounts()[0] / 5);
         long id = savePointValueImpl(vo, pointValue, source, false);
 
         PointValueTime savedPointValue;
@@ -157,8 +158,8 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     @Override
     public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
         savePointValueImpl(vo, pointValue, source, true);
-        asyncCallsCounter.hit();
-        ASYNC_INSERTS_SPEED_COUNTER.setValue(asyncCallsCounter.getEventCounts()[0] / 1);
+        ASYNC_CALLS_COUNTER.hit();
+        ASYNC_INSERTS_SPEED_COUNTER.setValue(ASYNC_CALLS_COUNTER.getEventCounts()[0] / 5);
 
     }
 

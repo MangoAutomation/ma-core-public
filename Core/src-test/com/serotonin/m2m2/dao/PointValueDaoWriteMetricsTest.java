@@ -18,10 +18,12 @@ import com.serotonin.m2m2.vo.IDataPoint;
 public class PointValueDaoWriteMetricsTest extends MangoTestBase {
 
     final int events = 100;
-    final int period = 1000;
+    final int period = 5000;
+
 
     @Test
     public void testAsyncWrite() {
+        int eventsPerSecond = events/(period/1000);
         IDataPoint vo = this.createMockDataPoints(1).get(0);
         PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
         int i = 0;
@@ -36,12 +38,12 @@ public class PointValueDaoWriteMetricsTest extends MangoTestBase {
 
         }
 
-        Assert.assertEquals(events, Common.MONITORED_VALUES.getMonitor(PointValueDaoSQL.ASYNC_INSERTS_SPEED_COUNTER_ID).getValue());
+        Assert.assertEquals(eventsPerSecond, Common.MONITORED_VALUES.getMonitor(PointValueDaoSQL.ASYNC_INSERTS_SPEED_COUNTER_ID).getValue());
     }
 
     @Test
     public void testSyncWrite() {
-
+        int eventsPerSecond = events/(period/1000);
         IDataPoint vo = this.createMockDataPoints(1).get(0);
         PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
         int i = 0;
@@ -56,7 +58,8 @@ public class PointValueDaoWriteMetricsTest extends MangoTestBase {
 
         }
 
-        Assert.assertEquals(events, Common.MONITORED_VALUES.getMonitor(PointValueDaoSQL.SYNC_INSERTS_SPEED_COUNTER_ID).getValue());
+
+        Assert.assertEquals(eventsPerSecond, Common.MONITORED_VALUES.getMonitor(PointValueDaoSQL.SYNC_INSERTS_SPEED_COUNTER_ID).getValue());
     }
 
 }
