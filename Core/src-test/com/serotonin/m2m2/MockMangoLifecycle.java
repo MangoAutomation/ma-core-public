@@ -36,7 +36,6 @@ import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseProxyFactory;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
@@ -87,7 +86,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     //Members to use for non defaults
     protected TimerProvider<AbstractTimer> timer;
     protected EventManager eventManager;
-    protected DatabaseProxy db;
     protected RuntimeManager runtimeManager;
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
@@ -152,10 +150,10 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         freemarkerInitialize();
 
         //TODO This must be done only once because we have a static
-        // final referece to the PointValueDao in the PointValueCache class
+        // final reference to the PointValueDao in the PointValueCache class
         // and so if you try to restart the database it doesn't get the new connection
         // for each new test.
-        //Start the Database so we can use Daos (Base Dao requires this)
+        //Start the Database so we can use DAOs (Base Dao requires this)
         if (Common.databaseProxy == null) {
             String type = Common.envProps.getString("db.type", "h2");
             DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
@@ -393,16 +391,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             return this.eventManager;
     }
 
-    protected DatabaseProxy getDatabaseProxy() {
-        if(this.db == null) {
-            boolean enableWebConsole = Common.envProps.getBoolean("db.web.start");
-            int webPort = Common.envProps.getInt("db.web.port");
-            return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
-        }
-        else
-            return this.db;
-    }
-
     public void setDatabaseProxyFactory(DatabaseProxyFactory databaseProxyFactory) {
         this.databaseProxyFactory = databaseProxyFactory;
     }
@@ -434,10 +422,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     public void setEventManager(EventManager eventManager) {
         this.eventManager = eventManager;
-    }
-
-    public void setDb(DatabaseProxy db) {
-        this.db = db;
     }
 
     public void setRuntimeManager(RuntimeManager runtimeManager) {

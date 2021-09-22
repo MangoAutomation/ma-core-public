@@ -19,9 +19,6 @@ import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.DefaultDatabaseProxyFactory;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
@@ -31,14 +28,6 @@ public class DataPointTagsDaoTest extends MangoTestBase {
     private final int numPoints = 1000;
     private final int numTags = 10;
     private final Random random = new Random();
-
-    @Override
-    protected MockMangoLifecycle getLifecycle() {
-        MockMangoLifecycle lifecycle = super.getLifecycle();
-//        lifecycle.setDb(new DefaultDatabaseProxyFactory().createDatabaseProxy(DatabaseType.MYSQL));
-        lifecycle.setDb(new DefaultDatabaseProxyFactory().createDatabaseProxy(DatabaseType.H2));
-        return lifecycle;
-    }
 
     @Before
     @Override

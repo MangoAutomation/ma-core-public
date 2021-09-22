@@ -38,9 +38,14 @@ public class H2DatabaseUpgradeTest extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        MockMangoLifecycle lifecycle = new MockMangoLifecycle(modules);
-        H2InMemoryDatabaseProxy proxy = new H2InMemoryDatabaseProxy(true, 8000, false, createScript, dataScript);
-        lifecycle.setDb(proxy);
+        MockMangoLifecycle lifecycle = super.getLifecycle();
+        lifecycle.setDatabaseProxyFactory(new DatabaseProxyFactory() {
+            @Override
+            public DatabaseProxy createDatabaseProxy(DatabaseType type) {
+                return new H2InMemoryDatabaseProxy(true, 8000, false, createScript, dataScript);
+            }
+        });
+
         return lifecycle;
     }
 }

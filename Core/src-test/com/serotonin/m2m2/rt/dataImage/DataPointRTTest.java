@@ -15,10 +15,12 @@ import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
+import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseProxyFactory;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
-import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -126,22 +128,14 @@ public class DataPointRTTest extends MangoTestBase {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        return new DataPointRtMockMangoLifecycle(modules);
-    }
-
-    class DataPointRtMockMangoLifecycle extends MockMangoLifecycle {
-
-        /**
-         * @param modules
-         */
-        public DataPointRtMockMangoLifecycle(List<Module> modules) {
-            super(modules);
-        }
-
-        @Override
-        protected H2InMemoryDatabaseProxy getDatabaseProxy() {
-            return new DataPointRtMockDatabaseProxy();
-        }
+        MockMangoLifecycle lifecycle = super.getLifecycle();
+        lifecycle.setDatabaseProxyFactory(new DatabaseProxyFactory() {
+            @Override
+            public DatabaseProxy createDatabaseProxy(DatabaseType type) {
+                return new DataPointRtMockDatabaseProxy();
+            }
+        });
+        return lifecycle;
     }
 
     class DataPointRtMockDatabaseProxy extends H2InMemoryDatabaseProxy {
