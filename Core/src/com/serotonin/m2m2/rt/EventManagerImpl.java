@@ -323,8 +323,16 @@ public class EventManagerImpl implements EventManager {
     @Override
     public void returnToNormal(EventType type, long time, ReturnCause cause) {
         EventInstance evt = remove(type);
-        if(evt == null)
+        if(evt == null) {
+            if(log.isDebugEnabled()) {
+                log.debug("Attempted to return non-existent event to normal! type={}, message={}, now={}, eventTime={}, typeRef1={}, typeRef2={}",
+                        type, evt.getMessage().translate(Common.getTranslations()),
+                        new Date(Common.timer.currentTimeMillis()), new Date(time),
+                        evt.getEventType().getReferenceId1(),
+                        evt.getEventType().getReferenceId2());
+            }
             return;
+        }
 
         long nowTimestamp = Common.timer.currentTimeMillis();
         if(time > nowTimestamp) {
