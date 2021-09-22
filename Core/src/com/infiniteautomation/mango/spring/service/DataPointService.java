@@ -232,7 +232,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.postDelete(vo);
         }
 
+        Common.databaseProxy.getPointValueCacheDao().deleteCache(vo);
         Common.eventManager.cancelEventsForDataPoint(vo.getId());
+
         return vo;
     }
 
