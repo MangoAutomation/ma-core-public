@@ -33,7 +33,7 @@ public abstract class PointValueCacheDefinition extends ModuleElementDefinition 
     /**
      * @return a singleton, thread safe instance of the {@link PointValueCacheDao} implementation
      */
-    public abstract PointValueCacheDao getDao();
+    public abstract PointValueCacheDao getPointValueCache();
 
     @Override
     public void postDatabase(Version previousVersion, Version current) {

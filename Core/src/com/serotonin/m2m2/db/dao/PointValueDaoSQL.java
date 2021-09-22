@@ -94,7 +94,7 @@ import com.serotonin.metrics.EventHistogram;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.queue.ObjectQueue;
 
-public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
+public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
     private final Logger log = LoggerFactory.getLogger(PointValueDaoSQL.class);
 

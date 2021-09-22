@@ -288,7 +288,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public PointValueCacheDao getPointValueCacheDao() { return pointValueCacheDefinition.getDao(); }
+    public PointValueCacheDao getPointValueCacheDao() { return pointValueCacheDefinition.getPointValueCache(); }
 
     @Override
     public PlatformTransactionManager getTransactionManager() {

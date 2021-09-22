@@ -287,7 +287,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
     @Override
     public PointValueCacheDao getPointValueCacheDao() {
-        return pointValueCacheDefinition.getDao();
+        return pointValueCacheDefinition.getPointValueCache();
     }
 
     @Override
