@@ -10,7 +10,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -27,16 +34,18 @@ import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.BaseDao;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 
@@ -267,5 +276,43 @@ public interface DatabaseProxy extends TransactionCapable {
                     .values(adminId, PermissionHolder.USER_ROLE.getId())
                     .execute();
         }
+    }
+
+    default PointValueDao createMetricsPointValueDao(long metricsThreshold, PointValueDao instance) {
+        Class<?> clazz = instance.getClass();
+        Set<String> noLogMethods = Set.of("savePointValueSync", "savePointValueAsync");
+
+        return (PointValueDao) Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), (proxy, method, args) -> {
+            try {
+                if (noLogMethods.contains(method.getName())) {
+                    return method.invoke(instance, args);
+                }
+
+                LogStopWatch stopWatch = new LogStopWatch();
+                Object result = method.invoke(instance, args);
+                stopWatch.stop(() -> metricsLogLine(method, args), metricsThreshold);
+                return result;
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+        });
+    }
+
+    default String metricsLogLine(Method method, Object[] args) {
+        return String.format("%s(%s) (%s)",
+                method.getName(),
+                Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", ")),
+                Arrays.stream(args).map(this::metricsFormatArg).collect(Collectors.joining(", ")));
+    }
+
+    default String metricsFormatArg(Object arg) {
+        if (arg == null) return "null";
+        if (arg instanceof DataPointVO) return ((DataPointVO) arg).getXid();
+        if (arg instanceof Collection) {
+            Collection<?> collection = (Collection<?>) arg;
+            if (collection.size() > 10) return "[" + collection.size() + "]";
+            else return "[" + collection.stream().map(this::metricsFormatArg).collect(Collectors.joining(", ")) + "]";
+        }
+        return arg.toString();
     }
 }

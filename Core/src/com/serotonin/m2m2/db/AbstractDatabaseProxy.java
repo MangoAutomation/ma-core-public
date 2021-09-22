@@ -28,13 +28,12 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
@@ -266,15 +265,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     @Override
     public PointValueDao newPointValueDao() {
-        if (noSQLProxy == null) {
-            if (useMetrics)
-                return new PointValueDaoMetrics(new PointValueDaoSQL());
-            return new PointValueDaoSQL();
-        }
-
-        if (useMetrics)
-            return noSQLProxy.createPointValueDaoMetrics();
-        return noSQLProxy.createPointValueDao();
+        PointValueDao pointValueDao = noSQLProxy != null ? noSQLProxy.createPointValueDao() : new PointValueDaoSQL();
+        return useMetrics ? createMetricsPointValueDao(Common.envProps.getLong("db.metricsThreshold", 0L), pointValueDao) : pointValueDao;
     }
 
     @Override

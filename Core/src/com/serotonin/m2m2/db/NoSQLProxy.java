@@ -7,7 +7,6 @@ import java.io.File;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
@@ -23,10 +22,6 @@ abstract public class NoSQLProxy extends ModuleElementDefinition {
     public abstract void shutdown();
 
     public abstract PointValueDao createPointValueDao();
-
-    public PointValueDao createPointValueDaoMetrics(){
-        return new PointValueDaoMetrics(this.createPointValueDao());
-    }
 
     /**
      * Is this proxy enabled, override as necessary
