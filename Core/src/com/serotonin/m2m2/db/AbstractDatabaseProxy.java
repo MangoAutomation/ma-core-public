@@ -239,7 +239,14 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     @Override
     public void terminate(boolean terminateNoSql) {
+        PointValueDao dao = newPointValueDao();
+        if(dao instanceof PointValueDaoSQL) {
+            // Ensure our PointValueDao is not writing batches
+            ((PointValueDaoSQL)dao).terminate();
+        }
+
         terminateImpl();
+
         // Check if we are using NoSQL
         if ((terminateNoSql)&&(noSQLProxy != null)) {
             noSQLProxy.shutdown();

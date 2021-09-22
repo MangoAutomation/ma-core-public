@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -1151,6 +1152,13 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     }
 
     /**
+     * Stop batch writing
+     */
+    public void terminate() {
+        BatchWriteBehind.shutdown();
+    }
+
+    /**
      * Class that stored point value data when it could not be saved to the database due to concurrency errors.
      *
      * @author Matthew Lohbihler
@@ -1199,6 +1207,9 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
     final static EventHistogram writesPerSecond = new EventHistogram(5000, 2);
 
     static class BatchWriteBehind implements WorkItem {
+
+        private static final int TERMINATION_ATTEMPTS = 30;
+        private static final int TERMINATION_ATTEMPT_TIME_MS = 10000;
         private static final ObjectQueue<BatchWriteBehindEntry> ENTRIES = new ObjectQueue<>();
         private static final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<>();
         private static final Logger LOG = LoggerFactory.getLogger(BatchWriteBehind.class);
@@ -1254,7 +1265,8 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
                 ENTRIES_MONITOR.setValue(ENTRIES.size());
                 if (ENTRIES.size() > instances.size() * SPAWN_THRESHOLD) {
                     if (instances.size() < MAX_INSTANCES) {
-                        BatchWriteBehind bwb = new BatchWriteBehind(create);
+                        int id = instances.size() + 1;
+                        BatchWriteBehind bwb = new BatchWriteBehind(id, create);
                         instances.add(bwb);
                         INSTANCES_MONITOR.setValue(instances.size());
                         try {
@@ -1269,17 +1281,74 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
             }
         }
 
-        private final DSLContext create;
+        static void shutdown() {
+            BatchWriteBehind task;
+            int total = instances.size();
+            if(total > 0)
+                LOG.info("Terminating " + total + " Batch Writer Tasks.");
+            Iterator<BatchWriteBehind> it = instances.iterator();
+            while(it.hasNext()){
+                task = it.next();
+                task.terminate();
+            }
 
-        public BatchWriteBehind(DSLContext create) {
+            //Now await the join termination
+            for(BatchWriteBehind t : instances) {
+                LOG.info(total + " Batch Writer Tasks awaiting termination.");
+                t.joinTermination();
+                total--;
+            }
+        }
+
+        void terminate() {
+            this.running = false;
+        }
+
+        void joinTermination() {
+            int attempt = 0;
+            while (true) {
+                synchronized (terminationLock) {
+                    if (jobThread == null) {
+                        LOG.info("Batch Writer Task {} Terminated.", id);
+                        break;
+                    } else if (++attempt > TERMINATION_ATTEMPTS) {
+                        LOG.error("Batch Writer Task {} failed to stop", id);
+                        break;
+                    } else {
+                        LOG.warn("Waiting for Batch Writer Task {} to stop ({}/{})", id, attempt, TERMINATION_ATTEMPTS);
+                    }
+
+                    try {
+                        terminationLock.wait(TERMINATION_ATTEMPT_TIME_MS);
+                    } catch (InterruptedException e) {
+                        // no op
+                    }
+                }
+            }
+        }
+
+        //ID of the task to know when to die and minimize collisions in the PointWrittenEntries
+        private final int id;
+
+        private final DSLContext create;
+        //Task management
+        private volatile boolean running;
+        private volatile Thread jobThread;
+        private final Object terminationLock = new Object();
+
+        public BatchWriteBehind(int id, DSLContext create) {
+            this.id = id;
             this.create = create;
         }
 
         @Override
         public void execute() {
+            this.running = true;
+            this.jobThread = Thread.currentThread();
+
             try {
                 BatchWriteBehindEntry[] inserts;
-                while (true) {
+                while (running) {
                     synchronized (ENTRIES) {
                         if (ENTRIES.size() == 0)
                             break;
@@ -1290,7 +1359,6 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
                     }
 
                     // Create the sql and parameters
-
                     PointValues pv = PointValues.POINT_VALUES;
                     InsertValuesStep4<PointValuesRecord, Integer, Integer, Double, Long> insert = this.create.insertInto(pv)
                             .columns(pv.dataPointId, pv.dataType, pv.pointValue, pv.ts);
@@ -1301,7 +1369,7 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
 
                     // Insert the data
                     int retries = 10;
-                    while (true) {
+                    while (running) {
                         try {
                             insert.execute();
                             writesPerSecond.hitMultiple(inserts.length);
@@ -1335,8 +1403,15 @@ public class PointValueDaoSQL extends BaseDao implements CachingPointValueDao {
                     }
                 }
             } finally {
+                //First ensure we finish
+                this.jobThread = null;
                 instances.remove(this);
                 INSTANCES_MONITOR.setValue(instances.size());
+
+                //Notify that we are done so we don't have to wait in the join termination block
+                synchronized (terminationLock) {
+                    terminationLock.notify();
+                }
             }
         }
 
