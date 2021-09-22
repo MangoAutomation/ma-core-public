@@ -20,11 +20,15 @@ public class LogStopWatch {
     static final String closeDuration = " ms] message[";
     static final String close = "] ";
 
-    private final transient Logger logger;
+    private final Logger logger;
     private long startTime;
 
     public LogStopWatch() {
-        logger = LoggerFactory.getLogger(LogStopWatch.class);
+        this(LoggerFactory.getLogger(LogStopWatch.class));
+    }
+
+    public LogStopWatch(Logger logger) {
+        this.logger = logger;
         reset();
     }
 

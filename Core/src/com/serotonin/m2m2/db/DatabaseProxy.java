@@ -27,6 +27,7 @@ import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
+import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.db.tables.Permissions;
 import com.infiniteautomation.mango.db.tables.RoleInheritance;
@@ -288,7 +289,7 @@ public interface DatabaseProxy extends TransactionCapable {
                     return method.invoke(instance, args);
                 }
 
-                LogStopWatch stopWatch = new LogStopWatch();
+                LogStopWatch stopWatch = new LogStopWatch(LoggerFactory.getLogger(clazz));
                 Object result = method.invoke(instance, args);
                 stopWatch.stop(() -> metricsLogLine(method, args), metricsThreshold);
                 return result;
