@@ -32,10 +32,12 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
+import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseProxyFactory;
+import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -499,7 +501,13 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
         boolean enableWebConsole = Common.envProps.getBoolean("db.web.start");
         int webPort = Common.envProps.getInt("db.web.port");
-        lifecycle.setDb(new H2InMemoryDatabaseProxyNoLocking(enableWebConsole, webPort));
+
+        lifecycle.setDatabaseProxyFactory(new DatabaseProxyFactory() {
+            @Override
+            public DatabaseProxy createDatabaseProxy(DatabaseType type) {
+                return new H2InMemoryDatabaseProxyNoLocking(enableWebConsole, webPort);
+            }
+        });
 
         return lifecycle;
     }
