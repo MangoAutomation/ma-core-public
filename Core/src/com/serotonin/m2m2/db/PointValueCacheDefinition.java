@@ -4,7 +4,9 @@
 
 package com.serotonin.m2m2.db;
 
-import com.github.zafarkhaja.semver.Version;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 
@@ -14,20 +16,15 @@ import com.serotonin.m2m2.module.ModuleElementDefinition;
 public abstract class PointValueCacheDefinition extends ModuleElementDefinition {
 
     /**
-     * @return true if enabled
-     */
-    public boolean isEnabled() {
-        return true;
-    }
-
-    /**
      * Initialize the {@link PointValueCacheDao}
      */
-    protected abstract void initialize();
+    @PostConstruct
+    public abstract void initialize();
 
     /**
      * Terminate the {@link PointValueCacheDao}
      */
+    @PreDestroy
     public abstract void shutdown();
 
     /**
@@ -35,17 +32,4 @@ public abstract class PointValueCacheDefinition extends ModuleElementDefinition 
      */
     public abstract PointValueCacheDao getPointValueCache();
 
-    @Override
-    public void postDatabase(Version previousVersion, Version current) {
-        if (isEnabled()) {
-            initialize();
-        }
-    }
-
-    @Override
-    public void postRuntimeManagerTerminate(boolean uninstall) {
-        if (isEnabled()) {
-            shutdown();
-        }
-    }
 }

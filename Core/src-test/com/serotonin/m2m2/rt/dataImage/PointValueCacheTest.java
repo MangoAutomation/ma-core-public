@@ -9,16 +9,15 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
+import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.DatabaseProxyFactory;
-import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -158,29 +157,25 @@ public class PointValueCacheTest extends MangoTestBase {
         return dao.getLatestPointValues(vo, limit);
     }
 
-
-    @Override
-    protected MockMangoLifecycle getLifecycle() {
-        MockMangoLifecycle lifecycle = super.getLifecycle();
-        lifecycle.setDatabaseProxyFactory(new DatabaseProxyFactory() {
-            @Override
-            public DatabaseProxy createDatabaseProxy(DatabaseType type) {
-                return new DataPointRtMockDatabaseProxy();
-            }
-        });
-        return lifecycle;
-    }
-
-    class DataPointRtMockDatabaseProxy extends H2InMemoryDatabaseProxy {
-        @Override
-        public PointValueDao newPointValueDao() {
+    @Configuration
+    public static class PointValueCacheTestConfig {
+        @Primary
+        @Bean
+        public PointValueDao pointValueDao() {
             return new MockPointValueDao();
         }
     }
 
-    private List<PointValueTime> values = new ArrayList<PointValueTime>();
+    @Override
+    protected MockMangoLifecycle getLifecycle() {
+        MockMangoLifecycle lifecycle = super.getLifecycle();
+        lifecycle.addRuntimeContextConfiguration(PointValueCacheTestConfig.class);
+        return lifecycle;
+    }
 
-    class MockPointValueDao extends PointValueDaoSQL {
+    static class MockPointValueDao extends PointValueDaoSQL {
+
+        private final List<PointValueTime> values = new ArrayList<>();
 
         @Override
         public PointValueTime getLatestPointValue(DataPointVO vo) {

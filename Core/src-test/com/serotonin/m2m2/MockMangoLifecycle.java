@@ -15,8 +15,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
@@ -217,6 +219,15 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
     }
 
+    private final Set<Class<?>> runtimeContextConfigurations = new LinkedHashSet<>();
+    {
+        runtimeContextConfigurations.add(MangoTestRuntimeContextConfiguration.class);
+    }
+
+    public void addRuntimeContextConfiguration(Class<?> clazz) {
+        runtimeContextConfigurations.add(clazz);
+    }
+
     protected CompletableFuture<ApplicationContext>  springRuntimeContextInitialize(ClassLoader classLoader) {
         @SuppressWarnings("resource")
         AnnotationConfigApplicationContext runtimeContext = new AnnotationConfigApplicationContext();
@@ -224,9 +235,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         runtimeContext.setId(MangoTestRuntimeContextConfiguration.CONTEXT_ID);
         runtimeContext.getEnvironment().getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
         runtimeContext.register(MangoTestRuntimeContextConfiguration.class);
+        runtimeContext.register(runtimeContextConfigurations.toArray(new Class<?>[] {}));
         runtimeContext.refresh();
         runtimeContext.start();
-
         return MangoTestRuntimeContextConfiguration.getFutureRuntimeContext();
     }
 
@@ -312,7 +323,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
 
         if(Common.databaseProxy != null)
-            Common.databaseProxy.terminate(true);
+            Common.databaseProxy.terminate();
 
         if(Common.serialPortManager != null) {
             try {

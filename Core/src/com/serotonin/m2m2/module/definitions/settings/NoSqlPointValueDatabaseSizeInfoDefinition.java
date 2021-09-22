@@ -3,7 +3,11 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
-import com.serotonin.m2m2.Common;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.module.SystemInfoDefinition;
 
 /**
@@ -15,6 +19,9 @@ public class NoSqlPointValueDatabaseSizeInfoDefinition extends SystemInfoDefinit
 
     public final String KEY = "noSqlPointValueDatabaseSize";
 
+    @Autowired
+    private List<PointValueDaoDefinition> definitions;
+
     @Override
     public String getKey() {
         return KEY;
@@ -23,9 +30,10 @@ public class NoSqlPointValueDatabaseSizeInfoDefinition extends SystemInfoDefinit
     @Override
     public Long getValue() {
         long noSqlSize = 0L;
-        if (Common.databaseProxy.getNoSQLProxy() != null) {
-            String pointValueStoreName = Common.envProps.getString("db.nosql.pointValueStoreName", "mangoTSDB");
-            noSqlSize = Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointValueStoreName);
+        try {
+            noSqlSize = definitions.stream().findFirst().orElseThrow().getDatabaseSizeInBytes();
+        } catch (UnsupportedOperationException e) {
+            // ignore
         }
         return noSqlSize;
     }

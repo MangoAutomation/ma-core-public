@@ -23,15 +23,11 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MockPointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
@@ -50,9 +46,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
     protected String databaseName = UUID.randomUUID().toString();
     protected JdbcConnectionPool dataSource;
-    protected NoSQLProxy noSQLProxy;
+    protected PointValueDaoDefinition pointValueDaoDefinition;
     protected PointValueCacheDefinition pointValueCacheDefinition;
-    protected final MockPointValueDao mockPointValueDao;
     protected boolean initialized = false;
     protected final boolean initWebConsole;
     protected Integer webPort;
@@ -75,7 +70,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics, Supplier<InputStream> altCreateScript, Supplier<InputStream> defaultDataScript) {
-        this.mockPointValueDao = new MockPointValueDao();
         this.initWebConsole = initWebConsole;
         this.webPort = webPort;
         this.useMetrics = useMetrics;
@@ -175,27 +169,23 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         DBUpgrade.checkUpgrade();
 
         // Check if we are using NoSQL and use the first enabled proxy
-        if (noSQLProxy != null) {
-            noSQLProxy.initialize();
+        if (pointValueDaoDefinition != null) {
+            pointValueDaoDefinition.initialize();
         } else {
-            List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
-            for (NoSQLProxy proxy : proxies) {
-                if (proxy.isEnabled()) {
-                    noSQLProxy = proxy;
-                    noSQLProxy.initialize();
-                    break;
-                }
+            List<PointValueDaoDefinition> proxies = ModuleRegistry.getDefinitions(PointValueDaoDefinition.class);
+            for (PointValueDaoDefinition proxy : proxies) {
+                pointValueDaoDefinition = proxy;
+                pointValueDaoDefinition.initialize();
+                break;
             }
         }
 
         //Check to see if we are using the latest values store
         List<PointValueCacheDefinition> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheDefinition.class);
         for(PointValueCacheDefinition proxy : latestValueProxies) {
-            if (proxy.isEnabled()) {
-                pointValueCacheDefinition = proxy;
-                //Defer initialization until post spring context init via module element definition lifecycle
-                break;
-            }
+            pointValueCacheDefinition = proxy;
+            //Defer initialization until post spring context init via module element definition lifecycle
+            break;
         }
 
         initialized = true;
@@ -207,7 +197,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void terminate(boolean terminateNoSql) {
+    public void terminate() {
         if (dataSource != null)
             dataSource.dispose();
         if(web != null){
@@ -215,10 +205,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                 web.stop();
                 web.shutdown();
             }
-        }
-        // Check if we are using NoSQL
-        if ((terminateNoSql)&&(noSQLProxy != null)) {
-            noSQLProxy.shutdown();
         }
     }
 
@@ -251,35 +237,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public String getDatabasePassword(String propertyPrefix) {
         return null;
-    }
-
-    @Override
-    public void setNoSQLProxy(NoSQLProxy proxy) {
-        this.noSQLProxy = proxy;
-    }
-
-    @Override
-    public PointValueDao newPointValueDao() {
-        if(initialized) {
-            PointValueDao pointValueDao = noSQLProxy != null ? noSQLProxy.createPointValueDao() : new PointValueDaoSQL();
-            return useMetrics ? createMetricsPointValueDao(Common.envProps.getLong("db.metricsThreshold", 0L), pointValueDao) : pointValueDao;
-        }else
-            return mockPointValueDao;
-    }
-
-    @Override
-    public NoSQLProxy getNoSQLProxy() {
-        return noSQLProxy;
-    }
-
-    @Override
-    public PointValueCacheDefinition getPointValueCacheDefinition() {
-        return pointValueCacheDefinition;
-    }
-
-    @Override
-    public PointValueCacheDao getPointValueCacheDao() {
-        return pointValueCacheDefinition.getPointValueCache();
     }
 
     @Override
@@ -317,8 +274,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
 
         //Clean the noSQL database
-        if (noSQLProxy != null) {
-            noSQLProxy.createPointValueDao().deleteAllPointDataWithoutCount();
+        if (pointValueDaoDefinition != null) {
+            pointValueDaoDefinition.getPointValueDao().deleteAllPointDataWithoutCount();
         }
 
         //clear all caches in services

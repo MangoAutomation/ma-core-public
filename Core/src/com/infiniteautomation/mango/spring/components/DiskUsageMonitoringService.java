@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,6 +29,7 @@ import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.PollableMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
@@ -98,19 +100,22 @@ public class DiskUsageMonitoringService extends PollingService {
     private long lastSqlDatabaseSizePollTime;
     private static final long MIN_SQL_DISK_SIZE_POLL_PERIOD = 1000 * 60 * 60 * 6;
 
+    private final PointValueDaoDefinition pointValueDaoDefinition;
+
     /**
-     *
-     * @param scheduledExecutor
+     *  @param scheduledExecutor
      * @param enabled - enable/disable service polling
      * @param period - how often to recalculate the usage
+     * @param definitions
      */
     @Autowired
     private DiskUsageMonitoringService(ExecutorService executor,
-            ScheduledExecutorService scheduledExecutor,
-            @Value("${internal.monitor.diskUsage.enabled:true}") boolean enabled,
-            @Value("${internal.monitor.diskUsage.pollPeriod:1800000}") Long period,
-            MonitoredValues monitoredValues,
-            Environment env) {
+                                       ScheduledExecutorService scheduledExecutor,
+                                       @Value("${internal.monitor.diskUsage.enabled:true}") boolean enabled,
+                                       @Value("${internal.monitor.diskUsage.pollPeriod:1800000}") Long period,
+                                       MonitoredValues monitoredValues,
+                                       Environment env,
+                                       List<PointValueDaoDefinition> definitions) {
 
         this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
@@ -163,6 +168,8 @@ public class DiskUsageMonitoringService extends PollingService {
                 .name(new TranslatableMessage(MA_HOME_SIZE))
                 .build();
 
+        this.pointValueDaoDefinition = definitions.stream().findFirst().orElseThrow();
+
         //Setup all filestores
         ModuleRegistry.getFileStoreDefinitions().values().forEach(fs-> {
             ValueMonitor<Double> monitor = monitoredValues.<Double>create(FILE_STORE_SIZE_PREFIX + fs.getStoreName())
@@ -202,13 +209,13 @@ public class DiskUsageMonitoringService extends PollingService {
         }
         //Volume information for NoSQL partition
         try {
-            if(Common.databaseProxy.getNoSQLProxy() != null) {
-                FileStore store = Files.getFileStore(Paths.get(Common.databaseProxy.getNoSQLProxy().getDatabasePath()).toAbsolutePath());
-                noSqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
-                noSqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
-                noSqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
-            }
-        }catch(Exception e) {
+            FileStore store = Files.getFileStore(Paths.get(pointValueDaoDefinition.getDatabasePath()).toAbsolutePath());
+            noSqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
+            noSqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
+            noSqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));
+        } catch (UnsupportedOperationException e) {
+            // ignore
+        } catch (Exception e) {
             log.error("Unable to get NoSQL partition usage", e);
         }
 
@@ -295,23 +302,21 @@ public class DiskUsageMonitoringService extends PollingService {
      * @return
      */
     private Double getNoSqlDatabaseSizeMB() {
-        if (env.getProperty("internal.monitor.diskUsage.monitorTsdb", Boolean.class, false)) {
-            long last = this.lastNoSqlDatabaseSizePollTime;
-            long now = Common.timer.currentTimeMillis();
-            if (now < last + MIN_NOSQL_DISK_SIZE_POLL_PERIOD) {
+        try {
+            if (env.getProperty("internal.monitor.diskUsage.monitorTsdb", Boolean.class, false)) {
+                long last = this.lastNoSqlDatabaseSizePollTime;
+                long now = Common.timer.currentTimeMillis();
+                if (now < last + MIN_NOSQL_DISK_SIZE_POLL_PERIOD) {
+                    return this.lastNoSqlDatabaseSize;
+                }
+                this.lastNoSqlDatabaseSizePollTime = now;
+                this.lastNoSqlDatabaseSize = getGiB(pointValueDaoDefinition.getDatabaseSizeInBytes());
                 return this.lastNoSqlDatabaseSize;
             }
-            this.lastNoSqlDatabaseSizePollTime = now;
-            if (Common.databaseProxy.getNoSQLProxy() != null) {
-                String pointDataStoreName = Common.envProps.getString("db.nosql.pointDataStoreName", "mangoTSDB");
-                this.lastNoSqlDatabaseSize = getGiB(Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointDataStoreName));
-            } else {
-                this.lastNoSqlDatabaseSize = 0d;
-            }
-            return this.lastNoSqlDatabaseSize;
-        } else {
-            return 0.0d;
+        } catch (UnsupportedOperationException e) {
+            // ignore
         }
+        return 0.0d;
     }
 
     /**

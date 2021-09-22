@@ -111,6 +111,8 @@ abstract public class ModuleElementDefinition implements Ordered {
         return DEFAULT_PRECEDENCE;
     }
 
+    public boolean isEnabled() { return true; }
+
     /**
      * Loads all the module element definition classes and uses ConditionalDefinition to filter them. Does not return any definitions from parent classloaders.
      * @param classloader

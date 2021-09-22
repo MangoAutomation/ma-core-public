@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -26,7 +27,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
-import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.shared.ModuleUtils.Constants;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
@@ -582,25 +582,21 @@ public class ModuleRegistry {
     //
     // Generic handling
     //
+
     public static <T extends ModuleElementDefinition> List<T> getDefinitions(Class<T> clazz) {
         List<T> defs = new ArrayList<T>();
-        for (Module module : MODULES.values())
+        for (Module module : MODULES.values()) {
             defs.addAll(module.getDefinitions(clazz));
+        }
         defs.sort(OrderComparator.INSTANCE);
         return defs;
     }
 
     public static <T extends ModuleElementDefinition> T getDefinition(Class<T> clazz) {
-        return getDefinition(clazz, true);
-    }
-
-    public static <T extends ModuleElementDefinition> T getDefinition(Class<T> clazz, boolean first) {
-        List<T> defs = getDefinitions(clazz);
-        if (defs.isEmpty())
-            return null;
-        if (first)
-            return defs.get(0);
-        return defs.get(defs.size() - 1);
+        Optional<T> def = getDefinitions(clazz)
+                .stream()
+                .findFirst();
+        return def.orElseThrow();
     }
 
     /**

@@ -13,7 +13,6 @@ import java.nio.file.StandardOpenOption;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -28,13 +27,10 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -42,8 +38,6 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     private final Logger log = LoggerFactory.getLogger(AbstractDatabaseProxy.class);
-    private NoSQLProxy noSQLProxy;
-    private PointValueCacheDefinition pointValueCacheDefinition;
     private final boolean useMetrics;
     private PlatformTransactionManager transactionManager;
     private final DatabaseProxyFactory factory;
@@ -142,34 +136,9 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                         throw new ShouldNeverHappenException(e);
                     }
                 } finally {
-                    sourceProxy.terminate(false);
+                    sourceProxy.terminate();
                 }
             }
-
-            // Check if we are using NoSQL and use the first enabled proxy
-            if (noSQLProxy != null) {
-                noSQLProxy.initialize();
-            } else {
-                List<NoSQLProxy> proxies = ModuleRegistry.getDefinitions(NoSQLProxy.class);
-                for (NoSQLProxy proxy : proxies) {
-                    if (proxy.isEnabled()) {
-                        noSQLProxy = proxy;
-                        noSQLProxy.initialize();
-                        break;
-                    }
-                }
-            }
-
-            //Check to see if we are using the latest values store
-            List<PointValueCacheDefinition> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheDefinition.class);
-            for(PointValueCacheDefinition proxy : latestValueProxies) {
-                if (proxy.isEnabled()) {
-                    pointValueCacheDefinition = proxy;
-                    //Defer initialization until post spring context init via module element definition lifecycle
-                    break;
-                }
-            }
-
         } catch (CannotGetJdbcConnectionException e) {
             log.error("Unable to connect to database of type " + getType().name(), e);
             throw e;
@@ -237,12 +206,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void terminate(boolean terminateNoSql) {
+    public void terminate() {
         terminateImpl();
-        // Check if we are using NoSQL
-        if ((terminateNoSql)&&(noSQLProxy != null)) {
-            noSQLProxy.shutdown();
-        }
     }
 
     abstract protected void terminateImpl();
@@ -257,30 +222,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     public String getDatabasePassword(String propertyPrefix) {
         return Common.envProps.getString(propertyPrefix + "db.password");
     }
-
-    @Override
-    public void setNoSQLProxy(NoSQLProxy proxy) {
-        this.noSQLProxy = proxy;
-    }
-
-    @Override
-    public PointValueDao newPointValueDao() {
-        PointValueDao pointValueDao = noSQLProxy != null ? noSQLProxy.createPointValueDao() : new PointValueDaoSQL();
-        return useMetrics ? createMetricsPointValueDao(Common.envProps.getLong("db.metricsThreshold", 0L), pointValueDao) : pointValueDao;
-    }
-
-    @Override
-    public NoSQLProxy getNoSQLProxy() {
-        return noSQLProxy;
-    }
-
-    @Override
-    public PointValueCacheDefinition getPointValueCacheDefinition() {
-        return pointValueCacheDefinition;
-    }
-
-    @Override
-    public PointValueCacheDao getPointValueCacheDao() { return pointValueCacheDefinition.getPointValueCache(); }
 
     @Override
     public PlatformTransactionManager getTransactionManager() {

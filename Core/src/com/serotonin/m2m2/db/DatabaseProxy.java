@@ -10,14 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -27,7 +20,6 @@ import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
-import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.db.tables.Permissions;
 import com.infiniteautomation.mango.db.tables.RoleInheritance;
@@ -40,13 +32,11 @@ import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 
@@ -60,7 +50,7 @@ public interface DatabaseProxy extends TransactionCapable {
     DataSource getDataSource();
 
     void initialize(ClassLoader classLoader);
-    void terminate(boolean terminateNoSql);
+    void terminate();
 
     /**
      * Applies database specific limits on double values.
@@ -151,32 +141,17 @@ public interface DatabaseProxy extends TransactionCapable {
 
     String getDatabasePassword(String propertyPrefix);
 
-    PointValueDao newPointValueDao();
+    default PointValueDao newPointValueDao() {
+        return Common.getBean(PointValueDao.class);
+    }
 
+    default PointValueDaoDefinition getNoSQLProxy() {
+        return Common.getBean(PointValueDaoDefinition.class);
+    }
 
-    /**
-     * TODO Mango 4.0 Remove this method (only used in testing and not necessary)
-     * @param proxy
-     */
-    void setNoSQLProxy(NoSQLProxy proxy);
-
-    /**
-     * Allow access to the NoSQL Proxy
-     *
-     * @return
-     */
-    NoSQLProxy getNoSQLProxy();
-
-    /**
-     * @return the highest priority, enabled {@link PointValueCacheDefinition}
-     */
-    PointValueCacheDefinition getPointValueCacheDefinition();
-
-    /**
-     * Get the point value cache dao
-     * @return
-     */
-    PointValueCacheDao getPointValueCacheDao();
+    default PointValueCacheDao getPointValueCacheDao() {
+        return Common.getBean(PointValueCacheDao.class);
+    }
 
     boolean isUseMetrics();
 
@@ -279,41 +254,4 @@ public interface DatabaseProxy extends TransactionCapable {
         }
     }
 
-    default PointValueDao createMetricsPointValueDao(long metricsThreshold, PointValueDao instance) {
-        Class<?> clazz = instance.getClass();
-        Set<String> noLogMethods = Set.of("savePointValueSync", "savePointValueAsync");
-
-        return (PointValueDao) Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), (proxy, method, args) -> {
-            try {
-                if (noLogMethods.contains(method.getName())) {
-                    return method.invoke(instance, args);
-                }
-
-                LogStopWatch stopWatch = new LogStopWatch(LoggerFactory.getLogger(clazz));
-                Object result = method.invoke(instance, args);
-                stopWatch.stop(() -> metricsLogLine(method, args), metricsThreshold);
-                return result;
-            } catch (InvocationTargetException e) {
-                throw e.getCause();
-            }
-        });
-    }
-
-    default String metricsLogLine(Method method, Object[] args) {
-        return String.format("%s(%s) (%s)",
-                method.getName(),
-                Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", ")),
-                Arrays.stream(args).map(this::metricsFormatArg).collect(Collectors.joining(", ")));
-    }
-
-    default String metricsFormatArg(Object arg) {
-        if (arg == null) return "null";
-        if (arg instanceof DataPointVO) return ((DataPointVO) arg).getXid();
-        if (arg instanceof Collection) {
-            Collection<?> collection = (Collection<?>) arg;
-            if (collection.size() > 10) return "[" + collection.size() + "]";
-            else return "[" + collection.stream().map(this::metricsFormatArg).collect(Collectors.joining(", ")) + "]";
-        }
-        return arg.toString();
-    }
 }

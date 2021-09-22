@@ -21,7 +21,7 @@ public class DefaultPointValueCacheDefinition extends PointValueCacheDefinition 
     private DefaultPointValueCacheDao pointValueCache;
 
     @Override
-    protected void initialize() {
+    public void initialize() {
         this.pointValueCache = new DefaultPointValueCacheDao(pointValueDao);
     }
 
