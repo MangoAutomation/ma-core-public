@@ -1,23 +1,20 @@
 /*
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
- * @Author Terry Packer
- *
  */
 
 package com.serotonin.m2m2.module.definitions.db;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.PointValueCacheProxy;
 import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.PointValueCacheDefinition;
 
 /**
- * Default implementation of proxy to use if none are module defined
+ * Default implementation to use when no other {@link PointValueCacheDefinition} is enabled.
  */
-public class DefaultPointValueCacheProxy extends PointValueCacheProxy {
+public class DefaultPointValueCacheDefinition extends PointValueCacheDefinition {
 
     @Override
     protected void initialize() {
-
     }
 
     @Override

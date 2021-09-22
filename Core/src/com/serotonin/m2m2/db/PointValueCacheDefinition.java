@@ -1,8 +1,5 @@
 /*
- *
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
- * @Author Terry Packer
- *
  */
 
 package com.serotonin.m2m2.db;
@@ -12,31 +9,29 @@ import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 
 /**
- * Interface for proxy manager of persistent access and storage of data point caches.
+ * Definition that provides a {@link PointValueCacheDao} for accessing point value caches.
  */
-public abstract class PointValueCacheProxy extends ModuleElementDefinition {
+public abstract class PointValueCacheDefinition extends ModuleElementDefinition {
 
     /**
-     * Are we enabled in this configuration? Override as necessary
-     * @return
+     * @return true if enabled
      */
     public boolean isEnabled() {
         return true;
     }
 
     /**
-     * Initialize the proxy and all necessary resources
+     * Initialize the {@link PointValueCacheDao}
      */
     protected abstract void initialize();
 
     /**
-     * Terminate the proxy and all necessary resources
+     * Terminate the {@link PointValueCacheDao}
      */
     public abstract void shutdown();
 
     /**
-     * Get the dao to access the persistent store
-     * @return
+     * @return a singleton, thread safe instance of the {@link PointValueCacheDao} implementation
      */
     public abstract PointValueCacheDao getDao();
 

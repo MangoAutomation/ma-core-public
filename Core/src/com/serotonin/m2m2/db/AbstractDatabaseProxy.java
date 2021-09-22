@@ -44,7 +44,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     private final Logger log = LoggerFactory.getLogger(AbstractDatabaseProxy.class);
     private NoSQLProxy noSQLProxy;
-    private PointValueCacheProxy pointValueCacheProxy;
+    private PointValueCacheDefinition pointValueCacheDefinition;
     private final boolean useMetrics;
     private PlatformTransactionManager transactionManager;
     private final DatabaseProxyFactory factory;
@@ -162,10 +162,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             }
 
             //Check to see if we are using the latest values store
-            List<PointValueCacheProxy> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheProxy.class);
-            for(PointValueCacheProxy proxy : latestValueProxies) {
+            List<PointValueCacheDefinition> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheDefinition.class);
+            for(PointValueCacheDefinition proxy : latestValueProxies) {
                 if (proxy.isEnabled()) {
-                    pointValueCacheProxy = proxy;
+                    pointValueCacheDefinition = proxy;
                     //Defer initialization until post spring context init via module element definition lifecycle
                     break;
                 }
@@ -283,12 +283,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public PointValueCacheProxy getPointValueCacheProxy() {
-        return pointValueCacheProxy;
+    public PointValueCacheDefinition getPointValueCacheDefinition() {
+        return pointValueCacheDefinition;
     }
 
     @Override
-    public PointValueCacheDao getPointValueCacheDao() { return pointValueCacheProxy.getDao(); }
+    public PointValueCacheDao getPointValueCacheDao() { return pointValueCacheDefinition.getDao(); }
 
     @Override
     public PlatformTransactionManager getTransactionManager() {

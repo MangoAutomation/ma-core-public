@@ -158,10 +158,9 @@ public interface DatabaseProxy extends TransactionCapable {
     NoSQLProxy getNoSQLProxy();
 
     /**
-     * Get the latest value proxy
-     * @return
+     * @return the highest priority, enabled {@link PointValueCacheDefinition}
      */
-    PointValueCacheProxy getPointValueCacheProxy();
+    PointValueCacheDefinition getPointValueCacheDefinition();
 
     /**
      * Get the point value cache dao
