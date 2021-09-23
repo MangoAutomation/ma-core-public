@@ -399,7 +399,7 @@ public class MangoTestBase {
 
     protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled, MangoPermission readPermission, MangoPermission editPermission) {
         DataSourceService service = Common.getBean(DataSourceService.class);
-        MockDataSourceVO vo = new MockDataSourceVO();
+        MockDataSourceVO vo = (MockDataSourceVO) ModuleRegistry.getDataSourceDefinition(MockDataSourceDefinition.TYPE_NAME).baseCreateDataSourceVO();
         vo.setXid(name);
         vo.setName(xid);
         vo.setEnabled(enabled);
