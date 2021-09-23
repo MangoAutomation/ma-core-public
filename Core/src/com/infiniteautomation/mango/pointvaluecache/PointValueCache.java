@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.infiniteautomation.mango.pointvalue;
+package com.infiniteautomation.mango.pointvaluecache;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +15,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 /**
  * Access to persistent storage of data point caches.
  */
-public interface PointValueCacheDao {
+public interface PointValueCache {
 
     /**
      * Get the latest values for a data point from the cache, loading from the underlying DAO if needed.

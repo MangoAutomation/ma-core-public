@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.infiniteautomation.mango.pointvalue;
+package com.infiniteautomation.mango.pointvaluecache;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,11 +19,11 @@ import com.serotonin.m2m2.vo.DataPointVO;
  * No-op implementation that reads straight through to the underlying {@link PointValueDao} and does not
  * cache values.
  */
-public class DefaultPointValueCacheDao implements PointValueCacheDao {
+public class DefaultPointValueCache implements PointValueCache {
 
     private final PointValueDao pointValueDao;
 
-    public DefaultPointValueCacheDao(PointValueDao pointValueDao) {
+    public DefaultPointValueCache(PointValueDao pointValueDao) {
         this.pointValueDao = pointValueDao;
     }
 

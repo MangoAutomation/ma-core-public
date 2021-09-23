@@ -9,7 +9,7 @@ import java.util.List;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -23,19 +23,19 @@ import com.serotonin.m2m2.vo.DataPointVO;
  * @author Matthew Lohbihler
  * @author Jared Wiltshire
  */
-public class PointValueCache {
+public class DataPointRTPointValueCache {
     private final DataPointVO vo;
     private final int defaultSize;
     private final PointValueDao dao;
-    private final PointValueCacheDao pointValueCacheDao;
+    private final PointValueCache pointValueCache;
 
     private volatile List<PointValueTime> cache;
 
-    public PointValueCache(DataPointVO vo, int defaultSize, @Nullable List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
+    public DataPointRTPointValueCache(DataPointVO vo, int defaultSize, @Nullable List<PointValueTime> initialCache, PointValueDao dao, PointValueCache pointValueCache) {
         this.vo = vo;
         this.defaultSize = defaultSize;
         this.dao = dao;
-        this.pointValueCacheDao = pointValueCacheDao;
+        this.pointValueCache = pointValueCache;
         this.cache = initialCache;
     }
 
@@ -77,7 +77,7 @@ public class PointValueCache {
                 }
             }
 
-            pointValueCacheDao.updateCache(vo, cache);
+            pointValueCache.updateCache(vo, cache);
         }
     }
 
@@ -111,7 +111,7 @@ public class PointValueCache {
             synchronized (this) {
                 cache = this.cache;
                 if (cache == null) {
-                    this.cache = cache = pointValueCacheDao.loadCache(vo, defaultSize);
+                    this.cache = cache = pointValueCache.loadCache(vo, defaultSize);
                 }
             }
         }
@@ -125,7 +125,7 @@ public class PointValueCache {
         synchronized (this) {
             this.cache = null;
             if (invalidatePersisted) {
-                pointValueCacheDao.deleteCache(vo);
+                pointValueCache.deleteCache(vo);
             }
         }
     }

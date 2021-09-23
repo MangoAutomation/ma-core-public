@@ -9,40 +9,43 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.infiniteautomation.mango.pointvalue.PointValueDaoFactory;
 import com.serotonin.log.LogStopWatch;
-import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
+/**
+ * Proxies PointValueDao and adds logging. This could be expanded to proxy other classes by looking for an
+ * annotation.
+ */
 @Component
-public class DefaultPointValueDaoFactory implements PointValueDaoFactory {
-    private final List<PointValueDaoDefinition> definitions;
+public class MetricsLoggingProcessor implements BeanPostProcessor {
+
     private final boolean useMetrics;
     private final Environment env;
     private final Set<String> noLogMethods = Set.of("savePointValueSync", "savePointValueAsync");
 
-    public DefaultPointValueDaoFactory(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") List<PointValueDaoDefinition> definitions,
-                                       @Value("${db.useMetrics}") boolean useMetrics, Environment env) {
-        this.definitions = definitions;
+    public MetricsLoggingProcessor(@Value("${db.useMetrics}") boolean useMetrics, Environment env) {
         this.useMetrics = useMetrics;
         this.env = env;
     }
 
     @Override
-    public PointValueDao getPointValueDao() {
-        PointValueDaoDefinition definition = definitions.stream().findFirst().orElseThrow();
-        PointValueDao dao = definition.getPointValueDao();
-        return useMetrics ? createMetricsPointValueDao(dao) : dao;
+    public Object postProcessAfterInitialization(@NonNull Object bean, @NonNull String beanName) throws BeansException {
+        if (useMetrics && bean instanceof PointValueDao) {
+            return createMetricsPointValueDao((PointValueDao) bean);
+        }
+        return bean;
     }
 
     protected PointValueDao createMetricsPointValueDao(PointValueDao delegate) {

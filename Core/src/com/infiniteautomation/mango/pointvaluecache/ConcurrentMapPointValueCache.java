@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.infiniteautomation.mango.pointvalue;
+package com.infiniteautomation.mango.pointvaluecache;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,9 +20,9 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
- * Implementation of a {@link PointValueCacheDao} backed by a {@link ConcurrentMap}.
+ * Implementation of a {@link PointValueCache} backed by a {@link ConcurrentMap}.
  */
-public class ConcurrentMapPointValueCache implements PointValueCacheDao {
+public class ConcurrentMapPointValueCache implements PointValueCache {
 
     private final ConcurrentMap<Integer, List<PointValueTime>> cache;
     private final PointValueDao pointValueDao;

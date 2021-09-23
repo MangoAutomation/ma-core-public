@@ -28,7 +28,7 @@ import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.DataPointGroupInitializer;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -336,8 +336,8 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         //Startup multi threaded
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
-        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
-        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, pointValueCacheDao);
+        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
+        DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, pointValueCache);
         pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 
         //Signal to the data source that all points are added.

@@ -23,6 +23,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;

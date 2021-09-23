@@ -27,7 +27,7 @@ import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
@@ -149,8 +149,8 @@ public interface DatabaseProxy extends TransactionCapable {
         return Common.getBean(PointValueDaoDefinition.class);
     }
 
-    default PointValueCacheDao getPointValueCacheDao() {
-        return Common.getBean(PointValueCacheDao.class);
+    default PointValueCache getPointValueCacheDao() {
+        return Common.getBean(PointValueCache.class);
     }
 
     boolean isUseMetrics();

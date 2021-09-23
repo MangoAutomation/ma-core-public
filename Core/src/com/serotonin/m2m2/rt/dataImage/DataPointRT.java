@@ -22,7 +22,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.DataPointEventNotifyWorkItem;
@@ -65,7 +65,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     // Runtime data.
     private final LazyField<PointValueTime> pointValue;
-    private final PointValueCache valueCache;
+    private final DataPointRTPointValueCache valueCache;
     private List<PointEventDetectorRT<?>> detectors;
     private final Map<String, Object> attributes = new HashMap<String, Object>();
 
@@ -88,7 +88,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     private final DataPointDao dataPointDao;
 
-    public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource, List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao) {
+    public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource, List<PointValueTime> initialCache, PointValueDao dao, PointValueCache pointValueCache) {
         if (dataSource.getId() != dp.getDataPoint().getDataSourceId()) {
             throw new IllegalStateException("Wrong data source for provided point");
         }
@@ -101,7 +101,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
         this.dataSource = dataSource;
         this.pointLocator = pointLocator;
-        this.valueCache = new PointValueCache(vo, vo.getDefaultCacheSize(), initialCache, dao, pointValueCacheDao);
+        this.valueCache = new DataPointRTPointValueCache(vo, vo.getDefaultCacheSize(), initialCache, dao, pointValueCache);
 
         if(vo.getIntervalLoggingType() == IntervalLoggingTypes.AVERAGE) {
             averagingValues = new ArrayList<IValueTime>();
@@ -125,12 +125,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param dataSource
      * @param initialCache
      * @param dao
-     * @param pointValueCacheDao
+     * @param pointValueCache
      * @param timer
      */
     public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource,
-                       List<PointValueTime> initialCache, PointValueDao dao, PointValueCacheDao pointValueCacheDao, AbstractTimer timer) {
-        this(vo, pointLocator, dataSource, initialCache, dao, pointValueCacheDao);
+                       List<PointValueTime> initialCache, PointValueDao dao, PointValueCache pointValueCache, AbstractTimer timer) {
+        this(vo, pointLocator, dataSource, initialCache, dao, pointValueCache);
         this.timer = timer;
     }
 

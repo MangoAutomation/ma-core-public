@@ -2,34 +2,33 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.serotonin.m2m2.db;
+package com.infiniteautomation.mango.pointvaluecache;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 
 /**
- * Definition that provides a {@link PointValueCacheDao} for accessing point value caches.
+ * Definition that provides a {@link PointValueCache} for accessing point value caches.
  */
 public abstract class PointValueCacheDefinition extends ModuleElementDefinition {
 
     /**
-     * Initialize the {@link PointValueCacheDao}
+     * Initialize the {@link PointValueCache}
      */
     @PostConstruct
     public abstract void initialize();
 
     /**
-     * Terminate the {@link PointValueCacheDao}
+     * Terminate the {@link PointValueCache}
      */
     @PreDestroy
     public abstract void shutdown();
 
     /**
-     * @return a singleton, thread safe instance of the {@link PointValueCacheDao} implementation
+     * @return a singleton, thread safe instance of the {@link PointValueCache} implementation
      */
-    public abstract PointValueCacheDao getPointValueCache();
+    public abstract PointValueCache getPointValueCache();
 
 }

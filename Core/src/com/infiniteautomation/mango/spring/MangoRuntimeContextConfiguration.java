@@ -47,8 +47,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
-import com.infiniteautomation.mango.pointvalue.PointValueDaoFactory;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
@@ -58,7 +57,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.PointValueCacheDefinition;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
+import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -380,13 +380,13 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public PointValueDao pointValueDao(PointValueDaoFactory pointValueDaoFactory) {
-        return pointValueDaoFactory.getPointValueDao();
+    public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions) {
+        return definitions.stream().findFirst().orElseThrow().getPointValueDao();
     }
 
     @Bean
-    public PointValueCacheDao latestPointValueDao(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") PointValueCacheDefinition definition) {
-        return definition.getPointValueCache();
+    public PointValueCache latestPointValueDao(List<PointValueCacheDefinition> definitions) {
+        return definitions.stream().findFirst().orElseThrow().getPointValueCache();
     }
 
     @Bean

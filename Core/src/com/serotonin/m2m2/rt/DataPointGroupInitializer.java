@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.Common;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
@@ -26,9 +26,9 @@ import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
  */
 public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWithEventDetectors>, Void> {
 
-    private final PointValueCacheDao dao;
+    private final PointValueCache dao;
 
-    public DataPointGroupInitializer(ExecutorService executor, int maxConcurrency, PointValueCacheDao dao) {
+    public DataPointGroupInitializer(ExecutorService executor, int maxConcurrency, PointValueCache dao) {
         super(executor, maxConcurrency);
         this.dao = dao;
     }

@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
-import com.infiniteautomation.mango.pointvalue.PointValueCacheDao;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -26,7 +26,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
  *
  * @author Terry Packer
  */
-public class PointValueCacheTest extends MangoTestBase {
+public class DataPointRTPointValueCacheTest extends MangoTestBase {
 
     /**
      * Test with null cache
@@ -36,9 +36,9 @@ public class PointValueCacheTest extends MangoTestBase {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
         List<PointValueTime> initialCache = createCache(vo, 5);
-        PointValueCache cache = new PointValueCache(vo, 1, null, dao, pointValueCacheDao);
+        DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 1, null, dao, pointValueCache);
 
         Assert.assertEquals(initialCache.get(0).getValue(), cache.getLatestPointValue().getValue());
         Assert.assertEquals(initialCache.get(0).getTime(), cache.getLatestPointValue().getTime());
@@ -52,9 +52,9 @@ public class PointValueCacheTest extends MangoTestBase {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
         List<PointValueTime> initialCache = createCache(vo, 5);
-        PointValueCache cache = new PointValueCache(vo, 1, initialCache, dao, pointValueCacheDao);
+        DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 1, initialCache, dao, pointValueCache);
 
         Assert.assertEquals(initialCache.get(0).getValue(), cache.getLatestPointValue().getValue());
         Assert.assertEquals(initialCache.get(0).getTime(), cache.getLatestPointValue().getTime());
@@ -68,9 +68,9 @@ public class PointValueCacheTest extends MangoTestBase {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
         List<PointValueTime> initialCache = createCache(vo, 5);
-        PointValueCache cache = new PointValueCache(vo, 1, initialCache.subList(0, 1), dao, pointValueCacheDao);
+        DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 1, initialCache.subList(0, 1), dao, pointValueCache);
 
         List<PointValueTime> latest = cache.getLatestPointValues(5);
         for(int i=0; i<5; i++) {
@@ -89,9 +89,9 @@ public class PointValueCacheTest extends MangoTestBase {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
         List<PointValueTime> initialCache = createCache(vo, 5);
-        PointValueCache cache = new PointValueCache(vo, 5, initialCache, dao, pointValueCacheDao);
+        DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 5, initialCache, dao, pointValueCache);
         cache.invalidate(true);
 
         List<PointValueTime> latest = cache.getLatestPointValues(5);
@@ -109,9 +109,9 @@ public class PointValueCacheTest extends MangoTestBase {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCacheDao pointValueCacheDao = Common.databaseProxy.getPointValueCacheDao();
+        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
         List<PointValueTime> initialCache = createCache(vo, 5);
-        PointValueCache cache = new PointValueCache(vo, 5, initialCache, dao, pointValueCacheDao);
+        DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 5, initialCache, dao, pointValueCache);
 
         List<PointValueTime> latest = cache.getLatestPointValues(5);
         for(int i=0; i<5; i++) {
