@@ -1,6 +1,7 @@
 *Version 4.3.0*
 * Upgraded for Mango 4.3.0
 * Adding monitored values to the PointValueDaoSQL to track the number of point values saved (sync and async) per second.
+* Adding a monitored metric for the PublishQueue size.
 
 
 *Version 4.2.1*

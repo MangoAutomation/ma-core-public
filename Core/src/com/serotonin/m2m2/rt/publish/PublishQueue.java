@@ -12,7 +12,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 /**
@@ -22,6 +24,12 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 public class PublishQueue<T extends PublishedPointVO, V> {
     private static final Logger LOG = LoggerFactory.getLogger(PublishQueue.class);
     private static final long SIZE_CHECK_DELAY = 5000;
+
+    //Metrics
+    public static final String QUEUE_SIZE_MONITOR_ID = "com.serotonin.m2m2.rt.publish.QUEUE_SIZE_MONITOR_";
+
+    //Monitors
+    final ValueMonitor<Integer> queueSizeMonitor;
 
     protected final ConcurrentLinkedQueue<PublishQueueEntry<T, V>> queue = new ConcurrentLinkedQueue<PublishQueueEntry<T, V>>();
     private final PublisherRT<T> owner;
@@ -36,6 +44,9 @@ public class PublishQueue<T extends PublishedPointVO, V> {
         this.warningSize = warningSize;
         this.dewarningSize = (int) (warningSize * 0.9); // Deactivate the size warning at 90% of the warning size.
         this.discardSize = discardSize;
+        this.queueSizeMonitor = Common.MONITORED_VALUES.<Integer>create(QUEUE_SIZE_MONITOR_ID + this.owner.getVo().getXid())
+                .name(new TranslatableMessage("publisher.monitor.QUEUE_SIZE_MONITOR_ID", this.owner.getVo().getName())).build();
+
     }
 
     public void add(T vo, V pvt) {
@@ -88,7 +99,7 @@ public class PublishQueue<T extends PublishedPointVO, V> {
         if (lastSizeCheck + SIZE_CHECK_DELAY < now) {
             lastSizeCheck = now;
             int size = queue.size();
-
+            queueSizeMonitor.setValue(size);
             synchronized (owner) {
                 if (size > discardSize) {
                 	try {
@@ -115,6 +126,13 @@ public class PublishQueue<T extends PublishedPointVO, V> {
                     }
                 }
             }
+        }
+    }
+
+    public void terminate() {
+        Common.MONITORED_VALUES.remove(this.queueSizeMonitor.getId());
+        if(!queue.isEmpty()){
+            LOG.debug("Publisher queue " + owner.getVo().getName() + " is not empty.");
         }
     }
 }

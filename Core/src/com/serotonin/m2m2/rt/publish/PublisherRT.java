@@ -279,6 +279,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         } catch (Exception e) {
             log.error("Failed to cancel events for " + readableIdentifier(), e);
         }
+        queue.terminate();
     }
 
     @Override
