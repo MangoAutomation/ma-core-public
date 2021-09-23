@@ -26,13 +26,13 @@ public class PointValueFacade {
 
     public PointValueFacade(DataPointRT rt, boolean useCache) {
         point = rt;
-        pointValueDao = Common.databaseProxy.newPointValueDao();
+        pointValueDao = Common.getBean(PointValueDao.class);
         this.useCache = useCache;
     }
 
     public PointValueFacade(int dataPointId) {
         point = Common.runtimeManager.getDataPoint(dataPointId);
-        pointValueDao = Common.databaseProxy.newPointValueDao();
+        pointValueDao = Common.getBean(PointValueDao.class);
         this.useCache = true;
     }
 

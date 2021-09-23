@@ -26,6 +26,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.serotonin.m2m2.Common;
@@ -35,6 +36,7 @@ import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
@@ -455,7 +457,7 @@ public class ScriptingTest extends MangoTestBase {
             DataSourceRT<? extends DataSourceVO> dataSource = ds.createDataSourceRT();
             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, new ArrayList<>());
             return new DataPointRT(dp, vo.getPointLocator().createRuntime(), dataSource, new ArrayList<>(),
-                    Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
+                    Common.getBean(PointValueDao.class), Common.getBean(PointValueCache.class));
         }
     }
 

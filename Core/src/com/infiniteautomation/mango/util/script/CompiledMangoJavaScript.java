@@ -15,10 +15,12 @@ import javax.script.ScriptException;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.springframework.util.Assert;
 
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
@@ -65,6 +67,8 @@ public class CompiledMangoJavaScript {
     private final MangoJavaScriptResult result;
     private final List<ScriptUtility> utilities;
     private final PermissionHolder permissionHolder;
+    private final PointValueDao pointValueDao;
+    private final PointValueCache pointValueCache;
 
     //State settings
     private boolean initialized;
@@ -81,7 +85,8 @@ public class CompiledMangoJavaScript {
      * @param result
      * @param service
      */
-    public CompiledMangoJavaScript(MangoJavaScript vo, ScriptPointValueSetter setter, ScriptLog log, MangoJavaScriptResult result, MangoJavaScriptService service) {
+    public CompiledMangoJavaScript(MangoJavaScript vo, ScriptPointValueSetter setter, ScriptLog log, MangoJavaScriptResult result,
+                                   MangoJavaScriptService service, PointValueDao pointValueDao, PointValueCache pointValueCache) {
         this.log = log;
         this.additionalContext = vo.getAdditionalContext() == null ? new HashMap<>(0) : vo.getAdditionalContext();
         this.additionalUtilities = vo.getAdditionalUtilities() == null ? new ArrayList<>(0) : vo.getAdditionalUtilities();
@@ -92,6 +97,8 @@ public class CompiledMangoJavaScript {
         this.utilities = new ArrayList<>(0);
         this.permissionHolder = vo.getPermissions();
         this.setter = setter;
+        this.pointValueDao = pointValueDao;
+        this.pointValueCache = pointValueCache;
     }
 
 
@@ -145,6 +152,8 @@ public class CompiledMangoJavaScript {
         this.result = new MangoJavaScriptResult();
         this.utilities = new ArrayList<>();
         this.permissionHolder = permissionHolder;
+        this.pointValueDao = Common.getBean(PointValueDao.class);
+        this.pointValueCache = Common.getBean(PointValueCache.class);
     }
 
     /**
@@ -206,7 +215,7 @@ public class CompiledMangoJavaScript {
                             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpvo, new ArrayList<>());
                             DataSourceRT<? extends DataSourceVO> dataSource = DataSourceDao.getInstance().get(dpvo.getDataSourceId()).createDataSourceRT();
                             dprt = new DataPointRT(dp, dpvo.getPointLocator().createRuntime(), dataSource,
-                                    null, Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
+                                    null, pointValueDao, pointValueCache);
                         }else {
                             throw new DataPointStateException(variable.getDataPointId(), new TranslatableMessage(
                                     "event.script.contextPointDisabled", variable.getVariableName(), dpvo.getXid()));

@@ -27,14 +27,12 @@ import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.UserRoleMappings;
 import com.infiniteautomation.mango.db.tables.Users;
-import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.SpringConnectionProvider;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.BaseDao;
-import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -140,14 +138,6 @@ public interface DatabaseProxy extends TransactionCapable {
     String getTableListQuery();
 
     String getDatabasePassword(String propertyPrefix);
-
-    default PointValueDao newPointValueDao() {
-        return Common.getBean(PointValueDao.class);
-    }
-
-    default PointValueCache getPointValueCacheDao() {
-        return Common.getBean(PointValueCache.class);
-    }
 
     boolean isUseMetrics();
 

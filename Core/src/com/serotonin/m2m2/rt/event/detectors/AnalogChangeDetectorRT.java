@@ -71,7 +71,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         super(vo);
         this.durationMillis = Common.getMillis(vo.getDurationType(), vo.getDuration());
         this.valueEventType = vo.getUpdateEvent();
-        PointValueDao pvd = Common.databaseProxy.newPointValueDao();
+        PointValueDao pvd = Common.getBean(PointValueDao.class);
         long now = Common.timer.currentTimeMillis();
         periodValues = new ArrayList<>();
         DataPointVO dpvo = Common.getBean(DataPointDao.class).get(vo.getSourceId());

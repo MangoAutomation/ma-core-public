@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -51,7 +52,9 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.dataPoint.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataPointPermissionDefinition;
+import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RTException;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -87,16 +90,25 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     private final List<DataPointChangeDefinition> changeDefinitions;
     private final DataPoints dataPoints = DataPoints.DATA_POINTS;
     private final DataPointPermissionDefinition dataPointPermissionDefinition;
+    private final PointValueCache pointValueCache;
+    private final RuntimeManager runtimeManager;
+    private final EventManager eventManager;
 
     @Autowired
     public DataPointService(DataPointDao dao,
                             ServiceDependencies dependencies,
                             DataSourceDao dataSourceDao,
                             EventDetectorDao eventDetectorDao,
-                            DataPointPermissionDefinition dataPointPermissionDefinition) {
+                            @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataPointPermissionDefinition dataPointPermissionDefinition,
+                            PointValueCache pointValueCache,
+                            RuntimeManager runtimeManager,
+                            EventManager eventManager) {
         super(dao, dependencies);
         this.dataSourceDao = dataSourceDao;
         this.eventDetectorDao = eventDetectorDao;
+        this.pointValueCache = pointValueCache;
+        this.runtimeManager = runtimeManager;
+        this.eventManager = eventManager;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
         this.dataPointPermissionDefinition = dataPointPermissionDefinition;
     }
@@ -140,7 +152,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         if (event.getType() == DaoEventType.DELETE) {
             Role deletedRole = event.getVo().getRole();
-            for (DataPointRT rt : Common.runtimeManager.getRunningDataPoints()) {
+            for (DataPointRT rt : runtimeManager.getRunningDataPoints()) {
                 DataPointVO point = rt.getVO();
                 point.setReadPermission(point.getReadPermission().withoutRole(deletedRole));
                 point.setEditPermission(point.getEditPermission().withoutRole(deletedRole));
@@ -181,7 +193,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
         if (vo.isEnabled()) {
             // the data point cannot have detectors if it was just inserted, don't query for detectors
-            Common.runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, Collections.emptyList()));
+            runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, Collections.emptyList()));
         }
         return vo;
     }
@@ -200,7 +212,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
         ensureValid(existing, vo, user);
 
-        Common.runtimeManager.stopDataPoint(vo.getId());
+        runtimeManager.stopDataPoint(vo.getId());
         dao.update(existing, vo);
 
         for(DataPointChangeDefinition def : changeDefinitions) {
@@ -209,7 +221,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
         if (vo.isEnabled()) {
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
-            Common.runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, detectors));
+            runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, detectors));
         }
         return vo;
     }
@@ -225,15 +237,15 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.preDelete(vo);
         }
 
-        Common.runtimeManager.stopDataPoint(vo.getId());
+        runtimeManager.stopDataPoint(vo.getId());
         dao.delete(vo);
 
         for(DataPointChangeDefinition def : changeDefinitions) {
             def.postDelete(vo);
         }
 
-        Common.databaseProxy.getPointValueCacheDao().deleteCache(vo);
-        Common.eventManager.cancelEventsForDataPoint(vo.getId());
+        pointValueCache.deleteCache(vo);
+        eventManager.cancelEventsForDataPoint(vo.getId());
 
         return vo;
     }
@@ -285,7 +297,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      */
     protected boolean reloadDataPoint(DataPointVO vo) {
         ensureEditPermission(Common.getUser(), vo);
-        boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
+        boolean running = runtimeManager.isDataPointRunning(vo.getId());
         if(running) {
             return setDataPointState(vo, true, true);
         }else {
@@ -302,7 +314,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      */
     protected boolean setDataPointState(DataPointVO vo, boolean enabled, boolean restart) {
         vo.setEnabled(enabled);
-        boolean dataSourceRunning = Common.runtimeManager.isDataSourceRunning(vo.getDataSourceId());
+        boolean dataSourceRunning = runtimeManager.isDataSourceRunning(vo.getDataSourceId());
 
         if(!dataSourceRunning) {
             //We must check its state in the DB
@@ -315,10 +327,10 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 return true;
             }
         }else {
-            boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
+            boolean running = runtimeManager.isDataPointRunning(vo.getId());
             if (running && !enabled) {
                 //Running, so stop it
-                Common.runtimeManager.stopDataPoint(vo.getId());
+                runtimeManager.stopDataPoint(vo.getId());
                 dao.saveEnabledColumn(vo);
                 return true;
             } else if (!running && enabled) {
@@ -326,14 +338,14 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
                 DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
                 dao.saveEnabledColumn(vo);
-                Common.runtimeManager.startDataPoint(dp);
+                runtimeManager.startDataPoint(dp);
                 return true;
             }else if(enabled && restart) {
                 //May be running or not, will either start or restart it (stopping a non running point will do nothing which is ok)
-                Common.runtimeManager.stopDataPoint(vo.getId());
+                runtimeManager.stopDataPoint(vo.getId());
                 List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
                 DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
-                Common.runtimeManager.startDataPoint(dp);
+                runtimeManager.startDataPoint(dp);
                 return false;
             }
         }
@@ -744,7 +756,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         PermissionHolder user = Common.getUser();
 
         ensureSetPermission(user, vo);
-        Common.runtimeManager.setDataPointValue(vo.getId(), valueTime, source);
+        runtimeManager.setDataPointValue(vo.getId(), valueTime, source);
     }
 
     /**
@@ -769,7 +781,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      */
     public void forcePointRead(int id) throws NotFoundException, PermissionException, RTException {
         DataPointVO vo = get(id);
-        Common.runtimeManager.forcePointRead(vo.getId());
+        runtimeManager.forcePointRead(vo.getId());
     }
 
     /**
@@ -781,7 +793,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      */
     public void reliquish(int id) throws NotFoundException, PermissionException, RTException {
         DataPointVO vo = get(id);
-        Common.runtimeManager.relinquish(vo.getId());
+        runtimeManager.relinquish(vo.getId());
     }
 
     /**

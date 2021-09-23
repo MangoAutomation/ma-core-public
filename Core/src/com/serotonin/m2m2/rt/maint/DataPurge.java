@@ -28,7 +28,6 @@ import com.serotonin.m2m2.module.PurgeFilterDefinition;
 import com.serotonin.m2m2.module.definitions.actions.PurgeFilter;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -45,7 +44,7 @@ public class DataPurge {
     private static final Logger log = LoggerFactory.getLogger(DataPurge.class);
     private long runtime;
     private final DataPointDao dataPointDao = DataPointDao.getInstance();
-    private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
+    private final PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
     private long deletedSamples;
     private boolean anyDeletedSamples;
     private long deletedFiles;

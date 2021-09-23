@@ -25,7 +25,7 @@ public class PointValueDaoWriteMetricsTest extends MangoTestBase {
     public void testAsyncWrite() {
         int eventsPerSecond = events/(period/1000);
         IDataPoint vo = this.createMockDataPoints(1).get(0);
-        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
+        PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
         int i = 0;
 
         while (i <= events) {
@@ -45,7 +45,7 @@ public class PointValueDaoWriteMetricsTest extends MangoTestBase {
     public void testSyncWrite() {
         int eventsPerSecond = events/(period/1000);
         IDataPoint vo = this.createMockDataPoints(1).get(0);
-        PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
+        PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
         int i = 0;
 
         while (i <= events) {

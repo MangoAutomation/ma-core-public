@@ -329,6 +329,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     private void initializePoints() {
         DataPointDao dataPointDao = Common.getBean(DataPointDao.class);
         ExecutorService executorService = Common.getBean(ExecutorService.class);
+        PointValueCache pointValueCache = Common.getBean(PointValueCache.class);
 
         // Add the enabled points to the data source.
         List<DataPointWithEventDetectors> dataSourcePoints = dataPointDao.getDataPointsForDataSourceStart(getId());
@@ -336,7 +337,6 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         //Startup multi threaded
         int pointsPerThread = Common.envProps.getInt("runtime.datapoint.startupThreads.pointsPerThread", 1000);
         int startupThreads = Common.envProps.getInt("runtime.datapoint.startupThreads", Runtime.getRuntime().availableProcessors());
-        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
         DataPointGroupInitializer pointInitializer = new DataPointGroupInitializer(executorService, startupThreads, pointValueCache);
         pointInitializer.initialize(dataSourcePoints, pointsPerThread);
 

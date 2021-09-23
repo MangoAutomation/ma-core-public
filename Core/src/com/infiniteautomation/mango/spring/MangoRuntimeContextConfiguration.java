@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
@@ -57,7 +58,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseType;
-import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -374,9 +374,10 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     @Bean
     public RuntimeManager runtimeManager(RunAs runAs, ExecutorService executorService, DataSourceDao dataSourceDao,
                                          PublisherDao publisherDao, DataPointDao dataPointDao,
-                                         @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder superadmin) {
+                                         @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder superadmin,
+                                         PointValueCache pointValueCache, PointValueDao pointValueDao) {
         // we proxy all calls to RuntimeManager so that all datasource tasks and publisher tasks are run as the system superadmin
-        return runAs.runAsProxy(superadmin, new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao));
+        return runAs.runAsProxy(superadmin, new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao, pointValueDao, pointValueCache));
     }
 
     @Bean

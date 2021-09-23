@@ -85,7 +85,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public PointValueTime getPointValueAt(long time) {
-        return Common.databaseProxy.newPointValueDao().getPointValueAt(vo, time);
+        return Common.getBean(PointValueDao.class).getPointValueAt(vo, time);
     }
 
     @Override

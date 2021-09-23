@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -72,6 +73,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
     private final DataSourceDao dataSourceDao;
     private final PublisherDao publisherDao;
     private final DataPointDao dataPointDao;
+    private final PointValueDao pointValueDao;
+    private final PointValueCache pointValueCache;
 
     private TranslatableMessage stateMessage = new TranslatableMessage("startup.state.runtimeManagerInitialize");
 
@@ -87,11 +90,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
      */
     private ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
-    public RuntimeManagerImpl(ExecutorService executorService, DataSourceDao dataSourceDao, PublisherDao publisherDao, DataPointDao dataPointDao) {
+    public RuntimeManagerImpl(ExecutorService executorService, DataSourceDao dataSourceDao, PublisherDao publisherDao,
+                              DataPointDao dataPointDao, PointValueDao pointValueDao, PointValueCache pointValueCache) {
         this.executorService = executorService;
         this.dataSourceDao = dataSourceDao;
         this.publisherDao = publisherDao;
         this.dataPointDao = dataPointDao;
+        this.pointValueDao = pointValueDao;
+        this.pointValueCache = pointValueCache;
     }
 
     @Override
@@ -377,8 +383,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
                     dataPointVO.getPointLocator().createRuntime(),
                     ds,
                     initialCache,
-                    Common.databaseProxy.newPointValueDao(),
-                    Common.databaseProxy.getPointValueCacheDao()
+                    pointValueDao,
+                    pointValueCache
             ));
 
             // Initialize it, will fail if data point is already initializing or running
@@ -486,9 +492,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public long purgeDataPointValues() {
-        long count = Common.databaseProxy.newPointValueDao().deleteAllPointData();
+        long count = pointValueDao.deleteAllPointData();
         dataPointDao.getAll(point -> {
-            Common.databaseProxy.getPointValueCacheDao().removeAllValues(point);
+            pointValueCache.removeAllValues(point);
             DataPointRT rt = getDataPoint(point.getId());
             if(rt != null) {
                 rt.invalidateCache(false);
@@ -499,9 +505,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void purgeDataPointValuesWithoutCount() {
-        Common.databaseProxy.newPointValueDao().deleteAllPointDataWithoutCount();
+        pointValueDao.deleteAllPointDataWithoutCount();
         dataPointDao.getAll(point -> {
-            Common.databaseProxy.getPointValueCacheDao().removeAllValues(point);
+            pointValueCache.removeAllValues(point);
             DataPointRT rt = getDataPoint(point.getId());
             if(rt != null) {
                 rt.invalidateCache(false);
@@ -517,8 +523,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public long purgeDataPointValues(DataPointVO vo) {
-        long count = Common.databaseProxy.newPointValueDao().deletePointValues(vo);
-        Common.databaseProxy.getPointValueCacheDao().removeAllValues(vo);
+        long count = pointValueDao.deletePointValues(vo);
+        pointValueCache.removeAllValues(vo);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
             rt.invalidateCache(false);
@@ -528,8 +534,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public boolean purgeDataPointValuesWithoutCount(DataPointVO vo) {
-        boolean deleted = Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(vo);
-        Common.databaseProxy.getPointValueCacheDao().removeAllValues(vo);
+        boolean deleted = pointValueDao.deletePointValuesWithoutCount(vo);
+        pointValueCache.removeAllValues(vo);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
             rt.invalidateCache(false);
@@ -540,7 +546,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao){
         long count = dao.deletePointValue(vo, ts);
-        Common.databaseProxy.getPointValueCacheDao().removeValueAt(vo, ts);
+        pointValueCache.removeValueAt(vo, ts);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
             rt.invalidateCache(false);
@@ -550,8 +556,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public long purgeDataPointValues(DataPointVO vo, long before) {
-        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(vo, before);
-        Common.databaseProxy.getPointValueCacheDao().removeValuesBefore(vo, before);
+        long count = pointValueDao.deletePointValuesBefore(vo, before);
+        pointValueCache.removeValuesBefore(vo, before);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
             rt.invalidateCache(false);
@@ -561,20 +567,20 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime) {
-        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBetween(vo, startTime, endTime);
+        long count = pointValueDao.deletePointValuesBetween(vo, startTime, endTime);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
             rt.invalidateCache(false);
         }else {
-            Common.databaseProxy.getPointValueCacheDao().removeValuesBetween(vo, startTime, endTime);
+            pointValueCache.removeValuesBetween(vo, startTime, endTime);
         }
         return count;
     }
 
     @Override
     public boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before) {
-        boolean deleted = Common.databaseProxy.newPointValueDao().deletePointValuesBeforeWithoutCount(vo, before);
-        Common.databaseProxy.getPointValueCacheDao().removeValuesBefore(vo, before);
+        boolean deleted = pointValueDao.deletePointValuesBeforeWithoutCount(vo, before);
+        pointValueCache.removeValuesBefore(vo, before);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
             rt.invalidateCache(false);

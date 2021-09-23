@@ -35,8 +35,8 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
     public void test0() {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
+        PointValueDao dao = Common.getBean(PointValueDao.class);
+        PointValueCache pointValueCache = Common.getBean(PointValueCache.class);
         List<PointValueTime> initialCache = createCache(vo, 5);
         DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 1, null, dao, pointValueCache);
 
@@ -51,8 +51,8 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
     public void test1() {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
+        PointValueDao dao = Common.getBean(PointValueDao.class);
+        PointValueCache pointValueCache = Common.getBean(PointValueCache.class);
         List<PointValueTime> initialCache = createCache(vo, 5);
         DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 1, initialCache, dao, pointValueCache);
 
@@ -67,8 +67,8 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
     public void test2() {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
+        PointValueDao dao = Common.getBean(PointValueDao.class);
+        PointValueCache pointValueCache = Common.getBean(PointValueCache.class);
         List<PointValueTime> initialCache = createCache(vo, 5);
         DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 1, initialCache.subList(0, 1), dao, pointValueCache);
 
@@ -88,8 +88,8 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
     public void test3() {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
+        PointValueDao dao = Common.getBean(PointValueDao.class);
+        PointValueCache pointValueCache = Common.getBean(PointValueCache.class);
         List<PointValueTime> initialCache = createCache(vo, 5);
         DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 5, initialCache, dao, pointValueCache);
         cache.invalidate(true);
@@ -108,8 +108,8 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
     public void test4() {
         DataPointVO vo = new DataPointVO();
         vo.setId(1);
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        PointValueCache pointValueCache = Common.databaseProxy.getPointValueCacheDao();
+        PointValueDao dao = Common.getBean(PointValueDao.class);
+        PointValueCache pointValueCache = Common.getBean(PointValueCache.class);
         List<PointValueTime> initialCache = createCache(vo, 5);
         DataPointRTPointValueCache cache = new DataPointRTPointValueCache(vo, 5, initialCache, dao, pointValueCache);
 
@@ -148,7 +148,7 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
     //Test cache size expansion in multiple threads?
 
     private List<PointValueTime> createCache(DataPointVO vo, int limit) {
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
+        PointValueDao dao = Common.getBean(PointValueDao.class);
         for(int i=0; i<limit; i++) {
             long time = Common.timer.currentTimeMillis();
             this.timer.fastForwardTo(this.timer.currentTimeMillis() + 1);

@@ -36,6 +36,7 @@ import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -155,9 +156,9 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
         public void execute() {
             if(bookend)
-                Common.databaseProxy.newPointValueDao().wideBookendQuery(vos, from, to, false, limit, callback);
+                Common.getBean(PointValueDao.class).wideBookendQuery(vos, from, to, false, limit, callback);
             else
-                Common.databaseProxy.newPointValueDao().getPointValuesBetween(vos, from, to, false, limit, callback);
+                Common.getBean(PointValueDao.class).getPointValuesBetween(vos, from, to, false, limit, callback);
         }
     }
 
@@ -189,7 +190,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
         public void execute() throws QueryCancelledException, ScriptPermissionsException {
             createQuantizerMap();
-            Common.databaseProxy.newPointValueDao().wideBookendQuery(vos, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
+            Common.getBean(PointValueDao.class).wideBookendQuery(vos, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
             //Fast forward to end to fill any gaps at the end
             for(DataPointStatisticsQuantizer<?> quant : this.quantizerMap.values())
                 if(!quant.isDone())

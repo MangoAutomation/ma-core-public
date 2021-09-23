@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.script.engines.NashornScriptEngineDefinition;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -48,6 +49,7 @@ import com.serotonin.io.NullWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -120,11 +122,17 @@ public class MangoJavaScriptService {
     private final RunAs runAs;
     private final NashornScriptEngineDefinition nashornEngineDefinition;
     private final ScriptEngineFactory nashornFactory;
+    private final PointValueDao pointValueDao;
+    private final PointValueCache pointValueCache;
 
     @Autowired
-    public MangoJavaScriptService(PermissionService permissionService, DataSourcePermissionDefinition dataSourcePermissionDefinition,
+    public MangoJavaScriptService(PermissionService permissionService,
+                                  @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataSourcePermissionDefinition dataSourcePermissionDefinition,
                                   DataPointService dataPointService, RunAs runAs,
-                                  ScriptEngineManager manager, List<ScriptEngineDefinition> engineDefinitions) {
+                                  ScriptEngineManager manager,
+                                  List<ScriptEngineDefinition> engineDefinitions,
+                                  PointValueDao pointValueDao,
+                                  PointValueCache pointValueCache) {
         this.dataPointService = dataPointService;
         this.permissionService = permissionService;
         this.dataSourcePermissionDefinition = dataSourcePermissionDefinition;
@@ -141,6 +149,8 @@ public class MangoJavaScriptService {
                 .map(def -> (NashornScriptEngineDefinition) def)
                 .findFirst()
                 .orElse(null);
+        this.pointValueDao = pointValueDao;
+        this.pointValueCache = pointValueCache;
     }
 
     /**
@@ -259,7 +269,7 @@ public class MangoJavaScriptService {
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter)){
                 CompiledMangoJavaScript script = new CompiledMangoJavaScript(
-                        vo, createSetter.apply(result, vo.getPermissions()), scriptLog, result, this);
+                        vo, createSetter.apply(result, vo.getPermissions()), scriptLog, result, this, pointValueDao, pointValueCache);
 
                 script.compile(vo.getScript(), vo.isWrapInFunction());
                 script.initialize(vo.getContext());
@@ -321,7 +331,7 @@ public class MangoJavaScriptService {
             try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter, vo.getLog(), vo.isCloseLog())){
 
                 CompiledMangoJavaScript script = new CompiledMangoJavaScript(
-                        vo, setter, scriptLog, result, this);
+                        vo, setter, scriptLog, result, this, pointValueDao, pointValueCache);
 
                 script.compile(vo.getScript(), vo.isWrapInFunction());
                 script.initialize(vo.getContext());

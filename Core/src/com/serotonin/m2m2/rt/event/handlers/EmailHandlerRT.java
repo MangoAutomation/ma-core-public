@@ -25,6 +25,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -41,6 +42,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.email.PostEmailRunnable;
@@ -373,7 +375,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                             continue;
 
                         point = new EmailPointWrapper(dpvo);
-                        pointValues = Common.databaseProxy.newPointValueDao()
+                        pointValues = Common.getBean(PointValueDao.class)
                                 .getLatestPointValues(dpvo, pointValueCount);
                         renderedPointValues = new ArrayList<RenderedPointValueTime>();
                         for(PointValueTime pvt : pointValues) {
@@ -411,7 +413,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                         DataPointWithEventDetectors dp = new DataPointWithEventDetectors(targetVo, new ArrayList<>());
                         DataSourceRT<? extends DataSourceVO> dataSource = DataSourceDao.getInstance().get(targetVo.getDataSourceId()).createDataSourceRT();
                         dprt = new DataPointRT(dp, targetVo.getPointLocator().createRuntime(), dataSource,
-                                null, Common.databaseProxy.newPointValueDao(), Common.databaseProxy.getPointValueCacheDao());
+                                null, Common.getBean(PointValueDao.class), Common.getBean(PointValueCache.class));
                     }
                     context.put(pair.getValue(), dprt);
                 }

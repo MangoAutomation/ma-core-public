@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
@@ -47,7 +48,7 @@ public class DataPointRTTest extends MangoTestBase {
         MockDataSourceRT dataSource = dsVo.createDataSourceRT();
         dataSource.initialize(false);
 
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
+        PointValueDao dao = Common.getBean(PointValueDao.class);
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
         DataPointVO dpVo = new DataPointVO();
         dpVo.setId(1);
@@ -70,7 +71,7 @@ public class DataPointRTTest extends MangoTestBase {
 
         SimulationTimer timer = new SimulationTimer();
         DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpVo, new ArrayList<>());
-        DataPointRT rt = new DataPointRT(dp, plRt, dataSource, initialCache, dao, Common.databaseProxy.getPointValueCacheDao(), timer);
+        DataPointRT rt = new DataPointRT(dp, plRt, dataSource, initialCache, dao, Common.getBean(PointValueCache.class), timer);
         rt.initialize(false);
 
         //Test no changes

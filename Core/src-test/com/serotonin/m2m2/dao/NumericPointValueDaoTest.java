@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 
@@ -27,7 +28,7 @@ public class NumericPointValueDaoTest extends MangoTestBase {
     public void before() {
         super.before();
         List<IDataPoint> vos = createMockDataPoints(3);
-        this.helper = new NumericPointValueDaoTestHelper((DataPointVO)vos.get(0), (DataPointVO)vos.get(1), (DataPointVO)vos.get(2), Common.databaseProxy.newPointValueDao());
+        this.helper = new NumericPointValueDaoTestHelper((DataPointVO)vos.get(0), (DataPointVO)vos.get(1), (DataPointVO)vos.get(2), Common.getBean(PointValueDao.class));
         this.helper.before();
     }
 
