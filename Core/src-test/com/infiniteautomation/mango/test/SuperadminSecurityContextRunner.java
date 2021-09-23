@@ -37,13 +37,13 @@ public class SuperadminSecurityContextRunner extends BlockJUnit4ClassRunner {
         //Wrap the first statement to put the permission holder into context
         // just before the test runs.  This will ensure the last thing we do
         // before running the test is set the context.
-       return new FailOnTimeoutWrapper(super.methodInvoker(method, test));
+       return new SuperadminSecurityContextWrapper(super.methodInvoker(method, test));
 
     }
 
-    class FailOnTimeoutWrapper extends Statement {
+    class SuperadminSecurityContextWrapper extends Statement {
         Statement delegate;
-        public FailOnTimeoutWrapper(Statement stmt) {
+        public SuperadminSecurityContextWrapper(Statement stmt) {
             this.delegate = stmt;
         }
 
