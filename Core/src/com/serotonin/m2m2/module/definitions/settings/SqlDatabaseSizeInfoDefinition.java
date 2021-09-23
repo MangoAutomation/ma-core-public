@@ -3,7 +3,9 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
-import com.serotonin.m2m2.Common;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.SystemInfoDefinition;
 
 /**
@@ -12,6 +14,9 @@ import com.serotonin.m2m2.module.SystemInfoDefinition;
  * @author Terry Packer
  */
 public class SqlDatabaseSizeInfoDefinition extends SystemInfoDefinition<Long>{
+
+    @Autowired
+    protected DatabaseProxy databaseProxy;
 
     public final String KEY = "sqlDatabaseSize";
 
@@ -24,7 +29,7 @@ public class SqlDatabaseSizeInfoDefinition extends SystemInfoDefinition<Long>{
     public Long getValue() {
         // Database size
         try {
-            return Common.databaseProxy.getDatabaseSizeInBytes();
+            return databaseProxy.getDatabaseSizeInBytes();
         } catch (UnsupportedOperationException e) {
             return null;
         }

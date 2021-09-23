@@ -9,10 +9,11 @@ import java.io.UncheckedIOException;
 import java.util.List;
 
 import org.jooq.Table;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 
 /**
  * A database schema definition allows a module to create an manage database tables and other objects as necessary to
@@ -26,6 +27,9 @@ import com.serotonin.m2m2.Common;
  * @author Matthew Lohbihler
  */
 abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
+
+    @Autowired
+    protected DatabaseProxy databaseProxy;
 
     /**
      * Modules should add return all tables they manage. The names are used to perform conversions
@@ -75,9 +79,9 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      *            the JDBC template that provides access to the database
      */
     public void newInstallationCheck(ExtendedJdbcTemplate ejt) {
-        if (!Common.databaseProxy.tableExists(ejt, getNewInstallationCheckTableName())) {
+        if (!databaseProxy.tableExists(ejt, getNewInstallationCheckTableName())) {
             try (InputStream input = getInstallScript()) {
-                Common.databaseProxy.runScript(input, null);
+                databaseProxy.runScript(input, null);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -92,7 +96,7 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
         if(uninstall) {
             // Remove the database tables.
             try (InputStream input = getUninstallScript()) {
-                Common.databaseProxy.runScript(input, null);
+                databaseProxy.runScript(input, null);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -105,7 +109,7 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * @return
      */
     protected InputStream getInstallScript() {
-        String scriptName = "createTables-" + Common.databaseProxy.getType().name() + ".sql";
+        String scriptName = "createTables-" + databaseProxy.getType().name() + ".sql";
         InputStream resource = this.getClass().getResourceAsStream(scriptName);
         if (resource == null) {
             throw new ShouldNeverHappenException("Could not get script " + scriptName + " for class " + this.getClass().getName());

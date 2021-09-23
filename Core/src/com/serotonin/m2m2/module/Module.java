@@ -24,7 +24,6 @@ import com.infiniteautomation.mango.util.exception.ModuleUpgradeException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
-import com.serotonin.m2m2.db.dao.InstalledModulesDao;
 import com.serotonin.m2m2.db.dao.InstalledModulesDao.InstalledModule;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry.CoreModule;
@@ -180,17 +179,15 @@ public class Module {
      * @return true if module was installed or upgraded
      * @throws Exception
      */
-    public boolean upgrade() throws Exception {
-        InstalledModule installedModule = InstalledModulesDao.instance.getInstalledModule(name);
-        if (installedModule != null) {
-            this.previousVersion = installedModule.getVersion();
-            this.previousBuildDate = installedModule.getBuildDate();
-            this.upgradedDate = installedModule.getUpgradedDate();
+    public boolean upgrade(InstalledModule previous) throws Exception {
+        if (previous != null) {
+            this.previousVersion = previous.getVersion();
+            this.previousBuildDate = previous.getBuildDate();
+            this.upgradedDate = previous.getUpgradedDate();
         }
 
         if (previousVersion == null) {
             this.upgradedDate = new Date(Common.START_TIME);
-            InstalledModulesDao.instance.updateModuleVersion(this);
             return true;
         }
 
@@ -205,7 +202,6 @@ public class Module {
                 return false;
             } else {
                 this.upgradedDate = new Date(Common.START_TIME);
-                InstalledModulesDao.instance.updateModuleVersion(this);
                 return true;
             }
         } catch (Throwable t) {

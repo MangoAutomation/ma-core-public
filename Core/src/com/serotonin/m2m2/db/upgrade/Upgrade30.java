@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseType;
 
 /**
@@ -20,7 +19,7 @@ public class Upgrade30 extends DBUpgrade {
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DEFAULT_DATABASE_TYPE, new String[0]);
 
-        if (Common.databaseProxy.getType() == DatabaseType.MYSQL) {
+        if (databaseType == DatabaseType.MYSQL) {
             List<String> tableNames = ejt.queryForList("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = database() AND TABLE_TYPE = 'BASE TABLE';", String.class);
 
             String[] convertCommands = tableNames.stream().map(tableName -> {

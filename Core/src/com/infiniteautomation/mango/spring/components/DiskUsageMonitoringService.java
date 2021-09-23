@@ -28,6 +28,7 @@ import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.PollableMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -100,12 +101,14 @@ public class DiskUsageMonitoringService extends PollingService {
     private static final long MIN_SQL_DISK_SIZE_POLL_PERIOD = 1000 * 60 * 60 * 6;
 
     private final PointValueDaoDefinition pointValueDaoDefinition;
+    private final DatabaseProxy databaseProxy;
 
     /**
-     *  @param scheduledExecutor
+     * @param scheduledExecutor
      * @param enabled - enable/disable service polling
      * @param period - how often to recalculate the usage
      * @param definitions
+     * @param databaseProxy
      */
     @Autowired
     private DiskUsageMonitoringService(ExecutorService executor,
@@ -114,7 +117,7 @@ public class DiskUsageMonitoringService extends PollingService {
                                        @Value("${internal.monitor.diskUsage.pollPeriod:1800000}") Long period,
                                        MonitoredValues monitoredValues,
                                        Environment env,
-                                       List<PointValueDaoDefinition> definitions) {
+                                       List<PointValueDaoDefinition> definitions, DatabaseProxy databaseProxy) {
 
         this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
@@ -168,6 +171,7 @@ public class DiskUsageMonitoringService extends PollingService {
                 .build();
 
         this.pointValueDaoDefinition = definitions.stream().findFirst().orElseThrow();
+        this.databaseProxy = databaseProxy;
 
         //Setup all filestores
         ModuleRegistry.getFileStoreDefinitions().values().forEach(fs-> {
@@ -220,7 +224,7 @@ public class DiskUsageMonitoringService extends PollingService {
 
         //Volume information for sql db partition (if possible)
         try {
-            File dataDirectory = Common.databaseProxy.getDataDirectory();
+            File dataDirectory = databaseProxy.getDataDirectory();
             FileStore store = Files.getFileStore(dataDirectory.toPath());
             sqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
             sqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
@@ -286,7 +290,7 @@ public class DiskUsageMonitoringService extends PollingService {
             }
             this.lastSqlDatabaseSizePollTime = now;
             try {
-                this.lastSqlDatabaseSize = getGiB(Common.databaseProxy.getDatabaseSizeInBytes());
+                this.lastSqlDatabaseSize = getGiB(databaseProxy.getDatabaseSizeInBytes());
             } catch (UnsupportedOperationException e) {
                 // not supported
             }

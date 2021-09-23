@@ -19,6 +19,7 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -174,7 +175,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
 
         //Check for orphaned minterm mappings
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.databaseProxy.getDataSource());
+        ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
         List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permission.getId(), new RowMapper<Integer>() {
 
             @Override

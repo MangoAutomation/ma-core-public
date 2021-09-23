@@ -18,7 +18,6 @@ import java.util.Properties;
 import org.junit.Test;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockMangoProperties;
@@ -70,11 +69,8 @@ public class MySQLDatabaseUpgradeTest {
         //Insert the test data
 
         //Start the proxy and let it upgrade
-        String type = Common.envProps.getString("db.type", "h2");
-        DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
-        DatabaseProxyFactory factory = new DefaultDatabaseProxyFactory();
-        Common.databaseProxy = factory.createDatabaseProxy(databaseType);
-        Common.databaseProxy.initialize(this.getClass().getClassLoader());
+        MySQLProxy proxy = new MySQLProxy(DatabaseProxyFactory.UNSUPPORTED_INSTANCE, false);
+        proxy.initialize();
     }
 
 

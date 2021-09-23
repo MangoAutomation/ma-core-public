@@ -14,12 +14,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockMangoProperties;
-import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.DefaultDatabaseProxyFactory;
+import com.serotonin.m2m2.db.DatabaseProxyFactory;
+import com.serotonin.m2m2.db.MySQLProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.properties.MangoProperties;
@@ -38,6 +37,8 @@ public class SystemSettingsDaoTest {
     private static final String dbUser = "mango";
     private static final String dbPass = "mango";
 
+    private static MySQLProxy proxy;
+
     @BeforeClass
     public static void setupDatabaseProxy() {
         MockMangoProperties properties = new MockMangoProperties();
@@ -47,8 +48,8 @@ public class SystemSettingsDaoTest {
 
         Providers.add(MangoProperties.class, properties);
 
-        Common.databaseProxy = new DefaultDatabaseProxyFactory().createDatabaseProxy(DatabaseType.MYSQL);
-        Common.databaseProxy.initialize(SystemSettingsDaoTest.class.getClassLoader());
+        proxy = new MySQLProxy(DatabaseProxyFactory.UNSUPPORTED_INSTANCE, false);
+        proxy.initialize();
 
         Providers.add(IMangoLifecycle.class, new MockMangoLifecycle(new ArrayList<>()));
     }
@@ -56,9 +57,10 @@ public class SystemSettingsDaoTest {
     @Before
     public void cleanTable() {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.databaseProxy.getDataSource());
+        ejt.setDataSource(proxy.getDataSource());
         ejt.update("DELETE FROM systemSettings WHERE settingName LIKE 'deadlockTest%'");
     }
+
     @After
     public void after() {
         cleanTable();
@@ -72,7 +74,7 @@ public class SystemSettingsDaoTest {
     public void testDeadlockOnSetExistingValue() {
 
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.databaseProxy.getDataSource());
+        ejt.setDataSource(proxy.getDataSource());
 
         AtomicReference<Exception> failed = new AtomicReference<>();
         AtomicInteger running = new AtomicInteger();
@@ -121,7 +123,7 @@ public class SystemSettingsDaoTest {
     public void testDeadlockOnSetMissingValue() {
 
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.databaseProxy.getDataSource());
+        ejt.setDataSource(proxy.getDataSource());
 
 
         AtomicReference<Exception> failed = new AtomicReference<>();

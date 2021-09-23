@@ -21,6 +21,7 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -48,7 +49,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void initialize(ClassLoader classLoader) {
+    public void initialize() {
         initializeImpl("");
 
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
@@ -114,7 +115,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             if(!willConvert) {
                 // Allow modules to upgrade their schemas
                 for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
-                    DBUpgrade.checkUpgrade(def, classLoader);
+                    DBUpgrade.checkUpgrade(def, Common.getBean(ApplicationContext.class).getClassLoader());
                 }
             }
 
@@ -124,8 +125,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
                 // TODO check that the convert source has the current DB version, or upgrade it if not.
 
-                AbstractDatabaseProxy sourceProxy = (AbstractDatabaseProxy) getFactory().createDatabaseProxy(convertType);
-                sourceProxy.initializeImpl("convert.");
+                AbstractDatabaseProxy sourceProxy = (AbstractDatabaseProxy) factory.createDatabaseProxy(convertType);
                 try {
                     DBConvert convert = new DBConvert();
                     convert.setSource(sourceProxy);
@@ -249,9 +249,5 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public boolean isUseMetrics() {
         return this.useMetrics;
-    }
-
-    protected DatabaseProxyFactory getFactory() {
-        return this.factory;
     }
 }

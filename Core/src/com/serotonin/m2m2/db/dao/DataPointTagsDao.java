@@ -37,6 +37,7 @@ import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -58,7 +59,8 @@ public class DataPointTagsDao extends BaseDao {
     private final PermissionService permissionService;
 
     @Autowired
-    private DataPointTagsDao(PermissionService permissionService) {
+    private DataPointTagsDao(PermissionService permissionService, DatabaseProxy databaseProxy) {
+        super(databaseProxy);
         this.permissionService = permissionService;
     }
 

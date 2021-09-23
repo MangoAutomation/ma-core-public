@@ -5,6 +5,9 @@ package com.serotonin.m2m2.module;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 
 /**
@@ -14,6 +17,10 @@ import com.serotonin.m2m2.i18n.ProcessResult;
  * @author Matthew Lohbihler, Terry Packer
  */
 abstract public class SystemSettingsDefinition extends ModuleElementDefinition {
+
+    @Autowired
+    protected SystemSettingsDao systemSettingsDao;
+
     public static Integer getIntegerValue(Object value) {
         if(value == null)
             return null;

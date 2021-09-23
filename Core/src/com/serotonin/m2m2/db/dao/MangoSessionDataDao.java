@@ -8,12 +8,14 @@ import java.util.Set;
 
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.tables.MangoSessionData;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.vo.MangoSessionDataVO;
 
 /**
@@ -28,6 +30,11 @@ public class MangoSessionDataDao extends BaseDao {
 
     private static final LazyInitSupplier<MangoSessionDataDao> springInstance = new LazyInitSupplier<>(() ->
             Common.getRuntimeContext().getBean(MangoSessionDataDao.class));
+
+    @Autowired
+    public MangoSessionDataDao(DatabaseProxy databaseProxy) {
+        super(databaseProxy);
+    }
 
     public static MangoSessionDataDao getInstance() {
         return springInstance.get();

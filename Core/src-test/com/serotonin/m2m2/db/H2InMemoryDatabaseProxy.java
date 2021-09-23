@@ -91,7 +91,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void initialize(ClassLoader classLoader) {
+    public void initialize() {
         JdbcDataSource jds = new JdbcDataSource();
         String url = getUrl();
         jds.setUrl(url);

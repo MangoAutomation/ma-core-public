@@ -51,22 +51,6 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         return Common.getRuntimeContext().getBean(EventHandlerDao.class);
     });
 
-    private static final boolean H2_SYNTAX;
-    private static final boolean MYSQL_SYNTAX;
-
-    static {
-        if(Common.databaseProxy.getType() == DatabaseType.H2) {
-            H2_SYNTAX = true;
-            MYSQL_SYNTAX = false;
-        } else if(Common.databaseProxy.getType() == DatabaseType.MYSQL) {
-            H2_SYNTAX = false;
-            MYSQL_SYNTAX = true;
-        } else {
-            H2_SYNTAX = false;
-            MYSQL_SYNTAX = false;
-        }
-    }
-
     private final EventHandlersMapping handlerMapping;
 
     @Autowired
@@ -264,7 +248,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     }
 
     public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {
-        if(H2_SYNTAX) {
+        if(databaseType == DatabaseType.H2) {
             if(type.getEventSubtype() == null)
                 ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) VALUES (?, ?, ?, ?)",
                         new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
@@ -274,7 +258,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                         new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
                         new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
         }
-        else if(MYSQL_SYNTAX) {
+        else if(databaseType == DatabaseType.MYSQL) {
             if(type.getEventSubtype() == null)
                 ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?)",
                         new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},

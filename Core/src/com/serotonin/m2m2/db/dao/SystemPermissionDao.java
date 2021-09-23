@@ -4,12 +4,14 @@
 
 package com.serotonin.m2m2.db.dao;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import static com.infiniteautomation.mango.db.tables.SystemPermissions.SYSTEM_PERMISSIONS;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import static com.infiniteautomation.mango.db.tables.SystemPermissions.SYSTEM_PERMISSIONS;
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.m2m2.db.DatabaseProxy;
 
 /**
  *
@@ -21,7 +23,8 @@ public class SystemPermissionDao extends BaseDao {
     private final PermissionService permissionService;
 
     @Autowired
-    SystemPermissionDao(PermissionService permissionService) {
+    SystemPermissionDao(PermissionService permissionService, DatabaseProxy databaseProxy) {
+        super(databaseProxy);
         this.permissionService = permissionService;
     }
 

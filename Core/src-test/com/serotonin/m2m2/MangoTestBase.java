@@ -55,6 +55,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.Module;
@@ -159,10 +160,10 @@ public class MangoTestBase {
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
         provider.reset();
 
-        if(Common.databaseProxy instanceof H2InMemoryDatabaseProxy) {
-            H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
+        DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
+        if(databaseProxy instanceof H2InMemoryDatabaseProxy) {
             try {
-                proxy.clean();
+                ((H2InMemoryDatabaseProxy) databaseProxy).clean();
             } catch (Exception e) {
                 throw new ShouldNeverHappenException(e);
             }

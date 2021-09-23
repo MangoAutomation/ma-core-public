@@ -3,7 +3,9 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
-import com.serotonin.m2m2.Common;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.SystemInfoDefinition;
 
 /**
@@ -12,6 +14,9 @@ import com.serotonin.m2m2.module.SystemInfoDefinition;
  * @author Terry Packer
  */
 public class DatabaseTypeInfoDefinition extends SystemInfoDefinition<String>{
+
+    @Autowired
+    protected DatabaseProxy databaseProxy;
 
     public final String KEY = "databaseType";
 
@@ -22,7 +27,7 @@ public class DatabaseTypeInfoDefinition extends SystemInfoDefinition<String>{
 
     @Override
     public String getValue() {
-        return Common.databaseProxy.getType().name();
+        return databaseProxy.getType().name();
     }
 
     @Override

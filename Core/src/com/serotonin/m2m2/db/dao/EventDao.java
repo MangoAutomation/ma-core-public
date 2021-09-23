@@ -50,6 +50,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -93,7 +94,8 @@ public class EventDao extends BaseDao {
     @Autowired
     private EventDao(AuditEventDao auditEventDao,
             UserCommentDao userCommentDao,
-            PermissionService permissionService) {
+            PermissionService permissionService, DatabaseProxy databaseProxy) {
+        super(databaseProxy);
         this.auditEventDao = auditEventDao;
         this.userCommentDao = userCommentDao;
         table = Events.EVENTS;

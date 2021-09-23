@@ -21,13 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -57,13 +57,13 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseProxyFactory;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.EventManager;
@@ -141,7 +141,6 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     public static final String EXECUTOR_SERVICE_NAME = "executorService";
     public static final String SYSTEM_SUPERADMIN_PERMISSION_HOLDER = "systemSuperadminPermissionHolder";
     public static final String ANONYMOUS_PERMISSION_HOLDER = "anonymousPermissionHolder";
-    public static final String SYSTEM_SETTING_DAO_NAME = "systemSettingsDao";
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -298,12 +297,6 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         return PermissionHolder.ANONYMOUS;
     }
 
-    @Bean(SYSTEM_SETTING_DAO_NAME)
-    @DependsOn(DAO_OBJECT_MAPPER_NAME)
-    public SystemSettingsDao systemSettingsDao() {
-        return SystemSettingsDao.instance;
-    }
-
     @Bean
     public MonitoredValues monitoredValues() {
         return Common.MONITORED_VALUES;
@@ -324,8 +317,8 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public DatabaseProxy databaseProxy() {
-        return Common.databaseProxy;
+    public DatabaseProxy databaseProxy(DatabaseProxyFactory factory, @Value("${db.type}") DatabaseType type) {
+        return factory.createDatabaseProxy(type);
     }
 
     @Bean

@@ -3,10 +3,10 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.InputStream;
-import java.util.function.Supplier;
-
 import org.junit.Test;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -18,34 +18,26 @@ import com.serotonin.m2m2.MockMangoLifecycle;
  */
 public class H2DatabaseUpgradeTest extends MangoTestBase {
 
-    private final Supplier<InputStream> createScript = () -> {
-        return H2DatabaseUpgradeTest.class.getResourceAsStream("version1/createTables-H2.sql");
-    };
-
-    private final Supplier<InputStream> dataScript = () -> {
-        return H2DatabaseUpgradeTest.class.getResourceAsStream("version1/defaultData-H2.sql");
-    };
-
     @Test
     public void doUpgrade() {
 
     }
 
-    //TODO Insert Test Data!
-    protected void insertTestData() {
-
+    @Configuration
+    private static class UpgradeConfig {
+        @Bean
+        @Primary
+        public DatabaseProxy databaseProxy() {
+            return new H2InMemoryDatabaseProxy(true, 8000, false,
+                    () -> getClass().getResourceAsStream("version1/createTables-H2.sql"),
+                    () -> getClass().getResourceAsStream("version1/defaultData-H2.sql"));
+        }
     }
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
-        lifecycle.setDatabaseProxyFactory(new DatabaseProxyFactory() {
-            @Override
-            public DatabaseProxy createDatabaseProxy(DatabaseType type) {
-                return new H2InMemoryDatabaseProxy(true, 8000, false, createScript, dataScript);
-            }
-        });
-
+        lifecycle.addRuntimeContextConfiguration(UpgradeConfig.class);
         return lifecycle;
     }
 }

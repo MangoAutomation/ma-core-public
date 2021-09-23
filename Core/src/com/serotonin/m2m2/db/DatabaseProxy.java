@@ -12,6 +12,8 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 
 import org.jooq.Configuration;
@@ -47,7 +49,9 @@ public interface DatabaseProxy extends TransactionCapable {
     DatabaseType getType();
     DataSource getDataSource();
 
-    void initialize(ClassLoader classLoader);
+    @PostConstruct
+    void initialize();
+    @PreDestroy
     void terminate();
 
     /**

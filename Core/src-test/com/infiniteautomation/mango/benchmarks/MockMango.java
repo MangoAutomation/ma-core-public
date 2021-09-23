@@ -29,6 +29,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -127,17 +128,18 @@ public class MockMango extends MangoTestBase {
      */
     @TearDown(Level.Iteration)
     public void tearDownIteration() throws SQLException {
-        if (Common.databaseProxy instanceof H2InMemoryDatabaseProxy) {
-            H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
+        DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
+        if (databaseProxy instanceof H2InMemoryDatabaseProxy) {
+            H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) databaseProxy;
             try {
                 proxy.clean();
             } catch (Exception e) {
                 throw new ShouldNeverHappenException(e);
             }
-        } else if (Common.databaseProxy.getType() == DatabaseType.MYSQL) {
+        } else if (databaseProxy.getType() == DatabaseType.MYSQL) {
             // H2 does not support DROP database
 
-            try (var connection = Common.databaseProxy.getDataSource().getConnection()) {
+            try (var connection = databaseProxy.getDataSource().getConnection()) {
                 String databaseName = connection.getCatalog();
                 try (var statement = connection.createStatement()) {
                     statement.executeUpdate(String.format("DROP DATABASE `%s`", databaseName));
@@ -146,7 +148,7 @@ public class MockMango extends MangoTestBase {
                     statement.executeUpdate(String.format("CREATE DATABASE `%s`", databaseName));
                 }
             }
-            Common.databaseProxy.initialize(null);
+            databaseProxy.initialize();
             //TODO Reset caches...
         }
     }

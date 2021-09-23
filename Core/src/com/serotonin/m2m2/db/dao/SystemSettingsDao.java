@@ -22,6 +22,7 @@ import org.jooq.SQLDialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -44,6 +45,7 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.UpgradeVersionState;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
@@ -60,12 +62,9 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
 /**
- * Dao access for system settings,
- *  this class is a spring bean declared in the MangoRuntimeContextConfiguration,
- *  as such it is not annotated as a bean here.
- *
  * @author Jared Wiltshire
  */
+@Repository
 public class SystemSettingsDao extends BaseDao {
     // Database schema version
     public static final String DATABASE_SCHEMA_VERSION = "databaseSchemaVersion";
@@ -210,25 +209,21 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_LENGTH_MIN = "password.rule.lengthMin";
     public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
 
-    public static final SystemSettingsDao instance = new SystemSettingsDao(SystemSettings.SYSTEM_SETTINGS);
+    // TODO
+    public static final SystemSettingsDao instance = new SystemSettingsDao();
 
     private final SystemSettings table;
-
-    /**
-     * Will remain null until the runtime context is refreshed so the JSON methods of this class should not be used early in the lifecycle.
-     */
-    @Autowired
-    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
-    @SuppressWarnings("FieldMayBeFinal")
-    private ObjectMapper mapper = null;
+    private final ObjectMapper mapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    @SuppressWarnings("FieldMayBeFinal")
-    private ApplicationEventPublisher eventPublisher = null;
-
-
-    private SystemSettingsDao(SystemSettings table) {
-        this.table = table;
+    private SystemSettingsDao(DatabaseProxy databaseProxy,
+                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+                              ApplicationEventPublisher eventPublisher) {
+        super(databaseProxy);
+        this.table = SystemSettings.SYSTEM_SETTINGS;
+        this.mapper = mapper;
+        this.eventPublisher = eventPublisher;
     }
 
     // Value cache

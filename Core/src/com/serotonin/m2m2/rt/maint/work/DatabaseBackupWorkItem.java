@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -125,7 +126,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
             LOG.info("Starting database backup WorkItem.");
 
             // Create the filename
-            String filename = "core-database-" + Common.databaseProxy.getType();
+            String filename = "core-database-" + Common.getBean(DatabaseProxy.class).getType();
             SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
             String runtimeString = dateFormatter.format(new Date());
             int maxFiles = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT);
@@ -145,11 +146,11 @@ public class DatabaseBackupWorkItem implements WorkItem {
             // Execute the Backup
             try {
 
-                switch (Common.databaseProxy.getType()) {
+                switch (Common.getBean(DatabaseProxy.class).getType()) {
                     case H2:
                         String[] backupScript = new String[] { "SCRIPT DROP TO '" + this.filename + "' COMPRESSION ZIP;" };
-                        try (OutputStream out = Common.databaseProxy.createLogOutputStream(this.getClass())) {
-                            Common.databaseProxy.runScript(backupScript, out);
+                        try (OutputStream out = Common.getBean(DatabaseProxy.class).createLogOutputStream(this.getClass())) {
+                            Common.getBean(DatabaseProxy.class).runScript(backupScript, out);
                         }
                         break;
                     case MYSQL:
@@ -166,7 +167,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                         else
                             port = "3306";
                         String user = Common.envProps.getString("db.username");
-                        String password = Common.databaseProxy.getDatabasePassword("");
+                        String password = Common.getBean(DatabaseProxy.class).getDatabasePassword("");
                         // Split off any extra stuff on the db
                         String[] dbParts = parts[3].split("\\?");
                         String database = dbParts[0];
@@ -177,7 +178,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                     case POSTGRES:
                     default:
                         LOG.warn(
-                                "Unable to backup database, because no script for type: " + Common.databaseProxy.getType());
+                                "Unable to backup database, because no script for type: " + Common.getBean(DatabaseProxy.class).getType());
                         return;
 
                 }
@@ -287,7 +288,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
      */
     public static File[] getBackupFiles(String backupLocation) {
         File backupDir = new File(backupLocation);
-        String nameStart = "core-database-" + Common.databaseProxy.getType();
+        String nameStart = "core-database-" + Common.getBean(DatabaseProxy.class).getType();
         final String lowerNameStart = nameStart.toLowerCase();
         File[] files = backupDir.listFiles(new FilenameFilter() {
             @Override
@@ -321,11 +322,11 @@ public class DatabaseBackupWorkItem implements WorkItem {
             LOG.info("Attempting to restore database backup from: " + fullFilePath);
             try {
 
-                switch (Common.databaseProxy.getType()) {
+                switch (Common.getBean(DatabaseProxy.class).getType()) {
                     case H2:
                         String[] backupScript = new String[] { "RUNSCRIPT FROM '" + fullFilePath + "' COMPRESSION ZIP;" };
                         // TODO Create a stream to print to the result
-                        Common.databaseProxy.runScript(backupScript, System.out);
+                        Common.getBean(DatabaseProxy.class).runScript(backupScript, System.out);
                         break;
                     case MYSQL:
                         String mySqlPath = Common.envProps.getString("db.mysql", "mysql");
@@ -341,7 +342,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                         else
                             port = "3306";
                         String user = Common.envProps.getString("db.username");
-                        String password = Common.databaseProxy.getDatabasePassword("");
+                        String password = Common.getBean(DatabaseProxy.class).getDatabasePassword("");
                         // Split off any extra stuff on the db
                         String[] dbParts = parts[3].split("\\?");
                         String database = dbParts[0];
@@ -353,9 +354,9 @@ public class DatabaseBackupWorkItem implements WorkItem {
                     case POSTGRES:
                     default:
                         LOG.warn(
-                                "Unable to restore database, because no script for type: " + Common.databaseProxy.getType());
+                                "Unable to restore database, because no script for type: " + Common.getBean(DatabaseProxy.class).getType());
                         result.addMessage(new TranslatableMessage("systemSettings.databaseRestoreNotSupported",
-                                Common.databaseProxy.getType()));
+                                Common.getBean(DatabaseProxy.class).getType()));
                         return result;
                 }
                 LOG.info("Database backup restore finished");

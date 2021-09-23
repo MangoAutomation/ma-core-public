@@ -20,6 +20,10 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -33,8 +37,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.DatabaseProxyFactory;
-import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -237,7 +239,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
         PermissionService permissionService = Common.getBean(PermissionService.class);
 
-        DataSource dataSource = Common.databaseProxy.getDataSource();
+        DataSource dataSource = Common.getBean(DatabaseProxy.class).getDataSource();
         JdbcConnectionPool pool = (JdbcConnectionPool)dataSource;
         pool.setMaxConnections(numThreads*100);
 
@@ -373,11 +375,11 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
             roles.add(role.getRole());
         }
 
-        DataSource dataSource = Common.databaseProxy.getDataSource();
+        DataSource dataSource = Common.getBean(DatabaseProxy.class).getDataSource();
         JdbcConnectionPool pool = (JdbcConnectionPool)dataSource;
         pool.setMaxConnections(numThreads*2);
 
-        PlatformTransactionManager transactionManager = Common.databaseProxy.getTransactionManager();
+        PlatformTransactionManager transactionManager = Common.getBean(DatabaseProxy.class).getTransactionManager();
 
         AtomicInteger successes = new AtomicInteger();
         AtomicInteger failures = new AtomicInteger();
@@ -495,24 +497,24 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
         }
     }
 
+    @Configuration
+    private static class Config {
+        @Bean
+        @Primary
+        public DatabaseProxy databaseProxy(@Value("${db.web.start}") boolean initWebConsole,
+                                           @Value("${db.web.port}") Integer webPort) {
+            return new H2InMemoryDatabaseProxyNoLocking(initWebConsole, webPort);
+        }
+    }
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
-
-        boolean enableWebConsole = Common.envProps.getBoolean("db.web.start");
-        int webPort = Common.envProps.getInt("db.web.port");
-
-        lifecycle.setDatabaseProxyFactory(new DatabaseProxyFactory() {
-            @Override
-            public DatabaseProxy createDatabaseProxy(DatabaseType type) {
-                return new H2InMemoryDatabaseProxyNoLocking(enableWebConsole, webPort);
-            }
-        });
-
+        lifecycle.addRuntimeContextConfiguration(Config.class);
         return lifecycle;
     }
 
-    private class H2InMemoryDatabaseProxyNoLocking extends H2InMemoryDatabaseProxy {
+    private static class H2InMemoryDatabaseProxyNoLocking extends H2InMemoryDatabaseProxy {
         public H2InMemoryDatabaseProxyNoLocking(boolean initWebConsole, Integer webPort) {
             super(initWebConsole, webPort, false);
         }

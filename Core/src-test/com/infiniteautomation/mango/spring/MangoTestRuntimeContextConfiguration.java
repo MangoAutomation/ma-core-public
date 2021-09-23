@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,6 +20,8 @@ import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegi
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 import com.infiniteautomation.mango.test.CurrentThreadExecutorService;
 import com.serotonin.m2m2.MockPointValueDao;
+import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
 /**
@@ -33,10 +36,6 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 })
 public class MangoTestRuntimeContextConfiguration extends MangoRuntimeContextConfiguration {
 
-    public MangoTestRuntimeContextConfiguration() {
-
-    }
-
     //Defined here to take precedence in testing (also define in common configuration)
     @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -48,6 +47,14 @@ public class MangoTestRuntimeContextConfiguration extends MangoRuntimeContextCon
     @Primary
     public PointValueDao pointValueDao() {
         return new MockPointValueDao();
+    }
+
+    @Bean
+    @Primary
+    public DatabaseProxy databaseProxy(@Value("${db.web.start}") boolean initWebConsole,
+                                       @Value("${db.web.port}") Integer webPort,
+                                       @Value("${db.useMetrics}") boolean useMetrics) {
+        return new H2InMemoryDatabaseProxy(initWebConsole, webPort, useMetrics);
     }
 
 }

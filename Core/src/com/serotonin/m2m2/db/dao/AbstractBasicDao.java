@@ -67,6 +67,7 @@ import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -99,8 +100,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     protected final Map<String, RQLSubSelectCondition> subSelectMap;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
-    public AbstractBasicDao(TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
-        this(table, null, mapper, publisher, permissionService);
+    public AbstractBasicDao(DatabaseProxy databaseProxy, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
+        this(databaseProxy, table, null, mapper, publisher, permissionService);
     }
 
     /**
@@ -110,10 +111,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @param publisher
      * @param permissionService
      */
-    public AbstractBasicDao(TABLE table,
+    public AbstractBasicDao(DatabaseProxy databaseProxy,
+                            TABLE table,
                             TranslatableMessage countMonitorName,
-                            ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
-
+                            ObjectMapper mapper,
+                            ApplicationEventPublisher publisher,
+                            PermissionService permissionService) {
+        super(databaseProxy);
         this.table = table;
         this.mapper = mapper;
         this.eventPublisher = publisher;

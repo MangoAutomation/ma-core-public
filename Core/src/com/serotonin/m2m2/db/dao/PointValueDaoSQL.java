@@ -73,6 +73,7 @@ import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
@@ -119,8 +120,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     private final EventHistogram syncCallsCounter = new EventHistogram(5000, 2);
     private final EventHistogram asyncCallsCounter = new EventHistogram(5000, 2);
 
-    public PointValueDaoSQL() {
-        super();
+    public PointValueDaoSQL(DatabaseProxy databaseProxy) {
+        super(databaseProxy);
     }
 
     public PointValueDaoSQL(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, Configuration configuration) {
@@ -225,10 +226,10 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     long savePointValue(final DataPointVO vo, final int dataType, double dvalue, final long time, final String svalue,
                         final SetPointSource source, boolean async) {
         // Apply database specific bounds on double values.
-        dvalue = Common.databaseProxy.applyBounds(dvalue);
+        dvalue = databaseProxy.applyBounds(dvalue);
 
         if (async) {
-            BatchWriteBehind.add(new BatchWriteBehindEntry(vo, dataType, dvalue, time), create);
+            BatchWriteBehind.add(new BatchWriteBehindEntry(vo, dataType, dvalue, time), create, databaseType);
             return -1;
         }
 
@@ -1203,7 +1204,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         private static final Logger LOG = LoggerFactory.getLogger(BatchWriteBehind.class);
         private static final int SPAWN_THRESHOLD = 10000;
         private static final int MAX_INSTANCES = 5;
-        private static final int MAX_ROWS;
+        private final int maxRows;
         private static final ValueMonitor<Integer> ENTRIES_MONITOR = Common.MONITORED_VALUES.<Integer>create(ENTRIES_MONITOR_ID)
                 .name(new TranslatableMessage("internal.monitor.BATCH_ENTRIES"))
                 .value(0)
@@ -1221,39 +1222,20 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 .build();
 
         private static final List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<>();
-
         static {
-            if (Common.databaseProxy.getType() == DatabaseType.DERBY)
-                // This has not been tested to be optimal
-                MAX_ROWS = 1000;
-            else if (Common.databaseProxy.getType() == DatabaseType.H2)
-                // This has not been tested to be optimal
-                MAX_ROWS = 1000;
-            else if (Common.databaseProxy.getType() == DatabaseType.MSSQL)
-                // MSSQL has max rows of 1000, and max parameters of 2100. In this case that works out to...
-                MAX_ROWS = 524;
-            else if (Common.databaseProxy.getType() == DatabaseType.MYSQL)
-                // This appears to be an optimal value
-                MAX_ROWS = 2000;
-            else if (Common.databaseProxy.getType() == DatabaseType.POSTGRES)
-                // This appears to be an optimal value
-                MAX_ROWS = 2000;
-            else
-                throw new ShouldNeverHappenException("Unknown database type: " + Common.databaseProxy.getType());
-
             retriedExceptions.add(RecoverableDataAccessException.class);
             retriedExceptions.add(TransientDataAccessException.class);
             retriedExceptions.add(TransientDataAccessResourceException.class);
             retriedExceptions.add(CannotGetJdbcConnectionException.class);
         }
 
-        static void add(BatchWriteBehindEntry e, DSLContext create) {
+        static void add(BatchWriteBehindEntry e, DSLContext create, DatabaseType databaseType) {
             synchronized (ENTRIES) {
                 ENTRIES.push(e);
                 ENTRIES_MONITOR.setValue(ENTRIES.size());
                 if (ENTRIES.size() > instances.size() * SPAWN_THRESHOLD) {
                     if (instances.size() < MAX_INSTANCES) {
-                        BatchWriteBehind bwb = new BatchWriteBehind(create);
+                        BatchWriteBehind bwb = new BatchWriteBehind(create, databaseType);
                         instances.add(bwb);
                         INSTANCES_MONITOR.setValue(instances.size());
                         try {
@@ -1270,8 +1252,26 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 
         private final DSLContext create;
 
-        public BatchWriteBehind(DSLContext create) {
+        public BatchWriteBehind(DSLContext create, DatabaseType databaseType) {
             this.create = create;
+
+            if (databaseType == DatabaseType.DERBY)
+                // This has not been tested to be optimal
+                maxRows = 1000;
+            else if (databaseType == DatabaseType.H2)
+                // This has not been tested to be optimal
+                maxRows = 1000;
+            else if (databaseType == DatabaseType.MSSQL)
+                // MSSQL has max rows of 1000, and max parameters of 2100. In this case that works out to...
+                maxRows = 524;
+            else if (databaseType == DatabaseType.MYSQL)
+                // This appears to be an optimal value
+                maxRows = 2000;
+            else if (databaseType == DatabaseType.POSTGRES)
+                // This appears to be an optimal value
+                maxRows = 2000;
+            else
+                throw new ShouldNeverHappenException("Unknown database type: " + Common.getBean(DatabaseProxy.class).getType());
         }
 
         @Override
@@ -1283,7 +1283,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         if (ENTRIES.size() == 0)
                             break;
 
-                        inserts = new BatchWriteBehindEntry[Math.min(ENTRIES.size(), MAX_ROWS)];
+                        inserts = new BatchWriteBehindEntry[Math.min(ENTRIES.size(), maxRows)];
                         ENTRIES.pop(inserts);
                         ENTRIES_MONITOR.setValue(ENTRIES.size());
                     }

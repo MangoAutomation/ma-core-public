@@ -31,14 +31,17 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.benchmarks.BenchmarkRunner;
 import com.infiniteautomation.mango.benchmarks.MockMango;
 import com.infiniteautomation.mango.spring.service.EventInstanceService;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseProxyFactory;
 import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.DefaultDatabaseProxyFactory;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.EventManagerImpl;
@@ -53,20 +56,21 @@ public class DataPointEventsBenchmarks extends BenchmarkRunner {
     public static final String LITERAL = "literal";
     public static final String BENCHMARK_DATA_POINT_EVENT_FOR = "Benchmark data point event for  ";
 
+    @Configuration
+    private static class DataPointEventsBenchmarksConfig {
+        @Bean
+        @Primary
+        public DatabaseProxy databaseProxy(DatabaseProxyFactory databaseProxyFactory) {
+            return databaseProxyFactory.createDatabaseProxy(DatabaseType.MYSQL);
+        }
+    }
+
     public static class RealEventManagerMockMango extends MockMango {
 
         @Override
         protected void preInitialize() throws Exception {
             lifecycle.setEventManager(new EventManagerImpl());
-
-            //Detect and set database if requested
-            if(Common.envProps.getBoolean("db.benchmark", false)) {
-                String type = Common.envProps.getString("db.type", "h2");
-                DatabaseType databaseType = DatabaseType.valueOf(type.toUpperCase());
-                DatabaseProxyFactory factory = new DefaultDatabaseProxyFactory();
-                Common.databaseProxy = factory.createDatabaseProxy(databaseType);
-                Common.databaseProxy.initialize(null);
-            }
+            lifecycle.addRuntimeContextConfiguration(DataPointEventsBenchmarksConfig.class);
         }
     }
 

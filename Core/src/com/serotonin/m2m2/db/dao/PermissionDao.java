@@ -3,6 +3,10 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static org.jooq.impl.DSL.count;
+import static org.jooq.impl.DSL.default_;
+import static org.jooq.impl.DSL.when;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -15,6 +19,7 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SelectSeekStep2;
 import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
@@ -28,9 +33,8 @@ import com.infiniteautomation.mango.db.tables.Permissions;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.vo.role.Role;
-
-import static org.jooq.impl.DSL.*;
 
 /**
  * NOTE: Permissions are cached, usage of tjos dao should be limited to within the PermissionService
@@ -44,6 +48,11 @@ public class PermissionDao extends BaseDao {
     private final MintermsRoles mintermsRoles = MintermsRoles.MINTERMS_ROLES;
     private final Permissions permissions = Permissions.PERMISSIONS;
     private final PermissionsMinterms permissionsMinterms = PermissionsMinterms.PERMISSIONS_MINTERMS;
+
+    @Autowired
+    public PermissionDao(DatabaseProxy databaseProxy) {
+        super(databaseProxy);
+    }
 
     /**
      * Get a MangoPermission by id

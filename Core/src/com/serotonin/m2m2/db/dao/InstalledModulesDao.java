@@ -3,19 +3,35 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.time.Instant;
 import java.util.Date;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.db.tables.InstalledModules;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.Module;
+import com.serotonin.m2m2.module.ModuleRegistry;
 
+@Repository
 public class InstalledModulesDao extends BaseDao {
-    public static final InstalledModulesDao instance = new InstalledModulesDao();
 
+    private final Logger log = LoggerFactory.getLogger(DataPointDao.class);
     private final InstalledModules table = InstalledModules.INSTALLED_MODULES;
+    private final LazyInitSupplier<Instant> lastUpgrade = new LazyInitSupplier<>(this::computeLastUpgradeTime);
 
-    public void removeModuleVersion(String name) {
-        create.deleteFrom(table).where(table.name.eq(name)).execute();
+    @Autowired
+    public InstalledModulesDao(DatabaseProxy databaseProxy) {
+        super(databaseProxy);
     }
 
     public InstalledModule getInstalledModule(String name) {
@@ -33,6 +49,10 @@ public class InstalledModulesDao extends BaseDao {
                 .orElse(null);
     }
 
+    public void removeModuleVersion(String name) {
+        create.deleteFrom(table).where(table.name.eq(name)).execute();
+    }
+
     /**
      * Update a single module version to its latest
      * @param module
@@ -48,6 +68,46 @@ public class InstalledModulesDao extends BaseDao {
                             module.getBuildDate().getTime())
                     .execute();
         });
+    }
+
+    public Instant lastUpgradeTime() {
+        return lastUpgrade.get();
+    }
+
+    private Instant computeLastUpgradeTime() {
+        return create.select(DSL.max(table.upgradedTimestamp)).from(table)
+                .fetchOptional()
+                .map(record -> Instant.ofEpochMilli(record.get(0, long.class)))
+                .orElseThrow();
+    }
+
+    @PostConstruct
+    private void postConstruct() {
+        // upgrade modules
+        for (Module module : ModuleRegistry.getModules()) {
+            try {
+                InstalledModule installedModule = getInstalledModule(module.getName());
+                if (module.upgrade(installedModule)) {
+                    updateModuleVersion(module);
+                }
+            } catch (Exception e) {
+                log.error("Module upgrade failed", e);
+            }
+        }
+    }
+
+    @PreDestroy
+    private void preDestroy() {
+        //Delete our module versions
+        for (Module module : ModuleRegistry.getModules()) {
+            try {
+                if (module.isMarkedForDeletion()) {
+                    removeModuleVersion(module.getName());
+                }
+            } catch (Throwable e) {
+                log.error("Error in deleting version of module '{}'", module.getName(), e);
+            }
+        }
     }
 
     public static class InstalledModule {

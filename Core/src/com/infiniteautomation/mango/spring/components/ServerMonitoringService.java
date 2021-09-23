@@ -35,6 +35,7 @@ import com.infiniteautomation.mango.spring.service.ServerInformationService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.ServerStatus;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
@@ -129,6 +130,7 @@ public class ServerMonitoringService extends PollingService {
     private final IMangoLifecycle lifecycle;
     private final Set<ValueMonitor<?>> monitors = new HashSet<>();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private final DatabaseProxy databaseProxy;
 
     @Autowired
     private ServerMonitoringService(ExecutorService executor,
@@ -137,7 +139,7 @@ public class ServerMonitoringService extends PollingService {
                                     IMangoLifecycle lifecycle,
                                     ServerInformationService serverInfoService,
                                     MonitoredValues mv,
-                                    Environment env) {
+                                    Environment env, DatabaseProxy databaseProxy) {
 
         this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
@@ -172,6 +174,7 @@ public class ServerMonitoringService extends PollingService {
 
         uptime = mv.<Double>create(SYSTEM_UPTIME_MONITOR_ID).name(new TranslatableMessage("internal.monitor.SYSTEM_UPTIME")).build();
         userSessions = mv.<Integer>create(USER_SESSION_MONITOR_ID).name(new TranslatableMessage("internal.monitor.USER_SESSION_COUNT")).build();
+        this.databaseProxy = databaseProxy;
 
         if (env.getProperty("internal.monitor.enableOperatingSystemInfo", boolean.class, true)) {
             mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).function((ts) -> serverInfoService.systemLoadAverage(1)).addTo(monitors).buildPollable();
@@ -254,10 +257,8 @@ public class ServerMonitoringService extends PollingService {
             lowPriorityWaiting.setValue(Common.backgroundProcessing.getLowPriorityServiceQueueSize());
         }
 
-        if(Common.databaseProxy != null){
-            dbActiveConnections.setValue(Common.databaseProxy.getActiveConnections());
-            dbIdleConnections.setValue(Common.databaseProxy.getIdleConnections());
-        }
+        dbActiveConnections.setValue(databaseProxy.getActiveConnections());
+        dbIdleConnections.setValue(databaseProxy.getIdleConnections());
 
         //In MiB
         javaMaxMemory.setValue((int)(runtime.maxMemory()/ mib));

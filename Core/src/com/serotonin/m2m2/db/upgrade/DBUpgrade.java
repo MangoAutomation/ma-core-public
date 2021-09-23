@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
@@ -30,6 +31,10 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 abstract public class DBUpgrade extends BaseDao {
     private static final Logger LOG = LoggerFactory.getLogger(DBUpgrade.class);
     protected static final String DEFAULT_DATABASE_TYPE = "*";
+
+    public DBUpgrade(DatabaseProxy databaseProxy) {
+        super(databaseProxy);
+    }
 
     public static void checkUpgrade() {
         checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
@@ -130,7 +135,7 @@ abstract public class DBUpgrade extends BaseDao {
 
     protected void runScript(String[] script, OutputStream out) {
         try {
-            Common.databaseProxy.runScript(script, out);
+            databaseProxy.runScript(script, out);
         } catch (Exception e) {
             PrintWriter pw = new PrintWriter(out);
             e.printStackTrace(pw);
@@ -146,14 +151,14 @@ abstract public class DBUpgrade extends BaseDao {
     }
 
     public void runScript(Map<String, String[]> scripts, OutputStream out) {
-        String[] script = scripts.get(Common.databaseProxy.getType().name());
+        String[] script = scripts.get(databaseType.name());
         if (script == null)
             script = scripts.get(DEFAULT_DATABASE_TYPE);
         runScript(script, out);
     }
 
     protected OutputStream createUpdateLogOutputStream() {
-        return Common.databaseProxy.createLogOutputStream(this.getClass());
+        return databaseProxy.createLogOutputStream(this.getClass());
     }
 
 }

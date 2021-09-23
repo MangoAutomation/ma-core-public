@@ -80,7 +80,6 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.json.JsonContext;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -143,7 +142,6 @@ public class Common {
 
     public static Properties releaseProps;
     public static Configuration freemarkerConfiguration;
-    public static DatabaseProxy databaseProxy;
     public static BackgroundProcessing backgroundProcessing;
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
@@ -165,22 +163,6 @@ public class Common {
     public static final JsonContext JSON_CONTEXT = new JsonContext();
 
     public static final Pattern COMMA_SPLITTER = Pattern.compile("\\s*,\\s*");
-
-    public static final LazyInitSupplier<Integer> LAST_UPGRADE = new LazyInitSupplier<>(() -> {
-        return SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LAST_UPGRADE, 0);
-    });
-
-    /**
-     * @return epoch time in seconds of last upgrade/install of core or modules
-     */
-    public static int getLastUpgradeTime() {
-        try {
-            return LAST_UPGRADE.get();
-        } catch (Exception e) {
-            // possibly due to database not being started
-            return 0;
-        }
-    }
 
     private static final AtomicReference<ClassLoader> MODULE_CLASS_LOADER_HOLDER = new AtomicReference<>();
 

@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.QueryBuilder;
@@ -63,7 +64,7 @@ public class DataPointPermissionTest extends MangoTestBase {
 
         //Check for the recently orphaned permission (it should not be there)
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.databaseProxy.getDataSource());
+        ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
         List<Integer> permissionIds = ejt.query("SELECT id from permissions WHERE id=" + permissionId, new RowMapper<Integer>() {
 
             @Override
@@ -125,7 +126,7 @@ public class DataPointPermissionTest extends MangoTestBase {
 
 
             ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-            ejt.setDataSource(Common.databaseProxy.getDataSource());
+            ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
             List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
 
                 @Override
@@ -188,7 +189,7 @@ public class DataPointPermissionTest extends MangoTestBase {
             }
 
             ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-            ejt.setDataSource(Common.databaseProxy.getDataSource());
+            ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
             List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
 
                 @Override
