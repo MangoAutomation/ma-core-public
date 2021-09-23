@@ -21,14 +21,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -44,14 +42,9 @@ import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
 
 public class PublisherRTQueueMonitorTest extends MangoTestBase {
 
-    private MockDataSourceVO dataSource;
-    private DataPointVO dataPoint;
-
     @BeforeClass
     public static void beforeTestClass() {
-        //addModule("PublisherRTQueueMonitorTest", new MockPublisherDefinition());
         addModule("PublisherRTQueueMonitorTest", new TestPublisherDefinition());
-
     }
 
     @Before
@@ -67,29 +60,21 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
 
         Common.runtimeManager.initialize(false);
         this.timer.setStartTime(System.currentTimeMillis());
-
-
     }
 
     @Test(timeout = 1 * 60 * 1000)
     public void testQueueMonitor() {
+        setSuperadminAuthentication();
         //create DS and DP and enable them (need to be running)
-        dataSource = this.createMockDataSource(true);
-        dataPoint = this.createMockDataPoint(dataSource, new MockPointLocatorVO(DataTypes.NUMERIC, true), true);
+        MockDataSourceVO  dataSource = this.createMockDataSource(true);
+        DataPointVO dataPoint = this.createMockDataPoint(dataSource, new MockPointLocatorVO(DataTypes.NUMERIC, true), true);
         List<MockPublishedPointVO> points = new ArrayList<>(1);
         MockPublishedPointVO publishedPointVO = new MockPublishedPointVO();
         publishedPointVO.setDataPointId(dataPoint.getId());
         points.add(publishedPointVO);
 
-        final String publisherVOXid = "TEST1";
         //create publisher with a published point (this is a listener) for the DP
-        TestPublisherVO publisherVO = (TestPublisherVO) ModuleRegistry.getPublisherDefinition(MockPublisherDefinition.TYPE_NAME).baseCreatePublisherVO();
-        publisherVO.setName("Name");
-        publisherVO.setXid(publisherVOXid);
-        publisherVO.setPoints(points);
-        publisherVO.setEnabled(true);
-        PublisherService publisherService = Common.getBean(PublisherService.class);
-        publisherService.insert(publisherVO);
+        TestPublisherVO publisherVO = (TestPublisherVO)createMockPublisher(true, points);
 
         //get the running data point RT from the Common.runtimeManager
         DataPointRT rt = Common.runtimeManager.getDataPoint(dataPoint.getId());
@@ -117,7 +102,7 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
 
         //confirm publish queue is of certain size
 
-        String monitor = QUEUE_SIZE_MONITOR_ID + publisherVOXid;
+        String monitor = QUEUE_SIZE_MONITOR_ID + publisherVO.getXid();
         Assert.assertNotNull(Common.MONITORED_VALUES.getMonitor(monitor).getName());
         Assert.assertEquals(1, Common.MONITORED_VALUES.getMonitor(monitor).getValue());
     }
