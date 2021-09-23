@@ -69,6 +69,9 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
+import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
+import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.provider.Providers;
@@ -409,12 +412,7 @@ public class MangoTestBase {
         try {
             return (MockDataSourceVO) service.insert(vo);
         } catch (ValidationException e) {
-            String failureMessage = "";
-            for (ProcessMessage m : e.getValidationResult().getMessages()) {
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
+            fail(e.getValidationErrorMessage(Common.getTranslations()));
             return null;
         }
     }
@@ -514,12 +512,27 @@ public class MangoTestBase {
         try {
             return service.insert(dp);
         } catch (ValidationException e) {
-            String failureMessage = "";
-            for (ProcessMessage m : e.getValidationResult().getMessages()) {
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
+            fail(e.getValidationErrorMessage(Common.getTranslations()));
+            return null;
+        }
+    }
+
+    /**
+     * Create a publisher
+     * @param enabled
+     * @param points
+     * @return
+     */
+    public MockPublisherVO createMockPublisher(boolean enabled, List<MockPublishedPointVO> points) {
+        MockPublisherVO publisherVO = (MockPublisherVO) ModuleRegistry.getPublisherDefinition(MockPublisherDefinition.TYPE_NAME).baseCreatePublisherVO();
+        publisherVO.setName(UUID.randomUUID().toString());
+        publisherVO.setPoints(points);
+        publisherVO.setEnabled(enabled);
+        PublisherService publisherService = Common.getBean(PublisherService.class);
+        try {
+            return (MockPublisherVO)publisherService.insert(publisherVO);
+        } catch (ValidationException e) {
+            fail(e.getValidationErrorMessage(Common.getTranslations()));
             return null;
         }
     }
