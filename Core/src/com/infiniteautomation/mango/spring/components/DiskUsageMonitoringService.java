@@ -7,7 +7,6 @@ import java.io.File;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -209,7 +208,7 @@ public class DiskUsageMonitoringService extends PollingService {
         }
         //Volume information for NoSQL partition
         try {
-            FileStore store = Files.getFileStore(Paths.get(pointValueDaoDefinition.getDatabasePath()).toAbsolutePath());
+            FileStore store = Files.getFileStore(pointValueDaoDefinition.getDatabasePath().toAbsolutePath());
             noSqlPartitionTotalSpace.setValue(getGiB(store.getTotalSpace()));
             noSqlPartitionUsableSpace.setValue(getGiB(store.getUsableSpace()));
             noSqlPartitionUsedSpace.setValue(getGiB(store.getTotalSpace() - store.getUsableSpace()));

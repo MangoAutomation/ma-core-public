@@ -3,7 +3,7 @@
  */
 package com.serotonin.m2m2.db;
 
-import java.io.File;
+import java.nio.file.Path;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -44,9 +44,9 @@ abstract public class PointValueDaoDefinition extends ModuleElementDefinition {
     /**
      * Helper to get the database directory
      *
-     * @return Absolute path to databases directory ending in a slash
+     * @return absolute path to databases directory
      */
-    public String getDatabasePath() {
+    public Path getDatabasePath() {
         throw new UnsupportedOperationException();
     }
 
@@ -55,7 +55,7 @@ abstract public class PointValueDaoDefinition extends ModuleElementDefinition {
      * @return
      */
     public long getDatabaseSizeInBytes(){
-        return DirectoryUtils.getSize(new File(getDatabasePath())).getSize();
+        return DirectoryUtils.getSize(getDatabasePath().toFile()).getSize();
     }
 
 }
