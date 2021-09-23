@@ -20,7 +20,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import com.infiniteautomation.mango.test.SuperadminSecurityContextRunner;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
@@ -40,6 +42,7 @@ import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
 
+@RunWith(SuperadminSecurityContextRunner.class)
 public class PublisherRTQueueMonitorTest extends MangoTestBase {
 
     @BeforeClass
@@ -64,7 +67,7 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
 
     @Test(timeout = 1 * 60 * 1000)
     public void testQueueMonitor() {
-        setSuperadminAuthentication();
+
         //create DS and DP and enable them (need to be running)
         MockDataSourceVO  dataSource = this.createMockDataSource(true);
         DataPointVO dataPoint = this.createMockDataPoint(dataSource, new MockPointLocatorVO(DataTypes.NUMERIC, true), true);
