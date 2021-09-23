@@ -50,6 +50,7 @@ import com.infiniteautomation.mango.db.tables.TimeSeries;
 import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -104,9 +105,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private final UserComments userComments;
     private final DataSources dataSources;
     private final EventHandlersMapping eventHandlersMapping;
-    private final DataPointTags dataPointTags;
-
     private final DataPointPermissionDefinition dataPointPermissionDefinition;
+    private final PointValueDao pointValueDao;
+    private final PointValueCache pointValueCache;
 
     @Autowired
     private DataPointDao(
@@ -115,7 +116,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
             ApplicationEventPublisher publisher,
             DataPointTagsDao dataPointTagsDao,
             EventDetectorDao eventDetectorDao,
-            DataPointPermissionDefinition dataPointPermissionDefinition) {
+            @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataPointPermissionDefinition dataPointPermissionDefinition,
+            PointValueDao pointValueDao,
+            PointValueCache pointValueCache) {
 
         super(AuditEventType.TYPE_DATA_POINT, DataPoints.DATA_POINTS,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
@@ -124,13 +127,14 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
         this.dataPointPermissionDefinition = dataPointPermissionDefinition;
+        this.pointValueDao = pointValueDao;
+        this.pointValueCache = pointValueCache;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
 
         this.eventDetectors = EventDetectors.EVENT_DETECTORS;
         this.userComments = UserComments.USER_COMMENTS;
         this.dataSources = DataSources.DATA_SOURCES;
         this.eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
-        this.dataPointTags = DataPointTags.DATA_POINT_TAGS;
     }
 
     /**
@@ -225,8 +229,10 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     @Override
     public void update(DataPointVO existing, DataPointVO vo) {
         //If have a new data type we will wipe our history
-        if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId())
-            Common.databaseProxy.newPointValueDao().deletePointValues(vo);
+        if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId()) {
+            pointValueDao.deletePointValues(vo);
+            pointValueCache.removeAllValues(vo);
+        }
 
         super.update(existing, vo);
     }
@@ -469,8 +475,9 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public List<PointHistoryCount> getTopPointHistoryCounts() {
-        if (Common.databaseProxy.getNoSQLProxy() == null)
+        if (pointValueDao instanceof PointValueDaoSQL) {
             return this.getTopPointHistoryCountsSql();
+        }
         return this.getTopPointHistoryCountsNoSql();
     }
 
@@ -479,8 +486,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     private List<PointHistoryCount> getTopPointHistoryCountsNoSql() {
-
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
         //For now we will do this the slow way
 
         List<DataPointVO> points = getJoinedSelectQuery()
@@ -490,7 +495,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         List<PointHistoryCount> counts = new ArrayList<>();
         for (DataPointVO point : points) {
             PointHistoryCount phc = new PointHistoryCount();
-            long count = dao.dateRangeCount(point, 0L, Long.MAX_VALUE);
+            long count = pointValueDao.dateRangeCount(point, 0L, Long.MAX_VALUE);
             phc.setCount((int) count);
             phc.setPointId(point.getId());
             phc.setPointName(point.getExtendedName());

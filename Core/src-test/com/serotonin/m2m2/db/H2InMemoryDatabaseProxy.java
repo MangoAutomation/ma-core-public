@@ -6,7 +6,6 @@ package com.serotonin.m2m2.db;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -23,12 +22,12 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
-import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
@@ -47,8 +46,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
     protected String databaseName = UUID.randomUUID().toString();
     protected JdbcConnectionPool dataSource;
-    protected PointValueDaoDefinition pointValueDaoDefinition;
-    protected PointValueCacheDefinition pointValueCacheDefinition;
     protected boolean initialized = false;
     protected final boolean initWebConsole;
     protected Integer webPort;
@@ -169,26 +166,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         // The database exists, so let's make its schema version matches the application version.
         DBUpgrade.checkUpgrade();
 
-        // Check if we are using NoSQL and use the first enabled proxy
-        if (pointValueDaoDefinition != null) {
-            pointValueDaoDefinition.initialize();
-        } else {
-            List<PointValueDaoDefinition> proxies = ModuleRegistry.getDefinitions(PointValueDaoDefinition.class);
-            for (PointValueDaoDefinition proxy : proxies) {
-                pointValueDaoDefinition = proxy;
-                pointValueDaoDefinition.initialize();
-                break;
-            }
-        }
-
-        //Check to see if we are using the latest values store
-        List<PointValueCacheDefinition> latestValueProxies = ModuleRegistry.getDefinitions(PointValueCacheDefinition.class);
-        for(PointValueCacheDefinition proxy : latestValueProxies) {
-            pointValueCacheDefinition = proxy;
-            //Defer initialization until post spring context init via module element definition lifecycle
-            break;
-        }
-
         initialized = true;
     }
 
@@ -275,9 +252,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
 
         //Clean the noSQL database
-        if (pointValueDaoDefinition != null) {
-            pointValueDaoDefinition.getPointValueDao().deleteAllPointDataWithoutCount();
-        }
+        Common.getBean(PointValueDao.class).deleteAllPointDataWithoutCount();
 
         //clear all caches in services
         Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()

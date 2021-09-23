@@ -145,10 +145,6 @@ public interface DatabaseProxy extends TransactionCapable {
         return Common.getBean(PointValueDao.class);
     }
 
-    default PointValueDaoDefinition getNoSQLProxy() {
-        return Common.getBean(PointValueDaoDefinition.class);
-    }
-
     default PointValueCache getPointValueCacheDao() {
         return Common.getBean(PointValueCache.class);
     }
