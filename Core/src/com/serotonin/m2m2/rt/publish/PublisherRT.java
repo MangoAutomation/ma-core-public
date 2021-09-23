@@ -274,12 +274,18 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         }
 
         try {
+            // Terminate the queue
+            queue.terminate();
+        } catch (Exception e) {
+            log.error("Failed to terminate queue for " + readableIdentifier(), e);
+        }
+
+        try {
             // Remove any outstanding events.
             Common.eventManager.cancelEventsForPublisher(getId());
         } catch (Exception e) {
             log.error("Failed to cancel events for " + readableIdentifier(), e);
         }
-        queue.terminate();
     }
 
     @Override
