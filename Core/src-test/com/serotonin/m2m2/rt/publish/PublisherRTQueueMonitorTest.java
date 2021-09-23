@@ -71,7 +71,7 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
 
     }
 
-    @Test//(timeout = 10000)
+    @Test(timeout = 1 * 60 * 1000)
     public void testQueueMonitor() {
         //create DS and DP and enable them (need to be running)
         dataSource = this.createMockDataSource(true);
