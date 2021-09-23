@@ -132,7 +132,7 @@ public class PublishQueue<T extends PublishedPointVO, V> {
     public void terminate() {
         Common.MONITORED_VALUES.remove(this.queueSizeMonitor.getId());
         if(!queue.isEmpty()){
-            LOG.debug("Publisher queue " + owner.getVo().getName() + " is not empty.");
+            LOG.debug("Publisher " + owner.getVo().getName() + " terminated with a non-empty queue.");
         }
     }
 }
