@@ -5,11 +5,12 @@ import java.sql.SQLException;
 import org.postgresql.util.PSQLException;
 import org.springframework.jdbc.BadSqlGrammarException;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 public class PostgresProxy extends BasePooledProxy {
-    public PostgresProxy(DatabaseProxyFactory factory, boolean useMetrics) {
-        super(factory, useMetrics);
+    public PostgresProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
+        super(factory, configuration);
     }
 
     @Override

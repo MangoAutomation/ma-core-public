@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.serotonin.m2m2.Common;
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -19,8 +19,8 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
     private final Logger log = LoggerFactory.getLogger(BasePooledProxy.class);
     private HikariDataSource dataSource;
 
-    public BasePooledProxy(DatabaseProxyFactory factory, boolean useMetrics) {
-        super(factory, useMetrics);
+    public BasePooledProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
+        super(factory, configuration);
     }
 
     @Override
@@ -28,17 +28,17 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
         log.info("Initializing pooled connection manager");
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(getUrl(propertyPrefix));
-        config.setUsername(Common.envProps.getString(propertyPrefix + "db.username"));
+        config.setUsername(env.getProperty(propertyPrefix + "db.username"));
         config.setPassword(getDatabasePassword(propertyPrefix));
         config.setDriverClassName(getDriverClassName());
         config.setConnectionTestQuery("SELECT 1");
-        config.setMaximumPoolSize(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 10));
-        config.setMinimumIdle(Common.envProps.getInt(propertyPrefix + "db.pool.maxIdle", 10));
+        config.setMaximumPoolSize(env.getProperty(propertyPrefix + "db.pool.maxActive", int.class, 10));
+        config.setMinimumIdle(env.getProperty(propertyPrefix + "db.pool.maxIdle", int.class, 10));
         dataSource = new HikariDataSource(config);
     }
 
     protected String getUrl(String propertyPrefix) {
-        return Common.envProps.getString(propertyPrefix + "db.url");
+        return env.getRequiredProperty(propertyPrefix + "db.url");
     }
 
     abstract protected String getDriverClassName();

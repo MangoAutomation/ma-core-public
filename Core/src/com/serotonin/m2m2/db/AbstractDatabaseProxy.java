@@ -16,18 +16,22 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -39,15 +43,18 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     private final Logger log = LoggerFactory.getLogger(AbstractDatabaseProxy.class);
-    private final boolean useMetrics;
     private PlatformTransactionManager transactionManager;
-    private final DatabaseProxyFactory factory;
+    protected final DatabaseProxyFactory factory;
+    protected final Environment env;
+    protected final ClassLoader classLoader;
 
-    public AbstractDatabaseProxy(DatabaseProxyFactory factory, boolean useMetrics) {
+    public AbstractDatabaseProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
         this.factory = factory;
-        this.useMetrics = useMetrics;
+        this.env = configuration.getEnv();
+        this.classLoader = configuration.getClassLoader();
     }
 
+    @PostConstruct
     @Override
     public void initialize() {
         initializeImpl("");
@@ -59,7 +66,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         this.transactionManager = new DataSourceTransactionManager(getDataSource());
         DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
                 context,
-                Common.getBean(ApplicationContext.class).getClassLoader());
+                classLoader);
 
         //First confirm that if we are MySQL we have JSON Support
         if(getType().name().equals(DatabaseType.MYSQL.name())) {
@@ -79,11 +86,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         try {
             boolean newDatabase = false;
-            String convertTypeStr = Common.envProps.getString("convert.db.type");
+            String convertTypeStr = env.getProperty("convert.db.type");
             boolean willConvert = false;
 
             if (!databaseExists(ejt)) {
-                if (Common.envProps.getString("db.createTables.restoreFrom") != null) {
+                if (env.getProperty("db.createTables.restoreFrom") != null) {
                     restoreTables();
                 } else {
                     createTables();
@@ -109,6 +116,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             //Ensure the modules are installed after the core schema is updated
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
                 try {
+                    def.setDatabaseProxy(this);
                     def.newInstallationCheck(ejt);
                 } catch (Exception e) {
                     log.error("Module " + def.getModule().getName() + " new installation check failed", e);
@@ -171,7 +179,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     private void restoreTables() throws IOException {
-        String restoreFrom = Common.envProps.getString("db.createTables.restoreFrom");
+        String restoreFrom = env.getRequiredProperty("db.createTables.restoreFrom");
         Path restoreFromPath = Common.MA_DATA_PATH.resolve(restoreFrom).normalize();
 
         try (OutputStream os = createTablesOutputStream()) {
@@ -204,10 +212,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     private OutputStream createTablesOutputStream() {
-        boolean createLogFile = Common.envProps.getBoolean("db.createTables.createLogFile", true);
+        boolean createLogFile = env.getProperty("db.createTables.createLogFile", boolean.class, true);
         return createLogFile ? createLogOutputStream("createTables.log") : null;
     }
 
+    @PreDestroy
     @Override
     public void terminate() {
         terminateImpl();
@@ -223,7 +232,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     @Override
     public String getDatabasePassword(String propertyPrefix) {
-        return Common.envProps.getString(propertyPrefix + "db.password");
+        return env.getProperty(propertyPrefix + "db.password");
     }
 
     @Override
@@ -233,13 +242,13 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     @Override
     public OutputStream createLogOutputStream(String fileName) {
-        String dir = Common.envProps.getString("db.update.log.dir", "");
+        String dir = env.getProperty("db.update.log.dir", "");
         Path logPath = Common.getLogsPath().resolve(dir).toAbsolutePath().normalize();
         Path logFile = logPath.resolve(fileName);
 
         try {
             Files.createDirectories(logPath);
-            log.info("Writing upgrade log to " + logFile.toString());
+            log.info("Writing upgrade log to " + logFile);
             return Files.newOutputStream(logFile, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (Exception e) {
             log.error("Failed to create database upgrade log file.", e);
@@ -251,6 +260,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     @Override
     public boolean isUseMetrics() {
-        return this.useMetrics;
+        return env.getProperty("db.useMetrics", boolean.class, false);
     }
 }

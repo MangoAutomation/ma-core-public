@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 
@@ -27,8 +28,8 @@ public class H2DatabaseUpgradeTest extends MangoTestBase {
     private static class UpgradeConfig {
         @Bean
         @Primary
-        public DatabaseProxy databaseProxy() {
-            return new H2InMemoryDatabaseProxy(true, 8000, false,
+        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
+            return new H2InMemoryDatabaseProxy(configuration,
                     () -> getClass().getResourceAsStream("version1/createTables-H2.sql"),
                     () -> getClass().getResourceAsStream("version1/defaultData-H2.sql"));
         }

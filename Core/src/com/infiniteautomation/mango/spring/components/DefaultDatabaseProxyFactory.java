@@ -5,9 +5,9 @@
 package com.infiniteautomation.mango.spring.components;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.AbstractDatabaseProxy;
 import com.serotonin.m2m2.db.DatabaseProxyFactory;
@@ -20,26 +20,24 @@ import com.serotonin.m2m2.db.PostgresProxy;
 @Component
 public class DefaultDatabaseProxyFactory implements DatabaseProxyFactory {
 
-    private final Environment env;
+    private final DatabaseProxyConfiguration configuration;
 
     @Autowired
-    public DefaultDatabaseProxyFactory(Environment env) {
-        this.env = env;
+    public DefaultDatabaseProxyFactory(DatabaseProxyConfiguration configuration) {
+        this.configuration = configuration;
     }
 
     @Override
     public AbstractDatabaseProxy createDatabaseProxy(DatabaseType type) {
-        boolean useMetrics = env.getProperty("db.useMetrics", boolean.class, false);
-
         switch(type) {
             case H2:
-                return new H2Proxy(this, useMetrics);
+                return new H2Proxy(this, configuration);
             case MSSQL:
-                return new MSSQLProxy(this, useMetrics);
+                return new MSSQLProxy(this, configuration);
             case MYSQL:
-                return new MySQLProxy(this, useMetrics);
+                return new MySQLProxy(this, configuration);
             case POSTGRES:
-                return new PostgresProxy(this, useMetrics);
+                return new PostgresProxy(this, configuration);
             default:
                 throw new ShouldNeverHappenException("Unknown/unsupported database type " + type);
         }

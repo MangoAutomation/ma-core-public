@@ -16,8 +16,12 @@ import java.util.List;
 import java.util.Properties;
 
 import org.junit.Test;
+import org.springframework.mock.env.MockEnvironment;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
+import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockMangoProperties;
@@ -69,7 +73,10 @@ public class MySQLDatabaseUpgradeTest {
         //Insert the test data
 
         //Start the proxy and let it upgrade
-        MySQLProxy proxy = new MySQLProxy(DatabaseProxyFactory.UNSUPPORTED_INSTANCE, false);
+        MockEnvironment env = new MockEnvironment();
+        env.getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
+        DatabaseProxyConfiguration configuration = new DatabaseProxyConfiguration(env, getClass().getClassLoader());
+        MySQLProxy proxy = new MySQLProxy(DatabaseProxyFactory.UNSUPPORTED_INSTANCE, configuration);
         proxy.initialize();
     }
 

@@ -20,13 +20,13 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
@@ -501,9 +501,8 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
     private static class Config {
         @Bean
         @Primary
-        public DatabaseProxy databaseProxy(@Value("${db.web.start}") boolean initWebConsole,
-                                           @Value("${db.web.port}") Integer webPort) {
-            return new H2InMemoryDatabaseProxyNoLocking(initWebConsole, webPort);
+        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration databaseProxyConfiguration) {
+            return new H2InMemoryDatabaseProxyNoLocking(databaseProxyConfiguration);
         }
     }
 
@@ -515,8 +514,8 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
     }
 
     private static class H2InMemoryDatabaseProxyNoLocking extends H2InMemoryDatabaseProxy {
-        public H2InMemoryDatabaseProxyNoLocking(boolean initWebConsole, Integer webPort) {
-            super(initWebConsole, webPort, false);
+        public H2InMemoryDatabaseProxyNoLocking(DatabaseProxyConfiguration databaseProxyConfiguration) {
+            super(databaseProxyConfiguration);
         }
         @Override
         public String getUrl() {

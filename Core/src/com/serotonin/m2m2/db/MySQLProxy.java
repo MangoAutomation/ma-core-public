@@ -10,14 +10,15 @@ import java.sql.SQLException;
 
 import org.springframework.dao.DataAccessException;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 
 public class MySQLProxy extends BasePooledProxy {
 
-    public MySQLProxy(DatabaseProxyFactory factory, boolean useMetrics) {
-        super(factory, useMetrics);
+    public MySQLProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
+        super(factory, configuration);
     }
 
     @Override

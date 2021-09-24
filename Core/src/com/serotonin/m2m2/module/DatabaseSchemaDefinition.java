@@ -130,4 +130,8 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
         }
         return resource;
     }
+
+    public void setDatabaseProxy(DatabaseProxy databaseProxy) {
+        this.databaseProxy = databaseProxy;
+    }
 }

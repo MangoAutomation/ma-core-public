@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -317,13 +318,13 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public DatabaseProxy databaseProxy(DatabaseProxyFactory factory, @Value("${db.type}") DatabaseType type) {
-        return factory.createDatabaseProxy(type);
+    public DatabaseType databaseType(@Value("${db.type}") String type) {
+        return DatabaseType.valueOf(type.toUpperCase(Locale.ROOT));
     }
 
     @Bean
-    public DatabaseType dataBaseType(DatabaseProxy proxy) {
-        return proxy.getType();
+    public DatabaseProxy databaseProxy(DatabaseProxyFactory factory, DatabaseType type) {
+        return factory.createDatabaseProxy(type);
     }
 
     @Bean(destroyMethod = "") // Prevent Spring from prematurely calling close()

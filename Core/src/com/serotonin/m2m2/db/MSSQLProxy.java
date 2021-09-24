@@ -7,11 +7,12 @@ import java.sql.SQLException;
 
 import org.springframework.dao.DataAccessException;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 public class MSSQLProxy extends BasePooledProxy {
-    public MSSQLProxy(DatabaseProxyFactory factory, boolean useMetrics) {
-        super(factory, useMetrics);
+    public MSSQLProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
+        super(factory, configuration);
     }
 
     @Override

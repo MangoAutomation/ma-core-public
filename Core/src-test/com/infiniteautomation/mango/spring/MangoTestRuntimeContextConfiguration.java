@@ -3,7 +3,6 @@
  */
 package com.infiniteautomation.mango.spring;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -51,10 +50,8 @@ public class MangoTestRuntimeContextConfiguration extends MangoRuntimeContextCon
 
     @Bean
     @Primary
-    public DatabaseProxy databaseProxy(@Value("${db.web.start}") boolean initWebConsole,
-                                       @Value("${db.web.port}") Integer webPort,
-                                       @Value("${db.useMetrics}") boolean useMetrics) {
-        return new H2InMemoryDatabaseProxy(initWebConsole, webPort, useMetrics);
+    public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
+        return new H2InMemoryDatabaseProxy(configuration);
     }
 
 }

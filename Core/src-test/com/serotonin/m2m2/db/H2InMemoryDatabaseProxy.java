@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -18,11 +20,12 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;
@@ -49,30 +52,21 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     protected String databaseName = UUID.randomUUID().toString();
     protected JdbcConnectionPool dataSource;
     protected boolean initialized = false;
-    protected final boolean initWebConsole;
-    protected Integer webPort;
     private Server web; //web UI
     protected DataSourceTransactionManager transactionManager;
-    protected final boolean useMetrics;
     protected final Supplier<InputStream> altCreateScript;
     protected final Supplier<InputStream> defaultDataScript;
 
-    public H2InMemoryDatabaseProxy() {
-        this(false, 0, false);
+    private final Environment env;
+    private final ClassLoader classLoader;
+
+    public H2InMemoryDatabaseProxy(DatabaseProxyConfiguration configuration) {
+        this(configuration, null, null);
     }
 
-    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort) {
-        this(initWebConsole, webPort, false);
-    }
-
-    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics) {
-        this(initWebConsole, webPort, useMetrics, null, null);
-    }
-
-    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics, Supplier<InputStream> altCreateScript, Supplier<InputStream> defaultDataScript) {
-        this.initWebConsole = initWebConsole;
-        this.webPort = webPort;
-        this.useMetrics = useMetrics;
+    public H2InMemoryDatabaseProxy(DatabaseProxyConfiguration configuration, Supplier<InputStream> altCreateScript, Supplier<InputStream> defaultDataScript) {
+        this.env = configuration.getEnv();
+        this.classLoader = configuration.getClassLoader();
         this.altCreateScript = altCreateScript;
         this.defaultDataScript = defaultDataScript;
     }
@@ -92,6 +86,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         dataSource.dispose();
     }
 
+    @PostConstruct
     @Override
     public void initialize() {
         JdbcDataSource jds = new JdbcDataSource();
@@ -104,12 +99,12 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
         DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
                 context,
-                Common.getBean(ApplicationContext.class).getClassLoader());
+                classLoader);
 
-        if(initWebConsole) {
+        if(env.getRequiredProperty("db.web.start", boolean.class)) {
             String webArgs[] = new String[4];
             webArgs[0] = "-webPort";
-            webArgs[1] = webPort.toString();
+            webArgs[1] = env.getRequiredProperty("db.web.port").toString();
             webArgs[2] = "-ifExists";
             webArgs[3] = "-webAllowOthers";
             try {
@@ -154,6 +149,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
                 try {
+                    def.setDatabaseProxy(this);
                     def.newInstallationCheck(ejt);
                 } catch (Exception e) {
                     log.error("newInstallationCheck() failed", e);
@@ -182,6 +178,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         return DatabaseType.H2;
     }
 
+    @PreDestroy
     @Override
     public void terminate() {
         if (dataSource != null)
@@ -227,7 +224,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
     @Override
     public boolean isUseMetrics() {
-        return this.useMetrics;
+        return env.getProperty("db.useMetrics", boolean.class, false);
     }
 
     /**
@@ -254,7 +251,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
         DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
                 context,
-                Common.getBean(ApplicationContext.class).getClassLoader());
+                classLoader);
 
         upgrader.setSystemSetting(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                 Integer.toString(Common.getDatabaseSchemaVersion()));

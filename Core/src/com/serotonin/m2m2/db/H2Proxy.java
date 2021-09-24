@@ -44,6 +44,7 @@ import org.h2.tools.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -71,8 +72,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
         DEFAULT_OPTIONS = Collections.unmodifiableMap(options);
     }
 
-    public H2Proxy(DatabaseProxyFactory factory, boolean useMetrics) {
-        super(factory, useMetrics);
+    public H2Proxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
+        super(factory, configuration);
     }
 
     @Override
