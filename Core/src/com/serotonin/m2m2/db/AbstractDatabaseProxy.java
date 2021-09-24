@@ -21,6 +21,7 @@ import javax.annotation.PreDestroy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.upgrade.DatabaseSchemaUpgrader;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -67,6 +69,14 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
                 context,
                 classLoader);
+
+        // we have to set the locale before even attempting upgrades as the locale/language is used when deserializing
+        // VO objects stored in blobs
+        try {
+            upgrader.getSystemSetting(SystemSettingsDao.LANGUAGE).ifPresent(Common::setSystemLanguage);
+        } catch (DataAccessException e) {
+            // that's ok, table probably doesn't exist yet
+        }
 
         //First confirm that if we are MySQL we have JSON Support
         if(getType().name().equals(DatabaseType.MYSQL.name())) {

@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 import javax.sql.DataSource;
 
@@ -188,10 +187,7 @@ public interface DatabaseProxy extends TransactionCapable {
                 .values(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Integer.toString(Common.getDatabaseSchemaVersion()))
                 .execute();
 
-        // Common.translate() attempts to use the SystemSettingsDao before it is initialized, not possible to have set
-        // a language in the database before core database is initialized anyway.
-        Locale locale = Locale.getDefault();
-        Translations translations = Translations.getTranslations(locale);
+        Translations translations = Common.getTranslations();
 
         context.insertInto(r, r.id, r.xid, r.name)
                 .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), translations.translate("roles.superadmin"))

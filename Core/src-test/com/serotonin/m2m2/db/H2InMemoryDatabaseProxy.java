@@ -17,6 +17,7 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,6 +101,14 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
                 context,
                 classLoader);
+
+        // we have to set the locale before even attempting upgrades as the locale/language is used when deserializing
+        // VO objects stored in blobs
+        try {
+            upgrader.getSystemSetting(SystemSettingsDao.LANGUAGE).ifPresent(Common::setSystemLanguage);
+        } catch (DataAccessException e) {
+            // that's ok, table probably doesn't exist yet
+        }
 
         if(env.getRequiredProperty("db.web.start", boolean.class)) {
             String webArgs[] = new String[4];

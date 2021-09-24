@@ -3,7 +3,6 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.m2m2.Common;
@@ -18,8 +17,9 @@ public class LanguageSettingListenerDefinition extends SystemSettingsListenerDef
 
 	@Override
 	public void systemSettingsSaved(String key, String oldValue, String newValue) {
-        if (newValue == null)
-            newValue = systemSettingsDao.getValue(SystemSettingsDao.LANGUAGE);
+        if (newValue == null) {
+			newValue = systemSettingsDao.getValue(SystemSettingsDao.LANGUAGE);
+		}
 		Common.setSystemLanguage(newValue);
 	}
 
@@ -30,9 +30,7 @@ public class LanguageSettingListenerDefinition extends SystemSettingsListenerDef
 
 	@Override
 	public List<String> getKeys() {
-		List<String> keys = new ArrayList<String>();
-		keys.add(SystemSettingsDao.LANGUAGE);
-		return keys;
+		return List.of(SystemSettingsDao.LANGUAGE);
 	}
 
 }

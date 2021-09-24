@@ -158,6 +158,10 @@ public class Common {
 
     public static final String APPLICATION_LOGO = "/images/logo.png";
 
+    private static volatile Translations TRANSLATIONS;
+    private static volatile Locale LOCALE = Locale.getDefault();
+    private static final Object TRANSLATIONS_LOCK = new Object();
+
     public static AbstractTimer timer = new OrderedRealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
@@ -654,10 +658,6 @@ public class Common {
     //
     // i18n
     //
-    private static Object i18nLock = new Object();
-    private static String systemLanguage;
-    private static Translations systemTranslations;
-    private static Locale systemLocale;
 
     private static final LazyInitSupplier<List<StringStringPair>> LANGUAGES = new LazyInitSupplier<>(() -> {
         List<StringStringPair> languages = new ArrayList<>();
@@ -672,32 +672,27 @@ public class Common {
     });
 
     public static String translate(String key) {
-        ensureI18n();
-        return systemTranslations.translate(key);
-    }
-
-    public static Translations getTranslations() {
-        ensureI18n();
-        return systemTranslations;
+        return getTranslations().translate(key);
     }
 
     public static Locale getLocale() {
-        ensureI18n();
-        return systemLocale;
+        return LOCALE;
     }
 
-    private static void ensureI18n() {
-        if (systemLanguage == null) {
-            synchronized (i18nLock) {
-                if (systemLanguage == null) {
-                    systemLanguage = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.LANGUAGE);
-                    systemLocale = parseLocale(systemLanguage);
-                    if (systemLocale == null)
-                        throw new IllegalArgumentException("Locale for given language not found: " + systemLanguage);
-                    systemTranslations = Translations.getTranslations(systemLocale);
+    public static Translations getTranslations() {
+        Translations translations = TRANSLATIONS;
+        if (translations == null) {
+            synchronized (TRANSLATIONS_LOCK) {
+                if ((translations = TRANSLATIONS) == null) {
+                    translations = TRANSLATIONS = Translations.getTranslations(LOCALE);
                 }
             }
         }
+        return translations;
+    }
+
+    public static void clearTranslations() {
+        TRANSLATIONS = null;
     }
 
     public static String getMessage(String key, Object... args) {
@@ -706,11 +701,15 @@ public class Common {
     }
 
     public static void setSystemLanguage(String language) {
-        if (parseLocale(language) == null)
+        Locale locale = parseLocale(language);
+        if (locale == null) {
             throw new IllegalArgumentException("Locale for given language not found: " + language);
-        systemLanguage = null;
-        systemLocale = null;
-        systemTranslations = null;
+        }
+        synchronized (TRANSLATIONS_LOCK) {
+            Locale.setDefault(locale);
+            LOCALE = locale;
+            TRANSLATIONS = null;
+        }
     }
 
     public static void setSystemTimezone(String zoneId) {
