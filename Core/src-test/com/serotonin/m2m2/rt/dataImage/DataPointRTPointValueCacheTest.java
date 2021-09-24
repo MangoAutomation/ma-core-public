@@ -10,7 +10,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
@@ -158,7 +157,6 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
     }
 
     public static class PointValueCacheTestConfig {
-        @Primary
         @Bean
         public PointValueDao pointValueDao(DatabaseProxy databaseProxy) {
             return new MockPointValueDao(databaseProxy);

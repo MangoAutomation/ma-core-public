@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.Common;
@@ -127,7 +126,6 @@ public class DataPointRTTest extends MangoTestBase {
     //TODO Test Quantized
 
     public static class DataPointRTTestConfig {
-        @Primary
         @Bean
         public PointValueDao pointValueDao(DatabaseProxy databaseProxy) {
             return new MockPointValueDao(databaseProxy);

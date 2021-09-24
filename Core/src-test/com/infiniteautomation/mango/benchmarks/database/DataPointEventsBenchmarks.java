@@ -32,7 +32,6 @@ import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.benchmarks.BenchmarkRunner;
 import com.infiniteautomation.mango.benchmarks.MockMango;
@@ -57,7 +56,6 @@ public class DataPointEventsBenchmarks extends BenchmarkRunner {
 
     public static class DataPointEventsBenchmarksConfig {
         @Bean
-        @Primary
         public DatabaseProxy databaseProxy(DatabaseProxyFactory databaseProxyFactory) {
             return databaseProxyFactory.createDatabaseProxy(DatabaseType.MYSQL);
         }

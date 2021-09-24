@@ -37,6 +37,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoPropertySource;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.FreemarkerTemplateLoaderDefinition;
@@ -210,13 +211,13 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         @SuppressWarnings("resource")
         AnnotationConfigApplicationContext runtimeContext = new AnnotationConfigApplicationContext();
         runtimeContext.setClassLoader(classLoader);
-        runtimeContext.setId(MangoTestRuntimeContextConfiguration.CONTEXT_ID);
+        runtimeContext.setId(MangoRuntimeContextConfiguration.CONTEXT_ID);
         runtimeContext.getEnvironment().getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
         runtimeContext.register(MangoTestRuntimeContextConfiguration.class);
         runtimeContext.register(runtimeContextConfigurations.toArray(new Class<?>[] {}));
         runtimeContext.refresh();
         runtimeContext.start();
-        return MangoTestRuntimeContextConfiguration.getFutureRuntimeContext();
+        return MangoRuntimeContextConfiguration.getFutureRuntimeContext();
     }
 
     private void freemarkerInitialize() {

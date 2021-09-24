@@ -21,7 +21,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -498,7 +497,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
     public static class Config {
         @Bean
-        @Primary
         public DatabaseProxy databaseProxy(DatabaseProxyConfiguration databaseProxyConfiguration) {
             return new H2InMemoryDatabaseProxyNoLocking(databaseProxyConfiguration);
         }
