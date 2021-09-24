@@ -23,6 +23,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.SQLDialect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -34,7 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
-import com.infiniteautomation.mango.spring.DaoDependencies;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.components.EmailAddressVerificationService;
 import com.infiniteautomation.mango.spring.components.PasswordResetService;
 import com.infiniteautomation.mango.spring.events.audit.SystemSettingChangeAuditEvent;
@@ -47,6 +48,7 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.UpgradeVersionState;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
@@ -228,11 +230,13 @@ public class SystemSettingsDao extends BaseDao {
     private static final String NULL_SETTING_VALUE = new String("");
 
     @Autowired
-    private SystemSettingsDao(DaoDependencies dependencies) {
-        super(dependencies.getDatabaseProxy());
+    private SystemSettingsDao(DatabaseProxy databaseProxy,
+                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper objectMapper,
+                              ApplicationEventPublisher eventPublisher) {
+        super(databaseProxy);
         this.table = SystemSettings.SYSTEM_SETTINGS;
-        this.mapper = dependencies.getObjectMapper();
-        this.eventPublisher = dependencies.getEventPublisher();
+        this.mapper = objectMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @PostConstruct
