@@ -32,11 +32,8 @@ import org.jooq.SortOrder;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLOperation;
@@ -49,9 +46,8 @@ import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.service.EventInstanceService.AlarmPointTagCount;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -103,11 +99,10 @@ public class EventInstanceDao extends AbstractVoDao<EventInstanceVO, EventsRecor
 
     @Autowired
     private EventInstanceDao(DataPointTagsDao dataPointTagsDao,
-                             PermissionService permissionService,
-                             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                             ApplicationEventPublisher publisher, UserCommentDao userCommentDao,
+                             DaoDependencies dependencies,
+                             UserCommentDao userCommentDao,
                              @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
-        super(null, Events.EVENTS, null, mapper, publisher, permissionService);
+        super(dependencies, null, Events.EVENTS, null);
         this.users = Users.USERS;
         this.dataPointTagsDao = dataPointTagsDao;
         this.userCommentDao = userCommentDao;

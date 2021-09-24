@@ -5,16 +5,12 @@ package com.serotonin.m2m2.db.dao;
 
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.FileStores;
 import com.infiniteautomation.mango.db.tables.records.FileStoresRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -31,11 +27,8 @@ public class FileStoreDao extends AbstractVoDao<FileStore, FileStoresRecord, Fil
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(FileStoreDao.class));
 
     @Autowired
-    private FileStoreDao(
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-            ApplicationEventPublisher publisher,
-            PermissionService permissionService) {
-        super(FileStore.FileStoreAuditEvent.TYPE_NAME, FileStores.FILE_STORES, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"), mapper, publisher, permissionService);
+    private FileStoreDao(DaoDependencies dependencies) {
+        super(dependencies, FileStore.FileStoreAuditEvent.TYPE_NAME, FileStores.FILE_STORES, new TranslatableMessage("internal.monitor.FILESTORE_COUNT"));
     }
 
     public static FileStoreDao getInstance() {

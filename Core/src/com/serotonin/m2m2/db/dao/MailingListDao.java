@@ -11,18 +11,14 @@ import java.util.List;
 
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.MailingLists;
 import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -49,13 +45,10 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
 
 
     @Autowired
-    private MailingListDao(PermissionService permissionService,
-                           @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                           ApplicationEventPublisher publisher){
-        super(AuditEventType.TYPE_MAILING_LIST,
+    private MailingListDao(DaoDependencies dependencies){
+        super(dependencies, AuditEventType.TYPE_MAILING_LIST,
                 MailingLists.MAILING_LISTS,
-                new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
-                mapper, publisher, permissionService);
+                new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"));
     }
 
     public static MailingListDao getInstance() {

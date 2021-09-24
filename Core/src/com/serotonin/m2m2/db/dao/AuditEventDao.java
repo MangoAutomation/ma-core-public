@@ -9,15 +9,11 @@ import java.util.List;
 
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.Audit;
 import com.infiniteautomation.mango.db.tables.records.AuditRecord;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
@@ -36,10 +32,8 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
     private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
 
     @Autowired
-    private AuditEventDao(
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-            ApplicationEventPublisher publisher, PermissionService permissionService) {
-        super(Audit.AUDIT, mapper, publisher, permissionService);
+    private AuditEventDao(DaoDependencies dependencies) {
+        super(dependencies, Audit.AUDIT);
     }
 
     /**

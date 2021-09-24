@@ -16,7 +16,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -51,7 +56,6 @@ import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDef
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
@@ -406,15 +410,26 @@ public class Upgrade12 extends DBUpgrade {
         }
     }
 
+    public Optional<String> getSystemSetting(String key) {
+        Table<Record> systemSettings = DSL.table("systemSettings");
+        Field<String> settingValue = DSL.field("settingValue", String.class);
+        Field<String> settingName = DSL.field("settingName", String.class);
+
+        return create.select(settingValue)
+                .from(systemSettings)
+                .where(settingName.eq(key))
+                .fetchOptional(settingValue);
+    }
+
     /**
      * Export all audit events prior to deleting from table
      * @return
      * @throws IOException
      */
     private void backupAuditEvents(OutputStream os){
-
         //Write them to disk
-        String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
+        String backupLocation = getSystemSetting(SystemSettingsDao.BACKUP_FILE_LOCATION)
+                .orElse(Common.getBackupPath().toString());
         File backupFolder = new File(backupLocation);
         boolean writable = true;
         if(!backupFolder.exists())

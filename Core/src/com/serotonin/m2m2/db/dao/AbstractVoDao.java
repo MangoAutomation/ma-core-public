@@ -5,18 +5,17 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.events.audit.AuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.ChangeAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.CreateAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -41,28 +40,27 @@ public abstract class AbstractVoDao<T extends AbstractVO, R extends Record, TABL
     protected final String auditEventType;
 
     /**
-     *
-     * @param auditEventType
-     * @param table
-     * @param mapper
-     * @param publisher
+     * @param dependencies DAO dependencies
+     * @param auditEventType event type for generated audit events
+     * @param table jOOQ table
      */
-    protected AbstractVoDao(String auditEventType, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
-        this(auditEventType, table, null, mapper, publisher, permissionService);
+    protected AbstractVoDao(DaoDependencies dependencies,
+                            String auditEventType,
+                            TABLE table) {
+        this(dependencies, auditEventType, table, null);
     }
 
     /**
-     *
-     * @param auditEventType
-     * @param table
+     * @param dependencies DAO dependencies
+     * @param auditEventType event type for generated audit events
+     * @param table jOOQ table
      * @param countMonitorName - If not null create a monitor to track table row count
-     * @param mapper
-     * @param publisher
      */
-    protected AbstractVoDao(String auditEventType, TABLE table,
-                            TranslatableMessage countMonitorName,
-                            ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
-        super(table, countMonitorName, mapper, publisher, permissionService);
+    protected AbstractVoDao(DaoDependencies dependencies,
+                            String auditEventType,
+                            TABLE table,
+                            @Nullable TranslatableMessage countMonitorName) {
+        super(dependencies, table, countMonitorName);
         this.xidPrefix = getXidPrefix();
         this.auditEventType = auditEventType;
     }

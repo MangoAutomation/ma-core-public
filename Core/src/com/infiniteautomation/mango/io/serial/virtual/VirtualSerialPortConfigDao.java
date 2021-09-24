@@ -70,8 +70,9 @@ public class VirtualSerialPortConfigDao {
 	 * @return
 	 */
 	public List<VirtualSerialPortConfig> getAll(){
+		SystemSettingsDao systemSettingsDao = Common.getBean(SystemSettingsDao.class);
         @SuppressWarnings("unchecked")
-		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.instance.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
+		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) systemSettingsDao.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
                 new TypeDefinition(List.class, VirtualSerialPortConfig.class));
         if(list == null)
         	list = new ArrayList<VirtualSerialPortConfig>();
@@ -112,7 +113,8 @@ public class VirtualSerialPortConfigDao {
      * @param configs
      */
     private void updateSystemSettings(List<VirtualSerialPortConfig> configs){
-    	SystemSettingsDao.instance.setJsonObjectValue(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY, configs);
+		SystemSettingsDao systemSettingsDao = Common.getBean(SystemSettingsDao.class);
+    	systemSettingsDao.setJsonObjectValue(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY, configs);
     	//Reload the serial ports
     	try {
 			Common.serialPortManager.refreshFreeCommPorts();

@@ -15,18 +15,14 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
 import com.infiniteautomation.mango.db.tables.records.EventDetectorsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -65,13 +61,11 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     private final Map<String, Field<Integer>> sourceTypeToField;
 
     @Autowired
-    private EventDetectorDao(PermissionService permissionService,
-                             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_EVENT_DETECTOR,
+    private EventDetectorDao(DaoDependencies dependencies) {
+        super(dependencies,
+                AuditEventType.TYPE_EVENT_DETECTOR,
                 EventDetectors.EVENT_DETECTORS,
-                new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
-                mapper, publisher, permissionService);
+                new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"));
         this.dataPointTable = DataPoints.DATA_POINTS;
         this.dataSourceTable = DataSources.DATA_SOURCES;
         //Build our ordered column set from the Module Registry

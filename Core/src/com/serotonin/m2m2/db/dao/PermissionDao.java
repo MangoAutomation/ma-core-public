@@ -37,7 +37,7 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
- * NOTE: Permissions are cached, usage of tjos dao should be limited to within the PermissionService
+ * NOTE: Permissions are cached, usage of this DAO should be limited to within the PermissionService
  * @author Jared Wiltshire
  */
 @Repository

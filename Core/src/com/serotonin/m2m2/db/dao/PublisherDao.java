@@ -22,17 +22,13 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.Publishers;
 import com.infiniteautomation.mango.db.tables.records.PublishersRecord;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
@@ -42,7 +38,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -63,12 +58,10 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     private final DataPointDao dataPointDao;
 
     @Autowired
-    private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                         ApplicationEventPublisher publisher, DataPointDao dataPointDao, PermissionService permissionService){
-        super(AuditEventType.TYPE_PUBLISHER,
+    private PublisherDao(DaoDependencies dependencies, DataPointDao dataPointDao) {
+        super(dependencies, AuditEventType.TYPE_PUBLISHER,
                 Publishers.PUBLISHERS,
-                new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
-                mapper, publisher, permissionService);
+                new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
         this.dataPointDao = dataPointDao;
     }
 

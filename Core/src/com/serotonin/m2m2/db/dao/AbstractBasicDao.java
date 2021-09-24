@@ -60,6 +60,7 @@ import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.tables.MintermsRoles;
 import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -67,7 +68,6 @@ import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -100,28 +100,27 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     protected final Map<String, RQLSubSelectCondition> subSelectMap;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
-    public AbstractBasicDao(DatabaseProxy databaseProxy, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher, PermissionService permissionService) {
-        this(databaseProxy, table, null, mapper, publisher, permissionService);
+    /**
+     * @param dependencies DAO dependencies
+     * @param table table definition
+     */
+    public AbstractBasicDao(DaoDependencies dependencies, TABLE table) {
+        this(dependencies, table, null);
     }
 
     /**
-     * @param table - table definition
-     * @param countMonitorName - If not null create a monitor to track table row count
-     * @param mapper
-     * @param publisher
-     * @param permissionService
+     * @param dependencies DAO dependencies
+     * @param table table definition
+     * @param countMonitorName If not null create a monitor to track table row count
      */
-    public AbstractBasicDao(DatabaseProxy databaseProxy,
+    public AbstractBasicDao(DaoDependencies dependencies,
                             TABLE table,
-                            TranslatableMessage countMonitorName,
-                            ObjectMapper mapper,
-                            ApplicationEventPublisher publisher,
-                            PermissionService permissionService) {
-        super(databaseProxy);
+                            @Nullable TranslatableMessage countMonitorName) {
+        super(dependencies.getDatabaseProxy());
         this.table = table;
-        this.mapper = mapper;
-        this.eventPublisher = publisher;
-        this.permissionService = permissionService;
+        this.mapper = dependencies.getObjectMapper();
+        this.eventPublisher = dependencies.getEventPublisher();
+        this.permissionService = dependencies.getPermissionService();
 
         // Map of potential RQL property names to db fields
         this.fieldMap = unmodifiableMap(createFieldMap());

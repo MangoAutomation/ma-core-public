@@ -32,7 +32,7 @@ import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.upgrade.DBUpgrade;
+import com.serotonin.m2m2.db.upgrade.DatabaseSchemaUpgrader;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
@@ -56,7 +56,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         ejt.setDataSource(getDataSource());
         DSLContext context = DSL.using(getConfig());
 
-        transactionManager = new DataSourceTransactionManager(getDataSource());
+        this.transactionManager = new DataSourceTransactionManager(getDataSource());
+        DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
+                context,
+                Common.getBean(ApplicationContext.class).getClassLoader());
 
         //First confirm that if we are MySQL we have JSON Support
         if(getType().name().equals(DatabaseType.MYSQL.name())) {
@@ -100,7 +103,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             }else if(!willConvert) {
                 // Make sure the core schema version matches the application version.  If we are running a conversion
                 // then the responsibility is on the User to be converting from a compatible version
-                DBUpgrade.checkUpgrade();
+                upgrader.checkCoreUpgrade();
             }
 
             //Ensure the modules are installed after the core schema is updated
@@ -115,7 +118,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             if(!willConvert) {
                 // Allow modules to upgrade their schemas
                 for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
-                    DBUpgrade.checkUpgrade(def, Common.getBean(ApplicationContext.class).getClassLoader());
+                    upgrader.checkModuleUpgrade(def);
                 }
             }
 

@@ -28,14 +28,11 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
@@ -51,14 +48,13 @@ import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
 import com.infiniteautomation.mango.spring.events.StateChangeEvent;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.ToggleAuditEvent;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
@@ -110,19 +106,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private final PointValueCache pointValueCache;
 
     @Autowired
-    private DataPointDao(
-            PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-            ApplicationEventPublisher publisher,
+    private DataPointDao(DaoDependencies dependencies,
             DataPointTagsDao dataPointTagsDao,
-            EventDetectorDao eventDetectorDao,
-            @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataPointPermissionDefinition dataPointPermissionDefinition,
-            PointValueDao pointValueDao,
-            PointValueCache pointValueCache) {
+                         EventDetectorDao eventDetectorDao,
+                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataPointPermissionDefinition dataPointPermissionDefinition,
+                         PointValueDao pointValueDao,
+                         PointValueCache pointValueCache) {
 
-        super(AuditEventType.TYPE_DATA_POINT, DataPoints.DATA_POINTS,
-                new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
-                mapper, publisher, permissionService);
+        super(dependencies, AuditEventType.TYPE_DATA_POINT, DataPoints.DATA_POINTS,
+                new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
 
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;

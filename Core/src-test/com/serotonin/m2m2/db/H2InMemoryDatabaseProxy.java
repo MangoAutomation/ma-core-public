@@ -18,6 +18,7 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -27,9 +28,10 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.upgrade.DBUpgrade;
+import com.serotonin.m2m2.db.upgrade.DatabaseSchemaUpgrader;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
@@ -98,6 +100,12 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         dataSource = JdbcConnectionPool.create(jds);
         transactionManager = new DataSourceTransactionManager(dataSource);
 
+        DSLContext context = DSL.using(getConfig());
+
+        DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
+                context,
+                Common.getBean(ApplicationContext.class).getClassLoader());
+
         if(initWebConsole) {
             String webArgs[] = new String[4];
             webArgs[0] = "-webPort";
@@ -140,7 +148,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                 log.error("createTables failed", e);
             }
 
-            DSLContext context = DSL.using(getConfig());
             doInTransaction(txStatus -> {
                 initializeCoreDatabase(context);
             });
@@ -153,18 +160,19 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                 }
             }
 
-            SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+            upgrader.setSystemSetting(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                     Integer.toString(Common.getDatabaseSchemaVersion()));
-            SystemSettingsDao.instance.setValue(SystemSettingsDao.BACKUP_ENABLED, "false");
-            SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, "false");
+            upgrader.setSystemSetting(SystemSettingsDao.BACKUP_ENABLED, "false");
+            upgrader.setSystemSetting(SystemSettingsDao.DATABASE_BACKUP_ENABLED, "false");
 
             // Add the settings flag that this is a new instance. This flag is removed when an administrator
             // logs in.
-            SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+            upgrader.setSystemSetting(SystemSettingsDao.NEW_INSTANCE, BaseDao.boolToChar(true));
         }
 
+
         // The database exists, so let's make its schema version matches the application version.
-        DBUpgrade.checkUpgrade();
+        upgrader.checkCoreUpgrade();
 
         initialized = true;
     }
@@ -244,12 +252,16 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             def.newInstallationCheck(ejt);
 
-        SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+        DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
+                context,
+                Common.getBean(ApplicationContext.class).getClassLoader());
+
+        upgrader.setSystemSetting(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                 Integer.toString(Common.getDatabaseSchemaVersion()));
 
         // Add the settings flag that this is a new instance. This flag is removed when an administrator
         // logs in.
-        SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+        upgrader.setSystemSetting(SystemSettingsDao.NEW_INSTANCE, BaseDao.boolToChar(true));
 
         //Clean the noSQL database
         Common.getBean(PointValueDao.class).deleteAllPointDataWithoutCount();

@@ -33,9 +33,11 @@ import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
 import com.infiniteautomation.mango.db.tables.RoleInheritance;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.records.RolesRecord;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -54,13 +56,14 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     // cannot inject permission service in this DAO or it would introduce a circular dependency
     @Autowired
-    private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+    private RoleDao(
+            DatabaseProxy databaseProxy,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
                     ApplicationEventPublisher publisher,
                     PermissionDao permissionDao, BeanFactory beanFactory) {
-        super(AuditEventType.TYPE_ROLE,
+        super(new DaoDependencies(databaseProxy, mapper, publisher, null), AuditEventType.TYPE_ROLE,
                 Roles.ROLES,
-                new TranslatableMessage("internal.monitor.ROLE_COUNT"),
-                mapper, publisher, null);
+                new TranslatableMessage("internal.monitor.ROLE_COUNT"));
         this.permissionDao = permissionDao;
 
         this.permissionServiceSupplier = new LazyInitSupplier<>(() -> beanFactory.getBean(PermissionService.class));

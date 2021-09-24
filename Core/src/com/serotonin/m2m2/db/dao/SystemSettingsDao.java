@@ -20,7 +20,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.SQLDialect;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -32,11 +31,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.components.EmailAddressVerificationService;
 import com.infiniteautomation.mango.spring.components.PasswordResetService;
 import com.infiniteautomation.mango.spring.events.audit.SystemSettingChangeAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.SystemSettingDeleteAuditEvent;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -45,7 +45,6 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.UpgradeVersionState;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
@@ -210,20 +209,25 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
 
     // TODO
-    public static final SystemSettingsDao instance = new SystemSettingsDao();
+    public static final SystemSettingsDao instance = null;
+
+    private static final LazyInitSupplier<SystemSettingsDao> SPRING_INSTANCE = new LazyInitSupplier<>(
+            () -> Common.getBean(SystemSettingsDao.class));
+
+    public static SystemSettingsDao getInstance() {
+        return SPRING_INSTANCE.get();
+    }
 
     private final SystemSettings table;
     private final ObjectMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    private SystemSettingsDao(DatabaseProxy databaseProxy,
-                              @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                              ApplicationEventPublisher eventPublisher) {
-        super(databaseProxy);
+    private SystemSettingsDao(DaoDependencies dependencies) {
+        super(dependencies.getDatabaseProxy());
         this.table = SystemSettings.SYSTEM_SETTINGS;
-        this.mapper = mapper;
-        this.eventPublisher = eventPublisher;
+        this.mapper = dependencies.getObjectMapper();
+        this.eventPublisher = dependencies.getEventPublisher();
     }
 
     // Value cache
@@ -582,14 +586,14 @@ public class SystemSettingsDao extends BaseDao {
 
     public long getFutureDateLimit() {
         if (FUTURE_DATE_LIMIT == -1)
-            FUTURE_DATE_LIMIT = Common.getMillis(instance.getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE),
-                    instance.getIntValue(FUTURE_DATE_LIMIT_PERIODS));
+            FUTURE_DATE_LIMIT = Common.getMillis(getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE),
+                    getIntValue(FUTURE_DATE_LIMIT_PERIODS));
         return FUTURE_DATE_LIMIT;
     }
 
     public Color getColour(String key) {
         try {
-            return ColorUtils.toColor(instance.getValue(key));
+            return ColorUtils.toColor(getValue(key));
         }
         catch (InvalidArgumentException e) {
             // Should never happen. Just use the default.

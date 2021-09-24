@@ -16,19 +16,15 @@ import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.EventHandlers;
 import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.records.EventHandlersRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseType;
@@ -54,13 +50,10 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     private final EventHandlersMapping handlerMapping;
 
     @Autowired
-    private EventHandlerDao(PermissionService permissionService,
-                            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                            ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_EVENT_HANDLER,
+    private EventHandlerDao(DaoDependencies dependencies) {
+        super(dependencies, AuditEventType.TYPE_EVENT_HANDLER,
                 EventHandlers.EVENT_HANDLERS,
-                new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
-                mapper, publisher, permissionService);
+                new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
 
         this.handlerMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
     }

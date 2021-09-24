@@ -19,6 +19,7 @@ import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
@@ -130,8 +131,8 @@ public class DataPointRTTest extends MangoTestBase {
     public static class DataPointRTTestConfig {
         @Primary
         @Bean
-        public PointValueDao pointValueDao() {
-            return new MockPointValueDao();
+        public PointValueDao pointValueDao(DatabaseProxy databaseProxy) {
+            return new MockPointValueDao(databaseProxy);
         }
     }
 
@@ -146,6 +147,10 @@ public class DataPointRTTest extends MangoTestBase {
     static class MockPointValueDao extends PointValueDaoSQL {
 
         private final List<PointValueTime> values = new ArrayList<>();
+
+        public MockPointValueDao(DatabaseProxy databaseProxy) {
+            super(databaseProxy);
+        }
 
         @Override
         public PointValueTime getLatestPointValue(DataPointVO vo) {

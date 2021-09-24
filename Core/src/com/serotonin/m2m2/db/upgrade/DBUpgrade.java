@@ -8,16 +8,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.BaseDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 
 /**
  * Base class for instances that perform database upgrades. The naming of subclasses follows the convention
@@ -29,88 +21,10 @@ import com.serotonin.m2m2.module.ModuleRegistry;
  * @author Matthew Lohbihler
  */
 abstract public class DBUpgrade extends BaseDao {
-    private static final Logger LOG = LoggerFactory.getLogger(DBUpgrade.class);
     protected static final String DEFAULT_DATABASE_TYPE = "*";
 
-    public DBUpgrade(DatabaseProxy databaseProxy) {
-        super(databaseProxy);
-    }
-
-    public static void checkUpgrade() {
-        checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
-                .getPackage().getName(), ModuleRegistry.CORE_MODULE_NAME, DBUpgrade.class.getClassLoader());
-        LOG.info("Starting instance with core version " + Common.getVersion() + ", schema v"
-                + Common.getDatabaseSchemaVersion());
-    }
-
-    public static void checkUpgrade(DatabaseSchemaDefinition def, ClassLoader classLoader) {
-        String name = def.getModule().getName();
-        checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION + "." + name, def.getDatabaseSchemaVersion(),
-                def.getUpgradePackage(), name, classLoader);
-    }
-
-    public static void checkUpgrade(String settingsKey, int codeVersion, String pkg, String moduleName,
-            ClassLoader classLoader) {
-        // If this is a very old version of the system, there may be multiple upgrades to run, so start a loop.
-        while (true) {
-            // Get the current schema version.
-            int schemaVersion = SystemSettingsDao.instance.getIntValue(settingsKey, -1);
-
-            if (schemaVersion == -1) {
-                if (ModuleRegistry.CORE_MODULE_NAME.equals(moduleName))
-                    // Probably an old core. Assume the version to be 1 to do complete upgrade
-                    schemaVersion = 1;
-                else {
-                    // Probably a new module. Put the current code version into the database.
-                    SystemSettingsDao.instance.setIntValue(settingsKey, codeVersion);
-                    schemaVersion = codeVersion;
-                }
-            }
-
-            // Convert the schema version to the class name convention. This simply means replacing dots with
-            // underscores and prefixing 'Upgrade' and this package.
-            String upgradeClassname = pkg + ".Upgrade" + Integer.toString(schemaVersion);
-
-            // See if there is a class with this name.
-            Class<?> clazz = null;
-            DBUpgrade upgrade = null;
-            try {
-                clazz = Class.forName(upgradeClassname, true, classLoader);
-            }
-            catch (ClassNotFoundException e) {
-                // no op
-            }
-
-            if (clazz != null) {
-                try {
-                    upgrade = (DBUpgrade) clazz.newInstance();
-                }
-                catch (Exception e) {
-                    // Should never happen so wrap in a runtime and rethrow.
-                    throw new ShouldNeverHappenException(e);
-                }
-            }
-
-            if (upgrade == null) {
-                if (schemaVersion != codeVersion)
-                    LOG.warn("The code version " + codeVersion + " of module " + moduleName
-                            + " does not match the schema version " + schemaVersion);
-                break;
-            }
-
-            try {
-                LOG.warn("Upgrading '" + moduleName + "' from " + schemaVersion + " to "
-                        + upgrade.getNewSchemaVersion());
-                upgrade.upgrade();
-                SystemSettingsDao.instance.setValue(settingsKey, upgrade.getNewSchemaVersion());
-            }
-            catch (Exception e) {
-                try (PrintWriter writer = new PrintWriter(upgrade.createUpdateLogOutputStream())) {
-                    e.printStackTrace(writer);
-                }
-                throw new ShouldNeverHappenException(e);
-            }
-        }
+    public DBUpgrade() {
+        super(null);
     }
 
     abstract protected void upgrade() throws Exception;
@@ -120,12 +34,7 @@ abstract public class DBUpgrade extends BaseDao {
     /**
      * Convenience method for subclasses
      *
-     * @param script
-     *            the array of script lines to run
-     * @param out
-     *            the stream to which to direct output from running the script
-     * @throws Exception
-     *             if something bad happens
+     * @param script the array of script lines to run
      */
     protected void runScript(String[] script) throws IOException {
         try (OutputStream out = createUpdateLogOutputStream()) {
@@ -160,5 +69,4 @@ abstract public class DBUpgrade extends BaseDao {
     protected OutputStream createUpdateLogOutputStream() {
         return databaseProxy.createLogOutputStream(this.getClass());
     }
-
 }

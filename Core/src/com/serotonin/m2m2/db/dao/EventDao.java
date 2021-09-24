@@ -98,7 +98,7 @@ public class EventDao extends BaseDao {
         super(databaseProxy);
         this.auditEventDao = auditEventDao;
         this.userCommentDao = userCommentDao;
-        table = Events.EVENTS;
+        this.table = Events.EVENTS;
         this.userTable = Users.USERS;
         this.userCommentTable = UserComments.USER_COMMENTS;
         this.permissionService = permissionService;

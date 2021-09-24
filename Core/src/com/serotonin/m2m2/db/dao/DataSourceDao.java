@@ -14,24 +14,20 @@ import org.jooq.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.StateChangeEvent;
 import com.infiniteautomation.mango.spring.events.audit.DeleteAuditEvent;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
@@ -39,7 +35,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.util.ILifecycleState;
@@ -57,13 +52,9 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     private final EventHandlersMapping eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
 
     @Autowired
-    private DataSourceDao(
-            PermissionService permissionService,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_DATA_SOURCE, DataSources.DATA_SOURCES,
-                new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
-                mapper, publisher, permissionService);
+    private DataSourceDao(DaoDependencies dependencies) {
+        super(dependencies, AuditEventType.TYPE_DATA_SOURCE, DataSources.DATA_SOURCES,
+                new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }
 
     /**

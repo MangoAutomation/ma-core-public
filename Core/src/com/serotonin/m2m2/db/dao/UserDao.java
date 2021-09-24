@@ -23,14 +23,11 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
 import com.infiniteautomation.mango.db.query.RQLToCondition.RQLVisitException;
@@ -44,11 +41,10 @@ import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.db.tables.records.OAuth2UsersRecord;
 import com.infiniteautomation.mango.db.tables.records.UsersRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.audit.ChangeAuditEvent;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
@@ -79,13 +75,10 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     private final MailingListMembers mailingListMembers;
 
     @Autowired
-    private UserDao(PermissionService permissionService,
-                    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                    ApplicationEventPublisher publisher, RoleDao roleDao) {
-        super(AuditEventType.TYPE_USER,
+    private UserDao(DaoDependencies dependencies, RoleDao roleDao) {
+        super(dependencies, AuditEventType.TYPE_USER,
                 Users.USERS,
-                new TranslatableMessage("internal.monitor.USER_COUNT"),
-                mapper, publisher, permissionService);
+                new TranslatableMessage("internal.monitor.USER_COUNT"));
         this.roleDao = roleDao;
         this.oauth = OAuth2Users.O_AUTH2_USERS;
         this.roles = Roles.ROLES;

@@ -7,21 +7,17 @@ import java.io.IOException;
 
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.db.tables.JsonData;
 import com.infiniteautomation.mango.db.tables.records.JsonDataRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -40,10 +36,8 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
     });
 
     @Autowired
-    private JsonDataDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
-                        ApplicationEventPublisher publisher,
-                        PermissionService permissionService) {
-        super(AuditEventType.TYPE_JSON_DATA, JsonData.JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"), mapper, publisher, permissionService);
+    private JsonDataDao(DaoDependencies dependencies) {
+        super(dependencies, AuditEventType.TYPE_JSON_DATA, JsonData.JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"));
     }
 
     /**
