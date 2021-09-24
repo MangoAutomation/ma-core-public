@@ -32,7 +32,6 @@ import org.openjdk.jmh.annotations.Threads;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.benchmarks.BenchmarkRunner;
@@ -56,8 +55,7 @@ public class DataPointEventsBenchmarks extends BenchmarkRunner {
     public static final String LITERAL = "literal";
     public static final String BENCHMARK_DATA_POINT_EVENT_FOR = "Benchmark data point event for  ";
 
-    @Configuration
-    private static class DataPointEventsBenchmarksConfig {
+    public static class DataPointEventsBenchmarksConfig {
         @Bean
         @Primary
         public DatabaseProxy databaseProxy(DatabaseProxyFactory databaseProxyFactory) {

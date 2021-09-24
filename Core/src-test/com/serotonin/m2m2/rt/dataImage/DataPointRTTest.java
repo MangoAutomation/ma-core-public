@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
@@ -127,7 +126,6 @@ public class DataPointRTTest extends MangoTestBase {
     //TODO Test for Historical Generation
     //TODO Test Quantized
 
-    @Configuration
     public static class DataPointRTTestConfig {
         @Primary
         @Bean

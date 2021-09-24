@@ -10,7 +10,6 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
@@ -158,7 +157,6 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
         return dao.getLatestPointValues(vo, limit);
     }
 
-    @Configuration
     public static class PointValueCacheTestConfig {
         @Primary
         @Bean
