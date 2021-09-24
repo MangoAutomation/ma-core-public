@@ -43,7 +43,7 @@ public class MangoPortMapper implements PortMapper, SystemSettingsListener {
     
     @PostConstruct
     public void initialize() {
-        this.publicHttpsPort = parseHttpsPort(SystemSettingsDao.instance.getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL));
+        this.publicHttpsPort = parseHttpsPort(SystemSettingsDao.getInstance().getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL));
     }
     
     @Override

@@ -8,10 +8,12 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.util.MangoServiceLoader;
 
 /**
@@ -26,6 +28,9 @@ abstract public class ModuleElementDefinition implements Ordered {
     public static final int DEFAULT_PRECEDENCE = 0;
 
     private Module module;
+
+    @Autowired
+    protected SystemSettingsDao systemSettingsDao;
 
     /**
      * Access to the module class that owns this definition.

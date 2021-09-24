@@ -294,7 +294,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             if (evt.getContext() != null)
                 model.putAll(evt.getContext());
             model.put("img", inlineImages);
-            model.put("instanceDescription", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+            model.put("instanceDescription", SystemSettingsDao.getInstance().getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
             if(includeSystemInfo){
                 //Get the Work Items
                 List<WorkItemInfo> highPriorityWorkItems = Common.backgroundProcessing.getHighPriorityServiceItems();
@@ -306,7 +306,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 model.put("threadList", getThreadsList());
             }
 
-            int type = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
+            int type = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
 
             //If we are a point event then add the value
             if(evt.getEventType() instanceof DataPointEventType){

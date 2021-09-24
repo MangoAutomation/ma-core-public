@@ -15,6 +15,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +39,6 @@ import com.infiniteautomation.mango.spring.components.EmailAddressVerificationSe
 import com.infiniteautomation.mango.spring.components.PasswordResetService;
 import com.infiniteautomation.mango.spring.events.audit.SystemSettingChangeAuditEvent;
 import com.infiniteautomation.mango.spring.events.audit.SystemSettingDeleteAuditEvent;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -208,19 +210,22 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_LENGTH_MIN = "password.rule.lengthMin";
     public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
 
-    // TODO
-    public static final SystemSettingsDao instance = null;
 
-    private static final LazyInitSupplier<SystemSettingsDao> SPRING_INSTANCE = new LazyInitSupplier<>(
-            () -> Common.getBean(SystemSettingsDao.class));
-
+    private static final AtomicReference<SystemSettingsDao> INSTANCE = new AtomicReference<>();
     public static SystemSettingsDao getInstance() {
-        return SPRING_INSTANCE.get();
+        return INSTANCE.get();
     }
 
     private final SystemSettings table;
     private final ObjectMapper mapper;
     private final ApplicationEventPublisher eventPublisher;
+
+    // Value cache
+    private final Map<String, String> cache = new ConcurrentHashMap<>();
+
+    // Create a non-interned string instance that represents null in the database
+    @SuppressWarnings("StringOperationCanBeSimplified")
+    private static final String NULL_SETTING_VALUE = new String("");
 
     @Autowired
     private SystemSettingsDao(DaoDependencies dependencies) {
@@ -230,12 +235,10 @@ public class SystemSettingsDao extends BaseDao {
         this.eventPublisher = dependencies.getEventPublisher();
     }
 
-    // Value cache
-    private final Map<String, String> cache = new ConcurrentHashMap<>();
-
-    // Create a non-interned string instance that represents null in the database
-    @SuppressWarnings("StringOperationCanBeSimplified")
-    private static final String NULL_SETTING_VALUE = new String("");
+    @PostConstruct
+    private void postConstruct() {
+        INSTANCE.compareAndSet(null, this);
+    }
 
     public String getValue(String key) {
         Object defaultValue = DEFAULT_VALUES.get(key);

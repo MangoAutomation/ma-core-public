@@ -63,7 +63,7 @@ public class UserLoginEventTypeDefinition extends SystemEventTypeDefinition {
         if(!StringUtils.equals(SystemEventType.TYPE_USER_LOGIN, subtype))
             return Collections.emptyList();
 
-        AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.instance.getIntValue(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN));
+        AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.getInstance().getIntValue(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN));
 
         List<User> users;
         if (permissionService.hasAdminRole(user)) {

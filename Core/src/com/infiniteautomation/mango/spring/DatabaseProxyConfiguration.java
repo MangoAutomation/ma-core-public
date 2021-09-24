@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public final class DatabaseProxyConfiguration {
+public class DatabaseProxyConfiguration {
 
     private final Environment env;
     private final ClassLoader classLoader;

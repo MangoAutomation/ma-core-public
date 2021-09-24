@@ -23,7 +23,7 @@ import com.serotonin.m2m2.db.dao.AbstractVoDao;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public final class DaoDependencies {
+public class DaoDependencies {
 
     private final DatabaseProxy databaseProxy;
     private final ObjectMapper objectMapper;

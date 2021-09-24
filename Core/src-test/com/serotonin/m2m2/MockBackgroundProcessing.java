@@ -69,13 +69,13 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
         this.highPriorityRejectionHandler = new AssertTaskRejectionHandler();
         this.highPriorityService.setRejectedExecutionHandler(this.highPriorityRejectionHandler);
         //Adjust the high priority pool sizes now
-        int corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-        int maxPoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
+        int corePoolSize = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+        int maxPoolSize = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
         this.highPriorityService.setCorePoolSize(corePoolSize);
         this.highPriorityService.setMaximumPoolSize(maxPoolSize);
         
         //Pull our settings from the System Settings
-        corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+        corePoolSize = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
         
         //Sanity check to ensure the pool sizes are appropriate
         if(corePoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
@@ -93,7 +93,7 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
                     Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
                     Common.timer.getTimeSource());
         
-        corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
+        corePoolSize = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
         //Sanity check to ensure the pool sizes are appropriate
         if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
             corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;

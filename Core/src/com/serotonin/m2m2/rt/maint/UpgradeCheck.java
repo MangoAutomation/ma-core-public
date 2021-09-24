@@ -54,7 +54,7 @@ public class UpgradeCheck extends TimerTask {
         Integer available = null;
         try {
             //If upgrade checks are not enabled we won't contact the store at all
-            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED)) {
+            if(SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED)) {
                 try {
                     available = Common.getBean(ModulesService.class).upgradesAvailable();
                 } catch (FeatureDisabledException e) {

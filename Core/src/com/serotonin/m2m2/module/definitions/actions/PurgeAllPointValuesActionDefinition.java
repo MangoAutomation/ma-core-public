@@ -70,7 +70,7 @@ public class PurgeAllPointValuesActionDefinition extends SystemActionDefinition{
 		@Override
 		public void runImpl(long runtime) {
 			if(Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING){
-				boolean countPointValues = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
+				boolean countPointValues = SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
 				if(countPointValues){
 					long cnt = Common.runtimeManager.purgeDataPointValues();
 					this.results.put("deleted", cnt);

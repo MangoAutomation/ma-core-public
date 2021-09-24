@@ -68,7 +68,7 @@ public class SystemEventType extends EventType {
 
     private static void registerEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
-        AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.instance.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype));
+        AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.getInstance().getIntValue(SYSTEM_SETTINGS_PREFIX + subtype));
         EVENT_TYPES.put(subtype, new EventTypeVO(new SystemEventType(subtype, 0, null), new TranslatableMessage(key), level));
     }
 
@@ -87,7 +87,7 @@ public class SystemEventType extends EventType {
     }
 
     public static void setEventTypeAlarmLevel(String subtype, AlarmLevels alarmLevel) {
-        SystemSettingsDao.instance.setIntValue(SYSTEM_SETTINGS_PREFIX + subtype, alarmLevel.value());
+        SystemSettingsDao.getInstance().setIntValue(SYSTEM_SETTINGS_PREFIX + subtype, alarmLevel.value());
     }
 
     public static void raiseEvent(SystemEventType type, long time, boolean rtn, TranslatableMessage message) {

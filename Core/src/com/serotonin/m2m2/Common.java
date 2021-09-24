@@ -619,11 +619,11 @@ public class Common {
      * @return
      */
     public static HttpClientBuilder getDefaultHttpClientBuilder() {
-        if (SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
-            String proxyHost = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
-            int proxyPort = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
-            String username = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME);
-            String password = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD);
+        if (SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
+            String proxyHost = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
+            int proxyPort = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
+            String username = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME);
+            String password = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD);
 
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), new UsernamePasswordCredentials(
@@ -690,7 +690,7 @@ public class Common {
         if (systemLanguage == null) {
             synchronized (i18nLock) {
                 if (systemLanguage == null) {
-                    systemLanguage = SystemSettingsDao.instance.getValue(SystemSettingsDao.LANGUAGE);
+                    systemLanguage = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.LANGUAGE);
                     systemLocale = parseLocale(systemLanguage);
                     if (systemLocale == null)
                         throw new IllegalArgumentException("Locale for given language not found: " + systemLanguage);

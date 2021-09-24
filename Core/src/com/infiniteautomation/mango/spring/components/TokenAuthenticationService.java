@@ -66,14 +66,14 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
 
     @Override
     protected void saveKeyPair(KeyPair keyPair) {
-        SystemSettingsDao.instance.setValue(PUBLIC_KEY_SYSTEM_SETTING, keyToString(keyPair.getPublic()));
-        SystemSettingsDao.instance.setValue(PRIVATE_KEY_SYSTEM_SETTING, keyToString(keyPair.getPrivate()));
+        SystemSettingsDao.getInstance().setValue(PUBLIC_KEY_SYSTEM_SETTING, keyToString(keyPair.getPublic()));
+        SystemSettingsDao.getInstance().setValue(PRIVATE_KEY_SYSTEM_SETTING, keyToString(keyPair.getPrivate()));
     }
 
     @Override
     protected KeyPair loadKeyPair() {
-        String publicKeyStr = SystemSettingsDao.instance.getValue(PUBLIC_KEY_SYSTEM_SETTING);
-        String privateKeyStr = SystemSettingsDao.instance.getValue(PRIVATE_KEY_SYSTEM_SETTING);
+        String publicKeyStr = SystemSettingsDao.getInstance().getValue(PUBLIC_KEY_SYSTEM_SETTING);
+        String privateKeyStr = SystemSettingsDao.getInstance().getValue(PRIVATE_KEY_SYSTEM_SETTING);
 
         if (publicKeyStr != null && !publicKeyStr.isEmpty() && privateKeyStr != null && !privateKeyStr.isEmpty()) {
             return keysToKeyPair(publicKeyStr, privateKeyStr);

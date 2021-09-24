@@ -76,15 +76,15 @@ public class EmailMessageTransport implements MessageTransport {
             EmailMessage m = (EmailMessage)message;
             InternetAddress fromAddress;
             if (m.getFrom() == null) {
-                String addr = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
-                String pretty = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_NAME);
+                String addr = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
+                String pretty = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.EMAIL_FROM_NAME);
                 fromAddress = new InternetAddress(addr, pretty, StandardCharsets.UTF_8.name());
             }else {
                 fromAddress = m.getFrom();
             }
             String subject = m.getSubject();
 
-            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_DISABLED)) {
+            if(SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.EMAIL_DISABLED)) {
                 LOG.warn("Not sending email because email is disabled globally.");
                 f.complete(new SentEmail(m.getToAddresses(), fromAddress, m, "Email not sent as email is disabled", this));
                 return f;
@@ -99,13 +99,13 @@ public class EmailMessageTransport implements MessageTransport {
                     try (PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name())){
 
                         EmailSender emailSender = new EmailSender(
-                                SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_HOST),
-                                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_SMTP_PORT),
-                                SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION),
-                                SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_USERNAME),
-                                SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD),
-                                SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_TLS),
-                                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_SEND_TIMEOUT));
+                                SystemSettingsDao.getInstance().getValue(SystemSettingsDao.EMAIL_SMTP_HOST),
+                                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.EMAIL_SMTP_PORT),
+                                SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION),
+                                SystemSettingsDao.getInstance().getValue(SystemSettingsDao.EMAIL_SMTP_USERNAME),
+                                SystemSettingsDao.getInstance().getValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD),
+                                SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.EMAIL_TLS),
+                                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.EMAIL_SEND_TIMEOUT));
 
                         emailSender.setDebug(ps);
                         emailSender.send(fromAddress, m.getToAddresses().stream().toArray(InternetAddress[] ::new), subject, m.getContent());

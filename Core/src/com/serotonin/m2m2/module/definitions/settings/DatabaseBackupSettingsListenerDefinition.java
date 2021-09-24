@@ -21,7 +21,7 @@ public class DatabaseBackupSettingsListenerDefinition extends SystemSettingsList
         //Reschedule the task
 	    synchronized(this) {
             DatabaseBackupWorkItem.unschedule();
-            if (SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED))
+            if (SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED))
                 DatabaseBackupWorkItem.schedule();
 	    }
 	}

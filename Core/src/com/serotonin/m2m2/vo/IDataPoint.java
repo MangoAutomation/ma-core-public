@@ -71,7 +71,7 @@ public interface IDataPoint {
 
         Map<String, String> tags = getTags();
         if(tags != null) {
-            String toDisplay = SystemSettingsDao.instance.getValue(DataPointTagsDisplaySettingDefinition.DEFAULT_DISPLAY_TAGS);
+            String toDisplay = SystemSettingsDao.getInstance().getValue(DataPointTagsDisplaySettingDefinition.DEFAULT_DISPLAY_TAGS);
 
             Map<String, String> tagsToUse = tags;
             if(!StringUtils.isEmpty(toDisplay)) {

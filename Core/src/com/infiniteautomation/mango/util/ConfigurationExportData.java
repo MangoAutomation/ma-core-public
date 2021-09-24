@@ -138,7 +138,7 @@ public class ConfigurationExportData {
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
             data.put(EVENT_HANDLERS, EventHandlerDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
-            data.put(SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
+            data.put(SYSTEM_SETTINGS, SystemSettingsDao.getInstance().getAllSystemSettingsAsCodes());
         if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))
             data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, JSON_DATA))

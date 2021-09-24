@@ -75,7 +75,7 @@ public class AuditEventType extends EventType {
     private static void registerEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
 
-        AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.instance.getIntValue(AUDIT_SETTINGS_PREFIX + subtype));
+        AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.getInstance().getIntValue(AUDIT_SETTINGS_PREFIX + subtype));
         EVENT_TYPES.put(subtype, new EventTypeVO(new AuditEventType(subtype, 0, 0), new TranslatableMessage(key), level));
     }
 
@@ -94,7 +94,7 @@ public class AuditEventType extends EventType {
     }
 
     public static void setEventTypeAlarmLevel(String subtype, AlarmLevels alarmLevel) {
-        SystemSettingsDao.instance.setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel.value());
+        SystemSettingsDao.getInstance().setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel.value());
     }
 
     //

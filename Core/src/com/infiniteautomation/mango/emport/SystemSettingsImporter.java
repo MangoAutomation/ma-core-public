@@ -84,7 +84,7 @@ public class SystemSettingsImporter extends Importer {
                         }else {
                             // Could be an export code so try and convert it
                             Integer id =
-                                    SystemSettingsDao.instance.convertToValueFromCode(key, (String) o);
+                                    SystemSettingsDao.getInstance().convertToValueFromCode(key, (String) o);
                             if (id != null)
                                 settings.put(key, id);
                             else
@@ -100,13 +100,13 @@ public class SystemSettingsImporter extends Importer {
             // from
             // other errors.
             ProcessResult voResponse = new ProcessResult();
-            SystemSettingsDao.instance.validate(settings, voResponse, user);
+            SystemSettingsDao.getInstance().validate(settings, voResponse, user);
             if (voResponse.getHasMessages())
                 setValidationMessages(voResponse, "emport.systemSettings.prefix",
                         new TranslatableMessage("header.systemSettings")
                         .translate(Common.getTranslations()));
             else {
-                SystemSettingsDao.instance.updateSettings(settings);
+                SystemSettingsDao.getInstance().updateSettings(settings);
                 addSuccessMessage(false, "emport.systemSettings.prefix",
                         new TranslatableMessage("header.systemSettings")
                         .translate(Common.getTranslations()));

@@ -387,7 +387,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             return;
         }
 
-        if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
+        if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.getInstance().getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
             log.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime()));
@@ -447,7 +447,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
 
         //Future date check
-        if (pvt.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
+        if (pvt.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.getInstance().getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
             log.warn("Discarding point value", new Exception("Future dated value detected: pointId="
                     + vo.getId() + ", value=" + pvt.getValue().toString()

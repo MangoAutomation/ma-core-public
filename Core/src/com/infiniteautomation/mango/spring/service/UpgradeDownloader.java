@@ -99,8 +99,8 @@ public class UpgradeDownloader extends HighPriorityTask {
                 // wait for the
                 // background processes to finish though.
                 backupComplete = BackupWorkItem.queueBackup(
-                        SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
-                databaseBackupComplete = DatabaseBackupWorkItem.queueBackup(SystemSettingsDao.instance
+                        SystemSettingsDao.getInstance().getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
+                databaseBackupComplete = DatabaseBackupWorkItem.queueBackup(SystemSettingsDao.getInstance()
                         .getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
             } else {
                 backupComplete = CompletableFuture.completedFuture(null);

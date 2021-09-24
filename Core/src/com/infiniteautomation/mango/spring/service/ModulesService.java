@@ -251,10 +251,10 @@ public class ModulesService {
 
         Map<String, Object> json = new HashMap<>();
         json.put("guid", Providers.get(ICoreLicense.class).getGuid());
-        json.put("description", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+        json.put("description", SystemSettingsDao.getInstance().getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         json.put("distributor", env.getProperty("distributor"));
         json.put("upgradeVersionState",
-                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
+                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
 
         Properties props = new Properties();
         Path propFile = Common.MA_HOME_PATH.resolve("release.properties");
@@ -287,7 +287,7 @@ public class ModulesService {
                 jsonModules.put(module.getName(), module.getVersion().toString());
 
         //Optionally Add Usage Data Check if first login for admin has happened to ensure they have
-        if (SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.USAGE_TRACKING_ENABLED)) {
+        if (SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.USAGE_TRACKING_ENABLED)) {
             //Collect statistics
             List<DataSourceUsageStatistics> dataSourceCounts = DataSourceDao.getInstance().getUsage();
             json.put("dataSourcesUsage", dataSourceCounts);

@@ -37,7 +37,7 @@ public class MangoEmailContent extends TemplateEmailContent {
             String defaultSubject) throws TemplateException, IOException {
         super(StandardCharsets.UTF_8);
 
-        int type = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
+        int type = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
 
         this.defaultSubject = defaultSubject;
         this.subjectDirective = new SubjectDirective(translations);
@@ -58,7 +58,7 @@ public class MangoEmailContent extends TemplateEmailContent {
             String defaultSubject, Charset encoding) throws TemplateException, IOException {
         super(encoding);
 
-        int type = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
+        int type = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
 
         this.defaultSubject = defaultSubject;
         this.subjectDirective = new SubjectDirective(translations);

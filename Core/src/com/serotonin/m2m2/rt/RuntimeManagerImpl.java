@@ -200,10 +200,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         //Schedule the Backup Tasks if necessary
         if(!safe){
-            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED)){
+            if(SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.BACKUP_ENABLED)){
                 BackupWorkItem.schedule();
             }
-            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED)){
+            if(SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED)){
                 DatabaseBackupWorkItem.schedule();
             }
 
