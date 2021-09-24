@@ -34,6 +34,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -489,7 +490,7 @@ public class Upgrade12 extends DBUpgrade {
             map.put("typeRef2", rs.getString(3));
             map.put("activeTs", rs.getLong(4));
             map.put("alarmLevel", rs.getInt(5));
-            TranslatableMessage msg = readTranslatableMessage(rs, 6);
+            TranslatableMessage msg = BaseDao.readTranslatableMessage(rs, 6);
             if(msg != null)
                 map.put("message",  msg.translate(Common.getTranslations()));
 

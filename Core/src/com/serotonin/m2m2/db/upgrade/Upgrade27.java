@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -44,7 +45,7 @@ public class Upgrade27 extends DBUpgrade {
                 try {
                     int id = rs.getInt(2);
                     DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(1));
-                    ejt.update("UPDATE dataPoints SET settable=? WHERE id=?", new Object[] {boolToChar(dp.getPointLocator().isSettable()), id});
+                    ejt.update("UPDATE dataPoints SET settable=? WHERE id=?", new Object[] {BaseDao.boolToChar(dp.getPointLocator().isSettable()), id});
                 }catch(Exception e) {
                     LOG.error("Failed to set settable column on data point with id " + rs.getInt(2), e);
                 }

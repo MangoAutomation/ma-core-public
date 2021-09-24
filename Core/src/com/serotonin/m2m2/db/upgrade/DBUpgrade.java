@@ -8,8 +8,14 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
 
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
+import org.springframework.transaction.PlatformTransactionManager;
+
+import com.serotonin.db.TransactionCapable;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.BaseDao;
+import com.serotonin.m2m2.db.DatabaseProxy;
 
 /**
  * Base class for instances that perform database upgrades. The naming of subclasses follows the convention
@@ -20,11 +26,18 @@ import com.serotonin.m2m2.db.dao.BaseDao;
  *
  * @author Matthew Lohbihler
  */
-abstract public class DBUpgrade extends BaseDao {
-    protected static final String DEFAULT_DATABASE_TYPE = "*";
+abstract public class DBUpgrade implements TransactionCapable {
 
-    public DBUpgrade() {
-        super(null);
+    protected static final String DEFAULT_DATABASE_TYPE = "*";
+    protected DatabaseProxy databaseProxy;
+    protected ExtendedJdbcTemplate ejt;
+    protected DSLContext create;
+
+    public void initialize(DatabaseProxy databaseProxy) {
+        this.databaseProxy = databaseProxy;
+        this.ejt = new ExtendedJdbcTemplate();
+        this.ejt.setDataSource(databaseProxy.getDataSource());
+        this.create = DSL.using(databaseProxy.getConfig());
     }
 
     abstract protected void upgrade() throws Exception;
@@ -60,7 +73,7 @@ abstract public class DBUpgrade extends BaseDao {
     }
 
     public void runScript(Map<String, String[]> scripts, OutputStream out) {
-        String[] script = scripts.get(databaseType.name());
+        String[] script = scripts.get(databaseProxy.getType().name());
         if (script == null)
             script = scripts.get(DEFAULT_DATABASE_TYPE);
         runScript(script, out);
@@ -68,5 +81,10 @@ abstract public class DBUpgrade extends BaseDao {
 
     protected OutputStream createUpdateLogOutputStream() {
         return databaseProxy.createLogOutputStream(this.getClass());
+    }
+
+    @Override
+    public PlatformTransactionManager getTransactionManager() {
+        return databaseProxy.getTransactionManager();
     }
 }

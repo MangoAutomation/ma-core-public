@@ -29,7 +29,7 @@ public class Upgrade21 extends DBUpgrade {
         //Update User table to make Unique usernames only
         //First remove duplicate users
         try (OutputStream out = createUpdateLogOutputStream()) {
-            Map<Integer, String> toRemove = query("SELECT id,username FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,String>>(){
+            Map<Integer, String> toRemove = ejt.query("SELECT id,username FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,String>>(){
 
                 @Override
                 public Map<Integer, String> extractData(ResultSet rs)

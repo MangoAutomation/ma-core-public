@@ -10,6 +10,7 @@ import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -82,7 +83,7 @@ public class Upgrade3 extends DBUpgrade {
 
     private void updatePoints() {
         // Get the points
-        List<DataPointVO> dps = query("select dp.id, dp.xid, dp.dataSourceId, dp.data, ds.name, " //
+        List<DataPointVO> dps = ejt.query("select dp.id, dp.xid, dp.dataSourceId, dp.data, ds.name, " //
                 + "ds.xid, ds.dataSourceType " //
                 + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ", new DataPointRowMapper());
 
@@ -93,10 +94,10 @@ public class Upgrade3 extends DBUpgrade {
                             + "intervalLoggingPeriodType=?, intervalLoggingPeriod=?, intervalLoggingType=?, " //
                             + "tolerance=?, purgeType=?, purgePeriod=?, defaultCacheSize=?, discardExtremeValues=?, " //
                             + "engineeringUnits=?, data=? where id=?", //
-                    new Object[] { dp.getXid(), dp.getName(), dp.getDeviceName(), boolToChar(dp.isEnabled()),
+                    new Object[] { dp.getXid(), dp.getName(), dp.getDeviceName(), BaseDao.boolToChar(dp.isEnabled()),
                             dp.getLoggingType(), dp.getIntervalLoggingPeriodType(), dp.getIntervalLoggingPeriod(),
                             dp.getIntervalLoggingType(), dp.getTolerance(), dp.getPurgeType(), dp.getPurgePeriod(),
-                            dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()),
+                            dp.getDefaultCacheSize(), BaseDao.boolToChar(dp.isDiscardExtremeValues()),
                             dp.getEngineeringUnits(), SerializationHelper.writeObject(dp), dp.getId() }, //
                     new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER, Types.INTEGER,
                             Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.INTEGER, Types.INTEGER, Types.INTEGER,

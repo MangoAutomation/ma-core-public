@@ -43,7 +43,7 @@ public class Upgrade28 extends DBUpgrade {
         try (OutputStream out = createUpdateLogOutputStream()) {
 
             //Update User table to have unique email addresses
-            List<UsernameEmail> duplicates = query("SELECT id,username,email FROM users ORDER BY id asc", rs -> {
+            List<UsernameEmail> duplicates = ejt.query("SELECT id,username,email FROM users ORDER BY id asc", rs -> {
                 List<UsernameEmail> dupes = new ArrayList<>();
                 Set<String> existing = new HashSet<>();
 

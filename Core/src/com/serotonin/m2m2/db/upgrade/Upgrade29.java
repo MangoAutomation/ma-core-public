@@ -3,25 +3,31 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
 
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.dao.BaseDao;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Fix MySQL data source table to have a name column length of 255
@@ -305,7 +311,7 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             int voId = rs.getInt(1);
             //Add role/mapping
             MangoPermission readPermissions = PermissionMigration.parseLegacyPermission(rs.getString(2));
-            if (charToBool(rs.getString(4))) {
+            if (BaseDao.charToBool(rs.getString(4))) {
                 //Is public so add anonymous role
                 Set<Set<Role>> newRoles = new HashSet<>(readPermissions.getRoles());
                 newRoles.add(Collections.singleton(PermissionHolder.USER_ROLE));

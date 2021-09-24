@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.serotonin.m2m2.db.DatabaseType;
+import com.serotonin.m2m2.db.dao.BaseDao;
 
 public class Upgrade6 extends DBUpgrade {
     @Override
@@ -16,7 +17,7 @@ public class Upgrade6 extends DBUpgrade {
         scripts.put(DatabaseType.H2.name(), mysqlScript);
         runScript(scripts);
 
-        ejt.update("UPDATE users SET muted=?", new Object[] { boolToChar(false) });
+        ejt.update("UPDATE users SET muted=?", BaseDao.boolToChar(false));
     }
 
     @Override

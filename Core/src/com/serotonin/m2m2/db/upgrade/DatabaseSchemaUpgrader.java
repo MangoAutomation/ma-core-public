@@ -95,8 +95,8 @@ public class DatabaseSchemaUpgrader {
 
             if (clazz != null) {
                 try {
-                    Constructor<?> constructor = clazz.getDeclaredConstructor(DatabaseProxy.class);
-                    upgrade = (DBUpgrade) constructor.newInstance(databaseProxy);
+                    Constructor<?> constructor = clazz.getConstructor();
+                    upgrade = (DBUpgrade) constructor.newInstance();
                 } catch (Exception e) {
                     // Should never happen so wrap in a runtime and rethrow.
                     throw new ShouldNeverHappenException(e);
@@ -113,6 +113,7 @@ public class DatabaseSchemaUpgrader {
             try {
                 LOG.warn("Upgrading '" + moduleName + "' from " + schemaVersion + " to "
                         + upgrade.getNewSchemaVersion());
+                upgrade.initialize(databaseProxy);
                 upgrade.upgrade();
                 setSystemSetting(settingsKey, upgrade.getNewSchemaVersion());
             } catch (Exception e) {
