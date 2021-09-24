@@ -7,6 +7,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.SystemInfoDefinition;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
@@ -17,22 +19,20 @@ import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
  */
 public class SqlDatabaseBackupFileListInfoDefinition extends SystemInfoDefinition<List<String>>{
 
+	@Autowired
+	protected SystemSettingsDao systemSettingsDao;
+
 	public final String KEY = "sqlDatabaseBackupFileList";
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getName()
-	 */
+
 	@Override
 	public String getKey() {
 		return KEY;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getValue()
-	 */
 	@Override
 	public List<String> getValue() {
 		List<String> filenames = new ArrayList<>();
-        String backupLocation = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+        String backupLocation = systemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
         File[] backupFiles = DatabaseBackupWorkItem.getBackupFiles(backupLocation);
         
         if(backupFiles == null) {

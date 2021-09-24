@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -23,6 +24,8 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     @Autowired
     private PermissionService service;
+    @Autowired
+    protected SystemSettingsDao systemSettingsDao;
 
     /**
      * The reference key to the action. Should be unique across all Modules and Mango Core

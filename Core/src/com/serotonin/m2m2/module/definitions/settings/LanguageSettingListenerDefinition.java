@@ -19,7 +19,7 @@ public class LanguageSettingListenerDefinition extends SystemSettingsListenerDef
 	@Override
 	public void systemSettingsSaved(String key, String oldValue, String newValue) {
         if (newValue == null)
-            newValue = SystemSettingsDao.getInstance().getValue(SystemSettingsDao.LANGUAGE);
+            newValue = systemSettingsDao.getValue(SystemSettingsDao.LANGUAGE);
 		Common.setSystemLanguage(newValue);
 	}
 

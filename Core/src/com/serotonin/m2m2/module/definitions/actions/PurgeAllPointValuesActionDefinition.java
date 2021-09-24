@@ -58,7 +58,7 @@ public class PurgeAllPointValuesActionDefinition extends SystemActionDefinition{
 	 * 
 	 * @author Terry Packer
 	 */
-	static class PurgeAllPointValuesAction extends SystemActionTask{
+	class PurgeAllPointValuesAction extends SystemActionTask{
 		
 		public PurgeAllPointValuesAction(){
 			super(new OneTimeTrigger(0l), "Purge All Point Values", "ALL_POINT_VALUE_PURGE", 5);
@@ -70,7 +70,7 @@ public class PurgeAllPointValuesActionDefinition extends SystemActionDefinition{
 		@Override
 		public void runImpl(long runtime) {
 			if(Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING){
-				boolean countPointValues = SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
+				boolean countPointValues = systemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
 				if(countPointValues){
 					long cnt = Common.runtimeManager.purgeDataPointValues();
 					this.results.put("deleted", cnt);
