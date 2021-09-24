@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 import javax.sql.DataSource;
 
@@ -34,6 +35,7 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -186,10 +188,15 @@ public interface DatabaseProxy extends TransactionCapable {
                 .values(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Integer.toString(Common.getDatabaseSchemaVersion()))
                 .execute();
 
+        // Common.translate() attempts to use the SystemSettingsDao before it is initialized, not possible to have set
+        // a language in the database before core database is initialized anyway.
+        Locale locale = Locale.getDefault();
+        Translations translations = Translations.getTranslations(locale);
+
         context.insertInto(r, r.id, r.xid, r.name)
-                .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), Common.translate("roles.superadmin"))
-                .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), Common.translate("roles.user"))
-                .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), Common.translate("roles.anonymous"))
+                .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), translations.translate("roles.superadmin"))
+                .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), translations.translate("roles.user"))
+                .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), translations.translate("roles.anonymous"))
                 .execute();
 
         context.insertInto(ri, ri.roleId, ri.inheritedRoleId)
@@ -211,7 +218,7 @@ public interface DatabaseProxy extends TransactionCapable {
             long passwordChangeTs = defaultPassword.equals("admin") ? createdTs : createdTs + 1;
 
             int adminId = context.insertInto(u)
-                    .set(u.name, Common.translate("users.defaultAdministratorName"))
+                    .set(u.name, translations.translate("users.defaultAdministratorName"))
                     .set(u.username, Common.envProps.getProperty("initialize.admin.username"))
                     .set(u.password, Common.encrypt(defaultPassword))
                     .set(u.email, Common.envProps.getProperty("initialize.admin.email"))
