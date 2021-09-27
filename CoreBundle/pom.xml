@@ -167,7 +167,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-api</artifactId>
-            <version>4.2.2-SNAPSHOT</version>
+            <version>4.2.3-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
