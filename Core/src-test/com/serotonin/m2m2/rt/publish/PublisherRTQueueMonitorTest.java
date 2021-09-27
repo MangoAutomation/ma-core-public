@@ -22,12 +22,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.test.SuperadminSecurityContextRunner;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -59,7 +61,10 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
         DataSourceDao dataSourceDao = Common.getBean(DataSourceDao.class);
         PublisherDao publisherDao = Common.getBean(PublisherDao.class);
         DataPointDao dataPointDao = Common.getBean(DataPointDao.class);
-        Common.runtimeManager = new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao);
+        PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
+        PointValueCache pointValueCache = Common.getBean(PointValueCache.class);
+        Common.runtimeManager = new RuntimeManagerImpl(executorService, dataSourceDao, publisherDao, dataPointDao,
+                pointValueDao, pointValueCache);
 
         Common.runtimeManager.initialize(false);
         this.timer.setStartTime(System.currentTimeMillis());
