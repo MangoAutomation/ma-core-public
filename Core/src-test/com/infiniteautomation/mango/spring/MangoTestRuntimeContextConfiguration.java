@@ -30,5 +30,4 @@ public class MangoTestRuntimeContextConfiguration {
     public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
         return new PropagatingEventMulticaster(context, eventMulticasterRegistry, new CurrentThreadExecutorService());
     }
-
 }

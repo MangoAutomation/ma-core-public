@@ -39,16 +39,19 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.upgrade.DatabaseSchemaUpgrader;
+import com.serotonin.m2m2.db.upgrade.SystemSettingsAccessor;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     private final Logger log = LoggerFactory.getLogger(AbstractDatabaseProxy.class);
-    private PlatformTransactionManager transactionManager;
     protected final DatabaseProxyFactory factory;
     protected final Environment env;
     protected final ClassLoader classLoader;
+
+    private PlatformTransactionManager transactionManager;
+    private DSLContext context;
 
     public AbstractDatabaseProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
         this.factory = factory;
@@ -63,17 +66,18 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
-        DSLContext context = DSL.using(getConfig());
+        this.context = DSL.using(getConfig());
 
         this.transactionManager = new DataSourceTransactionManager(getDataSource());
+        SystemSettingsAccessor systemSettingsAccessor = () -> context;
         DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
-                context,
+                systemSettingsAccessor,
                 classLoader);
 
         // we have to set the locale before even attempting upgrades as the locale/language is used when deserializing
         // VO objects stored in blobs
         try {
-            upgrader.getSystemSetting(SystemSettingsDao.LANGUAGE).ifPresent(Common::setSystemLanguage);
+            systemSettingsAccessor.getSystemSetting(SystemSettingsDao.LANGUAGE).ifPresent(Common::setSystemLanguage);
         } catch (DataAccessException e) {
             // that's ok, table probably doesn't exist yet
         }
@@ -236,6 +240,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public void terminate() {
         terminateImpl();
+        this.context = null;
+        this.transactionManager = null;
     }
 
     abstract protected void terminateImpl();
@@ -277,5 +283,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public boolean isUseMetrics() {
         return env.getProperty("db.useMetrics", boolean.class, false);
+    }
+
+    @Override
+    public DSLContext getContext() {
+        return context;
     }
 }

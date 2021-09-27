@@ -47,6 +47,7 @@ public interface DatabaseProxy extends TransactionCapable {
 
     DatabaseType getType();
     DataSource getDataSource();
+    DSLContext getContext();
 
     void initialize();
     void terminate();

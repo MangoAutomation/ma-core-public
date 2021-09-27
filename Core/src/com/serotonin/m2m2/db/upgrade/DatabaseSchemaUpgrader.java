@@ -6,13 +6,10 @@ package com.serotonin.m2m2.db.upgrade;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
-import java.util.Optional;
 
-import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
@@ -20,32 +17,20 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
+/**
+ * Utility that does database schema upgrades for the core and modules.
+ */
 public class DatabaseSchemaUpgrader {
 
     private final Logger LOG = LoggerFactory.getLogger(DatabaseSchemaUpgrader.class);
     private final DatabaseProxy databaseProxy;
-    private final DSLContext context;
     private final ClassLoader classLoader;
-    private final SystemSettings systemSettings = SystemSettings.SYSTEM_SETTINGS;
+    private final SystemSettingsAccessor systemSettingsAccessor;
 
-    public DatabaseSchemaUpgrader(DatabaseProxy databaseProxy, DSLContext context, ClassLoader classLoader) {
+    public DatabaseSchemaUpgrader(DatabaseProxy databaseProxy, SystemSettingsAccessor systemSettingsAccessor, ClassLoader classLoader) {
         this.databaseProxy = databaseProxy;
-        this.context = context;
+        this.systemSettingsAccessor = systemSettingsAccessor;
         this.classLoader = classLoader;
-    }
-
-    public Optional<String> getSystemSetting(String key) {
-        return context.select(systemSettings.settingValue)
-                .from(systemSettings)
-                .where(systemSettings.settingName.eq(key))
-                .fetchOptional(systemSettings.settingValue);
-    }
-
-    public void setSystemSetting(String key, String value) {
-        context.update(systemSettings)
-                .set(systemSettings.settingValue, value)
-                .where(systemSettings.settingName.eq(key))
-                .execute();
     }
 
     public void checkCoreUpgrade() {
@@ -65,7 +50,7 @@ public class DatabaseSchemaUpgrader {
         // If this is a very old version of the system, there may be multiple upgrades to run, so start a loop.
         while (true) {
             // Get the current schema version.
-            int schemaVersion = getSystemSetting(settingsKey)
+            int schemaVersion = systemSettingsAccessor.getSystemSetting(settingsKey)
                     .map(Integer::parseInt)
                     .orElse(-1);
 
@@ -75,7 +60,7 @@ public class DatabaseSchemaUpgrader {
                     schemaVersion = 1;
                 else {
                     // Probably a new module. Put the current code version into the database.
-                    setSystemSetting(settingsKey, Integer.toString(codeVersion));
+                    systemSettingsAccessor.setSystemSetting(settingsKey, Integer.toString(codeVersion));
                     schemaVersion = codeVersion;
                 }
             }
@@ -115,7 +100,7 @@ public class DatabaseSchemaUpgrader {
                         + upgrade.getNewSchemaVersion());
                 upgrade.initialize(databaseProxy);
                 upgrade.upgrade();
-                setSystemSetting(settingsKey, upgrade.getNewSchemaVersion());
+                systemSettingsAccessor.setSystemSetting(settingsKey, upgrade.getNewSchemaVersion());
             } catch (Exception e) {
                 try (PrintWriter writer = new PrintWriter(upgrade.createUpdateLogOutputStream())) {
                     e.printStackTrace(writer);

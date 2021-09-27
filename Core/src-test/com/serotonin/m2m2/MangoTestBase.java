@@ -102,7 +102,6 @@ public class MangoTestBase {
     protected SimulationTimer timer;
     protected long testTime = 0L; //time during test
 
-
     @BeforeClass
     public static void staticSetup() throws IOException {
         setSuperadminAuthentication();
@@ -113,7 +112,7 @@ public class MangoTestBase {
         properties.setProperty("paths.data", dataDirectory.toString());
         properties.setProperty("db.url", "jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
 
-        //TODO
+//        TODO
 //        upgrader.setSystemSetting(SystemSettingsDao.BACKUP_ENABLED, "false");
 //        upgrader.setSystemSetting(SystemSettingsDao.DATABASE_BACKUP_ENABLED, "false");
 
