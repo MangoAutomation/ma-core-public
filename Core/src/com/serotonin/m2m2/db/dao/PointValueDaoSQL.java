@@ -29,7 +29,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jooq.Condition;
-import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.DeleteConditionStep;
 import org.jooq.DeleteLimitStep;
@@ -124,8 +123,8 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
         super(databaseProxy);
     }
 
-    public PointValueDaoSQL(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, Configuration configuration) {
-        super(dataSource, transactionManager, databaseType, configuration);
+    public PointValueDaoSQL(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context) {
+        super(dataSource, transactionManager, databaseType, context);
     }
 
     /**

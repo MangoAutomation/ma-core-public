@@ -14,9 +14,7 @@ import java.util.function.Consumer;
 import javax.sql.DataSource;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.jooq.Configuration;
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -45,7 +43,7 @@ public class DaoUtils implements TransactionCapable {
     protected final DatabaseType databaseType;
     protected final DSLContext create;
 
-    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, Configuration configuration) {
+    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context) {
         this.dataSource = dataSource;
         this.transactionManager = transactionManager;
         this.databaseType = databaseType;
@@ -55,7 +53,7 @@ public class DaoUtils implements TransactionCapable {
         this.ejt = new ExtendedJdbcTemplate();
         this.ejt.setDataSource(dataSource);
 
-        this.create = DSL.using(configuration);
+        this.create = context;
     }
 
     public boolean isUseMetrics() {

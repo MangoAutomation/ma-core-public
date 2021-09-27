@@ -9,7 +9,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.jooq.Configuration;
+import org.jooq.DSLContext;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.google.common.collect.Iterables;
@@ -20,7 +20,7 @@ import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 
-public class BaseDao extends DaoUtils {
+public abstract class BaseDao extends DaoUtils {
 
     public static final String Y = "Y";
     public static final String N = "N";
@@ -28,12 +28,12 @@ public class BaseDao extends DaoUtils {
     protected final DatabaseProxy databaseProxy;
 
     public BaseDao(DatabaseProxy databaseProxy) {
-        super(databaseProxy.getDataSource(), databaseProxy.getTransactionManager(), databaseProxy.getType(), databaseProxy.getConfig());
+        super(databaseProxy.getDataSource(), databaseProxy.getTransactionManager(), databaseProxy.getType(), databaseProxy.getContext());
         this.databaseProxy = databaseProxy;
     }
 
-    public BaseDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, Configuration configuration) {
-        super(dataSource, transactionManager, databaseType, configuration);
+    public BaseDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context) {
+        super(dataSource, transactionManager, databaseType, context);
         this.databaseProxy = null;
     }
 
