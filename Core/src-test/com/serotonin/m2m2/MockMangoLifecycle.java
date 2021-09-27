@@ -201,6 +201,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     private final Set<Class<?>> runtimeContextConfigurations = new LinkedHashSet<>();
+    {
+        runtimeContextConfigurations.add(MangoTestRuntimeContextConfiguration.class);
+    }
     private final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
 
     public void addRuntimeContextConfiguration(Class<?> clazz) {
@@ -216,7 +219,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         runtimeContext.setClassLoader(classLoader);
         runtimeContext.setId(MangoRuntimeContextConfiguration.CONTEXT_ID);
         runtimeContext.getEnvironment().getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
-        runtimeContext.register(MangoTestRuntimeContextConfiguration.class);
         runtimeContext.register(runtimeContextConfigurations.toArray(new Class<?>[] {}));
         for (var entry : beanDefinitions.entrySet()) {
             runtimeContext.registerBeanDefinition(entry.getKey(), entry.getValue());
