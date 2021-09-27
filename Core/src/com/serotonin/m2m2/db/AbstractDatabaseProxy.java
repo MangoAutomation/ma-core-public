@@ -100,9 +100,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             boolean willConvert = false;
 
             if (!databaseExists(ejt)) {
-                if (env.getProperty("db.createTables.restoreFrom") != null) {
-                    restoreTables();
-                } else {
+                if (!restoreTables()) {
                     createTables();
                     // Check if we should convert from another database.
                     if (!StringUtils.isBlank(convertTypeStr)) {
@@ -172,11 +170,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
-    private boolean databaseExists(ExtendedJdbcTemplate ejt) {
+    protected boolean databaseExists(ExtendedJdbcTemplate ejt) {
         return tableExists(ejt, Users.USERS.getName());
     }
 
-    private void createTables() throws IOException {
+    protected void createTables() throws IOException {
         String scriptName = "createTables-" + getType().name() + ".sql";
         try (InputStream resource = AbstractDatabaseProxy.class.getResourceAsStream(scriptName)) {
             if (resource == null) {
@@ -188,10 +186,17 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
-    private void restoreTables() throws IOException {
-        String restoreFrom = env.getRequiredProperty("db.createTables.restoreFrom");
-        Path restoreFromPath = Common.MA_DATA_PATH.resolve(restoreFrom).normalize();
+    /**
+     * @return true if database was restored
+     * @throws IOException
+     */
+    protected boolean restoreTables() throws IOException {
+        String restoreFrom = env.getProperty("db.createTables.restoreFrom");
+        if (restoreFrom == null) {
+            return false;
+        }
 
+        Path restoreFromPath = Common.MA_DATA_PATH.resolve(restoreFrom).normalize();
         try (OutputStream os = createTablesOutputStream()) {
             if (restoreFromPath.getFileName().toString().endsWith(".zip")) {
                 try (ZipFile zip = new ZipFile(restoreFromPath.toFile())) {
@@ -219,9 +224,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 }
             }
         }
+        return true;
     }
 
-    private OutputStream createTablesOutputStream() {
+    protected OutputStream createTablesOutputStream() {
         boolean createLogFile = env.getProperty("db.createTables.createLogFile", boolean.class, true);
         return createLogFile ? createLogOutputStream("createTables.log") : null;
     }

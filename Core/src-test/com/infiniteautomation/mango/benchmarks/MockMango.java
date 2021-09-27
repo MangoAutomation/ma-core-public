@@ -24,14 +24,10 @@ import org.openjdk.jmh.annotations.TearDown;
 
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.DatabaseType;
-import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -128,29 +124,7 @@ public class MockMango extends MangoTestBase {
      */
     @TearDown(Level.Iteration)
     public void tearDownIteration() throws SQLException {
-        DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
-        if (databaseProxy instanceof H2InMemoryDatabaseProxy) {
-            H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) databaseProxy;
-            try {
-                proxy.clean();
-            } catch (Exception e) {
-                throw new ShouldNeverHappenException(e);
-            }
-        } else if (databaseProxy.getType() == DatabaseType.MYSQL) {
-            // H2 does not support DROP database
-
-            try (var connection = databaseProxy.getDataSource().getConnection()) {
-                String databaseName = connection.getCatalog();
-                try (var statement = connection.createStatement()) {
-                    statement.executeUpdate(String.format("DROP DATABASE `%s`", databaseName));
-                }
-                try (var statement = connection.createStatement()) {
-                    statement.executeUpdate(String.format("CREATE DATABASE `%s`", databaseName));
-                }
-            }
-            databaseProxy.initialize();
-            //TODO Reset caches...
-        }
+        after();
     }
 
     /**
@@ -158,7 +132,7 @@ public class MockMango extends MangoTestBase {
      * will only work with Fork > 0
      */
     @TearDown(Level.Trial)
-    public void tearDownTrial() throws IOException {
+    public void tearDownTrial() throws IOException, SQLException {
         after();
         MangoTestBase.staticTearDown();
     }

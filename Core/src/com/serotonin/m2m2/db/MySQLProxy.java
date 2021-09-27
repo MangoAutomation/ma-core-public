@@ -108,4 +108,19 @@ public class MySQLProxy extends BasePooledProxy {
         // see https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-reference-implementation-notes.html
         return Integer.MIN_VALUE;
     }
+
+    @Override
+    public void clean() {
+        try (var connection = getDataSource().getConnection()) {
+            String databaseName = connection.getCatalog();
+            try (var statement = connection.createStatement()) {
+                statement.executeUpdate(String.format("DROP DATABASE `%s`", databaseName));
+            }
+            try (var statement = connection.createStatement()) {
+                statement.executeUpdate(String.format("CREATE DATABASE `%s`", databaseName));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

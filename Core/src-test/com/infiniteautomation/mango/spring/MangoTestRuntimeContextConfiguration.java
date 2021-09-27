@@ -15,8 +15,6 @@ import org.springframework.core.annotation.Order;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 import com.infiniteautomation.mango.test.CurrentThreadExecutorService;
-import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 
 /**
  * @author Terry Packer
@@ -31,11 +29,6 @@ public class MangoTestRuntimeContextConfiguration {
     @Order(Ordered.HIGHEST_PRECEDENCE)
     public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
         return new PropagatingEventMulticaster(context, eventMulticasterRegistry, new CurrentThreadExecutorService());
-    }
-
-    @Bean
-    public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
-        return new H2InMemoryDatabaseProxy(configuration);
     }
 
 }

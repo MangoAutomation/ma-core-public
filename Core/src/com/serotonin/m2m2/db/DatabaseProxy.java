@@ -243,4 +243,10 @@ public interface DatabaseProxy extends TransactionCapable {
         }
     }
 
+    /**
+     * Drop the entire database without closing the datasource
+     */
+    default void clean() {
+        throw new UnsupportedOperationException();
+    }
 }

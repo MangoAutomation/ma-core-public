@@ -11,20 +11,20 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
@@ -33,9 +33,7 @@ import com.infiniteautomation.mango.spring.service.RoleService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
@@ -55,6 +53,11 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
     static final Logger LOG = LoggerFactory.getLogger(DataSourceDaoDeadlockDetection.class);
+
+    @BeforeClass
+    public static void staticSetup() {
+        properties.setProperty("db.url", "jdbc:h2:mem:" + UUID.randomUUID() + ";MV_STORE=FALSE;DB_CLOSE_ON_EXIT=FALSE");
+    }
 
     /**
      * See the deadlock when you insert data source, then point,
@@ -492,30 +495,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
         }
         if(failures.get() > 0) {
             fail("Ran " + successes.get() + " queries: " + failure.getValue().getMessage());
-        }
-    }
-
-    public static class Config {
-        @Bean
-        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration databaseProxyConfiguration) {
-            return new H2InMemoryDatabaseProxyNoLocking(databaseProxyConfiguration);
-        }
-    }
-
-    @Override
-    protected MockMangoLifecycle getLifecycle() {
-        MockMangoLifecycle lifecycle = super.getLifecycle();
-        lifecycle.addRuntimeContextConfiguration(Config.class);
-        return lifecycle;
-    }
-
-    private static class H2InMemoryDatabaseProxyNoLocking extends H2InMemoryDatabaseProxy {
-        public H2InMemoryDatabaseProxyNoLocking(DatabaseProxyConfiguration databaseProxyConfiguration) {
-            super(databaseProxyConfiguration);
-        }
-        @Override
-        public String getUrl() {
-            return "jdbc:h2:mem:" + databaseName + ";MV_STORE=FALSE;DB_CLOSE_ON_EXIT=FALSE";
         }
     }
 

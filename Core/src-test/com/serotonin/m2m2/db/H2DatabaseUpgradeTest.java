@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.db;
 
+import java.io.IOException;
+
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 
@@ -19,15 +21,26 @@ public class H2DatabaseUpgradeTest extends MangoTestBase {
 
     @Test
     public void doUpgrade() {
-
+        // do nothing, before hook will throw exception if upgrade fails
     }
 
     public static class UpgradeConfig {
         @Bean
         public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
-            return new H2InMemoryDatabaseProxy(configuration,
-                    () -> getClass().getResourceAsStream("version1/createTables-H2.sql"),
-                    () -> getClass().getResourceAsStream("version1/defaultData-H2.sql"));
+            return new H2Proxy(null, configuration) {
+                @Override
+                protected boolean restoreTables() throws IOException {
+                    try (var outputStream = createTablesOutputStream()) {
+                        try (var inputStream = getClass().getResourceAsStream("version1/createTables-H2.sql")) {
+                            runScript(inputStream, outputStream);
+                        }
+                        try (var inputStream = getClass().getResourceAsStream("version1/defaultData-H2.sql")) {
+                                runScript(inputStream, outputStream);
+                        }
+                    }
+                    return true;
+                }
+            };
         }
     }
 

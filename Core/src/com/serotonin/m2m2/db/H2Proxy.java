@@ -60,6 +60,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
     //Select the version of H2 that created this database.
     public static final String H2_CREATE_VERSION_SELECT = "SELECT value FROM information_schema.settings WHERE name='CREATE_BUILD' LIMIT 1";
 
+    public static final String IN_MEMORY_URL_PREFIX = "jdbc:h2:mem:";
+
     private JdbcConnectionPool dataSource;
     private Server web; //web UI
 
@@ -100,9 +102,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 jds.setPassword(password);
         }
         dataSource = JdbcConnectionPool.create(jds);
-        dataSource.setMaxConnections(
-                Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
-
+        dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
 
         if (Common.envProps.getBoolean(propertyPrefix + "db.web.start", false)) {
             LOG.info("Initializing H2 web server");
@@ -132,6 +132,9 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private void upgradeLegacyPageStore(String propertyPrefix) {
         //Parse out the useful sections of the url
         String dbUrl = Common.envProps.getString(propertyPrefix + "db.url");
+        if (dbUrl.startsWith(IN_MEMORY_URL_PREFIX)) {
+            return;
+        }
         Path dbPath = getDbPathFromUrl(dbUrl);
 
         //Check to see if we are a legacy database, legacy DB does not have H2 version in filename
@@ -188,6 +191,10 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private void upgradePageStoreToMvStore(String propertyPrefix) throws Exception {
         String upgradeUrl = Common.envProps.getString(propertyPrefix + "db.url");
+        if (upgradeUrl.startsWith(IN_MEMORY_URL_PREFIX)) {
+            return;
+        }
+
         Map<String, String> userOptions = extractOptions(upgradeUrl);
         if ("FALSE".equals(userOptions.get("MV_STORE"))) {
             // user has explicitly configured their URL to be page store, leave alone
@@ -333,6 +340,10 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
+        if (url.startsWith(IN_MEMORY_URL_PREFIX)) {
+            return url;
+        }
+
         Map<String, String> options = extractOptions(url);
         StoreType desiredStoreType = "FALSE".equals(options.get("MV_STORE")) ? StoreType.PAGE_STORE : StoreType.MV_STORE;
 
@@ -400,18 +411,17 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     @Override
     public File getDataDirectory() {
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(this.getDataSource());
-        String dataDir =
-                ejt.queryForObject("call DATABASE_PATH()", new Object[] {}, String.class, null);
-        if (dataDir == null)
-            return null;
-
         String url = getUrl("");
-        Map<String, String> options = extractOptions(url);
-        StoreType desiredStoreType = "FALSE".equals(options.get("MV_STORE")) ? StoreType.PAGE_STORE : StoreType.MV_STORE;
-        File dbFile = new File(dataDir + desiredStoreType.extension);
-        return dbFile.exists() ? dbFile : null;
+        if (!url.startsWith(IN_MEMORY_URL_PREFIX)) {
+            Map<String, String> options = extractOptions(url);
+            StoreType storeType = "FALSE".equals(options.get("MV_STORE")) ? StoreType.PAGE_STORE : StoreType.MV_STORE;
+            Path dbPath = getDbPathFromUrl(url);
+            Path dbFile = dbPath.getParent().resolve(dbPath.getFileName().toString() + storeType.extension);
+            if (Files.exists(dbFile)) {
+                return dbFile.toFile();
+            }
+        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -450,6 +460,11 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 "SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
                         + tableName.toUpperCase() + "' AND table_schema='PUBLIC'",
                         new Object[] {}, 0) > 0;
+    }
+
+    @Override
+    public void clean() {
+        runScript(new String[] {"DROP ALL OBJECTS;"}, null);
     }
 
     /**

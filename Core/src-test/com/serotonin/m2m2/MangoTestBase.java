@@ -38,25 +38,26 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
@@ -110,6 +111,12 @@ public class MangoTestBase {
 
         properties = new MockMangoProperties();
         properties.setProperty("paths.data", dataDirectory.toString());
+        properties.setProperty("db.url", "jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
+
+        //TODO
+//        upgrader.setSystemSetting(SystemSettingsDao.BACKUP_ENABLED, "false");
+//        upgrader.setSystemSetting(SystemSettingsDao.DATABASE_BACKUP_ENABLED, "false");
+
         Providers.add(MangoProperties.class, properties);
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
         Common.releaseProps = new Properties();
@@ -160,14 +167,21 @@ public class MangoTestBase {
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
         provider.reset();
 
+        //Clean the noSQL database
+        Common.getBean(PointValueDao.class).deleteAllPointDataWithoutCount();
+
+        //clear all caches in services
+        Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()
+                .filter(s -> !(s instanceof PermissionService))
+                .forEach(CachingService::clearCaches);
+
+        // We clear the permission service cache afterwards as every call to clearCaches() on another service will
+        // repopulate the role hierarchy cache
+        Common.getRuntimeContext().getBean(PermissionService.class).clearCaches();
+
         DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
-        if(databaseProxy instanceof H2InMemoryDatabaseProxy) {
-            try {
-                ((H2InMemoryDatabaseProxy) databaseProxy).clean();
-            } catch (Exception e) {
-                throw new ShouldNeverHappenException(e);
-            }
-        }
+        databaseProxy.clean();
+        databaseProxy.initialize();
     }
 
     @AfterClass
