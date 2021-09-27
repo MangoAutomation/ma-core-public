@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import java.util.function.Consumer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -199,22 +201,26 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     private final Set<Class<?>> runtimeContextConfigurations = new LinkedHashSet<>();
-    {
-        runtimeContextConfigurations.add(MangoTestRuntimeContextConfiguration.class);
-    }
+    private final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
 
     public void addRuntimeContextConfiguration(Class<?> clazz) {
         runtimeContextConfigurations.add(clazz);
     }
 
-    protected CompletableFuture<ApplicationContext>  springRuntimeContextInitialize(ClassLoader classLoader) {
-        @SuppressWarnings("resource")
+    public void addBeanDefinition(String name, BeanDefinition beanDefinition) {
+        beanDefinitions.put(name, beanDefinition);
+    }
+
+    protected CompletableFuture<ApplicationContext> springRuntimeContextInitialize(ClassLoader classLoader) {
         AnnotationConfigApplicationContext runtimeContext = new AnnotationConfigApplicationContext();
         runtimeContext.setClassLoader(classLoader);
         runtimeContext.setId(MangoRuntimeContextConfiguration.CONTEXT_ID);
         runtimeContext.getEnvironment().getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
         runtimeContext.register(MangoTestRuntimeContextConfiguration.class);
         runtimeContext.register(runtimeContextConfigurations.toArray(new Class<?>[] {}));
+        for (var entry : beanDefinitions.entrySet()) {
+            runtimeContext.registerBeanDefinition(entry.getKey(), entry.getValue());
+        }
         runtimeContext.refresh();
         runtimeContext.start();
         return MangoRuntimeContextConfiguration.getFutureRuntimeContext();
