@@ -42,17 +42,16 @@ abstract public class PointValueDaoDefinition extends ModuleElementDefinition {
     public abstract PointValueDao getPointValueDao();
 
     /**
-     * Helper to get the database directory
-     *
-     * @return absolute path to databases directory
+     * @return absolute path to database directory
+     * @throws UnsupportedOperationException if not supported.
      */
     public Path getDatabasePath() {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * return this size of the database(s) in bytes
-     * @return
+     * @return size of the database in bytes
+     * @throws UnsupportedOperationException if not supported.
      */
     public long getDatabaseSizeInBytes(){
         return DirectoryUtils.getSize(getDatabasePath().toFile()).getSize();
