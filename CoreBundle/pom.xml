@@ -343,7 +343,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-nosql-database</artifactId>
-            <version>4.2.1-SNAPSHOT</version>
+            <version>4.2.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
@@ -367,7 +367,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ui</artifactId>
-            <version>4.2.1-SNAPSHOT</version>
+            <version>4.2.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
