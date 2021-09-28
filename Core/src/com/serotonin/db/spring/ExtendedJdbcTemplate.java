@@ -1,10 +1,9 @@
 package com.serotonin.db.spring;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.sql.DataSource;
@@ -13,9 +12,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.support.DataAccessUtils;
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
+import org.springframework.jdbc.core.ArgumentTypePreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ParameterDisposer;
-import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
@@ -30,7 +30,6 @@ import org.springframework.jdbc.support.KeyHolder;
  * @author mlohbihler
  */
 public class ExtendedJdbcTemplate extends JdbcTemplate {
-    //    final Log logger = super.logger;
 
     public ExtendedJdbcTemplate(DataSource dataSource) {
         super(dataSource);
@@ -44,12 +43,12 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
     }
 
     public <T> @Nullable T queryForObject(String sql, Object[] args, RowMapper<T> rowMapper, @Nullable T zeroResult) {
-        List<T> results = query(sql, new RowMapperResultSetExtractor<T>(rowMapper, 1), args);
+        List<T> results = query(sql, new RowMapperResultSetExtractor<>(rowMapper, 1), args);
         return optionalUniqueResult(results, zeroResult);
     }
 
     public <T> @Nullable T queryForObject(String sql, Object[] args, int[] argTypes, RowMapper<T> rowMapper, @Nullable T zeroResult) {
-        List<T> results = query(sql, args, argTypes, new RowMapperResultSetExtractor<T>(rowMapper, 1));
+        List<T> results = query(sql, args, argTypes, new RowMapperResultSetExtractor<>(rowMapper, 1));
         return optionalUniqueResult(results, zeroResult);
     }
 
@@ -81,22 +80,12 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
         return (number != null ? number.intValue() : zeroResult);
     }
 
-    @Override
-    public int update(String sql, Object... args) throws DataAccessException {
-        return update(sql, new ArgPreparedStatementSetter(args));
-    }
-
-    @Override
-    public int update(String sql, Object[] args, int[] argTypes) throws DataAccessException {
-        return update(sql, new ArgTypePreparedStatementSetter(args, argTypes));
-    }
-
     public int update(String sql, Object[] args, KeyHolder keyHolder) throws DataAccessException {
-        return update(sql, new ArgPreparedStatementSetter(args), keyHolder);
+        return update(sql, new ArgumentPreparedStatementSetter(args), keyHolder);
     }
 
     public int update(String sql, Object[] args, int[] argTypes, KeyHolder keyHolder) throws DataAccessException {
-        return update(sql, new ArgTypePreparedStatementSetter(args, argTypes), keyHolder);
+        return update(sql, new ArgumentTypePreparedStatementSetter(args, argTypes), keyHolder);
     }
 
     public int update(String sql, PreparedStatementSetter pss, KeyHolder keyHolder) throws DataAccessException {
@@ -104,55 +93,50 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
     }
 
     public <T> List<T> query(String sql, Object[] args, RowMapper<T> rowMapper, int limit) throws DataAccessException {
-        return query(sql, args, new RowMapperResultSetLimitExtractor<T>(rowMapper, limit));
+        return query(sql, new RowMapperResultSetLimitExtractor<>(rowMapper, limit), args);
     }
 
     /**
      * Combines two of the methods from the super class to create one that seems to oddly be missing.
      */
-    protected int update(final PreparedStatementCreator psc, final PreparedStatementSetter pss,
-            final KeyHolder generatedKeyHolder) throws DataAccessException {
+    protected int update(PreparedStatementCreator psc, PreparedStatementSetter pss, KeyHolder generatedKeyHolder) throws DataAccessException {
         if (logger.isDebugEnabled()) {
             // Unfortunately, the getSql method is private. We can probably manage without.
             logger.debug("Executing SQL update and returning generated keys");
         }
 
-        Integer result = execute(psc, new PreparedStatementCallback<Integer>() {
-            @Override
-            @SuppressWarnings("synthetic-access")
-            public Integer doInPreparedStatement(PreparedStatement ps) throws SQLException {
-                try {
-                    if (pss != null) {
-                        pss.setValues(ps);
-                    }
-                    int rows = ps.executeUpdate();
-                    List<Map<String, Object>> generatedKeys = generatedKeyHolder.getKeyList();
-                    generatedKeys.clear();
-                    ResultSet keys = ps.getGeneratedKeys();
-                    if (keys != null) {
-                        try {
-                            RowMapper<Map<String, Object>> rowMapper = getColumnMapRowMapperImpl();
-                            RowMapperResultSetExtractor<Map<String, Object>> rse = new RowMapperResultSetExtractor<Map<String, Object>>(
-                                    rowMapper, 1);
-                            generatedKeys.addAll(rse.extractData(keys));
-                        }
-                        finally {
-                            JdbcUtils.closeResultSet(keys);
-                        }
-                    }
-                    if (logger.isDebugEnabled())
-                        logger.debug("SQL update affected " + rows + " rows and returned " + generatedKeys.size()
-                        + " keys");
-                    return Integer.valueOf(rows);
+        Integer result = execute(psc, ps -> {
+            try {
+                if (pss != null) {
+                    pss.setValues(ps);
                 }
-                finally {
-                    if (pss instanceof ParameterDisposer) {
-                        ((ParameterDisposer) pss).cleanupParameters();
+                int rows = ps.executeUpdate();
+                List<Map<String, Object>> generatedKeys = generatedKeyHolder.getKeyList();
+                generatedKeys.clear();
+                ResultSet keys = ps.getGeneratedKeys();
+                if (keys != null) {
+                    try {
+                        RowMapper<Map<String, Object>> rowMapper = getColumnMapRowMapperImpl();
+                        RowMapperResultSetExtractor<Map<String, Object>> rse = new RowMapperResultSetExtractor<>(
+                                rowMapper, 1);
+                        generatedKeys.addAll(Objects.requireNonNull(rse.extractData(keys)));
                     }
+                    finally {
+                        JdbcUtils.closeResultSet(keys);
+                    }
+                }
+                if (logger.isDebugEnabled())
+                    logger.debug("SQL update affected " + rows + " rows and returned " + generatedKeys.size()
+                    + " keys");
+                return rows;
+            }
+            finally {
+                if (pss instanceof ParameterDisposer) {
+                    ((ParameterDisposer) pss).cleanupParameters();
                 }
             }
         });
-        return result.intValue();
+        return Objects.requireNonNull(result);
     }
 
     RowMapper<Map<String, Object>> getColumnMapRowMapperImpl() {
