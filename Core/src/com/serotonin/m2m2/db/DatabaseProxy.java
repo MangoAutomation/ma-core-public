@@ -151,6 +151,7 @@ public interface DatabaseProxy extends TransactionCapable {
     String getDatabasePassword(String propertyPrefix);
 
     boolean isUseMetrics();
+    long metricsThreshold();
 
     default Configuration getConfig() {
         Configuration configuration = new DefaultConfiguration();

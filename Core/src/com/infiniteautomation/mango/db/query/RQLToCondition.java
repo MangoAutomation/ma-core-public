@@ -34,7 +34,7 @@ public class RQLToCondition {
 
     public static final Function<Object, Object> BOOLEAN_VALUE_CONVERTER = value -> {
         if (value instanceof Boolean) {
-            return ((Boolean) value) ? BaseDao.Y : BaseDao.N;
+            return BaseDao.boolToChar((Boolean) value);
         }
         return value;
     };

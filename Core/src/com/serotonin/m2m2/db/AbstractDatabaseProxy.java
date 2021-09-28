@@ -297,6 +297,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
+    public long metricsThreshold() {
+        return env.getProperty("db.metricsThreshold", long.class, 0L);
+    }
+
+    @Override
     public DSLContext getContext() {
         return context;
     }
