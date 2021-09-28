@@ -251,6 +251,10 @@ public interface DatabaseProxy extends TransactionCapable {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Number of rows to insert at once when doing batch inserts (e.g. point value inserts)
+     * @return number of rows to insert
+     */
     default int batchInsertSize() {
         return 1000;
     }

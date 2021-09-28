@@ -296,4 +296,9 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     public DSLContext getContext() {
         return context;
     }
+
+    @Override
+    public int batchInsertSize() {
+        return env.getProperty("db.batchInsertSize", int.class, DatabaseProxy.super.batchInsertSize());
+    }
 }
