@@ -58,7 +58,7 @@ public class MSSQLProxy extends BasePooledProxy {
     }
 
     @Override
-    public int batchInsertSize() {
+    public int batchSize() {
         return 524;
     }
 }

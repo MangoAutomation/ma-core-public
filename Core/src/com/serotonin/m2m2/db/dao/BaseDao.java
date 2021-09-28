@@ -8,13 +8,15 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
 import org.jooq.DSLContext;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.google.common.collect.Iterables;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -74,21 +76,12 @@ public abstract class BaseDao implements TransactionCapable {
     }
 
     /**
-     * Get the defined batch size for IN() conditions
-     * @return
+     * Break a stream into partitions of limited size for use with IN() operator
      */
-    protected int getInBatchSize() {
-        return Common.envProps.getInt("db.in.maxOperands", 1000);
-    }
-
-    /**
-     * Break an interable collection into batches to execute large 'in' queries
-     * @param <T>
-     * @param parameters
-     * @return
-     */
-    protected <T> Iterable<List<T>> batchInParameters(Iterable<T> parameters){
-        return Iterables.partition(parameters, getInBatchSize());
+    protected <T> Collection<List<T>> partitionInParameters(Stream<T> parameters) {
+        int size = databaseProxy.maxInParameters();
+        AtomicInteger count = new AtomicInteger();
+        return parameters.collect(Collectors.groupingBy(s -> count.getAndIncrement() % size)).values();
     }
 
     //

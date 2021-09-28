@@ -150,8 +150,13 @@ public interface DatabaseProxy extends TransactionCapable {
 
     String getDatabasePassword(String propertyPrefix);
 
-    boolean isUseMetrics();
-    long metricsThreshold();
+    default boolean isUseMetrics() {
+        return false;
+    }
+
+    default long metricsThreshold() {
+        return 0L;
+    }
 
     default Configuration getConfig() {
         Configuration configuration = new DefaultConfiguration();
@@ -262,10 +267,17 @@ public interface DatabaseProxy extends TransactionCapable {
     }
 
     /**
-     * Number of rows to insert at once when doing batch inserts (e.g. point value inserts)
+     * Number of rows to insert/delete at once when doing batch inserts/deletes (e.g. point value inserts, data point deletion)
      * @return number of rows to insert
      */
-    default int batchInsertSize() {
+    default int batchSize() {
+        return 1000;
+    }
+
+    /**
+     * @return maximum number of parameters to use for the IN() operator
+     */
+    default int maxInParameters() {
         return 1000;
     }
 }

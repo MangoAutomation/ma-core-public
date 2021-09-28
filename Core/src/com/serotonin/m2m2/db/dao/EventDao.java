@@ -376,7 +376,7 @@ public class EventDao extends BaseDao {
         values.put(table.rtnTs, timestamp);
         values.put(table.rtnCause, cause.value());
 
-        for(List<Integer> batch : batchInParameters(eventIds)) {
+        for(List<Integer> batch : partitionInParameters(eventIds.stream())) {
             UpdateConditionStep<?> update = this.create.update(table).set(values).where(table.rtnApplicable.eq(boolToChar(true)).and(table.id.in(batch)));
             String sql = update.getSQL();
             List<Object> args = update.getBindValues();

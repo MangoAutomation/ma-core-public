@@ -312,7 +312,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public int batchInsertSize() {
-        return env.getProperty("db.batchInsertSize", int.class, DatabaseProxy.super.batchInsertSize());
+    public int batchSize() {
+        return env.getProperty("db.batchSize", int.class, DatabaseProxy.super.batchSize());
+    }
+
+    @Override
+    public int maxInParameters() {
+        return env.getProperty("db.maxInParameters", int.class, DatabaseProxy.super.maxInParameters());
     }
 }

@@ -100,7 +100,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 .value(0)
                 .build();
 
-        this.batchInsertSize = databaseProxy.batchInsertSize();
+        this.batchInsertSize = databaseProxy.batchSize();
     }
 
     @Override
