@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -75,7 +76,7 @@ public class MySQLDatabaseUpgradeTest {
         //Start the proxy and let it upgrade
         MockEnvironment env = new MockEnvironment();
         env.getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
-        DatabaseProxyConfiguration configuration = new DatabaseProxyConfiguration(env, getClass().getClassLoader());
+        DatabaseProxyConfiguration configuration = new DatabaseProxyConfiguration(env, getClass().getClassLoader(), Collections.emptyList());
         MySQLProxy proxy = new MySQLProxy(DatabaseProxyFactory.UNSUPPORTED_INSTANCE, configuration);
         proxy.initialize();
     }

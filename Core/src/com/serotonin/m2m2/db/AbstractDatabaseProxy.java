@@ -13,6 +13,7 @@ import java.nio.file.StandardOpenOption;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -33,6 +34,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.Users;
 import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
+import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration.DatabaseProxyListener;
 import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -49,6 +51,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     protected final DatabaseProxyFactory factory;
     protected final Environment env;
     protected final ClassLoader classLoader;
+    protected final List<DatabaseProxyListener> listeners;
 
     private PlatformTransactionManager transactionManager;
     private DSLContext context;
@@ -57,6 +60,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         this.factory = factory;
         this.env = configuration.getEnv();
         this.classLoader = configuration.getClassLoader();
+        this.listeners = configuration.getListeners();
     }
 
     @PostConstruct
@@ -162,6 +166,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                     sourceProxy.terminate();
                 }
             }
+
+            listeners.forEach(l -> l.onInitialize(this));
         } catch (CannotGetJdbcConnectionException e) {
             log.error("Unable to connect to database of type " + getType().name(), e);
             throw e;
@@ -239,6 +245,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @PreDestroy
     @Override
     public void terminate() {
+        listeners.forEach(l -> l.onTerminate(this));
         terminateImpl();
         this.context = null;
         this.transactionManager = null;

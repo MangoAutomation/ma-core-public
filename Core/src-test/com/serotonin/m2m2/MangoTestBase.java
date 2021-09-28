@@ -112,10 +112,6 @@ public class MangoTestBase {
         properties.setProperty("paths.data", dataDirectory.toString());
         properties.setProperty("db.url", "jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
 
-//        TODO
-//        upgrader.setSystemSetting(SystemSettingsDao.BACKUP_ENABLED, "false");
-//        upgrader.setSystemSetting(SystemSettingsDao.DATABASE_BACKUP_ENABLED, "false");
-
         Providers.add(MangoProperties.class, properties);
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
         Common.releaseProps = new Properties();
