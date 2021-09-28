@@ -35,11 +35,6 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
         super(dataSource);
     }
 
-    @Override
-    public void setDataSource(DataSource dataSource) {
-        throw new UnsupportedOperationException("Data source should be supplied via constructor");
-    }
-
     public <T> @Nullable T optionalUniqueResult(List<T> results, @Nullable T zeroResult) {
         T result = DataAccessUtils.uniqueResult(results);
         if (result == null)
