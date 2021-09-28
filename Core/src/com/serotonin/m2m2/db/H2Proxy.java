@@ -93,22 +93,22 @@ public class H2Proxy extends AbstractDatabaseProxy {
         jds.setURL(getUrl(propertyPrefix));
         jds.setDescription("maDataSource");
 
-        String user = Common.envProps.getString(propertyPrefix + "db.username", null);
+        String user = env.getProperty(propertyPrefix + "db.username");
         if (user != null) {
             jds.setUser(user);
 
-            String password = Common.envProps.getString(propertyPrefix + "db.password", null);
+            String password = env.getProperty(propertyPrefix + "db.password");
             if (password != null)
                 jds.setPassword(password);
         }
         dataSource = JdbcConnectionPool.create(jds);
-        dataSource.setMaxConnections(Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
+        dataSource.setMaxConnections(env.getProperty(propertyPrefix + "db.pool.maxActive", int.class, 100));
 
-        if (Common.envProps.getBoolean(propertyPrefix + "db.web.start", false)) {
+        if (env.getProperty(propertyPrefix + "db.web.start", boolean.class, false)) {
             LOG.info("Initializing H2 web server");
             String[] webArgs = new String[4];
             webArgs[0] = "-webPort";
-            webArgs[1] = Common.envProps.getString(propertyPrefix + "db.web.port");
+            webArgs[1] = env.getProperty(propertyPrefix + "db.web.port", "8091");
             webArgs[2] = "-ifExists";
             webArgs[3] = "-webAllowOthers";
             try {
@@ -131,7 +131,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
      */
     private void upgradeLegacyPageStore(String propertyPrefix) {
         //Parse out the useful sections of the url
-        String dbUrl = Common.envProps.getString(propertyPrefix + "db.url");
+        String dbUrl = env.getRequiredProperty(propertyPrefix + "db.url");
         if (dbUrl.startsWith(IN_MEMORY_URL_PREFIX)) {
             return;
         }
@@ -190,7 +190,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
 
     private void upgradePageStoreToMvStore(String propertyPrefix) throws Exception {
-        String upgradeUrl = Common.envProps.getString(propertyPrefix + "db.url");
+        String upgradeUrl = env.getRequiredProperty(propertyPrefix + "db.url");
         if (upgradeUrl.startsWith(IN_MEMORY_URL_PREFIX)) {
             return;
         }
@@ -269,8 +269,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private Properties getConnectionProperties(String propertyPrefix) {
         Properties connectionProperties = new Properties();
-        connectionProperties.compute("user", (a, b) -> Common.envProps.getString(propertyPrefix + "db.username", null));
-        connectionProperties.compute("password", (a, b) -> Common.envProps.getString(propertyPrefix + "db.password", null));
+        connectionProperties.compute("user", (a, b) -> env.getProperty(propertyPrefix + "db.username"));
+        connectionProperties.compute("password", (a, b) -> env.getProperty(propertyPrefix + "db.password"));
         return connectionProperties;
     }
 
@@ -339,7 +339,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
 
     private String getUrl(String propertyPrefix) {
-        String url = Common.envProps.getString(propertyPrefix + "db.url");
+        String url = env.getRequiredProperty(propertyPrefix + "db.url");
         if (url.startsWith(IN_MEMORY_URL_PREFIX)) {
             return url;
         }
@@ -441,7 +441,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         }
 
         if (dataSource != null) {
-            if (Common.envProps.getBoolean("db.h2.shutdownCompact", false)) {
+            if (env.getProperty("db.h2.shutdownCompact", boolean.class, false)) {
                 LOG.info("Terminating and Compacting database.");
                 runScript(new String[] {"SHUTDOWN COMPACT;"}, null);
             }else {
@@ -481,7 +481,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
      * Dump legacy database to SQL using legacy driver from separate classloader
      */
     private void dumpLegacy(String propertyPrefix, Path dumpPath) throws Exception {
-        String url = Common.envProps.getString(propertyPrefix + "db.url");
+        String url = env.getRequiredProperty(propertyPrefix + "db.url");
         Map<String, String> options = extractOptions(url);
         options.put("MV_STORE", "FALSE");
         options.put("IFEXISTS", "TRUE");
