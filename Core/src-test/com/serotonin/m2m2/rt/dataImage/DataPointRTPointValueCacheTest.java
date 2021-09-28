@@ -17,8 +17,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.dao.BasicSQLPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -170,7 +170,7 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
         return lifecycle;
     }
 
-    static class MockPointValueDao extends PointValueDaoSQL {
+    static class MockPointValueDao extends BasicSQLPointValueDao {
 
         private final List<PointValueTime> values = new ArrayList<>();
 

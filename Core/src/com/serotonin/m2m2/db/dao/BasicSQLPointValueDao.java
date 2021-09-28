@@ -98,7 +98,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     @Override
     public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
         throw new UnsupportedOperationException();
-
     }
 
     protected PointValueTime getPointValue(long id) {

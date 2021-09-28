@@ -6,6 +6,7 @@ package com.serotonin.m2m2.module.definitions.db;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -15,12 +16,14 @@ public class DefaultPointValueDaoDefinition extends PointValueDaoDefinition {
 
     @Autowired
     DatabaseProxy databaseProxy;
+    @Autowired
+    MonitoredValues monitoredValues;
 
     PointValueDao pointValueDao;
 
     @Override
     public void initialize() {
-        this.pointValueDao = new PointValueDaoSQL(databaseProxy);
+        this.pointValueDao = new PointValueDaoSQL(databaseProxy, monitoredValues);
     }
 
     @Override

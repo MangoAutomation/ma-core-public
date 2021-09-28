@@ -8,15 +8,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 
-import javax.sql.DataSource;
-
-import org.jooq.DSLContext;
 import org.jooq.InsertValuesStep4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,17 +21,15 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
+import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -52,31 +46,63 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private final ConcurrentLinkedQueue<UnsavedPointValue> unsavedPointValues = new ConcurrentLinkedQueue<>();
 
     public static final String SYNC_INSERTS_SPEED_COUNTER_ID = "com.serotonin.m2m2.db.dao.PointValueDaoSQL.SYNC_INSERTS_SPEED_COUNTER";
-    private final ValueMonitor<Integer> syncInsertsSpeedCounter = Common.MONITORED_VALUES.<Integer>create(SYNC_INSERTS_SPEED_COUNTER_ID)
-                    .name(new TranslatableMessage("internal.monitor.SYNC_INSERTS_SPEED_COUNTER_ID"))
-                    .value(0)
-                    .build();
-
     public static final String ASYNC_INSERTS_SPEED_COUNTER_ID = "com.serotonin.m2m2.db.dao.PointValueDaoSQL.ASYNC_INSERTS_SPEED_COUNTER";
-    private final ValueMonitor<Integer> asyncInsertsSpeedCounter = Common.MONITORED_VALUES.<Integer>create(ASYNC_INSERTS_SPEED_COUNTER_ID)
-            .name(new TranslatableMessage("internal.monitor.ASYNC_INSERTS_SPEED_COUNTER_ID"))
-            .value(0)
-            .build();
+    public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
+    public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
+    public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
+
+    private static final int SPAWN_THRESHOLD = 10000;
+    private static final int MAX_INSTANCES = 5;
+
+    private static final List<Class<? extends RuntimeException>> RETRIED_EXCEPTIONS = List.of(
+            RecoverableDataAccessException.class,
+            TransientDataAccessException.class,
+            TransientDataAccessResourceException.class,
+            CannotGetJdbcConnectionException.class
+    );
 
     private final EventHistogram syncCallsCounter = new EventHistogram(5000, 2);
     private final EventHistogram asyncCallsCounter = new EventHistogram(5000, 2);
+    private final EventHistogram writesPerSecond = new EventHistogram(5000, 2);
 
-    public PointValueDaoSQL(DatabaseProxy databaseProxy) {
+    private final ObjectQueue<BatchWriteBehindEntry> entries = new ObjectQueue<>();
+    private final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<>();
+
+    private final ValueMonitor<Integer> syncInsertsSpeedCounter;
+    private final ValueMonitor<Integer> asyncInsertsSpeedCounter;
+    private final ValueMonitor<Integer> entriesMonitor;
+    private final ValueMonitor<Integer> instancesMonitor;
+    //TODO Create ValueMonitor<Double> but will need to upgrade the Internal data source to do this
+    private final ValueMonitor<Integer> batchWriteSpeedMonitor;
+    private final int batchInsertSize;
+
+    public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues) {
         super(databaseProxy);
+
+        this.syncInsertsSpeedCounter = monitoredValues.<Integer>create(SYNC_INSERTS_SPEED_COUNTER_ID)
+                .name(new TranslatableMessage("internal.monitor.SYNC_INSERTS_SPEED_COUNTER_ID"))
+                .value(0)
+                .build();
+        this.asyncInsertsSpeedCounter = monitoredValues.<Integer>create(ASYNC_INSERTS_SPEED_COUNTER_ID)
+                .name(new TranslatableMessage("internal.monitor.ASYNC_INSERTS_SPEED_COUNTER_ID"))
+                .value(0)
+                .build();
+        this.entriesMonitor = monitoredValues.<Integer>create(ENTRIES_MONITOR_ID)
+                .name(new TranslatableMessage("internal.monitor.BATCH_ENTRIES"))
+                .value(0)
+                .build();
+        this.instancesMonitor = monitoredValues.<Integer>create(INSTANCES_MONITOR_ID)
+                .name(new TranslatableMessage("internal.monitor.BATCH_INSTANCES"))
+                .value(0)
+                .build();
+        this.batchWriteSpeedMonitor = monitoredValues.<Integer>create(BATCH_WRITE_SPEED_MONITOR_ID)
+                .name(new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"))
+                .value(0)
+                .build();
+
+        this.batchInsertSize = databaseProxy.batchInsertSize();
     }
 
-    public PointValueDaoSQL(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context) {
-        super(dataSource, transactionManager, databaseType, context);
-    }
-
-    /**
-     * Only the PointValueCache should call this method during runtime. Do not use.
-     */
     @Override
     public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
         syncCallsCounter.hit();
@@ -98,19 +124,14 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         return savedPointValue;
     }
 
-    /**
-     * Only the PointValueCache should call this method during runtime. Do not use.
-     */
     @Override
     public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
         savePointValueImpl(vo, pointValue, source, true);
         asyncCallsCounter.hit();
         asyncInsertsSpeedCounter.setValue(asyncCallsCounter.getEventCounts()[0] / 5);
-
     }
 
-    long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, final SetPointSource source,
-                            boolean async) {
+    private long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, final SetPointSource source, boolean async) {
         DataValue value = pointValue.getValue();
         final int dataType = DataTypes.getDataType(value);
         double dvalue = 0;
@@ -157,25 +178,23 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
             }
         }
 
-        clearUnsavedPointValues();
-
+        writeUnsavedPointValues();
         return id;
     }
 
-    private void clearUnsavedPointValues() {
+    private void writeUnsavedPointValues() {
         UnsavedPointValue data;
         while ((data = unsavedPointValues.poll()) != null) {
-            savePointValueImpl(data.getVO(), data.getPointValue(), data.getSource(), false);
+            savePointValueImpl(data.vo, data.pointValue, data.source, false);
         }
     }
 
-    long savePointValue(final DataPointVO vo, final int dataType, double dvalue, final long time, final String svalue,
-                        final SetPointSource source, boolean async) {
+    private long savePointValue(DataPointVO vo, int dataType, double dvalue, long time, String svalue, SetPointSource source, boolean async) {
         // Apply database specific bounds on double values.
         dvalue = databaseProxy.applyBounds(dvalue);
 
         if (async) {
-            BatchWriteBehind.add(new BatchWriteBehindEntry(vo, dataType, dvalue, time), create, databaseType);
+            addBatchWriteEntry(new BatchWriteBehindEntry(vo, dataType, dvalue, time));
             return -1;
         }
 
@@ -193,16 +212,15 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private long savePointValueImpl(DataPointVO vo, int dataType, double dvalue, long time, String svalue,
-                                    SetPointSource source) {
-
+    private long savePointValueImpl(DataPointVO vo, int dataType, double dvalue, long time, String svalue, SetPointSource source) {
         long id = this.create.insertInto(pv)
                 .set(pv.dataPointId, vo.getSeriesId())
                 .set(pv.dataType, dataType)
                 .set(pv.pointValue, dvalue)
                 .set(pv.ts, time)
                 .returningResult(pv.id)
-                .fetchOne()
+                .fetchOptional()
+                .orElseThrow()
                 .value1();
 
         if (svalue == null && dataType == DataTypes.IMAGE)
@@ -235,11 +253,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     }
 
     /**
-     * Class that stored point value data when it could not be saved to the database due to concurrency errors.
+     * Holds point value data that could not be saved to the database due to concurrency errors.
      *
      * @author Matthew Lohbihler
      */
-    static class UnsavedPointValue {
+    private static class UnsavedPointValue {
         private final DataPointVO vo;
         private final PointValueTime pointValue;
         private final SetPointSource source;
@@ -249,21 +267,9 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
             this.pointValue = pointValue;
             this.source = source;
         }
-
-        public DataPointVO getVO() {
-            return vo;
-        }
-
-        public PointValueTime getPointValue() {
-            return pointValue;
-        }
-
-        public SetPointSource getSource() {
-            return source;
-        }
     }
 
-    static class BatchWriteBehindEntry {
+    private static class BatchWriteBehindEntry {
         private final DataPointVO vo;
         private final int dataType;
         private final double dvalue;
@@ -277,105 +283,49 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
-    public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
-    public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
-    final static EventHistogram writesPerSecond = new EventHistogram(5000, 2);
-
-    static class BatchWriteBehind implements WorkItem {
-        private static final ObjectQueue<BatchWriteBehindEntry> ENTRIES = new ObjectQueue<>();
-        private static final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<>();
-        private static final Logger LOG = LoggerFactory.getLogger(BatchWriteBehind.class);
-        private static final int SPAWN_THRESHOLD = 10000;
-        private static final int MAX_INSTANCES = 5;
-        private final int maxRows;
-        private static final ValueMonitor<Integer> ENTRIES_MONITOR = Common.MONITORED_VALUES.<Integer>create(ENTRIES_MONITOR_ID)
-                .name(new TranslatableMessage("internal.monitor.BATCH_ENTRIES"))
-                .value(0)
-                .build();
-
-        private static final ValueMonitor<Integer> INSTANCES_MONITOR = Common.MONITORED_VALUES.<Integer>create(INSTANCES_MONITOR_ID)
-                .name(new TranslatableMessage("internal.monitor.BATCH_INSTANCES"))
-                .value(0)
-                .build();
-
-        //TODO Create ValueMonitor<Double> but will need to upgrade the Internal data source to do this
-        private static final ValueMonitor<Integer> BATCH_WRITE_SPEED_MONITOR = Common.MONITORED_VALUES.<Integer>create(BATCH_WRITE_SPEED_MONITOR_ID)
-                .name(new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"))
-                .value(0)
-                .build();
-
-        private static final List<Class<? extends RuntimeException>> retriedExceptions = new ArrayList<>();
-        static {
-            retriedExceptions.add(RecoverableDataAccessException.class);
-            retriedExceptions.add(TransientDataAccessException.class);
-            retriedExceptions.add(TransientDataAccessResourceException.class);
-            retriedExceptions.add(CannotGetJdbcConnectionException.class);
-        }
-
-        static void add(BatchWriteBehindEntry e, DSLContext create, DatabaseType databaseType) {
-            synchronized (ENTRIES) {
-                ENTRIES.push(e);
-                ENTRIES_MONITOR.setValue(ENTRIES.size());
-                if (ENTRIES.size() > instances.size() * SPAWN_THRESHOLD) {
-                    if (instances.size() < MAX_INSTANCES) {
-                        BatchWriteBehind bwb = new BatchWriteBehind(create, databaseType);
-                        instances.add(bwb);
-                        INSTANCES_MONITOR.setValue(instances.size());
-                        try {
-                            Common.backgroundProcessing.addWorkItem(bwb);
-                        } catch (RejectedExecutionException ree) {
-                            instances.remove(bwb);
-                            INSTANCES_MONITOR.setValue(instances.size());
-                            throw ree;
-                        }
+    private void addBatchWriteEntry(BatchWriteBehindEntry e) {
+        synchronized (entries) {
+            entries.push(e);
+            entriesMonitor.setValue(entries.size());
+            if (entries.size() > instances.size() * SPAWN_THRESHOLD) {
+                if (instances.size() < MAX_INSTANCES) {
+                    BatchWriteBehind bwb = new BatchWriteBehind();
+                    instances.add(bwb);
+                    instancesMonitor.setValue(instances.size());
+                    try {
+                        Common.backgroundProcessing.addWorkItem(bwb);
+                    } catch (RejectedExecutionException ree) {
+                        instances.remove(bwb);
+                        instancesMonitor.setValue(instances.size());
+                        throw ree;
                     }
                 }
             }
         }
+    }
 
-        private final DSLContext create;
+    private class BatchWriteBehind implements WorkItem {
 
-        public BatchWriteBehind(DSLContext create, DatabaseType databaseType) {
-            this.create = create;
-
-            if (databaseType == DatabaseType.DERBY)
-                // This has not been tested to be optimal
-                maxRows = 1000;
-            else if (databaseType == DatabaseType.H2)
-                // This has not been tested to be optimal
-                maxRows = 1000;
-            else if (databaseType == DatabaseType.MSSQL)
-                // MSSQL has max rows of 1000, and max parameters of 2100. In this case that works out to...
-                maxRows = 524;
-            else if (databaseType == DatabaseType.MYSQL)
-                // This appears to be an optimal value
-                maxRows = 2000;
-            else if (databaseType == DatabaseType.POSTGRES)
-                // This appears to be an optimal value
-                maxRows = 2000;
-            else
-                throw new ShouldNeverHappenException("Unknown database type: " + databaseType);
-        }
+        private final Logger log = LoggerFactory.getLogger(getClass());
 
         @Override
         public void execute() {
             try {
                 BatchWriteBehindEntry[] inserts;
                 while (true) {
-                    synchronized (ENTRIES) {
-                        if (ENTRIES.size() == 0)
+                    synchronized (entries) {
+                        if (entries.size() == 0)
                             break;
 
-                        inserts = new BatchWriteBehindEntry[Math.min(ENTRIES.size(), maxRows)];
-                        ENTRIES.pop(inserts);
-                        ENTRIES_MONITOR.setValue(ENTRIES.size());
+                        inserts = new BatchWriteBehindEntry[Math.min(entries.size(), batchInsertSize)];
+                        entries.pop(inserts);
+                        entriesMonitor.setValue(entries.size());
                     }
 
                     // Create the sql and parameters
 
                     PointValues pv = PointValues.POINT_VALUES;
-                    InsertValuesStep4<PointValuesRecord, Integer, Integer, Double, Long> insert = this.create.insertInto(pv)
+                    InsertValuesStep4<PointValuesRecord, Integer, Integer, Double, Long> insert = create.insertInto(pv)
                             .columns(pv.dataPointId, pv.dataType, pv.pointValue, pv.ts);
 
                     for (BatchWriteBehindEntry entry : inserts) {
@@ -388,13 +338,12 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                         try {
                             insert.execute();
                             writesPerSecond.hitMultiple(inserts.length);
-                            BATCH_WRITE_SPEED_MONITOR.setValue(writesPerSecond.getEventCounts()[0] / 5);
+                            batchWriteSpeedMonitor.setValue(writesPerSecond.getEventCounts()[0] / 5);
                             break;
                         } catch (RuntimeException e) {
-                            if (retriedExceptions.contains(e.getClass())) {
+                            if (RETRIED_EXCEPTIONS.contains(e.getClass())) {
                                 if (retries <= 0) {
-                                    LOG.error("Concurrency failure saving " + inserts.length
-                                            + " batch inserts after 10 tries. Data lost.");
+                                    log.error("Concurrency failure saving {} batch inserts after 10 tries. Data lost.", inserts.length);
                                     break;
                                 }
 
@@ -411,7 +360,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
                                 retries--;
                             } else {
-                                LOG.error("Error saving " + inserts.length + " batch inserts. Data lost.", e);
+                                log.error("Error saving {} batch inserts. Data lost.", inserts.length, e);
                                 break;
                             }
                         }
@@ -419,7 +368,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 }
             } finally {
                 instances.remove(this);
-                INSTANCES_MONITOR.setValue(instances.size());
+                instancesMonitor.setValue(instances.size());
             }
         }
 
@@ -430,7 +379,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
         @Override
         public String getDescription() {
-            return "Batch Writing from batch of size: " + ENTRIES.size();
+            return "Batch Writing from batch of size: " + entries.size();
         }
 
         @Override
@@ -446,7 +395,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         @Override
         public void rejected(RejectedTaskReason reason) {
             instances.remove(this);
-            INSTANCES_MONITOR.setValue(instances.size());
+            instancesMonitor.setValue(instances.size());
         }
     }
 

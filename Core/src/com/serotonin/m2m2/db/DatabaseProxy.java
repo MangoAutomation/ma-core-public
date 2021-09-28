@@ -250,4 +250,8 @@ public interface DatabaseProxy extends TransactionCapable {
     default void clean() {
         throw new UnsupportedOperationException();
     }
+
+    default int batchInsertSize() {
+        return 1000;
+    }
 }

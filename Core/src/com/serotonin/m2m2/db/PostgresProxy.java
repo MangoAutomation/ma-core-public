@@ -45,5 +45,8 @@ public class PostgresProxy extends BasePooledProxy {
                 + "WHERE table_catalog=current_database() AND table_schema=current_schema()";
     }
 
-
+    @Override
+    public int batchInsertSize() {
+        return 2000;
+    }
 }
