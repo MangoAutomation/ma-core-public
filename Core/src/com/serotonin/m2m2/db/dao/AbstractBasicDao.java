@@ -473,7 +473,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
         LogStopWatch stopWatch = null;
         if (useMetrics) {
-            stopWatch = new LogStopWatch();
+            stopWatch = new LogStopWatch(LOG);
         }
 
         int count = select.fetchSingle().value1();
@@ -528,7 +528,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     public void customizedQuery(Select<Record> select, Consumer<T> callback) {
         LogStopWatch stopWatch = null;
         if (useMetrics) {
-            stopWatch = new LogStopWatch();
+            stopWatch = new LogStopWatch(LOG);
         }
         try (Stream<Record> stream = select.stream()) {
             stream.map(this::mapRecordLoadRelationalData)
@@ -545,7 +545,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     public <TYPE> TYPE customizedQuery(Select<Record> select, ResultSetExtractor<TYPE> callback) {
         LogStopWatch stopWatch = null;
         if (useMetrics) {
-            stopWatch = new LogStopWatch();
+            stopWatch = new LogStopWatch(LOG);
         }
         try {
             try (ResultSet resultSet = select.fetchResultSet()) {
