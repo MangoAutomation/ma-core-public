@@ -136,8 +136,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
      * @return
      */
     public Object getPersistentData(int id) {
-        return query("select rtdata from dataSources where id=?", new Object[] { id },
-                new ResultSetExtractor<Serializable>() {
+        return ejt.query("select rtdata from dataSources where id=?", new ResultSetExtractor<Serializable>() {
             @Override
             public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
                 if (!rs.next())
@@ -149,7 +148,7 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
                 return (Serializable) SerializationHelper.readObjectInContext(in);
             }
-        });
+        }, id);
     }
 
     /**

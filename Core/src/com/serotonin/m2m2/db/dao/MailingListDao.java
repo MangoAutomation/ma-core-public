@@ -127,10 +127,9 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
     @Override
     public void loadRelationalData(MailingList ml) {
         ml.getInactiveIntervals().addAll(
-                query(MAILING_LIST_INACTIVE_SELECT, new Object[] { ml.getId() },
-                        new MailingListScheduleInactiveMapper()));
+                ejt.query(MAILING_LIST_INACTIVE_SELECT, new MailingListScheduleInactiveMapper(), ml.getId()));
 
-        ml.setEntries(query(MAILING_LIST_ENTRIES_SELECT, new Object[] { ml.getId() }, new EmailRecipientRowMapper()));
+        ml.setEntries(ejt.query(MAILING_LIST_ENTRIES_SELECT, new EmailRecipientRowMapper(), ml.getId()));
 
         //Populate permissions
         ml.setReadPermission(permissionService.get(ml.getReadPermission().getId()));

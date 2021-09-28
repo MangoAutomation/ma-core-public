@@ -265,7 +265,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public boolean isEnabled(int id) {
-        return query("select dp.enabled from dataPoints as dp WHERE id=?", new Object[] {id}, new ResultSetExtractor<Boolean>() {
+        return ejt.query("select dp.enabled from dataPoints as dp WHERE id=?", new ResultSetExtractor<Boolean>() {
 
             @Override
             public Boolean extractData(ResultSet rs) throws SQLException, DataAccessException {
@@ -275,7 +275,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
                     return false;
             }
 
-        });
+        }, id);
     }
 
     /**
@@ -503,17 +503,15 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     private List<PointHistoryCount> getTopPointHistoryCountsSql() {
-        List<PointHistoryCount> counts = query(
-                "select dataPointId, count(*) from pointValues group by dataPointId order by 2 desc",
-                new RowMapper<PointHistoryCount>() {
-                    @Override
-                    public PointHistoryCount mapRow(ResultSet rs, int rowNum) throws SQLException {
-                        PointHistoryCount c = new PointHistoryCount();
-                        c.setPointId(rs.getInt(1));
-                        c.setCount(rs.getInt(2));
-                        return c;
-                    }
-                });
+        List<PointHistoryCount> counts = ejt.query("select dataPointId, count(*) from pointValues group by dataPointId order by 2 desc", new RowMapper<PointHistoryCount>() {
+            @Override
+            public PointHistoryCount mapRow(ResultSet rs, int rowNum) throws SQLException {
+                PointHistoryCount c1 = new PointHistoryCount();
+                c1.setPointId(rs.getInt(1));
+                c1.setCount(rs.getInt(2));
+                return c1;
+            }
+        });
 
         List<DataPointVO> points = getJoinedSelectQuery()
                 .orderBy(table.deviceName, table.name)

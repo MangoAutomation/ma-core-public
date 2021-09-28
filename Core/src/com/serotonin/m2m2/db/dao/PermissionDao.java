@@ -82,7 +82,9 @@ public class PermissionDao extends BaseDao {
         List<Object> arguments = select.getBindValues();
         Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
 
-        return this.query(sql, argumentsArray, new ResultSetExtractor<MangoPermission>() {
+        //Add to current minterm
+        //Add to next minterm
+        return ejt.query(sql, new ResultSetExtractor<MangoPermission>() {
 
             private int roleIdIndex = 1;
             private int roleXidIndex = 2;
@@ -117,7 +119,7 @@ public class PermissionDao extends BaseDao {
                 }
             }
 
-        });
+        }, argumentsArray);
     }
 
     /**

@@ -705,8 +705,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                                       Consumer<IdPointValueTime> callback) {
         List<Integer> dataPointIds = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
         String ids = createDelimitedList(dataPointIds, ",", null);
-        query(ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + ids + ") and pv.ts >= ? and pv.ts<? order by ts",
-                new Object[]{from, to}, new AnnotatedIdPointValueRowMapper(), callback);
+        ejt.query(ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + ids + ") and pv.ts >= ? and pv.ts<? order by ts", new Object[]{from, to}, new AnnotatedIdPointValueRowMapper(), callback);
     }
 
     /**
@@ -892,8 +891,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         if (vos.isEmpty())
             return null;
         List<Integer> ids = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
-        return queryForObject(
-                "select min(ts),max(ts) from pointValues where dataPointId in ("
+        return ejt.queryForObject("select min(ts),max(ts) from pointValues where dataPointId in ("
                         + createDelimitedList(ids, ",", null) + ")", null, (rs, index) -> {
                     long l = rs.getLong(1);
                     if (rs.wasNull())
@@ -904,7 +902,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public List<Long> getFiledataIds(DataPointVO vo) {
-        return queryForList("select id from pointValues where dataPointId=? and dataType=? ", new Object[]{
-                vo.getSeriesId(), DataTypes.IMAGE}, Long.class);
+        return ejt.queryForList("select id from pointValues where dataPointId=? and dataType=? ", Long.class, vo.getSeriesId(), DataTypes.IMAGE);
     }
 }

@@ -89,15 +89,13 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
      * @param publisherType
      */
     public void deletePublisherType(final String publisherType) {
-        List<Integer> pubIds = queryForList("SELECT id FROM publishers WHERE publisherType=?",
-                new Object[] { publisherType }, Integer.class);
+        List<Integer> pubIds = ejt.queryForList("SELECT id FROM publishers WHERE publisherType=?", Integer.class, publisherType);
         for (Integer pubId : pubIds)
             delete(pubId);
     }
 
     public Object getPersistentData(int id) {
-        return query("select rtdata from publishers where id=?", new Object[] { id },
-                new ResultSetExtractor<Serializable>() {
+        return ejt.query("select rtdata from publishers where id=?", new ResultSetExtractor<Serializable>() {
             @Override
             public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
                 if (!rs.next())
@@ -109,7 +107,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
 
                 return (Serializable) SerializationHelper.readObjectInContext(in);
             }
-        });
+        }, id);
     }
 
     public void savePersistentData(int id, Object data) {

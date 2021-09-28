@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -43,7 +44,7 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
     }
 
     public <T> @Nullable T queryForObject(String sql, Object[] args, RowMapper<T> rowMapper, @Nullable T zeroResult) {
-        List<T> results = query(sql, args, new RowMapperResultSetExtractor<T>(rowMapper, 1));
+        List<T> results = query(sql, new RowMapperResultSetExtractor<T>(rowMapper, 1), args);
         return optionalUniqueResult(results, zeroResult);
     }
 
@@ -288,5 +289,9 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
         if (keyList.size() > 1)
             throw new InvalidDataAccessApiUsageException("Multiple key records returned from insert");
         return keyList.get(0).get(name);
+    }
+
+    public <T> void query(String sql, Object[] args, RowMapper<T> rowMapper, Consumer<T> callback) {
+        query(sql, new ConsumerRowCallbackHandler<>(rowMapper, callback), args);
     }
 }

@@ -421,10 +421,10 @@ public class EventDao extends BaseDao {
         SelectConditionStep<Record> where = query.where(table.rtnApplicable.eq(boolToChar(true)).and(table.rtnTs.isNull()));
         String sql = where.getSQL();
         List<Object> args = where.getBindValues();
-        query(sql, args.toArray(), getCallbackResultSetExtractor((item) -> {
+        ejt.query(sql, getCallbackResultSetExtractor((item) -> {
             loadRelationalData(item);
             events.add(item);
-        }));
+        }), args.toArray());
         return events;
     }
 
