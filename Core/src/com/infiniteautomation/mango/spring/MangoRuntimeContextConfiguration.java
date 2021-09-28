@@ -337,10 +337,8 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public ExtendedJdbcTemplate extendedJdbcTemplate(DataSource dataSource) {
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(dataSource);
-        return ejt;
+    public ExtendedJdbcTemplate extendedJdbcTemplate(DatabaseProxy proxy) {
+        return proxy.getJdbcTemplate();
     }
 
     @Bean

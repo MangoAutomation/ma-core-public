@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import org.springframework.dao.DataAccessException;
 
 import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 public class MSSQLProxy extends BasePooledProxy {
     public MSSQLProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
@@ -26,9 +25,9 @@ public class MSSQLProxy extends BasePooledProxy {
     }
 
     @Override
-    public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
+    public boolean tableExists(String tableName) {
         try {
-            ejt.execute("select count(*) from " + tableName);
+            getJdbcTemplate().execute("select count(*) from " + tableName);
         }
         catch (DataAccessException e) {
             if (e.getCause() instanceof SQLException) {

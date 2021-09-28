@@ -266,8 +266,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
                             eventHandlerService.insert(eh);
 
-                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                            ejt.setDataSource(dataSource);
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate(dataSource);
 
                             //Get event handler
                             AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
@@ -304,8 +303,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 public void run() {
                     try {
                         for (int i = 0; i < numDataSources; i++) {
-                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                            ejt.setDataSource(dataSource);
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate(dataSource);
 
                             //Insert an event handler
                             EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);
@@ -404,8 +402,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
                             eventHandlerService.insert(eh);
 
-                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                            ejt.setDataSource(dataSource);
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate(dataSource);
 
                             //Get event handler
                             AbstractEventHandlerVO myEventHandler = eventHandlerService.get(eh.getXid());
@@ -447,8 +444,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                 public void run() {
                     try {
                         for (int i = 0; i < numDataSources; i++) {
-                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-                            ejt.setDataSource(dataSource);
+                            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate(dataSource);
 
                             //Insert an event handler
                             EventHandlerService eventHandlerService = Common.getBean(EventHandlerService.class);

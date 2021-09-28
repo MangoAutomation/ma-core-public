@@ -17,11 +17,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.sql.DataSource;
-
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.DeleteConditionStep;
 import org.jooq.DeleteLimitStep;
 import org.jooq.DeleteUsingStep;
@@ -42,7 +39,6 @@ import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.JdbcUtils;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
@@ -55,7 +51,6 @@ import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IAnnotated;
@@ -84,10 +79,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     public BasicSQLPointValueDao(DatabaseProxy databaseProxy) {
         super(databaseProxy);
-    }
-
-    public BasicSQLPointValueDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context) {
-        super(dataSource, transactionManager, databaseType, context);
     }
 
     @Override

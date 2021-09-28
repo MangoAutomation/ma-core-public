@@ -4,6 +4,9 @@
 
 package com.infiniteautomation.mango.permission;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
@@ -19,12 +22,8 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -174,8 +173,7 @@ public class PermissionPersistenceTest extends MangoTestBase {
         assertEquals(0, read.getRoles().size());
 
         //Check for orphaned minterm mappings
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
+        ExtendedJdbcTemplate ejt = Common.getBean(ExtendedJdbcTemplate.class);
         List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permission.getId(), new RowMapper<Integer>() {
 
             @Override

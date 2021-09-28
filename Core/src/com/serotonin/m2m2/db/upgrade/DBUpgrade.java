@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.serotonin.db.TransactionCapable;
@@ -35,9 +34,8 @@ abstract public class DBUpgrade implements TransactionCapable {
 
     public void initialize(DatabaseProxy databaseProxy) {
         this.databaseProxy = databaseProxy;
-        this.ejt = new ExtendedJdbcTemplate();
-        this.ejt.setDataSource(databaseProxy.getDataSource());
-        this.create = DSL.using(databaseProxy.getConfig());
+        this.ejt = databaseProxy.getJdbcTemplate();
+        this.create = databaseProxy.getContext();
     }
 
     abstract protected void upgrade() throws Exception;

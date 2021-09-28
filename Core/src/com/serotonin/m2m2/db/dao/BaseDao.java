@@ -7,16 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.jooq.DSLContext;
-import org.springframework.transaction.PlatformTransactionManager;
-
 import com.google.common.collect.Iterables;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 
@@ -28,13 +22,8 @@ public abstract class BaseDao extends DaoUtils {
     protected final DatabaseProxy databaseProxy;
 
     public BaseDao(DatabaseProxy databaseProxy) {
-        super(databaseProxy.getDataSource(), databaseProxy.getTransactionManager(), databaseProxy.getType(), databaseProxy.getContext());
+        super(databaseProxy.getDataSource(), databaseProxy.getTransactionManager(), databaseProxy.getType(), databaseProxy.getContext(), databaseProxy.getJdbcTemplate());
         this.databaseProxy = databaseProxy;
-    }
-
-    public BaseDao(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context) {
-        super(dataSource, transactionManager, databaseType, context);
-        this.databaseProxy = null;
     }
 
     //

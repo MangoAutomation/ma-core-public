@@ -63,8 +63,7 @@ public class DataPointPermissionTest extends MangoTestBase {
         dao.update(point.getId(), point);
 
         //Check for the recently orphaned permission (it should not be there)
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
+        ExtendedJdbcTemplate ejt = Common.getBean(DatabaseProxy.class).getJdbcTemplate();
         List<Integer> permissionIds = ejt.query("SELECT id from permissions WHERE id=" + permissionId, new RowMapper<Integer>() {
 
             @Override
@@ -124,9 +123,7 @@ public class DataPointPermissionTest extends MangoTestBase {
                 assertTrue(points.contains(vo));
             }
 
-
-            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-            ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
+            ExtendedJdbcTemplate ejt = Common.getBean(DatabaseProxy.class).getJdbcTemplate();
             List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
 
                 @Override
@@ -188,8 +185,7 @@ public class DataPointPermissionTest extends MangoTestBase {
                 assertTrue(points.contains(vo));
             }
 
-            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-            ejt.setDataSource(Common.getBean(DatabaseProxy.class).getDataSource());
+            ExtendedJdbcTemplate ejt = Common.getBean(ExtendedJdbcTemplate.class);
             List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
 
                 @Override

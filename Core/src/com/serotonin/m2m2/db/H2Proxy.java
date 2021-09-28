@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
@@ -455,8 +454,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
 
     @Override
-    public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
-        return ejt.queryForInt(
+    public boolean tableExists(String tableName) {
+        return getJdbcTemplate().queryForInt(
                 "SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
                         + tableName.toUpperCase() + "' AND table_schema='PUBLIC'",
                         new Object[] {}, 0) > 0;

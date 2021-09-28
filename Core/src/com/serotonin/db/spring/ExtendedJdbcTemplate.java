@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -28,6 +30,15 @@ import org.springframework.jdbc.support.KeyHolder;
  */
 public class ExtendedJdbcTemplate extends JdbcTemplate {
     //    final Log logger = super.logger;
+
+    public ExtendedJdbcTemplate(DataSource dataSource) {
+        super(dataSource);
+    }
+
+    @Override
+    public void setDataSource(DataSource dataSource) {
+        throw new UnsupportedOperationException("Data source should be supplied via constructor");
+    }
 
     public <T> @Nullable T optionalUniqueResult(List<T> results, @Nullable T zeroResult) {
         T result = DataAccessUtils.uniqueResult(results);

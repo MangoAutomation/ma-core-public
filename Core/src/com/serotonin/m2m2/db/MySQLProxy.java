@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import org.springframework.dao.DataAccessException;
 
 import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 
@@ -55,9 +54,9 @@ public class MySQLProxy extends BasePooledProxy {
     }
 
     @Override
-    public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
+    public boolean tableExists(String tableName) {
         try {
-            ejt.execute("select count(*) from " + tableName);
+            getJdbcTemplate().execute("select count(*) from " + tableName);
         }
         catch (DataAccessException e) {
             if (e.getCause() instanceof SQLException) {
@@ -87,9 +86,7 @@ public class MySQLProxy extends BasePooledProxy {
             throw new UnsupportedOperationException();
         }
 
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(this.getDataSource());
-        String dataDir = ejt.queryForObject("select @@DATADIR", new Object[]{}, String.class, null);
+        String dataDir = getJdbcTemplate().queryForObject("select @@DATADIR", new Object[]{}, String.class, null);
         if (dataDir == null) {
             throw new IllegalStateException("Couldn't get data directory from MySQL");
         }

@@ -6,7 +6,6 @@ import org.postgresql.util.PSQLException;
 import org.springframework.jdbc.BadSqlGrammarException;
 
 import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 
 public class PostgresProxy extends BasePooledProxy {
     public PostgresProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
@@ -24,9 +23,9 @@ public class PostgresProxy extends BasePooledProxy {
     }
 
     @Override
-    public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
+    public boolean tableExists(String tableName) {
         try {
-            ejt.execute("SELECT COUNT(*) FROM " + tableName);
+            getJdbcTemplate().execute("SELECT COUNT(*) FROM " + tableName);
         }
         catch (BadSqlGrammarException e) {
             if (e.getCause() instanceof PSQLException) {

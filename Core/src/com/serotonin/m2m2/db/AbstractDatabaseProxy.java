@@ -19,6 +19,7 @@ import java.util.zip.ZipFile;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
@@ -55,6 +56,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     private PlatformTransactionManager transactionManager;
     private DSLContext context;
+    private ExtendedJdbcTemplate jdbcTemplate;
 
     public AbstractDatabaseProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
         this.factory = factory;
@@ -68,11 +70,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     public void initialize() {
         initializeImpl("");
 
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(getDataSource());
+        DataSource dataSource = getDataSource();
+
+        this.jdbcTemplate = new ExtendedJdbcTemplate(dataSource);
         this.context = DSL.using(getConfig());
 
-        this.transactionManager = new DataSourceTransactionManager(getDataSource());
+        this.transactionManager = new DataSourceTransactionManager(dataSource);
         SystemSettingsAccessor systemSettingsAccessor = () -> context;
         DatabaseSchemaUpgrader upgrader = new DatabaseSchemaUpgrader(this,
                 systemSettingsAccessor,
@@ -107,7 +110,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             String convertTypeStr = env.getProperty("convert.db.type");
             boolean willConvert = false;
 
-            if (!databaseExists(ejt)) {
+            if (!databaseExists()) {
                 if (!restoreTables()) {
                     createTables();
                     // Check if we should convert from another database.
@@ -133,7 +136,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class)) {
                 try {
                     def.setDatabaseProxy(this);
-                    def.newInstallationCheck(ejt);
+                    def.newInstallationCheck();
                 } catch (Exception e) {
                     log.error("Module " + def.getModule().getName() + " new installation check failed", e);
                 }
@@ -180,8 +183,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
-    protected boolean databaseExists(ExtendedJdbcTemplate ejt) {
-        return tableExists(ejt, Users.USERS.getName());
+    protected boolean databaseExists() {
+        return tableExists(Users.USERS.getName());
     }
 
     protected void createTables() throws IOException {
@@ -249,6 +252,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         terminateImpl();
         this.context = null;
         this.transactionManager = null;
+        this.jdbcTemplate = null;
     }
 
     abstract protected void terminateImpl();
@@ -295,6 +299,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public DSLContext getContext() {
         return context;
+    }
+
+    @Override
+    public ExtendedJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 
     @Override

@@ -47,7 +47,18 @@ public interface DatabaseProxy extends TransactionCapable {
 
     DatabaseType getType();
     DataSource getDataSource();
+
+    /**
+     * Should be a thread-safe, singleton instance, pre-configured with datasource.
+     * @return jOOQ DSL context
+     */
     DSLContext getContext();
+
+    /**
+     * Should be a thread-safe, singleton instance, pre-configured with datasource.
+     * @return JDBC template
+     */
+    ExtendedJdbcTemplate getJdbcTemplate();
 
     void initialize();
     void terminate();
@@ -79,11 +90,10 @@ public interface DatabaseProxy extends TransactionCapable {
 
     /**
      * Checks if a table exists in the database.
-     * @param ejt
      * @param tableName table to check
      * @return true if the table exists
      */
-    boolean tableExists(ExtendedJdbcTemplate ejt, String tableName);
+    boolean tableExists(String tableName);
 
     int getActiveConnections();
 
@@ -98,8 +108,7 @@ public interface DatabaseProxy extends TransactionCapable {
     }
 
     default void runScript(String[] script, OutputStream out) {
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(getDataSource());
+        ExtendedJdbcTemplate ejt = getJdbcTemplate();
 
         StringBuilder statement = new StringBuilder();
 

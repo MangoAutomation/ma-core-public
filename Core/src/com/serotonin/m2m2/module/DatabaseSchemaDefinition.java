@@ -74,12 +74,9 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * uses exists or not). Modules should perform any required installation tasks at this time.
      *
      * NOTE that the dao's are NOT available yet
-     *
-     * @param ejt
-     *            the JDBC template that provides access to the database
      */
-    public void newInstallationCheck(ExtendedJdbcTemplate ejt) {
-        if (!databaseProxy.tableExists(ejt, getNewInstallationCheckTableName())) {
+    public void newInstallationCheck() {
+        if (!databaseProxy.tableExists(getNewInstallationCheckTableName())) {
             try (InputStream input = getInstallScript()) {
                 databaseProxy.runScript(input, null);
             } catch (IOException e) {

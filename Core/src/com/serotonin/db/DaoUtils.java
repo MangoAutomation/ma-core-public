@@ -43,16 +43,13 @@ public class DaoUtils implements TransactionCapable {
     protected final DatabaseType databaseType;
     protected final DSLContext create;
 
-    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context) {
+    public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager, DatabaseType databaseType, DSLContext context, ExtendedJdbcTemplate jdbcTemplate) {
         this.dataSource = dataSource;
         this.transactionManager = transactionManager;
         this.databaseType = databaseType;
         this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
         this.metricsThreshold = Common.envProps.getLong("db.metricsThreshold", 0L);
-
-        this.ejt = new ExtendedJdbcTemplate();
-        this.ejt.setDataSource(dataSource);
-
+        this.ejt = jdbcTemplate;
         this.create = context;
     }
 
