@@ -49,8 +49,8 @@ public class MetricsLoggingProcessor implements BeanPostProcessor {
     }
 
     protected PointValueDao createMetricsPointValueDao(PointValueDao delegate) {
-        Class<?> clazz = delegate.getClass();
-        return (PointValueDao) Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), (proxy, method, args) -> {
+        Class<? extends PointValueDao> clazz = delegate.getClass();
+        return (PointValueDao) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {PointValueDao.class}, (proxy, method, args) -> {
             try {
                 if (noLogMethods.contains(method.getName())) {
                     return method.invoke(delegate, args);
