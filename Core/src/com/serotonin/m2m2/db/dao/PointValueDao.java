@@ -4,16 +4,16 @@
     @author Matthew Lohbihler
 
     This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    it under the terms of the GNU General License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU General License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU General License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.serotonin.m2m2.db.dao;
@@ -32,17 +32,17 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.pair.LongPair;
 
-public interface PointValueDao {
+interface PointValueDao {
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
-    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
+    PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
      */
-    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
+    void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
 
     /**
      * Get the point values >= since
@@ -50,7 +50,7 @@ public interface PointValueDao {
      * @param since
      * @return
      */
-    public List<PointValueTime> getPointValues(DataPointVO vo, long since);
+    List<PointValueTime> getPointValues(DataPointVO vo, long since);
 
     /**
      * Get point values >= from and < to
@@ -59,7 +59,7 @@ public interface PointValueDao {
      * @param to
      * @return
      */
-    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to);
+    List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to);
 
     /**
      * Get point values >= from and < to
@@ -68,7 +68,7 @@ public interface PointValueDao {
      * @param to
      * @return
      */
-    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, int limit);
+    List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, int limit);
 
     /**
      * Get point values in reverse time order
@@ -76,7 +76,7 @@ public interface PointValueDao {
      * @param limit
      * @return
      */
-    public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit);
+    List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit);
 
     /**
      * Get point values < before in reverse time order
@@ -85,7 +85,7 @@ public interface PointValueDao {
      * @param before
      * @return
      */
-    public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit, long before);
+    List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit, long before);
 
     /**
      * Get point values < before in reverse time order
@@ -97,14 +97,14 @@ public interface PointValueDao {
      * @param callback
      * @return
      */
-    public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, final PVTQueryCallback<IdPointValueTime> callback);
+    void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, final PVTQueryCallback<IdPointValueTime> callback);
 
     /**
      * Get the latest point value for this point
      * @param vo
      * @return null or value
      */
-    public PointValueTime getLatestPointValue(DataPointVO vo);
+    PointValueTime getLatestPointValue(DataPointVO vo);
 
     /**
      * Get the first point value < time
@@ -112,7 +112,7 @@ public interface PointValueDao {
      * @param time
      * @return null or value
      */
-    public PointValueTime getPointValueBefore(DataPointVO vo, long time);
+    PointValueTime getPointValueBefore(DataPointVO vo, long time);
 
     /**
      * Get the point value at or just after this time
@@ -120,7 +120,7 @@ public interface PointValueDao {
      * @param time
      * @return
      */
-    public PointValueTime getPointValueAfter(DataPointVO vo, long time);
+    PointValueTime getPointValueAfter(DataPointVO vo, long time);
 
     /**
      * Get the point value (if any) at this time.
@@ -128,7 +128,7 @@ public interface PointValueDao {
      * @param time
      * @return null or value
      */
-    public PointValueTime getPointValueAt(DataPointVO vo, long time);
+    PointValueTime getPointValueAt(DataPointVO vo, long time);
 
     /**
      * Get point values >= from and < to
@@ -137,7 +137,7 @@ public interface PointValueDao {
      * @param to
      * @return
      */
-    public void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<PointValueTime> callback);
+    void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<PointValueTime> callback);
 
     /**
      * Get point values >= from and < to
@@ -146,7 +146,7 @@ public interface PointValueDao {
      * @param to
      * @return ordered list for all values by time
      */
-    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
+    void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
             Consumer<IdPointValueTime> callback);
 
     /**
@@ -159,7 +159,7 @@ public interface PointValueDao {
      * @param callback
      * @return ordered list for all values by time
      */
-    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback);
+    void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback);
 
     /**
      * Query the given time series, including the nearest sample both before the 'from' timestamp and after the 'to'
@@ -177,7 +177,7 @@ public interface PointValueDao {
      * @param callback
      *            the query callback
      */
-    public void wideQuery(DataPointVO vo, long from, long to, final WideQueryCallback<PointValueTime> callback);
+    void wideQuery(DataPointVO vo, long from, long to, final WideQueryCallback<PointValueTime> callback);
 
     /**
      * Get point values >= from and < to, bookend the query by calling:
@@ -203,7 +203,7 @@ public interface PointValueDao {
      * @param callback
      *            the query callback
      */
-    public void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, final BookendQueryCallback<IdPointValueTime> callback);
+    void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, final BookendQueryCallback<IdPointValueTime> callback);
 
     /**
      * Delete startTime <= values < endTime
@@ -212,7 +212,7 @@ public interface PointValueDao {
      * @param endTime
      * @return
      */
-    public long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime);
+    long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime);
 
     /**
      * Delete values < time
@@ -220,7 +220,7 @@ public interface PointValueDao {
      * @param time
      * @return
      */
-    public long deletePointValuesBefore(DataPointVO vo, long time);
+    long deletePointValuesBefore(DataPointVO vo, long time);
 
     /**
      * Delete values < time and don't count what was deleted
@@ -228,49 +228,49 @@ public interface PointValueDao {
      * @param time
      * @return
      */
-    public boolean deletePointValuesBeforeWithoutCount(DataPointVO vo, long time);
+    boolean deletePointValuesBeforeWithoutCount(DataPointVO vo, long time);
 
     /**
      * Delete all values
      * @param vo
      * @return
      */
-    public long deletePointValues(DataPointVO vo);
+    long deletePointValues(DataPointVO vo);
 
     /**
      * Delete all values
      * @param vo
      * @return true if any data was deleted
      */
-    public boolean deletePointValuesWithoutCount(DataPointVO vo);
+    boolean deletePointValuesWithoutCount(DataPointVO vo);
 
     /**
      * Delete values for all points
      * @return
      */
-    public long deleteAllPointData();
+    long deleteAllPointData();
 
     /**
      * Delete values for all points without counting them
      * @return
      */
-    public void deleteAllPointDataWithoutCount();
+    void deleteAllPointDataWithoutCount();
 
     /**
      * Delete any point values that are no longer tied to a point in the Data Points table
      * @return
      */
-    public long deleteOrphanedPointValues();
+    long deleteOrphanedPointValues();
 
     /**
      * Delete any point values that are no longer tied to a point in the Data Points table but don't count the amount deleted
      */
-    public void deleteOrphanedPointValuesWithoutCount();
+    void deleteOrphanedPointValuesWithoutCount();
 
     /**
      * SQL Specific to delete annotations if they are stored elsewhere
      */
-    public void deleteOrphanedPointValueAnnotations();
+    void deleteOrphanedPointValueAnnotations();
 
     /**
      * Count the values >= from and < to
@@ -279,42 +279,42 @@ public interface PointValueDao {
      * @param to
      * @return
      */
-    public long dateRangeCount(DataPointVO vo, long from, long to);
+    long dateRangeCount(DataPointVO vo, long from, long to);
 
     /**
      * Get the earliest timestamp for this point
      * @param vo
      * @return
      */
-    public long getInceptionDate(DataPointVO vo);
+    long getInceptionDate(DataPointVO vo);
 
     /**
      * Return the earliest point value's time for all point IDs
      * @param vos
      * @return earliest ts or 0
      */
-    public long getStartTime(List<DataPointVO> vos);
+    long getStartTime(List<DataPointVO> vos);
 
     /**
      * Return the latest point value's time for all point IDs
      * @param vos
      * @return latest time or -1l
      */
-    public long getEndTime(List<DataPointVO> vos);
+    long getEndTime(List<DataPointVO> vos);
 
     /**
      * Return the latest and earliest point value times for this list of IDs
      * @param vos
      * @return null if none exists
      */
-    public LongPair getStartAndEndTime(List<DataPointVO> vos);
+    LongPair getStartAndEndTime(List<DataPointVO> vos);
 
     /**
      * Get the FileData ids for point values types with corresponding files.
      * @param vo
      * @return
      */
-    public List<Long> getFiledataIds(DataPointVO vo);
+    List<Long> getFiledataIds(DataPointVO vo);
 
     /**
      * Delete all data point values at a time
@@ -322,6 +322,6 @@ public interface PointValueDao {
      * @param ts
      * @return
      */
-    public long deletePointValue(DataPointVO vo, long ts);
+    long deletePointValue(DataPointVO vo, long ts);
 
 }
