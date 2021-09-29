@@ -32,7 +32,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.pair.LongPair;
 
-interface PointValueDao {
+public interface PointValueDao {
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
