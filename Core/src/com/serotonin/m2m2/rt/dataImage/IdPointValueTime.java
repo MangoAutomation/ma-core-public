@@ -40,4 +40,11 @@ public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
     public String toString() {
         return "IdPointValueTime(" + seriesId + "=" + getValue() + "@" + Functions.getFullMilliSecondTime(getTime()) + ")";
     }
+
+    public IdPointValueTime withNewTime(long newTime) {
+        if (newTime == getTime()) {
+            return this;
+        }
+        return new IdPointValueTime(seriesId, getValue(), newTime);
+    }
 }

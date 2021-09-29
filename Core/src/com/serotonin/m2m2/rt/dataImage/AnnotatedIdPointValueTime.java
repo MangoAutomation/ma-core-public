@@ -37,4 +37,11 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnno
         return sourceMessage.translate(translations);
     }
 
+    @Override
+    public AnnotatedIdPointValueTime withNewTime(long newTime) {
+        if (newTime == getTime()) {
+            return this;
+        }
+        return new AnnotatedIdPointValueTime(getSeriesId(), getValue(), newTime, sourceMessage);
+    }
 }

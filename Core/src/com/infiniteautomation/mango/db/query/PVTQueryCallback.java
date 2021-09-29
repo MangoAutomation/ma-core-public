@@ -10,6 +10,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
  *
  * @author Terry Packer
  */
+@FunctionalInterface
 public interface PVTQueryCallback<T extends PointValueTime> {
 
     /**
