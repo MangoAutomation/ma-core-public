@@ -12,7 +12,6 @@ import org.jooq.Table;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.db.DatabaseProxy;
 
 /**
@@ -76,7 +75,8 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * NOTE that the dao's are NOT available yet
      */
     public void newInstallationCheck() {
-        if (!databaseProxy.tableExists(getNewInstallationCheckTableName())) {
+        String tableName = getNewInstallationCheckTableName();
+        if (tableName != null && !databaseProxy.tableExists(tableName)) {
             try (InputStream input = getInstallScript()) {
                 databaseProxy.runScript(input, null);
             } catch (IOException e) {
