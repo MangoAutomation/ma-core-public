@@ -24,6 +24,7 @@ import org.jooq.DeleteLimitStep;
 import org.jooq.DeleteUsingStep;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.ResultQuery;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitPercentStep;
@@ -701,11 +702,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
-                                      Consumer<IdPointValueTime> callback) {
-        List<Integer> dataPointIds = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
-        String ids = createDelimitedList(dataPointIds, ",", null);
-        ejt.query(ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + ids + ") and pv.ts >= ? and pv.ts<? order by ts", new Object[]{from, to}, new AnnotatedIdPointValueRowMapper(), callback);
+    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to, Consumer<IdPointValueTime> callback) {
+        try (var stream = baseQuery()
+                .where(seriesIdCondition(vos))
+                .and(pv.ts.greaterOrEqual(from))
+                .and(pv.ts.lessThan(to))
+                .orderBy(pv.ts).stream()) {
+            stream.map(this::mapRecord).forEach(callback);
+        }
     }
 
     /**
@@ -799,23 +803,24 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public void deleteOrphanedPointValueAnnotations() {
-        int limit = 1000;
+        int limit = databaseProxy.batchSize();
         while (true) {
             List<Long> ids = this.create.select(pva.pointValueId)
                     .from(pva)
                     .leftJoin(pv)
                     .on(pv.id.equal(pva.pointValueId))
                     .where(pv.id.isNull())
+                    .limit(limit)
                     .fetch(pva.pointValueId);
 
             if (ids.isEmpty())
                 break;
 
-            this.create.deleteFrom(pva)
+            int deleted = this.create.deleteFrom(pva)
                     .where(pva.pointValueId.in(ids))
                     .execute();
 
-            if (ids.size() < limit)
+            if (deleted < limit)
                 break;
         }
     }
@@ -845,63 +850,66 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         return total;
     }
 
-    /**
-     * There WAS a bug here where the end date should be exclusive! The TCP Persistent publisher expects it to be
-     * exclusive,
-     * but as for what ramifications it will have to other modules who knows.
-     * <p>
-     * For example if one uses this method to count a range and then a select point values between, the results can be
-     * different!
-     * <p>
-     * This has been changed to be exclusive of End time as the NoSQL DB uses exclusive queries and this needs to
-     * match for the Persistent TCP Module to work across various Data stores.
-     */
     @Override
     public long dateRangeCount(DataPointVO vo, long from, long to) {
-        return ejt.queryForLong("select count(*) from pointValues where dataPointId=? and ts>=? and ts<?",
-                new Object[]{vo.getSeriesId(), from, to}, 0L);
+        return create.select(DSL.count())
+                .from(pv)
+                .where(pv.dataPointId.eq(vo.getSeriesId()))
+                .fetchOptional()
+                .map(Record1::value1)
+                .orElse(0);
     }
 
     @Override
     public long getInceptionDate(DataPointVO vo) {
-        return ejt
-                .queryForLong("select min(ts) from pointValues where dataPointId=?", new Object[]{vo.getSeriesId()}, -1);
+        return create.select(DSL.min(pv.ts))
+                .from(pv)
+                .where(pv.dataPointId.eq(vo.getSeriesId()))
+                .fetchOptional()
+                .map(Record1::value1)
+                .orElse(-1L);
+    }
+
+    private Condition seriesIdCondition(List<DataPointVO> vos) {
+        List<Integer> seriesIds = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
+        return pv.dataPointId.in(seriesIds);
     }
 
     @Override
     public long getStartTime(List<DataPointVO> vos) {
         if (vos.isEmpty())
-            return -1;
-        List<Integer> ids = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
-        return ejt.queryForLong("select min(ts) from pointValues where dataPointId in ("
-                + createDelimitedList(ids, ",", null) + ")", null, 0L);
+            return -1L;
+        return create.select(DSL.min(pv.ts)).from(pv).where(seriesIdCondition(vos))
+                .fetchOptional()
+                .map(Record1::value1)
+                .orElse(-1L);
     }
 
     @Override
     public long getEndTime(List<DataPointVO> vos) {
         if (vos.isEmpty())
-            return -1;
-        List<Integer> ids = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
-        return ejt.queryForLong("select max(ts) from pointValues where dataPointId in ("
-                + createDelimitedList(ids, ",", null) + ")", null, -1L);
+            return -1L;
+        return create.select(DSL.max(pv.ts)).from(pv).where(seriesIdCondition(vos))
+                .fetchOptional()
+                .map(Record1::value1)
+                .orElse(-1L);
     }
 
     @Override
     public LongPair getStartAndEndTime(List<DataPointVO> vos) {
         if (vos.isEmpty())
             return null;
-        List<Integer> ids = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
-        return ejt.queryForObject("select min(ts),max(ts) from pointValues where dataPointId in ("
-                        + createDelimitedList(ids, ",", null) + ")", null, (rs, index) -> {
-                    long l = rs.getLong(1);
-                    if (rs.wasNull())
-                        return null;
-                    return new LongPair(l, rs.getLong(2));
-                }, null);
+        return create.select(DSL.min(pv.ts), DSL.max(pv.ts)).from(pv).where(seriesIdCondition(vos))
+                .fetchOptional()
+                .map(record -> new LongPair(record.value1(), record.value2()))
+                .orElse(null);
     }
 
     @Override
     public List<Long> getFiledataIds(DataPointVO vo) {
-        return ejt.queryForList("select id from pointValues where dataPointId=? and dataType=? ", Long.class, vo.getSeriesId(), DataTypes.IMAGE);
+        return create.select(pv.id).from(pv)
+                .where(pv.dataPointId.eq(vo.getSeriesId()))
+                .and(pv.dataType.eq(DataTypes.IMAGE))
+                .fetch(pv.id);
     }
 }
