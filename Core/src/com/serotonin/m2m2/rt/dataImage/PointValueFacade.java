@@ -140,11 +140,11 @@ public class PointValueFacade {
         pointValueDao.wideBookendQuery(vos, from, to, false, null, new BookendQueryCallback<IdPointValueTime>() {
 
             @Override
-            public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
+            public void firstValue(IdPointValueTime value, boolean bookend) {
                 //If there is no value before from the bookend value.value will be null with a value.timestamp == from
                 if(insertInitial) {
                     if(cache != null) {
-                        processRow(value, index, bookend, false, cache, values);
+                        processRow(value, bookend, false, cache, values);
                     }else {
                         values.add(value);
                     }
@@ -152,19 +152,19 @@ public class PointValueFacade {
             }
 
             @Override
-            public void row(IdPointValueTime value, int index) throws QueryCancelledException {
+            public void row(IdPointValueTime value) {
                 if(cache != null) {
-                    processRow(value, index, false, false, cache, values);
+                    processRow(value, false, false, cache, values);
                 }else {
                     values.add(value);
                 }
             }
 
             @Override
-            public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
+            public void lastValue(IdPointValueTime value, boolean bookend) {
                 if(insertFinal) {
                     if(cache != null) {
-                        processRow(value, index, bookend, false, cache, values);
+                        processRow(value, bookend, false, cache, values);
                     }else {
                         values.add(value);
                     }
@@ -183,18 +183,18 @@ public class PointValueFacade {
      * @return true to continue to process the incoming value, false if it was a bookend that was replaced via the cache
      * @throws IOException
      */
-    protected boolean processValueThroughCache(PointValueTime value, int index, boolean bookend, List<PointValueTime> pointCache, List<PointValueTime> values) throws QueryCancelledException {
+    protected boolean processValueThroughCache(PointValueTime value, boolean bookend, List<PointValueTime> pointCache, List<PointValueTime> values) throws QueryCancelledException {
         if(pointCache != null && pointCache.size() > 0) {
             ListIterator<PointValueTime> it = pointCache.listIterator();
             while(it.hasNext()) {
                 PointValueTime pvt = it.next();
                 if(pvt.getTime() > value.getTime()) {
                     //Can't be a bookend
-                    processRow(pvt, index, false, true, pointCache, values);
+                    processRow(pvt, false, true, pointCache, values);
                     it.remove();
                 }else if(pvt.getTime() == value.getTime()) {
                     //Could be a bookend
-                    processRow(pvt, index, bookend, true, pointCache, values);
+                    processRow(pvt, bookend, true, pointCache, values);
                     it.remove();
                     return false;
                 }else
@@ -206,14 +206,10 @@ public class PointValueFacade {
 
     /**
      * Common row processing logic
-     * @param value
-     * @param index
-     * @param bookend
-     * @throws IOException
      */
-    protected void processRow(PointValueTime value, int index, boolean bookend, boolean cached, List<PointValueTime> pointCache, List<PointValueTime> values) throws QueryCancelledException {
+    protected void processRow(PointValueTime value, boolean bookend, boolean cached, List<PointValueTime> pointCache, List<PointValueTime> values) throws QueryCancelledException {
         if(pointCache != null && !cached)
-            if(!processValueThroughCache(value, index, bookend, pointCache, values))
+            if(!processValueThroughCache(value, bookend, pointCache, values))
                 return;
 
         //Add this value

@@ -51,7 +51,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     }
 
     @Override
-    public void row(IdPointValueTime vt, int index) throws QueryCancelledException{
+    public void row(IdPointValueTime vt) {
         long time = vt.getTime();
         if (time < startTime)
             throw new IllegalArgumentException("Data is before start time");
@@ -68,16 +68,16 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     }
 
     @Override
-    public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException{
+    public void firstValue(IdPointValueTime value, boolean bookend) {
         openPeriod(periodFrom, periodTo, value);
         if(!bookend)
-            row(value, index);
+            row(value);
     }
 
     @Override
-    public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
+    public void lastValue(IdPointValueTime value, boolean bookend) {
         if(!bookend)
-            row(value, index);
+            row(value);
     }
 
     /**

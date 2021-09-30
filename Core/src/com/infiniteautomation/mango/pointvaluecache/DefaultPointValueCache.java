@@ -51,7 +51,7 @@ public class DefaultPointValueCache implements PointValueCache {
     public Map<Integer, List<PointValueTime>> loadCaches(List<DataPointVO> vos, int size) {
         Map<Integer, List<PointValueTime>> caches = new HashMap<>(vos.size());
         pointValueDao.getLatestPointValuesPerPoint(vos, Long.MAX_VALUE, size,
-                (pvt, i) -> caches.computeIfAbsent(pvt.getSeriesId(), (k) -> new ArrayList<>(size)).add(pvt));
+                (pvt) -> caches.computeIfAbsent(pvt.getSeriesId(), (k) -> new ArrayList<>(size)).add(pvt));
         return caches;
     }
 

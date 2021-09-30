@@ -3,7 +3,6 @@
  */
 package com.infiniteautomation.mango.quantize;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,10 +123,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
             }
         });
 
-        quantizer.firstValue(null, 0, true);
+        quantizer.firstValue(null, true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count), count + 1);
-        quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
+            quantizer.row(data.get(count));
+        quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
@@ -175,7 +174,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
             }
         });
 
-        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
@@ -244,7 +243,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
             }
         });
 
-        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), 0, false);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), false);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
@@ -301,10 +300,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
             }
         });
 
-        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count), count + 1);
-        quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
+            quantizer.row(data.get(count));
+        quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
@@ -420,10 +419,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
             }
         });
 
-        quantizer.firstValue(null, 0, true);
+        quantizer.firstValue(null, true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count), count + 1);
-        quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
+            quantizer.row(data.get(count));
+        quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
@@ -544,10 +543,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
             }
         });
 
-        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count), count + 1);
-        quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
+            quantizer.row(data.get(count));
+        quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
@@ -678,10 +677,10 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
             }
         });
 
-        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), 0, false);
+        quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), false);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count), count + 1);
-        quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
+            quantizer.row(data.get(count));
+        quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
