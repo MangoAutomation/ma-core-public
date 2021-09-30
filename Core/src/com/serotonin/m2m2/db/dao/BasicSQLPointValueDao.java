@@ -287,8 +287,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     public void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<? super IdPointValueTime> callback) {
         if (vos.isEmpty()) return;
 
-        int count = 0;
-
         if (orderById) {
             //Limit results of each data point to size limit, i.e. loop over all points and query with limit
             var query = betweenQuery(from, to, limit, DSL.param("seriesId", Integer.class));
@@ -344,9 +342,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     public void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<? super IdPointValueTime> callback) {
         if (vos.isEmpty()) return;
 
-        int count = 0;
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
-
         if (orderById) {
             try (var query = betweenQuery(from, to, limit, DSL.param("seriesId", Integer.class)).keepStatement(true)) {
                 for (DataPointVO vo : vos) {
