@@ -36,7 +36,13 @@ public class DataPointRTPointValueCache {
         this.defaultSize = defaultSize;
         this.dao = dao;
         this.pointValueCache = pointValueCache;
-        this.cache = initialCache;
+        if (initialCache != null) {
+            if (initialCache.size() > defaultSize) {
+                this.cache = initialCache.subList(0, defaultSize);
+            } else {
+                this.cache = initialCache;
+            }
+        }
     }
 
     void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
