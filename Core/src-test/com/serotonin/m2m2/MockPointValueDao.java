@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
@@ -188,14 +187,14 @@ public class MockPointValueDao implements PointValueDao{
 
     @Override
     public void getPointValuesBetween(DataPointVO vo, long from, long to,
-            Consumer<PointValueTime> callback) {
+                                      PVTQueryCallback<? super IdPointValueTime> callback) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to,
-            Consumer<IdPointValueTime> callback) {
+    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to,
+                                      PVTQueryCallback<? super IdPointValueTime> callback) {
         // TODO Auto-generated method stub
 
     }
