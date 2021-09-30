@@ -226,7 +226,7 @@ public interface PointValueDao {
      * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
      * @throws IllegalArgumentException if vo or callback are null
      */
-    void getPointValuesBetween(DataPointVO vo, long from, long to, PVTQueryCallback<? super IdPointValueTime> callback);
+    void getPointValuesBetween(DataPointVO vo, long from, long to, PVTQueryCallback<? super PointValueTime> callback);
 
     /**
      * Get the point values for a collection of points, for the time range {@code [from,to)}.
@@ -249,7 +249,7 @@ public interface PointValueDao {
      * @param callback
      * @return ordered list for all values by time
      */
-    void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<? super IdPointValueTime> callback);
+    void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<? super IdPointValueTime> callback);
 
     /**
      * Query the given time series, including the nearest sample both before the 'from' timestamp and after the 'to'
@@ -281,19 +281,19 @@ public interface PointValueDao {
      *    before 'to' with 'to' as the timestamp (can be null if nothing before to)
      *
      * NOTE: The beforeQuery and afterQuery methods are called once for every data point ID
-     *  @param vos
+     * @param vos
      *            the target data points
      * @param from
      *            the timestamp from which to query (inclusive)
      * @param to
- *            the timestamp to which to query (exclusive)
+*            the timestamp to which to query (exclusive)
      * @param orderById
 *            should the results also be ordered by data point id
      * @param limit
 *            the limit of results, null for no limit (Limits do not include the bookends so the returned count can be up to limit + 2)
      * @param callback
      */
-    void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, final BookendQueryCallback<? super IdPointValueTime> callback);
+    void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, final BookendQueryCallback<? super IdPointValueTime> callback);
 
     /**
      * Delete startTime <= values < endTime
@@ -383,21 +383,21 @@ public interface PointValueDao {
      * @param vos
      * @return earliest ts or 0
      */
-    long getStartTime(List<DataPointVO> vos);
+    long getStartTime(Collection<? extends DataPointVO> vos);
 
     /**
      * Return the latest point value's time for all point IDs
      * @param vos
      * @return latest time or -1l
      */
-    long getEndTime(List<DataPointVO> vos);
+    long getEndTime(Collection<? extends DataPointVO> vos);
 
     /**
      * Return the latest and earliest point value times for this list of IDs
      * @param vos
      * @return null if none exists
      */
-    LongPair getStartAndEndTime(List<DataPointVO> vos);
+    LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos);
 
     /**
      * Get the FileData ids for point values types with corresponding files.
