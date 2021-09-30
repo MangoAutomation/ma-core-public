@@ -179,7 +179,7 @@ public interface PointValueDao {
     default Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
         checkNull(vo);
         AtomicReference<PointValueTime> holder = new AtomicReference<>();
-        getLatestPointValuesPerPoint(Collections.singletonList(vo), Long.MAX_VALUE, 1, (v, i) -> holder.set(v));
+        getLatestPointValuesPerPoint(Collections.singleton(vo), Long.MAX_VALUE, 1, (v, i) -> holder.set(v));
         return Optional.ofNullable(holder.get());
     }
 
@@ -194,7 +194,7 @@ public interface PointValueDao {
     default Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
         checkNull(vo);
         AtomicReference<PointValueTime> holder = new AtomicReference<>();
-        getLatestPointValuesPerPoint(Collections.singletonList(vo), time, 1, (v, i) -> holder.set(v));
+        getLatestPointValuesPerPoint(Collections.singleton(vo), time, 1, (v, i) -> holder.set(v));
         return Optional.ofNullable(holder.get());
     }
 
