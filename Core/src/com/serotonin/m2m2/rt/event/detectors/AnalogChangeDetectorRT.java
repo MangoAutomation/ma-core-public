@@ -75,7 +75,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         long now = Common.timer.currentTimeMillis();
         periodValues = new ArrayList<>();
         DataPointVO dpvo = Common.getBean(DataPointDao.class).get(vo.getSourceId());
-        PointValueTime periodStartValue = pvd.getPointValueBefore(dpvo, now - durationMillis + 1);
+        PointValueTime periodStartValue = pvd.getPointValueBefore(dpvo, now - durationMillis + 1).orElse(null);
         if(periodStartValue != null) {
             periodValues.add(periodStartValue);
             latestTime = periodStartValue.getTime();

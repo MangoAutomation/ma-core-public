@@ -84,11 +84,11 @@ public class ConcurrentMapPointValueCache implements PointValueCache {
 
         // fetch the point values from the database and store in map
         Map<Integer, List<PointValueTime>> result = new HashMap<>(points.size());
-        pointValueDao.getLatestPointValues(points, Long.MAX_VALUE, true, queryLimit, (pvt, i) -> {
-            List<PointValueTime> values = result.computeIfAbsent(pvt.getSeriesId(), k -> new ArrayList<>());
+        pointValueDao.getLatestPointValuesPerPoint(points, Long.MAX_VALUE, queryLimit, (pvt, i) -> {
             DataPointVO point = pointsBySeries.get(pvt.getSeriesId());
+            List<PointValueTime> values = result.computeIfAbsent(pvt.getSeriesId(), k -> new ArrayList<>(point.getDefaultCacheSize()));
 
-            // we may retrieve up to maxCacheSize values, however dont store more than the point's cache size
+            // we may retrieve up to maxCacheSize values, however don't store more than the point's cache size
             if (values.size() < point.getDefaultCacheSize()) {
                 values.add(pvt);
             }

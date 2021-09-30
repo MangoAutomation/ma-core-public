@@ -76,7 +76,7 @@ public class DataPointRTTest extends MangoTestBase {
         //Test no changes
         timer.fastForwardTo(5001);
 
-        PointValueTime value = dao.getLatestPointValue(dpVo);
+        PointValueTime value = dao.getLatestPointValue(dpVo).orElse(null);
 
         //Ensure database has interval logged value
         assertEquals(1.0, value.getDoubleValue(), 0.0001);
@@ -91,7 +91,7 @@ public class DataPointRTTest extends MangoTestBase {
         rt.setPointValue(new PointValueTime(2.0, 6000), null);
 
         //Check Log On Change
-        value = dao.getLatestPointValue(dpVo);
+        value = dao.getLatestPointValue(dpVo).orElse(null);
         assertEquals(2.0, value.getDoubleValue(), 0.0001);
         assertEquals(6000, value.getTime());
 
@@ -101,7 +101,7 @@ public class DataPointRTTest extends MangoTestBase {
         //Interval is reset for 5000ms from now
         timer.fastForwardTo(11001);
         //Check Interval Log
-        value = dao.getLatestPointValue(dpVo);
+        value = dao.getLatestPointValue(dpVo).orElse(null);
         assertEquals(2.0, value.getDoubleValue(), 0.0001);
         assertEquals(11000, value.getTime());
 
@@ -113,7 +113,7 @@ public class DataPointRTTest extends MangoTestBase {
         rt.setPointValue(new PointValueTime(2.20, 12000), null);
 
         //Check Log On Change
-        value = dao.getLatestPointValue(dpVo);
+        value = dao.getLatestPointValue(dpVo).orElse(null);
         assertEquals(2.0, value.getDoubleValue(), 0.0001);
         assertEquals(11000, value.getTime());
 
@@ -146,11 +146,6 @@ public class DataPointRTTest extends MangoTestBase {
 
         public MockPointValueDao(DatabaseProxy databaseProxy) {
             super(databaseProxy);
-        }
-
-        @Override
-        public PointValueTime getLatestPointValue(DataPointVO vo) {
-            return values.get(values.size() - 1);
         }
 
         @Override

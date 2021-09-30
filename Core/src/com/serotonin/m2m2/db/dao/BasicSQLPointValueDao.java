@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -25,7 +26,6 @@ import org.jooq.ResultQuery;
 import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectLimitPercentStep;
-import org.jooq.SelectLimitStep;
 import org.jooq.SelectOnConditionStep;
 import org.jooq.SelectUnionStep;
 import org.jooq.impl.DSL;
@@ -39,7 +39,6 @@ import com.infiniteautomation.mango.db.tables.PointValueAnnotations;
 import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.db.tables.records.PointValueAnnotationsRecord;
 import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
-import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -87,16 +86,16 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .fetchOne(this::mapRecord);
     }
 
-    protected PointValueTime getPointValueAt(DataPointVO vo, Field<Long> time) {
+    protected Optional<PointValueTime> getPointValueAt(DataPointVO vo, Field<Long> time) {
         return baseQuery()
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
                 .and(pv.ts.equal(time))
                 .limit(1)
-                .fetchOne(this::mapRecord);
+                .fetchOptional(this::mapRecord);
     }
 
     @Override
-    public PointValueTime getLatestPointValue(DataPointVO vo) {
+    public Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
         Field<Long> ts = this.create.select(DSL.max(pv.ts))
                 .from(pv)
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
@@ -105,7 +104,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public PointValueTime getPointValueBefore(DataPointVO vo, long time) {
+    public Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
         Field<Long> ts = this.create.select(DSL.max(pv.ts))
                 .from(pv)
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
@@ -116,7 +115,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public PointValueTime getPointValueAt(DataPointVO vo, long time) {
-        return getPointValueAt(vo, DSL.val(time));
+        return getPointValueAt(vo, DSL.val(time)).orElse(null);
     }
 
     @Override
@@ -126,14 +125,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
                 .and(pv.ts.greaterOrEqual(time))
                 .asField();
-        return getPointValueAt(vo, ts);
+        return getPointValueAt(vo, ts).orElse(null);
     }
 
     @Override
-    public List<PointValueTime> getPointValues(DataPointVO vo, long since) {
+    public List<PointValueTime> getPointValues(DataPointVO vo, long from) {
         return baseQuery()
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
-                .and(pv.ts.greaterOrEqual(since))
+                .and(pv.ts.greaterOrEqual(from))
                 .orderBy(pv.ts)
                 .fetch(this::mapRecord);
     }
@@ -145,7 +144,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, int limit) {
+    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, Integer limit) {
         return betweenQuery(from, to, limit, vo)
                 .fetch(this::mapRecord);
     }
@@ -155,8 +154,8 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         if (limit == 0) {
             return Collections.emptyList();
         } else if (limit == 1) {
-            PointValueTime pvt = getLatestPointValue(vo);
-            return pvt == null ? Collections.emptyList() : Collections.singletonList(pvt);
+            Optional<PointValueTime> pvt = getLatestPointValue(vo);
+            return pvt.map(Collections::singletonList).orElse(Collections.emptyList());
         } else {
             return baseQuery()
                     .where(pv.dataPointId.equal(vo.getSeriesId()))
@@ -167,13 +166,13 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit, long before) {
+    public List<PointValueTime> getLatestPointValues(DataPointVO vo, long to, int limit) {
         if (limit == 0) {
             return Collections.emptyList();
         } else {
             return baseQuery()
                     .where(pv.dataPointId.equal(vo.getSeriesId()))
-                    .and(pv.ts.lessThan(before))
+                    .and(pv.ts.lessThan(to))
                     .orderBy(pv.ts.desc())
                     .limit(limit)
                     .fetch(this::mapRecord);
@@ -204,46 +203,49 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
-        if (vos.isEmpty()) return;
+    public void getLatestPointValuesPerPoint(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+        checkLimit(limit); checkNull(vos); checkNull(callback);
+        if (vos.isEmpty() || limit == 0) return;
 
         Integer[] seriesIds = vos.stream().mapToInt(DataPointVO::getSeriesId).sorted().boxed().toArray(Integer[]::new);
-        ResultQuery<Record> result;
 
-        if (orderById && limit != null) {
-            SelectUnionStep<Record> union = null;
-            for (int seriesId : seriesIds) {
-                Condition condition = pv.dataPointId.equal(seriesId);
-                if (before != Long.MAX_VALUE) {
-                    condition = condition.and(pv.ts.lessThan(before));
-                }
-
-                SelectLimitPercentStep<Record> r = baseQuery()
-                        .where(condition)
-                        .orderBy(pv.ts.desc())
-                        .limit(limit);
-
-                union = union == null ? r : union.unionAll(r);
-            }
-            result = union;
-        } else {
-            Condition condition = pv.dataPointId.in(seriesIds);
-            if (before != Long.MAX_VALUE) {
-                condition = condition.and(pv.ts.lessThan(before));
+        SelectUnionStep<Record> union = null;
+        for (int seriesId : seriesIds) {
+            Condition condition = pv.dataPointId.equal(seriesId);
+            if (to != null) {
+                condition = condition.and(pv.ts.lessThan(to));
             }
 
-            SelectConditionStep<Record> conditionStep = baseQuery()
-                    .where(condition);
+            SelectLimitPercentStep<Record> r = baseQuery()
+                    .where(condition)
+                    .orderBy(pv.ts.desc())
+                    .limit(limit);
 
-            SelectLimitStep<Record> limitStep = orderById ?
-                    conditionStep.orderBy(pv.dataPointId.asc(), pv.ts.desc()) :
-                    conditionStep.orderBy(pv.ts.desc());
-
-            result = limitStep.limit(limit);
+            union = union == null ? r : union.unionAll(r);
         }
 
         AtomicInteger count = new AtomicInteger();
-        try (Stream<Record> stream = result.stream()) {
+        try (Stream<Record> stream = Objects.requireNonNull(union).stream()) {
+            stream.map(this::mapRecord).forEach(pvt -> callback.row(pvt, count.getAndIncrement()));
+        }
+    }
+
+    @Override
+    public void getLatestPointValuesCombined(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+        checkLimit(limit); checkNull(vos); checkNull(callback);
+        if (vos.isEmpty() || limit == 0) return;
+
+        Integer[] seriesIds = vos.stream().mapToInt(DataPointVO::getSeriesId).sorted().boxed().toArray(Integer[]::new);
+        Condition condition = pv.dataPointId.in(seriesIds);
+        if (to != null) {
+            condition = condition.and(pv.ts.lessThan(to));
+        }
+
+        SelectConditionStep<Record> conditionStep = baseQuery()
+                .where(condition);
+
+        AtomicInteger count = new AtomicInteger();
+        try (Stream<Record> stream = conditionStep.orderBy(pv.ts.desc()).limit(limit).stream()) {
             stream.map(this::mapRecord).forEach(pvt -> callback.row(pvt, count.getAndIncrement()));
         }
     }
@@ -308,19 +310,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                     callback.row(mapRecord(record), count++);
                 }
             }
-        }
-    }
-
-    @Override
-    public void wideQuery(DataPointVO vo, long from, long to, WideQueryCallback<PointValueTime> callback) {
-        PointValueTime before = getPointValueBefore(vo, from);
-        if (before != null) {
-            callback.preQuery(before);
-        }
-        getPointValuesBetween(vo, from, to, callback::row);
-        PointValueTime after = getPointValueAfter(vo, to);
-        if (after != null) {
-            callback.postQuery(after);
         }
     }
 

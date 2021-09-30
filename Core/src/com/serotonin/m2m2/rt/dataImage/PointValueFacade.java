@@ -43,7 +43,7 @@ public class PointValueFacade {
     public PointValueTime getPointValueBefore(long time) {
         if ((point != null)&&(useCache))
             return point.getPointValueBefore(time);
-        return pointValueDao.getPointValueBefore(point.getVO(), time);
+        return pointValueDao.getPointValueBefore(point.getVO(), time).orElse(null);
     }
 
     public PointValueTime getPointValueAt(long time) {
@@ -61,7 +61,7 @@ public class PointValueFacade {
     public PointValueTime getPointValue() {
         if ((point != null)&&(useCache))
             return point.getPointValue();
-        return pointValueDao.getLatestPointValue(point.getVO());
+        return pointValueDao.getLatestPointValue(point.getVO()).orElse(null);
     }
 
     //

@@ -11,7 +11,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 
-import com.infiniteautomation.mango.db.query.PVTQueryCallback;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
@@ -179,11 +178,6 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
         }
 
         @Override
-        public PointValueTime getLatestPointValue(DataPointVO vo) {
-            return values.get(values.size() - 1);
-        }
-
-        @Override
         public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
             List<PointValueTime> result = new ArrayList<>(values);
             result.sort((v1,v2) -> {
@@ -204,25 +198,6 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
                 SetPointSource source) {
             values.add(pointValue);
         }
-
-        @Override
-        public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById,
-                Integer limit, PVTQueryCallback<IdPointValueTime> callback) {
-            List<PointValueTime> result = new ArrayList<>(values);
-            result.sort((v1,v2) -> {
-                return (int)(v2.getTime() - v1.getTime());
-            });
-            int limitCount = 0;
-            for(PointValueTime pvt : result) {
-                if(pvt.getTime() < before) {
-                    callback.row(new IdPointValueTime(1, pvt.getValue(), pvt.getTime()), limitCount++);
-                }
-                if(limitCount == limit) {
-                    return;
-                }
-            }
-        }
-
     }
 
 }

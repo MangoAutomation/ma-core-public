@@ -18,7 +18,11 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -34,85 +38,164 @@ import com.serotonin.m2m2.vo.pair.LongPair;
 
 public interface PointValueDao {
 
+    default void checkLimit(Integer limit) {
+        if (limit != null) {
+            if (limit < 0) {
+                throw new IllegalArgumentException("Limit may not be negative");
+            }
+        }
+    }
+
+    default void checkToFrom(long from, long to) {
+        if (to < from) {
+            throw new IllegalArgumentException("To time must be greater than or equal to from time");
+        }
+    }
+
+    default void checkNull(Object argument) {
+        if (argument == null) {
+            throw new IllegalArgumentException("Argument may not be null");
+        }
+    }
+
     /**
-     * Only the PointValueCache should call this method during runtime. Do not use.
+     * Save a point value synchronously i.e. immediately.
+     *
+     * @throws IllegalArgumentException if vo or pointValue are null
      */
     PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
 
     /**
-     * Only the PointValueCache should call this method during runtime. Do not use.
+     * Save a point value asynchronously i.e. delayed.
+     * The implementation may batch and save point values at a later time.
+     *
+     * @throws IllegalArgumentException if vo or pointValue are null
      */
     void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
 
     /**
-     * Get the point values >= since
-     * @param vo
-     * @param since
-     * @return
+     * Get point values for single point, for the time range {@code [from,∞)}.
+     *
+     * @param vo data point
+     * @param from from time (epoch ms), inclusive
+     * @return list of point values
+     * @throws IllegalArgumentException if vo is null
      */
-    List<PointValueTime> getPointValues(DataPointVO vo, long since);
+    List<PointValueTime> getPointValues(DataPointVO vo, long from);
 
     /**
-     * Get point values >= from and < to
-     * @param vo
-     * @param from
-     * @param to
-     * @return
+     * Get point values for single point, for the time range {@code [from,to)}.
+     *
+     * @param vo data point
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @return list of point values
+     * @throws IllegalArgumentException if vo is null
      */
-    List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to);
+    default List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
+        return getPointValuesBetween(vo, from, to, (Integer) null);
+    }
 
     /**
-     * Get point values >= from and < to
-     * @param vo
-     * @param from
-     * @param to
-     * @return
+     * Get point values for single point, for the time range {@code [from,to)} with a limit.
+     *
+     * @param vo data point
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return (if null, no limit is applied)
+     * @return list of point values
+     * @throws IllegalArgumentException if vo is null, if limit is negative
      */
-    List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, int limit);
+    List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, @Nullable Integer limit);
 
     /**
-     * Get point values in reverse time order
-     * @param vo
-     * @param limit
-     * @return
+     * Get the latest point values for single point, with a limit.
+     * Values are returned in descending time order, i.e. newest values first.
+     *
+     * @param vo data point
+     * @param limit maximum number of values to return
+     * @return list of point values, in descending time order, i.e. the newest value first.
+     * @throws IllegalArgumentException if vo is null, if limit is negative
      */
-    List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit);
+    default List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
+        checkNull(vo);
+        List<PointValueTime> values = new ArrayList<>(limit);
+        getLatestPointValuesPerPoint(Collections.singletonList(vo), null, limit, (v, i) -> values.add(v));
+        return values;
+    }
 
     /**
-     * Get point values < before in reverse time order
-     * @param vo
-     * @param limit
-     * @param before
-     * @return
+     * Get the latest point values for single point, for the time range {@code [-∞,to)} with a limit.
+     * Values are returned in descending time order, i.e. the newest value first.
+     *
+     * @param vo data point
+     * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return
+     * @return list of point values, in descending time order, i.e. the newest value first.
+     * @throws IllegalArgumentException if vo is null, if limit is negative
      */
-    List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit, long before);
+    default List<PointValueTime> getLatestPointValues(DataPointVO vo, long to, int limit) {
+        checkNull(vo);
+        List<PointValueTime> values = new ArrayList<>(limit);
+        getLatestPointValuesPerPoint(Collections.singletonList(vo), to, limit, (v, i) -> values.add(v));
+        return values;
+    }
 
     /**
-     * Get point values < before in reverse time order
-     * @param vos - one or many data points
-     * @param limit - null for no limit entire series in reverse order.  If orderById = true, limit is
-     *     on a per point basis else limit is for entire results
-     * @param before
-     * @param orderById - return results in groups per id.
-     * @param callback
-     * @return
+     * Get the latest point values for a collection of points, for the time range {@code [-∞,to)} with a limit (per point).
+     * Values are grouped by point, and returned (via callback) in descending time order, i.e. the newest value for each point first.
+     *
+     * <p>The order in which points are grouped and values are returned may not match the order of the passed in
+     * collection, but is generally in order of the data point's seriesId.</p>
+     *
+     * @param vos data points
+     * @param to to time (epoch ms), exclusive (if null, no time bound is applied)
+     * @param limit maximum number of values to return (per point)
+     * @param callback callback to return point values, grouped by point and in descending time order, i.e. the newest value for each point first.
+     * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
-    void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, final PVTQueryCallback<IdPointValueTime> callback);
+    void getLatestPointValuesPerPoint(List<DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
 
     /**
-     * Get the latest point value for this point
-     * @param vo
-     * @return null or value
+     * Get the latest point values for a collection of points, for the time range {@code [-∞,to)} with a limit (total).
+     * Values are returned (via callback) in descending time order, i.e. the newest value first.
+     *
+     * @param vos data points
+     * @param to to time (epoch ms), exclusive (if null, no time bound is applied)
+     * @param limit maximum number of values to return (total)
+     * @param callback callback to return point values, in descending time order, i.e. the newest value first.
+     * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
-    PointValueTime getLatestPointValue(DataPointVO vo);
+    void getLatestPointValuesCombined(List<DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
 
     /**
-     * Get the first point value < time
-     * @param vo
-     * @param time
-     * @return null or value
+     * Get the latest point value for single point.
+     *
+     * @param vo data point
+     * @return the latest point value, i.e. the newest value.
+     * @throws IllegalArgumentException if vo is null
      */
-    PointValueTime getPointValueBefore(DataPointVO vo, long time);
+    default Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
+        checkNull(vo);
+        AtomicReference<PointValueTime> holder = new AtomicReference<>();
+        getLatestPointValuesPerPoint(Collections.singletonList(vo), Long.MAX_VALUE, 1, (v, i) -> holder.set(v));
+        return Optional.ofNullable(holder.get());
+    }
+
+    /**
+     * Get the latest point value for single point, for the time range {@code [-∞,to)}.
+     *
+     * @param vo data point
+     * @param time to time (epoch ms), exclusive
+     * @return the latest point value, i.e. the newest value.
+     * @throws IllegalArgumentException if vo is null
+     */
+    default Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
+        checkNull(vo);
+        AtomicReference<PointValueTime> holder = new AtomicReference<>();
+        getLatestPointValuesPerPoint(Collections.singletonList(vo), time, 1, (v, i) -> holder.set(v));
+        return Optional.ofNullable(holder.get());
+    }
 
     /**
      * Get the point value at or just after this time
@@ -177,7 +260,13 @@ public interface PointValueDao {
      * @param callback
      *            the query callback
      */
-    void wideQuery(DataPointVO vo, long from, long to, final WideQueryCallback<PointValueTime> callback);
+    default void wideQuery(DataPointVO vo, long from, long to, WideQueryCallback<PointValueTime> callback) {
+        getPointValueBefore(vo, from).ifPresent(callback::preQuery);
+        getPointValuesBetween(vo, from, to, callback::row);
+        PointValueTime after = getPointValueAfter(vo, to);
+        if (after != null)
+            callback.postQuery(after);
+    }
 
     /**
      * Get point values >= from and < to, bookend the query by calling:
