@@ -146,7 +146,7 @@ public class NumericPointValueDaoTestHelper {
                 int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
                 @Override
                 public void row(IdPointValueTime value) {
-                    Assert.assertEquals(mutableIndex.intValue(), index);
+
                     mutableIndex.increment();
                     count.increment();
                     if(value.getTime() > timestamp.getValue())
@@ -192,7 +192,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if (value.getTime() > timestamp.getValue())
@@ -225,7 +225,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if (value.getTime() > timestamp.getValue())
@@ -264,7 +264,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() > timestamp.getValue())
@@ -301,10 +301,9 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
+
                 count.increment();
-                if(index < data.get(vo1.getSeriesId()).size()) {
+                if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -348,10 +347,9 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
+
                 count.increment();
-                if(index < data.get(vo1.getSeriesId()).size()) {
+                if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -394,7 +392,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() > timestamp.getValue())
@@ -429,7 +427,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() > timestamp.getValue())
@@ -466,9 +464,8 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
-                if(index < 20) {
+
+                if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -514,9 +511,8 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
-                if(index < 20) {
+
+                if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -562,7 +558,7 @@ public class NumericPointValueDaoTestHelper {
                 int seriesId2Counter = 3; //Skip first 3
                 @Override
                 public void row(IdPointValueTime value) {
-                    Assert.assertEquals(mutableIndex.intValue(), index);
+
                     mutableIndex.increment();
                     count.increment();
                     if(value.getTime() < timestamp.getValue())
@@ -607,7 +603,7 @@ public class NumericPointValueDaoTestHelper {
             @Override
             public void row(IdPointValueTime value) {
                 count.increment();
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -637,7 +633,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 3; //Skip first 3
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -672,7 +668,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 0;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -708,10 +704,9 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 3; //Skip first 3
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
+
                 count.increment();
-                if(index < data.get(vo1.getSeriesId()).size()) {
+                if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -753,10 +748,9 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 0; //Skip first 3
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
+
                 count.increment();
-                if(index < data.get(vo1.getSeriesId()).size()) {
+                if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -797,7 +791,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 3; //Skip first 3
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -832,7 +826,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 0;
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -870,9 +864,8 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 3; //Skip first 3
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
-                if(index < 20) {
+
+                if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -917,9 +910,8 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 0; //Skip first 3
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
-                if(index < 20) {
+
+                if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -1102,7 +1094,7 @@ public class NumericPointValueDaoTestHelper {
 
                 @Override
                 public void firstValue(IdPointValueTime value, boolean bookend) {
-                    Assert.assertEquals(mutableIndex.intValue(), index);
+
                     mutableIndex.increment();
                     if(value.getTime() < timestamp.getValue())
                         Assert.fail("Timestamp out of order.");
@@ -1122,7 +1114,7 @@ public class NumericPointValueDaoTestHelper {
 
                 @Override
                 public void row(IdPointValueTime value) {
-                    Assert.assertEquals(mutableIndex.intValue(), index);
+
                     mutableIndex.increment();
                     count.increment();
                     if(value.getTime() < timestamp.getValue())
@@ -1170,7 +1162,7 @@ public class NumericPointValueDaoTestHelper {
 
                 @Override
                 public void firstValue(IdPointValueTime value, boolean bookend) {
-                    Assert.assertEquals(mutableIndex.intValue(), index);
+
                     mutableIndex.increment();
                     if(value.getTime() < timestamp.getValue())
                         Assert.fail("Timestamp out of order.");
@@ -1190,7 +1182,7 @@ public class NumericPointValueDaoTestHelper {
 
                 @Override
                 public void row(IdPointValueTime value) {
-                    Assert.assertEquals(mutableIndex.intValue(), index);
+
                     mutableIndex.increment();
                     count.increment();
                     if(value.getTime() < timestamp.getValue())
@@ -1214,7 +1206,7 @@ public class NumericPointValueDaoTestHelper {
                 @Override
                 public void lastValue(IdPointValueTime value, boolean bookend) {
                     lastValueCallCount.increment();
-                    Assert.assertEquals(mutableIndex.intValue(), index);
+
                     mutableIndex.increment();
                     if(value.getTime() < timestamp.getValue())
                         Assert.fail("Timestamp out of order.");
@@ -1239,7 +1231,7 @@ public class NumericPointValueDaoTestHelper {
         this.dao.wideBookendQuery(vos, 0, series2StartTs - 1, false, null, new BookendQueryCallback<>() {
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1255,7 +1247,7 @@ public class NumericPointValueDaoTestHelper {
             }
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1299,7 +1291,7 @@ public class NumericPointValueDaoTestHelper {
             int seriesId2Counter = 0;
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1311,7 +1303,7 @@ public class NumericPointValueDaoTestHelper {
             }
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1329,7 +1321,7 @@ public class NumericPointValueDaoTestHelper {
             }
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1364,7 +1356,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1384,7 +1376,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1407,7 +1399,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1441,7 +1433,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1453,7 +1445,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1476,7 +1468,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1510,7 +1502,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -1534,10 +1526,9 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
+
                 count.increment();
-                if(index < data.get(vo1.getSeriesId()).size() + 1) { //1 for end bookend
+                if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size() + 1) { //1 for end bookend
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -1566,7 +1557,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -1604,7 +1595,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -1626,10 +1617,9 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
+
                 count.increment();
-                if(index < data.get(vo1.getSeriesId()).size() + 1) {
+                if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size() + 1) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -1658,7 +1648,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -1695,7 +1685,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1716,7 +1706,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1739,7 +1729,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1777,7 +1767,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1789,7 +1779,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 count.increment();
                 if(value.getTime() < timestamp.getValue())
@@ -1812,7 +1802,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1853,7 +1843,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -1877,9 +1867,8 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
-                if(index < 20 + 1) {
+
+                if(mutableIndex.getAndIncrement() < 20 + 1) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -1910,7 +1899,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -1953,7 +1942,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -1975,9 +1964,8 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
-                if(index < 20 + 1) {
+
+                if(mutableIndex.getAndIncrement() < 20 + 1) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -2008,7 +1996,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -2052,7 +2040,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -2084,7 +2072,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -2128,7 +2116,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -2154,9 +2142,8 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
-                mutableIndex.increment();
-                if(index < 20 + 1) {
+
+                if(mutableIndex.getAndIncrement() < 20 + 1) {
                     //Should be first id
                     Assert.assertEquals(vo1.getSeriesId(), value.getSeriesId());
                 }else {
@@ -2187,7 +2174,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getSeriesId() == vo2.getSeriesId()) {
                     if(value.getTime() < timestamp2.getValue())
@@ -2230,7 +2217,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -2259,7 +2246,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -2297,7 +2284,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -2320,7 +2307,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void row(IdPointValueTime value) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -2344,7 +2331,7 @@ public class NumericPointValueDaoTestHelper {
 
             @Override
             public void lastValue(IdPointValueTime value, boolean bookend) {
-                Assert.assertEquals(mutableIndex.intValue(), index);
+
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");

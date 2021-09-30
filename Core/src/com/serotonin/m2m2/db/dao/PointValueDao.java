@@ -75,7 +75,7 @@ public interface PointValueDao {
     void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
 
     /**
-     * Get point values for single point, for the time range {@code [from,∞)}.
+     * Get point values for a single point, for the time range {@code [from,∞)}.
      *
      * @param vo data point
      * @param from from time (epoch ms), inclusive
@@ -85,7 +85,7 @@ public interface PointValueDao {
     List<PointValueTime> getPointValues(DataPointVO vo, long from);
 
     /**
-     * Get point values for single point, for the time range {@code [from,to)}.
+     * Get point values for a single point, for the time range {@code [from,to)}.
      *
      * @param vo data point
      * @param from from time (epoch ms), inclusive
@@ -98,7 +98,7 @@ public interface PointValueDao {
     }
 
     /**
-     * Get point values for single point, for the time range {@code [from,to)} with a limit.
+     * Get point values for a single point, for the time range {@code [from,to)} with a limit.
      *
      * @param vo data point
      * @param from from time (epoch ms), inclusive
@@ -110,7 +110,7 @@ public interface PointValueDao {
     List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, @Nullable Integer limit);
 
     /**
-     * Get the latest point values for single point, with a limit.
+     * Get the latest point values for a single point, with a limit.
      * Values are returned in descending time order, i.e. newest values first.
      *
      * @param vo data point
@@ -126,7 +126,7 @@ public interface PointValueDao {
     }
 
     /**
-     * Get the latest point values for single point, for the time range {@code [-∞,to)} with a limit.
+     * Get the latest point values for a single point, for the time range {@code [-∞,to)} with a limit.
      * Values are returned in descending time order, i.e. the newest value first.
      *
      * @param vo data point
@@ -170,7 +170,7 @@ public interface PointValueDao {
     void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<? super IdPointValueTime> callback);
 
     /**
-     * Get the latest point value for single point.
+     * Get the latest point value for a single point.
      *
      * @param vo data point
      * @return the latest point value, i.e. the newest value.
@@ -184,7 +184,7 @@ public interface PointValueDao {
     }
 
     /**
-     * Get the latest point value for single point, for the time range {@code [-∞,to)}.
+     * Get the latest point value for a single point, for the time range {@code [-∞,to)}.
      *
      * @param vo data point
      * @param time to time (epoch ms), exclusive
