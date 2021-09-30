@@ -308,7 +308,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
     }
 
-    private Map<Integer, IdPointValueTime> initialValues(List<DataPointVO> vos, long from) {
+    private Map<Integer, IdPointValueTime> initialValues(Collection<? extends DataPointVO> vos, long from) {
         Map<Integer, IdPointValueTime> values = new HashMap<>(vos.size());
 
         try (var cursor = vos.stream()
