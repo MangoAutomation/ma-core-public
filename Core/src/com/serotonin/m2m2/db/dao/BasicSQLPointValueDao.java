@@ -248,7 +248,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(DataPointVO vo, long from, long to, PVTQueryCallback<? super IdPointValueTime> callback) {
+    public void getPointValuesBetween(DataPointVO vo, long from, long to, PVTQueryCallback<? super PointValueTime> callback) {
         ResultQuery<Record> result = betweenQuery(from, to, null, vo);
         try (Stream<Record> stream = result.stream()) {
             stream.map(this::mapRecord).forEach(callback);
@@ -283,7 +283,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<? super IdPointValueTime> callback) {
+    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<? super IdPointValueTime> callback) {
         if (vos.isEmpty()) return;
 
         if (orderById) {
@@ -338,7 +338,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<? super IdPointValueTime> callback) {
+    public void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<? super IdPointValueTime> callback) {
         if (vos.isEmpty()) return;
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
@@ -564,7 +564,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long getStartTime(List<DataPointVO> vos) {
+    public long getStartTime(Collection<? extends DataPointVO> vos) {
         if (vos.isEmpty())
             return -1L;
         return create.select(DSL.min(pv.ts)).from(pv).where(seriesIdCondition(vos))
@@ -574,7 +574,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long getEndTime(List<DataPointVO> vos) {
+    public long getEndTime(Collection<? extends DataPointVO> vos) {
         if (vos.isEmpty())
             return -1L;
         return create.select(DSL.max(pv.ts)).from(pv).where(seriesIdCondition(vos))
@@ -584,7 +584,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public LongPair getStartAndEndTime(List<DataPointVO> vos) {
+    public LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos) {
         if (vos.isEmpty())
             return null;
         return create.select(DSL.min(pv.ts), DSL.max(pv.ts)).from(pv).where(seriesIdCondition(vos))

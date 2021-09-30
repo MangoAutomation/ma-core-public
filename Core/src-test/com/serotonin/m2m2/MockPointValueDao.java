@@ -187,7 +187,7 @@ public class MockPointValueDao implements PointValueDao{
 
     @Override
     public void getPointValuesBetween(DataPointVO vo, long from, long to,
-                                      PVTQueryCallback<? super IdPointValueTime> callback) {
+                                      PVTQueryCallback<? super PointValueTime> callback) {
         // TODO Auto-generated method stub
 
     }
@@ -279,19 +279,19 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public long getStartTime(List<DataPointVO> vos) {
+    public long getStartTime(Collection<? extends DataPointVO> vos) {
         // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
-    public long getEndTime(List<DataPointVO> vos) {
+    public long getEndTime(Collection<? extends DataPointVO> vos) {
         // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
-    public LongPair getStartAndEndTime(List<DataPointVO> vos) {
+    public LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -309,14 +309,14 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit,
+    public void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit,
                                  BookendQueryCallback<? super IdPointValueTime> callback) {
         // TODO Auto-generated method stub
 
     }
 
     @Override
-    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById,
+    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById,
                                       Integer limit, PVTQueryCallback<? super IdPointValueTime> callback) {
         // TODO Auto-generated method stub
 
