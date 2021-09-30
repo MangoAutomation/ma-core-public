@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -203,7 +204,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getLatestPointValuesPerPoint(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+    public void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
         checkLimit(limit); checkNull(vos); checkNull(callback);
         if (vos.isEmpty() || limit == 0) return;
 
@@ -231,7 +232,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getLatestPointValuesCombined(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+    public void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
         checkLimit(limit); checkNull(vos); checkNull(callback);
         if (vos.isEmpty() || limit == 0) return;
 
