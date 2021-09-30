@@ -163,27 +163,27 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public PointValueTime getPointValueAfter(DataPointVO vo, long time) {
+    public Optional<PointValueTime> getPointValueAfter(DataPointVO vo, long time) {
         List<PointValueTime> existing = data.get(vo.getId());
         if(existing != null) {
             for(PointValueTime pvt : existing) {
                 if(pvt.getTime() > time)
-                    return pvt;
+                    return Optional.of(pvt);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public PointValueTime getPointValueAt(DataPointVO vo, long time) {
+    public Optional<PointValueTime> getPointValueAt(DataPointVO vo, long time) {
         List<PointValueTime> existing = data.get(vo.getId());
         if(existing != null) {
             for(PointValueTime pvt : existing) {
                 if(pvt.getTime() == time)
-                    return pvt;
+                    return Optional.of(pvt);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

@@ -65,7 +65,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public PointValueTime getPointValueAfter(long time) {
-        return pointValueDao.getPointValueAfter(vo, time);
+        return pointValueDao.getPointValueAfter(vo, time).orElse(null);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public PointValueTime getPointValueAt(long time) {
-        return Common.getBean(PointValueDao.class).getPointValueAt(vo, time);
+        return pointValueDao.getPointValueAt(vo, time).orElse(null);
     }
 
     @Override

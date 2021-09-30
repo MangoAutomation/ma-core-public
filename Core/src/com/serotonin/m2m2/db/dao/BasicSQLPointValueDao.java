@@ -114,18 +114,18 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public PointValueTime getPointValueAt(DataPointVO vo, long time) {
-        return getPointValueAt(vo, DSL.val(time)).orElse(null);
+    public Optional<PointValueTime> getPointValueAt(DataPointVO vo, long time) {
+        return getPointValueAt(vo, DSL.val(time));
     }
 
     @Override
-    public PointValueTime getPointValueAfter(DataPointVO vo, long time) {
+    public Optional<PointValueTime> getPointValueAfter(DataPointVO vo, long time) {
         Field<Long> ts = this.create.select(DSL.min(pv.ts))
                 .from(pv)
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
                 .and(pv.ts.greaterOrEqual(time))
                 .asField();
-        return getPointValueAt(vo, ts).orElse(null);
+        return getPointValueAt(vo, ts);
     }
 
     @Override

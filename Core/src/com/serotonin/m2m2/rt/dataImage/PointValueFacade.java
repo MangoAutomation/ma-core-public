@@ -49,13 +49,13 @@ public class PointValueFacade {
     public PointValueTime getPointValueAt(long time) {
         if ((point != null)&&(useCache))
             return point.getPointValueAt(time);
-        return pointValueDao.getPointValueAt(point.getVO(), time);
+        return pointValueDao.getPointValueAt(point.getVO(), time).orElse(null);
     }
 
     public PointValueTime getPointValueAfter(long time) {
         if ((point != null)&&(useCache))
             return point.getPointValueAfter(time);
-        return pointValueDao.getPointValueAfter(point.getVO(), time);
+        return pointValueDao.getPointValueAfter(point.getVO(), time).orElse(null);
     }
 
     public PointValueTime getPointValue() {

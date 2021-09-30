@@ -206,7 +206,7 @@ public interface PointValueDao {
      * @return the point value at, or after the given time
      * @throws IllegalArgumentException if vo is null
      */
-    PointValueTime getPointValueAfter(DataPointVO vo, long time);
+    Optional<PointValueTime> getPointValueAfter(DataPointVO vo, long time);
 
     /**
      * Get the point value at exactly the given time, for a single point.
@@ -216,7 +216,7 @@ public interface PointValueDao {
      * @return the point value exactly at the given time
      * @throws IllegalArgumentException if vo is null
      */
-    PointValueTime getPointValueAt(DataPointVO vo, long time);
+    Optional<PointValueTime> getPointValueAt(DataPointVO vo, long time);
 
     /**
      * Get point values >= from and < to
@@ -266,9 +266,7 @@ public interface PointValueDao {
     default void wideQuery(DataPointVO vo, long from, long to, WideQueryCallback<? super PointValueTime> callback) {
         getPointValueBefore(vo, from).ifPresent(callback::preQuery);
         getPointValuesBetween(vo, from, to, callback::row);
-        PointValueTime after = getPointValueAfter(vo, to);
-        if (after != null)
-            callback.postQuery(after);
+        getPointValueAfter(vo, to).ifPresent(callback::postQuery);
     }
 
     /**
