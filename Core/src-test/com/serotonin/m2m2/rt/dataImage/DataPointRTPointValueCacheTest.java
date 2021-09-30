@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -180,10 +181,13 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
         @Override
         public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
             List<PointValueTime> result = new ArrayList<>(values);
-            result.sort((v1,v2) -> {
-                return (int)(v2.getTime() - v1.getTime());
-            });
+            result.sort((v1,v2) -> (int) (v2.getTime() - v1.getTime()));
             return result.subList(0, limit);
+        }
+
+        @Override
+        public Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
+            return Optional.of(values.get(values.size() - 1));
         }
 
         @Override
