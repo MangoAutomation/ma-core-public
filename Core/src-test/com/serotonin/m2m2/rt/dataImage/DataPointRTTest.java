@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
@@ -146,6 +147,11 @@ public class DataPointRTTest extends MangoTestBase {
 
         public MockPointValueDao(DatabaseProxy databaseProxy) {
             super(databaseProxy);
+        }
+
+        @Override
+        public Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
+            return Optional.of(values.get(values.size() - 1));
         }
 
         @Override
