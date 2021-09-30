@@ -145,7 +145,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 return pvt;
         }
 
-        return Common.getBean(PointValueDao.class).getPointValueBefore(vo, time);
+        return Common.getBean(PointValueDao.class).getPointValueBefore(vo, time).orElse(null);
     }
 
     @Override

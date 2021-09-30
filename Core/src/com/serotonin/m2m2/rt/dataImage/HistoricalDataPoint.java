@@ -30,7 +30,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public List<PointValueTime> getLatestPointValues(int limit) {
-        return pointValueDao.getLatestPointValues(vo, limit, timer.currentTimeMillis());
+        return pointValueDao.getLatestPointValues(vo, timer.currentTimeMillis(), limit);
     }
 
     @Override
@@ -55,12 +55,12 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public PointValueTime getPointValue() {
-        return pointValueDao.getPointValueBefore(vo, timer.currentTimeMillis() + 1);
+        return pointValueDao.getPointValueBefore(vo, timer.currentTimeMillis() + 1).orElse(null);
     }
 
     @Override
     public PointValueTime getPointValueBefore(long time) {
-        return pointValueDao.getPointValueBefore(vo, time);
+        return pointValueDao.getPointValueBefore(vo, time).orElse(null);
     }
 
     @Override

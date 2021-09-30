@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -36,11 +37,7 @@ public class MockPointValueDao implements PointValueDao{
     @Override
     public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue,
             SetPointSource source) {
-        List<PointValueTime> pvts = data.get(vo.getId());
-        if(pvts == null) {
-            pvts = new ArrayList<>();
-            data.put(vo.getId(), pvts);
-        }
+        List<PointValueTime> pvts = data.computeIfAbsent(vo.getId(), k -> new ArrayList<>());
 
         PointValueTime newPvt = null;
         if(source != null)
@@ -61,12 +58,12 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public List<PointValueTime> getPointValues(DataPointVO vo, long since) {
+    public List<PointValueTime> getPointValues(DataPointVO vo, long from) {
         List<PointValueTime> pvts = new ArrayList<>();
         List<PointValueTime> existing = data.get(vo.getId());
         if(existing != null) {
             for(PointValueTime pvt : existing) {
-                if(pvt.getTime() >= since)
+                if(pvt.getTime() >= from)
                     pvts.add(pvt);
             }
         }
@@ -87,7 +84,7 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, int limit) {
+    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, Integer limit) {
 
         List<PointValueTime> pvts = new ArrayList<>();
         List<PointValueTime> existing = data.get(vo.getId());
@@ -117,13 +114,13 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit, long before) {
+    public List<PointValueTime> getLatestPointValues(DataPointVO vo, long to, int limit) {
         List<PointValueTime> pvts = new ArrayList<>();
         List<PointValueTime> existing = data.get(vo.getId());
         if(existing != null) {
             for(int i=existing.size() -1; i>=0; i--) {
                 PointValueTime pvt = existing.get(i);
-                if(pvt.getTime() < before)
+                if(pvt.getTime() < to)
                     pvts.add(pvt);
                 if(pvts.size() >= limit)
                     break;
@@ -133,25 +130,35 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public PointValueTime getLatestPointValue(DataPointVO vo) {
-        List<PointValueTime> existing = data.get(vo.getId());
-        if(existing != null) {
-            return existing.get(existing.size() -1);
-        }
-        return null;
+    public void getLatestPointValuesPerPoint(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+
     }
 
     @Override
-    public PointValueTime getPointValueBefore(DataPointVO vo, long time) {
+    public void getLatestPointValuesCombined(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+
+    }
+
+    @Override
+    public Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
+        List<PointValueTime> existing = data.get(vo.getId());
+        if(existing != null) {
+            return Optional.of(existing.get(existing.size() -1));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
         List<PointValueTime> existing = data.get(vo.getId());
         if(existing != null) {
             for(int i=existing.size() -1; i>=0; i--) {
                 PointValueTime pvt = existing.get(i);
                 if(pvt.getTime() < time)
-                    return pvt;
+                    return Optional.of(pvt);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -305,11 +312,6 @@ public class MockPointValueDao implements PointValueDao{
     public void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit,
             BookendQueryCallback<IdPointValueTime> callback) {
         // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void getLatestPointValues(List<DataPointVO> vos, long before, boolean orderById, Integer limit, final PVTQueryCallback<IdPointValueTime> callback) {
 
     }
 
