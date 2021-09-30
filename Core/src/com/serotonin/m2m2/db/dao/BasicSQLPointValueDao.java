@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -225,7 +224,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
 
         try (Stream<Record> stream = Objects.requireNonNull(union).stream()) {
-            stream.map(this::mapRecord).forEach(callback::row);
+            stream.map(this::mapRecord).forEach(callback);
         }
     }
 
@@ -244,12 +243,12 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .where(condition);
 
         try (Stream<Record> stream = conditionStep.orderBy(pv.ts.desc()).limit(limit).stream()) {
-            stream.map(this::mapRecord).forEach(callback::row);
+            stream.map(this::mapRecord).forEach(callback);
         }
     }
 
     @Override
-    public void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<PointValueTime> callback) {
+    public void getPointValuesBetween(DataPointVO vo, long from, long to, PVTQueryCallback<? super IdPointValueTime> callback) {
         ResultQuery<Record> result = betweenQuery(from, to, null, vo);
         try (Stream<Record> stream = result.stream()) {
             stream.map(this::mapRecord).forEach(callback);
@@ -264,7 +263,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         return betweenQuery(from, to, limit, pv.dataPointId.eq(seriesId));
     }
 
-    private Select<Record> betweenQuery(long from, long to, @Nullable Integer limit, List<DataPointVO> points) {
+    private Select<Record> betweenQuery(long from, long to, @Nullable Integer limit, Collection<? extends DataPointVO> points) {
         return betweenQuery(from, to, limit, seriesIdCondition(points));
     }
 
@@ -414,7 +413,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(List<DataPointVO> vos, long from, long to, Consumer<IdPointValueTime> callback) {
+    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, PVTQueryCallback<? super IdPointValueTime> callback) {
         try (var stream = betweenQuery(from, to, null, vos).stream()) {
             stream.map(this::mapRecord).forEach(callback);
         }
@@ -559,7 +558,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .orElse(-1L);
     }
 
-    private Condition seriesIdCondition(List<DataPointVO> vos) {
+    private Condition seriesIdCondition(Collection<? extends DataPointVO> vos) {
         List<Integer> seriesIds = vos.stream().map(DataPointVO::getSeriesId).collect(Collectors.toList());
         return pv.dataPointId.in(seriesIds);
     }
