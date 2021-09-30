@@ -184,11 +184,11 @@ public interface PointValueDao {
     }
 
     /**
-     * Get the latest point value for a single point, for the time range {@code [-∞,to)}.
+     * Get the point value prior to the given time, for a single point.
      *
      * @param vo data point
-     * @param time to time (epoch ms), exclusive
-     * @return the latest point value, i.e. the newest value.
+     * @param time the time (epoch ms), exclusive
+     * @return the point value prior to the given time
      * @throws IllegalArgumentException if vo is null
      */
     default Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
@@ -199,18 +199,22 @@ public interface PointValueDao {
     }
 
     /**
-     * Get the point value at or just after this time
-     * @param vo
-     * @param time
-     * @return
+     * Get the point value at, or after the given time, for a single point.
+     *
+     * @param vo data point
+     * @param time the time (epoch ms), inclusive
+     * @return the point value at, or after the given time
+     * @throws IllegalArgumentException if vo is null
      */
     PointValueTime getPointValueAfter(DataPointVO vo, long time);
 
     /**
-     * Get the point value (if any) at this time.
-     * @param vo
-     * @param time
-     * @return null or value
+     * Get the point value at exactly the given time, for a single point.
+     *
+     * @param vo data point
+     * @param time the time (epoch ms)
+     * @return the point value exactly at the given time
+     * @throws IllegalArgumentException if vo is null
      */
     PointValueTime getPointValueAt(DataPointVO vo, long time);
 
