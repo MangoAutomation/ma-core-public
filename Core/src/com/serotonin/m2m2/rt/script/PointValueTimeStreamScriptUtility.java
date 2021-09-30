@@ -198,22 +198,22 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
+        public void firstValue(IdPointValueTime value, boolean bookend) {
             DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getSeriesId());
-            quantizer.firstValue(value, index, bookend);
+            quantizer.firstValue(value, bookend);
         }
 
         @Override
-        public void row(IdPointValueTime value, int index) throws QueryCancelledException {
+        public void row(IdPointValueTime value) {
             DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getSeriesId());
-            quantizer.row(value, index);
+            quantizer.row(value);
 
         }
 
         @Override
-        public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
+        public void lastValue(IdPointValueTime value, boolean bookend) {
             DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getSeriesId());
-            quantizer.lastValue(value, index, bookend);
+            quantizer.lastValue(value, bookend);
         }
 
         public void quantizedStatistics(AnalogStatistics statisticsGenerator) {
@@ -372,19 +372,19 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void firstValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
-            quantizer.firstValue(value, index, bookend);
+        public void firstValue(IdPointValueTime value, boolean bookend) {
+            quantizer.firstValue(value, bookend);
             open = true;
         }
 
         @Override
-        public void row(IdPointValueTime value, int index) throws QueryCancelledException {
-            quantizer.row(value, index);
+        public void row(IdPointValueTime value) {
+            quantizer.row(value);
         }
 
         @Override
-        public void lastValue(IdPointValueTime value, int index, boolean bookend) throws QueryCancelledException {
-            quantizer.lastValue(value, index, bookend);
+        public void lastValue(IdPointValueTime value, boolean bookend) {
+            quantizer.lastValue(value, bookend);
             quantizer.done();
             this.done = true;
         }

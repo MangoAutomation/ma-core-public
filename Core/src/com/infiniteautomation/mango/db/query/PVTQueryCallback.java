@@ -14,13 +14,8 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 public interface PVTQueryCallback<T extends PointValueTime> {
 
     /**
-     * Values within the query
-     *
-     * If an exception is thrown the query should be aborted
-     *
-     * @param value
-     * @param index
-     * @throws QueryCancelledException to abort query
+     * If an exception is thrown the query will be aborted.
      */
-    void row(T value, int index) throws QueryCancelledException;
+    void row(T value);
+
 }

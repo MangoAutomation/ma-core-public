@@ -23,13 +23,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
+import com.infiniteautomation.mango.db.query.SinglePVTCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -121,7 +121,7 @@ public interface PointValueDao {
     default List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
         checkNull(vo);
         List<PointValueTime> values = new ArrayList<>(limit);
-        getLatestPointValuesPerPoint(Collections.singleton(vo), null, limit, (v, i) -> values.add(v));
+        getLatestPointValuesPerPoint(Collections.singleton(vo), null, limit, values::add);
         return values;
     }
 
@@ -138,7 +138,7 @@ public interface PointValueDao {
     default List<PointValueTime> getLatestPointValues(DataPointVO vo, long to, int limit) {
         checkNull(vo);
         List<PointValueTime> values = new ArrayList<>(limit);
-        getLatestPointValuesPerPoint(Collections.singleton(vo), to, limit, (v, i) -> values.add(v));
+        getLatestPointValuesPerPoint(Collections.singleton(vo), to, limit, values::add);
         return values;
     }
 
@@ -155,7 +155,7 @@ public interface PointValueDao {
      * @param callback callback to return point values, grouped by point and in descending time order, i.e. the newest value for each point first.
      * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
-    void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
+    void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<? super IdPointValueTime> callback);
 
     /**
      * Get the latest point values for a collection of points, for the time range {@code [-∞,to)} with a limit (total).
@@ -167,7 +167,7 @@ public interface PointValueDao {
      * @param callback callback to return point values, in descending time order, i.e. the newest value first.
      * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
-    void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
+    void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<? super IdPointValueTime> callback);
 
     /**
      * Get the latest point value for single point.
@@ -178,9 +178,9 @@ public interface PointValueDao {
      */
     default Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
         checkNull(vo);
-        AtomicReference<PointValueTime> holder = new AtomicReference<>();
-        getLatestPointValuesPerPoint(Collections.singleton(vo), Long.MAX_VALUE, 1, (v, i) -> holder.set(v));
-        return Optional.ofNullable(holder.get());
+        SinglePVTCallback<PointValueTime> holder = new SinglePVTCallback<>();
+        getLatestPointValuesPerPoint(Collections.singleton(vo), Long.MAX_VALUE, 1, holder);
+        return holder.getValue();
     }
 
     /**
@@ -193,9 +193,9 @@ public interface PointValueDao {
      */
     default Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
         checkNull(vo);
-        AtomicReference<PointValueTime> holder = new AtomicReference<>();
-        getLatestPointValuesPerPoint(Collections.singleton(vo), time, 1, (v, i) -> holder.set(v));
-        return Optional.ofNullable(holder.get());
+        SinglePVTCallback<PointValueTime> holder = new SinglePVTCallback<>();
+        getLatestPointValuesPerPoint(Collections.singleton(vo), time, 1, holder);
+        return holder.getValue();
     }
 
     /**
@@ -243,7 +243,7 @@ public interface PointValueDao {
      * @param callback
      * @return ordered list for all values by time
      */
-    void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<IdPointValueTime> callback);
+    void getPointValuesBetween(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<? super IdPointValueTime> callback);
 
     /**
      * Query the given time series, including the nearest sample both before the 'from' timestamp and after the 'to'
@@ -251,17 +251,15 @@ public interface PointValueDao {
      * before and after the time range are required.
      *
      * NOTE: The preQuery and postQuery callback methods are only called if there is data before/after the query
-     *
-     * @param vo
+     *  @param vo
      *            the target data point
      * @param from
      *            the timestamp from which to query (inclusive)
      * @param to
-     *            the timestamp to which to query (exclusive)
+ *            the timestamp to which to query (exclusive)
      * @param callback
-     *            the query callback
      */
-    default void wideQuery(DataPointVO vo, long from, long to, WideQueryCallback<PointValueTime> callback) {
+    default void wideQuery(DataPointVO vo, long from, long to, WideQueryCallback<? super PointValueTime> callback) {
         getPointValueBefore(vo, from).ifPresent(callback::preQuery);
         getPointValuesBetween(vo, from, to, callback::row);
         PointValueTime after = getPointValueAfter(vo, to);
@@ -279,21 +277,19 @@ public interface PointValueDao {
      *    before 'to' with 'to' as the timestamp (can be null if nothing before to)
      *
      * NOTE: The beforeQuery and afterQuery methods are called once for every data point ID
-     *
-     * @param vos
+     *  @param vos
      *            the target data points
      * @param from
      *            the timestamp from which to query (inclusive)
      * @param to
-     *            the timestamp to which to query (exclusive)
+ *            the timestamp to which to query (exclusive)
      * @param orderById
-     *            should the results also be ordered by data point id
+*            should the results also be ordered by data point id
      * @param limit
-     *            the limit of results, null for no limit (Limits do not include the bookends so the returned count can be up to limit + 2)
+*            the limit of results, null for no limit (Limits do not include the bookends so the returned count can be up to limit + 2)
      * @param callback
-     *            the query callback
      */
-    void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, final BookendQueryCallback<IdPointValueTime> callback);
+    void wideBookendQuery(List<DataPointVO> vos, long from, long to, boolean orderById, Integer limit, final BookendQueryCallback<? super IdPointValueTime> callback);
 
     /**
      * Delete startTime <= values < endTime

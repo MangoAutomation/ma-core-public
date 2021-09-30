@@ -18,12 +18,11 @@ public interface BookendQueryCallback<T extends PointValueTime> extends PVTQuery
      * If an exception is thrown the query should be aborted
      *
      * @param value
-     * @param index of current row
      * @param bookend - true if the value is virtual i.e. added as a point to match the exact query start time for charting
      * @throws QueryCancelledException to abort query
      */
-    default void firstValue(T value, int index, boolean bookend) throws QueryCancelledException {
-        row(value, index);
+    default void firstValue(T value, boolean bookend) {
+        row(value);
     }
 
     /**
@@ -32,12 +31,11 @@ public interface BookendQueryCallback<T extends PointValueTime> extends PVTQuery
      * If an exception is thrown the query should be aborted
      *
      * @param value
-     * @param index of current row
      * @param bookend - true if the value is virtual i.e. added as a point to match the exact query end time
      * @throws QueryCancelledException to abort query
      */
-    default void lastValue(T value, int index, boolean bookend) throws QueryCancelledException {
-        row(value, index);
+    default void lastValue(T value, boolean bookend) {
+        row(value);
     }
 
 
