@@ -155,14 +155,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 return pvt;
         }
 
-        return Common.getBean(PointValueDao.class).getPointValueAt(vo, time);
+        return Common.getBean(PointValueDao.class).getPointValueAt(vo, time).orElse(null);
     }
 
     @Override
     public PointValueTime getPointValueAfter(long time) {
 
         //Get the value stored in the db
-        PointValueTime after = Common.getBean(PointValueDao.class).getPointValueAfter(vo, time);
+        PointValueTime after = Common.getBean(PointValueDao.class).getPointValueAfter(vo, time).orElse(null);
 
         //Check it with the cache
         if(after != null){
