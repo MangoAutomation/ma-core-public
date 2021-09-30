@@ -4,6 +4,7 @@
 package com.serotonin.m2m2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -130,12 +131,12 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void getLatestPointValuesPerPoint(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+    public void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
 
     }
 
     @Override
-    public void getLatestPointValuesCombined(List<DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
+    public void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, Long to, int limit, PVTQueryCallback<IdPointValueTime> callback) {
 
     }
 

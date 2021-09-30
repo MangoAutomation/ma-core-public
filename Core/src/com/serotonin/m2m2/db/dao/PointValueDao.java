@@ -19,6 +19,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -120,7 +121,7 @@ public interface PointValueDao {
     default List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
         checkNull(vo);
         List<PointValueTime> values = new ArrayList<>(limit);
-        getLatestPointValuesPerPoint(Collections.singletonList(vo), null, limit, (v, i) -> values.add(v));
+        getLatestPointValuesPerPoint(Collections.singleton(vo), null, limit, (v, i) -> values.add(v));
         return values;
     }
 
@@ -137,7 +138,7 @@ public interface PointValueDao {
     default List<PointValueTime> getLatestPointValues(DataPointVO vo, long to, int limit) {
         checkNull(vo);
         List<PointValueTime> values = new ArrayList<>(limit);
-        getLatestPointValuesPerPoint(Collections.singletonList(vo), to, limit, (v, i) -> values.add(v));
+        getLatestPointValuesPerPoint(Collections.singleton(vo), to, limit, (v, i) -> values.add(v));
         return values;
     }
 
@@ -154,7 +155,7 @@ public interface PointValueDao {
      * @param callback callback to return point values, grouped by point and in descending time order, i.e. the newest value for each point first.
      * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
-    void getLatestPointValuesPerPoint(List<DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
+    void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
 
     /**
      * Get the latest point values for a collection of points, for the time range {@code [-∞,to)} with a limit (total).
@@ -166,7 +167,7 @@ public interface PointValueDao {
      * @param callback callback to return point values, in descending time order, i.e. the newest value first.
      * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
-    void getLatestPointValuesCombined(List<DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
+    void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, PVTQueryCallback<IdPointValueTime> callback);
 
     /**
      * Get the latest point value for single point.
