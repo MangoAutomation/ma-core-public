@@ -255,24 +255,27 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
     }
 
-    private Select<Record> betweenQuery(long from, long to, @Nullable Integer limit, DataPointVO point) {
+    private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit, DataPointVO point) {
         return betweenQuery(from, to, limit, pv.dataPointId.eq(point.getSeriesId()));
     }
 
-    private Select<Record> betweenQuery(long from, long to, @Nullable Integer limit, Field<Integer> seriesId) {
+    private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit, Field<Integer> seriesId) {
         return betweenQuery(from, to, limit, pv.dataPointId.eq(seriesId));
     }
 
-    private Select<Record> betweenQuery(long from, long to, @Nullable Integer limit, Collection<? extends DataPointVO> points) {
+    private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit, Collection<? extends DataPointVO> points) {
         return betweenQuery(from, to, limit, seriesIdCondition(points));
     }
 
-    private Select<Record> betweenQuery(long from, long to, @Nullable Integer limit, Condition seriesIdCondition) {
-        var query = baseQuery().where(seriesIdCondition)
-                .and(pv.ts.greaterOrEqual(from))
-                .and(pv.ts.lessThan(to))
-                .orderBy(pv.ts.asc());
-        return query.limit(limit);
+    private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit, Condition seriesIdCondition) {
+        var query = baseQuery().where(seriesIdCondition);
+        if (from != null) {
+            query = query.and(pv.ts.greaterOrEqual(from));
+        }
+        if (to != null) {
+            query = query.and(pv.ts.lessThan(to));
+        }
+        return query.orderBy(pv.ts.asc()).limit(limit);
     }
 
     private SelectUnionStep<Record> firstValueQuery(long from, Field<Integer> seriesId) {
@@ -283,27 +286,38 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, Consumer<? super IdPointValueTime> callback) {
-        if (vos.isEmpty()) return;
+    public void getPointValuesBetweenPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkToFrom(from, to);
+        checkLimit(limit);
+        checkNull(callback);
+        if (vos.isEmpty() || limit != null && limit == 0) return;
 
-        if (orderById) {
-            //Limit results of each data point to size limit, i.e. loop over all points and query with limit
-            var query = betweenQuery(from, to, limit, DSL.param("seriesId", Integer.class));
-            try (var queryKept = query.keepStatement(true)) {
-                for (DataPointVO vo : vos) {
-                    try (var cursor = queryKept.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
-                        for (var record : cursor) {
-                            callback.accept(mapRecord(record));
-                        }
+        //Limit results of each data point to size limit, i.e. loop over all points and query with limit
+        var query = betweenQuery(from, to, limit, DSL.param("seriesId", Integer.class));
+        try (var queryKept = query.keepStatement(true)) {
+            for (DataPointVO vo : vos) {
+                try (var cursor = queryKept.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
+                    for (var record : cursor) {
+                        callback.accept(mapRecord(record));
                     }
                 }
             }
-        } else {
-            var query = betweenQuery(from, to, limit, vos);
-            try (var cursor = query.fetchLazy()) {
-                for (var record : cursor) {
-                    callback.accept(mapRecord(record));
-                }
+        }
+    }
+
+    @Override
+    public void getPointValuesBetweenCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkToFrom(from, to);
+        checkLimit(limit);
+        checkNull(callback);
+        if (vos.isEmpty() || limit != null && limit == 0) return;
+
+        var query = betweenQuery(from, to, limit, vos);
+        try (var cursor = query.fetchLazy()) {
+            for (var record : cursor) {
+                callback.accept(mapRecord(record));
             }
         }
     }

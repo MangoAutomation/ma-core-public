@@ -158,7 +158,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
             if(bookend)
                 Common.getBean(PointValueDao.class).wideBookendQuery(vos, from, to, false, limit, callback);
             else
-                Common.getBean(PointValueDao.class).getPointValuesBetween(vos, from, to, false, limit, callback);
+                Common.getBean(PointValueDao.class).getPointValuesBetweenPerPoint(vos, from, to, limit, callback);
         }
     }
 
