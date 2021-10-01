@@ -274,27 +274,23 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public long getInceptionDate(DataPointVO vo) {
-        // TODO Auto-generated method stub
-        return 0;
+    public Optional<Long> getInceptionDate(DataPointVO vo) {
+        return Optional.empty();
     }
 
     @Override
-    public long getStartTime(Collection<? extends DataPointVO> vos) {
-        // TODO Auto-generated method stub
-        return 0;
+    public Optional<Long> getStartTime(Collection<? extends DataPointVO> vos) {
+        return Optional.empty();
     }
 
     @Override
-    public long getEndTime(Collection<? extends DataPointVO> vos) {
-        // TODO Auto-generated method stub
-        return 0;
+    public Optional<Long> getEndTime(Collection<? extends DataPointVO> vos) {
+        return Optional.empty();
     }
 
     @Override
-    public LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos) {
-        // TODO Auto-generated method stub
-        return null;
+    public Optional<LongPair> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
+        return Optional.empty();
     }
 
     @Override
