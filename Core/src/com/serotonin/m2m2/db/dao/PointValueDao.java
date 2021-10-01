@@ -27,8 +27,9 @@ import java.util.function.Consumer;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.infiniteautomation.mango.db.query.WideCallback;
+import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -417,35 +418,61 @@ public interface PointValueDao {
      * @param to
      * @return
      */
-    long dateRangeCount(DataPointVO vo, long from, long to);
+    default long dateRangeCount(DataPointVO vo, long from, long to) {
+        checkNull(vo);
+        checkToFrom(from, to);
+        CountingConsumer<PointValueTime> counter = new CountingConsumer<>();
+        getPointValuesBetween(vo, from, to, counter);
+        return counter.getCount();
+    }
 
     /**
      * Get the earliest timestamp for this point
      * @param vo
      * @return
      */
-    long getInceptionDate(DataPointVO vo);
+    default long getInceptionDate(DataPointVO vo) {
+        checkNull(vo);
+        return getStartTime(Collections.singleton(vo));
+    }
 
     /**
      * Return the earliest point value's time for all point IDs
      * @param vos
      * @return earliest ts or 0
      */
-    long getStartTime(Collection<? extends DataPointVO> vos);
+    default long getStartTime(Collection<? extends DataPointVO> vos) {
+        checkNull(vos);
+        SingleValueConsumer<IdPointValueTime> consumer = new SingleValueConsumer<>();
+        getPointValuesBetweenPerPoint(vos, null, null, 1, consumer);
+        return consumer.getValue().map(PointValueTime::getTime).orElse(-1L);
+    }
 
     /**
      * Return the latest point value's time for all point IDs
      * @param vos
      * @return latest time or -1l
      */
-    long getEndTime(Collection<? extends DataPointVO> vos);
+    default long getEndTime(Collection<? extends DataPointVO> vos) {
+        checkNull(vos);
+        SingleValueConsumer<IdPointValueTime> consumer = new SingleValueConsumer<>();
+        getLatestPointValuesPerPoint(vos, null, 1, consumer);
+        return consumer.getValue().map(PointValueTime::getTime).orElse(-1L);
+    }
 
     /**
      * Return the latest and earliest point value times for this list of IDs
      * @param vos
      * @return null if none exists
      */
-    LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos);
+    default LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos) {
+        long startTime = getStartTime(vos);
+        long endTime = getEndTime(vos);
+        if (startTime == -1L || endTime == -1L) {
+            return null;
+        }
+        return new LongPair(startTime, endTime);
+    }
 
     /**
      * Get the FileData ids for point values types with corresponding files.
