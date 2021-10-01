@@ -563,13 +563,13 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long getInceptionDate(DataPointVO vo) {
+    public Optional<Long> getInceptionDate(DataPointVO vo) {
+        checkNull(vo);
         return create.select(DSL.min(pv.ts))
                 .from(pv)
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
                 .fetchOptional()
-                .map(Record1::value1)
-                .orElse(-1L);
+                .map(Record1::value1);
     }
 
     private Condition seriesIdCondition(Collection<? extends DataPointVO> vos) {
@@ -578,33 +578,30 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long getStartTime(Collection<? extends DataPointVO> vos) {
-        if (vos.isEmpty())
-            return -1L;
+    public Optional<Long> getStartTime(Collection<? extends DataPointVO> vos) {
+        checkNull(vos);
+        if (vos.isEmpty()) return Optional.empty();
         return create.select(DSL.min(pv.ts)).from(pv).where(seriesIdCondition(vos))
                 .fetchOptional()
-                .map(Record1::value1)
-                .orElse(-1L);
+                .map(Record1::value1);
     }
 
     @Override
-    public long getEndTime(Collection<? extends DataPointVO> vos) {
-        if (vos.isEmpty())
-            return -1L;
+    public Optional<Long> getEndTime(Collection<? extends DataPointVO> vos) {
+        checkNull(vos);
+        if (vos.isEmpty()) return Optional.empty();
         return create.select(DSL.max(pv.ts)).from(pv).where(seriesIdCondition(vos))
                 .fetchOptional()
-                .map(Record1::value1)
-                .orElse(-1L);
+                .map(Record1::value1);
     }
 
     @Override
-    public LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos) {
-        if (vos.isEmpty())
-            return null;
+    public Optional<LongPair> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
+        checkNull(vos);
+        if (vos.isEmpty()) return Optional.empty();
         return create.select(DSL.min(pv.ts), DSL.max(pv.ts)).from(pv).where(seriesIdCondition(vos))
                 .fetchOptional()
-                .map(record -> new LongPair(record.value1(), record.value2()))
-                .orElse(null);
+                .map(record -> new LongPair(record.value1(), record.value2()));
     }
 
     @Override

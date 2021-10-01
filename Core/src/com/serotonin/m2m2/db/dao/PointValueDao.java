@@ -428,36 +428,32 @@ public interface PointValueDao {
 
     /**
      * Get the earliest timestamp for this point
-     * @param vo
-     * @return
      */
-    default long getInceptionDate(DataPointVO vo) {
+    default Optional<Long> getInceptionDate(DataPointVO vo) {
         checkNull(vo);
         return getStartTime(Collections.singleton(vo));
     }
 
     /**
      * Return the earliest point value's time for all point IDs
-     * @param vos
-     * @return earliest ts or 0
      */
-    default long getStartTime(Collection<? extends DataPointVO> vos) {
+    default Optional<Long> getStartTime(Collection<? extends DataPointVO> vos) {
         checkNull(vos);
+        if (vos.isEmpty()) return Optional.empty();
         SingleValueConsumer<IdPointValueTime> consumer = new SingleValueConsumer<>();
         getPointValuesBetweenPerPoint(vos, null, null, 1, consumer);
-        return consumer.getValue().map(PointValueTime::getTime).orElse(-1L);
+        return consumer.getValue().map(PointValueTime::getTime);
     }
 
     /**
      * Return the latest point value's time for all point IDs
-     * @param vos
-     * @return latest time or -1l
      */
-    default long getEndTime(Collection<? extends DataPointVO> vos) {
+    default Optional<Long> getEndTime(Collection<? extends DataPointVO> vos) {
         checkNull(vos);
+        if (vos.isEmpty()) return Optional.empty();
         SingleValueConsumer<IdPointValueTime> consumer = new SingleValueConsumer<>();
         getLatestPointValuesPerPoint(vos, null, 1, consumer);
-        return consumer.getValue().map(PointValueTime::getTime).orElse(-1L);
+        return consumer.getValue().map(PointValueTime::getTime);
     }
 
     /**
@@ -465,13 +461,10 @@ public interface PointValueDao {
      * @param vos
      * @return null if none exists
      */
-    default LongPair getStartAndEndTime(Collection<? extends DataPointVO> vos) {
-        long startTime = getStartTime(vos);
-        long endTime = getEndTime(vos);
-        if (startTime == -1L || endTime == -1L) {
-            return null;
-        }
-        return new LongPair(startTime, endTime);
+    default Optional<LongPair> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
+        checkNull(vos);
+        if (vos.isEmpty()) return Optional.empty();
+        return getStartTime(vos).flatMap(startTime -> getEndTime(vos).map(endTime -> new LongPair(startTime, endTime)));
     }
 
     /**
