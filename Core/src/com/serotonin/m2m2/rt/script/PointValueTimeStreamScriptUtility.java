@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
 import com.infiniteautomation.mango.quantize.AnalogStatisticsQuantizer;
@@ -162,7 +162,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
     }
 
-    class RollupsStream implements BookendQueryCallback<IdPointValueTime> {
+    class RollupsStream implements WideCallback<IdPointValueTime> {
         final List<DataPointVO> vos;
         Integer limit = null;
         final ScriptPointValueRollupCallback callback;
@@ -204,9 +204,9 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void row(IdPointValueTime value) {
+        public void accept(IdPointValueTime value) {
             DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getSeriesId());
-            quantizer.row(value);
+            quantizer.accept(value);
 
         }
 
@@ -356,7 +356,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
     }
 
-    abstract class DataPointStatisticsQuantizer<T extends StatisticsGenerator> implements StatisticsGeneratorQuantizerCallback<T>, BookendQueryCallback<IdPointValueTime>{
+    abstract class DataPointStatisticsQuantizer<T extends StatisticsGenerator> implements StatisticsGeneratorQuantizerCallback<T>, WideCallback<IdPointValueTime> {
 
         protected final RollupsStream callback;
         protected AbstractPointValueTimeQuantizer<T> quantizer;
@@ -378,8 +378,8 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         @Override
-        public void row(IdPointValueTime value) {
-            quantizer.row(value);
+        public void accept(IdPointValueTime value) {
+            quantizer.accept(value);
         }
 
         @Override
