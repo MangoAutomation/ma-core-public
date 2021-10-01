@@ -551,7 +551,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp  = new MutableLong(startTs);
         try {
-            this.dao.getPointValuesBetween(vos, startTs, endTs, false, null, new Consumer<>() {
+            this.dao.getPointValuesBetweenPerPoint(vos, startTs, endTs, null, new Consumer<>() {
 
                 int seriesIdCounter = 0;
                 int seriesId2Counter = 3; //Skip first 3
@@ -589,7 +589,7 @@ public class NumericPointValueDaoTestHelper {
 
     public void testBetweenNoDataInBothSeries() {
         MutableInt count = new MutableInt();
-        this.dao.getPointValuesBetween(vos, 0, series2StartTs - 1, false, null, (value) -> count.increment());
+        this.dao.getPointValuesBetweenPerPoint(vos, 0L, series2StartTs - 1, null, (value) -> count.increment());
         Assert.assertEquals(Integer.valueOf(0), count.getValue());
     }
 
@@ -597,7 +597,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(0);
-        this.dao.getPointValuesBetween(vos, 0, startTs, false, null, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, 0L, startTs, null, new Consumer<>() {
             int seriesId2Counter = 0;
             @Override
             public void accept(IdPointValueTime value) {
@@ -626,7 +626,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.getPointValuesBetween(vos, startTs, endTs, false, null, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, startTs, endTs, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -661,7 +661,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs + 1, false, null, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, series2StartTs, series2EndTs + 1, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
@@ -697,7 +697,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(startTs);
         MutableLong timestamp2 = new MutableLong(startTs);
-        this.dao.getPointValuesBetween(vos, startTs, endTs, true, null, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, startTs, endTs, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -741,7 +741,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2StartTs);
         MutableLong timestamp2 = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs+1, true, null, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, series2StartTs, series2EndTs+1, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0; //Skip first 3
@@ -784,7 +784,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.getPointValuesBetween(vos, startTs, endTs, false, 20, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, startTs, endTs, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -819,7 +819,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs, false, 20, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, series2StartTs, series2EndTs, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
@@ -857,7 +857,7 @@ public class NumericPointValueDaoTestHelper {
         MutableLong timestamp1 = new MutableLong(startTs);
         MutableLong timestamp2 = new MutableLong(startTs);
 
-        this.dao.getPointValuesBetween(vos, startTs, endTs, true, 20, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, startTs, endTs, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -903,7 +903,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2StartTs);
         MutableLong timestamp2 = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs, true, 20, new Consumer<>() {
+        this.dao.getPointValuesBetweenPerPoint(vos, series2StartTs, series2EndTs, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0; //Skip first 3

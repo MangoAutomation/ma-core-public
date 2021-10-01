@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -315,9 +317,14 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById,
-                                      Integer limit, Consumer<? super IdPointValueTime> callback) {
+    public void getPointValuesBetweenPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to,
+                                              @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
         // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void getPointValuesBetweenCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
 
     }
 
