@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -137,7 +137,7 @@ public class PointValueFacade {
         vos.add(point.getVO());
         List<PointValueTime> cache = buildCacheView(from, to);
 
-        pointValueDao.wideBookendQuery(vos, from, to, false, null, new BookendQueryCallback<IdPointValueTime>() {
+        pointValueDao.wideBookendQuery(vos, from, to, false, null, new WideCallback<IdPointValueTime>() {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
@@ -152,7 +152,7 @@ public class PointValueFacade {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
                 if(cache != null) {
                     processRow(value, false, false, cache, values);
                 }else {

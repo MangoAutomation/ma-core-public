@@ -115,7 +115,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
 
         quantizer.firstValue(null, true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count));
+            quantizer.accept(data.get(count));
         quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
@@ -252,7 +252,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
 
         quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count));
+            quantizer.accept(data.get(count));
         quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
@@ -317,7 +317,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
 
         quantizer.firstValue(null, true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count));
+            quantizer.accept(data.get(count));
         quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
@@ -387,7 +387,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
 
         quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), true);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count));
+            quantizer.accept(data.get(count));
         quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());
@@ -462,7 +462,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
 
         quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), false);
         for(int count = 0; count < data.size(); count++)
-            quantizer.row(data.get(count));
+            quantizer.accept(data.get(count));
         quantizer.lastValue(data.get(data.size() - 1), true);
         quantizer.done();
         Assert.assertEquals(Integer.valueOf(31), counter.getValue());

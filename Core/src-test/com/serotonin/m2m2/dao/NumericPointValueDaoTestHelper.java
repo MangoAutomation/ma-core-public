@@ -7,15 +7,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableLong;
 import org.junit.Assert;
 
-import com.infiniteautomation.mango.db.query.BookendQueryCallback;
-import com.infiniteautomation.mango.db.query.PVTQueryCallback;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
-import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -140,12 +139,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(endTs);
         try {
-            this.dao.getLatestPointValuesCombined(vos, endTs, Integer.MAX_VALUE, new PVTQueryCallback<>() {
+            this.dao.getLatestPointValuesCombined(vos, endTs, Integer.MAX_VALUE, new Consumer<>() {
 
                 int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
                 int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
                 @Override
-                public void row(IdPointValueTime value) {
+                public void accept(IdPointValueTime value) {
 
                     mutableIndex.increment();
                     count.increment();
@@ -187,11 +186,11 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.getLatestPointValuesCombined(vos, startTs, Integer.MAX_VALUE, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesCombined(vos, startTs, Integer.MAX_VALUE, new Consumer<>() {
             int seriesId2Counter = 2;
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -218,13 +217,13 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(endTs);
-        this.dao.getLatestPointValuesCombined(vos, endTs, Integer.MAX_VALUE, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesCombined(vos, endTs, Integer.MAX_VALUE, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -258,12 +257,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2EndTs + 1);
-        this.dao.getLatestPointValuesCombined(vos, series2EndTs + 1, Integer.MAX_VALUE, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesCombined(vos, series2EndTs + 1, Integer.MAX_VALUE, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -295,12 +294,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(endTs);
         MutableLong timestamp2 = new MutableLong(endTs);
-        this.dao.getLatestPointValuesPerPoint(vos, endTs, Integer.MAX_VALUE, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesPerPoint(vos, endTs, Integer.MAX_VALUE, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 count.increment();
                 if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
@@ -341,12 +340,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2EndTs + 1);
         MutableLong timestamp2 = new MutableLong(series2EndTs + 1);
-        this.dao.getLatestPointValuesPerPoint(vos, series2EndTs + 1, Integer.MAX_VALUE, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesPerPoint(vos, series2EndTs + 1, Integer.MAX_VALUE, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 count.increment();
                 if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
@@ -386,12 +385,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(endTs);
-        this.dao.getLatestPointValuesCombined(vos, endTs,20, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesCombined(vos, endTs,20, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -421,12 +420,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2EndTs + 1);
-        this.dao.getLatestPointValuesCombined(vos, series2EndTs + 1, 20, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesCombined(vos, series2EndTs + 1, 20, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -458,12 +457,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(endTs);
         MutableLong timestamp2 = new MutableLong(endTs);
-        this.dao.getLatestPointValuesPerPoint(vos, endTs,20, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesPerPoint(vos, endTs,20, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
@@ -505,12 +504,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2EndTs + 1);
         MutableLong timestamp2 = new MutableLong(series2EndTs + 1);
-        this.dao.getLatestPointValuesPerPoint(vos, series2EndTs + 1,20, new PVTQueryCallback<>() {
+        this.dao.getLatestPointValuesPerPoint(vos, series2EndTs + 1,20, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
@@ -552,12 +551,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp  = new MutableLong(startTs);
         try {
-            this.dao.getPointValuesBetween(vos, startTs, endTs, false, null, new PVTQueryCallback<>() {
+            this.dao.getPointValuesBetween(vos, startTs, endTs, false, null, new Consumer<>() {
 
                 int seriesIdCounter = 0;
                 int seriesId2Counter = 3; //Skip first 3
                 @Override
-                public void row(IdPointValueTime value) {
+                public void accept(IdPointValueTime value) {
 
                     mutableIndex.increment();
                     count.increment();
@@ -598,10 +597,10 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(0);
-        this.dao.getPointValuesBetween(vos, 0, startTs, false, null, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, 0, startTs, false, null, new Consumer<>() {
             int seriesId2Counter = 0;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
                 count.increment();
 
                 mutableIndex.increment();
@@ -627,12 +626,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.getPointValuesBetween(vos, startTs, endTs, false, null, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, startTs, endTs, false, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -662,12 +661,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs + 1, false, null, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs + 1, false, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -698,12 +697,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(startTs);
         MutableLong timestamp2 = new MutableLong(startTs);
-        this.dao.getPointValuesBetween(vos, startTs, endTs, true, null, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, startTs, endTs, true, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 count.increment();
                 if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
@@ -742,12 +741,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2StartTs);
         MutableLong timestamp2 = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs+1, true, null, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs+1, true, null, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0; //Skip first 3
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 count.increment();
                 if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size()) {
@@ -785,12 +784,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.getPointValuesBetween(vos, startTs, endTs, false, 20, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, startTs, endTs, false, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -820,12 +819,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs, false, 20, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs, false, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -858,12 +857,12 @@ public class NumericPointValueDaoTestHelper {
         MutableLong timestamp1 = new MutableLong(startTs);
         MutableLong timestamp2 = new MutableLong(startTs);
 
-        this.dao.getPointValuesBetween(vos, startTs, endTs, true, 20, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, startTs, endTs, true, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
@@ -904,12 +903,12 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2StartTs);
         MutableLong timestamp2 = new MutableLong(series2StartTs);
-        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs, true, 20, new PVTQueryCallback<>() {
+        this.dao.getPointValuesBetween(vos, series2StartTs, series2EndTs, true, 20, new Consumer<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0; //Skip first 3
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 if(mutableIndex.getAndIncrement() < 20) {
                     //Should be first id
@@ -946,20 +945,20 @@ public class NumericPointValueDaoTestHelper {
     }
 
     public void testWideQueryNoData() {
-        this.dao.wideQuery(emptyDataPointVO, 0, 100, new WideQueryCallback<>() {
+        this.dao.wideQuery(emptyDataPointVO, 0, 100, new WideCallback<>() {
 
             @Override
-            public void preQuery(PointValueTime value) {
+            public void firstValue(PointValueTime value) {
                 Assert.fail("Should not have data");
             }
 
             @Override
-            public void row(PointValueTime value) {
+            public void accept(PointValueTime value) {
                 Assert.fail("Should not have data");
             }
 
             @Override
-            public void postQuery(PointValueTime value) {
+            public void lastValue(PointValueTime value) {
                 Assert.fail("Should not have data");
             }
         });
@@ -967,15 +966,15 @@ public class NumericPointValueDaoTestHelper {
 
     public void testWideQueryNoBefore() {
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.wideQuery(vo1, startTs - 1, endTs - 1, new WideQueryCallback<>() {
+        this.dao.wideQuery(vo1, startTs - 1, endTs - 1, new WideCallback<>() {
             int counter = 0;
             @Override
-            public void preQuery(PointValueTime value) {
+            public void firstValue(PointValueTime value) {
                 Assert.fail("Should not have data");
             }
 
             @Override
-            public void row(PointValueTime value) {
+            public void accept(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -984,7 +983,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void postQuery(PointValueTime value) {
+            public void lastValue(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -996,10 +995,10 @@ public class NumericPointValueDaoTestHelper {
 
     public void testWideQuery() {
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.wideQuery(vo1, startTs + 1, endTs - 1, new WideQueryCallback<>() {
+        this.dao.wideQuery(vo1, startTs + 1, endTs - 1, new WideCallback<>() {
             int counter = 0;
             @Override
-            public void preQuery(PointValueTime value) {
+            public void firstValue(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1008,7 +1007,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(PointValueTime value) {
+            public void accept(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1017,7 +1016,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void postQuery(PointValueTime value) {
+            public void lastValue(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1029,10 +1028,10 @@ public class NumericPointValueDaoTestHelper {
 
     public void testWideQueryNoAfter() {
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.wideQuery(vo1, startTs + 1, endTs, new WideQueryCallback<>() {
+        this.dao.wideQuery(vo1, startTs + 1, endTs, new WideCallback<>() {
             int counter = 0;
             @Override
-            public void preQuery(PointValueTime value) {
+            public void firstValue(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1041,7 +1040,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(PointValueTime value) {
+            public void accept(PointValueTime value) {
                 Assert.assertEquals(data.get(vo1.getSeriesId()).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
                 if(value.getTime() < timestamp.getValue())
                     Assert.fail("Timestamp out of order.");
@@ -1050,7 +1049,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void postQuery(PointValueTime value) {
+            public void lastValue(PointValueTime value) {
                 Assert.fail("Should not have data");
             }
         });
@@ -1060,14 +1059,14 @@ public class NumericPointValueDaoTestHelper {
     public void testBookendExceptionInFirstValueCallback() {
 
         try {
-            this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new BookendQueryCallback<>() {
+            this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new WideCallback<>() {
                 @Override
                 public void firstValue(IdPointValueTime value, boolean bookend) {
                     throw new QueryCancelledException(new Exception("First Value Callback Exception"));
                 }
 
                 @Override
-                public void row(IdPointValueTime value) {
+                public void accept(IdPointValueTime value) {
                     Assert.fail("Query cancelled, should not get any rows");
                 }
 
@@ -1087,7 +1086,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs - 1);
         try {
-            this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new BookendQueryCallback<>() {
+            this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new WideCallback<>() {
 
                 int seriesIdCounter = 0;
                 int seriesId2Counter = 3; //Skip first 3
@@ -1113,7 +1112,7 @@ public class NumericPointValueDaoTestHelper {
                 }
 
                 @Override
-                public void row(IdPointValueTime value) {
+                public void accept(IdPointValueTime value) {
 
                     mutableIndex.increment();
                     count.increment();
@@ -1155,7 +1154,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs - 1);
         try {
-            this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new BookendQueryCallback<>() {
+            this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new WideCallback<>() {
 
                 int seriesIdCounter = 0;
                 int seriesId2Counter = 3; //Skip first 3
@@ -1181,7 +1180,7 @@ public class NumericPointValueDaoTestHelper {
                 }
 
                 @Override
-                public void row(IdPointValueTime value) {
+                public void accept(IdPointValueTime value) {
 
                     mutableIndex.increment();
                     count.increment();
@@ -1228,7 +1227,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(0);
-        this.dao.wideBookendQuery(vos, 0, series2StartTs - 1, false, null, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, 0, series2StartTs - 1, false, null, new WideCallback<>() {
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
 
@@ -1242,7 +1241,7 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertTrue(bookend);
             }
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
                 Assert.fail("Should not get any data");
             }
             @Override
@@ -1263,7 +1262,7 @@ public class NumericPointValueDaoTestHelper {
     }
 
     public void testBookendEmptySeries() {
-        this.dao.wideBookendQuery(List.of(emptyDataPointVO), 0, 10000, false, null, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(List.of(emptyDataPointVO), 0, 10000, false, null, new WideCallback<>() {
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
                 Assert.assertTrue(bookend);
@@ -1271,7 +1270,7 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertEquals(0, value.getTime());
             }
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
                 Assert.fail("No data should be in series");
             }
             @Override
@@ -1287,7 +1286,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(0);
-        this.dao.wideBookendQuery(vos, 0, startTs, false, null, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, 0, startTs, false, null, new WideCallback<>() {
             int seriesId2Counter = 0;
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
@@ -1302,7 +1301,7 @@ public class NumericPointValueDaoTestHelper {
                 Assert.assertTrue(bookend);
             }
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -1349,7 +1348,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs - 1);
-        this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, null, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -1375,7 +1374,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -1426,7 +1425,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2StartTs - 1);
-        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, false, null, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, false, null, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
@@ -1444,7 +1443,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -1495,7 +1494,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(startTs - 1);
         MutableLong timestamp2 = new MutableLong(startTs - 1);
-        this.dao.wideBookendQuery(vos, startTs - 1, endTs, true, null, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, startTs - 1, endTs, true, null, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -1525,7 +1524,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 count.increment();
                 if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size() + 1) { //1 for end bookend
@@ -1588,7 +1587,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2StartTs - 1);
         MutableLong timestamp2 = new MutableLong(series2StartTs - 1);
-        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, true, null, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, true, null, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
@@ -1616,7 +1615,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 count.increment();
                 if(mutableIndex.getAndIncrement() < data.get(vo1.getSeriesId()).size() + 1) {
@@ -1678,7 +1677,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs - 1);
-        this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, startTs - 1, endTs, false, 20, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -1705,7 +1704,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -1760,7 +1759,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2StartTs - 1);
-        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, false, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, false, 20, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
@@ -1778,7 +1777,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 count.increment();
@@ -1836,7 +1835,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(startTs - 1);
         MutableLong timestamp2 = new MutableLong(startTs - 1);
-        this.dao.wideBookendQuery(vos, startTs - 1, endTs, true, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, startTs - 1, endTs, true, 20, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3; //Skip first 3
@@ -1866,7 +1865,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 if(mutableIndex.getAndIncrement() < 20 + 1) {
                     //Should be first id
@@ -1935,7 +1934,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2StartTs - 1);
         MutableLong timestamp2 = new MutableLong(series2StartTs - 1);
-        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, true, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, series2StartTs - 1, series2EndTs + 1, true, 20, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 0;
@@ -1963,7 +1962,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 if(mutableIndex.getAndIncrement() < 20 + 1) {
                     //Should be first id
@@ -2036,7 +2035,7 @@ public class NumericPointValueDaoTestHelper {
         MutableLong timestamp1 = new MutableLong(series2StartTs);
         MutableLong timestamp2 = new MutableLong(series2StartTs);
 
-        this.dao.wideBookendQuery(vos, series2StartTs, series2StartTs + 2, true, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, series2StartTs, series2StartTs + 2, true, 20, new WideCallback<>() {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
@@ -2066,7 +2065,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
                 Assert.fail("No data in query period, should not call row");
             }
 
@@ -2109,7 +2108,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(startTs);
         MutableLong timestamp2 = new MutableLong(startTs);
-        this.dao.wideBookendQuery(vos, startTs, endTs, true, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, startTs, endTs, true, 20, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3;
@@ -2141,7 +2140,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 if(mutableIndex.getAndIncrement() < 20 + 1) {
                     //Should be first id
@@ -2213,7 +2212,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2StartTs);
 
-        this.dao.wideBookendQuery(vos, series2StartTs, series2StartTs + 2, false, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, series2StartTs, series2StartTs + 2, false, 20, new WideCallback<>() {
 
             @Override
             public void firstValue(IdPointValueTime value, boolean bookend) {
@@ -2240,7 +2239,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
                 Assert.fail("No data in query period, should not call row");
             }
 
@@ -2277,7 +2276,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count2 = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.wideBookendQuery(vos, startTs, endTs, false, 20, new BookendQueryCallback<>() {
+        this.dao.wideBookendQuery(vos, startTs, endTs, false, 20, new WideCallback<>() {
 
             int seriesIdCounter = 0;
             int seriesId2Counter = 3;
@@ -2306,7 +2305,7 @@ public class NumericPointValueDaoTestHelper {
             }
 
             @Override
-            public void row(IdPointValueTime value) {
+            public void accept(IdPointValueTime value) {
 
                 mutableIndex.increment();
                 if(value.getTime() < timestamp.getValue())

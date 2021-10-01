@@ -6,7 +6,7 @@ package com.infiniteautomation.mango.quantize;
 import java.io.IOException;
 import java.time.Instant;
 
-import com.infiniteautomation.mango.db.query.BookendQueryCallback;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.view.stats.IValueTime;
@@ -26,7 +26,7 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  *
  * @author Terry Packer
  */
-abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenerator> implements BookendQueryCallback<IdPointValueTime>{
+abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenerator> implements WideCallback<IdPointValueTime> {
 
     private final BucketCalculator bucketCalculator;
     private final StatisticsGeneratorQuantizerCallback<T> callback;
@@ -51,7 +51,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     }
 
     @Override
-    public void row(IdPointValueTime vt) {
+    public void accept(IdPointValueTime vt) {
         long time = vt.getTime();
         if (time < startTime)
             throw new IllegalArgumentException("Data is before start time");
@@ -71,13 +71,13 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     public void firstValue(IdPointValueTime value, boolean bookend) {
         openPeriod(periodFrom, periodTo, value);
         if(!bookend)
-            row(value);
+            accept(value);
     }
 
     @Override
     public void lastValue(IdPointValueTime value, boolean bookend) {
         if(!bookend)
-            row(value);
+            accept(value);
     }
 
     /**

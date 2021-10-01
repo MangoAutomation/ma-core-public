@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,8 +32,7 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infiniteautomation.mango.db.query.BookendQueryCallback;
-import com.infiniteautomation.mango.db.query.PVTQueryCallback;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.PointValueAnnotations;
 import com.infiniteautomation.mango.db.tables.PointValues;
@@ -202,7 +202,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, Long to, int limit, PVTQueryCallback<? super IdPointValueTime> callback) {
+    public void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, Long to, int limit, Consumer<? super IdPointValueTime> callback) {
         checkLimit(limit); checkNull(vos); checkNull(callback);
         if (vos.isEmpty() || limit == 0) return;
 
@@ -229,7 +229,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, Long to, int limit, PVTQueryCallback<? super IdPointValueTime> callback) {
+    public void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, Long to, int limit, Consumer<? super IdPointValueTime> callback) {
         checkLimit(limit); checkNull(vos); checkNull(callback);
         if (vos.isEmpty() || limit == 0) return;
 
@@ -248,7 +248,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(DataPointVO vo, long from, long to, PVTQueryCallback<? super PointValueTime> callback) {
+    public void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<? super PointValueTime> callback) {
         ResultQuery<Record> result = betweenQuery(from, to, null, vo);
         try (Stream<Record> stream = result.stream()) {
             stream.map(this::mapRecord).forEach(callback);
@@ -283,7 +283,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, PVTQueryCallback<? super IdPointValueTime> callback) {
+    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, Consumer<? super IdPointValueTime> callback) {
         if (vos.isEmpty()) return;
 
         if (orderById) {
@@ -293,7 +293,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 for (DataPointVO vo : vos) {
                     try (var cursor = queryKept.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
                         for (var record : cursor) {
-                            callback.row(mapRecord(record));
+                            callback.accept(mapRecord(record));
                         }
                     }
                 }
@@ -302,7 +302,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
             var query = betweenQuery(from, to, limit, vos);
             try (var cursor = query.fetchLazy()) {
                 for (var record : cursor) {
-                    callback.row(mapRecord(record));
+                    callback.accept(mapRecord(record));
                 }
             }
         }
@@ -338,7 +338,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, BookendQueryCallback<? super IdPointValueTime> callback) {
+    public void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, WideCallback<? super IdPointValueTime> callback) {
         if (vos.isEmpty()) return;
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
@@ -353,7 +353,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                             var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
                             // so we don't call row() for same value that was passed to firstValue()
                             if (value.getTime() > previousValue.getTime()) {
-                                callback.row(value);
+                                callback.accept(value);
                             }
                         }
                     }
@@ -371,7 +371,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                     var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
                     // so we don't call row() for same value that was passed to firstValue()
                     if (value.getTime() > previousValue.getTime()) {
-                        callback.row(value);
+                        callback.accept(value);
                     }
                 }
             }
@@ -413,7 +413,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, PVTQueryCallback<? super IdPointValueTime> callback) {
+    public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, Consumer<? super IdPointValueTime> callback) {
         try (var stream = betweenQuery(from, to, null, vos).stream()) {
             stream.map(this::mapRecord).forEach(callback);
         }

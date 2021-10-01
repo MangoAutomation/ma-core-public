@@ -3,14 +3,23 @@
  */
 package com.infiniteautomation.mango.db.query;
 
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import java.util.function.Consumer;
 
 /**
- * Callback
+ * Callback for TSDB operations, including ability to be notified of first and last values.
  * @author Terry Packer
+ * @author Jared Wiltshire
  */
 @FunctionalInterface
-public interface BookendQueryCallback<T extends PointValueTime> extends PVTQueryCallback<T> {
+public interface WideCallback<T> extends Consumer<T> {
+
+    default void firstValue(T value) {
+        firstValue(value, false);
+    }
+
+    default void lastValue(T value) {
+        lastValue(value, false);
+    }
 
     /**
      * Called with the value at or before the query period start (can be null)
@@ -22,7 +31,7 @@ public interface BookendQueryCallback<T extends PointValueTime> extends PVTQuery
      * @throws QueryCancelledException to abort query
      */
     default void firstValue(T value, boolean bookend) {
-        row(value);
+        accept(value);
     }
 
     /**
@@ -35,7 +44,7 @@ public interface BookendQueryCallback<T extends PointValueTime> extends PVTQuery
      * @throws QueryCancelledException to abort query
      */
     default void lastValue(T value, boolean bookend) {
-        row(value);
+        accept(value);
     }
 
 
