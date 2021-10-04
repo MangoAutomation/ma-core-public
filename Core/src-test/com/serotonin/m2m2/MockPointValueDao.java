@@ -85,22 +85,6 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, Integer limit) {
-
-        List<PointValueTime> pvts = new ArrayList<>();
-        List<PointValueTime> existing = data.get(vo.getId());
-        if(existing != null) {
-            for(PointValueTime pvt : existing) {
-                if(pvt.getTime() >= from && pvt.getTime() < to)
-                    pvts.add(pvt);
-                if(pvts.size() >= limit)
-                    break;
-            }
-        }
-        return pvts;
-    }
-
-    @Override
     public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
         List<PointValueTime> pvts = new ArrayList<>();
         List<PointValueTime> existing = data.get(vo.getId());
