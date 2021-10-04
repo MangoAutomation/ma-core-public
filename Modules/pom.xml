@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.infiniteautomation.mango</groupId>
         <artifactId>mango-parent</artifactId>
-        <version>4.2.1-SNAPSHOT</version>
+        <version>4.2.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>modules-parent</artifactId>
@@ -298,13 +298,13 @@
         <dependency>
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
-            <version>4.2.1-SNAPSHOT</version>
+            <version>4.2.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <artifactId>mango</artifactId>
             <groupId>com.infiniteautomation</groupId>
-            <version>4.2.1-SNAPSHOT</version>
+            <version>4.2.1</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
