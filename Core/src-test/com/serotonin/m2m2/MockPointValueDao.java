@@ -21,7 +21,6 @@ import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.pair.LongPair;
 
 /**
  *
@@ -249,7 +248,7 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public Optional<LongPair> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
+    public Optional<StartAndEndTime> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
         return Optional.empty();
     }
 
