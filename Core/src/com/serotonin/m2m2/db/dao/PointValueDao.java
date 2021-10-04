@@ -217,25 +217,10 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
-        return getPointValuesBetween(vo, from, to, (Integer) null);
-    }
-
-    /**
-     * Get point values for a single point, for the time range {@code [from,to)} with a limit.
-     *
-     * @param vo data point
-     * @param from from time (epoch ms), inclusive
-     * @param to to time (epoch ms), exclusive
-     * @param limit maximum number of values to return (if null, no limit is applied)
-     * @return list of point values, in ascending time order, i.e. the oldest value first.
-     * @throws IllegalArgumentException if vo is null, if limit is negative
-     */
-    default List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, @Nullable Integer limit) {
         checkNull(vo);
         checkToFrom(from, to);
-        checkLimit(limit);
         List<PointValueTime> values = new ArrayList<>();
-        getPointValuesBetweenPerPoint(Collections.singleton(vo), from, to,limit, values::add);
+        getPointValuesBetweenPerPoint(Collections.singleton(vo), from, to, null, values::add);
         return values;
     }
 

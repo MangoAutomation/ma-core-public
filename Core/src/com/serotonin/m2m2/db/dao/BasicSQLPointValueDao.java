@@ -143,12 +143,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to, Integer limit) {
-        return betweenQuery(from, to, limit, vo)
-                .fetch(this::mapRecord);
-    }
-
-    @Override
     public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
         if (limit == 0) {
             return Collections.emptyList();
