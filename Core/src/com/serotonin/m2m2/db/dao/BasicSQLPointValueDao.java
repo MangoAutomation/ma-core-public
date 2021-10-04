@@ -346,46 +346,58 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+    public void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkToFrom(from, to);
+        checkLimit(limit);
+        checkNull(callback);
         if (vos.isEmpty()) return;
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
-        if (orderById) {
-            try (var query = betweenQuery(from, to, limit, DSL.param("seriesId", Integer.class)).keepStatement(true)) {
-                for (DataPointVO vo : vos) {
-                    var value = values.get(vo.getSeriesId());
-                    callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
-                    try (var cursor = query.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
-                        for (var record : cursor) {
-                            value = mapRecord(record);
-                            var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
-                            // so we don't call row() for same value that was passed to firstValue()
-                            if (value.getTime() > previousValue.getTime()) {
-                                callback.accept(value);
-                            }
+        try (var query = betweenQuery(from, to, limit, DSL.param("seriesId", Integer.class)).keepStatement(true)) {
+            for (DataPointVO vo : vos) {
+                var value = values.get(vo.getSeriesId());
+                callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
+                try (var cursor = query.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
+                    for (var record : cursor) {
+                        value = mapRecord(record);
+                        var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
+                        // so we don't call row() for same value that was passed to firstValue()
+                        if (value.getTime() > previousValue.getTime()) {
+                            callback.accept(value);
                         }
                     }
-                    callback.lastValue(value.withNewTime(to), true);
                 }
-            }
-        } else {
-            for (IdPointValueTime value : values.values()) {
-                callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
-            }
-            var query = betweenQuery(from, to, limit, vos);
-            try (var cursor = query.fetchLazy()) {
-                for (var record : cursor) {
-                    var value = mapRecord(record);
-                    var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
-                    // so we don't call row() for same value that was passed to firstValue()
-                    if (value.getTime() > previousValue.getTime()) {
-                        callback.accept(value);
-                    }
-                }
-            }
-            for (IdPointValueTime value : values.values()) {
                 callback.lastValue(value.withNewTime(to), true);
             }
+        }
+    }
+
+    @Override
+    public void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkToFrom(from, to);
+        checkLimit(limit);
+        checkNull(callback);
+        if (vos.isEmpty()) return;
+
+        Map<Integer, IdPointValueTime> values = initialValues(vos, from);
+        for (IdPointValueTime value : values.values()) {
+            callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
+        }
+        var query = betweenQuery(from, to, limit, vos);
+        try (var cursor = query.fetchLazy()) {
+            for (var record : cursor) {
+                var value = mapRecord(record);
+                var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
+                // so we don't call row() for same value that was passed to firstValue()
+                if (value.getTime() > previousValue.getTime()) {
+                    callback.accept(value);
+                }
+            }
+        }
+        for (IdPointValueTime value : values.values()) {
+            callback.lastValue(value.withNewTime(to), true);
         }
     }
 

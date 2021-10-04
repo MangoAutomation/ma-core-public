@@ -5,6 +5,8 @@ package com.infiniteautomation.mango.db.query;
 
 import java.util.function.Consumer;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * Callback for TSDB operations, including ability to be notified of first and last values.
  * @author Terry Packer
@@ -13,11 +15,11 @@ import java.util.function.Consumer;
 @FunctionalInterface
 public interface WideCallback<T> extends Consumer<T> {
 
-    default void firstValue(T value) {
+    default void firstValue(@Nullable T value) {
         firstValue(value, false);
     }
 
-    default void lastValue(T value) {
+    default void lastValue(@Nullable T value) {
         lastValue(value, false);
     }
 
@@ -26,11 +28,10 @@ public interface WideCallback<T> extends Consumer<T> {
      *
      * If an exception is thrown the query should be aborted
      *
-     * @param value
+     * @param value the point value
      * @param bookend - true if the value is virtual i.e. added as a point to match the exact query start time for charting
-     * @throws QueryCancelledException to abort query
      */
-    default void firstValue(T value, boolean bookend) {
+    default void firstValue(@Nullable T value, boolean bookend) {
         accept(value);
     }
 
@@ -39,13 +40,11 @@ public interface WideCallback<T> extends Consumer<T> {
      *
      * If an exception is thrown the query should be aborted
      *
-     * @param value
+     * @param value the point value
      * @param bookend - true if the value is virtual i.e. added as a point to match the exact query end time
-     * @throws QueryCancelledException to abort query
      */
-    default void lastValue(T value, boolean bookend) {
+    default void lastValue(@Nullable T value, boolean bookend) {
         accept(value);
     }
-
 
 }

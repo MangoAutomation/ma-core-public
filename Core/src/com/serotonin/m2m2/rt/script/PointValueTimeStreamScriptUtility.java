@@ -155,8 +155,10 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         public void execute() {
-            if(bookend)
-                Common.getBean(PointValueDao.class).wideBookendQuery(vos, from, to, false, limit, callback);
+            if(bookend) {
+                PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
+                pointValueDao.wideBookendQueryCombined(vos, from, to, limit, callback);
+            }
             else
                 Common.getBean(PointValueDao.class).getPointValuesBetweenCombined(vos, from, to, limit, callback);
         }
@@ -190,7 +192,8 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
         public void execute() throws QueryCancelledException, ScriptPermissionsException {
             createQuantizerMap();
-            Common.getBean(PointValueDao.class).wideBookendQuery(vos, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
+            PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
+            pointValueDao.wideBookendQueryCombined(vos, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), null, this);
             //Fast forward to end to fill any gaps at the end
             for(DataPointStatisticsQuantizer<?> quant : this.quantizerMap.values())
                 if(!quant.isDone())

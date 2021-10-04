@@ -310,28 +310,41 @@ public interface PointValueDao {
     }
 
     /**
-     * Get point values >= from and < to, bookend the query by calling:
+     * Get the point values for a collection of points, for the time range {@code [from,to)} with a limit.
+     * Also notifies the callback of each point's value at the start and end of the time range ("bookend" values), for ease of charting.
+     * Values are grouped by point, and returned (via callback) in ascending time order, i.e. the oldest value first.
      *
-     *   callback.preQuery with either the value exactly at from or the value
-     *    before from with from as the timestamp (can be null if nothing at or before from)
+     * <p>The order in which points are grouped and values are returned may not match the order of the passed in
+     * collection, but is generally in order of the data point's seriesId.</p>
      *
-     *   callback.postQuery with either the value the value most recently
-     *    before 'to' with 'to' as the timestamp (can be null if nothing before to)
+     * <p>The callback's firstValue and lastValue method will always be called for each point, the value however
+     * may be null.</p>
      *
-     * NOTE: The beforeQuery and afterQuery methods are called once for every data point ID
-     * @param vos
-     *            the target data points
-     * @param from
-     *            the timestamp from which to query (inclusive)
-     * @param to
-*            the timestamp to which to query (exclusive)
-     * @param orderById
-*            should the results also be ordered by data point id
-     * @param limit
-*            the limit of results, null for no limit (Limits do not include the bookends so the returned count can be up to limit + 2)
-     * @param callback
+     * @param vos data points
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return per point (if null, no limit is applied). The limit does not apply to the "bookend" values.
+     * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
+     * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
-    void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit, final WideCallback<? super IdPointValueTime> callback);
+    void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback);
+
+    /**
+     * Get the point values for a collection of points, for the time range {@code [from,to)} with a limit.
+     * Also notifies the callback of each point's value at the start and end of the time range ("bookend" values), for ease of charting.
+     * Values are returned (via callback) in ascending time order, i.e. the oldest value first.
+     *
+     * <p>The callback's firstValue and lastValue method will always be called for each point, the value however
+     * may be null.</p>
+     *
+     * @param vos data points
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return (if null, no limit is applied). The limit does not apply to the "bookend" values.
+     * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
+     * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
+     */
+    void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback);
 
     /**
      * Delete startTime <= values < endTime
