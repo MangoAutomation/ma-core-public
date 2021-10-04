@@ -58,16 +58,16 @@ public interface PointValueDao {
         }
     }
 
-    enum Direction {
+    enum TimeOrder {
         /**
          * Ascending time order, i.e. oldest values first
          */
-        FORWARD,
+        ASCENDING,
 
         /**
-         * Reverse time order, i.e. newest values first
+         * Descending time order, i.e. newest values first
          */
-        REVERSE
+        DESCENDING
     }
 
     /**
@@ -132,7 +132,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
     default void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, Consumer<? super IdPointValueTime> callback) {
-        getPointValuesPerPoint(vos, null, to ,limit, Direction.REVERSE, callback);
+        getPointValuesPerPoint(vos, null, to ,limit, TimeOrder.DESCENDING, callback);
     }
 
     /**
@@ -146,7 +146,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vos or callback are null, if limit is negative
      */
     default void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long to, int limit, Consumer<? super IdPointValueTime> callback) {
-        getPointValuesPerPoint(vos, null, to ,limit, Direction.REVERSE, callback);
+        getPointValuesPerPoint(vos, null, to ,limit, TimeOrder.DESCENDING, callback);
     }
 
     /**
@@ -287,7 +287,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
     default void getPointValuesBetweenPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
-        getPointValuesPerPoint(vos, from, to ,limit, Direction.FORWARD, callback);
+        getPointValuesPerPoint(vos, from, to ,limit, TimeOrder.ASCENDING, callback);
     }
 
     /**
@@ -302,12 +302,12 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
     default void getPointValuesBetweenCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
-        getPointValuesCombined(vos, from, to ,limit, Direction.FORWARD, callback);
+        getPointValuesCombined(vos, from, to ,limit, TimeOrder.ASCENDING, callback);
     }
 
     /**
      * Get the point values for a collection of points, for the time range {@code [from,to)} with a limit.
-     * Values are grouped by point, and returned (via callback) in ascending time order, i.e. the oldest value first.
+     * Values are grouped by point, and returned (via callback) in either ascending or descending time order.
      *
      * <p>The order in which points are grouped and values are returned may not match the order of the passed in
      * collection, but is generally in order of the data point's seriesId.</p>
@@ -316,23 +316,25 @@ public interface PointValueDao {
      * @param from from time (epoch ms), inclusive
      * @param to to time (epoch ms), exclusive
      * @param limit maximum number of values to return per point (if null, no limit is applied)
+     * @param sortOrder time order in which to return point values
      * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
-    void getPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Direction direction, Consumer<? super IdPointValueTime> callback);
+    void getPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback);
 
     /**
      * Get the point values for a collection of points, for the time range {@code [from,to)} with a limit.
-     * Values are returned (via callback) in ascending time order, i.e. the oldest value first.
+     * Values are returned (via callback) in either ascending or descending time order.
      *
      * @param vos data points
      * @param from from time (epoch ms), inclusive
      * @param to to time (epoch ms), exclusive
      * @param limit maximum number of values to return (if null, no limit is applied)
+     * @param sortOrder time order in which to return point values
      * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
-    void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Direction direction, Consumer<? super IdPointValueTime> callback);
+    void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback);
 
     /**
      * Get the point values for a collection of points, for the time range {@code [from,to)}, while also
