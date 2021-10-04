@@ -115,16 +115,6 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void getLatestPointValuesPerPoint(Collection<? extends DataPointVO> vos, Long to, int limit, Consumer<? super IdPointValueTime> callback) {
-
-    }
-
-    @Override
-    public void getLatestPointValuesCombined(Collection<? extends DataPointVO> vos, Long to, int limit, Consumer<? super IdPointValueTime> callback) {
-
-    }
-
-    @Override
     public Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
         List<PointValueTime> existing = data.get(vo.getId());
         if(existing != null) {
@@ -274,12 +264,12 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void getPointValuesBetweenPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
+    public void getPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Direction direction, Consumer<? super IdPointValueTime> callback) {
 
     }
 
     @Override
-    public void getPointValuesBetweenCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
+    public void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Direction direction, Consumer<? super IdPointValueTime> callback) {
 
     }
 
