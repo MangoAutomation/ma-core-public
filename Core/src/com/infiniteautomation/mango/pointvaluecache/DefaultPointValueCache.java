@@ -10,8 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -50,8 +53,8 @@ public class DefaultPointValueCache implements PointValueCache {
     @Override
     public Map<Integer, List<PointValueTime>> loadCaches(List<DataPointVO> vos, int size) {
         Map<Integer, List<PointValueTime>> caches = new HashMap<>(vos.size());
-        pointValueDao.getLatestPointValuesPerPoint(vos, Long.MAX_VALUE, size,
-                (pvt) -> caches.computeIfAbsent(pvt.getSeriesId(), (k) -> new ArrayList<>(size)).add(pvt));
+        pointValueDao.getPointValuesPerPoint(vos, null, null, size, TimeOrder.DESCENDING,
+                (Consumer<? super IdPointValueTime>) (pvt) -> caches.computeIfAbsent(pvt.getSeriesId(), (k) -> new ArrayList<>(size)).add(pvt));
         return caches;
     }
 
