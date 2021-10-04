@@ -346,7 +346,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+    public void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
         checkNull(vos);
         checkToFrom(from, to);
         checkLimit(limit);
@@ -374,7 +374,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+    public void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
         checkNull(vos);
         checkToFrom(from, to);
         checkLimit(limit);
