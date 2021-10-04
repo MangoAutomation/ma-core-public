@@ -37,6 +37,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -160,7 +161,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
                 pointValueDao.wideBookendQueryCombined(vos, from, to, limit, callback);
             }
             else
-                Common.getBean(PointValueDao.class).getPointValuesBetweenCombined(vos, from, to, limit, callback);
+                Common.getBean(PointValueDao.class).getPointValuesCombined(vos, from, to, limit, TimeOrder.ASCENDING, callback);
         }
     }
 

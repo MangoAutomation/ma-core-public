@@ -11,11 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -84,7 +87,8 @@ public class ConcurrentMapPointValueCache implements PointValueCache {
 
         // fetch the point values from the database and store in map
         Map<Integer, List<PointValueTime>> result = new HashMap<>(points.size());
-        pointValueDao.getLatestPointValuesPerPoint(points, Long.MAX_VALUE, queryLimit, (pvt) -> {
+        // we may retrieve up to maxCacheSize values, however don't store more than the point's cache size
+        pointValueDao.getPointValuesPerPoint(points, null, null, queryLimit, TimeOrder.DESCENDING, (Consumer<? super IdPointValueTime>) (pvt) -> {
             DataPointVO point = pointsBySeries.get(pvt.getSeriesId());
             List<PointValueTime> values = result.computeIfAbsent(pvt.getSeriesId(), k -> new ArrayList<>(point.getDefaultCacheSize()));
 
