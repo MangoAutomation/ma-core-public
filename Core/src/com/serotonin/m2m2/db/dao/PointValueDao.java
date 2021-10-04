@@ -21,7 +21,10 @@ package com.serotonin.m2m2.db.dao;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -298,6 +301,26 @@ public interface PointValueDao {
     }
 
     /**
+     * Retrieve the initial value for a set of points. That is, the value immediately prior to, or exactly at the given timestamp.
+     * The returned map is guaranteed to contain an entry for every point, however the value may be null.
+     *
+     * @param vos data points
+     * @param time timestamp (epoch ms) to get the value at, inclusive
+     * @return map of seriesId to point value
+     */
+    default Map<Integer, IdPointValueTime> initialValues(Collection<? extends DataPointVO> vos, long time) {
+        checkNull(vos);
+        if (vos.isEmpty()) return Collections.emptyMap();
+
+        Map<Integer, IdPointValueTime> values = new HashMap<>(vos.size());
+        getPointValuesPerPoint(vos, null, time + 1, 1, TimeOrder.DESCENDING, v -> values.put(v.getSeriesId(), v));
+        for (DataPointVO vo : vos) {
+            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new IdPointValueTime(seriesId, null, time));
+        }
+        return values;
+    }
+
+    /**
      * Get the point values for a collection of points, for the time range {@code [from,to)} with a limit.
      * Also notifies the callback of each point's value at the start and end of the time range ("bookend" values), for ease of charting.
      * Values are grouped by point, and returned (via callback) in ascending time order, i.e. the oldest value first.
@@ -315,7 +338,28 @@ public interface PointValueDao {
      * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
-    void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback);
+    default void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkToFrom(from, to);
+        checkLimit(limit);
+        checkNull(callback);
+        if (vos.isEmpty()) return;
+
+        Map<Integer, IdPointValueTime> values = initialValues(vos, from);
+
+        for (DataPointVO vo : vos) {
+            var first = values.get(vo.getSeriesId());
+            callback.firstValue(first.withNewTime(from), first.getValue() == null || first.getTime() != from);
+            getPointValuesPerPoint(Collections.singleton(vo), from, to, limit, TimeOrder.ASCENDING, v -> {
+                var previousValue = Objects.requireNonNull(values.put(v.getSeriesId(), v));
+                // so we don't call row() for same value that was passed to firstValue()
+                if (v.getTime() > previousValue.getTime()) {
+                    callback.accept(v);
+                }
+            });
+            callback.lastValue(values.get(vo.getSeriesId()).withNewTime(to), true);
+        }
+    }
 
     /**
      * Get the point values for a collection of points, for the time range {@code [from,to)} with a limit.
@@ -332,7 +376,29 @@ public interface PointValueDao {
      * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
-    void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback);
+    default void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkToFrom(from, to);
+        checkLimit(limit);
+        checkNull(callback);
+        if (vos.isEmpty()) return;
+
+        Map<Integer, IdPointValueTime> values = initialValues(vos, from);
+
+        for (IdPointValueTime value : values.values()) {
+            callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
+        }
+        getPointValuesCombined(vos, from, to, limit, TimeOrder.ASCENDING, value -> {
+            var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
+            // so we don't call row() for same value that was passed to firstValue()
+            if (value.getTime() > previousValue.getTime()) {
+                callback.accept(value);
+            }
+        });
+        for (IdPointValueTime value : values.values()) {
+            callback.lastValue(value.withNewTime(to), true);
+        }
+    }
 
     /**
      * Delete startTime <= values < endTime

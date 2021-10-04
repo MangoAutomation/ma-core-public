@@ -257,12 +257,13 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
     }
 
-    private Map<Integer, IdPointValueTime> initialValues(Collection<? extends DataPointVO> vos, long from) {
+    @Override
+    public Map<Integer, IdPointValueTime> initialValues(Collection<? extends DataPointVO> vos, long time) {
         Map<Integer, IdPointValueTime> values = new HashMap<>(vos.size());
 
         try (var cursor = vos.stream()
                 .map(DataPointVO::getSeriesId)
-                .map(seriesId -> firstValueQuery(from, DSL.val(seriesId)))
+                .map(seriesId -> firstValueQuery(time, DSL.val(seriesId)))
                 .reduce(SelectUnionStep::union)
                 .orElseThrow()
                 .fetchLazy()) {
@@ -281,7 +282,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
         */
         for (DataPointVO vo : vos) {
-            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new IdPointValueTime(seriesId, null, from));
+            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new IdPointValueTime(seriesId, null, time));
         }
         return values;
     }
