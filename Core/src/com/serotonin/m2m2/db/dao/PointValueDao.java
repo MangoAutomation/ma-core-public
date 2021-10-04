@@ -37,7 +37,6 @@ import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.pair.LongPair;
 
 public interface PointValueDao {
 
@@ -71,6 +70,24 @@ public interface PointValueDao {
          * Descending time order, i.e. newest values first
          */
         DESCENDING
+    }
+
+    class StartAndEndTime {
+        private final Long startTime;
+        private final Long endTime;
+
+        public StartAndEndTime(Long startTime, Long endTime) {
+            this.startTime = startTime;
+            this.endTime = endTime;
+        }
+
+        public Long getStartTime() {
+            return startTime;
+        }
+
+        public Long getEndTime() {
+            return endTime;
+        }
     }
 
     /**
@@ -530,13 +547,13 @@ public interface PointValueDao {
      * Get the earliest and latest timestamps for this collection of data points.
      *
      * @param vos data points
-     * @return pair of timestamps (epoch ms), first and last timestamp for the given set of points
+     * @return first and last timestamp (epoch ms) for the given set of points
      * @throws IllegalArgumentException if vos are null
      */
-    default Optional<LongPair> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
+    default Optional<StartAndEndTime> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
         checkNull(vos);
         if (vos.isEmpty()) return Optional.empty();
-        return getStartTime(vos).flatMap(startTime -> getEndTime(vos).map(endTime -> new LongPair(startTime, endTime)));
+        return getStartTime(vos).flatMap(startTime -> getEndTime(vos).map(endTime -> new StartAndEndTime(startTime, endTime)));
     }
 
     /**

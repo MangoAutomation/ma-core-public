@@ -50,7 +50,6 @@ import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.pair.LongPair;
 
 /**
  * Basic implementation with no insert capabilities, no batch writer functionality.
@@ -544,12 +543,12 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public Optional<LongPair> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
+    public Optional<StartAndEndTime> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
         checkNull(vos);
         if (vos.isEmpty()) return Optional.empty();
         return create.select(DSL.min(pv.ts), DSL.max(pv.ts)).from(pv).where(seriesIdCondition(vos))
                 .fetchOptional()
-                .map(record -> new LongPair(record.value1(), record.value2()));
+                .map(record -> new StartAndEndTime(record.value1(), record.value2()));
     }
 
     @Override
