@@ -286,20 +286,24 @@ public interface PointValueDao {
     void getPointValuesBetweenCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback);
 
     /**
-     * Query the given time series, including the nearest sample both before the 'from' timestamp and after the 'to'
-     * timestamp. This query facilitates charting of values, where for continuity in the chart the values immediately
+     * Get the point values for a collection of points, for the time range {@code [from,to)}, while also
+     * returning the value immediately prior and after the given time range.
+     *
+     * This query facilitates charting of values, where for continuity in the chart the values immediately
      * before and after the time range are required.
      *
-     * NOTE: The preQuery and postQuery callback methods are only called if there is data before/after the query
-     * @param vo
-     *            the target data point
-     * @param from
-     *            the timestamp from which to query (inclusive)
-     * @param to
-*            the timestamp to which to query (exclusive)
-     * @param callback
+     * NOTE: The preQuery and postQuery callback methods are only called if there is data before/after the time range.
+     *
+     * @param vo data point
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
+     * @throws IllegalArgumentException if vo or callback are null, if to is less than from
      */
     default void wideQuery(DataPointVO vo, long from, long to, WideCallback<? super PointValueTime> callback) {
+        checkNull(vo);
+        checkNull(callback);
+        checkToFrom(from, to);
         getPointValueBefore(vo, from).ifPresent(callback::firstValue);
         getPointValuesBetween(vo, from, to, callback);
         getPointValueAfter(vo, to).ifPresent(callback::lastValue);
@@ -397,11 +401,13 @@ public interface PointValueDao {
     void deleteOrphanedPointValueAnnotations();
 
     /**
-     * Count the values >= from and < to
-     * @param vo
-     * @param from
-     * @param to
-     * @return
+     * Count the number of point values for a point, for the time range {@code [from,to)}.
+     *
+     * @param vo data point
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @return number of point values in the time range
+     * @throws IllegalArgumentException if vo is null, if to is less than from
      */
     default long dateRangeCount(DataPointVO vo, long from, long to) {
         checkNull(vo);
@@ -412,7 +418,11 @@ public interface PointValueDao {
     }
 
     /**
-     * Get the earliest timestamp for this point
+     * Get the time of the earliest recorded point value for this point.
+     *
+     * @param vo data point
+     * @return timestamp (epoch ms) of the first point value recorded for the point
+     * @throws IllegalArgumentException if vo is null
      */
     default Optional<Long> getInceptionDate(DataPointVO vo) {
         checkNull(vo);
@@ -420,7 +430,11 @@ public interface PointValueDao {
     }
 
     /**
-     * Return the earliest point value's time for all point IDs
+     * Get the time of the earliest recorded point value for this collection of points.
+     *
+     * @param vos data points
+     * @return timestamp (epoch ms) of the first point value recorded
+     * @throws IllegalArgumentException if vos are null
      */
     default Optional<Long> getStartTime(Collection<? extends DataPointVO> vos) {
         checkNull(vos);
@@ -431,7 +445,11 @@ public interface PointValueDao {
     }
 
     /**
-     * Return the latest point value's time for all point IDs
+     * Get the time of the latest recorded point value for this collection of points.
+     *
+     * @param vos data points
+     * @return timestamp (epoch ms) of the last point value recorded
+     * @throws IllegalArgumentException if vos are null
      */
     default Optional<Long> getEndTime(Collection<? extends DataPointVO> vos) {
         checkNull(vos);
@@ -442,9 +460,11 @@ public interface PointValueDao {
     }
 
     /**
-     * Return the latest and earliest point value times for this list of IDs
-     * @param vos
-     * @return null if none exists
+     * Get the earliest and latest timestamps for this collection of data points.
+     *
+     * @param vos data points
+     * @return pair of timestamps (epoch ms), first and last timestamp for the given set of points
+     * @throws IllegalArgumentException if vos are null
      */
     default Optional<LongPair> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
         checkNull(vos);
@@ -454,16 +474,17 @@ public interface PointValueDao {
 
     /**
      * Get the FileData ids for point values types with corresponding files.
-     * @param vo
-     * @return
+     * @param vo data point
+     * @return list of ids
      */
     List<Long> getFiledataIds(DataPointVO vo);
 
     /**
-     * Delete all data point values at a time
-     * @param vo
-     * @param ts
-     * @return
+     * Delete the point value at the given time for a data point.
+     *
+     * @param vo data point
+     * @param ts timestamp (epoch ms)
+     * @return number of values deleted
      */
     long deletePointValue(DataPointVO vo, long ts);
 
