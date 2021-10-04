@@ -180,8 +180,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         }
 
         if (vo.isEnabled()) {
-            // the data point cannot have detectors if it was just inserted, don't query for detectors
-            Common.runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, Collections.emptyList()));
+            // DataPointChangeDefinition can insert detectors after point was saved, we must load them here
+            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+            Common.runtimeManager.startDataPoint(new DataPointWithEventDetectors(vo, detectors));
         }
         return vo;
     }
