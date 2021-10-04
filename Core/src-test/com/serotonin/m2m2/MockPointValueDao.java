@@ -284,12 +284,12 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+    public void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
 
     }
 
     @Override
-    public void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+    public void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
 
     }
 }
