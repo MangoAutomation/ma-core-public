@@ -137,40 +137,41 @@ public class PointValueFacade {
         vos.add(point.getVO());
         List<PointValueTime> cache = buildCacheView(from, to);
 
-        pointValueDao.wideBookendQuery(vos, from, to, false, null, new WideCallback<IdPointValueTime>() {
+        //If there is no value before from the bookend value.value will be null with a value.timestamp == from
+        pointValueDao.wideBookendQueryCombined(vos, from, to, null, new WideCallback<IdPointValueTime>() {
 
-            @Override
-            public void firstValue(IdPointValueTime value, boolean bookend) {
-                //If there is no value before from the bookend value.value will be null with a value.timestamp == from
-                if(insertInitial) {
-                    if(cache != null) {
-                        processRow(value, bookend, false, cache, values);
-                    }else {
-                        values.add(value);
-                    }
-                }
-            }
-
-            @Override
-            public void accept(IdPointValueTime value) {
+        @Override
+        public void firstValue(IdPointValueTime value, boolean bookend) {
+            //If there is no value before from the bookend value.value will be null with a value.timestamp == from
+            if(insertInitial) {
                 if(cache != null) {
-                    processRow(value, false, false, cache, values);
+                    processRow(value, bookend, false, cache, values);
                 }else {
                     values.add(value);
                 }
             }
+        }
 
-            @Override
-            public void lastValue(IdPointValueTime value, boolean bookend) {
-                if(insertFinal) {
-                    if(cache != null) {
-                        processRow(value, bookend, false, cache, values);
-                    }else {
-                        values.add(value);
-                    }
+        @Override
+        public void accept(IdPointValueTime value) {
+            if(cache != null) {
+                processRow(value, false, false, cache, values);
+            }else {
+                values.add(value);
+            }
+        }
+
+        @Override
+        public void lastValue(IdPointValueTime value, boolean bookend) {
+            if(insertFinal) {
+                if(cache != null) {
+                    processRow(value, bookend, false, cache, values);
+                }else {
+                    values.add(value);
                 }
             }
-        });
+        }
+    });
         return values;
     }
 

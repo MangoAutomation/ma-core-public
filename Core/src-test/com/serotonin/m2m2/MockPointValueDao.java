@@ -173,87 +173,73 @@ public class MockPointValueDao implements PointValueDao{
     @Override
     public void getPointValuesBetween(DataPointVO vo, long from, long to,
                                       Consumer<? super PointValueTime> callback) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to,
                                       Consumer<? super IdPointValueTime> callback) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void wideQuery(DataPointVO vo, long from, long to,
                           WideCallback<? super PointValueTime> callback) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime) {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public long deletePointValuesBefore(DataPointVO vo, long time) {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public boolean deletePointValuesBeforeWithoutCount(DataPointVO vo, long time) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public long deletePointValues(DataPointVO vo) {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public boolean deletePointValuesWithoutCount(DataPointVO vo) {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public long deleteAllPointData() {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public void deleteAllPointDataWithoutCount() {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public long deleteOrphanedPointValues() {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public void deleteOrphanedPointValuesWithoutCount() {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public void deleteOrphanedPointValueAnnotations() {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public long dateRangeCount(DataPointVO vo, long from, long to) {
-        // TODO Auto-generated method stub
         return 0;
     }
 
@@ -279,27 +265,16 @@ public class MockPointValueDao implements PointValueDao{
 
     @Override
     public List<Long> getFiledataIds(DataPointVO vo) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @Override
     public long deletePointValue(DataPointVO vo, long ts) {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
-    public void wideBookendQuery(Collection<? extends DataPointVO> vos, long from, long to, boolean orderById, Integer limit,
-                                 WideCallback<? super IdPointValueTime> callback) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void getPointValuesBetweenPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to,
-                                              @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
-        // TODO Auto-generated method stub
+    public void getPointValuesBetweenPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Consumer<? super IdPointValueTime> callback) {
 
     }
 
@@ -308,4 +283,13 @@ public class MockPointValueDao implements PointValueDao{
 
     }
 
+    @Override
+    public void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+
+    }
+
+    @Override
+    public void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, Integer limit, WideCallback<? super IdPointValueTime> callback) {
+
+    }
 }
