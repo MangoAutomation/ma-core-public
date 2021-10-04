@@ -136,7 +136,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
-        return betweenQuery(from, to, null, Direction.FORWARD, pv.dataPointId.eq(vo.getSeriesId()))
+        return betweenQuery(from, to, null, TimeOrder.ASCENDING, pv.dataPointId.eq(vo.getSeriesId()))
                 .fetch(this::mapRecord);
     }
 
@@ -195,14 +195,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<? super PointValueTime> callback) {
-        ResultQuery<Record> result = betweenQuery(from, to, null, Direction.FORWARD, pv.dataPointId.eq(vo.getSeriesId()));
+        ResultQuery<Record> result = betweenQuery(from, to, null, TimeOrder.ASCENDING, pv.dataPointId.eq(vo.getSeriesId()));
         try (Stream<Record> stream = result.stream()) {
             stream.map(this::mapRecord).forEach(callback);
         }
     }
 
 
-    private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit, Direction direction, Condition seriesIdCondition) {
+    private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder timeOrder, Condition seriesIdCondition) {
         var query = baseQuery().where(seriesIdCondition);
         if (from != null) {
             query = query.and(pv.ts.greaterOrEqual(from));
@@ -210,7 +210,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         if (to != null) {
             query = query.and(pv.ts.lessThan(to));
         }
-        return query.orderBy(direction == Direction.FORWARD ? pv.ts.asc() : pv.ts.desc()).limit(limit);
+        return query.orderBy(timeOrder == TimeOrder.ASCENDING ? pv.ts.asc() : pv.ts.desc()).limit(limit);
     }
 
     private SelectUnionStep<Record> firstValueQuery(long from, Field<Integer> seriesId) {
@@ -221,7 +221,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Direction direction, Consumer<? super IdPointValueTime> callback) {
+    public void getPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback) {
         checkNull(vos);
         checkToFrom(from, to);
         checkLimit(limit);
@@ -229,7 +229,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         if (vos.isEmpty() || limit != null && limit == 0) return;
 
         //Limit results of each data point to size limit, i.e. loop over all points and query with limit
-        var query = betweenQuery(from, to, limit, direction, pv.dataPointId.eq(DSL.param("seriesId", Integer.class)));
+        var query = betweenQuery(from, to, limit, sortOrder, pv.dataPointId.eq(DSL.param("seriesId", Integer.class)));
         try (var queryKept = query.keepStatement(true)) {
             for (DataPointVO vo : vos) {
                 try (var cursor = queryKept.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
@@ -242,14 +242,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, Direction direction, Consumer<? super IdPointValueTime> callback) {
+    public void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback) {
         checkNull(vos);
         checkToFrom(from, to);
         checkLimit(limit);
         checkNull(callback);
         if (vos.isEmpty() || limit != null && limit == 0) return;
 
-        var query = betweenQuery(from, to, limit, direction, seriesIdCondition(vos));
+        var query = betweenQuery(from, to, limit, sortOrder, seriesIdCondition(vos));
         try (var cursor = query.fetchLazy()) {
             for (var record : cursor) {
                 callback.accept(mapRecord(record));
@@ -295,7 +295,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         if (vos.isEmpty()) return;
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
-        try (var query = betweenQuery(from, to, limit, Direction.FORWARD, pv.dataPointId.eq(DSL.param("seriesId", Integer.class))).keepStatement(true)) {
+        try (var query = betweenQuery(from, to, limit, TimeOrder.ASCENDING, pv.dataPointId.eq(DSL.param("seriesId", Integer.class))).keepStatement(true)) {
             for (DataPointVO vo : vos) {
                 var value = values.get(vo.getSeriesId());
                 callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
@@ -326,7 +326,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         for (IdPointValueTime value : values.values()) {
             callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
         }
-        var query = betweenQuery(from, to, limit, Direction.FORWARD, seriesIdCondition(vos));
+        var query = betweenQuery(from, to, limit, TimeOrder.ASCENDING, seriesIdCondition(vos));
         try (var cursor = query.fetchLazy()) {
             for (var record : cursor) {
                 var value = mapRecord(record);
@@ -375,7 +375,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, Consumer<? super IdPointValueTime> callback) {
-        try (var stream = betweenQuery(from, to, null, Direction.FORWARD, seriesIdCondition(vos)).stream()) {
+        try (var stream = betweenQuery(from, to, null, TimeOrder.ASCENDING, seriesIdCondition(vos)).stream()) {
             stream.map(this::mapRecord).forEach(callback);
         }
     }
