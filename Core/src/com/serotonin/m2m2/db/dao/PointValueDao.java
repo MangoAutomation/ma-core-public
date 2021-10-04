@@ -49,7 +49,7 @@ public interface PointValueDao {
         }
     }
 
-    default void checkToFrom(Long from, Long to) {
+    default void checkTimePeriod(Long from, Long to) {
         if (from != null && to != null && to < from) {
             throw new IllegalArgumentException("To time must be greater than or equal to from time");
         }
@@ -206,7 +206,7 @@ public interface PointValueDao {
      */
     default List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
         checkNull(vo);
-        checkToFrom(from, to);
+        checkTimePeriod(from, to);
         List<PointValueTime> values = new ArrayList<>();
         getPointValuesPerPoint(Collections.singleton(vo), from, to, null, TimeOrder.ASCENDING, (Consumer<? super IdPointValueTime>) values::add);
         return values;
@@ -223,7 +223,7 @@ public interface PointValueDao {
      */
     default void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<? super PointValueTime> callback) {
         checkNull(vo);
-        checkToFrom(from, to);
+        checkTimePeriod(from, to);
         checkNull(callback);
         getPointValuesPerPoint(Collections.singleton(vo), from, to, null, TimeOrder.ASCENDING, callback);
     }
@@ -239,7 +239,7 @@ public interface PointValueDao {
      */
     default void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, Consumer<? super IdPointValueTime> callback) {
         checkNull(vos);
-        checkToFrom(from, to);
+        checkTimePeriod(from, to);
         checkNull(callback);
         getPointValuesPerPoint(vos, from, to, null, TimeOrder.ASCENDING, callback);
     }
@@ -293,7 +293,7 @@ public interface PointValueDao {
     default void wideQuery(DataPointVO vo, long from, long to, WideCallback<? super PointValueTime> callback) {
         checkNull(vo);
         checkNull(callback);
-        checkToFrom(from, to);
+        checkTimePeriod(from, to);
 
         getPointValueBefore(vo, from).ifPresent(callback::firstValue);
         getPointValuesBetween(vo, from, to, callback);
@@ -340,7 +340,7 @@ public interface PointValueDao {
      */
     default void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
         checkNull(vos);
-        checkToFrom(from, to);
+        checkTimePeriod(from, to);
         checkLimit(limit);
         checkNull(callback);
         if (vos.isEmpty()) return;
@@ -378,7 +378,7 @@ public interface PointValueDao {
      */
     default void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
         checkNull(vos);
-        checkToFrom(from, to);
+        checkTimePeriod(from, to);
         checkLimit(limit);
         checkNull(callback);
         if (vos.isEmpty()) return;
@@ -478,7 +478,7 @@ public interface PointValueDao {
      */
     default long dateRangeCount(DataPointVO vo, long from, long to) {
         checkNull(vo);
-        checkToFrom(from, to);
+        checkTimePeriod(from, to);
         CountingConsumer<PointValueTime> counter = new CountingConsumer<>();
         getPointValuesBetween(vo, from, to, counter);
         return counter.getCount();
