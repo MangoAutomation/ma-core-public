@@ -132,7 +132,7 @@ public class NumericPointValueDaoTestHelper {
      * Call after every test
      */
     public void after() {
-        this.dao.deleteAllPointDataWithoutCount();
+        this.dao.deleteAllPointData();
     }
 
     /* Latest Multiple w/ callback Test Methods */

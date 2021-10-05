@@ -178,53 +178,33 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime) {
-        return 0;
+    public Optional<Long> deletePointValuesBetween(DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime) {
+        return Optional.empty();
     }
 
     @Override
-    public long deletePointValuesBefore(DataPointVO vo, long time) {
-        return 0;
+    public Optional<Long> deletePointValuesBefore(DataPointVO vo, long endTime) {
+        return Optional.empty();
     }
 
     @Override
-    public boolean deletePointValuesBeforeWithoutCount(DataPointVO vo, long time) {
-        return false;
+    public Optional<Long> deletePointValues(DataPointVO vo) {
+        return Optional.empty();
+    }
+
+
+    @Override
+    public Optional<Long> deleteAllPointData() {
+        return Optional.empty();
     }
 
     @Override
-    public long deletePointValues(DataPointVO vo) {
-        return 0;
-    }
-
-    @Override
-    public boolean deletePointValuesWithoutCount(DataPointVO vo) {
-        return false;
-    }
-
-    @Override
-    public long deleteAllPointData() {
-        return 0;
-    }
-
-    @Override
-    public void deleteAllPointDataWithoutCount() {
-
-    }
-
-    @Override
-    public long deleteOrphanedPointValues() {
-        return 0;
-    }
-
-    @Override
-    public void deleteOrphanedPointValuesWithoutCount() {
-
+    public Optional<Long> deleteOrphanedPointValues() {
+        return Optional.empty();
     }
 
     @Override
     public void deleteOrphanedPointValueAnnotations() {
-
     }
 
     @Override
@@ -258,8 +238,8 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public long deletePointValue(DataPointVO vo, long ts) {
-        return 0;
+    public Optional<Long> deletePointValue(DataPointVO vo, long ts) {
+        return Optional.empty();
     }
 
     @Override

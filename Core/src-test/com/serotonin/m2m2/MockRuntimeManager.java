@@ -8,11 +8,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -193,57 +193,33 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public long purgeDataPointValues() {
-
-        return 0;
+    public Optional<Long> purgeDataPointValues() {
+        return Optional.empty();
     }
 
     @Override
-    public void purgeDataPointValuesWithoutCount() {
-
-
+    public Optional<Long> purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
+        return Optional.empty();
     }
 
     @Override
-    public long purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
-
-        return 0;
+    public Optional<Long> purgeDataPointValues(DataPointVO vo) {
+        return Optional.empty();
     }
 
     @Override
-    public long purgeDataPointValues(DataPointVO vo) {
-
-        return 0;
+    public Optional<Long> purgeDataPointValue(DataPointVO vo, long ts) {
+        return Optional.empty();
     }
 
     @Override
-    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo) {
-
-        return false;
+    public Optional<Long> purgeDataPointValues(DataPointVO vo, long before) {
+        return Optional.empty();
     }
 
     @Override
-    public long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao) {
-
-        return 0;
-    }
-
-    @Override
-    public long purgeDataPointValues(DataPointVO vo, long before) {
-
-        return 0;
-    }
-
-    @Override
-    public long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime) {
-
-        return 0;
-    }
-
-    @Override
-    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before) {
-
-        return false;
+    public Optional<Long> purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime) {
+        return Optional.empty();
     }
 
     @Override

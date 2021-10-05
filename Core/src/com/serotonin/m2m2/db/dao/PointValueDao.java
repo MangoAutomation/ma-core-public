@@ -18,6 +18,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -73,19 +74,19 @@ public interface PointValueDao {
     }
 
     class StartAndEndTime {
-        private final Long startTime;
-        private final Long endTime;
+        private final long startTime;
+        private final long endTime;
 
-        public StartAndEndTime(Long startTime, Long endTime) {
+        public StartAndEndTime(long startTime, long endTime) {
             this.startTime = startTime;
             this.endTime = endTime;
         }
 
-        public Long getStartTime() {
+        public long getStartTime() {
             return startTime;
         }
 
-        public Long getEndTime() {
+        public long getEndTime() {
             return endTime;
         }
     }
@@ -418,66 +419,89 @@ public interface PointValueDao {
     }
 
     /**
-     * Delete startTime <= values < endTime
-     * @param vo
-     * @param startTime
-     * @param endTime
-     * @return
+     * @return true if the database supports deleting point values
      */
-    long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime);
+    default boolean supportsDelete() {
+        return true;
+    }
 
     /**
-     * Delete values < time
-     * @param vo
-     * @param time
-     * @return
+     * @return true if the database supports setting a retention policy
      */
-    long deletePointValuesBefore(DataPointVO vo, long time);
+    default boolean supportsRetentionPolicy() {
+        return false;
+    }
 
     /**
-     * Delete values < time and don't count what was deleted
-     * @param vo
-     * @param time
-     * @return
+     * Set a retention policy.
+     *
+     * @param period period for which to retain point values
+     * @throws UnsupportedOperationException if this database does not support setting a retention policy
      */
-    boolean deletePointValuesBeforeWithoutCount(DataPointVO vo, long time);
+    default void setRetentionPolicy(Period period) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
-     * Delete all values
-     * @param vo
-     * @return
+     * Delete point values for a data point, for the time range {@code [startTime,endTime)}.
+     * @param vo data point
+     * @param startTime start of time range (epoch ms), inclusive
+     * @param endTime end of time range (epoch ms), exclusive
+     * @return the number of point values deleted, return an empty optional if this will add additional overhead
+     * @throws UnsupportedOperationException if the database does not support delete
+     * @throws IllegalArgumentException if vo is null
      */
-    long deletePointValues(DataPointVO vo);
+    Optional<Long> deletePointValuesBetween(DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime);
 
     /**
-     * Delete all values
-     * @param vo
-     * @return true if any data was deleted
+     * Delete point values for a data point, for the time range {@code [-∞,endTime)}.
+     * @param vo data point
+     * @param endTime end of time range (epoch ms), exclusive
+     * @return the number of point values deleted, return an empty optional if this will add additional overhead
+     * @throws UnsupportedOperationException if the database does not support delete
+     * @throws IllegalArgumentException if vo is null
      */
-    boolean deletePointValuesWithoutCount(DataPointVO vo);
+    default Optional<Long> deletePointValuesBefore(DataPointVO vo, long endTime) {
+        return deletePointValuesBetween(vo, null, endTime);
+    }
 
     /**
-     * Delete values for all points
-     * @return
+     * Delete a point value for a data point at exactly the given time.
+     *
+     * @param vo data point
+     * @param ts time (epoch ms) at which to delete point value
+     * @return the number of point values deleted, return an empty optional if this will add additional overhead
+     * @throws UnsupportedOperationException if the database does not support delete
+     * @throws IllegalArgumentException if vo is null
      */
-    long deleteAllPointData();
+    default Optional<Long> deletePointValue(DataPointVO vo, long ts) {
+        return deletePointValuesBetween(vo, ts, ts);
+    }
 
     /**
-     * Delete values for all points without counting them
-     * @return
+     * Delete all point values for a data point, i.e. for the time range {@code [-∞,∞)}.
+     * @param vo data point
+     * @return the number of point values deleted, return an empty optional if this will add additional overhead
+     * @throws UnsupportedOperationException if the database does not support delete
+     * @throws IllegalArgumentException if vo is null
      */
-    void deleteAllPointDataWithoutCount();
+    default Optional<Long> deletePointValues(DataPointVO vo) {
+        return deletePointValuesBetween(vo, null, null);
+    }
 
     /**
-     * Delete any point values that are no longer tied to a point in the Data Points table
-     * @return
+     * Delete all point values for all data points, i.e. for the time range {@code [-∞,∞)}.
+     * @return the number of point values deleted, return an empty optional if this will add additional overhead
+     * @throws UnsupportedOperationException if the database does not support delete
+     * @throws IllegalArgumentException if vo is null
      */
-    long deleteOrphanedPointValues();
+    Optional<Long> deleteAllPointData();
 
     /**
-     * Delete any point values that are no longer tied to a point in the Data Points table but don't count the amount deleted
+     * Delete any point values that are no longer tied to a point in the {@link com.infiniteautomation.mango.db.tables.DataPoints} table.
+     * @return the number of point values deleted, return an empty optional if this will add additional overhead
      */
-    void deleteOrphanedPointValuesWithoutCount();
+    Optional<Long> deleteOrphanedPointValues();
 
     /**
      * SQL Specific to delete annotations if they are stored elsewhere
@@ -562,14 +586,5 @@ public interface PointValueDao {
      * @return list of ids
      */
     List<Long> getFiledataIds(DataPointVO vo);
-
-    /**
-     * Delete the point value at the given time for a data point.
-     *
-     * @param vo data point
-     * @param ts timestamp (epoch ms)
-     * @return number of values deleted
-     */
-    long deletePointValue(DataPointVO vo, long ts);
 
 }

@@ -385,69 +385,49 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long deletePointValue(DataPointVO vo, long ts) {
+    public Optional<Long> deletePointValue(DataPointVO vo, long ts) {
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
                 .and(pv.ts.eq(ts));
-        return deletePointValues(delete);
+        return Optional.of(deletePointValues(delete));
     }
 
     @Override
-    public long deletePointValuesBefore(DataPointVO vo, long time) {
+    public Optional<Long> deletePointValuesBefore(DataPointVO vo, long endTime) {
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
-                .and(pv.ts.lessThan(time));
-        return deletePointValues(delete);
+                .and(pv.ts.lessThan(endTime));
+        return Optional.of(deletePointValues(delete));
     }
 
     @Override
-    public long deletePointValuesBetween(DataPointVO vo, long startTime, long endTime) {
+    public Optional<Long> deletePointValuesBetween(DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime) {
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
                 .and(pv.ts.greaterOrEqual(startTime))
                 .and(pv.ts.lessThan(endTime));
-        return deletePointValues(delete);
+        return Optional.of(deletePointValues(delete));
     }
 
     @Override
-    public boolean deletePointValuesBeforeWithoutCount(DataPointVO vo, long time) {
-        return deletePointValuesBefore(vo, time) > 0;
-    }
-
-    @Override
-    public long deletePointValues(DataPointVO vo) {
+    public Optional<Long> deletePointValues(DataPointVO vo) {
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()));
-        return deletePointValues(delete);
+        return Optional.of(deletePointValues(delete));
     }
 
     @Override
-    public boolean deletePointValuesWithoutCount(DataPointVO vo) {
-        return deletePointValues(vo) > 0;
+    public Optional<Long> deleteAllPointData() {
+        return Optional.of(deletePointValues(baseDelete()));
     }
 
     @Override
-    public long deleteAllPointData() {
-        return deletePointValues(baseDelete());
-    }
-
-    @Override
-    public void deleteAllPointDataWithoutCount() {
-        deleteAllPointData();
-    }
-
-    @Override
-    public long deleteOrphanedPointValues() {
+    public Optional<Long> deleteOrphanedPointValues() {
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.notIn(
                         this.create.select(dp.seriesId).from(dp)
                 ));
-        return deletePointValues(delete, 5000, 100000L);
-    }
-
-    @Override
-    public void deleteOrphanedPointValuesWithoutCount() {
-        deleteOrphanedPointValues();
+        return Optional.of(deletePointValues(delete, 5000, 100000L));
     }
 
     @Override
