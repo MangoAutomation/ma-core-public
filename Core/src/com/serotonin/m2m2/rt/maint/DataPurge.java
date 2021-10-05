@@ -40,17 +40,26 @@ import com.serotonin.util.ILifecycleState;
 
 public class DataPurge {
 
-    public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
-
     private static final Logger log = LoggerFactory.getLogger(DataPurge.class);
+    private final SystemSettingsDao systemSettingDao;
     private long runtime;
-    private final DataPointDao dataPointDao = DataPointDao.getInstance();
-    private final PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
+    private final DataPointDao dataPointDao;
+    private final PointValueDao pointValueDao;
     private long deletedSamples;
     private boolean numberDeletedSamplesKnown;
     private long deletedFiles;
     private long deletedEvents;
-    private final List<Long> fileIds = new ArrayList<Long>();
+    private final List<Long> fileIds = new ArrayList<>();
+
+    public DataPurge() {
+        this(Common.getBean(SystemSettingsDao.class), Common.getBean(DataPointDao.class), Common.getBean(PointValueDao.class));
+    }
+
+    public DataPurge(SystemSettingsDao systemSettingDao, DataPointDao dataPointDao, PointValueDao pointValueDao) {
+        this.systemSettingDao = systemSettingDao;
+        this.dataPointDao = dataPointDao;
+        this.pointValueDao = pointValueDao;
+    }
 
     public static void schedule() {
         try {
@@ -74,11 +83,9 @@ public class DataPurge {
     private void executeImpl() {
         log.info("Data purge started");
 
-        boolean purgePoints = SystemSettingsDao.getInstance().getBooleanValue(ENABLE_POINT_DATA_PURGE);
-
-        if(purgePoints){
+        if(pointValueDao.enableNightlyPurge()){
             // Get any filters for the data purge from the modules
-            List<PurgeFilter> purgeFilters = new ArrayList<PurgeFilter>();
+            List<PurgeFilter> purgeFilters = new ArrayList<>();
             for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
                 purgeFilters.add(pfd.getPurgeFilter());
 
@@ -102,7 +109,7 @@ public class DataPurge {
                 log.info("Time series purged, total deleted: " + deletedTimeSeries );
             }
         }else{
-            log.info("Purge for data points not enabled, skipping.");
+            log.info("Purge for data point values not enabled, skipping.");
         }
 
         // File data purge
@@ -148,8 +155,8 @@ public class DataPurge {
                 }
                 else {
                     // Use the system settings.
-                    purgeType = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE);
-                    purgePeriod = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS);
+                    purgeType = systemSettingDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE);
+                    purgePeriod = systemSettingDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS);
                 }
             }
 
@@ -176,7 +183,7 @@ public class DataPurge {
         // The file ids for points will have been filled in by the purge point method calls. Now get the ids from
         // elsewhere.
 
-        List<List<Long>> imageIds = new ArrayList<List<Long>>();
+        List<List<Long>> imageIds = new ArrayList<>();
         imageIds.add(fileIds);
         for (FiledataDefinition def : ModuleRegistry.getDefinitions(FiledataDefinition.class))
             imageIds.add(def.getFiledataImageIds());
@@ -216,68 +223,68 @@ public class DataPurge {
         DateTime cutoffTruncated = DateUtils.truncateDateTime(new DateTime(runtime), TimePeriods.DAYS);
 
         //Purge All Events at this rate
-        DateTime cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS));
+        DateTime cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS));
         this.deletedEvents = Common.eventManager.purgeEventsBefore(cutoff.getMillis());
 
         //Purge Data Point Events
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.DATA_POINT);
 
         //Purge the Data Source Events
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.DATA_SOURCE);
 
         //Purge the Data Source Events
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.SYSTEM);
 
         //Purge the Data Source Events
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.PUBLISHER);
 
         //Purge the Data Source Events
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(), EventTypeNames.AUDIT);
 
         //Purge Alarm Level NONE
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.NONE);
 
         //Purge Alarm Level INFORMATION
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.INFORMATION);
 
         //Purge Alarm Level IMPORTANT
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.IMPORTANT);
 
         //Purge Alarm Level WARNING
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.WARNING);
 
         //Purge Alarm Level URGENT
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.URGENT);
 
         //Purge Alarm Level CRITICAL
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.CRITICAL);
 
         //Purge Alarm Level LIFE_SAFETY
-        cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE),
-                SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS));
+        cutoff = DateUtils.minus(cutoffTruncated, systemSettingDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE),
+                systemSettingDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.LIFE_SAFETY);
 
         if (this.deletedEvents > 0)
