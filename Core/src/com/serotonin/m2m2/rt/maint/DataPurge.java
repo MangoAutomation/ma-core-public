@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -46,11 +47,10 @@ public class DataPurge {
     private final DataPointDao dataPointDao = DataPointDao.getInstance();
     private final PointValueDao pointValueDao = Common.getBean(PointValueDao.class);
     private long deletedSamples;
-    private boolean anyDeletedSamples;
+    private boolean numberDeletedSamplesKnown;
     private long deletedFiles;
     private long deletedEvents;
     private final List<Long> fileIds = new ArrayList<Long>();
-    private boolean countPointValues;
 
     public static void schedule() {
         try {
@@ -66,11 +66,15 @@ public class DataPurge {
         executeImpl();
     }
 
+    private void addDeletedSamples(long count) {
+        this.numberDeletedSamplesKnown = true;
+        deletedSamples += count;
+    }
+
     private void executeImpl() {
         log.info("Data purge started");
 
         boolean purgePoints = SystemSettingsDao.getInstance().getBooleanValue(ENABLE_POINT_DATA_PURGE);
-        this.countPointValues = SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
 
         if(purgePoints){
             // Get any filters for the data purge from the modules
@@ -81,23 +85,17 @@ public class DataPurge {
             // Get the data point information.
             List<DataPointVO> dataPoints = dataPointDao.getAll();
             for (DataPointVO dataPoint : dataPoints)
-                purgePoint(dataPoint, countPointValues, purgeFilters);
+                purgePoint(dataPoint, purgeFilters);
 
-            if (countPointValues) {
-                deletedSamples += pointValueDao.deleteOrphanedPointValues();
-            } else {
-                pointValueDao.deleteOrphanedPointValuesWithoutCount();
-            }
+            pointValueDao.deleteOrphanedPointValues().ifPresent(this::addDeletedSamples);
 
             pointValueDao.deleteOrphanedPointValueAnnotations();
             int deletedTimeSeries = dataPointDao.deleteOrphanedTimeSeries();
 
-            if (countPointValues) {
+            if (numberDeletedSamplesKnown) {
                 log.info("Data purge ended, " + deletedSamples + " point values were deleted");
-            } else if (anyDeletedSamples) {
-                log.info("Data purge ended, unknown number of point values were deleted");
             } else {
-                log.info("Data purge ended, no point values were deleted");
+                log.info("Data purge ended, unknown number of point values were deleted");
             }
 
             if (deletedTimeSeries > 0) {
@@ -120,21 +118,14 @@ public class DataPurge {
             def.execute(runtime);
     }
 
-    private void purgePoint(DataPointVO dataPoint, boolean countPointValues, List<PurgeFilter> purgeFilters) {
+    private void purgePoint(DataPointVO dataPoint, List<PurgeFilter> purgeFilters) {
         if (dataPoint.getLoggingType() == LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
             if (Common.runtimeManager.getLifecycleState() == ILifecycleState.RUNNING) {
-                boolean logMessage = false;
-                if (countPointValues) {
-                    long deletedSamples = Common.runtimeManager.purgeDataPointValues(dataPoint);
-                    logMessage = deletedSamples > 0;
-                    this.deletedSamples += deletedSamples;
-                } else if (Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint)) {
-                    logMessage = true;
-                    anyDeletedSamples = true;
-                }
-                if (logMessage) {
+                Optional<Long> result = Common.runtimeManager.purgeDataPointValues(dataPoint);
+                result.ifPresent(this::addDeletedSamples);
+                if (result.isPresent() && result.get() > 0) {
                     log.info("Purged all data for data point with id " + dataPoint.getId() + " because it is set to logging type NONE.");
                 }
             }
@@ -170,14 +161,9 @@ public class DataPurge {
                 long millis = cutoff.getMillis();
                 for(PurgeFilter pf : purgeFilters)
                     millis = pf.adjustPurgeTime(dataPoint, millis);
-                if (countPointValues)
-                    deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint,
-                            cutoff.getMillis());
-                else {
-                    if (Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint,
-                            cutoff.getMillis()))
-                        anyDeletedSamples = true;
-                }
+
+                Common.runtimeManager.purgeDataPointValues(dataPoint, cutoff.getMillis())
+                        .ifPresent(this::addDeletedSamples);
             }
 
             // If this is an image data type, get the point value ids.
@@ -303,36 +289,16 @@ public class DataPurge {
         return deletedSamples;
     }
 
-    public void setDeletedSamples(long deletedSamples) {
-        this.deletedSamples = deletedSamples;
-    }
-
     public long getDeletedFiles() {
         return deletedFiles;
-    }
-
-    public void setDeletedFiles(long deletedFiles) {
-        this.deletedFiles = deletedFiles;
     }
 
     public long getDeletedEvents() {
         return deletedEvents;
     }
 
-    public void setDeletedEvents(long deletedEvents) {
-        this.deletedEvents = deletedEvents;
-    }
-
-    public boolean isAnyDeletedSamples(){
-        return anyDeletedSamples;
-    }
-
-    public boolean isCountPointValues() {
-        return countPointValues;
-    }
-
-    public void setCountPointValues(boolean countPointValues) {
-        this.countPointValues = countPointValues;
+    public boolean isNumberDeletedSamplesKnown(){
+        return numberDeletedSamplesKnown;
     }
 
     static class DataPurgeTask extends TimerTask {

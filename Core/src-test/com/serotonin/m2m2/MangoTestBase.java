@@ -163,7 +163,7 @@ public class MangoTestBase {
         provider.reset();
 
         //Clean the noSQL database
-        Common.getBean(PointValueDao.class).deleteAllPointDataWithoutCount();
+        Common.getBean(PointValueDao.class).deleteAllPointData();
 
         //clear all caches in services
         Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()

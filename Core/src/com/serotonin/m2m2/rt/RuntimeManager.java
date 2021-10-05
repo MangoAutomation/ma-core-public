@@ -5,10 +5,10 @@ package com.serotonin.m2m2.rt;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -172,27 +172,19 @@ public interface RuntimeManager extends ILifecycle {
 
     void forceDataSourcePoll(int dataSourceId);
 
-    long purgeDataPointValues();
+    Optional<Long> purgeDataPointValues();
 
-    void purgeDataPointValuesWithoutCount();
+    Optional<Long> purgeDataPointValues(DataPointVO vo, int periodType, int periodCount);
 
-    long purgeDataPointValues(DataPointVO vo, int periodType, int periodCount);
-
-    long purgeDataPointValues(DataPointVO vo);
-
-    /**
-     * @param vo data point VO
-     */
-    boolean purgeDataPointValuesWithoutCount(DataPointVO vo);
+    Optional<Long> purgeDataPointValues(DataPointVO vo);
 
     /**
      * Purge a value at a given time
      * @param vo data point VO
      * @param ts epoch timestamp in ms
-     * @param dao to aid in performance of high frequency calls
      * @return number of point values purged
      */
-    long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao);
+    Optional<Long> purgeDataPointValue(DataPointVO vo, long ts);
 
     /**
      * Purge values before a given time
@@ -200,7 +192,7 @@ public interface RuntimeManager extends ILifecycle {
      * @param before epoch timestamp in ms
      * @return count of values deleted
      */
-    long purgeDataPointValues(DataPointVO vo, long before);
+    Optional<Long> purgeDataPointValues(DataPointVO vo, long before);
 
     /**
      * Purge values between a time range inclusive of startTime exclusive of endTime
@@ -209,15 +201,7 @@ public interface RuntimeManager extends ILifecycle {
      * @param endTime epoch timestamp in ms
      * @return count of values deleted
      */
-    long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime);
-
-    /**
-     * Purge values before a given time
-     * @param vo data point VO
-     * @param before epoch timestamp in ms
-     * @return true if any data was deleted
-     */
-    boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before);
+    Optional<Long> purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime);
 
     //
     //

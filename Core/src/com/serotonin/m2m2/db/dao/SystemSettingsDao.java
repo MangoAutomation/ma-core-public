@@ -92,7 +92,6 @@ public class SystemSettingsDao extends BaseDao {
     // Point data purging
     public static final String POINT_DATA_PURGE_PERIOD_TYPE = "pointDataPurgePeriodType";
     public static final String POINT_DATA_PURGE_PERIODS = "pointDataPurgePeriods";
-    public static final String POINT_DATA_PURGE_COUNT = "pointDataPurgeCount";
 
     // Event Type purging
     public static final String DATA_POINT_EVENT_PURGE_PERIOD_TYPE = "dataPointEventPurgePeriodType";
@@ -640,7 +639,6 @@ public class SystemSettingsDao extends BaseDao {
 
         defaultValues.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         defaultValues.put(POINT_DATA_PURGE_PERIODS, 1);
-        defaultValues.put(POINT_DATA_PURGE_COUNT, false);
 
         defaultValues.put(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         defaultValues.put(DATA_POINT_EVENT_PURGE_PERIODS, 1);

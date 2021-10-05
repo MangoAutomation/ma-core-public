@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -491,8 +492,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public long purgeDataPointValues() {
-        long count = pointValueDao.deleteAllPointData();
+    public Optional<Long> purgeDataPointValues() {
+        Optional<Long> count = pointValueDao.deleteAllPointData();
         dataPointDao.getAll(point -> {
             pointValueCache.removeAllValues(point);
             DataPointRT rt = getDataPoint(point.getId());
@@ -504,26 +505,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void purgeDataPointValuesWithoutCount() {
-        pointValueDao.deleteAllPointDataWithoutCount();
-        dataPointDao.getAll(point -> {
-            pointValueCache.removeAllValues(point);
-            DataPointRT rt = getDataPoint(point.getId());
-            if(rt != null) {
-                rt.invalidateCache(false);
-            }
-        });
-    }
-
-    @Override
-    public long purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
+    public Optional<Long> purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
         long before = DateUtils.minus(Common.timer.currentTimeMillis(), periodType, periodCount);
         return purgeDataPointValues(vo, before);
     }
 
     @Override
-    public long purgeDataPointValues(DataPointVO vo) {
-        long count = pointValueDao.deletePointValues(vo);
+    public Optional<Long> purgeDataPointValues(DataPointVO vo) {
+        Optional<Long> count = pointValueDao.deletePointValues(vo);
         pointValueCache.removeAllValues(vo);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
@@ -533,19 +522,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo) {
-        boolean deleted = pointValueDao.deletePointValuesWithoutCount(vo);
-        pointValueCache.removeAllValues(vo);
-        DataPointRT rt = getDataPoint(vo.getId());
-        if(rt != null) {
-            rt.invalidateCache(false);
-        }
-        return deleted;
-    }
-
-    @Override
-    public long purgeDataPointValue(DataPointVO vo, long ts, PointValueDao dao){
-        long count = dao.deletePointValue(vo, ts);
+    public Optional<Long> purgeDataPointValue(DataPointVO vo, long ts){
+        Optional<Long> count = pointValueDao.deletePointValue(vo, ts);
         pointValueCache.removeValueAt(vo, ts);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
@@ -555,8 +533,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public long purgeDataPointValues(DataPointVO vo, long before) {
-        long count = pointValueDao.deletePointValuesBefore(vo, before);
+    public Optional<Long> purgeDataPointValues(DataPointVO vo, long before) {
+        Optional<Long> count = pointValueDao.deletePointValuesBefore(vo, before);
         pointValueCache.removeValuesBefore(vo, before);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
@@ -566,26 +544,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public long purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime) {
-        long count = pointValueDao.deletePointValuesBetween(vo, startTime, endTime);
+    public Optional<Long> purgeDataPointValuesBetween(DataPointVO vo, long startTime, long endTime) {
+        Optional<Long> count = pointValueDao.deletePointValuesBetween(vo, startTime, endTime);
+        pointValueCache.removeValuesBetween(vo, startTime, endTime);
         DataPointRT rt = getDataPoint(vo.getId());
         if(rt != null) {
             rt.invalidateCache(false);
-        }else {
-            pointValueCache.removeValuesBetween(vo, startTime, endTime);
         }
         return count;
-    }
-
-    @Override
-    public boolean purgeDataPointValuesWithoutCount(DataPointVO vo, long before) {
-        boolean deleted = pointValueDao.deletePointValuesBeforeWithoutCount(vo, before);
-        pointValueCache.removeValuesBefore(vo, before);
-        DataPointRT rt = getDataPoint(vo.getId());
-        if(rt != null) {
-            rt.invalidateCache(false);
-        }
-        return deleted;
     }
 
     //

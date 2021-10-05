@@ -46,21 +46,21 @@ public class PurgeWithPurgeSettingsActionDefinition extends SystemActionDefiniti
      *
      * @author Terry Packer
      */
-    class Action extends SystemActionTask {
+    static class Action extends SystemActionTask {
 
         public Action() {
-            super(new OneTimeTrigger(0l), "Purge Using Settings", "PURGE_USING_SETTINGS", 5);
+            super(new OneTimeTrigger(0L), "Purge Using Settings", "PURGE_USING_SETTINGS", 5);
         }
 
         @Override
         public void runImpl(long runtime) {
             DataPurge dataPurge = new DataPurge();
             dataPurge.execute(Common.timer.currentTimeMillis());
-            this.results.put("countPointValues", dataPurge.isCountPointValues());
-            this.results.put("deletedPointValues", dataPurge.getDeletedSamples());
+            this.results.put("countPointValues", dataPurge.isNumberDeletedSamplesKnown());
+            this.results.put("deletedPointValues", dataPurge.isNumberDeletedSamplesKnown() ? dataPurge.getDeletedSamples() : -1);
             this.results.put("deletedFiles", dataPurge.getDeletedFiles());
             this.results.put("deletedEvents", dataPurge.getDeletedEvents());
-            this.results.put("anyDeletedSamples", dataPurge.isAnyDeletedSamples());
+            this.results.put("anyDeletedSamples", !dataPurge.isNumberDeletedSamplesKnown() || dataPurge.getDeletedSamples() > 0);
         }
     }
 }
