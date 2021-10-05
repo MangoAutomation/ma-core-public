@@ -419,21 +419,18 @@ public interface PointValueDao {
     }
 
     /**
-     * @return true if the database supports deleting point values
+     * Enable or disable the nightly purge of point values.
+     * Typically, a database that supports retention policies should disable the nightly purge.
+     *
+     * @return true to enable nightly purge of point values
      */
-    default boolean supportsDelete() {
+    default boolean enableNightlyPurge() {
         return true;
     }
 
     /**
-     * @return true if the database supports setting a retention policy
-     */
-    default boolean supportsRetentionPolicy() {
-        return false;
-    }
-
-    /**
-     * Set a retention policy.
+     * Set a retention policy for the entire database. This method will be called after initialization and
+     * whenever the point value purge settings are configured.
      *
      * @param period period for which to retain point values
      * @throws UnsupportedOperationException if this database does not support setting a retention policy
@@ -500,13 +497,16 @@ public interface PointValueDao {
     /**
      * Delete any point values that are no longer tied to a point in the {@link com.infiniteautomation.mango.db.tables.DataPoints} table.
      * @return the number of point values deleted, return an empty optional if this will add additional overhead
+     * @throws UnsupportedOperationException if the database does not support delete
      */
     Optional<Long> deleteOrphanedPointValues();
 
     /**
      * SQL Specific to delete annotations if they are stored elsewhere
      */
-    void deleteOrphanedPointValueAnnotations();
+    default void deleteOrphanedPointValueAnnotations() {
+        // no-op
+    }
 
     /**
      * Count the number of point values for a point, for the time range {@code [from,to)}.

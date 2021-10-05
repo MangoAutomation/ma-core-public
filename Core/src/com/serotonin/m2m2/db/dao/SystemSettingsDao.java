@@ -59,7 +59,6 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
-import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
@@ -90,6 +89,7 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PUBLICLY_RESOLVABLE_BASE_URL = "publiclyResolvableBaseUrl";
 
     // Point data purging
+    public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
     public static final String POINT_DATA_PURGE_PERIOD_TYPE = "pointDataPurgePeriodType";
     public static final String POINT_DATA_PURGE_PERIODS = "pointDataPurgePeriods";
 
@@ -637,6 +637,7 @@ public class SystemSettingsDao extends BaseDao {
         defaultValues.put(EMAIL_FROM_NAME, "Mango Automation");
         defaultValues.put(EMAIL_SEND_TIMEOUT, 60000);
 
+        defaultValues.put(ENABLE_POINT_DATA_PURGE, true);
         defaultValues.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         defaultValues.put(POINT_DATA_PURGE_PERIODS, 1);
 
@@ -705,7 +706,6 @@ public class SystemSettingsDao extends BaseDao {
 
         defaultValues.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
 
-        defaultValues.put(DataPurge.ENABLE_POINT_DATA_PURGE, true);
         defaultValues.put(DATABASE_BACKUP_ENABLED, true);
         defaultValues.put(BACKUP_ENABLED, true);
 
