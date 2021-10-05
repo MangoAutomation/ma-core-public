@@ -68,10 +68,12 @@ public class MetricsLoggingProcessor implements BeanPostProcessor {
     }
 
     protected String metricsLogLine(Method method, Object[] args) {
-        return String.format("%s(%s) (%s)",
-                method.getName(),
-                Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", ")),
-                Arrays.stream(args).map(this::metricsFormatArg).collect(Collectors.joining(", ")));
+        if (args == null) {
+            return String.format("%s()", method.getName());
+        }
+        String parameterTypes = Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", "));
+        String arguments = Arrays.stream(args).map(this::metricsFormatArg).collect(Collectors.joining(", "));
+        return String.format("%s(%s) (%s)", method.getName(), parameterTypes, arguments);
     }
 
     protected String metricsFormatArg(Object arg) {
