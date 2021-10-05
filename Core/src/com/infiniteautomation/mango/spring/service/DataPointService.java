@@ -23,6 +23,8 @@ import org.jooq.SelectHavingStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -91,6 +93,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     private final DataPoints dataPoints = DataPoints.DATA_POINTS;
     private final DataPointPermissionDefinition dataPointPermissionDefinition;
     private final PointValueCache pointValueCache;
+    private final Logger log = LoggerFactory.getLogger(DataPointService.class);
 
     @Autowired
     public DataPointService(DataPointDao dao,
@@ -189,13 +192,22 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         ensureValid(vo, user);
         dao.insert(vo);
 
-        for(DataPointChangeDefinition def : changeDefinitions) {
-            def.postInsert(vo);
+        List<AbstractPointEventDetectorVO> detectors = new ArrayList<>();
+        for (DataPointChangeDefinition def : changeDefinitions) {
+            for (var detector : def.postInsert(vo)) {
+                if (detector.isNew()) {
+                    log.warn("Detector added via postInsert hook was not saved");
+                } else if (detector.getDataPoint().getId() != vo.getId()) {
+                    log.warn("Detector added via postInsert hook was for a different data point");
+                } else {
+                    detectors.add(detector);
+                }
+            }
         }
 
         if (vo.isEnabled()) {
             // the data point cannot have detectors if it was just inserted, don't query for detectors
-            getRuntimeManager().startDataPoint(new DataPointWithEventDetectors(vo, Collections.emptyList()));
+            getRuntimeManager().startDataPoint(new DataPointWithEventDetectors(vo, detectors));
         }
         return vo;
     }

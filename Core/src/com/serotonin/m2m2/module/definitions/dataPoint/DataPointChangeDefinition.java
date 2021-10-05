@@ -4,8 +4,12 @@
 
 package com.serotonin.m2m2.module.definitions.dataPoint;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 /**
  * Definition for hooks into the data point create/update/delete Lifecycle
@@ -21,10 +25,18 @@ public abstract class DataPointChangeDefinition extends ModuleElementDefinition 
     public void preInsert(DataPointVO vo) { }
 
     /**
-     * Post insert of point
-     * @param vo
+     * Post insert of point, after inserting into the database but before the data point is started
+     * by the runtime manager.
+     *
+     * Any event detectors which are added by this hook MUST be returned by this method.
+     *
+     * @param vo data point
+     * @return collection of event detectors which were added by this method.
+     * The event detectors must be for the inserted point, and saved (inserted into the database).
      */
-    public void postInsert(DataPointVO vo) { }
+    public Collection<AbstractPointEventDetectorVO> postInsert(DataPointVO vo) {
+        return Collections.emptyList();
+    }
 
     /**
      * Pre update of point

@@ -4,10 +4,10 @@
 
 package com.serotonin.m2m2.vo.dataPoint;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
@@ -45,22 +45,15 @@ public class DataPointWithEventDetectors {
      * Either add this as a new detector or replace an existing one based
      *  on matching XIDs.  Used during import of points and detectors
      *  to ensure that the last added detector is saved back to the point.
-     * @param dped
      */
     public void addOrReplaceDetector(AbstractPointEventDetectorVO dped) {
-        Iterator<AbstractPointEventDetectorVO> iter = eventDetectors.iterator();
-        while(iter.hasNext()) {
-            AbstractPointEventDetectorVO next = iter.next();
-            if(next.getXid().equals(dped.getXid())) {
-                iter.remove();
-            }
-        }
+        eventDetectors.removeIf(d -> d.getXid().equals(dped.getXid()));
         eventDetectors.add(dped);
     }
 
     @Override
     public String toString() {
-        String detectorNames = eventDetectors.stream().map(detector -> detector.getName()).collect(Collectors.joining(","));
+        String detectorNames = eventDetectors.stream().map(AbstractVO::getName).collect(Collectors.joining(","));
         return dataPoint.getName() + "[" + detectorNames + "]";
     }
 
