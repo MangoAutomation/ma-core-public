@@ -65,6 +65,12 @@
             </modules>
         </profile>
         <profile>
+            <id>mango-installer</id>
+            <modules>
+                <module>mango-installer</module>
+            </modules>
+        </profile>
+        <profile>
             <id>commit-package-json</id>
             <build>
                 <pluginManagement>
