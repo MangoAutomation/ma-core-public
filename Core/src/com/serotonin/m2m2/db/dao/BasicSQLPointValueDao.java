@@ -427,11 +427,12 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .where(pv.dataPointId.notIn(
                         this.create.select(dp.seriesId).from(dp)
                 ));
-        return Optional.of(deletePointValues(delete, 5000, 100000L));
+        Optional<Long> result = Optional.of(deletePointValues(delete, 5000, 100000L));
+        deleteOrphanedPointValueAnnotations();
+        return result;
     }
 
-    @Override
-    public void deleteOrphanedPointValueAnnotations() {
+    private void deleteOrphanedPointValueAnnotations() {
         int limit = databaseProxy.batchSize();
         while (true) {
             List<Long> ids = this.create.select(pva.pointValueId)

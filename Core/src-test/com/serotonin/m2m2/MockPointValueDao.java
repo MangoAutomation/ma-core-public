@@ -204,10 +204,6 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public void deleteOrphanedPointValueAnnotations() {
-    }
-
-    @Override
     public long dateRangeCount(DataPointVO vo, long from, long to) {
         return 0;
     }
