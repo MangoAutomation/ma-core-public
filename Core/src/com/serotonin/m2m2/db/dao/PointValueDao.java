@@ -502,13 +502,6 @@ public interface PointValueDao {
     Optional<Long> deleteOrphanedPointValues();
 
     /**
-     * SQL Specific to delete annotations if they are stored elsewhere
-     */
-    default void deleteOrphanedPointValueAnnotations() {
-        // no-op
-    }
-
-    /**
      * Count the number of point values for a point, for the time range {@code [from,to)}.
      *
      * @param vo data point

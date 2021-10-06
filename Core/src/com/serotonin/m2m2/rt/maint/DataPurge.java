@@ -96,7 +96,6 @@ public class DataPurge {
 
             pointValueDao.deleteOrphanedPointValues().ifPresent(this::addDeletedSamples);
 
-            pointValueDao.deleteOrphanedPointValueAnnotations();
             int deletedTimeSeries = dataPointDao.deleteOrphanedTimeSeries();
 
             if (numberDeletedSamplesKnown) {
