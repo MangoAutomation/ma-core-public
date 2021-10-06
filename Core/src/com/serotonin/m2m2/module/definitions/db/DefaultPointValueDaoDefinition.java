@@ -11,6 +11,7 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 
 public class DefaultPointValueDaoDefinition extends PointValueDaoDefinition {
 
@@ -18,12 +19,14 @@ public class DefaultPointValueDaoDefinition extends PointValueDaoDefinition {
     DatabaseProxy databaseProxy;
     @Autowired
     MonitoredValues monitoredValues;
+    @Autowired
+    SystemSettingsDao systemSettingsDao;
 
     PointValueDao pointValueDao;
 
     @Override
     public void initialize() {
-        this.pointValueDao = new PointValueDaoSQL(databaseProxy, monitoredValues);
+        this.pointValueDao = new PointValueDaoSQL(databaseProxy, monitoredValues, systemSettingsDao);
     }
 
     @Override

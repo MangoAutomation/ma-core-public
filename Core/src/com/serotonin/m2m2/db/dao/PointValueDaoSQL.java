@@ -76,8 +76,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private final ValueMonitor<Integer> batchWriteSpeedMonitor;
     private final int batchInsertSize;
 
-    public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues) {
+    private final SystemSettingsDao systemSettingsDao;
+
+    public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues, SystemSettingsDao systemSettingsDao) {
         super(databaseProxy);
+        this.systemSettingsDao = systemSettingsDao;
 
         this.syncInsertsSpeedCounter = monitoredValues.<Integer>create(SYNC_INSERTS_SPEED_COUNTER_ID)
                 .name(new TranslatableMessage("internal.monitor.SYNC_INSERTS_SPEED_COUNTER_ID"))
@@ -129,6 +132,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         savePointValueImpl(vo, pointValue, source, true);
         asyncCallsCounter.hit();
         asyncInsertsSpeedCounter.setValue(asyncCallsCounter.getEventCounts()[0] / 5);
+    }
+
+    @Override
+    public boolean enableNightlyPurge() {
+        return systemSettingsDao.getBooleanValue(SystemSettingsDao.ENABLE_POINT_DATA_PURGE);
     }
 
     private long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, final SetPointSource source, boolean async) {
