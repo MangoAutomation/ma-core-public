@@ -89,7 +89,7 @@ public class PurgeSettingsListener {
             pointValueDao.setRetentionPolicy(period);
             log.info("Retention policy of {} configured", period);
         } catch (UnsupportedOperationException e) {
-            // ignore
+            log.info("Database does not support setting retention policy");
         }
     }
 }
