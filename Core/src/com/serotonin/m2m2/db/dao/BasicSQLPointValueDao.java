@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -427,7 +428,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .where(pv.dataPointId.notIn(
                         this.create.select(dp.seriesId).from(dp)
                 ));
-        Optional<Long> result = Optional.of(deletePointValues(delete, 5000, 100000L));
+        Optional<Long> result = Optional.of(deletePointValues(delete, 5000L, 100000L));
         deleteOrphanedPointValueAnnotations();
         return result;
     }
@@ -460,21 +461,18 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     protected long deletePointValues(DeleteLimitStep<PointValuesRecord> deleteLimitStep, long chunkWait, Long limit) {
-        int chunkSize = 1000;
+        int chunkLimit = databaseProxy.batchSize();
         long total = 0;
         while (true) {
-            int count = deleteLimitStep.limit(chunkSize).execute();
+            int count = deleteLimitStep.limit(chunkLimit).execute();
             total += count;
 
-            if (count < chunkSize || (limit != null && total >= limit))
+            if (count < chunkLimit || (limit != null && total >= limit))
                 break;
 
+            // park the thread for the specified amount of time
             if (chunkWait > 0) {
-                try {
-                    Thread.sleep(chunkWait);
-                } catch (InterruptedException e) {
-                    // no op
-                }
+                LockSupport.parkNanos(chunkWait * 1_000_000);
             }
         }
         return total;
