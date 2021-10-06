@@ -2,6 +2,7 @@
 * Upgraded for Mango 4.3.0
 * Adding monitored values to the PointValueDaoSQL to track the number of point values saved (sync and async) per second.
 * Adding a monitored metric for the PublishQueue size.
+* Adding ValidationExceptionTest junit test to confirm it works as expected.
 
 
 *Version 4.2.1*
