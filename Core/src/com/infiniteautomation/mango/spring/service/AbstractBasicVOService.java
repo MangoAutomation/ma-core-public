@@ -173,7 +173,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
         if(vo.getId() != Common.NEW_ID) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("id", "validate.invalidValue");
-            throw new ValidationException(result);
+            throw new ValidationException(result, vo.getClass());
         }
 
         ensureValid(vo, user);
