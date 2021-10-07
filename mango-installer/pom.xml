@@ -11,6 +11,8 @@
     <name>Mango Installer</name>
     <packaging>pom</packaging>
     <properties>
+        <application.binaryName>mango</application.binaryName>
+        <application.packageName>mango-automation</application.packageName>
         <application.name>Mango Automation</application.name>
         <application.organization>${project.organization.name}</application.organization>
         <application.url>${project.organization.url}</application.url>
@@ -42,6 +44,7 @@
                 <version>1.0.34</version>
                 <executions>
                     <execution>
+                        <id>jpackage-installer</id>
                         <phase>package</phase>
                         <goals>
                             <goal>java-tool</goal>
@@ -51,33 +54,81 @@
                             <input>${project.build.directory}/bundle</input>
                             <temp>${project.build.directory}/jpackage</temp>
                             <dest>${project.build.directory}</dest>
-                            <name>${application.name}</name>
+                            <name>${application.binaryName}</name>
                             <appVersion>${application.version}</appVersion>
                             <mainJar>lib/ma-priv-${project.version}.jar</mainJar>
-                            <type>app-image</type>
+<!--                            <type>app-image</type>-->
                             <description>${application.name} by ${application.organization}</description>
                             <copyright>Copyright (C) ${application.year} ${application.organization}</copyright>
-                            <javaOptions>-cp "$APPDIR\lib\*" -Dmango.paths.home="$APPDIR" -Dmango.paths.data="$APPDIR\..\data"</javaOptions>
-                            <args>
-                                <arg>--main-class</arg>
-                                <arg>com.serotonin.m2m2.Main</arg>
-                                <arg>--win-console</arg>
-<!--                                <arg>&#45;&#45;win-upgrade-uuid</arg>-->
-<!--                                <arg>7a8b7b79-ccb5-4184-8fd9-fe271406f1f7</arg>-->
-<!--                                <arg>&#45;&#45;win-menu</arg>-->
-<!--                                <arg>&#45;&#45;win-menu-group</arg>-->
-<!--                                <arg>${application.name}</arg>-->
-<!--                                <arg>&#45;&#45;win-dir-chooser</arg>-->
-<!--                                <arg>&#45;&#45;win-shortcut-prompt</arg>-->
-<!--                                <arg>&#45;&#45;win-update-url</arg>-->
-<!--                                <arg>${application.organization}</arg>-->
-                            </args>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>jpackage-installer-windows</id>
+            <activation><os><family>windows</family></os></activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.github.wiverson</groupId>
+                        <artifactId>jtoolprovider-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>jpackage-installer</id>
+                                <configuration>
+                                    <type>msi</type>
+                                    <javaOptions>-cp "$APPDIR\lib\*" -Dmango.paths.home="$APPDIR" -Dmango.paths.data="$APPDIR\..\data"</javaOptions>
+                                    <args>
+                                        <arg>--main-class</arg>
+                                        <arg>com.serotonin.m2m2.Main</arg>
+                                        <arg>--win-console</arg>
+                                        <arg>--win-upgrade-uuid</arg>
+                                        <arg>7a8b7b79-ccb5-4184-8fd9-fe271406f1f7</arg>
+                                        <arg>--win-menu</arg>
+                                        <arg>--win-menu-group</arg>
+                                        <arg>${application.name}</arg>
+                                        <arg>--win-dir-chooser</arg>
+                                        <arg>--win-shortcut-prompt</arg>
+                                        <arg>--win-update-url</arg>
+                                        <arg>${application.url}</arg>
+                                    </args>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>jpackage-installer-unix</id>
+            <activation><os><family>unix</family></os></activation>
+            <build>
+                <plugins>
+                    <plugin>
+                    <groupId>io.github.wiverson</groupId>
+                    <artifactId>jtoolprovider-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>jpackage-installer</id>
+                            <configuration>
+                                <javaOptions>-cp "$APPDIR/lib/*" -Dmango.paths.home="$APPDIR" -Dmango.paths.data="$APPDIR/../../data"</javaOptions>
+                                <args>
+                                    <arg>--main-class</arg>
+                                    <arg>com.serotonin.m2m2.Main</arg>
+                                    <arg>--linux-package-name</arg>
+                                    <arg>${application.packageName}</arg>
+                                </args>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     <dependencies>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
