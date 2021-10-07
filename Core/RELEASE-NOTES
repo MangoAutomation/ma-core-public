@@ -3,7 +3,6 @@
 * Adding monitored values to the PointValueDaoSQL to track the number of point values saved (sync and async) per second.
 * Adding a monitored metric for the PublishQueue size.
 
-
 *Version 4.2.1*
 * Add new datapoint permission definition to allow users to vew all data points.
 * Enable exposing Jetty statistics via JMX (configurable via properties "web.enableJmx" and "web.connectionStatistics")
