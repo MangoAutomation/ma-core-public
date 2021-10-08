@@ -93,6 +93,9 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
             secondary.getPointValuesCombined(secondaryPoints, from, to, limit, sortOrder, values::add);
             Comparator<PointValueTime> comparator = Comparator.comparingLong(PointValueTime::getTime);
             values.sort(sortOrder == TimeOrder.DESCENDING ? comparator.reversed() : comparator);
+            if (limit != null) {
+                values = values.subList(0, limit);
+            }
             values.forEach(callback);
         }
     }
