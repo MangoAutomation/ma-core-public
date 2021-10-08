@@ -126,7 +126,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
     }
 
     @Override
-    public long dateRangeCount(DataPointVO vo, long from, long to) {
+    public long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
         if (primaryShouldHandle(vo, Operation.READ)) {
             return primary.dateRangeCount(vo, from, to);
         } else {

@@ -403,10 +403,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<Long> deletePointValuesBetween(DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime) {
-        DeleteConditionStep<PointValuesRecord> delete = baseDelete()
-                .where(pv.dataPointId.eq(vo.getSeriesId()))
-                .and(pv.ts.greaterOrEqual(startTime))
-                .and(pv.ts.lessThan(endTime));
+        var delete = baseDelete()
+                .where(pv.dataPointId.eq(vo.getSeriesId()));
+        if (startTime != null) {
+            delete = delete.and(pv.ts.greaterOrEqual(startTime));
+        }
+        if (endTime != null) {
+            delete = delete.and(pv.ts.lessThan(endTime));
+        }
         return Optional.of(deletePointValues(delete));
     }
 
@@ -479,11 +483,17 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public long dateRangeCount(DataPointVO vo, long from, long to) {
-        return create.select(DSL.count())
+    public long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
+        var select = create.select(DSL.count())
                 .from(pv)
-                .where(pv.dataPointId.eq(vo.getSeriesId()))
-                .fetchOptional()
+                .where(pv.dataPointId.eq(vo.getSeriesId()));
+        if (from != null) {
+            select = select.and(pv.ts.greaterOrEqual(from));
+        }
+        if (to != null) {
+            select = select.and(pv.ts.lessThan(to));
+        }
+        return select.fetchOptional()
                 .map(Record1::value1)
                 .orElse(0);
     }

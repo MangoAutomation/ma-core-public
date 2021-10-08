@@ -204,7 +204,7 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public long dateRangeCount(DataPointVO vo, long from, long to) {
+    public long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
         return 0;
     }
 

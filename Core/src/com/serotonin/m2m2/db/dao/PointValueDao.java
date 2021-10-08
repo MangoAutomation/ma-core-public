@@ -510,11 +510,11 @@ public interface PointValueDao {
      * @return number of point values in the time range
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
-    default long dateRangeCount(DataPointVO vo, long from, long to) {
+    default long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
         checkNull(vo);
         checkTimePeriod(from, to);
         CountingConsumer<PointValueTime> counter = new CountingConsumer<>();
-        getPointValuesBetween(vo, from, to, counter);
+        getPointValuesPerPoint(Collections.singleton(vo), from, to, null, TimeOrder.ASCENDING, counter);
         return counter.getCount();
     }
 
