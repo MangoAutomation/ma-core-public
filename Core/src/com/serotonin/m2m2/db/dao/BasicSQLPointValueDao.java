@@ -68,12 +68,16 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+        checkNull(vo);
+        checkNull(pointValue);
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+        checkNull(vo);
+        checkNull(pointValue);
         throw new UnsupportedOperationException();
     }
 
@@ -93,6 +97,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
+        checkNull(vo);
         Field<Long> ts = this.create.select(DSL.max(pv.ts))
                 .from(pv)
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
@@ -102,6 +107,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
+        checkNull(vo);
         Field<Long> ts = this.create.select(DSL.max(pv.ts))
                 .from(pv)
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
@@ -112,11 +118,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<PointValueTime> getPointValueAt(DataPointVO vo, long time) {
+        checkNull(vo);
         return getPointValueAt(vo, DSL.val(time));
     }
 
     @Override
     public Optional<PointValueTime> getPointValueAfter(DataPointVO vo, long time) {
+        checkNull(vo);
+
         Field<Long> ts = this.create.select(DSL.min(pv.ts))
                 .from(pv)
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
@@ -127,6 +136,8 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public List<PointValueTime> getPointValues(DataPointVO vo, long from) {
+        checkNull(vo);
+
         return baseQuery()
                 .where(pv.dataPointId.equal(vo.getSeriesId()))
                 .and(pv.ts.greaterOrEqual(from))
@@ -136,12 +147,17 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
+        checkNull(vo);
+        checkTimePeriod(from, to);
         return betweenQuery(from, to, null, TimeOrder.ASCENDING, pv.dataPointId.eq(vo.getSeriesId()))
                 .fetch(this::mapRecord);
     }
 
     @Override
     public List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
+        checkNull(vo);
+        checkNull(limit);
+
         if (limit == 0) {
             return Collections.emptyList();
         } else if (limit == 1) {
@@ -158,6 +174,9 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public List<PointValueTime> getLatestPointValues(DataPointVO vo, long to, int limit) {
+        checkNull(vo);
+        checkLimit(limit);
+
         if (limit == 0) {
             return Collections.emptyList();
         } else {
@@ -195,6 +214,10 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<? super PointValueTime> callback) {
+        checkNull(vo);
+        checkTimePeriod(from, to);
+        checkNull(callback);
+
         ResultQuery<Record> result = betweenQuery(from, to, null, TimeOrder.ASCENDING, pv.dataPointId.eq(vo.getSeriesId()));
         try (Stream<Record> stream = result.stream()) {
             stream.map(this::mapRecord).forEach(callback);
@@ -259,6 +282,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Map<Integer, IdPointValueTime> initialValues(Collection<? extends DataPointVO> vos, long time) {
+        checkNull(vos);
         Map<Integer, IdPointValueTime> values = new HashMap<>(vos.size());
 
         try (var cursor = vos.stream()
@@ -376,6 +400,9 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, Consumer<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkTimePeriod(from, to);
+        checkNull(callback);
         try (var stream = betweenQuery(from, to, null, TimeOrder.ASCENDING, seriesIdCondition(vos)).stream()) {
             stream.map(this::mapRecord).forEach(callback);
         }
@@ -387,6 +414,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<Long> deletePointValue(DataPointVO vo, long ts) {
+        checkNull(vo);
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
                 .and(pv.ts.eq(ts));
@@ -395,6 +423,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<Long> deletePointValuesBefore(DataPointVO vo, long endTime) {
+        checkNull(vo);
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
                 .and(pv.ts.lessThan(endTime));
@@ -403,6 +432,8 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<Long> deletePointValuesBetween(DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime) {
+        checkNull(vo);
+        checkTimePeriod(startTime, endTime);
         var delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()));
         if (startTime != null) {
@@ -416,6 +447,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public Optional<Long> deletePointValues(DataPointVO vo) {
+        checkNull(vo);
         DeleteConditionStep<PointValuesRecord> delete = baseDelete()
                 .where(pv.dataPointId.eq(vo.getSeriesId()));
         return Optional.of(deletePointValues(delete));
@@ -484,6 +516,8 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
     @Override
     public long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
+        checkNull(vo);
+        checkTimePeriod(from, to);
         var select = create.select(DSL.count())
                 .from(pv)
                 .where(pv.dataPointId.eq(vo.getSeriesId()));
