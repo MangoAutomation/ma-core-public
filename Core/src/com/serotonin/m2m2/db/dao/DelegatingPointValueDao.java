@@ -7,7 +7,6 @@ package com.serotonin.m2m2.db.dao;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -91,8 +90,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
             List<IdPointValueTime> values = new ArrayList<>();
             primary.getPointValuesCombined(primaryPoints, from, to, limit, sortOrder, values::add);
             secondary.getPointValuesCombined(secondaryPoints, from, to, limit, sortOrder, values::add);
-            Comparator<PointValueTime> comparator = Comparator.comparingLong(PointValueTime::getTime);
-            values.sort(sortOrder == TimeOrder.DESCENDING ? comparator.reversed() : comparator);
+            values.sort(TimeOrder.DESCENDING.getComparator());
             if (limit != null) {
                 values = values.subList(0, limit);
             }

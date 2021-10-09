@@ -22,12 +22,19 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -65,12 +72,23 @@ public interface PointValueDao {
         /**
          * Ascending time order, i.e. oldest values first
          */
-        ASCENDING,
+        ASCENDING(Comparator.comparingLong(IdPointValueTime::getTime).thenComparingInt(IdPointValueTime::getSeriesId)),
 
         /**
          * Descending time order, i.e. newest values first
          */
-        DESCENDING
+        DESCENDING(Comparator.comparingLong(IdPointValueTime::getTime).reversed().thenComparingInt(IdPointValueTime::getSeriesId));
+
+
+        private final Comparator<IdPointValueTime> comparator;
+
+        TimeOrder(Comparator<IdPointValueTime> comparator) {
+            this.comparator = comparator;
+        }
+
+        public Comparator<IdPointValueTime> getComparator() {
+            return comparator;
+        }
     }
 
     class StartAndEndTime {
@@ -291,7 +309,55 @@ public interface PointValueDao {
      * @param callback callback to return point values, in ascending time order, i.e. the oldest value first.
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
-    void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback);
+    default void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback) {
+        checkNull(vos);
+        checkTimePeriod(from, to);
+        checkLimit(limit);
+        checkNull(sortOrder);
+        checkNull(callback);
+        if (vos.isEmpty() || limit != null && limit == 0) return;
+
+        int minChunkSize = 10;
+        int maxChunkSize = 100;
+        // take a guess at a good chunk size to use based on number of points and total limit
+        int chunkSize = limit == null ? maxChunkSize : Math.max(Math.min(limit / vos.size() + 1, maxChunkSize), minChunkSize);
+
+        Comparator<IdPointValueTime> comparator = sortOrder.getComparator();
+        // iterators are polled in order of their heads, have to ensure we don't add an empty iterator, or we will get NPE
+        Queue<PointValueIterator> iterators = new PriorityQueue<>(vos.size(), (a, b) -> comparator.compare(a.peek(), b.peek()));
+
+        // add iterators for each point to a priority queue
+        for (var vo : vos) {
+            PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
+            // only add iterators with data, our comparator does not support nulls
+            if (it.hasNext()) {
+                iterators.offer(it);
+            }
+        }
+
+        int i = 0;
+        PointValueIterator it;
+        while ((it = iterators.poll()) != null) {
+            // we know our iterators always have data
+            callback.accept(it.next());
+            if (limit != null && ++i == limit) {
+                break;
+            }
+
+            // only re-add iterators with data, our comparator does not support nulls
+            if (it.hasNext()) {
+                // unfortunately, PriorityQueue does not allow access to it's siftDown method
+                // we have to remove (poll method above) and re-add the iterator which is less efficient
+                iterators.offer(it);
+            }
+        }
+    }
+
+    default Stream<IdPointValueTime> getPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
+        PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
+        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
+        return StreamSupport.stream(spliterator, false);
+    }
 
     /**
      * Get the point values for a collection of points, for the time range {@code [from,to)}, while also
