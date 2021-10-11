@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.time.Period;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -86,15 +85,8 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
         } else if (primaryPoints.isEmpty()) {
             secondary.getPointValuesCombined(secondaryPoints, from, to, limit, sortOrder, callback);
         } else {
-            // collect into a list then sort by time stamp
-            List<IdPointValueTime> values = new ArrayList<>();
-            primary.getPointValuesCombined(primaryPoints, from, to, limit, sortOrder, values::add);
-            secondary.getPointValuesCombined(secondaryPoints, from, to, limit, sortOrder, values::add);
-            values.sort(TimeOrder.DESCENDING.getComparator());
-            if (limit != null) {
-                values = values.subList(0, limit);
-            }
-            values.forEach(callback);
+            // use the default method which get can combine multiple streams without loading into memory
+            PointValueDao.super.getPointValuesCombined(vos, from, to, limit, sortOrder, callback);
         }
     }
 
