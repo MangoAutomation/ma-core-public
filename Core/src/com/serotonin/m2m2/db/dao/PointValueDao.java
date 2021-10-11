@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -38,6 +36,9 @@ import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import com.infiniteautomation.mango.db.iterators.PerPointIterator;
+import com.infiniteautomation.mango.db.iterators.PointValueIterator;
+import com.infiniteautomation.mango.db.iterators.CombinedIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
@@ -322,39 +323,26 @@ public interface PointValueDao {
         // take a guess at a good chunk size to use based on number of points and total limit
         int chunkSize = limit == null ? maxChunkSize : Math.max(Math.min(limit / vos.size() + 1, maxChunkSize), minChunkSize);
 
-        Comparator<IdPointValueTime> comparator = sortOrder.getComparator().thenComparingInt(IdPointValueTime::getSeriesId);
-        // iterators are polled in order of their heads, have to ensure we don't add an empty iterator, or we will get NPE
-        Queue<PointValueIterator> iterators = new PriorityQueue<>(vos.size(), (a, b) -> comparator.compare(a.peek(), b.peek()));
-
-        // add iterators for each point to a priority queue
-        for (var vo : vos) {
-            PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
-            // only add iterators with data, our comparator does not support nulls
-            if (it.hasNext()) {
-                iterators.offer(it);
-            }
-        }
-
-        int i = 0;
-        PointValueIterator it;
-        while ((it = iterators.poll()) != null) {
-            // we know our iterators always have data
+        CombinedIterator it = new CombinedIterator(this, vos, from, to, chunkSize, sortOrder);
+        for (int i = 0; (limit == null || i < limit) && it.hasNext(); i++) {
             callback.accept(it.next());
-            if (limit != null && ++i == limit) {
-                break;
-            }
-
-            // only re-add iterators with data, our comparator does not support nulls
-            if (it.hasNext()) {
-                // unfortunately, PriorityQueue does not allow access to it's siftDown method
-                // we have to remove (poll method above) and re-add the iterator which is less efficient
-                iterators.offer(it);
-            }
         }
     }
 
-    default Stream<IdPointValueTime> getPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
+    default Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
         PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
+        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
+        return StreamSupport.stream(spliterator, false);
+    }
+
+    default Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
+        PerPointIterator it = new PerPointIterator(this, vos, from, to, chunkSize, sortOrder);
+        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
+        return StreamSupport.stream(spliterator, false);
+    }
+
+    default Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
+        CombinedIterator it = new CombinedIterator(this, vos, from, to, chunkSize, sortOrder);
         Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
         return StreamSupport.stream(spliterator, false);
     }

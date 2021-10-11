@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.db.iterators;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
