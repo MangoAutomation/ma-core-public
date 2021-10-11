@@ -72,12 +72,12 @@ public interface PointValueDao {
         /**
          * Ascending time order, i.e. oldest values first
          */
-        ASCENDING(Comparator.comparingLong(IdPointValueTime::getTime).thenComparingInt(IdPointValueTime::getSeriesId)),
+        ASCENDING(Comparator.comparingLong(IdPointValueTime::getTime)),
 
         /**
          * Descending time order, i.e. newest values first
          */
-        DESCENDING(Comparator.comparingLong(IdPointValueTime::getTime).reversed().thenComparingInt(IdPointValueTime::getSeriesId));
+        DESCENDING(Comparator.comparingLong(IdPointValueTime::getTime).reversed());
 
 
         private final Comparator<IdPointValueTime> comparator;
@@ -322,7 +322,7 @@ public interface PointValueDao {
         // take a guess at a good chunk size to use based on number of points and total limit
         int chunkSize = limit == null ? maxChunkSize : Math.max(Math.min(limit / vos.size() + 1, maxChunkSize), minChunkSize);
 
-        Comparator<IdPointValueTime> comparator = sortOrder.getComparator();
+        Comparator<IdPointValueTime> comparator = sortOrder.getComparator().thenComparingInt(IdPointValueTime::getSeriesId);
         // iterators are polled in order of their heads, have to ensure we don't add an empty iterator, or we will get NPE
         Queue<PointValueIterator> iterators = new PriorityQueue<>(vos.size(), (a, b) -> comparator.compare(a.peek(), b.peek()));
 
