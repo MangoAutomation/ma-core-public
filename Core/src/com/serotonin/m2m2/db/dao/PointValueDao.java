@@ -319,7 +319,7 @@ public interface PointValueDao {
         if (vos.isEmpty() || limit != null && limit == 0) return;
 
         int minChunkSize = 10;
-        int maxChunkSize = 100;
+        int maxChunkSize = chunkSize();
         // take a guess at a good chunk size to use based on number of points and total limit
         int chunkSize = limit == null ? maxChunkSize : Math.max(Math.min(limit / vos.size() + 1, maxChunkSize), minChunkSize);
 
@@ -329,20 +329,20 @@ public interface PointValueDao {
         }
     }
 
-    default Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
-        PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
+    default Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
+        PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize(), sortOrder);
         Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
         return StreamSupport.stream(spliterator, false);
     }
 
-    default Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
-        PerPointIterator it = new PerPointIterator(this, vos, from, to, chunkSize, sortOrder);
+    default Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
+        PerPointIterator it = new PerPointIterator(this, vos, from, to, chunkSize(), sortOrder);
         Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
         return StreamSupport.stream(spliterator, false);
     }
 
-    default Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder, int chunkSize) {
-        CombinedIterator it = new CombinedIterator(this, vos, from, to, chunkSize, sortOrder);
+    default Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
+        CombinedIterator it = new CombinedIterator(this, vos, from, to, chunkSize(), sortOrder);
         Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
         return StreamSupport.stream(spliterator, false);
     }
@@ -634,4 +634,7 @@ public interface PointValueDao {
      */
     List<Long> getFiledataIds(DataPointVO vo);
 
+    default int chunkSize() {
+        return 100;
+    }
 }
