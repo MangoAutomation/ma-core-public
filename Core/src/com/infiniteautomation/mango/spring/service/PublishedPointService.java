@@ -83,14 +83,16 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
         //Ensure publisher exists
         if(publisherDao.getXidById(vo.getPublisherId()) == null) {
-            result.addContextualMessage("publisherId", "validate.invalidValue");
+            result.addContextualMessage("publisherId", "validate.publisher.missingPublisher", vo.getPublisherId());
         }
         //Ensure data point exists
         if(dataPointDao.getXidById(vo.getDataPointId()) == null) {
-            result.addContextualMessage("dataPointId", "validate.invalidValue");
+            result.addContextualMessage("dataPointId", "validate.publisher.missingPoint", vo.getDataPointId());
         }
         return result;
     }
 
-
+    public void restart(String xid, boolean enabled, boolean restart) {
+        //TODO Published Points - implement RT
+    }
 }
