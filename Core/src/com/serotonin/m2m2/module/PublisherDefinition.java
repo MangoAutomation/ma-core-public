@@ -16,6 +16,8 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
+import com.serotonin.m2m2.vo.IDataPoint;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -182,12 +184,42 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
     }
 
     /**
-     * Create a new published point vo
+     * Create a new published point vo with all base field initialized
      * @return
      */
     @NonNull
-    abstract public PublishedPointVO createPublishedPointVO();
+    public <T extends PublishedPointVO> T createPublishedPointVO(PUB publisher, IDataPoint dataPoint) {
+        T vo = newPublishedPointVO();
+        vo.setPublisherId(publisher.getId());
+        vo.setPublisherXid(publisher.getXid());
+        vo.setDataPointId(dataPoint.getId());
+        vo.setDataPointXid(dataPoint.getXid());
+        vo.setPublisherTypeName(getPublisherTypeName());
+        return vo;
+    }
 
+    /**
+     * Create a point with the publisher id, type and data point id set
+     * @param publisherId
+     * @param dataPointId
+     * @param <T>
+     * @return
+     */
+    @NonNull
+    public <T extends PublishedPointVO> T createPublishedPointVO(int publisherId, int dataPointId) {
+        T vo = newPublishedPointVO();
+        vo.setPublisherId(publisherId);
+        vo.setDataPointId(dataPointId);
+        vo.setPublisherTypeName(getPublisherTypeName());
+        return vo;
+    }
+
+    /**
+     * Instantiate a new published point VO for use when creating new points
+     * @return
+     */
+    @NonNull
+    abstract protected <T extends PublishedPointVO> T newPublishedPointVO();
 
     /**
      * Create the module specific settings to store in database

@@ -69,6 +69,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
@@ -569,6 +570,36 @@ public class MangoTestBase {
             fail(e.getValidationErrorMessage(Common.getTranslations()));
             return null;
         }
+    }
+
+    /**
+     * Create a published point
+     * @param publisher
+     * @param dataPoint
+     * @param enabled
+     * @return
+     */
+    public MockPublishedPointVO createMockPublishedPoint(MockPublisherVO publisher, IDataPoint dataPoint, boolean enabled) {
+        MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dataPoint);
+        pp.setName(dataPoint.getName());
+        pp.setEnabled(true);
+        return pp;
+    }
+
+    /**
+     * Create a list of published points
+     * @param publisher
+     * @param dataPoints
+     * @param count
+     * @param enabled
+     * @return
+     */
+    public List<PublishedPointVO> createMockPublishedPoints(MockPublisherVO publisher, List<IDataPoint> dataPoints, int count, boolean enabled) {
+        List<PublishedPointVO> points = new ArrayList<>();
+        for(IDataPoint dp : dataPoints) {
+            points.add(createMockPublishedPoint(publisher, dp, enabled));
+        }
+        return points;
     }
 
     /**
