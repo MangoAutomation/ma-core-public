@@ -672,6 +672,9 @@ public interface PointValueDao {
      */
     List<Long> getFiledataIds(DataPointVO vo);
 
+    /**
+     * @return number of point values to retrieve at once when streaming data
+     */
     default int chunkSize() {
         return 100;
     }
