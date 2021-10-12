@@ -51,7 +51,7 @@ public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO
     }
 
     @Override
-    public @NonNull PublishedPointVO createPublishedPointVO() {
+    protected @NonNull PublishedPointVO newPublishedPointVO() {
         return new MockPublishedPointVO();
     }
 
@@ -70,7 +70,7 @@ public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO
     }
 
     /**
-     * Weekly Schedule Models
+     * Mock published poiunt data models
      *
      * @author Terry Packer
      */
@@ -83,6 +83,7 @@ public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO
     }
 
     private static class MockPublishedPointDbData1 extends MockPublishedPointDbData {
+        public MockPublishedPointDbData1() { }
         public MockPublishedPointDbData1(MockPublishedPointVO vo) {
             this.testField = vo.getTestField();
         }

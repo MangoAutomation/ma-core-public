@@ -7,7 +7,6 @@ package com.infiniteautomation.mango.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
@@ -57,8 +56,10 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     public ProcessResult validate(PublishedPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
+        //Ensure the definition exists
         if(definition == null) {
-            throw new ShouldNeverHappenException("No publisher definition for type " + vo.getPublisherTypeName());
+            result.addContextualMessage("publisherTypeName", "validate.invalidValue");
+            return result;
         }
         definition.validate(result, vo, user);
         return result;
@@ -68,8 +69,10 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     public ProcessResult validate(PublishedPointVO existing, PublishedPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
+        //Ensure the definition exists
         if(definition == null) {
-            throw new ShouldNeverHappenException("No publisher definition for type " + vo.getPublisherTypeName());
+            result.addContextualMessage("publisherTypeName", "validate.invalidValue");
+            return result;
         }
         definition.validate(result, existing, vo, user);
         return result;
