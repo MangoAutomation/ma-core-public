@@ -218,14 +218,13 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 7;
+    private static final int version = 8;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeObject(alarmLevels);
         SerializationHelper.writeSafeUTF(out, name);
         out.writeBoolean(enabled);
-        out.writeObject(points);
         out.writeInt(publishType);
         out.writeInt(cacheWarningSize);
         out.writeInt(cacheDiscardSize);
@@ -340,6 +339,17 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
+            publishType = in.readInt();
+            cacheWarningSize = in.readInt();
+            cacheDiscardSize = in.readInt();
+            sendSnapshot = in.readBoolean();
+            snapshotSendPeriodType = in.readInt();
+            snapshotSendPeriods = in.readInt();
+            publishAttributeChanges = in.readBoolean();
+        }else if(ver == 8){
+            alarmLevels = (HashMap<Integer, AlarmLevels>) in.readObject();
+            name = SerializationHelper.readSafeUTF(in);
+            enabled = in.readBoolean();
             publishType = in.readInt();
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
