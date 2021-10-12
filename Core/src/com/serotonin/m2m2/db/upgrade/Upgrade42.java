@@ -59,7 +59,7 @@ public class Upgrade42 extends DBUpgrade {
             String publisherType = row.get(publisherTypeField);
             PublisherVO<? extends PublishedPointVO> p = (PublisherVO<? extends PublishedPointVO>) SerializationHelper
                     .readObjectInContextFromArray(row.get(dataField));
-
+            p.setId(publisherId);
             //TODO Published Points ensure definition exists otherwise ...????
             PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(publisherType);
 
@@ -92,6 +92,8 @@ public class Upgrade42 extends DBUpgrade {
                 }
             }
             insertPoint.execute();
+
+            //TODO Published Points - re save publisher to re-serialize?
         });
     }
 
