@@ -70,7 +70,7 @@ public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO
     }
 
     /**
-     * Mock published poiunt data models
+     * Mock published point data models
      *
      * @author Terry Packer
      */
