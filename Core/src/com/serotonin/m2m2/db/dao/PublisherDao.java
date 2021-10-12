@@ -5,7 +5,6 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -199,19 +198,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
 
     @Override
     public void loadRelationalData(PublisherVO<? extends PublishedPointVO> vo) {
-        //TODO Published Points  this is not necessary anymore with casecade on delete
-        // remove deleted data points
-        Iterator<? extends PublishedPointVO> it = vo.getPoints().iterator();
-        while (it.hasNext()) {
-            PublishedPointVO point = it.next();
-            String xid = dataPointDao.getXidById(point.getDataPointId());
-            if (xid == null) {
-                it.remove();
-            } else {
-                point.setDataPointXid(xid);
-            }
-        }
-
         vo.getDefinition().loadRelationalData(vo);
     }
 
