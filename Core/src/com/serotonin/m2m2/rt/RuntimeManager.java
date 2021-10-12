@@ -172,8 +172,6 @@ public interface RuntimeManager extends ILifecycle {
 
     void forceDataSourcePoll(int dataSourceId);
 
-    Optional<Long> purgeDataPointValues();
-
     Optional<Long> purgeDataPointValues(DataPointVO vo, int periodType, int periodCount);
 
     Optional<Long> purgeDataPointValues(DataPointVO vo);

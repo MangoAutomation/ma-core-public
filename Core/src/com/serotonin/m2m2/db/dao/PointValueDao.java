@@ -582,7 +582,9 @@ public interface PointValueDao {
      * @throws UnsupportedOperationException if the database does not support delete
      * @throws IllegalArgumentException if vo is null
      */
-    Optional<Long> deleteAllPointData();
+    default Optional<Long> deleteAllPointData() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Delete any point values that are no longer tied to a point in the {@link com.infiniteautomation.mango.db.tables.DataPoints} table.

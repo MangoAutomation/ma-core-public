@@ -492,19 +492,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public Optional<Long> purgeDataPointValues() {
-        Optional<Long> count = pointValueDao.deleteAllPointData();
-        dataPointDao.getAll(point -> {
-            pointValueCache.removeAllValues(point);
-            DataPointRT rt = getDataPoint(point.getId());
-            if(rt != null) {
-                rt.invalidateCache(false);
-            }
-        });
-        return count;
-    }
-
-    @Override
     public Optional<Long> purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
         long before = DateUtils.minus(Common.timer.currentTimeMillis(), periodType, periodCount);
         return purgeDataPointValues(vo, before);
