@@ -48,6 +48,7 @@ public class AuditEventType extends EventType {
     public static final String TYPE_JSON_DATA = "JSON_DATA";
     public static final String TYPE_EVENT_DETECTOR = "EVENT_DETECTOR";
     public static final String TYPE_PUBLISHER = "EVENT_PUBLISHER";
+    public static final String TYPE_PUBLISHED_POINT = "PUBLISHED_POINT";
     public static final String TYPE_MAILING_LIST = "MAILING_LIST";
     public static final String TYPE_ROLE = "ROLE";
 
@@ -65,6 +66,7 @@ public class AuditEventType extends EventType {
         registerEventType(TYPE_JSON_DATA, "event.audit.jsonData");
         registerEventType(TYPE_EVENT_DETECTOR, "event.audit.eventDetector");
         registerEventType(TYPE_PUBLISHER, "event.audit.publisher");
+        registerEventType(TYPE_PUBLISHED_POINT, "event.audit.publishedPoint");
         registerEventType(TYPE_MAILING_LIST, "event.audit.mailingList");
         registerEventType(TYPE_ROLE, "event.audit.role");
 

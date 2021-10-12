@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2;
 
-import static org.junit.Assert.fail;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,6 +79,8 @@ import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
 import com.serotonin.util.properties.MangoProperties;
 
+import static org.junit.Assert.fail;
+
 /**
  *
  * Base Class for all JUnit Tests
@@ -115,7 +115,7 @@ public class MangoTestBase {
         Providers.add(MangoProperties.class, properties);
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
         Common.releaseProps = new Properties();
-        addModule("BaseTest", new MockDataSourceDefinition());
+        addModule("BaseTest", new MockDataSourceDefinition(), new MockPublisherDefinition());
     }
 
     @Before
@@ -535,6 +535,24 @@ public class MangoTestBase {
 
     /**
      * Create a publisher
+     * @param enabled
+     * @return
+     */
+    public MockPublisherVO createMockPublisher(boolean enabled) {
+        MockPublisherVO publisherVO = (MockPublisherVO) ModuleRegistry.getPublisherDefinition(MockPublisherDefinition.TYPE_NAME).baseCreatePublisherVO();
+        publisherVO.setName(UUID.randomUUID().toString());
+        publisherVO.setEnabled(enabled);
+        PublisherService publisherService = Common.getBean(PublisherService.class);
+        try {
+            return (MockPublisherVO)publisherService.insert(publisherVO);
+        } catch (ValidationException e) {
+            fail(e.getValidationErrorMessage(Common.getTranslations()));
+            return null;
+        }
+    }
+
+    /**
+     * Create a publisher with points
      * @param enabled
      * @param points
      * @return

@@ -28,6 +28,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
+ * Publisher access, currently only superadmin has read/edit/create permission
  * @author Terry Packer
  *
  */
