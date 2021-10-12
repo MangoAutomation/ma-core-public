@@ -161,7 +161,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(endTs);
         try {
-            this.dao.getPointValuesCombined(vos, null, endTs, Integer.MAX_VALUE, TimeOrder.DESCENDING, new Consumer<>() {
+            this.dao.getPointValuesCombined(vos, null, endTs, null, TimeOrder.DESCENDING, new Consumer<>() {
 
                     int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
                     int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
@@ -200,7 +200,7 @@ public class NumericPointValueDaoTestHelper {
 
     public void testLatestNoDataInBothSeries() {
         MutableInt count = new MutableInt();
-        this.dao.getPointValuesCombined(vos, null, series2StartTs, Integer.MAX_VALUE, TimeOrder.DESCENDING, (Consumer<? super IdPointValueTime>) (value) -> count.increment());
+        this.dao.getPointValuesCombined(vos, null, series2StartTs, null, TimeOrder.DESCENDING, (Consumer<? super IdPointValueTime>) (value) -> count.increment());
         Assert.assertEquals(Integer.valueOf(0), count.getValue());
     }
 
@@ -208,7 +208,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(startTs);
-        this.dao.getPointValuesCombined(vos, null, startTs, Integer.MAX_VALUE, TimeOrder.DESCENDING, new Consumer<>() {
+        this.dao.getPointValuesCombined(vos, null, startTs, null, TimeOrder.DESCENDING, new Consumer<>() {
             int seriesId2Counter = 2;
 
             @Override
@@ -239,7 +239,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(endTs);
-        this.dao.getPointValuesCombined(vos, null, endTs, Integer.MAX_VALUE, TimeOrder.DESCENDING, new Consumer<>() {
+        this.dao.getPointValuesCombined(vos, null, endTs, null, TimeOrder.DESCENDING, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
@@ -279,7 +279,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp = new MutableLong(series2EndTs + 1);
-        this.dao.getPointValuesCombined(vos, null, series2EndTs + 1, Integer.MAX_VALUE, TimeOrder.DESCENDING, new Consumer<>() {
+        this.dao.getPointValuesCombined(vos, null, series2EndTs + 1, null, TimeOrder.DESCENDING, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
@@ -316,7 +316,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(endTs);
         MutableLong timestamp2 = new MutableLong(endTs);
-        this.dao.getPointValuesPerPoint(vos, null, endTs, Integer.MAX_VALUE, TimeOrder.DESCENDING, new Consumer<>() {
+        this.dao.getPointValuesPerPoint(vos, null, endTs, null, TimeOrder.DESCENDING, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 4; //Start before last 3 samples (extra)
@@ -362,7 +362,7 @@ public class NumericPointValueDaoTestHelper {
         MutableInt mutableIndex = new MutableInt();
         MutableLong timestamp1 = new MutableLong(series2EndTs + 1);
         MutableLong timestamp2 = new MutableLong(series2EndTs + 1);
-        this.dao.getPointValuesPerPoint(vos, null, series2EndTs + 1, Integer.MAX_VALUE, TimeOrder.DESCENDING, new Consumer<>() {
+        this.dao.getPointValuesPerPoint(vos, null, series2EndTs + 1, null, TimeOrder.DESCENDING, new Consumer<>() {
 
             int seriesIdCounter = data.get(vo1.getSeriesId()).size() - 1;
             int seriesId2Counter = data.get(vo2.getSeriesId()).size() - 1;
