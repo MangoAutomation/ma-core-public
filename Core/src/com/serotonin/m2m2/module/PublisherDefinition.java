@@ -3,6 +3,16 @@
  */
 package com.serotonin.m2m2.module;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.infiniteautomation.mango.db.tables.PublishedPoints;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
@@ -31,6 +41,13 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  * @author Matthew Lohbihler
  */
 abstract public class PublisherDefinition<PUB extends PublisherVO<? extends PublishedPointVO>> extends ModuleElementDefinition {
+
+    @Autowired
+    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
+    private ObjectMapper dbMapper;
+
+    protected final PublishedPoints table = PublishedPoints.PUBLISHED_POINTS;
+
     /**
      * Used by MA core code to create a new publisher instance as required. Should not be used by client code.
      */
@@ -71,7 +88,7 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
     abstract public void validate(ProcessResult response, PUB pub);
 
     /**
-     * Validate a data source about to be updated
+     * Validate a publisher about to be updated
      *  override as necessary
      * @param response
      * @param existing
@@ -81,6 +98,25 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
         validate(response, vo);
     }
 
+    /**
+     * Validate a new published point
+     * @param response
+     * @param vo
+     * @param user
+     */
+    abstract public void validate(ProcessResult response, PublishedPointVO vo, PermissionHolder user);
+
+    /**
+     * Validate a published point to be updated
+     *  override as necessary
+     * @param response
+     * @param existing
+     * @param vo
+     * @param user
+     */
+    public void validate(ProcessResult response, PublishedPointVO existing, PublishedPointVO vo, PermissionHolder user) {
+        validate(response, vo, user);
+    }
     /**
      * If the module is uninstalled, delete any publishers of this type. If this method is overridden, be sure to call
      * super.uninstall so that this code still runs.
@@ -145,4 +181,50 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
 
     }
 
+    /**
+     * Create a new published point vo
+     * @return
+     */
+    @NonNull
+    abstract public PublishedPointVO createPublishedPointVO();
+
+
+    /**
+     * Create the module specific settings to store in database
+     * @return - JSON for database
+     */
+    abstract public String createPublishedPointDbData(PublishedPointVO vo) throws JsonProcessingException;
+
+    /**
+     * Map settings back into PublishedPoint when extracting from database
+     * @param data - JSON from database (won't be null)
+     * @return the point
+     */
+    abstract public PublishedPointVO mapPublishedPointDbData(PublishedPointVO vo, @NonNull String data) throws JsonProcessingException;
+
+    /**
+     * Store any module defined point settings into this JsonNode
+     * @param point
+     * @return
+     */
+    public String createDbJson(PublishedPointVO point) {
+        return null;
+    }
+
+
+    /**
+     * Get a writer for serializing JSON
+     * @return
+     */
+    protected ObjectWriter getObjectWriter(Class<?> type) {
+        return dbMapper.writerFor(type);
+    }
+
+    /**
+     * Get a reader for use de-serializing JSON
+     * @return
+     */
+    protected ObjectReader getObjectReader(Class<?> type) {
+        return dbMapper.readerFor(type);
+    }
 }

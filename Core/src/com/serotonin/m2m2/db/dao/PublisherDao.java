@@ -199,6 +199,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
 
     @Override
     public void loadRelationalData(PublisherVO<? extends PublishedPointVO> vo) {
+        //TODO Published Points  this is not necessary anymore with casecade on delete
         // remove deleted data points
         Iterator<? extends PublishedPointVO> it = vo.getPoints().iterator();
         while (it.hasNext()) {
