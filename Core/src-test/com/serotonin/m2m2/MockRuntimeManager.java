@@ -193,11 +193,6 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public Optional<Long> purgeDataPointValues() {
-        return Optional.empty();
-    }
-
-    @Override
     public Optional<Long> purgeDataPointValues(DataPointVO vo, int periodType, int periodCount) {
         return Optional.empty();
     }
