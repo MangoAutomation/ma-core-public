@@ -3,19 +3,29 @@
  */
 package com.serotonin.m2m2.dao;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.lang3.mutable.MutableLong;
 import org.junit.Assert;
 
-import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
@@ -50,9 +60,7 @@ public class NumericPointValueDaoTestHelper {
         this.vo2 = vo2;
         this.emptyDataPointVO = empty;
         this.dao = dao;
-        this.vos = new ArrayList<>();
-        this.vos.add(vo1);
-        this.vos.add(vo2);
+        this.vos = List.of(vo1, vo2);
         this.data = new HashMap<>();
     }
 
@@ -72,36 +80,27 @@ public class NumericPointValueDaoTestHelper {
         endTs = System.currentTimeMillis();
         startTs = endTs - (30L * 24L * 60L * 60L * 1000L);
 
-        for(DataPointVO vo : vos) {
-            this.data.put(vo.getSeriesId(), new ArrayList<>());
-        }
-
         //Insert a few samples for series 2 before our time
         series2StartTs = startTs - (1000 * 60 * 15);
         long time = series2StartTs;
         PointValueTime p2vt = new PointValueTime(-3.0, time);
-        this.dao.savePointValueSync(vo2, p2vt, null);
-        this.data.get(vo2.getSeriesId()).add(p2vt);
+        this.savePointValue(vo2, p2vt);
 
         time = startTs - (1000 * 60 * 10);
         p2vt = new PointValueTime(-2.0, time);
-        this.dao.savePointValueSync(vo2, p2vt, null);
-        this.data.get(vo2.getSeriesId()).add(p2vt);
+        this.savePointValue(vo2, p2vt);
 
         time = startTs - (1000 * 60 * 5);
         p2vt = new PointValueTime(-1.0, time);
-        this.dao.savePointValueSync(vo2, p2vt, null);
-        this.data.get(vo2.getSeriesId()).add(p2vt);
+        this.savePointValue(vo2, p2vt);
 
         time = startTs;
         //Insert a sample every 5 minutes
         double value = 0.0;
         while(time < endTs){
             PointValueTime pvt = new PointValueTime(value, time);
-            this.data.get(vo1.getSeriesId()).add(pvt);
-            this.data.get(vo2.getSeriesId()).add(pvt);
-            this.dao.savePointValueSync(vo1, pvt, null);
-            this.dao.savePointValueSync(vo2, pvt, null);
+            this.savePointValue(vo1, pvt);
+            this.savePointValue(vo2, pvt);
             time = time + 1000 * 60 * 5;
             totalSampleCount++;
             value++;
@@ -109,19 +108,39 @@ public class NumericPointValueDaoTestHelper {
 
         //Add a few more samples for series 2 after our time
         p2vt = new PointValueTime(value++, time);
-        this.dao.savePointValueSync(vo2, p2vt, null);
-        this.data.get(vo2.getSeriesId()).add(p2vt);
+        this.savePointValue(vo2, p2vt);
 
         time = time + (1000 * 60 * 5);
         p2vt = new PointValueTime(value++, time);
-        this.dao.savePointValueSync(vo2, p2vt, null);
-        this.data.get(vo2.getSeriesId()).add(p2vt);
+        this.savePointValue(vo2, p2vt);
 
         time = time + (1000 * 60 * 5);
         p2vt = new PointValueTime(value, time);
-        this.dao.savePointValueSync(vo2, p2vt, null);
-        this.data.get(vo2.getSeriesId()).add(p2vt);
+        this.savePointValue(vo2, p2vt);
         this.series2EndTs = time;
+    }
+
+    public void savePointValue(DataPointVO point, PointValueTime value) {
+        this.dao.savePointValueSync(point, value, null);
+        this.data.computeIfAbsent(point.getSeriesId(), k -> new ArrayList<>()).add(value);
+    }
+
+    public Map<Long, PointValueTime> timeIndexedValues(DataPointVO point) {
+        return this.data.getOrDefault(point.getSeriesId(), Collections.emptyList())
+                .stream()
+                .collect(Collectors.toMap(
+                        PointValueTime::getTime,
+                        Function.identity(),
+                        (m1, m2) -> { throw new IllegalStateException(); },
+                        TreeMap::new));
+    }
+
+    public Map<Integer, Map<Long, PointValueTime>> timeIndexedValues() {
+        Map<Integer, Map<Long, PointValueTime>> result = new HashMap<>();
+        for (var vo : vos) {
+            result.put(vo.getSeriesId(), timeIndexedValues(vo));
+        }
+        return result;
     }
 
     public PointValueDao getDao() {
@@ -133,6 +152,7 @@ public class NumericPointValueDaoTestHelper {
      */
     public void after() {
         this.dao.deleteAllPointData();
+        this.data.clear();;
     }
 
     /* Latest Multiple w/ callback Test Methods */
@@ -2545,4 +2565,84 @@ public class NumericPointValueDaoTestHelper {
         Assert.assertEquals(Integer.valueOf(11), count1.getValue());
         Assert.assertEquals(Integer.valueOf(11), count2.getValue());
     }
+
+    public void streamPointValues(TimeOrder order) {
+        Map<Long, PointValueTime> values = timeIndexedValues(vo1);
+        AtomicLong count = new AtomicLong();
+        AtomicLong previousTime = new AtomicLong(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
+
+        dao.streamPointValues(vo1, startTs, endTs, order).forEach(pvt -> {
+            long lastTimestamp = previousTime.getAndSet(pvt.getTime());
+            count.incrementAndGet();
+            PointValueTime expectedValue = values.get(pvt.getTime());
+
+            if (order == TimeOrder.ASCENDING) {
+                Assert.assertTrue(pvt.getTime() > lastTimestamp);
+            } else {
+                Assert.assertTrue(pvt.getTime() < lastTimestamp);
+            }
+            Assert.assertNotNull(expectedValue);
+            Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
+        });
+
+        Assert.assertEquals(totalSampleCount, count.get());
+    }
+
+    public void streamPointValuesPerPoint(TimeOrder order) {
+        var values = timeIndexedValues();
+        AtomicLong count = new AtomicLong();
+        AtomicLong previousTime = new AtomicLong();
+        Deque<Integer> seriesIds = new ArrayDeque<>();
+
+        dao.streamPointValuesPerPoint(vos, startTs, endTs, order).forEach(pvt -> {
+            if (seriesIds.contains(pvt.getSeriesId())) {
+                // already seen this series, ensure that it is the last one
+                Assert.assertEquals(pvt.getSeriesId(), (long) Objects.requireNonNull(seriesIds.peekLast()));
+            } else {
+                seriesIds.add(pvt.getSeriesId());
+                previousTime.set(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
+            }
+
+            long lastTimestamp = previousTime.getAndSet(pvt.getTime());
+            count.incrementAndGet();
+            PointValueTime expectedValue = values.get(pvt.getSeriesId()).get(pvt.getTime());
+
+            if (order == TimeOrder.ASCENDING) {
+                Assert.assertTrue(pvt.getTime() > lastTimestamp);
+            } else {
+                Assert.assertTrue(pvt.getTime() < lastTimestamp);
+            }
+            Assert.assertNotNull(expectedValue);
+            Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
+        });
+
+        Assert.assertEquals(vos.size(), seriesIds.size());
+        Assert.assertEquals(totalSampleCount * 2, count.get());
+    }
+
+    public void streamPointValuesCombined(TimeOrder order) {
+        var values = timeIndexedValues();
+        AtomicLong count = new AtomicLong();
+        AtomicLong previousTime = new AtomicLong(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
+        Set<Integer> seriesIds = new HashSet<>();
+
+        dao.streamPointValuesCombined(vos, startTs, endTs, order).forEach(pvt -> {
+            long lastTimestamp = previousTime.getAndSet(pvt.getTime());
+            count.incrementAndGet();
+            PointValueTime expectedValue = values.get(pvt.getSeriesId()).get(pvt.getTime());
+            seriesIds.add(pvt.getSeriesId());
+
+            if (order == TimeOrder.ASCENDING) {
+                Assert.assertTrue(pvt.getTime() >= lastTimestamp);
+            } else {
+                Assert.assertTrue(pvt.getTime() <= lastTimestamp);
+            }
+            Assert.assertNotNull(expectedValue);
+            Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
+        });
+
+        Assert.assertEquals(vos.size(), seriesIds.size());
+        Assert.assertEquals(totalSampleCount * 2, count.get());
+    }
+
 }

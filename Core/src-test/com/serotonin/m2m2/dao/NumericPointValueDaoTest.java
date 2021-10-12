@@ -12,6 +12,7 @@ import org.junit.Test;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 
@@ -227,4 +228,33 @@ public class NumericPointValueDaoTest extends MangoTestBase {
         this.helper.testNoStartBookendLimit();
     }
 
+    @Test
+    public void streamPointValues() {
+        this.helper.streamPointValues(TimeOrder.ASCENDING);
+    }
+
+    @Test
+    public void streamPointValuesReverse() {
+        this.helper.streamPointValues(TimeOrder.DESCENDING);
+    }
+
+    @Test
+    public void streamPointValuesPerPoint() {
+        this.helper.streamPointValuesPerPoint(TimeOrder.ASCENDING);
+    }
+
+    @Test
+    public void streamPointValuesPerPointReverse() {
+        this.helper.streamPointValuesPerPoint(TimeOrder.DESCENDING);
+    }
+
+    @Test
+    public void streamPointValuesCombined() {
+        this.helper.streamPointValuesCombined(TimeOrder.ASCENDING);
+    }
+
+    @Test
+    public void streamPointValuesCombinedReverse() {
+        this.helper.streamPointValuesCombined(TimeOrder.DESCENDING);
+    }
 }
