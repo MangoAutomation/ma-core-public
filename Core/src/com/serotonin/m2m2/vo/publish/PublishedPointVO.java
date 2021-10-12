@@ -6,38 +6,94 @@ package com.serotonin.m2m2.vo.publish;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
-import com.serotonin.json.spi.JsonSerializable;
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.vo.AbstractActionVO;
 
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublishedPointVO implements Serializable, JsonSerializable {
+abstract public class PublishedPointVO extends AbstractActionVO {
+    public static final String XID_PREFIX = "PP_";
+
+    private int publisherId;
     private int dataPointId;
+    private JsonNode jsonData;
+
+    //
+    //
+    // Convenience data from publisher
+    //
+    private String publisherTypeName;
 
     /**
-     * This field is only used for JSON export, and for outputting to the REST model
+     * These fields are only used for JSON export, and for outputting to the REST model
      */
     private transient String dataPointXid;
+    @JsonProperty
+    private transient String publisherXid;
 
     public int getDataPointId() {
         return dataPointId;
     }
-
     public void setDataPointId(int dataPointId) {
         this.dataPointId = dataPointId;
     }
 
+    public int getPublisherId() {
+        return publisherId;
+    }
+
+    public void setPublisherId(int publisherId) {
+        this.publisherId = publisherId;
+    }
+
+    public JsonNode getJsonData() {
+        return jsonData;
+    }
+
+    public void setJsonData(JsonNode jsonData) {
+        this.jsonData = jsonData;
+    }
+
+    public String getPublisherTypeName() {
+        return publisherTypeName;
+    }
+
+    public void setPublisherTypeName(String publisherTypeName) {
+        this.publisherTypeName = publisherTypeName;
+    }
+
+    public String getDataPointXid() {
+        return dataPointXid;
+    }
+    public void setDataPointXid(String dataPointXid) {
+        this.dataPointXid = dataPointXid;
+    }
+
+    public String getPublisherXid() {
+        return publisherXid;
+    }
+
+    public void setPublisherXid(String publisherXid) {
+        this.publisherXid = publisherXid;
+    }
+
+    @Override
+    public String getTypeKey() {
+        return "event.audit.publishedPoint";
+    }
+
     //
     //
-    // Serialization
+    // Legacy Serialization
     //
     private static final long serialVersionUID = -1;
     private static final int version = 1;
@@ -74,11 +130,4 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
         dataPointId = id;
     }
 
-    public String getDataPointXid() {
-        return dataPointXid;
-    }
-
-    public void setDataPointXid(String dataPointXid) {
-        this.dataPointXid = dataPointXid;
-    }
 }
