@@ -3,10 +3,17 @@
  */
 package com.serotonin.m2m2.rt.publish;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +22,11 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.PublishedPointGroupInitializer;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -24,6 +34,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
@@ -35,7 +46,7 @@ import com.serotonin.util.ILifecycleState;
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutClient implements ILifecycle {
+abstract public class PublisherRT<T extends PublisherVO, POINT extends PublishedPointVO> extends TimeoutClient implements ILifecycle {
     private final Logger log = LoggerFactory.getLogger(PublisherRT.class);
     public static final int POINT_DISABLED_EVENT = 1;
     public static final int QUEUE_SIZE_WARNING_EVENT = 2;
@@ -45,38 +56,76 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     private final EventType pointDisabledEventType;
     private final EventType queueSizeWarningEventType;
 
-    private final PublisherVO<T> vo;
-    protected final List<PublishedPointRT<T>> pointRTs = new ArrayList<>();
-    protected final PublishQueue<T, PointValueTime> queue;
-    protected final AttributePublishQueue<T> attributesChangedQueue;
+    protected final T vo;
+
+    /**
+     * The implementor of the publisher is responsible for resetting this back to false after reading the points.
+     * It is set to true every time {@link #addPublishedPoint(PublishedPointRT)} and {@link #removePublishedPoint(PublishedPointRT)} are called.
+     */
+    protected boolean pointListChanged = false;
+
+    /**
+     * Protects access to {@link #publishedPoints}
+     */
+    protected final ReadWriteLock pointListChangeLock = new ReentrantReadWriteLock();
+    /**
+     *  Protected by {@link #pointListChangeLock}.
+     *  <p>Note: We could potentially remove explicit locking and use a ConcurrentHashMap. However this presents two problems -</p>
+     *  <ul>
+     *      <li>Potential race condition when a point is added while terminating, we must iterate over every point to terminate them</li>
+     *      <li>There is no linked version of ConcurrentHashMap so iteration will be slower</li>
+     *  </ul>
+     */
+    private final Map<Integer, PublishedPointRT<POINT>> publishedPointsMap = createPublishedPointsMap();
+
+    /**
+     *  You must hold the read lock of {@link #pointListChangeLock} when accessing this collection.
+     */
+    protected final Collection<PublishedPointRT<POINT>> publishedPoints = Collections.unmodifiableCollection(publishedPointsMap.values());
+
+    protected final PublishQueue<T, POINT, PointValueTime> queue;
+    protected final AttributePublishQueue<POINT> attributesChangedQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
     private SendThread sendThread;
     private TimerTask snapshotTask;
     private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
+    protected final DataPointDao dataPointDao;
+    protected final PublishedPointDao publishedPointDao;
 
-    public PublisherRT(PublisherVO<T> vo) {
+    public PublisherRT(T vo) {
         this.vo = vo;
-        queue = createPublishQueue(vo);
-        attributesChangedQueue = createAttirbutesChangedQueue();
-        pointDisabledEventType = new PublisherEventType(vo, POINT_DISABLED_EVENT);
-        queueSizeWarningEventType = new PublisherEventType(vo, QUEUE_SIZE_WARNING_EVENT);
+        this.queue = createPublishQueue(vo);
+        this.attributesChangedQueue = createAttirbutesChangedQueue();
+        this.pointDisabledEventType = new PublisherEventType(vo, POINT_DISABLED_EVENT);
+        this.queueSizeWarningEventType = new PublisherEventType(vo, QUEUE_SIZE_WARNING_EVENT);
+        this.dataPointDao = Common.getBean(DataPointDao.class);
+        this.publishedPointDao = Common.getBean(PublishedPointDao.class);
     }
 
     public int getId() {
         return vo.getId();
     }
 
-    protected PublishQueue<T, PointValueTime> createPublishQueue(PublisherVO<T> vo) {
+    protected PublishQueue<T, POINT, PointValueTime> createPublishQueue(PublisherVO vo) {
         return new PublishQueue<>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
-    protected AttributePublishQueue<T> createAttirbutesChangedQueue() {
-        return new AttributePublishQueue<>(vo.getPoints().size());
+    protected AttributePublishQueue<POINT> createAttirbutesChangedQueue() {
+        return new AttributePublishQueue<>();
     }
 
-    public final PublisherVO<T> getVo() {
+    public final PublisherVO getVo() {
         return vo;
+    }
+
+    /**
+     * Can be used to return a different implementation, or empty map if you are going to override
+     * {@link #publishedPointAdded(PublishedPointRT)} etc.
+     * @return map to use to store data points
+     */
+    protected Map<Integer, PublishedPointRT<POINT>> createPublishedPointsMap() {
+        return new LinkedHashMap<>();
     }
 
     /**
@@ -117,7 +166,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         }
     }
 
-    void publish(T vo, PointValueTime newValue) {
+    void publish(POINT vo, PointValueTime newValue) {
         queue.add(vo, newValue);
 
         synchronized (sendThread) {
@@ -125,7 +174,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         }
     }
 
-    public void publish(T vo, List<PointValueTime> newValues) {
+    public void publish(POINT vo, List<PointValueTime> newValues) {
         queue.add(vo, newValues);
 
         synchronized (sendThread) {
@@ -133,15 +182,29 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         }
     }
 
-    protected void pointInitialized(PublishedPointRT<T> rt) {
+    /**
+     * A data point that is being published was just initialized
+     * @param rt
+     */
+    protected void dataPointInitialized(PublishedPointRT<POINT> rt) {
         checkForDisabledPoints();
     }
 
-    protected void pointTerminated(PublishedPointRT<T> rt) {
+    /**
+     * A data point that is being published was just terminated
+     * @param rt
+     * @param dp
+     */
+    protected void dataPointTerminated(PublishedPointRT<POINT> rt, DataPointVO dp) {
         checkForDisabledPoints();
     }
 
-    protected void attributeChanged(T vo, Map<String, Object> attributes) {
+    /**
+     * An attribute for a published point was just changed
+     * @param vo
+     * @param attributes
+     */
+    protected void attributeChanged(POINT vo, Map<String, Object> attributes) {
         if(this.vo.isPublishAttributeChanges()) {
             attributesChangedQueue.add(vo, attributes);
             synchronized (sendThread) {
@@ -154,12 +217,18 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     synchronized private void checkForDisabledPoints() {
         int badPointId = -1;
         String disabledPoint = null;
-        for (PublishedPointRT<T> rt : pointRTs) {
-            if (!rt.isPointEnabled()) {
-                badPointId = rt.getVo().getDataPointId();
-                disabledPoint = DataPointDao.getInstance().getXidById(badPointId);
-                break;
+
+        pointListChangeLock.readLock().lock();
+        try {
+            for (PublishedPointRT<POINT> rt : publishedPoints) {
+                if (!rt.isPointEnabled()) {
+                    badPointId = rt.getVo().getDataPointId();
+                    disabledPoint = dataPointDao.getXidById(badPointId);
+                    break;
+                }
             }
+        } finally {
+            pointListChangeLock.readLock().unlock();
         }
 
         boolean foundBadPoint = badPointId != -1;
@@ -202,8 +271,33 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     //
     // Lifecycle
     //
-    abstract public void initialize();
-    abstract public void terminateImpl();
+
+    /**
+     * Initialize this publisher
+     */
+    protected void initialize() { }
+
+    /**
+     * Create a new send thread
+     * @return
+     */
+    protected abstract SendThread createSendThread();
+
+    /**
+     * Hook to know when all points are added, the publisher is fully initialized
+     */
+    protected void initialized() { }
+
+    /**
+     * Hook for just before beginning terminating the publisher
+     */
+    protected void terminating() { }
+
+    /**
+     * Terminate the publisher, next will be the send thread, snapshot ,
+     *  queue and finally the points
+     */
+    protected void terminateImpl() { }
 
     @Override
     public final synchronized void initialize(boolean safe) {
@@ -211,6 +305,12 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         this.state = ILifecycleState.INITIALIZING;
         try {
             initialize();
+            initializeSendThread();
+            initializePoints();
+            checkForDisabledPoints();
+            initializeSnapshot();
+            //Signal to the publisher that all points are added.
+            initialized();
         } catch (Exception e) {
             terminate();
             joinTermination();
@@ -219,26 +319,48 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         this.state = ILifecycleState.RUNNING;
     }
 
-    protected void initialize(SendThread sendThread) {
-        this.sendThread = sendThread;
-        sendThread.initialize(false);
+    protected void initializeSendThread() {
+        this.sendThread = createSendThread();
+        this.sendThread.initialize(false);
+    }
 
-        for (T p : vo.getPoints())
-            pointRTs.add(new PublishedPointRT<>(p, this));
+    /**
+     * The {@link PublishedPointGroupInitializer} calls
+     * {@link RuntimeManager#startPublishedPoint(PublishedPointVO) startPublishedPoint()}
+     * which adds the points to the cache in the RTM and initializes them.
+     */
+    private void initializePoints() {
+        ExecutorService executorService = Common.getBean(ExecutorService.class);
 
+        // Add the enabled points to the data source.
+        List<PublishedPointVO> points = publishedPointDao.getPublishedPoints(getId());
+
+        //Startup multi threaded
+        int pointsPerThread = Common.envProps.getInt("runtime.publishedPoint.startupThreads.pointsPerThread", 1000);
+        int startupThreads = Common.envProps.getInt("runtime.publishedPoint.startupThreads", Runtime.getRuntime().availableProcessors());
+        PublishedPointGroupInitializer pointInitializer = new PublishedPointGroupInitializer(executorService, startupThreads);
+        pointInitializer.initialize(points, pointsPerThread);
+    }
+
+    protected void initializeSnapshot() {
         if (vo.isSendSnapshot()) {
             // Add a schedule to send the snapshot
             long snapshotPeriodMillis = Common.getMillis(vo.getSnapshotSendPeriodType(), vo.getSnapshotSendPeriods());
             snapshotTask = new TimeoutTask(new FixedRateTrigger(0, snapshotPeriodMillis), this);
         }
-
-        checkForDisabledPoints();
     }
 
     @Override
     public final synchronized void terminate() {
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
         this.state = ILifecycleState.TERMINATING;
+
+        try {
+            //Signal we are going down
+            terminating();
+        } catch (Exception e) {
+            log.error("Failed to signal termination to " + readableIdentifier(), e);
+        }
 
         try {
             terminateImpl();
@@ -265,10 +387,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         }
 
         try {
-            // Terminate the point listeners
-            for (PublishedPointRT<T> rt : pointRTs) {
-                rt.terminate();
-            }
+            terminatePoints();
         } catch (Exception e) {
             log.error("Failed to terminate points for " + readableIdentifier(), e);
         }
@@ -314,6 +433,16 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         Common.runtimeManager.removePublisher(this);
     }
 
+    /**
+     * Stop the data points.
+     */
+    private void terminatePoints() {
+        forEachPoint(p -> {
+            p.terminate();
+            p.joinTermination();
+        });
+    }
+
     //
     //
     // Scheduled snapshot send stuff
@@ -326,22 +455,20 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         jobThread = Thread.currentThread();
 
         try {
-            synchronized (this) {
-                for (PublishedPointRT<T> rt : pointRTs) {
-                    if (rt.isPointEnabled()) {
-                        DataPointRT dp = Common.runtimeManager.getDataPoint(rt.getVo().getDataPointId());
-                        if (dp != null) {
-                            PointValueTime pvt = dp.getPointValue();
-                            if (pvt != null)
-                                publish(rt.getVo(), pvt);
-                            //Publish snapshot of attributes
-                            if(vo.isPublishAttributeChanges()) {
-                                rt.publishAttributes(dp, false);
-                            }
+            forEachPoint(rt -> {
+                if (rt.isPointEnabled()) {
+                    DataPointRT dp = Common.runtimeManager.getDataPoint(rt.getVo().getDataPointId());
+                    if (dp != null) {
+                        PointValueTime pvt = dp.getPointValue();
+                        if (pvt != null)
+                            publish((POINT)rt.getVo(), pvt);
+                        //Publish snapshot of attributes
+                        if(vo.isPublishAttributeChanges()) {
+                            rt.publishAttributes(dp, false);
                         }
                     }
                 }
-            }
+            });
         }
         finally {
             jobThread = null;
@@ -366,5 +493,109 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     @Override
     public String readableIdentifier() {
         return String.format("Publisher (name=%s, id=%d, type=%s)", getVo().getName(), getId(), getClass().getSimpleName());
+    }
+
+    /**
+     * Add a point during its initialization
+     * @param rt
+     */
+    public void addPublishedPoint(PublishedPointRT<POINT> rt) {
+        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
+        rt.ensureState(ILifecycleState.INITIALIZING);
+        addPublishedPointImpl(rt);
+        publishedPointAdded(rt);
+    }
+
+    /**
+     * Remove a point during its termination
+     * @param rt
+     */
+    public void removePublishedPoint(PublishedPointRT<POINT> rt) {
+        ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
+        rt.ensureState(ILifecycleState.TERMINATING);
+        removePublishedPointImpl(rt);
+        publishedPointRemoved(rt);
+    }
+
+    /**
+     * Adds the data point to the current points. If you override this method you should also override
+     * {@link PublisherRT#streamPoints()}, {@link #forEachPoint(Consumer)}.
+     *
+     * @param point to add
+     */
+    protected void addPublishedPointImpl(PublishedPointRT<POINT> point) {
+        pointListChangeLock.writeLock().lock();
+        try {
+            if (publishedPointsMap.putIfAbsent(point.getId(), point) != null) {
+                throw new IllegalStateException("Published point with ID " + point.getId() + " is already present on this data source");
+            }
+            pointListChanged = true;
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Removes the published point from the current points. If you override this method you should also override
+     * {@link PublisherRT#streamPoints()}, {@link #forEachPoint(Consumer)}, and {@link #getPointById(int)}.
+     *
+     * @param point to remove
+     */
+    protected void removePublishedPointImpl(PublishedPointRT<POINT> point) {
+        pointListChangeLock.writeLock().lock();
+        try {
+            if (!publishedPointsMap.remove(point.getId(), point)) {
+                throw new IllegalStateException("Published point with ID " + point.getId() + " was not present on this data source");
+            }
+            pointListChanged = true;
+        } finally {
+            pointListChangeLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Hook that is run when a published point is added.
+     * @param point that was added
+     */
+    protected void publishedPointAdded(PublishedPointRT<POINT> point) {
+    }
+
+    /**
+     * Hook that is run when a published point is removed.
+     * @param point that was removed
+     */
+    protected void publishedPointRemoved(PublishedPointRT<POINT> point) {
+    }
+
+    /**
+     * Care must be taken to close the stream. Always use a try-with-resources statement e.g.
+     * <pre>{@code
+     * try (Stream<PublishedPointRT> stream = streamPoints()) {
+     *     return stream.mapToInt(PublishedPointRT::getId).toArray();
+     * }
+     * }</pre>
+     * @return stream of points
+     */
+    protected Stream<PublishedPointRT<POINT>> streamPoints() {
+        pointListChangeLock.readLock().lock();
+        return publishedPoints.stream().onClose(() -> pointListChangeLock.readLock().unlock());
+    }
+
+    protected void forEachPoint(Consumer<PublishedPointRT<? extends PublishedPointVO>> consumer) {
+        pointListChangeLock.readLock().lock();
+        try {
+            publishedPoints.forEach(consumer);
+        } finally {
+            pointListChangeLock.readLock().unlock();
+        }
+    }
+
+    protected PublishedPointRT<POINT> getPointById(int id) {
+        pointListChangeLock.readLock().lock();
+        try {
+            return publishedPointsMap.get(id);
+        } finally {
+            pointListChangeLock.readLock().unlock();
+        }
     }
 }

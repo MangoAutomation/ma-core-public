@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.db.upgrade;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.jooq.Field;
@@ -57,7 +58,7 @@ public class Upgrade42 extends DBUpgrade {
         this.create.select(idField, publisherTypeField, dataField).from(publishersTable).forEach(row -> {
             int publisherId = row.get(idField);
             String publisherType = row.get(publisherTypeField);
-            PublisherVO<? extends PublishedPointVO> p = (PublisherVO<? extends PublishedPointVO>) SerializationHelper
+            PublisherVO p = (PublisherVO) SerializationHelper
                     .readObjectInContextFromArray(row.get(dataField));
             p.setId(publisherId);
             //TODO Published Points ensure definition exists otherwise ...????
@@ -75,7 +76,8 @@ public class Upgrade42 extends DBUpgrade {
                     publishedPoints.dataPointId,
                     publishedPoints.data);
 
-            for(PublishedPointVO point : p.getPoints()) {
+            List<PublishedPointVO> points = (List<PublishedPointVO>)p.deletedProperties().get("points");
+            for(PublishedPointVO point : points) {
                 //TODO Published Points Batch insert points
                 // - decide on a decent name or remove the field?
                 // - ensure data point exists before inserting new point

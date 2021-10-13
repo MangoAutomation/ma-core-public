@@ -44,6 +44,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
+import com.serotonin.m2m2.rt.publish.PublishedPointRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -68,7 +69,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
     /**
      * Store of enabled publishers
      */
-    private final ConcurrentMap<Integer, PublisherRT<? extends PublishedPointVO>> runningPublishers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, PublisherRT<? extends PublisherVO, ? extends PublishedPointVO>> runningPublishers = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, PublishedPointRT> publishedPointCache  = new ConcurrentHashMap<>();
 
     private final ExecutorService executorService;
     private final DataSourceDao dataSourceDao;
@@ -178,16 +180,16 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Start the publishers that are enabled
         long pubStart = Common.timer.currentTimeMillis();
-        List<PublisherVO<? extends PublishedPointVO>> publishers = publisherDao.getAll();
+        List<PublisherVO> publishers = publisherDao.getAll();
         //Sort into a list of only enabled publishers
-        List<PublisherVO<? extends PublishedPointVO>> publishersToStart = new ArrayList<>();
-        for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
+        List<PublisherVO> publishersToStart = new ArrayList<>();
+        for (PublisherVO vo : publishers) {
             if (vo.isEnabled()) {
                publishersToStart.add(vo);
             }
         }
         LOG.info("Starting " + publishersToStart.size() + " Publishers...");
-        for (PublisherVO<? extends PublishedPointVO> vo : publishersToStart) {
+        for (PublisherVO vo : publishersToStart) {
                 if (safe) {
                     vo.setEnabled(false);
                     publisherDao.update(vo.getId(), vo);
@@ -218,7 +220,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         ensureState(ILifecycleState.RUNNING);
         state = ILifecycleState.TERMINATING;
 
-        for (PublisherRT<? extends PublishedPointVO> publisher : runningPublishers.values())
+        for (PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher : runningPublishers.values())
             stopPublisher(publisher.getId());
 
         // Get the RTM defs and sort by reverse init priority.
@@ -546,13 +548,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
     // Publishers
     //
     @Override
-    public Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers() {
+    public Collection<PublisherRT<? extends PublisherVO, ? extends PublishedPointVO>> getRunningPublishers() {
         return runningPublishers.values();
     }
 
     @Override
     @Nullable
-    public PublisherRT<? extends PublishedPointVO> getRunningPublisher(int publisherId) {
+    public PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> getRunningPublisher(int publisherId) {
         return runningPublishers.get(publisherId);
     }
 
@@ -563,17 +565,17 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
+    public void startPublisher(PublisherVO vo) {
         // Ensure that the publisher is saved and enabled.
         Assert.isTrue(vo.getId() > 0, "Publisher must be saved");
         Assert.isTrue(vo.isEnabled(), "Publisher must be enabled");
         ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
 
-        PublisherRT<? extends PublishedPointVO> publisher = runningPublishers.computeIfAbsent(vo.getId(), k -> vo.createPublisherRT());
+        PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher = runningPublishers.computeIfAbsent(vo.getId(), k -> vo.createPublisherRT());
 
         long startTime = System.nanoTime();
 
-        // Create and initialize the runtime version of the data source.
+        // Initialize the runtime of the publisher.
         publisher.initialize(false);
 
         long duration = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
@@ -583,7 +585,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void stopPublisher(int publisherId) {
-        PublisherRT<? extends PublishedPointVO> publisher = runningPublishers.get(publisherId);
+        PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher = runningPublishers.get(publisherId);
         if (publisher != null) {
             long startTime = System.nanoTime();
 
@@ -604,8 +606,56 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
     }
 
-    public void removePublisher(PublisherRT<? extends PublishedPointVO> publisher) {
+    @Override
+    public void removePublisher(PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher) {
         publisher.ensureState(ILifecycleState.TERMINATED);
         runningPublishers.remove(publisher.getId(), publisher);
+    }
+
+    @Override
+    public void startPublishedPoint(PublishedPointVO vo) {
+        // Ensure that the published point is saved and enabled.
+        Assert.isTrue(vo.getId() > 0, "Published point must be saved");
+        Assert.isTrue(vo.isEnabled(), "Published point not enabled");
+        ensureState(ILifecycleState.INITIALIZING, ILifecycleState.RUNNING);
+
+        // Only add the published point if its publisher is enabled.
+        PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> pub = runningPublishers.get(vo.getPublisherId());
+        if (pub != null) {
+            PublishedPointRT point = publishedPointCache.computeIfAbsent(vo.getId(), k -> new PublishedPointRT(
+                    vo,
+                    pub
+            ));
+
+            // Initialize it, will fail if published point is already initializing or running
+            point.initialize(false);
+        }
+    }
+
+    @Override
+    public void stopPublishedPoint(int id) {
+        PublishedPointRT<? extends PublishedPointVO> point = publishedPointCache.get(id);
+        if (point != null) {
+            point.terminate();
+            point.joinTermination();
+        }
+    }
+
+    @Override
+    public boolean isPublishedPointRunning(int id) {
+        PublishedPointRT<? extends PublishedPointVO> point = getPublishedPoint(id);
+        return point != null && point.getLifecycleState() == ILifecycleState.RUNNING;
+    }
+
+    @Override
+    @Nullable
+    public PublishedPointRT<? extends PublishedPointVO> getPublishedPoint(int id) {
+        return publishedPointCache.get(id);
+    }
+
+    @Override
+    public void removePublishedPoint(PublishedPointRT<? extends PublishedPointVO> publishedPoint) {
+        publishedPoint.ensureState(ILifecycleState.TERMINATED);
+        publishedPointCache.remove(publishedPoint.getId(), publishedPoint);
     }
 }

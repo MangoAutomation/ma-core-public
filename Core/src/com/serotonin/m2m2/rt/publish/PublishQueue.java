@@ -16,12 +16,13 @@ import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
+import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
  * 
  * @author Matthew Lohbihler
  */
-public class PublishQueue<T extends PublishedPointVO, V> {
+public class PublishQueue<PUB extends PublisherVO, T extends PublishedPointVO, V> {
     private static final Logger LOG = LoggerFactory.getLogger(PublishQueue.class);
     private static final long SIZE_CHECK_DELAY = 5000;
 
@@ -32,14 +33,14 @@ public class PublishQueue<T extends PublishedPointVO, V> {
     final ValueMonitor<Integer> queueSizeMonitor;
 
     protected final ConcurrentLinkedQueue<PublishQueueEntry<T, V>> queue = new ConcurrentLinkedQueue<PublishQueueEntry<T, V>>();
-    private final PublisherRT<T> owner;
+    private final PublisherRT<PUB, T> owner;
     private final int warningSize;
     private final int dewarningSize;
     private final int discardSize;
     private boolean warningActive = false;
     private long lastSizeCheck;
 
-    public PublishQueue(PublisherRT<T> owner, int warningSize, int discardSize) {
+    public PublishQueue(PublisherRT<PUB, T> owner, int warningSize, int discardSize) {
         this.owner = owner;
         this.warningSize = warningSize;
         this.dewarningSize = (int) (warningSize * 0.9); // Deactivate the size warning at 90% of the warning size.

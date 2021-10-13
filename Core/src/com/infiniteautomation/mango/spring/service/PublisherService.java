@@ -3,9 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -16,14 +13,11 @@ import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
@@ -33,7 +27,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Service
-public class PublisherService extends AbstractVOService<PublisherVO<? extends PublishedPointVO>, PublisherDao> {
+public class PublisherService extends AbstractVOService<PublisherVO, PublisherDao> {
 
     private final RunAs runAs;
 
@@ -44,34 +38,34 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     }
 
     @Override
-    public boolean hasCreatePermission(PermissionHolder user, PublisherVO<? extends PublishedPointVO> vo) {
+    public boolean hasCreatePermission(PermissionHolder user, PublisherVO vo) {
         return permissionService.hasAdminRole(user);
     }
 
     @Override
-    public boolean hasEditPermission(PermissionHolder user, PublisherVO<? extends PublishedPointVO> vo) {
+    public boolean hasEditPermission(PermissionHolder user, PublisherVO vo) {
         return permissionService.hasAdminRole(user);
     }
 
     @Override
-    public boolean hasReadPermission(PermissionHolder user, PublisherVO<? extends PublishedPointVO> vo) {
+    public boolean hasReadPermission(PermissionHolder user, PublisherVO vo) {
         return permissionService.hasAdminRole(user);
     }
 
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends RoleVO> event) {
         if (event.getType() == DaoEventType.DELETE) {//So we don't have to restart it
-            for (PublisherRT<?> rt : Common.runtimeManager.getRunningPublishers()) {
+            for (PublisherRT rt : Common.runtimeManager.getRunningPublishers()) {
                 rt.handleRoleEvent(event);
             }
         }
     }
 
     @Override
-    public PublisherVO<? extends PublishedPointVO> insert(PublisherVO<? extends PublishedPointVO> vo)
+    public PublisherVO insert(PublisherVO vo)
             throws PermissionException, ValidationException {
 
-        PublisherVO<? extends PublishedPointVO> result = super.insert(vo);
+        PublisherVO result = super.insert(vo);
         if (result.isEnabled()) {
             Common.runtimeManager.startPublisher(result);
         }
@@ -80,10 +74,10 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     }
 
     @Override
-    protected PublisherVO<? extends PublishedPointVO> update(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, ValidationException {
+    protected PublisherVO update(PublisherVO existing, PublisherVO vo) throws PermissionException, ValidationException {
         ensureEditPermission(Common.getUser(), existing);
         Common.runtimeManager.stopPublisher(existing.getId());
-        PublisherVO<? extends PublishedPointVO> result = super.update(existing, vo);
+        PublisherVO result = super.update(existing, vo);
         if (result.isEnabled()) {
             Common.runtimeManager.startPublisher(result);
         }
@@ -92,10 +86,10 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
 
 
     @Override
-    protected PublisherVO<? extends PublishedPointVO> delete(PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, NotFoundException {
+    protected PublisherVO delete(PublisherVO vo) throws PermissionException, NotFoundException {
         ensureDeletePermission(Common.getUser(), vo);
         Common.runtimeManager.stopPublisher(vo.getId());
-        PublisherVO<? extends PublishedPointVO> result = super.delete(vo);
+        PublisherVO result = super.delete(vo);
         runAs.runAs(runAs.systemSuperadmin(), () -> {
             Common.eventManager.cancelEventsForPublisher(result.getId());
         });
@@ -108,8 +102,8 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
      * @param restart
      */
     public void restart(String xid, boolean enabled, boolean restart) {
-        PublisherVO<? extends PublishedPointVO> vo = get(xid);
-        PublisherVO<? extends PublishedPointVO> existing = (PublisherVO<? extends PublishedPointVO>) vo.copy();
+        PublisherVO vo = get(xid);
+        PublisherVO existing = (PublisherVO) vo.copy();
         ensureEditPermission(Common.getUser(), vo);
         if (enabled && restart) {
             vo.setEnabled(true);
@@ -121,20 +115,20 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     }
 
     @Override
-    public ProcessResult validate(PublisherVO<? extends PublishedPointVO> vo) {
+    public ProcessResult validate(PublisherVO vo) {
         ProcessResult response = commonValidation(vo);
         vo.getDefinition().validate(response, vo);
         return response;
     }
 
     @Override
-    public ProcessResult validate(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo) {
+    public ProcessResult validate(PublisherVO existing, PublisherVO vo) {
         ProcessResult response = commonValidation(vo);
         vo.getDefinition().validate(response, existing, vo);
         return response;
     }
 
-    private ProcessResult commonValidation(PublisherVO<? extends PublishedPointVO> vo) {
+    private ProcessResult commonValidation(PublisherVO vo) {
         ProcessResult response = super.validate(vo);
         if (vo.isSendSnapshot()) {
             if (vo.getSnapshotSendPeriods() <= 0)
@@ -150,24 +144,6 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
         if (vo.getCacheDiscardSize() <= vo.getCacheWarningSize())
             response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
 
-        Set<Integer> set = new HashSet<>();
-
-        for (PublishedPointVO point : vo.getPoints()) {
-            int pointId = point.getDataPointId();
-            //Does this point even exist?
-
-            if (set.contains(pointId)) {
-                DataPointVO dp = DataPointDao.getInstance().get(pointId);
-                response.addContextualMessage("points", "validate.publisher.duplicatePoint", dp.getExtendedName(), dp.getXid());
-            } else {
-                String dpXid = DataPointDao.getInstance().getXidById(pointId);
-                if (dpXid == null) {
-                    response.addContextualMessage("points", "validate.publisher.missingPoint", pointId);
-                } else {
-                    set.add(pointId);
-                }
-            }
-        }
         return response;
     }
 

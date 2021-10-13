@@ -3,7 +3,16 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.emport.ImportTaskDependencies;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -17,13 +26,6 @@ import com.serotonin.m2m2.module.definitions.permissions.ExportPermissionDefinit
 import com.serotonin.m2m2.module.definitions.permissions.ImportPermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.util.ProgressiveTaskListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.Map;
 
 /**
  * Service to facilitate JSON import/export
@@ -39,6 +41,7 @@ public class EmportService {
     private final DataSourceService dataSourceService;
     private final DataPointService dataPointService;
     private final PublisherService publisherService;
+    private final PublishedPointService publishedPointService;
     private final EventHandlerService eventHandlerService;
     private final JsonDataService jsonDataService;
     private final PermissionService permissionService;
@@ -54,6 +57,7 @@ public class EmportService {
                          DataSourceService dataSourceService,
                          DataPointService dataPointService,
                          PublisherService publisherService,
+                         PublishedPointService publishedPointService,
                          EventHandlerService eventHandlerService,
                          JsonDataService jsonDataService,
                          PermissionService permissionService,
@@ -67,6 +71,7 @@ public class EmportService {
         this.dataSourceService = dataSourceService;
         this.dataPointService = dataPointService;
         this.publisherService = publisherService;
+        this.publishedPointService = publishedPointService;
         this.eventHandlerService = eventHandlerService;
         this.jsonDataService = jsonDataService;
         this.permissionService = permissionService;
@@ -84,17 +89,18 @@ public class EmportService {
     public ImportTask getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations) {
         permissionService.ensurePermission(Common.getUser(), importPermissionDefinition.getPermission());
         return new ImportTask(root,
-                translations,
+                new ImportTaskDependencies(translations,
                 roleService,
                 usersService,
                 mailingListService,
                 dataSourceService,
                 dataPointService,
                 publisherService,
+                publishedPointService,
                 eventHandlerService,
                 jsonDataService,
                 eventDetectorService,
-                systemPermissionService,
+                systemPermissionService),
                 listener, schedule);
     }
 
