@@ -16,7 +16,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  *
  * @author Terry Packer
  */
-public class MockPublisherVO extends PublisherVO<MockPublishedPointVO> {
+public class MockPublisherVO extends PublisherVO {
 
     private static final long serialVersionUID = -1L;
 
@@ -31,12 +31,7 @@ public class MockPublisherVO extends PublisherVO<MockPublishedPointVO> {
     }
 
     @Override
-    protected MockPublishedPointVO createPublishedPointInstance() {
-        return new MockPublishedPointVO();
-    }
-
-    @Override
-    public PublisherRT<MockPublishedPointVO> createPublisherRT() {
+    public PublisherRT<MockPublisherVO, MockPublishedPointVO> createPublisherRT() {
         return new MockPublisherRT(this);
     }
 

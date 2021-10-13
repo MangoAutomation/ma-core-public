@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.infiniteautomation.mango.util.exception.FeatureDisabledException;
-import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
@@ -46,6 +45,7 @@ import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -73,10 +73,12 @@ public class ModulesService {
 
     private final Environment env;
     private final PermissionService permissionService;
+    private final PublishedPointDao publishedPointDao;
 
-    public ModulesService(Environment env, PermissionService permissionService) {
+    public ModulesService(Environment env, PermissionService permissionService, PublishedPointDao publishedPointDao) {
         this.env = env;
         this.permissionService = permissionService;
+        this.publishedPointDao = publishedPointDao;
 
         // Add our own listener
         listeners.add(new ModulesServiceListener());
@@ -293,11 +295,10 @@ public class ModulesService {
             json.put("dataSourcesUsage", dataSourceCounts);
             List<DataPointUsageStatistics> dataPointCounts = DataPointDao.getInstance().getUsage();
             json.put("dataPointsUsage", dataPointCounts);
-            AggregatePublisherUsageStatistics stats = PublisherDao.getInstance().getUsage();
-            List<PublisherUsageStatistics> publisherCounts = stats.getPublisherUsageStatistics();
-            json.put("publishersUsage", publisherCounts);
-            List<PublisherPointsUsageStatistics> publisherPointsCounts = stats.getPublisherPointsUsageStatistics();
-            json.put("publisherPointsUsage", publisherPointsCounts);
+            List<PublisherUsageStatistics> publisherUsage = PublisherDao.getInstance().getUsage();
+            json.put("publishersUsage", publisherUsage);
+            List<PublisherPointsUsageStatistics> publisherPointsUsageStatistics = publishedPointDao.getUsage();
+            json.put("publisherPointsUsage", publisherPointsUsageStatistics);
 
             for (ValueMonitor<?> m : Common.MONITORED_VALUES.getMonitors()) {
                 if (m.isUploadToStore()) {

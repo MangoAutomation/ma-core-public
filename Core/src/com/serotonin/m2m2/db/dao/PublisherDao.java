@@ -3,13 +3,15 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.io.InputStream;
+import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
@@ -23,8 +25,6 @@ import com.infiniteautomation.mango.db.tables.Publishers;
 import com.infiniteautomation.mango.db.tables.records.PublishersRecord;
 import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
-import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.m2m2.Common;
@@ -32,7 +32,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
-import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -40,7 +39,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Matthew Lohbihler
  */
 @Repository()
-public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedPointVO>, PublishersRecord, Publishers> {
+public class PublisherDao extends AbstractVoDao<PublisherVO, PublishersRecord, Publishers> {
 
     private static final LazyInitSupplier<PublisherDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(PublisherDao.class);
@@ -69,15 +68,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     private static final String PUBLISHER_SELECT = "select id, xid, publisherType, data from publishers ";
-
-    public static class PublisherNameComparator implements Comparator<PublisherVO<?>> {
-        @Override
-        public int compare(PublisherVO<?> p1, PublisherVO<?> p2) {
-            if (StringUtils.isBlank(p1.getName()))
-                return -1;
-            return p1.getName().compareTo(p2.getName());
-        }
-    }
 
     /**
      * Delete all publishers of a given type
@@ -111,16 +101,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
                 .execute();
     }
 
-    public int countPointsForPublisherType(String publisherType, int excludeId) {
-        try (Stream<Record> stream = create.select(table.fields()).from(table).where(
-                table.publisherType.equal(publisherType),
-                table.id.notEqual(excludeId)).stream()) {
-
-            return stream.map(this::mapRecordSafe).filter(Objects::nonNull)
-                    .map(p -> p.getPoints().size()).reduce(0, Integer::sum);
-        }
-    }
-
     @Override
     protected void handleMappingException(Exception e, Record record) {
         if (e.getCause() instanceof ModuleNotLoadedException) {
@@ -136,7 +116,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
      * Get the count of data sources per type
      * @return
      */
-    public AggregatePublisherUsageStatistics getUsage() {
+    public List<PublisherUsageStatistics> getUsage() {
         Field<Integer> count = DSL.count(table.publisherType);
         List<PublisherUsageStatistics> publisherUsageStatistics = create.select(table.publisherType, count)
                 .from(table)
@@ -148,18 +128,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
                     usage.setCount(record.get(count));
                     return usage;
                 });
-
-        List<PublisherPointsUsageStatistics> publisherPointsUsageStatistics = new ArrayList<>();
-        for(PublisherUsageStatistics stats : publisherUsageStatistics) {
-            PublisherPointsUsageStatistics pointStats = new PublisherPointsUsageStatistics();
-            pointStats.setPublisherType(stats.getPublisherType());
-            pointStats.setCount(countPointsForPublisherType(stats.getPublisherType(), -1));
-            publisherPointsUsageStatistics.add(pointStats);
-        }
-        AggregatePublisherUsageStatistics usage = new AggregatePublisherUsageStatistics();
-        usage.setPublisherUsageStatistics(publisherUsageStatistics);
-        usage.setPublisherPointsUsageStatistics(publisherPointsUsageStatistics);
-        return usage;
+        return publisherUsageStatistics;
     }
 
     @Override
@@ -168,7 +137,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    protected Record toRecord(PublisherVO<? extends PublishedPointVO> vo) {
+    protected Record toRecord(PublisherVO vo) {
         Record record = table.newRecord();
         record.set(table.xid, vo.getXid());
         record.set(table.publisherType, vo.getDefinition().getPublisherTypeName());
@@ -177,8 +146,8 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    public PublisherVO<? extends PublishedPointVO> mapRecord(Record record) {
-        PublisherVO<? extends PublishedPointVO> p = (PublisherVO<? extends PublishedPointVO>) SerializationHelper
+    public PublisherVO mapRecord(Record record) {
+        PublisherVO p = (PublisherVO) SerializationHelper
             .readObjectInContextFromArray(record.get(table.data));
         p.setId(record.get(table.id));
         p.setXid(record.get(table.xid));
@@ -187,22 +156,22 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    public void savePreRelationalData(PublisherVO<?> existing, PublisherVO<?> vo) {
+    public void savePreRelationalData(PublisherVO existing, PublisherVO vo) {
         vo.getDefinition().savePreRelationalData(existing, vo);
     }
 
     @Override
-    public void saveRelationalData(PublisherVO<?> existing, PublisherVO<?> vo) {
+    public void saveRelationalData(PublisherVO existing, PublisherVO vo) {
         vo.getDefinition().saveRelationalData(existing, vo);
     }
 
     @Override
-    public void loadRelationalData(PublisherVO<? extends PublishedPointVO> vo) {
+    public void loadRelationalData(PublisherVO vo) {
         vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override
-    public void deleteRelationalData(PublisherVO<?> vo) {
+    public void deleteRelationalData(PublisherVO vo) {
         create.deleteFrom(handlerMapping)
                 .where(handlerMapping.eventTypeName.eq(EventTypeNames.PUBLISHER))
                 .and(handlerMapping.eventTypeRef1.eq(vo.getId()))
@@ -211,7 +180,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     }
 
     @Override
-    public void deletePostRelationalData(PublisherVO<?> vo) {
+    public void deletePostRelationalData(PublisherVO vo) {
         vo.getDefinition().deletePostRelationalData(vo);
     }
 

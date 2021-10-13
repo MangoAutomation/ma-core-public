@@ -27,6 +27,10 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
         this.attributesToBePublished = new LinkedHashMap<>(initialSize);
     }
 
+    public AttributePublishQueue() {
+        this.attributesToBePublished = new LinkedHashMap<>();
+    }
+
     /**
      * Add attributes to be published.  There is only 1 entry for attributes per published point and the order is 
      *   insertion based.

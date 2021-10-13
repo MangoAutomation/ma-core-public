@@ -8,23 +8,22 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.publish.PublishQueue;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.rt.publish.SendThread;
-import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
+import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
 
 /**
  *
  * @author Terry Packer
  */
-public class MockPublisherRT extends PublisherRT<MockPublishedPointVO> {
-    PublisherVO<MockPublishedPointVO> vo;
-    public MockPublisherRT(PublisherVO<MockPublishedPointVO> vo) {
+public class MockPublisherRT extends PublisherRT<MockPublisherVO, MockPublishedPointVO> {
+
+    public MockPublisherRT(MockPublisherVO vo) {
         super(vo);
-        this.vo = vo;
     }
 
     @Override
-    public void initialize() {
-        super.initialize(new MockSendThread());
+    protected SendThread createSendThread() {
+        return new MockSendThread();
     }
 
     @Override
@@ -32,7 +31,7 @@ public class MockPublisherRT extends PublisherRT<MockPublishedPointVO> {
 
     }
 
-    PublishQueue<MockPublishedPointVO, PointValueTime> getPublishQueue() {
+    PublishQueue<MockPublisherVO, MockPublishedPointVO, PointValueTime> getPublishQueue() {
         return queue;
     }
 

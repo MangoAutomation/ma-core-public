@@ -4,17 +4,22 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
+import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
  * Published point access, currently only superadmin has read/edit/create permission
@@ -25,21 +30,26 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     private final PublisherDao publisherDao;
     private final DataPointDao dataPointDao;
+    private final PublisherService publisherService;
 
     /**
+     *
      * @param publishedPointDao
      * @param dependencies
      * @param publisherDao
      * @param dataPointDao
+     * @param publisherService
      */
     @Autowired
     public PublishedPointService(PublishedPointDao publishedPointDao,
                                  ServiceDependencies dependencies,
                                  PublisherDao publisherDao,
-                                 DataPointDao dataPointDao) {
+                                 DataPointDao dataPointDao,
+                                 PublisherService publisherService) {
         super(publishedPointDao, dependencies);
         this.publisherDao = publisherDao;
         this.dataPointDao = dataPointDao;
+        this.publisherService = publisherService;
     }
 
     @Override
@@ -55,6 +65,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     @Override
     public ProcessResult validate(PublishedPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
+
         PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
         //Ensure the definition exists
         if(definition == null) {
@@ -86,13 +97,38 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
             result.addContextualMessage("publisherId", "validate.publisher.missingPublisher", vo.getPublisherId());
         }
         //Ensure data point exists
-        if(dataPointDao.getXidById(vo.getDataPointId()) == null) {
+        String dataPointXid = dataPointDao.getXidById(vo.getDataPointId());
+        if(dataPointXid == null) {
             result.addContextualMessage("dataPointId", "validate.publisher.missingPoint", vo.getDataPointId());
+        }else {
+            List<PublishedPointVO> points = dao.getPublishedPoints(vo.getPublisherId());
+            for (PublishedPointVO point : points) {
+                if (point.getDataPointId() == vo.getDataPointId() && point.getId() != vo.getId()) {
+                    //This point is already published by another point
+                    DataPointVO dp = dataPointDao.get(vo.getDataPointId());
+                    result.addContextualMessage("dataPointId", "validate.publisher.duplicatePoint", dataPointXid);
+                }
+            }
         }
+
         return result;
     }
 
     public void restart(String xid, boolean enabled, boolean restart) {
         //TODO Published Points - implement RT
+    }
+
+    /**
+     * Replace all points on a publisher with these points
+     * @param vo
+     * @param pointVos
+     */
+    public void replacePoints(PublisherVO vo, List<PublishedPointVO> pointVos) {
+        publisherService.ensureEditPermission(Common.getUser(), vo);
+        //Validate all points
+        for(PublishedPointVO point : pointVos) {
+            ensureValid(point, Common.getUser());
+        }
+        dao.replacePoints(vo.getId(), pointVos);
     }
 }

@@ -42,7 +42,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  *
  * @author Matthew Lohbihler
  */
-abstract public class PublisherDefinition<PUB extends PublisherVO<? extends PublishedPointVO>> extends ModuleElementDefinition {
+abstract public class PublisherDefinition<PUB extends PublisherVO> extends ModuleElementDefinition {
 
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)

@@ -8,14 +8,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
+import net.jazdw.rql.parser.ASTNode;
+import net.jazdw.rql.parser.RQLParser;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.emport.ImportTaskDependencies;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
@@ -26,6 +28,7 @@ import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.PublishedPointService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
@@ -42,9 +45,6 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-
-import net.jazdw.rql.parser.ASTNode;
-import net.jazdw.rql.parser.RQLParser;
 
 public class JsonEmportScriptUtility extends ScriptUtility {
     public static String CONTEXT_KEY = "JsonEmport";
@@ -173,7 +173,19 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask sit = new ScriptImportTask(jo);
+            ImportTaskDependencies dependencies = new ImportTaskDependencies(Common.getTranslations(),
+                    Common.getBean(RoleService.class),
+                    Common.getBean(UsersService.class),
+                    Common.getBean(MailingListService.class),
+                    Common.getBean(DataSourceService.class),
+                    Common.getBean(DataPointService.class),
+                    Common.getBean(PublisherService.class),
+                    Common.getBean(PublishedPointService.class),
+                    Common.getBean(EventHandlerService.class),
+                    Common.getBean(JsonDataService.class),
+                    Common.getBean(EventDetectorsService.class),
+                    Common.getBean(SystemPermissionService.class));
+            ScriptImportTask sit = new ScriptImportTask(jo, dependencies);
             runAs.runAs(permissions, () -> {
                 sit.run(Common.timer.currentTimeMillis());
             });
@@ -187,7 +199,19 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask sit = new ScriptImportTask(jo);
+            ImportTaskDependencies dependencies = new ImportTaskDependencies(Common.getTranslations(),
+                    Common.getBean(RoleService.class),
+                    Common.getBean(UsersService.class),
+                    Common.getBean(MailingListService.class),
+                    Common.getBean(DataSourceService.class),
+                    Common.getBean(DataPointService.class),
+                    Common.getBean(PublisherService.class),
+                    Common.getBean(PublishedPointService.class),
+                    Common.getBean(EventHandlerService.class),
+                    Common.getBean(JsonDataService.class),
+                    Common.getBean(EventDetectorsService.class),
+                    Common.getBean(SystemPermissionService.class));
+            ScriptImportTask sit = new ScriptImportTask(jo, dependencies);
             runAs.runAs(permissions, () -> {
                 sit.run(Common.timer.currentTimeMillis());
             });
@@ -218,20 +242,8 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     class ScriptImportTask extends ImportTask {
-
-        public ScriptImportTask(JsonObject jo) {
-            super(jo, Common.getTranslations(),
-                    Common.getBean(RoleService.class),
-                    Common.getBean(UsersService.class),
-                    Common.getBean(MailingListService.class),
-                    Common.getBean(DataSourceService.class),
-                    Common.getBean(DataPointService.class),
-                    Common.getBean(PublisherService.class),
-                    Common.getBean(EventHandlerService.class),
-                    Common.getBean(JsonDataService.class),
-                    Common.getBean(EventDetectorsService.class),
-                    Common.getBean(SystemPermissionService.class),
-                    null, false);
+        public ScriptImportTask(JsonObject jo, ImportTaskDependencies dependencies) {
+            super(jo, dependencies,null, false);
         }
 
         public List<ProcessMessage> getMessages() {

@@ -267,7 +267,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return true if it is, false if it is not or no permission
      */
     public boolean isPublisherEnabled(String xid){
-        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
+        PublisherVO vo = PublisherDao.getInstance().getByXid(xid);
 
         if(vo == null)
             return false;
@@ -287,7 +287,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enablePublisher(String xid){
-        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
+        PublisherVO vo = PublisherDao.getInstance().getByXid(xid);
         if(vo == null || !permissionService.hasAdminRole(permissions))
             return DOES_NOT_EXIST;
         else if(!vo.isEnabled()){
@@ -309,7 +309,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disablePublisher(String xid){
-        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
+        PublisherVO vo = PublisherDao.getInstance().getByXid(xid);
         if(vo == null || !permissionService.hasAdminRole(permissions))
             return DOES_NOT_EXIST;
         else if(vo.isEnabled()){
