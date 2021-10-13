@@ -11,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,12 +21,15 @@ import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.Publishers;
 import com.infiniteautomation.mango.db.tables.records.PublishedPointsRecord;
 import com.infiniteautomation.mango.spring.DaoDependencies;
+import com.infiniteautomation.mango.spring.events.StateChangeEvent;
+import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
+import com.serotonin.util.ILifecycleState;
 
 @Repository
 public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, PublishedPointsRecord, PublishedPoints> {
@@ -138,4 +142,48 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
                 .where(table.publisherId.eq(publisherId))
                 .fetch(this::mapRecordLoadRelationalData);
     }
+
+    /**
+     * Replace points for a given publisher
+     * @param id
+     * @param pointVos
+     */
+    public void replacePoints(int id, List<PublishedPointVO> pointVos) {
+        doInTransaction(txStatus -> {
+            this.create.deleteFrom(table).where(table.publisherId.eq(id));
+            for(PublishedPointVO vo : pointVos) {
+                this.insert(vo);
+            }
+        });
+    }
+
+    /**
+     * Count the points for a type of publisher (used for metrics reporting)
+     * TODO Published Points - Need TEST for this
+     * @return
+     */
+    public  List<PublisherPointsUsageStatistics> getUsage() {
+        Field<Integer> count = DSL.count(table.id);
+        return create.select(publishers.publisherType, count)
+                .from(table)
+                .join(publishers).on(publishers.id.eq(table.publisherId))
+                .groupBy(publishers.publisherType)
+                .fetch()
+                .map(record -> {
+                    PublisherPointsUsageStatistics usage = new PublisherPointsUsageStatistics();
+                    usage.setPublisherType(record.get(publishers.publisherType));
+                    usage.setCount(record.get(count));
+                    return usage;
+                });
+    }
+
+    /**
+     * Publish a notification of a runtime state change
+     * @param vo
+     * @param state
+     */
+    public void notifyStateChanged(PublishedPointVO vo, ILifecycleState state) {
+        eventPublisher.publishEvent(new StateChangeEvent<>(this, state, vo));
+    }
+
 }

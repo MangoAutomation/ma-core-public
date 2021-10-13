@@ -14,15 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.spring.service.DataPointService;
-import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
-import com.infiniteautomation.mango.spring.service.EventHandlerService;
-import com.infiniteautomation.mango.spring.service.JsonDataService;
-import com.infiniteautomation.mango.spring.service.MailingListService;
-import com.infiniteautomation.mango.spring.service.PublisherService;
-import com.infiniteautomation.mango.spring.service.RoleService;
-import com.infiniteautomation.mango.spring.service.SystemPermissionService;
-import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
@@ -32,7 +24,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
@@ -66,66 +57,59 @@ public class ImportTask extends ProgressiveTask {
 
     /**
      * Create an Import task with a listener to be scheduled now
+     *
      * @param root
-     * @param translations
-     * @param user
+     * @param dependencies
      * @param listener
+     * @param schedule
      */
     public ImportTask(JsonObject root,
-            Translations translations,
-            RoleService roleService,
-            UsersService usersService,
-            MailingListService mailingListService,
-            DataSourceService dataSourceService,
-            DataPointService dataPointService,
-            PublisherService publisherService,
-            EventHandlerService eventHandlerService,
-            JsonDataService jsonDataService,
-            EventDetectorsService eventDetectorService,
-            SystemPermissionService permissionService,
+            ImportTaskDependencies dependencies,
             ProgressiveTaskListener listener, boolean schedule) {
         super("JSON import task", "JsonImport", 10, listener);
 
         //Get the current user to use during imports
         this.user = Common.getUser();
-        this.dataPointService = dataPointService;
-        this.eventDetectorService = eventDetectorService;
+        this.dataPointService = dependencies.getDataPointService();
+        this.eventDetectorService = dependencies.getEventDetectorService();
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
-        this.importContext = new ImportContext(reader, new ProcessResult(), translations);
+        this.importContext = new ImportContext(reader, new ProcessResult(), dependencies.getTranslations());
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.ROLES))
-            addImporter(new RoleImporter(jv.toJsonObject(), roleService));
+            addImporter(new RoleImporter(jv.toJsonObject(), dependencies.getRoleService()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PERMISSIONS))
-            addImporter(new PermissionImporter(jv.toJsonObject(), permissionService));
+            addImporter(new PermissionImporter(jv.toJsonObject(), dependencies.getPermissionService()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
-            addImporter(new UserImporter(jv.toJsonObject(), usersService, user));
+            addImporter(new UserImporter(jv.toJsonObject(), dependencies.getUsersService(), user));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
-            addImporter(new DataSourceImporter(jv.toJsonObject(), dataSourceService));
+            addImporter(new DataSourceImporter(jv.toJsonObject(), dependencies.getDataSourceService()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
-            addImporter(new DataPointImporter(jv.toJsonObject(), eventDetectorPoints, dataPointService, dataSourceService));
+            addImporter(new DataPointImporter(jv.toJsonObject(), eventDetectorPoints, dataPointService, dependencies.getDataSourceService()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
-            addImporter(new MailingListImporter(jv.toJsonObject(), mailingListService));
+            addImporter(new MailingListImporter(jv.toJsonObject(), dependencies.getMailingListService()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
-            addImporter(new PublisherImporter(jv.toJsonObject(), publisherService));
+            addImporter(new PublisherImporter(jv.toJsonObject(), dependencies.getPublisherService(), dependencies.getPublishedPointService(),
+                    dependencies.getDataPointService()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
-            addImporter(new EventHandlerImporter(jv.toJsonObject(), eventHandlerService));
+            addImporter(new EventHandlerImporter(jv.toJsonObject(), dependencies.getEventHandlerService()));
 
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
-            addImporter(new SystemSettingsImporter(obj, user, permissionService, roleService));
+            addImporter(new SystemSettingsImporter(obj, user, dependencies.getPermissionService(),
+                    dependencies.getRoleService()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject()));
 
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
-            addImporter(new JsonDataImporter(jv.toJsonObject(), jsonDataService));
+            addImporter(new JsonDataImporter(jv.toJsonObject(), dependencies.getJsonDataService()));
 
         final String globalScriptId = "sstGlobalScripts";
         List<Importer> globalScriptImporters = new ArrayList<>();

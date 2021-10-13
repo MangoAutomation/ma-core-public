@@ -20,9 +20,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
-import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -39,7 +37,7 @@ import com.serotonin.util.SerializationHelper;
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO implements Serializable, JsonSerializable {
+abstract public class PublisherVO extends AbstractActionVO implements Serializable, JsonSerializable {
     public static final String XID_PREFIX = "PUB_";
 
     public interface PublishType{
@@ -63,9 +61,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
      */
     abstract public TranslatableMessage getConfigDescription();
 
-    abstract protected T createPublishedPointInstance();
-
-    abstract public PublisherRT<T> createPublisherRT();
+    abstract public PublisherRT createPublisherRT();
 
     public List<EventTypeVO> getEventTypes() {
         List<EventTypeVO> eventTypes = new ArrayList<>();
@@ -92,7 +88,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
     abstract public ExportCodes getEventCodes();
 
-    private PublisherDefinition<? extends PublisherVO<?>> definition;
+    private PublisherDefinition<? extends PublisherVO> definition;
 
     private Map<Integer, AlarmLevels> alarmLevels = new HashMap<>();
 
@@ -100,7 +96,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         return new TranslatableMessage(getDefinition().getDescriptionKey());
     }
 
-    protected List<T> points = new ArrayList<>();
     private int publishType = PublishType.ALL;
     @JsonProperty
     private int cacheWarningSize = 100;
@@ -114,11 +109,14 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     @JsonProperty
     private boolean publishAttributeChanges;
 
-    public final <PUB extends PublisherVO<? extends PublishedPointVO>> PublisherDefinition<PUB> getDefinition() {
+    //For handling of removed 'points' field (or any field that gets removed and was serialized)
+    private Map<String, Object> deletedProperties = new HashMap<>();
+
+    public final <PUB extends PublisherVO> PublisherDefinition<PUB> getDefinition() {
         return (PublisherDefinition<PUB>) definition;
     }
 
-    public <PUB extends PublisherVO<? extends PublishedPointVO>> void setDefinition(PublisherDefinition<PUB> definition) {
+    public <PUB extends PublisherVO> void setDefinition(PublisherDefinition<PUB> definition) {
         this.definition = definition;
     }
 
@@ -148,14 +146,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         if (level == null)
             return defaultLevel;
         return level;
-    }
-
-    public List<T> getPoints() {
-        return points;
-    }
-
-    public void setPoints(List<T> points) {
-        this.points = points;
     }
 
     public int getPublishType() {
@@ -242,7 +232,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         if (ver == 1) {
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
-            points = (List<T>) in.readObject();
+            storeDeleteProperty("points", in.readObject());
             //Changes Only
             if(in.readBoolean())
                 this.publishType = PublishType.CHANGES_ONLY;
@@ -259,7 +249,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         else if (ver == 2) {
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
-            points = (List<T>) in.readObject();
+            storeDeleteProperty("points", in.readObject());
             //Changes Only
             if(in.readBoolean())
                 this.publishType = PublishType.CHANGES_ONLY;
@@ -280,7 +270,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
-            points = (List<T>) in.readObject();
+            storeDeleteProperty("points", in.readObject());
             //Changes Only
             if(in.readBoolean())
                 this.publishType = PublishType.CHANGES_ONLY;
@@ -300,7 +290,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
-            points = (List<T>) in.readObject();
+            storeDeleteProperty("points", in.readObject());
             publishType = in.readInt();
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
@@ -313,7 +303,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
-            points = (List<T>) in.readObject();
+            storeDeleteProperty("points", in.readObject());
             publishType = in.readInt();
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
@@ -326,7 +316,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
-            points = (List<T>) in.readObject();
+            storeDeleteProperty("points", in.readObject());
             publishType = in.readInt();
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
@@ -338,7 +328,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             alarmLevels = (HashMap<Integer, AlarmLevels>) in.readObject();
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
-            points = (List<T>) in.readObject();
+            storeDeleteProperty("points", in.readObject());
             publishType = in.readInt();
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
@@ -364,7 +354,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("type", definition.getPublisherTypeName());
-        writer.writeEntry("points", points);
         writer.writeEntry("snapshotSendPeriodType", Common.TIME_PERIOD_CODES.getCode(snapshotSendPeriodType));
         writer.writeEntry("publishType", PUBLISH_TYPE_CODES.getCode(publishType));
         ExportCodes eventCodes = getEventCodes();
@@ -407,19 +396,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             }
         }
 
-        //Could wrap the readInto with a try-catch in case one dataPointId entry is null,
-        // however this would be a silent suppression of the issue, so we have elected not to.
-        // infiniteautomation/ma-core-public#948
-        JsonArray arr = jsonObject.getJsonArray("points");
-        if (arr != null) {
-            points.clear();
-            for (JsonValue jv : arr) {
-                T point = createPublishedPointInstance();
-                reader.readInto(point, jv.toJsonObject());
-                points.add(point);
-            }
-        }
-
         String text = jsonObject.getString("snapshotSendPeriodType");
         if (text != null) {
             snapshotSendPeriodType = Common.TIME_PERIOD_CODES.getId(text);
@@ -452,5 +428,18 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     @Override
     public String getTypeKey() {
         return "event.audit.publisher";
+    }
+
+    /*
+     * Store deserialized property for use on current read
+     */
+    public void storeDeleteProperty(String key, Object value) {
+        if (deletedProperties == null)
+            deletedProperties = new HashMap<>();
+        deletedProperties.put(key, value);
+    }
+
+    public Map<String, Object> deletedProperties() {
+        return deletedProperties;
     }
 }

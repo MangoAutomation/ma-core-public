@@ -25,6 +25,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.rt.publish.PublishedPointRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
@@ -218,7 +219,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public PublisherRT<?> getRunningPublisher(int publisherId) {
+    public PublisherRT<?,?> getRunningPublisher(int publisherId) {
 
         return null;
     }
@@ -230,7 +231,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
+    public void startPublisher(PublisherVO vo) {
 
     }
 
@@ -240,7 +241,32 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void removePublisher(PublisherRT<? extends PublishedPointVO> publisher) {
+    public void removePublisher(PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher) {
+
+    }
+
+    @Override
+    public void startPublishedPoint(PublishedPointVO vo) {
+
+    }
+
+    @Override
+    public void stopPublishedPoint(int id) {
+
+    }
+
+    @Override
+    public boolean isPublishedPointRunning(int id) {
+        return false;
+    }
+
+    @Override
+    public @Nullable PublishedPointRT<? extends PublishedPointVO> getPublishedPoint(int id) {
+        return null;
+    }
+
+    @Override
+    public void removePublishedPoint(PublishedPointRT<? extends PublishedPointVO> publishedPoint) {
 
     }
 
@@ -250,10 +276,10 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers() {
+    public Collection<PublisherRT<? extends PublisherVO, ? extends PublishedPointVO>> getRunningPublishers() {
         if(useDatabase) {
-            List<PublisherRT<?>> running = new ArrayList<>();
-            for(PublisherVO<?> vo : PublisherDao.getInstance().getAll()) {
+            List<PublisherRT<?,?>> running = new ArrayList<>();
+            for(PublisherVO vo : PublisherDao.getInstance().getAll()) {
                 if(vo.isEnabled()) {
                     running.add(vo.createPublisherRT());
                 }

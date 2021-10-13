@@ -28,7 +28,7 @@ public class PublisherEventType extends EventType {
         // Required for reflection.
     }
 
-    public PublisherEventType(PublisherVO<?> pub, int publisherEventTypeId) {
+    public PublisherEventType(PublisherVO pub, int publisherEventTypeId) {
         this.publisherId = pub.getId();
         this.publisherEventTypeId = publisherEventTypeId;
         supplyReference1(() -> {
@@ -125,7 +125,7 @@ public class PublisherEventType extends EventType {
         String xid = jsonObject.getString("XID");
         String eventType = jsonObject.getString("publisherEventTypeId");
         if (xid != null) {
-            PublisherVO<?> pb = getPublisher(jsonObject, "XID");
+            PublisherVO pb = getPublisher(jsonObject, "XID");
             publisherId = pb.getId();
             if (eventType != null) {
                 publisherEventTypeId = getInt(jsonObject, "publisherEventTypeId", pb.getEventCodes());
@@ -139,7 +139,7 @@ public class PublisherEventType extends EventType {
         String xid = null;
         String eventType = null;
         if(publisherId > 0) {
-            PublisherVO<?> pub = PublisherDao.getInstance().get(publisherId);
+            PublisherVO pub = PublisherDao.getInstance().get(publisherId);
             xid = pub.getXid();
             if (publisherEventTypeId > 0) {
                 eventType = pub.getEventCodes().getCode(publisherEventTypeId);

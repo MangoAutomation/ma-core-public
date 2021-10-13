@@ -4,9 +4,6 @@
 
 package com.serotonin.m2m2.rt.publish;
 
-import static com.serotonin.m2m2.rt.publish.PublishQueue.QUEUE_SIZE_MONITOR_ID;
-import static org.junit.Assert.fail;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -43,6 +40,9 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
+
+import static com.serotonin.m2m2.rt.publish.PublishQueue.QUEUE_SIZE_MONITOR_ID;
+import static org.junit.Assert.fail;
 
 @RunWith(SuperadminSecurityContextRunner.class)
 public class PublisherRTQueueMonitorTest extends MangoTestBase {
@@ -139,13 +139,12 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
     }
     static class TestPublisherRT extends MockPublisherRT {
 
-        public TestPublisherRT(PublisherVO<MockPublishedPointVO> vo) {
+        public TestPublisherRT(PublisherVO vo) {
             super(vo);
         }
 
         @Override
-        protected PublishQueue<MockPublishedPointVO, PointValueTime> createPublishQueue(PublisherVO<MockPublishedPointVO> vo) {
-
+        protected PublishQueue<MockPublishedPointVO, PointValueTime> createPublishQueue(PublisherVO vo) {
             TestPublisherVO tPvo = (TestPublisherVO)vo;
             return new TestPublishQueue(this, tPvo.getCacheWarningSize(), tPvo.getCacheDiscardSize(), tPvo.getAddedFuture());
         }

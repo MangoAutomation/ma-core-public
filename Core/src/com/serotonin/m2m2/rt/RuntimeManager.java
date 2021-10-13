@@ -16,6 +16,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.rt.publish.PublishedPointRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
@@ -205,10 +206,10 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Publishers
     //
-    Collection<PublisherRT<? extends PublishedPointVO>> getRunningPublishers();
+    Collection<PublisherRT<? extends PublisherVO, ? extends PublishedPointVO>> getRunningPublishers();
 
     @Nullable
-    PublisherRT<? extends PublishedPointVO> getRunningPublisher(int publisherId);
+    PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> getRunningPublisher(int publisherId);
 
     boolean isPublisherRunning(int publisherId);
 
@@ -217,7 +218,7 @@ public interface RuntimeManager extends ILifecycle {
      * @param vo the publisher VO
      * @throws IllegalArgumentException if the publisher is not saved, or is not enabled
      */
-    void startPublisher(PublisherVO<? extends PublishedPointVO> vo);
+    void startPublisher(PublisherVO vo);
 
     /**
      * Stops the publisher
@@ -229,7 +230,40 @@ public interface RuntimeManager extends ILifecycle {
      * Removes a publisher from the running publishers list. Must be terminated.
      * @param publisher publisher to remove
      */
-    void removePublisher(PublisherRT<? extends PublishedPointVO> publisher);
+    void removePublisher(PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher);
+
+    /**
+     * Start a published point, will confirm that it is enabled
+     * @param vo published point
+     */
+    void startPublishedPoint(PublishedPointVO vo);
+
+    /**
+     * Stop a running published point
+     * @param id of published point
+     */
+    void stopPublishedPoint(int id);
+
+    /**
+     * Check if a published point is running
+     * @param id id of published point
+     * @return true if running
+     */
+    boolean isPublishedPointRunning(int id);
+
+    /**
+     * Get the RT of a running published point, can be null if not running
+     * @param id of published point
+     * @return the runtime for the published point
+     */
+    @Nullable
+    PublishedPointRT<? extends PublishedPointVO> getPublishedPoint(int id);
+
+    /**
+     * Removes a point from the running published points list. Must be terminated.
+     * @param publishedPoint point to remove
+     */
+    void removePublishedPoint(PublishedPointRT<? extends PublishedPointVO> publishedPoint);
 
     /**
      * Get a message about what state we are in
