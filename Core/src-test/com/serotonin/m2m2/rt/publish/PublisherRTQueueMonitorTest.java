@@ -119,7 +119,7 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
         private final CompletableFuture<Void> added = new CompletableFuture<>();
 
         @Override
-        public PublisherRT<MockPublishedPointVO> createPublisherRT() {
+        public TestPublisherRT createPublisherRT() {
             return new TestPublisherRT(this);
         }
 
@@ -139,12 +139,12 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
     }
     static class TestPublisherRT extends MockPublisherRT {
 
-        public TestPublisherRT(PublisherVO vo) {
+        public TestPublisherRT(TestPublisherVO vo) {
             super(vo);
         }
 
         @Override
-        protected PublishQueue<MockPublishedPointVO, PointValueTime> createPublishQueue(PublisherVO vo) {
+        protected PublishQueue<MockPublisherVO, MockPublishedPointVO, PointValueTime> createPublishQueue(PublisherVO vo) {
             TestPublisherVO tPvo = (TestPublisherVO)vo;
             return new TestPublishQueue(this, tPvo.getCacheWarningSize(), tPvo.getCacheDiscardSize(), tPvo.getAddedFuture());
         }

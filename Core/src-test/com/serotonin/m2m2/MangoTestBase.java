@@ -35,6 +35,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.emport.ImportTaskDependencies;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.DataPointService;
@@ -44,6 +45,7 @@ import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.PublishedPointService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
@@ -248,18 +250,20 @@ public class MangoTestBase {
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
 
-        ImportTask task = new ImportTask(jo,
-                Common.getTranslations(),
+        ImportTaskDependencies dependencies = new ImportTaskDependencies(Common.getTranslations(),
                 Common.getBean(RoleService.class),
                 Common.getBean(UsersService.class),
                 Common.getBean(MailingListService.class),
                 Common.getBean(DataSourceService.class),
                 Common.getBean(DataPointService.class),
                 Common.getBean(PublisherService.class),
+                Common.getBean(PublishedPointService.class),
                 Common.getBean(EventHandlerService.class),
                 Common.getBean(JsonDataService.class),
                 Common.getBean(EventDetectorsService.class),
-                Common.getBean(SystemPermissionService.class),
+                Common.getBean(SystemPermissionService.class));
+        ImportTask task = new ImportTask(jo,
+                dependencies,
                 null, false);
         task.run(Common.timer.currentTimeMillis());
         if (task.getResponse().getHasMessages()) {
@@ -561,11 +565,15 @@ public class MangoTestBase {
     public MockPublisherVO createMockPublisher(boolean enabled, List<MockPublishedPointVO> points) {
         MockPublisherVO publisherVO = (MockPublisherVO) ModuleRegistry.getPublisherDefinition(MockPublisherDefinition.TYPE_NAME).baseCreatePublisherVO();
         publisherVO.setName(UUID.randomUUID().toString());
-        publisherVO.setPoints(points);
         publisherVO.setEnabled(enabled);
         PublisherService publisherService = Common.getBean(PublisherService.class);
         try {
-            return (MockPublisherVO)publisherService.insert(publisherVO);
+            MockPublisherVO pub = (MockPublisherVO)publisherService.insert(publisherVO);
+            PublishedPointService publishedPointService = Common.getBean(PublishedPointService.class);
+            for(MockPublishedPointVO point : points) {
+                publishedPointService.insert(point);
+            }
+            return pub;
         } catch (ValidationException e) {
             fail(e.getValidationErrorMessage(Common.getTranslations()));
             return null;

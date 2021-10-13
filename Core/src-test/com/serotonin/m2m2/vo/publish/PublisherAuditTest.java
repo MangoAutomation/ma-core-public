@@ -56,7 +56,6 @@ public class PublisherAuditTest extends MangoTestBase {
         vo.setName("Name");
         vo.setDefinition(new MockPublisherDefinition());
         vo.setXid("PUB_TEST1");
-        vo.setPoints(createPoints());
         vo.setEnabled(false);
         dao.insert(vo);
 
