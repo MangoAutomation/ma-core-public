@@ -65,6 +65,7 @@ public class Upgrade42 extends DBUpgrade {
 
             PublishedPoints publishedPoints = PublishedPoints.PUBLISHED_POINTS;
 
+            //TODO Published Points - auto closeable insert?
             //For all published points, insert them into new table
             InsertValuesStep6<PublishedPointsRecord, String, String, String, Integer, Integer, String> insertPoint = create.insertInto(publishedPoints).columns(
                     publishedPoints.xid,
@@ -93,7 +94,10 @@ public class Upgrade42 extends DBUpgrade {
             }
             insertPoint.execute();
 
-            //TODO Published Points - re save publisher to re-serialize?
+            //update publisher data to re-serialize and remove points
+            this.create.update(publishersTable)
+                    .set(dataField, SerializationHelper.writeObjectToArray(p))
+                    .where(idField.eq(publisherId)).execute();
         });
     }
 
