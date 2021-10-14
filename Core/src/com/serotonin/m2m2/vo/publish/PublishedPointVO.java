@@ -114,15 +114,28 @@ abstract public class PublishedPointVO extends AbstractActionVO {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        // yes we write the XID into a field named dataPointId
-        writer.writeEntry("dataPointId", dataPointXid);
+        super.jsonWrite(writer);
+        writer.writeEntry("dataPointXid", dataPointXid);
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        String xid = jsonObject.getString("dataPointId");
-        if (xid == null)
-            throw new TranslatableJsonException("emport.error.publishedPoint.missing", "dataPointId");
+
+        //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
+        if(jsonObject.containsKey("name"))
+            name = getString(jsonObject, "name");
+        if(jsonObject.containsKey("enabled"))
+            enabled = getBoolean(jsonObject, "enabled");
+
+        //In legacy incarnations the dataPointXid was written as dataPointId
+        String xid = jsonObject.getString("dataPointXid");
+        if(xid == null) {
+            //Try legacy field name
+            xid = jsonObject.getString("dataPointId");
+            if (xid == null) {
+                throw new TranslatableJsonException("emport.error.publishedPoint.missing", "dataPointXid");
+            }
+        }
         
         Integer id = DataPointDao.getInstance().getIdByXid(xid);
         if (id == null)

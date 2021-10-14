@@ -477,7 +477,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     @Override
     public String getThreadName() {
-        return "Pubisher: " + vo.getXid();
+        return "Publisher: " + vo.getXid();
     }
 
     @Override
