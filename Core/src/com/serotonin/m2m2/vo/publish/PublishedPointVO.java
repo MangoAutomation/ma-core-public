@@ -130,4 +130,16 @@ abstract public class PublishedPointVO extends AbstractActionVO {
         dataPointId = id;
     }
 
+    @Override
+    public PublishedPointVO copy() {
+        PublishedPointVO vo = (PublishedPointVO) super.copy();
+        vo.setPublisherId(publisherId);
+        vo.setDataPointId(dataPointId);
+        vo.setJsonData(jsonData);
+
+        vo.setPublisherTypeName(publisherTypeName);
+        vo.setDataPointXid(dataPointXid);
+        vo.setPublisherXid(publisherXid);
+        return vo;
+    }
 }

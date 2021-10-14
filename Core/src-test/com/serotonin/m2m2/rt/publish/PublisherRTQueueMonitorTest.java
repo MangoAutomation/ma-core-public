@@ -7,7 +7,7 @@ package com.serotonin.m2m2.rt.publish;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -76,13 +76,11 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
         //create DS and DP and enable them (need to be running)
         MockDataSourceVO  dataSource = this.createMockDataSource(true);
         DataPointVO dataPoint = this.createMockDataPoint(dataSource, new MockPointLocatorVO(DataTypes.NUMERIC, true), true);
-        List<MockPublishedPointVO> points = new ArrayList<>(1);
-        MockPublishedPointVO publishedPointVO = new MockPublishedPointVO();
-        publishedPointVO.setDataPointId(dataPoint.getId());
-        points.add(publishedPointVO);
 
         //create publisher with a published point (this is a listener) for the DP
-        TestPublisherVO publisherVO = (TestPublisherVO)createMockPublisher(true, points);
+        TestPublisherVO publisherVO = (TestPublisherVO)createMockPublisher(true);
+
+        List<PublishedPointVO> points = createMockPublishedPoints(publisherVO, Collections.singletonList(dataPoint), true);
 
         //get the running data point RT from the Common.runtimeManager
         DataPointRT rt = Common.runtimeManager.getDataPoint(dataPoint.getId());
