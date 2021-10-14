@@ -17,6 +17,7 @@ import com.infiniteautomation.mango.db.tables.EventDetectors;
 import com.infiniteautomation.mango.db.tables.EventHandlers;
 import com.infiniteautomation.mango.db.tables.JsonData;
 import com.infiniteautomation.mango.db.tables.MailingLists;
+import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.Publishers;
 import com.infiniteautomation.mango.db.tables.SystemSettings;
 import com.infiniteautomation.mango.db.tables.Users;
@@ -29,6 +30,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -52,6 +54,7 @@ public class ConfigurationExportData {
     public static final String JSON_DATA = JsonData.JSON_DATA.getName();
     public static final String MAILING_LISTS = MailingLists.MAILING_LISTS.getName();
     public static final String PUBLISHERS = Publishers.PUBLISHERS.getName();
+    public static final String PUBLISHED_POINTS = PublishedPoints.PUBLISHED_POINTS.getName();
     public static final String SYSTEM_SETTINGS = SystemSettings.SYSTEM_SETTINGS.getName();
     public static final String USERS = Users.USERS.getName();
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
@@ -71,6 +74,7 @@ public class ConfigurationExportData {
         names.add(JSON_DATA);
         names.add(MAILING_LISTS);
         names.add(PUBLISHERS);
+        names.add(PUBLISHED_POINTS);
         names.add(SYSTEM_SETTINGS);
         names.add(USERS);
         names.add(VIRTUAL_SERIAL_PORTS);
@@ -98,6 +102,7 @@ public class ConfigurationExportData {
         elements.add(new StringStringPair("header.jsonData", JSON_DATA));
         elements.add(new StringStringPair("header.mailingLists", MAILING_LISTS));
         elements.add(new StringStringPair("header.publishers", PUBLISHERS));
+        elements.add(new StringStringPair("header.publishedPoints", PUBLISHED_POINTS));
         elements.add(new StringStringPair("header.systemSettings", SYSTEM_SETTINGS));
         elements.add(new StringStringPair("header.users", USERS));
         elements.add(new StringStringPair("header.virtualSerialPorts", VIRTUAL_SERIAL_PORTS));
@@ -116,7 +121,6 @@ public class ConfigurationExportData {
      * Get a map of desired export data.
      *
      * @param exportElements if null full export is returned
-     * @param user
      * @return
      */
     public static Map<String, Object> createExportDataMap(String[] exportElements){
@@ -135,6 +139,8 @@ public class ConfigurationExportData {
             data.put(MAILING_LISTS, MailingListDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
             data.put(PUBLISHERS, PublisherDao.getInstance().getAll());
+        if (ArrayUtils.contains(exportElements, PUBLISHED_POINTS))
+            data.put(PUBLISHED_POINTS, Common.getBean(PublishedPointDao.class).getAll());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
             data.put(EVENT_HANDLERS, EventHandlerDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
