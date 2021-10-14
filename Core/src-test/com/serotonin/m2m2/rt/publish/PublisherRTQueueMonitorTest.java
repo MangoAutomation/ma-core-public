@@ -107,7 +107,6 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
         }
 
         //confirm publish queue is of certain size
-
         String monitor = QUEUE_SIZE_MONITOR_ID + publisherVO.getXid();
         Assert.assertNotNull(Common.MONITORED_VALUES.getMonitor(monitor).getName());
         Assert.assertEquals(1, Common.MONITORED_VALUES.getMonitor(monitor).getValue());

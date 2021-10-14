@@ -591,6 +591,15 @@ public class MangoTestBase {
         MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dataPoint);
         pp.setName(dataPoint.getName());
         pp.setEnabled(true);
+
+        PublishedPointService publishedPointService = Common.getBean(PublishedPointService.class);
+        try {
+            publishedPointService.insert(pp);
+        }catch (ValidationException e) {
+            fail(e.getValidationErrorMessage(Common.getTranslations()));
+            return null;
+        }
+
         return pp;
     }
 

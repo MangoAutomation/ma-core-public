@@ -85,6 +85,7 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
         vo.setId(record.get(table.id));
         vo.setXid(record.get(table.xid));
         vo.setName(record.get(table.name));
+        vo.setEnabled(charToBool(record.get(table.enabled)));
         vo.setJsonData(extractData(record.get(table.jsonData)));
 
         // Publisher information from join
