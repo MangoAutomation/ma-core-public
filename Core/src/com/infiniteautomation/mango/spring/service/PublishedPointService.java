@@ -9,6 +9,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublishedPointDao;
@@ -16,7 +18,11 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -60,6 +66,50 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     @Override
     public boolean hasReadPermission(PermissionHolder user, PublishedPointVO vo) {
         return permissionService.hasAdminRole(user);
+    }
+
+    @Override
+    public PublishedPointVO insert(PublishedPointVO vo) throws PermissionException, ValidationException {
+        super.insert(vo);
+
+        if (vo.isEnabled()) {
+            // the published point is ready to be started
+            getRuntimeManager().startPublishedPoint(vo);
+        }
+
+        return vo;
+    }
+
+    @Override
+    protected PublishedPointVO update(PublishedPointVO existing, PublishedPointVO vo) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
+
+        ensureEditPermission(user, existing);
+
+        vo.setId(existing.getId());
+
+        ensureValid(existing, vo, user);
+
+        getRuntimeManager().stopPublishedPoint(vo.getId());
+        dao.update(existing, vo);
+
+        if (vo.isEnabled()) {
+            getRuntimeManager().startPublishedPoint(vo);
+        }
+
+        return vo;
+    }
+
+    @Override
+    protected PublishedPointVO delete(PublishedPointVO vo) throws PermissionException, NotFoundException {
+        PermissionHolder user = Common.getUser();
+
+        ensureDeletePermission(user, vo);
+
+        getRuntimeManager().stopPublishedPoint(vo.getId());
+        dao.delete(vo);
+
+        return vo;
     }
 
     @Override
@@ -114,8 +164,64 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
         return result;
     }
 
-    public void restart(String xid, boolean enabled, boolean restart) {
-        //TODO Published Points - implement RT
+    /**
+     * Enable/Disable/Restart a published point
+     * @param xid - xid of point to restart
+     * @param enabled - Enable or disable the published point
+     * @param restart - Restart the published point, enabled must equal true
+     *
+     * @throws NotFoundException
+     * @throws PermissionException
+     */
+    public boolean setPublishedPointState(String xid, boolean enabled, boolean restart) throws NotFoundException, PermissionException {
+        PermissionHolder user = Common.getUser();
+
+        PublishedPointVO vo = get(xid);
+        ensureEditPermission(user, vo);
+        return setPublishedPointState(vo, enabled, restart);
+    }
+
+    /**
+     * Set the state helper method
+     * @param vo - The point to restart
+     * @param enabled - Enable or disable the published point
+     * @param restart - Restart the published point, enabled must equal true (will start a stopped point)
+     * @return - true if the state changed
+     */
+    protected boolean setPublishedPointState(PublishedPointVO vo, boolean enabled, boolean restart) {
+        vo.setEnabled(enabled);
+        boolean publisherRunning = getRuntimeManager().isPublisherRunning(vo.getPublisherId());
+
+        if(!publisherRunning) {
+            //We must check its state in the DB
+            boolean enabledInDB = dao.isEnabled(vo.getId());
+            if(enabledInDB && !enabled){
+                dao.saveEnabledColumn(vo);
+                return true;
+            }else if(!enabledInDB && enabled) {
+                dao.saveEnabledColumn(vo);
+                return true;
+            }
+        }else {
+            boolean running = getRuntimeManager().isPublishedPointRunning(vo.getId());
+            if (running && !enabled) {
+                //Running, so stop it
+                getRuntimeManager().stopPublishedPoint(vo.getId());
+                dao.saveEnabledColumn(vo);
+                return true;
+            } else if (!running && enabled) {
+                //Not running, so start it
+                dao.saveEnabledColumn(vo);
+                getRuntimeManager().startPublishedPoint(vo);
+                return true;
+            }else if(enabled && restart) {
+                //May be running or not, will either start or restart it (stopping a non running point will do nothing which is ok)
+                getRuntimeManager().stopPublishedPoint(vo.getId());
+                getRuntimeManager().startPublishedPoint(vo);
+                return false;
+            }
+        }
+        return false;
     }
 
     /**
@@ -130,5 +236,9 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
             ensureValid(point, Common.getUser());
         }
         dao.replacePoints(vo.getId(), pointVos);
+    }
+
+    private RuntimeManager getRuntimeManager() {
+        return Common.runtimeManager;
     }
 }

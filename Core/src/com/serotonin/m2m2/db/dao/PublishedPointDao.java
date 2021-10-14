@@ -21,9 +21,13 @@ import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.Publishers;
 import com.infiniteautomation.mango.db.tables.records.PublishedPointsRecord;
 import com.infiniteautomation.mango.spring.DaoDependencies;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.StateChangeEvent;
+import com.infiniteautomation.mango.spring.events.audit.ToggleAuditEvent;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
@@ -175,6 +179,50 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
                     usage.setCount(record.get(count));
                     return usage;
                 });
+    }
+
+    /**
+     * Update the enabled column
+     *
+     * @param pp point for which to update the enabled column
+     */
+    public void saveEnabledColumn(PublishedPointVO pp) {
+        PublishedPointVO existing = get(pp.getId());
+        saveEnabledColumn(existing, pp.isEnabled());
+    }
+
+    /**
+     * Update the enabled column
+     *
+     * @param existing point for which to update the enabled column
+     * @param enabled if the point should be enabled or disabled
+     * @return updated publshed point
+     */
+    public PublishedPointVO saveEnabledColumn(PublishedPointVO existing, boolean enabled) {
+        create.update(table)
+                .set(table.enabled, boolToChar(enabled))
+                .where(table.id.eq(existing.getId()))
+                .execute();
+
+        PublishedPointVO result = existing.copy();
+        result.setEnabled(enabled);
+        this.publishEvent(new DaoEvent<>(this, DaoEventType.UPDATE, result, existing));
+        this.publishAuditEvent(new ToggleAuditEvent<>(this.auditEventType, Common.getUser(), result));
+        return result;
+    }
+
+    /**
+     * Is a published point enabled, returns false if point is disabled or DNE.
+     * @param id
+     * @return
+     */
+    public boolean isEnabled(int id) {
+        String enabled = create.select(table.enabled)
+                .from(table)
+                .where(table.id.eq(id))
+                .fetchSingle()
+                .value1();
+        return charToBool(enabled);
     }
 
     /**
