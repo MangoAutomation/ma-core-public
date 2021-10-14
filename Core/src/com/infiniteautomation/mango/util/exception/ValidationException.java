@@ -56,7 +56,7 @@ public class ValidationException extends TranslatableRuntimeException {
     public String getValidationErrorMessage(Translations translations) {
         String failureMessage = "";
         for(ProcessMessage m : validationResult.getMessages()) {
-            failureMessage += m.toString(translations);
+            failureMessage += m.toString(translations) + "\n";
         }
         return failureMessage;
     }
