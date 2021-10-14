@@ -97,6 +97,10 @@ public class ImportTask extends ProgressiveTask {
             addImporter(new PublisherImporter(jv.toJsonObject(), dependencies.getPublisherService(), dependencies.getPublishedPointService(),
                     dependencies.getDataPointService()));
 
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHED_POINTS))
+            addImporter(new PublishedPointImporter(jv.toJsonObject(), dependencies.getPublishedPointService(), dependencies.getPublisherService(),
+                    dependencies.getDataPointService()));
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
             addImporter(new EventHandlerImporter(jv.toJsonObject(), dependencies.getEventHandlerService()));
 
