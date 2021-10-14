@@ -20,8 +20,6 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
-import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -225,11 +223,15 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     }
 
     /**
-     * Replace all points on a publisher with these points
-     * @param vo
+     * Replace all points on a publisher with these points, must have read and edit permission for this publisher
+     * @param publisherId
      * @param pointVos
      */
-    public void replacePoints(PublisherVO vo, List<PublishedPointVO> pointVos) {
+    public void replacePoints(int publisherId, List<PublishedPointVO> pointVos) throws NotFoundException, PermissionException, ValidationException {
+        replacePoints(publisherService.get(publisherId), pointVos);
+    }
+
+    protected void replacePoints(PublisherVO vo, List<PublishedPointVO> pointVos) throws NotFoundException, PermissionException, ValidationException {
         publisherService.ensureEditPermission(Common.getUser(), vo);
         //Validate all points
         for(PublishedPointVO point : pointVos) {
@@ -240,5 +242,18 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     private RuntimeManager getRuntimeManager() {
         return Common.runtimeManager;
+    }
+
+    /**
+     * Get the points for a publisher, must have read permission for publisher
+     * @param id
+     * @return
+     */
+    public List<PublishedPointVO> getPublishedPoints(int id) throws NotFoundException, PermissionException {
+        return getPublishedPoints(publisherService.get(id));
+    }
+
+    protected List<PublishedPointVO> getPublishedPoints(PublisherVO vo) throws NotFoundException, PermissionException {
+        return dao.getPublishedPoints(vo.getId());
     }
 }
