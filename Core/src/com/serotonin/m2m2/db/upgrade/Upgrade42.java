@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.records.PublishedPointsRecord;
-import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
@@ -39,9 +38,11 @@ public class Upgrade42 extends DBUpgrade {
     @Override
     protected void upgrade() throws Exception {
         //TODO Published Points add all database types
-        runScript(Collections.singletonMap(DatabaseType.H2.name(), new String[] {
+        //TODO check to see if there are duplicate unique mappings for publisherId and dataPointId before adding constraint?
+        runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, new String[] {
                 "CREATE TABLE publishedPoints (id INT NOT NULL AUTO_INCREMENT, xid VARCHAR(100) NOT NULL, name VARCHAR(255), enabled CHAR(1), publisherId INT NOT NULL, dataPointId INT NOT NULL, data LONGTEXT, jsonData LONGTEXT, PRIMARY KEY (id));",
                 "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn1 UNIQUE (xid);",
+                "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn2 UNIQUE (publishedId, dataPointId);",
                 "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk1 FOREIGN KEY (publisherId) REFERENCES publishers (id) ON DELETE CASCADE;",
                 "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk2 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
                 "CREATE INDEX publishedPointNameIndex on publishedPoints (name ASC);",

@@ -391,6 +391,27 @@ CREATE TABLE publishers (
 );
 ALTER TABLE publishers ADD CONSTRAINT publishersUn1 UNIQUE (xid);
 
+CREATE TABLE publishedPoints (
+   id INT NOT NULL auto_increment,
+   xid VARCHAR(100) NOT NULL,
+   name VARCHAR(255),
+   enabled CHAR(1),
+   publisherId INT NOT NULL,
+   dataPointId INT NOT NULL,
+   data LONGTEXT,
+   jsonData LONGTEXT,
+   PRIMARY KEY (id)
+ );
+ ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn1 UNIQUE (xid);
+ ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn2 UNIQUE (publishedId, dataPointId);
+ ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk1 FOREIGN KEY (publisherId) REFERENCES publishers(id) ON DELETE CASCADE;
+ ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk2 FOREIGN KEY (dataPointId) REFERENCES dataPoints(id) ON DELETE CASCADE;
+
+ CREATE INDEX publishedPointNameIndex on publishedPoints (name ASC);
+ CREATE INDEX publishedPointEnabledIndex on publishedPoints (enabled ASC);
+ CREATE INDEX publishedPointXidNameIndex on publishedPoints (xid ASC, name ASC);
+
+
 CREATE TABLE jsonData (
   	id SERIAL,
 	xid varchar(100) not null,
