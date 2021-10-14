@@ -599,11 +599,10 @@ public class MangoTestBase {
      * Create a list of published points
      * @param publisher
      * @param dataPoints
-     * @param count
      * @param enabled
      * @return
      */
-    public List<PublishedPointVO> createMockPublishedPoints(MockPublisherVO publisher, List<IDataPoint> dataPoints, int count, boolean enabled) {
+    public List<PublishedPointVO> createMockPublishedPoints(MockPublisherVO publisher, List<IDataPoint> dataPoints, boolean enabled) {
         List<PublishedPointVO> points = new ArrayList<>();
         for(IDataPoint dp : dataPoints) {
             points.add(createMockPublishedPoint(publisher, dp, enabled));
