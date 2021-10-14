@@ -57,8 +57,10 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
     PublishedPointVO newVO(User owner) {
         IDataPoint dp = createMockDataPoints(1).get(0);
         MockPublisherVO publisher = createMockPublisher(false);
-        //TODO Create data source, publisher and point to publish
-        MockPublishedPointVO pp = createMockPublishedPoint(publisher, dp, true);
+        MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dp);
+        pp.setName(dp.getName());
+        pp.setEnabled(true);
+
         return pp;
     }
 
