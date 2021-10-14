@@ -403,7 +403,7 @@ CREATE TABLE publishedPoints (
    PRIMARY KEY (id)
  );
  ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn1 UNIQUE (xid);
- ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn2 UNIQUE (publishedId, dataPointId);
+ ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn2 UNIQUE (publisherId, dataPointId);
  ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk1 FOREIGN KEY (publisherId) REFERENCES publishers(id) ON DELETE CASCADE;
  ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk2 FOREIGN KEY (dataPointId) REFERENCES dataPoints(id) ON DELETE CASCADE;
 
