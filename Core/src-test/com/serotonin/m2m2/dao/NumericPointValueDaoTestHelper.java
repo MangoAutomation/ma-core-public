@@ -2571,19 +2571,21 @@ public class NumericPointValueDaoTestHelper {
         AtomicLong count = new AtomicLong();
         AtomicLong previousTime = new AtomicLong(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
 
-        dao.streamPointValues(vo1, startTs, endTs, order).forEach(pvt -> {
-            long lastTimestamp = previousTime.getAndSet(pvt.getTime());
-            count.incrementAndGet();
-            PointValueTime expectedValue = values.get(pvt.getTime());
+        try (var stream = dao.streamPointValues(vo1, startTs, endTs, order)) {
+            stream.forEach(pvt -> {
+                long lastTimestamp = previousTime.getAndSet(pvt.getTime());
+                count.incrementAndGet();
+                PointValueTime expectedValue = values.get(pvt.getTime());
 
-            if (order == TimeOrder.ASCENDING) {
-                Assert.assertTrue(pvt.getTime() > lastTimestamp);
-            } else {
-                Assert.assertTrue(pvt.getTime() < lastTimestamp);
-            }
-            Assert.assertNotNull(expectedValue);
-            Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
-        });
+                if (order == TimeOrder.ASCENDING) {
+                    Assert.assertTrue(pvt.getTime() > lastTimestamp);
+                } else {
+                    Assert.assertTrue(pvt.getTime() < lastTimestamp);
+                }
+                Assert.assertNotNull(expectedValue);
+                Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
+            });
+        }
 
         Assert.assertEquals(totalSampleCount, count.get());
     }
@@ -2594,27 +2596,29 @@ public class NumericPointValueDaoTestHelper {
         AtomicLong previousTime = new AtomicLong();
         Deque<Integer> seriesIds = new ArrayDeque<>();
 
-        dao.streamPointValuesPerPoint(vos, startTs, endTs, order).forEach(pvt -> {
-            if (seriesIds.contains(pvt.getSeriesId())) {
-                // already seen this series, ensure that it is the last one
-                Assert.assertEquals(pvt.getSeriesId(), (long) Objects.requireNonNull(seriesIds.peekLast()));
-            } else {
-                seriesIds.add(pvt.getSeriesId());
-                previousTime.set(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
-            }
+        try (var stream = dao.streamPointValuesPerPoint(vos, startTs, endTs, order)) {
+            stream.forEach(pvt -> {
+                if (seriesIds.contains(pvt.getSeriesId())) {
+                    // already seen this series, ensure that it is the last one
+                    Assert.assertEquals(pvt.getSeriesId(), (long) Objects.requireNonNull(seriesIds.peekLast()));
+                } else {
+                    seriesIds.add(pvt.getSeriesId());
+                    previousTime.set(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
+                }
 
-            long lastTimestamp = previousTime.getAndSet(pvt.getTime());
-            count.incrementAndGet();
-            PointValueTime expectedValue = values.get(pvt.getSeriesId()).get(pvt.getTime());
+                long lastTimestamp = previousTime.getAndSet(pvt.getTime());
+                count.incrementAndGet();
+                PointValueTime expectedValue = values.get(pvt.getSeriesId()).get(pvt.getTime());
 
-            if (order == TimeOrder.ASCENDING) {
-                Assert.assertTrue(pvt.getTime() > lastTimestamp);
-            } else {
-                Assert.assertTrue(pvt.getTime() < lastTimestamp);
-            }
-            Assert.assertNotNull(expectedValue);
-            Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
-        });
+                if (order == TimeOrder.ASCENDING) {
+                    Assert.assertTrue(pvt.getTime() > lastTimestamp);
+                } else {
+                    Assert.assertTrue(pvt.getTime() < lastTimestamp);
+                }
+                Assert.assertNotNull(expectedValue);
+                Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
+            });
+        }
 
         Assert.assertEquals(vos.size(), seriesIds.size());
         Assert.assertEquals(totalSampleCount * 2, count.get());
@@ -2626,20 +2630,22 @@ public class NumericPointValueDaoTestHelper {
         AtomicLong previousTime = new AtomicLong(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
         Set<Integer> seriesIds = new HashSet<>();
 
-        dao.streamPointValuesCombined(vos, startTs, endTs, order).forEach(pvt -> {
-            long lastTimestamp = previousTime.getAndSet(pvt.getTime());
-            count.incrementAndGet();
-            PointValueTime expectedValue = values.get(pvt.getSeriesId()).get(pvt.getTime());
-            seriesIds.add(pvt.getSeriesId());
+        try (var stream = dao.streamPointValuesCombined(vos, startTs, endTs, order)) {
+            stream.forEach(pvt -> {
+                long lastTimestamp = previousTime.getAndSet(pvt.getTime());
+                count.incrementAndGet();
+                PointValueTime expectedValue = values.get(pvt.getSeriesId()).get(pvt.getTime());
+                seriesIds.add(pvt.getSeriesId());
 
-            if (order == TimeOrder.ASCENDING) {
-                Assert.assertTrue(pvt.getTime() >= lastTimestamp);
-            } else {
-                Assert.assertTrue(pvt.getTime() <= lastTimestamp);
-            }
-            Assert.assertNotNull(expectedValue);
-            Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
-        });
+                if (order == TimeOrder.ASCENDING) {
+                    Assert.assertTrue(pvt.getTime() >= lastTimestamp);
+                } else {
+                    Assert.assertTrue(pvt.getTime() <= lastTimestamp);
+                }
+                Assert.assertNotNull(expectedValue);
+                Assert.assertEquals(expectedValue.getValue(), pvt.getValue());
+            });
+        }
 
         Assert.assertEquals(vos.size(), seriesIds.size());
         Assert.assertEquals(totalSampleCount * 2, count.get());
