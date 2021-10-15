@@ -36,9 +36,8 @@ import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.infiniteautomation.mango.db.iterators.PerPointIterator;
-import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.iterators.CombinedIterator;
+import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
@@ -332,7 +331,15 @@ public interface PointValueDao {
     /**
      * Stream the point values for a single point, for the time range {@code [from,to)}.
      * Values are streamed in either ascending or descending time order.
-     * The values should be lazily fetched and buffered from the underlying database in chunks of size {@link #chunkSize()}.
+     * The values should be lazily fetched from the underlying database. If this is not supported, the values should be
+     * read in chunks of size {@link #chunkSize()} and buffered.
+     *
+     * <p>The returned {@link Stream} <strong>must</strong> be closed, use a try-with-resources block.</p>
+     * <pre>{@code
+     * try (var stream = streamPointValuesPerPoint(point, from, to, ASCENDING)) {
+     *     stream.count();
+     * }
+     * }</pre>
      *
      * @param vo the data point
      * @param from from time (epoch ms), inclusive
@@ -349,10 +356,18 @@ public interface PointValueDao {
     /**
      * Stream the point values for a collection of points, for the time range {@code [from,to)}.
      * Values are grouped by point, and streamed in either ascending or descending time order.
-     * The values should be lazily fetched and buffered from the underlying database in chunks of size {@link #chunkSize()}.
+     * The values should be lazily fetched from the underlying database. If this is not supported, the values should be
+     * read in chunks of size {@link #chunkSize()} and buffered.
      *
      * <p>The order in which points are grouped and values are returned may not match the order of the passed in
      * collection, but is generally in order of the data point's seriesId.</p>
+     *
+     * <p>The returned {@link Stream} <strong>must</strong> be closed, use a try-with-resources block.</p>
+     * <pre>{@code
+     * try (var stream = streamPointValuesPerPoint(point, from, to, ASCENDING)) {
+     *     stream.count();
+     * }
+     * }</pre>
      *
      * @param vos data points
      * @param from from time (epoch ms), inclusive
@@ -361,15 +376,21 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
     default Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
-        PerPointIterator it = new PerPointIterator(this, vos, from, to, chunkSize(), sortOrder);
-        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
-        return StreamSupport.stream(spliterator, false);
+        return vos.stream().flatMap(vo -> streamPointValues(vo, from, to, sortOrder));
     }
 
     /**
      * Stream the point values for a collection of points, for the time range {@code [from,to)}.
      * Values are streamed in either ascending or descending time order.
-     * The values should be lazily fetched and buffered from the underlying database in chunks of size {@link #chunkSize()}.
+     * The values should be lazily fetched from the underlying database. If this is not supported, the values should be
+     * read in chunks of size {@link #chunkSize()} and buffered.
+     *
+     * <p>The returned {@link Stream} <strong>must</strong> be closed, use a try-with-resources block.</p>
+     * <pre>{@code
+     * try (var stream = streamPointValuesPerPoint(point, from, to, ASCENDING)) {
+     *     stream.count();
+     * }
+     * }</pre>
      *
      * @param vos data points
      * @param from from time (epoch ms), inclusive
