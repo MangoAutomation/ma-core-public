@@ -21,6 +21,7 @@ import org.jooq.DeleteConditionStep;
 import org.jooq.DeleteLimitStep;
 import org.jooq.DeleteUsingStep;
 import org.jooq.Field;
+import org.jooq.OrderField;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.ResultQuery;
@@ -226,6 +227,11 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
 
     private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder timeOrder, Condition seriesIdCondition) {
+        return betweenQuery(from, to, limit, List.of(timeOrder == TimeOrder.ASCENDING ? pv.ts.asc() : pv.ts.desc()), seriesIdCondition);
+    }
+
+    private Select<Record> betweenQuery(@Nullable Long from, @Nullable Long to, @Nullable Integer limit,
+                                        Collection<? extends OrderField<?>> order, Condition seriesIdCondition) {
         var query = baseQuery().where(seriesIdCondition);
         if (from != null) {
             query = query.and(pv.ts.greaterOrEqual(from));
@@ -233,7 +239,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         if (to != null) {
             query = query.and(pv.ts.lessThan(to));
         }
-        return query.orderBy(timeOrder == TimeOrder.ASCENDING ? pv.ts.asc() : pv.ts.desc()).limit(limit);
+        return query.orderBy(order).limit(limit);
     }
 
     private SelectUnionStep<Record> firstValueQuery(long from, Field<Integer> seriesId) {
@@ -249,6 +255,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         checkTimePeriod(from, to);
         checkLimit(limit);
         checkNull(callback);
+        checkNull(sortOrder);
         if (vos.isEmpty() || limit != null && limit == 0) return;
 
         //Limit results of each data point to size limit, i.e. loop over all points and query with limit
@@ -270,6 +277,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         checkTimePeriod(from, to);
         checkLimit(limit);
         checkNull(callback);
+        checkNull(sortOrder);
         if (vos.isEmpty() || limit != null && limit == 0) return;
 
         var query = betweenQuery(from, to, limit, sortOrder, seriesIdCondition(vos));
@@ -278,6 +286,39 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 callback.accept(mapRecord(record));
             }
         }
+    }
+
+    @Override
+    public Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
+        checkNull(vo);
+        checkTimePeriod(from, to);
+        checkNull(sortOrder);
+
+        var query = betweenQuery(from, to, null, sortOrder, pv.dataPointId.eq(vo.getSeriesId()));
+        return query.stream().map(this::mapRecord);
+    }
+
+    @Override
+    public Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
+        checkNull(vos);
+        checkTimePeriod(from, to);
+        checkNull(sortOrder);
+        if (vos.isEmpty()) return Stream.empty();
+
+        var sortFields = List.of(pv.dataPointId.asc(), sortOrder == TimeOrder.ASCENDING ? pv.ts.asc() : pv.ts.desc());
+        var query = betweenQuery(from, to, null, sortFields, seriesIdCondition(vos));
+        return query.stream().map(this::mapRecord);
+    }
+
+    @Override
+    public Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
+        checkNull(vos);
+        checkTimePeriod(from, to);
+        checkNull(sortOrder);
+        if (vos.isEmpty()) return Stream.empty();
+
+        var query = betweenQuery(from, to, null, sortOrder, seriesIdCondition(vos));
+        return query.stream().map(this::mapRecord);
     }
 
     @Override
