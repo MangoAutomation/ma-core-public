@@ -31,12 +31,14 @@ import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.db.iterators.CombinedIterator;
+import com.infiniteautomation.mango.db.iterators.MergingIterator;
 import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
@@ -399,9 +401,11 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
     default Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
-        CombinedIterator it = new CombinedIterator(this, vos, from, to, chunkSize(), sortOrder);
-        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
-        return StreamSupport.stream(spliterator, false);
+        Comparator<IdPointValueTime> comparator = sortOrder.getComparator().thenComparingInt(IdPointValueTime::getSeriesId);
+        var streams = vos.stream()
+                .map(vo -> streamPointValues(vo, from, to, sortOrder))
+                .collect(Collectors.toList());
+        return MergingIterator.mergeStreams(streams, comparator);
     }
 
     /**
