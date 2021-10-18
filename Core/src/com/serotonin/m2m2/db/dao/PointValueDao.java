@@ -37,7 +37,6 @@ import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.infiniteautomation.mango.db.iterators.CombinedIterator;
 import com.infiniteautomation.mango.db.iterators.MergingIterator;
 import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
@@ -324,88 +323,118 @@ public interface PointValueDao {
         // take a guess at a good chunk size to use based on number of points and total limit
         int chunkSize = limit == null ? maxChunkSize : Math.max(Math.min(limit / vos.size() + 1, maxChunkSize), minChunkSize);
 
-        CombinedIterator it = new CombinedIterator(this, vos, from, to, chunkSize, sortOrder);
-        for (int i = 0; (limit == null || i < limit) && it.hasNext(); i++) {
-            callback.accept(it.next());
+        List<PointValueIterator> iterators = vos.stream()
+                .map(p -> new PointValueIterator(this, p, from, to, chunkSize, sortOrder))
+                .collect(Collectors.toList());
+        Comparator<IdPointValueTime> comparator = sortOrder.getComparator().thenComparingInt(IdPointValueTime::getSeriesId);
+        MergingIterator<IdPointValueTime> mergingIterator = new MergingIterator<>(iterators, comparator);
+
+        for (int i = 0; (limit == null || i < limit) && mergingIterator.hasNext(); i++) {
+            callback.accept(mergingIterator.next());
         }
     }
 
     /**
      * Stream the point values for a single point, for the time range {@code [from,to)}.
      * Values are streamed in either ascending or descending time order.
-     * The values should be lazily fetched from the underlying database. If this is not supported, the values should be
-     * read in chunks of size {@link #chunkSize()} and buffered.
+     *
+     * <p>The values should be lazily fetched from the underlying database. If this is not supported, the values should be
+     * pre-fetched in chunks of size {@link #chunkSize()} and buffered out.</p>
+     *
+     * <p>The limit can often be omitted, as it is only useful for implementations which pre-fetch and buffer
+     * with small limits (i.e. less than the {@link #chunkSize()}).</p>
      *
      * <p>The returned {@link Stream} <strong>must</strong> be closed, use a try-with-resources block.</p>
      * <pre>{@code
-     * try (var stream = streamPointValuesPerPoint(point, from, to, ASCENDING)) {
-     *     stream.count();
+     * try (var stream = streamPointValues(point, from, to, null, ASCENDING)) {
+     *     // use stream
      * }
      * }</pre>
      *
      * @param vo the data point
      * @param from from time (epoch ms), inclusive
      * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return (if null, no limit is applied)
      * @param sortOrder time order in which to return point values
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
-    default Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
-        PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize(), sortOrder);
-        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
+    default Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to,
+                                                       @Nullable Integer limit, TimeOrder sortOrder) {
+        int chunkSize = limit != null ? Math.min(limit, chunkSize()) : chunkSize();
+        PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
+        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it,
+                Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
         return StreamSupport.stream(spliterator, false);
     }
 
     /**
      * Stream the point values for a collection of points, for the time range {@code [from,to)}.
      * Values are grouped by point, and streamed in either ascending or descending time order.
-     * The values should be lazily fetched from the underlying database. If this is not supported, the values should be
-     * read in chunks of size {@link #chunkSize()} and buffered.
      *
      * <p>The order in which points are grouped and values are returned may not match the order of the passed in
      * collection, but is generally in order of the data point's seriesId.</p>
      *
+     * <p>The values should be lazily fetched from the underlying database. If this is not supported, the values should be
+     * pre-fetched in chunks of size {@link #chunkSize()} and buffered out.</p>
+     *
+     * <p>The limit can often be omitted, as it is only useful for implementations which pre-fetch and buffer
+     * with small limits (i.e. less than the {@link #chunkSize()}).</p>
+     *
      * <p>The returned {@link Stream} <strong>must</strong> be closed, use a try-with-resources block.</p>
      * <pre>{@code
-     * try (var stream = streamPointValuesPerPoint(point, from, to, ASCENDING)) {
-     *     stream.count();
+     * try (var stream = streamPointValuesPerPoint(point, from, to, null, ASCENDING)) {
+     *     // use stream
      * }
      * }</pre>
      *
      * @param vos data points
      * @param from from time (epoch ms), inclusive
      * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return per point (if null, no limit is applied)
      * @param sortOrder time order in which to return point values
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
-    default Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
-        return vos.stream().flatMap(vo -> streamPointValues(vo, from, to, sortOrder));
+    default Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos,
+                                                               @Nullable Long from, @Nullable Long to,
+                                                               @Nullable Integer limit, TimeOrder sortOrder) {
+        return vos.stream().flatMap(vo -> streamPointValues(vo, from, to, limit, sortOrder));
     }
 
     /**
      * Stream the point values for a collection of points, for the time range {@code [from,to)}.
      * Values are streamed in either ascending or descending time order.
-     * The values should be lazily fetched from the underlying database. If this is not supported, the values should be
-     * read in chunks of size {@link #chunkSize()} and buffered.
+     *
+     * <p>The values should be lazily fetched from the underlying database. If this is not supported, the values should be
+     * pre-fetched in chunks of size {@link #chunkSize()} and buffered out.</p>
+     *
+     * <p>The limit can often be omitted, as it is only useful for implementations which pre-fetch and buffer
+     * with small limits (i.e. less than the {@link #chunkSize()}).</p>
      *
      * <p>The returned {@link Stream} <strong>must</strong> be closed, use a try-with-resources block.</p>
      * <pre>{@code
-     * try (var stream = streamPointValuesPerPoint(point, from, to, ASCENDING)) {
-     *     stream.count();
+     * try (var stream = streamPointValuesCombined(point, from, to, null, ASCENDING)) {
+     *     // use stream
      * }
      * }</pre>
      *
      * @param vos data points
      * @param from from time (epoch ms), inclusive
      * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return (if null, no limit is applied)
      * @param sortOrder time order in which to return point values
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
-    default Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, TimeOrder sortOrder) {
+    default Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos,
+                                                               @Nullable Long from, @Nullable Long to,
+                                                               @Nullable Integer limit, TimeOrder sortOrder) {
         Comparator<IdPointValueTime> comparator = sortOrder.getComparator().thenComparingInt(IdPointValueTime::getSeriesId);
         var streams = vos.stream()
-                .map(vo -> streamPointValues(vo, from, to, sortOrder))
+                // limit is a total limit, but may as well limit per point
+                // e.g. if user supplies a limit of 1, we may as well only retrieve a max of 1 per point
+                .map(vo -> streamPointValues(vo, from, to, limit, sortOrder))
                 .collect(Collectors.toList());
-        return MergingIterator.mergeStreams(streams, comparator);
+        var result = MergingIterator.mergeStreams(streams, comparator);
+        return limit != null ? result.limit(limit) : result;
     }
 
     /**

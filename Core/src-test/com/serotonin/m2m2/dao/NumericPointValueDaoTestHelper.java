@@ -2571,7 +2571,7 @@ public class NumericPointValueDaoTestHelper {
         AtomicLong count = new AtomicLong();
         AtomicLong previousTime = new AtomicLong(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
 
-        try (var stream = dao.streamPointValues(vo1, startTs, endTs, order)) {
+        try (var stream = dao.streamPointValues(vo1, startTs, endTs, null, order)) {
             stream.forEach(pvt -> {
                 long lastTimestamp = previousTime.getAndSet(pvt.getTime());
                 count.incrementAndGet();
@@ -2596,7 +2596,7 @@ public class NumericPointValueDaoTestHelper {
         AtomicLong previousTime = new AtomicLong();
         Deque<Integer> seriesIds = new ArrayDeque<>();
 
-        try (var stream = dao.streamPointValuesPerPoint(vos, startTs, endTs, order)) {
+        try (var stream = dao.streamPointValuesPerPoint(vos, startTs, endTs, null, order)) {
             stream.forEach(pvt -> {
                 if (seriesIds.contains(pvt.getSeriesId())) {
                     // already seen this series, ensure that it is the last one
@@ -2630,7 +2630,7 @@ public class NumericPointValueDaoTestHelper {
         AtomicLong previousTime = new AtomicLong(order == TimeOrder.ASCENDING ? Long.MIN_VALUE : Long.MAX_VALUE);
         Set<Integer> seriesIds = new HashSet<>();
 
-        try (var stream = dao.streamPointValuesCombined(vos, startTs, endTs, order)) {
+        try (var stream = dao.streamPointValuesCombined(vos, startTs, endTs, null, order)) {
             stream.forEach(pvt -> {
                 long lastTimestamp = previousTime.getAndSet(pvt.getTime());
                 count.incrementAndGet();
