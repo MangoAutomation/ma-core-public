@@ -1,7 +1,9 @@
 *Version 4.3.0*
-* Upgraded for Mango 4.3.0
 * Adding monitored values to the PointValueDaoSQL to track the number of point values saved (sync and async) per second.
 * Adding a monitored metric for the PublishQueue size.
+* Fix bug where Mango logo was not inserted into email template (Excel reports and Email event handler)
+* Obscure original path/filename of image when inserting image into email
+* Allow absolute paths for image paths in email templates
 
 *Version 4.2.1*
 * Add new datapoint permission definition to allow users to vew all data points.
