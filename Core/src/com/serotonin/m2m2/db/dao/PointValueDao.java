@@ -50,7 +50,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 
 public interface PointValueDao {
 
-    default void checkLimit(Integer limit) {
+    static void validateLimit(Integer limit) {
         if (limit != null) {
             if (limit < 0) {
                 throw new IllegalArgumentException("Limit may not be negative");
@@ -58,15 +58,15 @@ public interface PointValueDao {
         }
     }
 
-    default void checkTimePeriod(Long from, Long to) {
+    static void validateTimePeriod(Long from, Long to) {
         if (from != null && to != null && to < from) {
             throw new IllegalArgumentException("To time must be greater than or equal to from time");
         }
     }
 
-    default void checkNull(Object argument) {
+    static void validateNotNull(Object argument) {
         if (argument == null) {
-            throw new IllegalArgumentException("Argument may not be null");
+            throw new IllegalArgumentException("Argument can't be null");
         }
     }
 
@@ -136,7 +136,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null, if limit is negative
      */
     default List<PointValueTime> getLatestPointValues(DataPointVO vo, int limit) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         List<PointValueTime> values = new ArrayList<>(limit);
         getPointValuesPerPoint(Collections.singleton(vo), null, null, limit, TimeOrder.DESCENDING, (Consumer<? super IdPointValueTime>) values::add);
         return values;
@@ -153,7 +153,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null, if limit is negative
      */
     default List<PointValueTime> getLatestPointValues(DataPointVO vo, long to, int limit) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         List<PointValueTime> values = new ArrayList<>(limit);
         getPointValuesPerPoint(Collections.singleton(vo), null, to, limit, TimeOrder.DESCENDING, (Consumer<? super IdPointValueTime>) values::add);
         return values;
@@ -167,7 +167,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default Optional<PointValueTime> getLatestPointValue(DataPointVO vo) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         SingleValueConsumer<PointValueTime> holder = new SingleValueConsumer<>();
         getPointValuesPerPoint(Collections.singleton(vo), null, Long.MAX_VALUE, 1, TimeOrder.DESCENDING, holder);
         return holder.getValue();
@@ -182,7 +182,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default Optional<PointValueTime> getPointValueBefore(DataPointVO vo, long time) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         SingleValueConsumer<PointValueTime> holder = new SingleValueConsumer<>();
         getPointValuesPerPoint(Collections.singleton(vo), null, time, 1, TimeOrder.DESCENDING, holder);
         return holder.getValue();
@@ -197,7 +197,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default Optional<PointValueTime> getPointValueAfter(DataPointVO vo, long time) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         SingleValueConsumer<PointValueTime> holder = new SingleValueConsumer<>();
         getPointValuesPerPoint(Collections.singleton(vo), time, null, 1, TimeOrder.ASCENDING, holder);
         return holder.getValue();
@@ -212,7 +212,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default Optional<PointValueTime> getPointValueAt(DataPointVO vo, long time) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         SingleValueConsumer<PointValueTime> holder = new SingleValueConsumer<>();
         getPointValuesPerPoint(Collections.singleton(vo), time, time, 1, TimeOrder.ASCENDING, holder);
         return holder.getValue();
@@ -227,7 +227,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default List<PointValueTime> getPointValues(DataPointVO vo, long from) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         List<PointValueTime> values = new ArrayList<>();
         getPointValuesPerPoint(Collections.singleton(vo), from, null, null, TimeOrder.ASCENDING, (Consumer<? super IdPointValueTime>) values::add);
         return values;
@@ -243,8 +243,8 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default List<PointValueTime> getPointValuesBetween(DataPointVO vo, long from, long to) {
-        checkNull(vo);
-        checkTimePeriod(from, to);
+        PointValueDao.validateNotNull(vo);
+        PointValueDao.validateTimePeriod(from, to);
         List<PointValueTime> values = new ArrayList<>();
         getPointValuesPerPoint(Collections.singleton(vo), from, to, null, TimeOrder.ASCENDING, (Consumer<? super IdPointValueTime>) values::add);
         return values;
@@ -260,9 +260,9 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null
      */
     default void getPointValuesBetween(DataPointVO vo, long from, long to, Consumer<? super PointValueTime> callback) {
-        checkNull(vo);
-        checkTimePeriod(from, to);
-        checkNull(callback);
+        PointValueDao.validateNotNull(vo);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateNotNull(callback);
         getPointValuesPerPoint(Collections.singleton(vo), from, to, null, TimeOrder.ASCENDING, callback);
     }
 
@@ -276,9 +276,9 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null
      */
     default void getPointValuesBetween(Collection<? extends DataPointVO> vos, long from, long to, Consumer<? super IdPointValueTime> callback) {
-        checkNull(vos);
-        checkTimePeriod(from, to);
-        checkNull(callback);
+        PointValueDao.validateNotNull(vos);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateNotNull(callback);
         getPointValuesPerPoint(vos, from, to, null, TimeOrder.ASCENDING, callback);
     }
 
@@ -312,11 +312,11 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
     default void getPointValuesCombined(Collection<? extends DataPointVO> vos, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback) {
-        checkNull(vos);
-        checkTimePeriod(from, to);
-        checkLimit(limit);
-        checkNull(sortOrder);
-        checkNull(callback);
+        PointValueDao.validateNotNull(vos);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+        PointValueDao.validateNotNull(sortOrder);
+        PointValueDao.validateNotNull(callback);
         if (vos.isEmpty() || limit != null && limit == 0) return;
 
         int minChunkSize = 10;
@@ -424,9 +424,9 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null, if to is less than from
      */
     default void wideQuery(DataPointVO vo, long from, long to, WideCallback<? super PointValueTime> callback) {
-        checkNull(vo);
-        checkNull(callback);
-        checkTimePeriod(from, to);
+        PointValueDao.validateNotNull(vo);
+        PointValueDao.validateNotNull(callback);
+        PointValueDao.validateTimePeriod(from, to);
 
         getPointValueBefore(vo, from).ifPresent(callback::firstValue);
         getPointValuesBetween(vo, from, to, callback);
@@ -442,7 +442,7 @@ public interface PointValueDao {
      * @return map of seriesId to point value
      */
     default Map<Integer, IdPointValueTime> initialValues(Collection<? extends DataPointVO> vos, long time) {
-        checkNull(vos);
+        PointValueDao.validateNotNull(vos);
         if (vos.isEmpty()) return Collections.emptyMap();
 
         Map<Integer, IdPointValueTime> values = new HashMap<>(vos.size());
@@ -472,10 +472,10 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
     default void wideBookendQueryPerPoint(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
-        checkNull(vos);
-        checkTimePeriod(from, to);
-        checkLimit(limit);
-        checkNull(callback);
+        PointValueDao.validateNotNull(vos);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+        PointValueDao.validateNotNull(callback);
         if (vos.isEmpty()) return;
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
@@ -510,10 +510,10 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo or callback are null, if limit is negative, if to is less than from
      */
     default void wideBookendQueryCombined(Collection<? extends DataPointVO> vos, long from, long to, @Nullable Integer limit, WideCallback<? super IdPointValueTime> callback) {
-        checkNull(vos);
-        checkTimePeriod(from, to);
-        checkLimit(limit);
-        checkNull(callback);
+        PointValueDao.validateNotNull(vos);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+        PointValueDao.validateNotNull(callback);
         if (vos.isEmpty()) return;
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
@@ -628,8 +628,8 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
     default long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
-        checkNull(vo);
-        checkTimePeriod(from, to);
+        PointValueDao.validateNotNull(vo);
+        PointValueDao.validateTimePeriod(from, to);
         CountingConsumer<PointValueTime> counter = new CountingConsumer<>();
         getPointValuesPerPoint(Collections.singleton(vo), from, to, null, TimeOrder.ASCENDING, counter);
         return counter.getCount();
@@ -643,7 +643,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null
      */
     default Optional<Long> getInceptionDate(DataPointVO vo) {
-        checkNull(vo);
+        PointValueDao.validateNotNull(vo);
         return getStartTime(Collections.singleton(vo));
     }
 
@@ -655,7 +655,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vos are null
      */
     default Optional<Long> getStartTime(Collection<? extends DataPointVO> vos) {
-        checkNull(vos);
+        PointValueDao.validateNotNull(vos);
         if (vos.isEmpty()) return Optional.empty();
         SingleValueConsumer<IdPointValueTime> consumer = new SingleValueConsumer<>();
         getPointValuesPerPoint(vos, null, null, 1, TimeOrder.ASCENDING, consumer);
@@ -670,7 +670,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vos are null
      */
     default Optional<Long> getEndTime(Collection<? extends DataPointVO> vos) {
-        checkNull(vos);
+        PointValueDao.validateNotNull(vos);
         if (vos.isEmpty()) return Optional.empty();
         SingleValueConsumer<IdPointValueTime> consumer = new SingleValueConsumer<>();
         getPointValuesPerPoint(vos, null, null, 1, TimeOrder.DESCENDING, consumer);
@@ -685,7 +685,7 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vos are null
      */
     default Optional<StartAndEndTime> getStartAndEndTime(Collection<? extends DataPointVO> vos) {
-        checkNull(vos);
+        PointValueDao.validateNotNull(vos);
         if (vos.isEmpty()) return Optional.empty();
         return getStartTime(vos).flatMap(startTime -> getEndTime(vos).map(endTime -> new StartAndEndTime(startTime, endTime)));
     }
