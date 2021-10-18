@@ -49,9 +49,9 @@ public class UsedImagesDirective implements TemplateDirectiveModel {
 
         Path imagePath;
         if (logo instanceof TemplateScalarModel && Boolean.parseBoolean(((TemplateScalarModel) logo).getAsString())) {
-            imagePath = getImagePath("images/logo.png");
+            imagePath = getImagePath("logo.png");
         } else if (src instanceof TemplateScalarModel) {
-            imagePath = getImagePath("images/" + ((TemplateScalarModel) src).getAsString());
+            imagePath = getImagePath(((TemplateScalarModel) src).getAsString());
         } else {
             throw new TemplateModelException("Must supply logo=\"true\" or a valid image path via src=\"\"");
         }
@@ -62,8 +62,8 @@ public class UsedImagesDirective implements TemplateDirectiveModel {
 
     private Path getImagePath(String templatePath) {
         return pathCache.computeIfAbsent(templatePath, str -> {
-            Path overridePath = Common.OVERRIDES_WEB.resolve(str).normalize();
-            return Files.exists(overridePath) ? overridePath : Common.WEB.resolve(str).normalize();
+            Path overridePath = Common.OVERRIDES_WEB.resolve("images").resolve(str).normalize();
+            return Files.exists(overridePath) ? overridePath : Common.WEB.resolve("images").resolve(str).normalize();
         });
     }
 }
