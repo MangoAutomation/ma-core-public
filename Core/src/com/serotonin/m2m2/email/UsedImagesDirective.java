@@ -4,9 +4,11 @@
 package com.serotonin.m2m2.email;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.serotonin.m2m2.Common;
 
@@ -20,42 +22,48 @@ import freemarker.template.TemplateScalarModel;
 
 /**
  * @author Matthew Lohbihler
+ * @author Jared Wiltshire
  */
 public class UsedImagesDirective implements TemplateDirectiveModel {
-    private final List<String> imageList = new ArrayList<String>();
 
-    public List<String> getImageList() {
+    /**
+     * Prevent repeated Files.exists() calls for the same string.
+     */
+    private final Map<String, Path> pathCache = new HashMap<>();
+
+    /**
+     * Map of image path to content-ID (cid)
+     */
+    private final Map<Path, UUID> imageList = new HashMap<>();
+
+    public Map<Path, UUID> getImageList() {
         return imageList;
     }
 
     @Override
     public void execute(Environment env, @SuppressWarnings("rawtypes") Map params, TemplateModel[] loopVars,
             TemplateDirectiveBody body) throws TemplateException, IOException {
-        boolean writeLogo = false;
 
-        TemplateModel logo = (TemplateModel) params.get("logo");
-        if (logo instanceof TemplateScalarModel) {
-            String s = ((TemplateScalarModel) logo).getAsString();
-            if (Boolean.parseBoolean(s)) {
-                writeLogo = true;
+        Object logo = params.get("logo");
+        Object src = params.get("src");
 
-                if (!imageList.contains(Common.APPLICATION_LOGO))
-                    imageList.add(Common.APPLICATION_LOGO);
-                env.getOut().write(Common.APPLICATION_LOGO);
-            }
+        Path imagePath;
+        if (logo instanceof TemplateScalarModel && Boolean.parseBoolean(((TemplateScalarModel) logo).getAsString())) {
+            imagePath = getImagePath("images/logo.png");
+        } else if (src instanceof TemplateScalarModel) {
+            imagePath = getImagePath("images/" + ((TemplateScalarModel) src).getAsString());
+        } else {
+            throw new TemplateModelException("Must supply logo=\"true\" or a valid image path via src=\"\"");
         }
 
-        if (!writeLogo) {
-            TemplateModel src = (TemplateModel) params.get("src");
+        UUID contentId = imageList.computeIfAbsent(imagePath, p -> UUID.randomUUID());
+        env.getOut().write(contentId.toString());
+    }
 
-            if (src instanceof TemplateScalarModel) {
-                String s = "images/" + ((TemplateScalarModel) src).getAsString();
-                if (!imageList.contains(s))
-                    imageList.add(s);
-                env.getOut().write(s);
-            }
-            else
-                throw new TemplateModelException("key must be a string");
-        }
+    private Path getImagePath(String templatePath) {
+        return pathCache.computeIfAbsent(templatePath, str -> {
+            Path overridePath = Common.OVERRIDES_WEB.resolve(str).normalize();
+            return Files.exists(overridePath) ? overridePath : Common.WEB.resolve(str).normalize();
+        });
     }
 }

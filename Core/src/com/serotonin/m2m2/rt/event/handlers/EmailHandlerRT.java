@@ -11,12 +11,15 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -481,8 +484,9 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 }
             }
 
-            for (String s : inlineImages.getImageList())
-                content.addInline(new FileInline(s, Common.WEB.resolve(s).toFile()));
+            for (Entry<Path, UUID> entry : inlineImages.getImageList().entrySet()) {
+                content.addInline(new FileInline(entry.getValue().toString(), entry.getKey().toFile()));
+            }
 
             if(toAddrs.length > 0)
                 EmailWorkItem.queueEmail(toAddrs, content, postEmail);

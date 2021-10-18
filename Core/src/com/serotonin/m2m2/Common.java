@@ -156,8 +156,6 @@ public class Common {
     // for all the different tasks.
     public static int defaultTaskQueueSize = 1;
 
-    public static final String APPLICATION_LOGO = "/images/logo.png";
-
     private static volatile Translations TRANSLATIONS;
     private static volatile Locale LOCALE = Locale.getDefault();
     private static final Object TRANSLATIONS_LOCK = new Object();
