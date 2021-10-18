@@ -24,6 +24,13 @@ public class UserEventLevelSummary {
         this.alarmLevel = alarmLevel;
         this.count = count;
     }
+
+    public UserEventLevelSummary(AlarmLevels alarmLevel, int count, EventInstanceI latest) {
+        this.alarmLevel = alarmLevel;
+        this.count = count;
+        this.latest = latest;
+    }
+
     /**
      * @return the alarmLevel
      */
