@@ -420,12 +420,6 @@
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>timescale-db</artifactId>
-            <version>4.3.0-SNAPSHOT</version>
-            <type>zip</type>
-        </dependency>
-        <dependency>
-            <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ldap-authentication</artifactId>
             <version>4.3.0-SNAPSHOT</version>
             <type>zip</type>
