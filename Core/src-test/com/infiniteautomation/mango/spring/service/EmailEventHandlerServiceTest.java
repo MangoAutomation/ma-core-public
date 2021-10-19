@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,6 +28,8 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
+import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
+import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
@@ -147,6 +150,18 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
 
         assertRoles(((EmailEventHandlerVO)expected).getScriptRoles().getRoles(), ((EmailEventHandlerVO)actual).getScriptRoles().getRoles());
 
+        List<EventTypeMatcher> actualEventTypes = actual.getEventTypes();
+        List<EventTypeMatcher> expectedEventTypes = expected.getEventTypes();
+        assertEquals(expectedEventTypes.size(), actualEventTypes.size());
+        for (int i = 0;  i < expectedEventTypes.size(); i++) {
+            EventTypeMatcher actualEventMatcher = actualEventTypes.get(i);
+            EventTypeMatcher expectedEventMatcher = expectedEventTypes.get(i);
+            assertEquals(expectedEventMatcher.getEventType(), actualEventMatcher.getEventType());
+            assertEquals(expectedEventMatcher.getEventSubtype(), actualEventMatcher.getEventSubtype());
+            assertEquals(expectedEventMatcher.getReferenceId1(), actualEventMatcher.getReferenceId1());
+            assertEquals(expectedEventMatcher.getReferenceId2(), actualEventMatcher.getReferenceId2());
+        }
+
         //TODO assert remaining
     }
 
@@ -157,13 +172,44 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         vo.setName(UUID.randomUUID().toString());
         ScriptPermissions permissions = new ScriptPermissions(Collections.singleton(readRole));
         vo.setScriptRoles(permissions);
+        List<EventTypeMatcher> eventTypes = Collections.singletonList(new EventTypeMatcher(new MockEventType(readRole)));
+        vo.setEventTypes(eventTypes);
         return vo;
     }
 
     @Override
     AbstractEventHandlerVO updateVO(AbstractEventHandlerVO existing) {
-        existing.setName("new name");
-        return existing;
+        EmailEventHandlerVO copy = (EmailEventHandlerVO) existing.copy();
+        copy.setName("new name");
+        return copy;
+    }
+
+    @Test
+    public void testHandlerMappings() {
+        EmailEventHandlerVO handler = newVO(editUser);
+        EmailEventHandlerVO inserted = (EmailEventHandlerVO) service.insert(handler);
+        EmailEventHandlerVO fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
+        assertEquals(1, fromDB.getEventTypes().size());
+
+        //Update
+        dao.saveEventHandlerMapping(fromDB.getId(), new MockEventType(readRole));
+        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
+        assertEquals(1, fromDB.getEventTypes().size());
+
+        //Delete by type and handlerId
+        dao.deleteEventHandlerMapping(fromDB.getId(), new MockEventType(readRole));
+        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
+        assertEquals(0, fromDB.getEventTypes().size());
+
+        //Insert
+        dao.saveEventHandlerMapping(fromDB.getId(), new MockEventType(readRole));
+        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
+        assertEquals(1, fromDB.getEventTypes().size());
+
+        //Delete by type
+        dao.deleteEventHandlerMappings(new MockEventType(readRole));
+        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
+        assertEquals(0, fromDB.getEventTypes().size());
     }
 
     void addRoleToCreatePermission(Role vo) {

@@ -3,13 +3,13 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.Types;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.jooq.BatchBindStep;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
@@ -17,8 +17,6 @@ import org.jooq.SelectConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.db.tables.EventHandlers;
 import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
@@ -27,7 +25,6 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -180,30 +177,27 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
     @Override
     public void saveRelationalData(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
-        if (existing == null) {
-            for (EventTypeMatcher type : vo.getEventTypes()) {
-                ejt.doInsert(
-                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                        new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                type.getReferenceId1(), type.getReferenceId2()},
-                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                Types.INTEGER});
-            }
-            vo.getDefinition().saveRelationalData(existing, vo);
-        } else {
-            // Replace all mappings
+        if (existing != null) {
+            // Delete old mappings
             deleteEventHandlerMappings(vo.getId());
-            for (EventTypeMatcher type : vo.getEventTypes()) {
-                ejt.doInsert(
-                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                        new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                type.getReferenceId1(), type.getReferenceId2()},
-                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                Types.INTEGER});
+        }
 
+        List<EventTypeMatcher> types = vo.getEventTypes();
+        if (types.size() > 0) {
+            BatchBindStep batchTypes = create.batch(create.insertInto(handlerMapping)
+                    .columns(handlerMapping.eventHandlerId, handlerMapping.eventTypeName,
+                            handlerMapping.eventSubtypeName, handlerMapping.eventTypeRef1,
+                            handlerMapping.eventTypeRef2).values((Integer) null, null, null, null, null));
+            for (EventTypeMatcher type : types) {
+                String subType = type.getEventSubtype();
+                subType = subType != null ? subType : "";
+                batchTypes.bind(vo.getId(), type.getEventType(), subType, type.getReferenceId1(), type.getReferenceId2());
             }
-            vo.getDefinition().saveRelationalData(existing, vo);
+            batchTypes.execute();
+        }
+        vo.getDefinition().saveRelationalData(existing, vo);
 
+        if (existing != null) {
             if(!existing.getReadPermission().equals(vo.getReadPermission())) {
                 permissionService.deletePermissions(existing.getReadPermission());
             }
@@ -240,49 +234,14 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         permissionService.deletePermissions(readPermission, editPermission);
     }
 
-    public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {
-        if(databaseType == DatabaseType.H2) {
-            if(type.getEventSubtype() == null)
-                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) VALUES (?, ?, ?, ?)",
-                        new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
-                        new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-            else
-                ejt.update("MERGE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) KEY (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) VALUES (?, ?, ?, ?, ?)",
-                        new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
-                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-        }
-        else if(databaseType == DatabaseType.MYSQL) {
-            if(type.getEventSubtype() == null)
-                ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?)",
-                        new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
-                        new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-            else
-                ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                        new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
-                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-        }
-        else {
-            getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-                @Override
-                protected void doInTransactionWithoutResult(@NonNull TransactionStatus arg0) {
-                    deleteEventHandlerMapping(handlerId, type);
-                    ejt.doInsert("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                            new Object[] {handlerId, type.getEventType(), type.getEventSubtype() == null ? "" : type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
-                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-                }
-            });
-        }
-    }
-
     private void deleteEventHandlerMappings(int eventHandlerId) {
-        ejt.update("DELETE FROM eventHandlersMapping WHERE eventHandlerId=?", new Object[] {eventHandlerId},
-                new int[] {Types.INTEGER});
+        create.deleteFrom(handlerMapping)
+                .where(handlerMapping.eventHandlerId.eq(eventHandlerId))
+                .execute();
     }
 
     /**
      * Add a mapping for an existing event handler for an event type,
-     *   this assumes that no mapping already exists.  Either this is from a new event detector
-     *   or the mappings have been removed for this event detector prior to calling
      * @param eventHandlerXid event handler xid
      * @param type type to add mapping for
      */
@@ -294,23 +253,51 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
 
     /**
      * Add a mapping for an existing event handler for an event type,
-     *   this assumes that no mapping already exists.  If this is possibly a
-     *   duplicate mapping one should use addEventHandlerMappingIfMissing()
      * @param eventHandlerId event handler id
      * @param type type to add mapping for
      */
     public void saveEventHandlerMapping(int eventHandlerId, EventType type) {
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(@NonNull TransactionStatus arg0) {
-                ejt.doInsert(
-                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                        new Object[] {eventHandlerId, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                type.getReferenceId1(), type.getReferenceId2()},
-                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                Types.INTEGER});
-            }
-        });
+        String subType = type.getEventSubtype();
+        subType = subType != null ? subType : "";
+        switch (create.dialect()) {
+            case MYSQL:
+            case MARIADB:
+                // the @Supports annotation on mergeInto claims that it supports MySQL, however it does not
+                // translate/emulate the merge using "on duplicate key update" so it fails
+                create.insertInto(handlerMapping)
+                        .columns(handlerMapping.eventHandlerId, handlerMapping.eventTypeName,
+                                handlerMapping.eventSubtypeName, handlerMapping.eventTypeRef1,
+                                handlerMapping.eventTypeRef2)
+                        .values(eventHandlerId, type.getEventType(), subType,
+                                type.getReferenceId1(), type.getReferenceId2())
+                        .onDuplicateKeyUpdate()
+                        .set(handlerMapping.eventHandlerId, eventHandlerId)
+                        .set(handlerMapping.eventTypeName, type.getEventType())
+                        .set(handlerMapping.eventSubtypeName, subType)
+                        .set(handlerMapping.eventTypeRef1, type.getReferenceId1())
+                        .set(handlerMapping.eventTypeRef2, type.getReferenceId2())
+                        .execute();
+            default:
+                create.mergeInto(handlerMapping)
+                        .using(DSL.selectOne())
+                        .on(handlerMapping.eventHandlerId.eq(eventHandlerId),
+                                handlerMapping.eventTypeName.eq(type.getEventType()),
+                                handlerMapping.eventSubtypeName.eq(subType),
+                                handlerMapping.eventTypeRef1.eq(type.getReferenceId1()),
+                                handlerMapping.eventTypeRef2.eq(type.getReferenceId2()))
+                        .whenMatchedThenUpdate()
+                        .set(handlerMapping.eventHandlerId, eventHandlerId)
+                        .set(handlerMapping.eventTypeName, type.getEventType())
+                        .set(handlerMapping.eventSubtypeName, subType)
+                        .set(handlerMapping.eventTypeRef1, type.getReferenceId1())
+                        .set(handlerMapping.eventTypeRef2, type.getReferenceId2())
+                        .whenNotMatchedThenInsert(handlerMapping.eventHandlerId,
+                                handlerMapping.eventTypeName, handlerMapping.eventSubtypeName,
+                                handlerMapping.eventTypeRef1, handlerMapping.eventTypeRef2)
+                        .values(eventHandlerId, type.getEventType(), subType,
+                                type.getReferenceId1(), type.getReferenceId2())
+                        .execute();
+        }
     }
 
     /**
@@ -318,25 +305,25 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
      * @param type type to delete mappings for
      */
     public void deleteEventHandlerMappings(EventType type) {
-        if(type.getEventSubtype() == null)
-            ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventSubtypeName='' AND eventTypeRef1=? AND eventTypeRef2=?",
-                    new Object[] {type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
-                    new int[] {Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-        else
-            ejt.update("DELETE FROM eventHandlersMapping WHERE AND eventTypeName=? AND eventSubtypeName=? AND eventTypeRef1=? AND eventTypeRef2=?",
-                    new Object[] {type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
-                    new int[] {Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-
+        String subType = type.getEventSubtype();
+        subType = subType != null ? subType : "";
+        create.deleteFrom(handlerMapping)
+                .where(handlerMapping.eventTypeName.eq(type.getEventType()))
+                .and(handlerMapping.eventSubtypeName.eq(subType))
+                .and(handlerMapping.eventTypeRef1.eq(type.getReferenceId1()))
+                .and(handlerMapping.eventTypeRef2.eq(type.getReferenceId2()))
+                .execute();
     }
 
     public void deleteEventHandlerMapping(int eventHandlerId, EventType type) {
-        if(type.getEventSubtype() == null)
-            ejt.update("DELETE FROM eventHandlersMapping WHERE eventHandlerId=? AND eventTypeName=? AND eventSubtypeName='' AND eventTypeRef1=? AND eventTypeRef2=?",
-                    new Object[] {eventHandlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
-                    new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
-        else
-            ejt.update("DELETE FROM eventHandlersMapping WHERE eventHandlerId=? AND eventTypeName=? AND eventSubtypeName=? AND eventTypeRef1=? AND eventTypeRef2=?",
-                    new Object[] {eventHandlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
-                    new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+        String subType = type.getEventSubtype();
+        subType = subType != null ? subType : "";
+        create.deleteFrom(handlerMapping)
+                .where(handlerMapping.eventTypeName.eq(type.getEventType()))
+                .and(handlerMapping.eventSubtypeName.eq(subType))
+                .and(handlerMapping.eventTypeRef1.eq(type.getReferenceId1()))
+                .and(handlerMapping.eventTypeRef2.eq(type.getReferenceId2()))
+                .and(handlerMapping.eventHandlerId.eq(eventHandlerId))
+                .execute();
     }
 }

@@ -186,14 +186,8 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         EventTypeVO et = vo.getEventType();
         EventHandlerDao eventHandlerDao = EventHandlerDao.getInstance();
         if (vo.getAddedEventHandlers() != null) {
-            if (existing != null) {
-                for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
-                    eventHandlerDao.addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
-                }
-            } else {
-                for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
-                    eventHandlerDao.saveEventHandlerMapping(ehVo.getId(), et.getEventType());
-                }
+            for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
+                eventHandlerDao.saveEventHandlerMapping(ehVo.getId(), et.getEventType());
             }
         } else if (vo.getEventHandlerXids() != null) {
             //Remove all mappings if we are updating the detector
