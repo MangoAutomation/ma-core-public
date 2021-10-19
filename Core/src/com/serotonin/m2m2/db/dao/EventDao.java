@@ -47,7 +47,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
@@ -292,7 +291,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Available to overload the result set extractor for list queries
-     * @param callback
      * @return
      */
     protected ResultSetExtractor<EventInstance> getObjectResultSetExtractor() {
@@ -402,14 +400,6 @@ public class EventDao extends BaseDao {
         List<Object> args = update.getBindValues();
         return ejt.update(sql, args.toArray(new Object[0])) > 0;
     }
-
-    private static final String BASIC_EVENT_SELECT = //
-            "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
-            + "  e.rtnCause, e.alarmLevel, e.message, e.ackTs, e.ackUserId, u.username, e.alternateAckSource, " //
-            + "  (select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT //
-            + "     and typeKey=e.id) as cnt " //
-            + "from events e " //
-            + "  left join users u on e.ackUserId=u.id ";
 
     /**
      * Get all active events
@@ -533,42 +523,40 @@ public class EventDao extends BaseDao {
      * @return
      */
     public int purgeAllEvents(){
-        final ExtendedJdbcTemplate ejt2 = ejt;
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                int tot = ejt2.update("delete from events"); //UserEvents table will be deleted on cascade
-                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT);
+                int total = create.deleteFrom(table).execute(); //UserEvents table will be deleted on cascade
+                create.deleteFrom(userCommentTable)
+                        .where(userCommentTable.commentType.eq(UserCommentVO.TYPE_EVENT))
+                        .execute();
                 //TODO Mango 4.0 do we really want to clean the permissions table?
-                return tot;
+                return total;
             }
         });
         return count;
     }
+
     /**
      * Purge Events Before a given time with a given alarmLevel
      * @param time
-     * @param typeName
+     * @param alarmLevel
      * @return
      */
     public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {
         // Find a list of event ids with no remaining acknowledgments pending.
-        final ExtendedJdbcTemplate ejt2 = ejt;
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-
-                int count = ejt2.update("delete from events where activeTs<? and alarmLevel=?", new Object[] { time, alarmLevel.value()});
-
-                // Delete orphaned user comments.
-                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT
-                        + "  and typeKey not in (select id from events)");
-
+                int count = create.deleteFrom(table)
+                        .where(table.activeTs.lessThan(time))
+                        .and(table.alarmLevel.eq(alarmLevel.value()))
+                        .execute();
+                deleteOrphanedUserComments();
                 //TODO Mango 4.0 do we really want to clean the permissions table?
                 return count;
             }
         });
-
 
         return count;
     }
@@ -581,49 +569,56 @@ public class EventDao extends BaseDao {
      */
     public int purgeEventsBefore(final long time, final String typeName) {
         // Find a list of event ids with no remaining acknowledgments pending.
-        final ExtendedJdbcTemplate ejt2 = ejt;
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
+                int count = create.deleteFrom(table)
+                        .where(table.activeTs.lessThan(time))
+                        .and(table.typeName.eq(typeName))
+                        .execute();
 
-                int count = ejt2.update("delete from events where activeTs<? and typeName=?", new Object[] { time, typeName});
-
-                // Delete orphaned user comments.
-                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT
-                        + "  and typeKey not in (select id from events)");
-
+                deleteOrphanedUserComments();
                 //TODO Mango 4.0 do we really want to clean the permissions table?
                 return count;
             }
         });
-
 
         return count;
     }
 
-
+    /**
+     * Purge Events Before a given time
+     * @param time
+     * @return
+     */
     public int purgeEventsBefore(final long time) {
         // Find a list of event ids with no remaining acknowledgments pending.
-        final ExtendedJdbcTemplate ejt2 = ejt;
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                int count = ejt2.update("delete from events where activeTs<?", new Object[] { time });
-
-                // Delete orphaned user comments.
-                ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT
-                        + "  and typeKey not in (select id from events)");
+                int count = create.deleteFrom(table).where(table.activeTs.lessThan(time)).execute();
+                deleteOrphanedUserComments();
                 //TODO Mango 4.0 do we really want to clean the permissions table?
-
                 return count;
             }
         });
 
-
         return count;
+    }
+
+    private void deleteOrphanedUserComments() {
+        // Delete orphaned user comments.
+        create.deleteFrom(userCommentTable)
+                .where(userCommentTable.commentType.eq(UserCommentVO.TYPE_EVENT))
+                .and(userCommentTable.typeKey.notIn(
+                        create.select(table.id).from(table)
+                )).execute();
     }
 
     public int getEventCount() {
-        return ejt.queryForInt("select count(*) from events", null, 0);
+        return create.select(DSL.count(table.id))
+                .from(table)
+                .fetchSingle()
+                .value1();
     }
 }
