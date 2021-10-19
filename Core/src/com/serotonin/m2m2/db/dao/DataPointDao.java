@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,9 +26,6 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
@@ -43,6 +38,7 @@ import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
 import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
+import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.db.tables.TimeSeries;
 import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
@@ -101,6 +97,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private final UserComments userComments;
     private final DataSources dataSources;
     private final EventHandlersMapping eventHandlersMapping;
+    private final PointValues pointValues;
     private final DataPointPermissionDefinition dataPointPermissionDefinition;
     private final PointValueDao pointValueDao;
     private final PointValueCache pointValueCache;
@@ -127,6 +124,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.userComments = UserComments.USER_COMMENTS;
         this.dataSources = DataSources.DATA_SOURCES;
         this.eventHandlersMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
+        this.pointValues = PointValues.POINT_VALUES;
     }
 
     /**
@@ -265,17 +263,12 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public boolean isEnabled(int id) {
-        return ejt.query("select dp.enabled from dataPoints as dp WHERE id=?", new ResultSetExtractor<Boolean>() {
-
-            @Override
-            public Boolean extractData(ResultSet rs) throws SQLException, DataAccessException {
-                if(rs.next()) {
-                    return charToBool(rs.getString(1));
-                }else
-                    return false;
-            }
-
-        }, id);
+        String enabled = create.select(table.enabled)
+                .from(table)
+                .where(table.id.eq(id))
+                .fetchSingle()
+                .value1();
+        return charToBool(enabled);
     }
 
     /**
@@ -406,8 +399,13 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public int countPointsForDataSourceType(String dataSourceType) {
-        return ejt.queryForInt("SELECT count(DISTINCT dp.id) FROM dataPoints dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id "
-                + "WHERE ds.dataSourceType=?", new Object[] { dataSourceType }, 0);
+        return create.select(DSL.countDistinct(table.id))
+                .from(table)
+                .leftJoin(dataSources)
+                .on(table.dataSourceId.equal(dataSources.id))
+                .where(dataSources.dataSourceType.eq(dataSourceType))
+                .fetchSingle()
+                .value1();
     }
 
     /**
@@ -503,15 +501,18 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     private List<PointHistoryCount> getTopPointHistoryCountsSql() {
-        List<PointHistoryCount> counts = ejt.query("select dataPointId, count(*) from pointValues group by dataPointId order by 2 desc", new RowMapper<PointHistoryCount>() {
-            @Override
-            public PointHistoryCount mapRow(ResultSet rs, int rowNum) throws SQLException {
-                PointHistoryCount c1 = new PointHistoryCount();
-                c1.setPointId(rs.getInt(1));
-                c1.setCount(rs.getInt(2));
-                return c1;
-            }
-        });
+        List<PointHistoryCount> counts = new ArrayList<>();
+        create.select(pointValues.dataPointId, DSL.count())
+                .from(pointValues)
+                .groupBy(pointValues.dataPointId)
+                .orderBy(DSL.inline(2).desc())
+                .fetch()
+                .forEach(record -> {
+                    PointHistoryCount c1 = new PointHistoryCount();
+                    c1.setPointId(record.get(pointValues.dataPointId));
+                    c1.setCount(record.get(DSL.count()));
+                    counts.add(c1);
+                });
 
         List<DataPointVO> points = getJoinedSelectQuery()
                 .orderBy(table.deviceName, table.name)
@@ -538,16 +539,20 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * @return
      */
     public List<DataPointUsageStatistics> getUsage() {
-        return ejt.query("SELECT ds.dataSourceType, COUNT(ds.dataSourceType) FROM dataPoints as dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id GROUP BY ds.dataSourceType",
-                new RowMapper<DataPointUsageStatistics>() {
-            @Override
-            public DataPointUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
-                DataPointUsageStatistics usage = new DataPointUsageStatistics();
-                usage.setDataSourceType(rs.getString(1));
-                usage.setCount(rs.getInt(2));
-                return usage;
-            }
-        });
+        List<DataPointUsageStatistics> result = new ArrayList<>();
+        create.select(dataSources.dataSourceType, DSL.count(dataSources.dataSourceType))
+                .from(table)
+                .leftJoin(dataSources)
+                .on(table.dataSourceId.equal(dataSources.id))
+                .groupBy(dataSources.dataSourceType)
+                .fetch()
+                .forEach(record -> {
+                    DataPointUsageStatistics usage = new DataPointUsageStatistics();
+                    usage.setDataSourceType(record.get(dataSources.dataSourceType));
+                    usage.setCount(record.get(DSL.count(dataSources.dataSourceType)));
+                    result.add(usage);
+                });
+        return result;
     }
 
     @Override
