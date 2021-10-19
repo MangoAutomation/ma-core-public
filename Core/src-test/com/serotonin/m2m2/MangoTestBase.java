@@ -163,7 +163,11 @@ public class MangoTestBase {
         provider.reset();
 
         //Clean the noSQL database
-        Common.getBean(PointValueDao.class).deleteAllPointData();
+        try {
+            Common.getBean(PointValueDao.class).deleteAllPointData();
+        } catch (UnsupportedOperationException e) {
+            LOG.warn("PointValueDao does not support deleteAllPointData() method. Your tests may be effected if you reuse this Mango lifecycle");
+        }
 
         //clear all caches in services
         Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()
