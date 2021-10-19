@@ -5,11 +5,15 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
 import java.util.UUID;
+
+import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.records.DataSourcesRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
@@ -17,6 +21,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 
 /**
@@ -77,6 +82,19 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
         copy.setName("new name");
 
         return copy;
+    }
+
+    @Test
+    public void testUsage() {
+        for (int i = 0; i < 5; i++) {
+            createMockDataSource();
+        }
+        List<DataSourceUsageStatistics> stats = dao.getUsage();
+        assertEquals(1, stats.size());
+
+        DataSourceUsageStatistics stat = stats.get(0);
+        assertEquals( (Integer) 5, stat.getCount());
+        assertEquals(MockDataSourceDefinition.TYPE_NAME, stat.getDataSourceType());
     }
 
     @Override
