@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 import org.jooq.InsertValuesStep4;
 import org.slf4j.Logger;
@@ -77,9 +79,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private final int batchInsertSize;
 
     private final SystemSettingsDao systemSettingsDao;
+    private final MonitoredValues monitoredValues;
 
     public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues, SystemSettingsDao systemSettingsDao) {
         super(databaseProxy);
+        this.monitoredValues = monitoredValues;
         this.systemSettingsDao = systemSettingsDao;
 
         this.syncInsertsSpeedCounter = monitoredValues.<Integer>create(SYNC_INSERTS_SPEED_COUNTER_ID)
@@ -132,6 +136,17 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         savePointValueImpl(vo, pointValue, source, true);
         asyncCallsCounter.hit();
         asyncInsertsSpeedCounter.setValue(asyncCallsCounter.getEventCounts()[0] / 5);
+    }
+
+    @Override
+    public void flushPointValues() {
+        ValueMonitor<?> monitor = monitoredValues.getMonitor(ENTRIES_MONITOR_ID);
+
+        Object value;
+        while ((value = monitor.getValue()) instanceof Integer && ((Integer) value > 0)) {
+            log.debug("Waiting for {} values to be written", value);
+            LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1L));
+        }
     }
 
     @Override

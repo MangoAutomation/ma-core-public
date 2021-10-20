@@ -160,4 +160,10 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
             return secondary.getFiledataIds(vo);
         }
     }
+
+    @Override
+    public void flushPointValues() {
+        primary.flushPointValues();
+        secondary.flushPointValues();
+    }
 }

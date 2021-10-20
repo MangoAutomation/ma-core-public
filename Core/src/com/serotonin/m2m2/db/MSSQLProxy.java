@@ -56,9 +56,4 @@ public class MSSQLProxy extends BasePooledProxy {
     public String getTableListQuery() {
         return "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' order by table_name";
     }
-
-    @Override
-    public int batchSize() {
-        return 524;
-    }
 }

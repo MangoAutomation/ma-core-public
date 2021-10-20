@@ -289,7 +289,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         List<Integer> pointIds = new ArrayList<>();
         Set<Integer> permissionIds = new HashSet<>();
         Set<Integer> seriesIds = new HashSet<>();
-        int batchSize = databaseProxy.batchSize();
+        int batchSize = databaseProxy.batchDeleteSize();
 
         //We will not load any relational data from this and rely on the permissionIds being set
         getJoinedSelectQuery().where(table.dataSourceId.eq(dataSourceId)).forEach(record -> {

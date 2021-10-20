@@ -120,9 +120,4 @@ public class MySQLProxy extends BasePooledProxy {
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    public int batchSize() {
-        return 2000;
-    }
 }

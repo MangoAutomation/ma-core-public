@@ -43,9 +43,4 @@ public class PostgresProxy extends BasePooledProxy {
         return "SELECT table_name FROM information_schema.tables "
                 + "WHERE table_catalog=current_database() AND table_schema=current_schema()";
     }
-
-    @Override
-    public int batchSize() {
-        return 2000;
-    }
 }

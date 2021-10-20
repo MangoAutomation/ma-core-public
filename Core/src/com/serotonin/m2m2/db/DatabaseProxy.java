@@ -267,11 +267,19 @@ public interface DatabaseProxy extends TransactionCapable {
     }
 
     /**
-     * Number of rows to insert/delete at once when doing batch inserts/deletes (e.g. point value inserts, data point deletion)
-     * @return number of rows to insert
+     * Number of rows to insert at once when doing batch inserts (e.g. point value inserts)
+     * @return number of rows to insert at once
      */
     default int batchSize() {
         return 1000;
+    }
+
+    /**
+     * Number of rows to delete at once when doing batch deletes (e.g. data point deletion)
+     * @return number of rows to delete at once
+     */
+    default int batchDeleteSize() {
+        return batchSize();
     }
 
     /**

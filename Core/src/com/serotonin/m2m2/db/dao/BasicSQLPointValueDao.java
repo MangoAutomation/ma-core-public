@@ -493,7 +493,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     private void deleteOrphanedPointValueAnnotations() {
-        int limit = databaseProxy.batchSize();
+        int limit = databaseProxy.batchDeleteSize();
         while (true) {
             List<Long> ids = this.create.select(pva.pointValueId)
                     .from(pva)
@@ -520,7 +520,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     protected long deletePointValues(DeleteLimitStep<PointValuesRecord> deleteLimitStep, long chunkWait, Long limit) {
-        int batchSize = databaseProxy.batchSize();
+        int batchSize = databaseProxy.batchDeleteSize();
         if (batchSize <= 0) {
             return deleteLimitStep.execute();
         }
