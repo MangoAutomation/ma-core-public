@@ -520,18 +520,26 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     protected long deletePointValues(DeleteLimitStep<PointValuesRecord> deleteLimitStep, long chunkWait, Long limit) {
-        int chunkLimit = databaseProxy.batchSize();
+        int batchSize = databaseProxy.batchSize();
+        if (batchSize <= 0) {
+            return deleteLimitStep.execute();
+        }
+
         long total = 0;
-        while (true) {
-            int count = deleteLimitStep.limit(chunkLimit).execute();
-            total += count;
+        // H2: this is really slow on H2, about 1 second to delete 1000 point values
+        // H2: jOOQ creates a sub-query on row-id for delete with a limit
+        try (var statement = deleteLimitStep.limit(DSL.param("limit", Integer.class)).keepStatement(true)) {
+            while (true) {
+                int count = statement.bind("limit", batchSize).execute();
+                total += count;
 
-            if (count < chunkLimit || (limit != null && total >= limit))
-                break;
+                if (count < batchSize || (limit != null && total >= limit))
+                    break;
 
-            // park the thread for the specified amount of time
-            if (chunkWait > 0) {
-                LockSupport.parkNanos(chunkWait * 1_000_000);
+                // park the thread for the specified amount of time
+                if (chunkWait > 0) {
+                    LockSupport.parkNanos(chunkWait * 1_000_000);
+                }
             }
         }
         return total;
