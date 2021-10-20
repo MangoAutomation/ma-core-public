@@ -37,12 +37,18 @@ public class MonitoredValues implements DynamicMBean {
     private final Map<String, ValueMonitor<?>> monitors = new ConcurrentHashMap<>();
 
     public MonitoredValues() {
-        MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
-        try {
-            ObjectName objectName = new ObjectName("com.radixiot.mango:name=" + MonitoredValues.class.getSimpleName());
-            platformMBeanServer.registerMBean(this, objectName);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        this("com.radixiot.mango:name=" + MonitoredValues.class.getSimpleName());
+    }
+
+    public MonitoredValues(String mbeanName) {
+        if (mbeanName != null) {
+            MBeanServer platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
+            try {
+                ObjectName objectName = new ObjectName(mbeanName);
+                platformMBeanServer.registerMBean(this, objectName);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
