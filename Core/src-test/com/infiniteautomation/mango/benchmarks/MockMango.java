@@ -120,14 +120,6 @@ public class MockMango extends MangoTestBase {
     }
 
     /**
-     * Reset the database after every iteration
-     */
-    @TearDown(Level.Iteration)
-    public void tearDownIteration() throws SQLException {
-        after();
-    }
-
-    /**
      * Common logic to shutdown Mango after a trial. Note this
      * will only work with Fork > 0
      */
