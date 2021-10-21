@@ -169,6 +169,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
     private MailingListRecipient getRecipientType(Record record) {
         int intType = record.get(mailingListMembersTable.typeId);
         RecipientListEntryType type = RecipientListEntryType.fromValue(intType);
+        Integer userId = record.get(mailingListMembersTable.userId);
         switch (type) {
             case ADDRESS:
                 AddressEntry ae = new AddressEntry();
@@ -176,7 +177,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
                 return ae;
             case MAILING_LIST:
                 MailingListEntry ml = new MailingListEntry();
-                ml.setMailingListId(record.get(mailingListMembersTable.userId));
+                ml.setMailingListId(userId != null ? userId : 0);
                 return ml;
             case PHONE_NUMBER:
                 PhoneEntry pe = new PhoneEntry();
@@ -185,7 +186,7 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
             case USER:
             case USER_PHONE_NUMBER:
                 UserEntry ue = new UserEntry();
-                ue.setUserId(record.get(mailingListMembersTable.userId));
+                ue.setUserId(userId != null ? userId : 0);
                 return ue;
             default:
                 throw new ShouldNeverHappenException("Unknown mailing list entry type: " + intType);
