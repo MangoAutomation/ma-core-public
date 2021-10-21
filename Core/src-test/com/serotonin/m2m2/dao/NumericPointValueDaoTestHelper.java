@@ -151,8 +151,12 @@ public class NumericPointValueDaoTestHelper {
      * Call after every test
      */
     public void after() {
-        this.dao.deleteAllPointData();
-        this.data.clear();;
+        try {
+            this.dao.deleteAllPointData();
+        } catch (UnsupportedOperationException e) {
+            // ignore, we use separate points for each test so they don't interfere with each other
+        }
+        this.data.clear();
     }
 
     /* Latest Multiple w/ callback Test Methods */
