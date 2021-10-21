@@ -373,12 +373,16 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     @Bean
     public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions) {
-        return definitions.stream().findFirst().orElseThrow().getPointValueDao();
+        PointValueDaoDefinition highestPriority = definitions.stream().findFirst().orElseThrow();
+        highestPriority.initialize();
+        return highestPriority.getPointValueDao();
     }
 
     @Bean
     public PointValueCache latestPointValueDao(List<PointValueCacheDefinition> definitions) {
-        return definitions.stream().findFirst().orElseThrow().getPointValueCache();
+        PointValueCacheDefinition highestPriority = definitions.stream().findFirst().orElseThrow();
+        highestPriority.initialize();
+        return highestPriority.getPointValueCache();
     }
 
     @Bean

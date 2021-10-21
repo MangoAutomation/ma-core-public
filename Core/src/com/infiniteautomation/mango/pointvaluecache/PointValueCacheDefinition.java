@@ -4,7 +4,6 @@
 
 package com.infiniteautomation.mango.pointvaluecache;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.serotonin.m2m2.module.ModuleElementDefinition;
@@ -16,8 +15,9 @@ public abstract class PointValueCacheDefinition extends ModuleElementDefinition 
 
     /**
      * Initialize the {@link PointValueCache}
+     * Note: Only the highest priority definition should be initialized by {@link com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration#latestPointValueDao MangoRuntimeContextConfiguration}
      */
-    @PostConstruct
+    //@PostConstruct
     public abstract void initialize();
 
     /**
