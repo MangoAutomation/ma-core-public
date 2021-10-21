@@ -6,7 +6,7 @@ package com.infiniteautomation.mango.monitor;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,17 +53,20 @@ public class MonitoredValues implements DynamicMBean {
     }
 
     /**
-     * Adds monitor, if ID already exists it will be replaced by the new monitor.
-     * @param monitor
+     * Adds a monitor
+     * @param monitor monitor to add
+     * @throws IllegalStateException if monitor already exists
      */
     private void add(ValueMonitor<?> monitor) {
         Objects.requireNonNull(monitor);
-        monitors.put(monitor.getId(), monitor);
+        if (monitors.putIfAbsent(monitor.getId(), monitor) != null) {
+            throw new IllegalStateException(monitor.getId() + " already exists");
+        }
     }
 
     /**
      * Remove monitor with given id
-     * @param id
+     * @param id monitor id
      * @return the removed monitor if it existed
      */
     public ValueMonitor<?> remove(String id) {
@@ -75,14 +78,14 @@ public class MonitoredValues implements DynamicMBean {
      */
     public List<ValueMonitor<?>> getMonitors() {
         List<ValueMonitor<?>> list = new ArrayList<>(monitors.values());
-        Collections.sort(list, (a, b) -> a.getId().compareTo(b.getId()));
+        list.sort(Comparator.comparing(ValueMonitor::getId));
         return list;
     }
 
     /**
      * Get the monitor with given Id
-     * @param id
-     * @return
+     * @param id monitor id
+     * @return monitor for id
      */
     public ValueMonitor<?> getMonitor(String id) {
         return monitors.get(Objects.requireNonNull(id));
