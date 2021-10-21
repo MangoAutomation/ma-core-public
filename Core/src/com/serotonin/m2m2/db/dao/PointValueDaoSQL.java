@@ -8,16 +8,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
+import java.util.stream.Stream;
 
-import org.jooq.InsertValuesStep4;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
@@ -25,7 +26,6 @@ import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 
 import com.infiniteautomation.mango.db.tables.PointValues;
-import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
@@ -67,8 +67,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private final EventHistogram asyncCallsCounter = new EventHistogram(5000, 2);
     private final EventHistogram writesPerSecond = new EventHistogram(5000, 2);
 
-    private final ObjectQueue<BatchWriteBehindEntry> entries = new ObjectQueue<>();
-    private final CopyOnWriteArrayList<BatchWriteBehind> instances = new CopyOnWriteArrayList<>();
+    private final ObjectQueue<BatchWriteEntry> entries = new ObjectQueue<>();
+    private final CopyOnWriteArrayList<BatchWriteTask> instances = new CopyOnWriteArrayList<>();
 
     private final ValueMonitor<Integer> syncInsertsSpeedCounter;
     private final ValueMonitor<Integer> asyncInsertsSpeedCounter;
@@ -108,6 +108,35 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 .build();
 
         this.batchInsertSize = databaseProxy.batchSize();
+    }
+
+    @Override
+    public void savePointValues(Stream<? extends BatchPointValue> pointValues) {
+        var stream = pointValues.map(v -> {
+            syncCallsCounter.hit();
+            syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
+
+            var point = v.getVo();
+            var pointValue = v.getPointValue();
+            var source = v.getSource();
+            var dataType = pointValue.getValue().getDataType();
+
+            // can't batch save annotations or IMAGE/ALPHANUMERIC point values
+            if (source != null || dataType == DataTypes.IMAGE || dataType == DataTypes.ALPHANUMERIC) {
+                savePointValueImpl(point, pointValue, source, false);
+                return null;
+            }
+
+            return v;
+        }).filter(Objects::nonNull).map(v -> {
+            var point = v.getVo();
+            var pointValue = v.getPointValue();
+            var dataType = pointValue.getValue().getDataType();
+            double boundedValue = databaseProxy.applyBounds(pointValue.getDoubleValue());
+            return new BatchWriteEntry(point.getSeriesId(), dataType, boundedValue, pointValue.getTime());
+        });
+
+        writeMultiple(stream, false);
     }
 
     @Override
@@ -217,7 +246,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         dvalue = databaseProxy.applyBounds(dvalue);
 
         if (async) {
-            addBatchWriteEntry(new BatchWriteBehindEntry(vo, dataType, dvalue, time));
+            addBatchWriteEntry(new BatchWriteEntry(vo.getSeriesId(), dataType, dvalue, time));
             return -1;
         }
 
@@ -292,27 +321,27 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private static class BatchWriteBehindEntry {
-        private final DataPointVO vo;
+    private static class BatchWriteEntry {
+        private final int seriesId;
         private final int dataType;
         private final double dvalue;
         private final long time;
 
-        public BatchWriteBehindEntry(DataPointVO vo, int dataType, double dvalue, long time) {
-            this.vo = vo;
+        public BatchWriteEntry(int seriesId, int dataType, double dvalue, long time) {
+            this.seriesId = seriesId;
             this.dataType = dataType;
             this.dvalue = dvalue;
             this.time = time;
         }
     }
 
-    private void addBatchWriteEntry(BatchWriteBehindEntry e) {
+    private void addBatchWriteEntry(BatchWriteEntry e) {
         synchronized (entries) {
             entries.push(e);
             entriesMonitor.setValue(entries.size());
             if (entries.size() > instances.size() * SPAWN_THRESHOLD) {
                 if (instances.size() < MAX_INSTANCES) {
-                    BatchWriteBehind bwb = new BatchWriteBehind();
+                    BatchWriteTask bwb = new BatchWriteTask();
                     instances.add(bwb);
                     instancesMonitor.setValue(instances.size());
                     try {
@@ -327,67 +356,23 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private class BatchWriteBehind implements WorkItem {
-
-        private final Logger log = LoggerFactory.getLogger(getClass());
+    private class BatchWriteTask implements WorkItem {
 
         @Override
         public void execute() {
             try {
-                BatchWriteBehindEntry[] inserts;
+                BatchWriteEntry[] inserts;
                 while (true) {
                     synchronized (entries) {
                         if (entries.size() == 0)
                             break;
 
-                        inserts = new BatchWriteBehindEntry[Math.min(entries.size(), batchInsertSize)];
+                        inserts = new BatchWriteEntry[Math.min(entries.size(), batchInsertSize)];
                         entries.pop(inserts);
                         entriesMonitor.setValue(entries.size());
                     }
-
                     // Create the sql and parameters
-
-                    PointValues pv = PointValues.POINT_VALUES;
-                    InsertValuesStep4<PointValuesRecord, Integer, Integer, Double, Long> insert = create.insertInto(pv)
-                            .columns(pv.dataPointId, pv.dataType, pv.pointValue, pv.ts);
-
-                    for (BatchWriteBehindEntry entry : inserts) {
-                        insert.values(entry.vo.getSeriesId(), entry.dataType, entry.dvalue, entry.time);
-                    }
-
-                    // Insert the data
-                    int retries = 10;
-                    while (true) {
-                        try {
-                            insert.execute();
-                            writesPerSecond.hitMultiple(inserts.length);
-                            batchWriteSpeedMonitor.setValue(writesPerSecond.getEventCounts()[0] / 5);
-                            break;
-                        } catch (RuntimeException e) {
-                            if (RETRIED_EXCEPTIONS.contains(e.getClass())) {
-                                if (retries <= 0) {
-                                    log.error("Concurrency failure saving {} batch inserts after 10 tries. Data lost.", inserts.length);
-                                    break;
-                                }
-
-                                int wait = (10 - retries) * 100;
-                                try {
-                                    if (wait > 0) {
-                                        synchronized (this) {
-                                            wait(wait);
-                                        }
-                                    }
-                                } catch (InterruptedException ie) {
-                                    // no op
-                                }
-
-                                retries--;
-                            } else {
-                                log.error("Error saving {} batch inserts. Data lost.", inserts.length, e);
-                                break;
-                            }
-                        }
-                    }
+                    writeMultiple(Arrays.stream(inserts), true);
                 }
             } finally {
                 instances.remove(this);
@@ -422,4 +407,51 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
+    private void writeMultiple(Stream<BatchWriteEntry> entryStream, boolean incrementBatchWrites) {
+        PointValues pv = PointValues.POINT_VALUES;
+        var insert = create.insertInto(pv)
+                .columns(pv.dataPointId, pv.dataType, pv.pointValue, pv.ts);
+
+        AtomicInteger count = new AtomicInteger();
+        entryStream.forEach(entry -> {
+            insert.values(entry.seriesId, entry.dataType, entry.dvalue, entry.time);
+            count.incrementAndGet();
+        });
+
+        // Insert the data
+        int retries = 10;
+        while (true) {
+            try {
+                insert.execute();
+                if (incrementBatchWrites) {
+                    writesPerSecond.hitMultiple(count.get());
+                    batchWriteSpeedMonitor.setValue(writesPerSecond.getEventCounts()[0] / 5);
+                }
+                break;
+            } catch (RuntimeException e) {
+                if (RETRIED_EXCEPTIONS.contains(e.getClass())) {
+                    if (retries <= 0) {
+                        log.error("Concurrency failure saving {} point values after 10 tries. Data lost.", count.get());
+                        break;
+                    }
+
+                    int wait = (10 - retries) * 100;
+                    try {
+                        if (wait > 0) {
+                            synchronized (this) {
+                                wait(wait);
+                            }
+                        }
+                    } catch (InterruptedException ie) {
+                        // no op
+                    }
+
+                    retries--;
+                } else {
+                    log.error("Error saving {} point values. Data lost.", count.get(), e);
+                    break;
+                }
+            }
+        }
+    }
 }

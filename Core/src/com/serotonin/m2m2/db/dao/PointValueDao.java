@@ -111,6 +111,16 @@ public interface PointValueDao {
     }
 
     /**
+     * Save a stream of point values synchronously i.e. immediately.
+     *
+     * @throws IllegalArgumentException if pointValues is null
+     */
+    default void savePointValues(Stream<? extends BatchPointValue> pointValues) {
+        PointValueDao.validateNotNull(pointValues);
+        pointValues.forEach(v -> savePointValueSync(v.getVo(), v.getPointValue(), v.getSource()));
+    }
+
+    /**
      * Save a point value synchronously i.e. immediately.
      *
      * @throws IllegalArgumentException if vo or pointValue are null
