@@ -23,6 +23,13 @@ public class MailingListEntry implements MailingListRecipient {
 
     private int mailingListId;
 
+    public MailingListEntry() {
+
+    }
+    public MailingListEntry(int mailingListId) {
+        this.mailingListId = mailingListId;
+    }
+
     @Override
     public RecipientListEntryType getRecipientType() {
         return RecipientListEntryType.MAILING_LIST;
