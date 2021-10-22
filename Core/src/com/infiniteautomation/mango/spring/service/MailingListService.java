@@ -115,8 +115,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                         //Reload this whole guy as he may have been serialized or changed
                         MailingList list = dao.get(r.getReferenceId());
                         if(list != null) {
-                            if(list.getInactiveIntervals().contains(getIntervalIdAt(sendTime))) {
-                                Set<String> activeFromList = getActiveRecipients(list.getEntries(), sendTime);
+                            if(!list.getInactiveIntervals().contains(MailingListUtility.getIntervalIdAt(sendTime))) {
+                                Set<String> activeFromList = getActiveRecipients(list.getEntries(), sendTime, types);
                                 addresses.addAll(activeFromList);
                             }
                         }
@@ -379,22 +379,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     }
 
     /**
-     * Get the interval at this time based on the server timezone
-     * @param time
-     * @return
-     */
-    private static int getIntervalIdAt(long time) {
-        Instant i = Instant.ofEpochSecond(time);
-        ZonedDateTime dt = ZonedDateTime.ofInstant(i, ZoneId.systemDefault());
-
-        int interval = 0;
-        interval += dt.getMinute() / 15;
-        interval += dt.getHour() * 4;
-        interval += (dt.getDayOfWeek().getValue() - 1) * 96;
-        return interval;
-    }
-
-    /**
      * Keep our cache up to date by evicting changed roles
      * @param event
      */
@@ -410,6 +394,27 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                 break;
             default:
                 break;
+        }
+    }
+
+    /**
+     * Re-usable utility
+     */
+    public static class MailingListUtility {
+        /**
+         * Get the interval at this time based on the server timezone
+         * @param time
+         * @return
+         */
+        public static int getIntervalIdAt(long time) {
+            Instant i = Instant.ofEpochMilli(time);
+            ZonedDateTime dt = ZonedDateTime.ofInstant(i, ZoneId.systemDefault());
+
+            int interval = 0;
+            interval += dt.getMinute() / 15;
+            interval += dt.getHour() * 4;
+            interval += (dt.getDayOfWeek().getValue() - 1) * 96;
+            return interval;
         }
     }
 }

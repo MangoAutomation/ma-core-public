@@ -3,9 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,8 +27,11 @@ import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.mailingList.MailingListEntry;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Terry Packer
@@ -196,6 +200,99 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     @Override
     String getEditPermissionContextKey() {
         return "editPermission";
+    }
+
+    /**
+     * ensure Active interval access works
+     */
+    @Test
+    public void testActiveRecipients() {
+
+        //First create a list with 2 entries
+        //Create an inactive list
+        MailingList vo = new MailingList();
+        vo.setXid(MailingListDao.getInstance().generateUniqueXid());
+        vo.setName("MailingList");
+        vo.setReceiveAlarmEmails(AlarmLevels.NONE);
+
+        List<MailingListRecipient> entries = new ArrayList<>();
+        AddressEntry entry1 = new AddressEntry();
+        entry1.setAddress("entry1List1@example.com");
+        entries.add(entry1);
+
+        AddressEntry entry2 = new AddressEntry();
+        entry2.setAddress("entry2List1@example.com");
+        entries.add(entry2);
+
+        vo.setEntries(entries);
+
+        service.insert(vo);
+        MailingListEntry mlEntry = new MailingListEntry();
+        mlEntry.setMailingListId(vo.getId());
+        List<MailingListRecipient> mlRecipients = Collections.singletonList(mlEntry);
+
+        //Set our time to the start of this week, the test a full week's intervals
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime startOfWeek = now.with(ChronoField.DAY_OF_WEEK, 1).toLocalDate().atStartOfDay(ZoneId.systemDefault());
+        ZonedDateTime endOfNextWeek = startOfWeek.plus(2, ChronoUnit.WEEKS);
+        while(startOfWeek.isBefore(endOfNextWeek)) {
+
+            //Setup our interval
+            vo.setInactiveIntervals(
+                    Collections.singleton(
+                            MailingListService.MailingListUtility.getIntervalIdAt(startOfWeek.toInstant().toEpochMilli())));
+            vo = service.update(vo.getId(), vo);
+
+            Set<String> recipients = service.getActiveRecipients(mlRecipients,
+                    startOfWeek.toInstant().toEpochMilli(),
+                    RecipientListEntryType.MAILING_LIST,
+                    RecipientListEntryType.ADDRESS,
+                    RecipientListEntryType.USER);
+
+            assertEquals(0, recipients.size());
+
+            //Update the list to be active and re-test
+            ZonedDateTime previousIntervalStartTime = startOfWeek.minus(15, ChronoUnit.MINUTES);
+            vo.setInactiveIntervals(
+                    Collections.singleton(
+                            MailingListService.MailingListUtility
+                                    .getIntervalIdAt(previousIntervalStartTime.toInstant().toEpochMilli())));
+            vo = service.update(vo.getId(), vo);
+            recipients = service.getActiveRecipients(mlRecipients,
+                    startOfWeek.toInstant().toEpochMilli(),
+                    RecipientListEntryType.MAILING_LIST,
+                    RecipientListEntryType.ADDRESS,
+                    RecipientListEntryType.USER);
+
+            assertEquals(2, recipients.size());
+            for(MailingListRecipient e : entries) {
+                assertTrue(recipients.contains(e.toString()));
+            }
+
+            //Advance 1 minute
+            startOfWeek = startOfWeek.plus(1, ChronoUnit.MINUTES);
+        }
+    }
+
+    @Test
+    public void testInactiveIntervalComputation() {
+        //Set our time to the start of this week, the test a full week's intervals
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime startOfWeek = now.with(ChronoField.DAY_OF_WEEK, 1).toLocalDate().atStartOfDay(ZoneId.systemDefault());
+        ZonedDateTime endOfThisWeek = startOfWeek.plus(1, ChronoUnit.WEEKS);
+
+        //Count of 15 minute intervals in week starting at [00:00 to 00:15) on Monday. Thus, there are 4 * 24 * 7
+        //     * = 672 individual periods.
+        int interval = 0;
+        while(startOfWeek.isBefore(endOfThisWeek)) {
+
+            //Test interval
+            assertEquals(interval, MailingListService.MailingListUtility.getIntervalIdAt(startOfWeek.toInstant().toEpochMilli()));
+
+            //Advance 15 minute
+            startOfWeek = startOfWeek.plus(15, ChronoUnit.MINUTES);
+            interval++;
+        }
     }
 
 }

@@ -6,6 +6,9 @@
 * Allow absolute paths for image paths in email templates
 * Change Script utility DataSourceQuery to require read permission to query for a data source, was previously edit permission
 
+*Version 4.2.2*
+* Fix bug in mailing lists that would prevent emails from being sent to them
+
 *Version 4.2.1*
 * Add new datapoint permission definition to allow users to vew all data points.
 * Enable exposing Jetty statistics via JMX (configurable via properties "web.enableJmx" and "web.connectionStatistics")
