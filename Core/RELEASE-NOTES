@@ -4,6 +4,7 @@
 * Fix bug where Mango logo was not inserted into email template (Excel reports and Email event handler)
 * Obscure original path/filename of image when inserting image into email
 * Allow absolute paths for image paths in email templates
+* Change Script utility DataSourceQuery to require read permission to query for a data source, was previously edit permission
 
 *Version 4.2.1*
 * Add new datapoint permission definition to allow users to vew all data points.

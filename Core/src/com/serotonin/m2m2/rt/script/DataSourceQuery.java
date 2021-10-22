@@ -5,12 +5,14 @@ package com.serotonin.m2m2.rt.script;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
+import net.jazdw.rql.parser.ASTNode;
+import net.jazdw.rql.parser.RQLParser;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -21,10 +23,6 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.infiniteautomation.mango.spring.components.RunAs;
-
-import net.jazdw.rql.parser.ASTNode;
-import net.jazdw.rql.parser.RQLParser;
 
 /**
  *
@@ -80,8 +78,7 @@ public class DataSourceQuery extends ScriptUtility {
         if(ds == null)
             return null;
 
-        //TODO Mango 4.0 Should this be read or edit permission?
-        if(permissionService.hasPermission(permissions, ds.getEditPermission())) {
+        if(permissionService.hasPermission(permissions, ds.getReadPermission())) {
             List<DataPointWrapper> points = getPointsForSource(ds);
             return new DataSourceWrapper(ds, points);
         } else
