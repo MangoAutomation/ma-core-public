@@ -7,6 +7,8 @@ import java.io.File;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -96,9 +98,10 @@ public class DataPurge {
         }
 
         if (period != null) {
-            Instant before = Instant.ofEpochMilli(runtime).minus(period);
+            ZonedDateTime before = ZonedDateTime.ofInstant(Instant.ofEpochMilli(runtime), ZoneId.systemDefault())
+                    .minus(period);
             try {
-                pointValueDao.deletePointValuesBefore(before.toEpochMilli())
+                pointValueDao.deletePointValuesBefore(before.toInstant().toEpochMilli())
                         .ifPresent(this::addDeletedSamples);
             } catch (UnsupportedOperationException e) {
                 log.debug("purgePointValuesBefore operation is not supported by {}.", pointValueDao.getClass().getSimpleName());
