@@ -67,22 +67,11 @@ public class PurgeSettingsListener {
         }
 
         Period period;
-        switch (type) {
-            case TimePeriods.DAYS:
-                period = Period.ofDays(periods);
-                break;
-            case TimePeriods.WEEKS:
-                period = Period.ofWeeks(periods);
-                break;
-            case TimePeriods.MONTHS:
-                period = Period.ofMonths(periods);
-                break;
-            case TimePeriods.YEARS:
-                period = Period.ofYears(periods);
-                break;
-            default:
-                log.warn("Unsupported purge period type, should be days, weeks, months or years. Retention policy will not be configured.");
-                return;
+        try {
+            period = TimePeriods.toPeriod(type, periods);
+        } catch (IllegalArgumentException e) {
+            log.warn("Unsupported purge period type, should be days, weeks, months or years. Retention policy will not be configured.");
+            return;
         }
 
         try {

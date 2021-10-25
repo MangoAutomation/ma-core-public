@@ -5,6 +5,8 @@ package com.serotonin.m2m2.rt.maint;
 
 import java.io.File;
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,7 +85,27 @@ public class DataPurge {
     private void executeImpl() {
         log.info("Data purge started");
 
-        if(pointValueDao.enableNightlyPurge()){
+        int purgePeriodType = systemSettingDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE);
+        int purgePeriods = systemSettingDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS);
+
+        Period period = null;
+        try {
+            period = TimePeriods.toPeriod(purgePeriodType, purgePeriods);
+        } catch (IllegalArgumentException e) {
+            log.warn("Unsupported purge period type, should be days, weeks, months or years.");
+        }
+
+        if (period != null) {
+            Instant before = Instant.ofEpochMilli(runtime).minus(period);
+            try {
+                pointValueDao.deletePointValuesBefore(before.toEpochMilli())
+                        .ifPresent(this::addDeletedSamples);
+            } catch (UnsupportedOperationException e) {
+                log.debug("purgePointValuesBefore operation is not supported by {}.", pointValueDao.getClass().getSimpleName());
+            }
+        }
+
+        if(pointValueDao.enablePerPointPurge()){
             // Get any filters for the data purge from the modules
             List<PurgeFilter> purgeFilters = new ArrayList<>();
             for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
@@ -92,7 +114,7 @@ public class DataPurge {
             // Get the data point information.
             List<DataPointVO> dataPoints = dataPointDao.getAll();
             for (DataPointVO dataPoint : dataPoints)
-                purgePoint(dataPoint, purgeFilters);
+                purgePoint(dataPoint, purgeFilters, purgePeriodType, purgePeriods);
 
             pointValueDao.deleteOrphanedPointValues().ifPresent(this::addDeletedSamples);
 
@@ -108,7 +130,7 @@ public class DataPurge {
                 log.info("Time series purged, total deleted: " + deletedTimeSeries );
             }
         }else{
-            log.info("Purge for data point values not enabled, skipping.");
+            log.info("Per-point purge for point values not enabled, skipping.");
         }
 
         // File data purge
@@ -124,7 +146,7 @@ public class DataPurge {
             def.execute(runtime);
     }
 
-    private void purgePoint(DataPointVO dataPoint, List<PurgeFilter> purgeFilters) {
+    private void purgePoint(DataPointVO dataPoint, List<PurgeFilter> purgeFilters, int purgeType, int purgePeriod) {
         if (dataPoint.getLoggingType() == LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
@@ -138,24 +160,15 @@ public class DataPurge {
         }
         else {
             // Determine the purging properties to use.
-            int purgeType;
-            int purgePeriod;
-
             if (dataPoint.isPurgeOverride()) {
                 purgeType = dataPoint.getPurgeType();
                 purgePeriod = dataPoint.getPurgePeriod();
-            }
-            else {
+            } else {
                 // Check the data source level.
                 DataSourceVO ds = DataSourceDao.getInstance().get(dataPoint.getDataSourceId());
                 if (ds.isPurgeOverride()) {
                     purgeType = ds.getPurgeType();
                     purgePeriod = ds.getPurgePeriod();
-                }
-                else {
-                    // Use the system settings.
-                    purgeType = systemSettingDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE);
-                    purgePeriod = systemSettingDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS);
                 }
             }
 

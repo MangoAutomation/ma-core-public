@@ -91,8 +91,8 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
     }
 
     @Override
-    public boolean enableNightlyPurge() {
-        return primary.enableNightlyPurge() || secondary.enableNightlyPurge();
+    public boolean enablePerPointPurge() {
+        return primary.enablePerPointPurge() || secondary.enablePerPointPurge();
     }
 
     @Override

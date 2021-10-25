@@ -268,6 +268,17 @@ public class Common {
                 default: throw new IllegalArgumentException("Unsupported time unit " + unit);
             }
         }
+
+        static java.time.Period toPeriod(int type, int periods) {
+            switch (type) {
+                case TimePeriods.DAYS: return java.time.Period.ofDays(periods);
+                case TimePeriods.WEEKS: return java.time.Period.ofWeeks(periods);
+                case TimePeriods.MONTHS: return java.time.Period.ofMonths(periods);
+                case TimePeriods.YEARS: return java.time.Period.ofYears(periods);
+                default:
+                    throw new IllegalArgumentException("Unsupported period type, should be days, weeks, months or years.");
+            }
+        }
     }
 
     public static ExportCodes TIME_PERIOD_CODES = new ExportCodes();

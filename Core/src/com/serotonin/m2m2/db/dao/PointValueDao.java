@@ -582,13 +582,38 @@ public interface PointValueDao {
     }
 
     /**
-     * Enable or disable the nightly purge of point values.
-     * Typically, a database that supports retention policies should disable the nightly purge.
+     * Enable or disable the <strong>per point</strong> nightly purge of point values.
+     * Typically, this setting should be disabled if:
+     * <ul>
+     *     <li>The database supports retention policies</li>
+     *     <li>The database is inefficient at deleting values on a per-series basis</li>
+     * </ul>
+     *
+     * <p>If per-point purge is disabled or the {@link #deletePointValuesBefore(com.serotonin.m2m2.vo.DataPointVO, long)}
+     * method is not implemented, the data point and data source purge override settings will have no effect.</p>
      *
      * @return true to enable nightly purge of point values
      */
-    default boolean enableNightlyPurge() {
+    default boolean enablePerPointPurge() {
         return true;
+    }
+
+    /**
+     * Purge (delete) point values for all data points, for the time range {@code [-∞,endTime)}. This method is called
+     * daily (typically at midnight) by the purge task. The implementation may choose to truncate the endTime to a
+     * shard boundary but should never purge point values newer than endTime.
+     *
+     * <p>Typically, a database that supports retention policies should not implement this method,
+     * i.e. throw an {@link UnsupportedOperationException}.</p>
+     *
+     * <p>This method is called regardless of the {@link #enablePerPointPurge()} setting.</p>
+     *
+     * @param endTime end of time range (epoch ms), exclusive
+     * @return the number of point values deleted, return an empty optional if this will add additional overhead
+     * @throws UnsupportedOperationException if the database does not support this operation
+     */
+    default Optional<Long> deletePointValuesBefore(long endTime) {
+        throw new UnsupportedOperationException();
     }
 
     /**
