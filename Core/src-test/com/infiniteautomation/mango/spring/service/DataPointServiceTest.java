@@ -3,10 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.*;
-
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,22 +14,20 @@ import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Terry Packer
@@ -270,58 +265,6 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
         DataPointVO copy = existing.copy();
 
         return copy;
-    }
-
-    @Test
-    public void testIsEnabled() {
-        DataPointVO point = newVO(readUser);
-        DataPointVO inserted = service.insert(point);
-        boolean enabled = dao.isEnabled(inserted.getId());
-        assertFalse(enabled);
-
-        inserted.setEnabled(true);
-        DataPointVO updated = service.update(inserted.getId(), inserted);
-        enabled = dao.isEnabled(updated.getId());
-        assertTrue(enabled);
-    }
-
-    @Test
-    public void testCountPointsForDataSourceType() {
-        createMockDataPoints(5);
-        int pointCount = dao.countPointsForDataSourceType(MockDataSourceDefinition.TYPE_NAME);
-        assertEquals(5, pointCount);
-    }
-
-    @Test
-    public void testTopPointHistoryCountsSql() {
-        DataPointVO point = newVO(readUser);
-        DataPointVO inserted = service.insert(point);
-        for (int i = 0; i < 5; i++) {
-            PointValueTime newPvt = new PointValueTime(i, System.currentTimeMillis());
-            pointValueDaoSQL.savePointValueSync(inserted, newPvt, null);
-        }
-        List<PointHistoryCount> historyCounts = dao.getTopPointHistoryCounts();
-        assertEquals(1, historyCounts.size());
-
-        DataPointVO fromDB = service.get(inserted.getId());
-        PointHistoryCount history = historyCounts.get(0);
-        assertEquals(fromDB.getId(), history.getPointId());
-        assertEquals(fromDB.getExtendedName(), history.getPointName());
-        assertEquals(5, history.getCount());
-    }
-
-    @Test
-    public void testUsage() {
-        for (int i = 0; i < 5; i++) {
-            DataPointVO point = newVO(readUser);
-            service.insert(point);
-        }
-        List<DataPointUsageStatistics> stats = dao.getUsage();
-        assertEquals(1, stats.size());
-
-        DataPointUsageStatistics stat = stats.get(0);
-        assertEquals((Integer) 5, stat.getCount());
-        assertEquals(MockDataSourceDefinition.TYPE_NAME, stat.getDataSourceType());
     }
 
     @SuppressWarnings("unchecked")
