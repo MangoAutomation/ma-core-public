@@ -15,15 +15,14 @@ import org.junit.Test;
 
 import com.infiniteautomation.mango.rules.ExpectValidationExceptionRule;
 import com.infiniteautomation.mango.spring.components.RunAs;
+import com.infiniteautomation.mango.util.AbstractRoleBasedTest;
 import com.infiniteautomation.mango.util.AssertionUtils;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,7 +33,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public abstract class AbstractBasicVOServiceTest<
         VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>,
-        SERVICE extends AbstractBasicVOService<VO, DAO>> extends MangoTestBase implements AssertionUtils {
+        SERVICE extends AbstractBasicVOService<VO, DAO>> extends AbstractRoleBasedTest implements AssertionUtils {
 
     @Rule
     public ExpectValidationExceptionRule validation = new ExpectValidationExceptionRule();
@@ -47,19 +46,8 @@ public abstract class AbstractBasicVOServiceTest<
     abstract DAO getDao();
     abstract void assertVoEqual(VO expected, VO actual);
 
-    protected RoleService roleService;
+
     protected SystemPermissionService systemPermissionService;
-
-    protected User readUser;
-    protected User editUser;
-    protected User setUser;
-    protected User deleteUser;
-    protected User allUser;
-
-    protected Role readRole;
-    protected Role editRole;
-    protected Role deleteRole;
-    protected Role setRole;
 
     /**
      * Create a new VO with all fields populated except any roles
@@ -160,33 +148,6 @@ public abstract class AbstractBasicVOServiceTest<
     VO insertNewVO(User owner) {
         VO vo = newVO(owner);
         return service.insert(vo);
-    }
-
-    void setupRoles() {
-        roleService = Common.getBean(RoleService.class);
-
-        //Add some roles
-        RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
-        roleService.insert(temp);
-        readRole = new Role(temp);
-
-        temp = new RoleVO(Common.NEW_ID, "edit-role", "Role to allow editing.");
-        roleService.insert(temp);
-        editRole = new Role(temp);
-
-        temp = new RoleVO(Common.NEW_ID, "set-role", "Role to allow setting.");
-        roleService.insert(temp);
-        setRole = new Role(temp);
-
-        temp = new RoleVO(Common.NEW_ID, "delete-role", "Role to allow deleting.");
-        roleService.insert(temp);
-        deleteRole = new Role(temp);
-
-        readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
-        editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
-        setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
-        deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
-        allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);
     }
 
     public Role getEditRole() {

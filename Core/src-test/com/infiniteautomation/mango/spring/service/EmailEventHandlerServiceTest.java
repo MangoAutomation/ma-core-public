@@ -3,8 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +33,8 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Terry Packer
@@ -182,34 +182,6 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         EmailEventHandlerVO copy = (EmailEventHandlerVO) existing.copy();
         copy.setName("new name");
         return copy;
-    }
-
-    @Test
-    public void testHandlerMappings() {
-        EmailEventHandlerVO handler = newVO(editUser);
-        EmailEventHandlerVO inserted = (EmailEventHandlerVO) service.insert(handler);
-        EmailEventHandlerVO fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
-        assertEquals(1, fromDB.getEventTypes().size());
-
-        //Update
-        dao.saveEventHandlerMapping(fromDB.getId(), new MockEventType(readRole));
-        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
-        assertEquals(1, fromDB.getEventTypes().size());
-
-        //Delete by type and handlerId
-        dao.deleteEventHandlerMapping(fromDB.getId(), new MockEventType(readRole));
-        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
-        assertEquals(0, fromDB.getEventTypes().size());
-
-        //Insert
-        dao.saveEventHandlerMapping(fromDB.getId(), new MockEventType(readRole));
-        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
-        assertEquals(1, fromDB.getEventTypes().size());
-
-        //Delete by type
-        dao.deleteEventHandlerMappings(new MockEventType(readRole));
-        fromDB = (EmailEventHandlerVO) service.get(inserted.getId());
-        assertEquals(0, fromDB.getEventTypes().size());
     }
 
     void addRoleToCreatePermission(Role vo) {

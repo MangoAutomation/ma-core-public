@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.service.DataSourceService;
-import com.infiniteautomation.mango.util.AssertionUtils;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -23,7 +22,7 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 
 import static org.junit.Assert.*;
 
-public class DataPointDaoTest extends AbstractVoDaoTest<DataPointVO, DataPointDao> implements AssertionUtils {
+public class DataPointDaoTest extends AbstractVoDaoTest<DataPointVO, DataPointDao> {
 
     private DataSourceService dataSourceService;
     private PointValueDaoSQL pointValueDaoSQL;

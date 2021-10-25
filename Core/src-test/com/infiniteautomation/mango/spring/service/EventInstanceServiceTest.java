@@ -4,8 +4,6 @@
 
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -23,11 +21,13 @@ import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.rt.event.UserEventLevelSummary;
+import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * TODO: This test will cause NPE due to the fact that audit events are being raised and there is no audit event type for
@@ -191,78 +191,6 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
 
     }
 
-    @Test
-    public void testPurgeEvents() {
-        long refTime = System.currentTimeMillis();
-        createEvents(10, 2, refTime);
-        assertEquals(10, eventDao.getEventCount());
-        assertEquals(20, userCommentService.dao.count());
-
-        runAs.runAs(runAs.systemSuperadmin(), () -> {
-            int count = eventDao.purgeAllEvents();
-            assertEquals(10, count);
-        });
-        assertEquals(0, eventDao.getEventCount());
-        assertEquals(0, userCommentService.dao.count());
-    }
-
-    @Test
-    public void testPurgeEventsBefore() {
-        long refTime = System.currentTimeMillis();
-        createEvents(10, 2, refTime);
-        assertEquals(10, eventDao.getEventCount());
-        assertEquals(20, userCommentService.dao.count());
-
-        runAs.runAs(runAs.systemSuperadmin(), () -> {
-            int count = eventDao.purgeEventsBefore(refTime);
-            assertEquals(5, count);
-        });
-        assertEquals(5, eventDao.getEventCount());
-        assertEquals(10, userCommentService.dao.count());
-    }
-
-    @Test
-    public void testPurgeEventsBeforeByType() {
-        long refTime = System.currentTimeMillis();
-        createEvents(10, 2, refTime);
-        assertEquals(10, eventDao.getEventCount());
-        assertEquals(20, userCommentService.dao.count());
-
-        String eventType = newVO(editUser).getEventType().getEventType();
-        runAs.runAs(runAs.systemSuperadmin(), () -> {
-            int count = eventDao.purgeEventsBefore(refTime, eventType);
-            assertEquals(5, count);
-        });
-        assertEquals(5, eventDao.getEventCount());
-        assertEquals(10, userCommentService.dao.count());
-    }
-
-    @Test
-    public void testPurgeEventsBeforeByAlarmLevel() {
-        long refTime = System.currentTimeMillis();
-        createEvents(10, 2, refTime);
-        assertEquals(10, eventDao.getEventCount());
-        assertEquals(20, userCommentService.dao.count());
-
-        AlarmLevels alarmLevel = newVO(editUser).getAlarmLevel();
-        runAs.runAs(runAs.systemSuperadmin(), () -> {
-            int count = eventDao.purgeEventsBefore(refTime, alarmLevel);
-            assertEquals(5, count);
-        });
-        assertEquals(5, eventDao.getEventCount());
-        assertEquals(10, userCommentService.dao.count());
-    }
-
-    @Test
-    public void testUnackSummaryCount() {
-        long refTime = System.currentTimeMillis();
-        createEvents(5, 0, refTime);
-        List<UserEventLevelSummary> summaries = service.getUnacknowledgedSummary();
-        AlarmLevels alarmLevel = newVO(editUser).getAlarmLevel();
-        UserEventLevelSummary summary = summaries.get(alarmLevel.value());
-        assertEquals(5,  summary.getCount());
-    }
-
     //Overrident tests
     @Override
     @Test
@@ -301,15 +229,14 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
         });
     }
 
-    void createEvents(int eventCount, int commentCount, long refTime) {
-        long beforeRef = refTime - 1000;
-        long afterRef = refTime + 1000;
-        for (int i = 0; i < eventCount; i++) {
-            EventInstanceVO vo = newVO(editUser);
-            vo.setActiveTimestamp(i % 2 == 0 ? beforeRef : afterRef);
-            EventInstanceVO inserted = service.insert(vo);
-            createComments(inserted.getId(), commentCount, refTime);
-        }
+    @Test
+    public void testUnackSummaryCount() {
+        long refTime = System.currentTimeMillis();
+        createEvents(5, 0, refTime);
+        List<UserEventLevelSummary> summaries = service.getUnacknowledgedSummary();
+        AlarmLevels alarmLevel = newVO(editUser).getAlarmLevel();
+        UserEventLevelSummary summary = summaries.get(alarmLevel.value());
+        assertEquals(5,  summary.getCount());
     }
 
     List<UserCommentVO> createComments(int eventId, int count, long time) {
@@ -326,5 +253,16 @@ public class EventInstanceServiceTest extends AbstractVOServiceWithPermissionsTe
             comments.add(userCommentService.insert(comment));
         }
         return comments;
+    }
+
+    void createEvents(int eventCount, int commentCount, long refTime) {
+        long beforeRef = refTime - 1000;
+        long afterRef = refTime + 1000;
+        for (int i = 0; i < eventCount; i++) {
+            EventInstanceVO vo = newVO(editUser);
+            vo.setActiveTimestamp(i % 2 == 0 ? beforeRef : afterRef);
+            EventInstanceVO inserted = service.insert(vo);
+            createComments(inserted.getId(), commentCount, refTime);
+        }
     }
 }

@@ -6,7 +6,8 @@ package com.serotonin.m2m2.db.dao;
 
 import org.junit.Before;
 
-import com.serotonin.m2m2.MangoTestBase;
+import com.infiniteautomation.mango.util.AbstractRoleBasedTest;
+import com.infiniteautomation.mango.util.AssertionUtils;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -15,12 +16,13 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @param <VO>
  * @param <DAO>
  */
-public abstract class AbstractVoDaoTest<VO extends AbstractVO, DAO extends AbstractVoDao> extends MangoTestBase {
+public abstract class AbstractVoDaoTest<VO extends AbstractVO, DAO extends AbstractVoDao> extends AbstractRoleBasedTest implements AssertionUtils {
 
     protected DAO dao;
 
     @Before
     public void setupDaoTest() {
+        setupRoles();
         dao = getDao();
     }
 
