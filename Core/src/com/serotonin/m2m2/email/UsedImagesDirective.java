@@ -3,13 +3,6 @@
  */
 package com.serotonin.m2m2.email;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import com.serotonin.m2m2.Common;
-
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
@@ -17,6 +10,12 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 import freemarker.template.TemplateModelException;
 import freemarker.template.TemplateScalarModel;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.serotonin.m2m2.Common;
 
 /**
  * @author Matthew Lohbihler
@@ -41,7 +40,7 @@ public class UsedImagesDirective implements TemplateDirectiveModel {
 
                 if (!imageList.contains("." + Common.APPLICATION_LOGO))
                     imageList.add("." + Common.APPLICATION_LOGO);
-                env.getOut().write(Common.APPLICATION_LOGO);
+                env.getOut().write("." + Common.APPLICATION_LOGO);
             }
         }
 
