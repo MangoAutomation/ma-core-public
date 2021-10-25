@@ -3,27 +3,19 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.rules.ExpectValidationExceptionRule;
 import com.infiniteautomation.mango.spring.components.RunAs;
+import com.infiniteautomation.mango.util.AssertionUtils;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
@@ -33,11 +25,16 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>, SERVICE extends AbstractBasicVOService<VO, DAO>> extends MangoTestBase {
+public abstract class AbstractBasicVOServiceTest<
+        VO extends AbstractBasicVO, R extends Record, TABLE extends Table<R>, DAO extends AbstractBasicDao<VO, R, TABLE>,
+        SERVICE extends AbstractBasicVOService<VO, DAO>> extends MangoTestBase implements AssertionUtils {
 
     @Rule
     public ExpectValidationExceptionRule validation = new ExpectValidationExceptionRule();
@@ -163,34 +160,6 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, R e
     VO insertNewVO(User owner) {
         VO vo = newVO(owner);
         return service.insert(vo);
-    }
-
-    void assertPermission(MangoPermission expected, MangoPermission actual) {
-        assertTrue(expected.equals(actual));
-    }
-
-    void assertRoles(Set<Role> expected, Set<Role> actual) {
-        assertEquals(expected.size(), actual.size());
-        Set<Role> missing = new HashSet<>();
-        for(Role expectedRole : expected) {
-            boolean found = false;
-            for(Role actualRole : actual) {
-                if(StringUtils.equals(expectedRole.getXid(), actualRole.getXid())) {
-                    found = true;
-                    break;
-                }
-            }
-            if(!found) {
-                missing.add(expectedRole);
-            }
-        }
-        if(missing.size() > 0) {
-            String missingRoles = "";
-            for(Role missingRole : missing) {
-                missingRoles += "< " + missingRole.getId() + " - " + missingRole.getXid() + "> ";
-            }
-            fail("Not all roles matched, missing: " + missingRoles);
-        }
     }
 
     void setupRoles() {

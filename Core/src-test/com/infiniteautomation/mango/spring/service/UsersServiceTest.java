@@ -3,13 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -19,7 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.Users;
@@ -38,6 +30,10 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.*;
 
 /**
  * @author Terry Packer
@@ -389,35 +385,6 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Override
     String getEditPermissionContextKey() {
         return "editPermission";
-    }
-
-    @Override
-    void assertRoles(Set<Role> expected, Set<Role> actual) {
-        assertEquals(expected.size(), actual.size());
-        Set<Role> missing = new HashSet<>();
-        for(Role expectedRole : expected) {
-            boolean found = false;
-            for(Role actualRole : actual) {
-                if(StringUtils.equals(expectedRole.getXid(), actualRole.getXid())) {
-                    found = true;
-                    break;
-                }
-            }
-            if(!found) {
-                missing.add(expectedRole);
-            }
-        }
-        if(missing.size() > 0) {
-            StringBuilder missingRoles = new StringBuilder();
-            for(Role missingRole : missing) {
-                missingRoles.append("< ")
-                        .append(missingRole.getId())
-                        .append(" - ")
-                        .append(missingRole.getXid())
-                        .append("> ");
-            }
-            fail("Not all roles matched, missing: " + missingRoles);
-        }
     }
 
     /**
