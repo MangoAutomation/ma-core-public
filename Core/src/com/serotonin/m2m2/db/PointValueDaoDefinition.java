@@ -5,7 +5,6 @@ package com.serotonin.m2m2.db;
 
 import java.nio.file.Path;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +25,9 @@ abstract public class PointValueDaoDefinition extends ModuleElementDefinition {
 
     /**
      * Initialize the {@link PointValueDao}
+     * Note: Only the highest priority definition should be initialized by {@link com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration#pointValueDao MangoRuntimeContextConfiguration}
      */
-    @PostConstruct
+    //@PostConstruct
     public abstract void initialize();
 
     /**
