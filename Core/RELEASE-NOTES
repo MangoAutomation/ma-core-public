@@ -3,6 +3,8 @@
 * Adding a monitored metric for the PublishQueue size.
 * Obscure original path/filename of image when inserting image into email
 * Allow absolute paths for image paths in email templates
+* Fix duplicate event count for Unacknowledged event summary
+* Performance enhancement when calculating Unacknowledged event summary
 * Change Script utility DataSourceQuery to require read permission to query for a data source, was previously edit permission
 
 *Version 4.2.2*

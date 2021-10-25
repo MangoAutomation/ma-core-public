@@ -3,18 +3,17 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import org.jooq.BatchBindStep;
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.infiniteautomation.mango.db.tables.MailingListInactive;
+import com.infiniteautomation.mango.db.tables.MailingListMembers;
 import com.infiniteautomation.mango.db.tables.MailingLists;
 import com.infiniteautomation.mango.db.tables.records.MailingListsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -43,20 +42,21 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
         return Common.getRuntimeContext().getBean(MailingListDao.class);
     });
 
+    private final MailingListInactive mailingListInactiveTable;
+    private final MailingListMembers mailingListMembersTable;
 
     @Autowired
     private MailingListDao(DaoDependencies dependencies){
         super(dependencies, AuditEventType.TYPE_MAILING_LIST,
                 MailingLists.MAILING_LISTS,
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"));
+        this.mailingListInactiveTable = MailingListInactive.MAILING_LIST_INACTIVE;
+        this.mailingListMembersTable = MailingListMembers.MAILING_LIST_MEMBERS;
     }
 
     public static MailingListDao getInstance() {
         return springInstance.get();
     }
-
-    private static final String MAILING_LIST_INACTIVE_INSERT = "insert into mailingListInactive (mailingListId, inactiveInterval) values (?,?)";
-    private static final String MAILING_LIST_ENTRY_INSERT = "insert into mailingListMembers (mailingListId, typeId, userId, address) values (?,?,?,?)";
 
     @Override
     public void savePreRelationalData(MailingList existing, MailingList vo) {
@@ -69,47 +69,35 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
 
     @Override
     public void saveRelationalData(MailingList existing, MailingList ml) {
-
-        // Save the inactive intervals.
-        if(existing != null)
-            ejt.update("delete from mailingListInactive where mailingListId=?", new Object[] { ml.getId() });
-
-        // Save what is in the mailing list object.
-        final List<Integer> intervalIds = new ArrayList<Integer>(ml.getInactiveIntervals());
-        ejt.batchUpdate(MAILING_LIST_INACTIVE_INSERT, new BatchPreparedStatementSetter() {
-            @Override
-            public int getBatchSize() {
-                return intervalIds.size();
-            }
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setInt(1, ml.getId());
-                ps.setInt(2, intervalIds.get(i));
-            }
-        });
-
         // Delete existing entries
-        if(existing != null)
-            ejt.update("delete from mailingListMembers where mailingListId=?", new Object[] { ml.getId() });
+        if(existing != null) {
+            create.deleteFrom(mailingListInactiveTable)
+                    .where(mailingListInactiveTable.mailingListId.eq(ml.getId())).execute();
+            create.deleteFrom(mailingListMembersTable)
+                    .where(mailingListMembersTable.mailingListId.eq(ml.getId())).execute();
+        }
 
-        // Save what is in the mailing list object.
-        final List<MailingListRecipient> entries = ml.getEntries();
-        ejt.batchUpdate(MAILING_LIST_ENTRY_INSERT, new BatchPreparedStatementSetter() {
-            @Override
-            public int getBatchSize() {
-                return entries.size();
-            }
+        // Save relational data
+        Set<Integer> inactiveIntervals = ml.getInactiveIntervals();
+        if (inactiveIntervals.size() > 0) {
+            BatchBindStep batchInactive = create.batch(create.insertInto(mailingListInactiveTable)
+                    .columns(mailingListInactiveTable.mailingListId, mailingListInactiveTable.inactiveInterval)
+                    .values((Integer) null, null));
+            for (Integer interval : inactiveIntervals)
+                batchInactive.bind(ml.getId(), interval);
+            batchInactive.execute();
+        }
 
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                MailingListRecipient e = entries.get(i);
-                ps.setInt(1, ml.getId());
-                ps.setInt(2, e.getRecipientType().value());
-                ps.setInt(3, e.getReferenceId());
-                ps.setString(4, e.getReferenceAddress());
-            }
-        });
+        List<MailingListRecipient> entries = ml.getEntries();
+        if (entries.size() > 0) {
+            BatchBindStep batchMembers = create.batch(create.insertInto(mailingListMembersTable)
+                    .columns(mailingListMembersTable.mailingListId, mailingListMembersTable.typeId,
+                            mailingListMembersTable.userId, mailingListMembersTable.address)
+                    .values((Integer) null, null, null, null));
+            for (MailingListRecipient r : entries)
+                batchMembers.bind(ml.getId(), r.getRecipientType().value(), r.getReferenceId(), r.getReferenceAddress());
+            batchMembers.execute();
+        }
 
         if(existing != null) {
             if(!existing.getReadPermission().equals(ml.getReadPermission())) {
@@ -121,15 +109,23 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
         }
     }
 
-    private static final String MAILING_LIST_INACTIVE_SELECT = "select inactiveInterval from mailingListInactive where mailingListId=?";
-    private static final String MAILING_LIST_ENTRIES_SELECT = "select typeId, userId, address, '' from mailingListMembers where mailingListId=?";
-
     @Override
     public void loadRelationalData(MailingList ml) {
         ml.getInactiveIntervals().addAll(
-                ejt.query(MAILING_LIST_INACTIVE_SELECT, new MailingListScheduleInactiveMapper(), ml.getId()));
+                create.select().from(mailingListInactiveTable)
+                        .where(mailingListInactiveTable.mailingListId.equal(ml.getId()))
+                        .fetch(mailingListInactiveTable.inactiveInterval, Integer.class)
+        );
 
-        ml.setEntries(ejt.query(MAILING_LIST_ENTRIES_SELECT, new EmailRecipientRowMapper(), ml.getId()));
+        List<MailingListRecipient> recipients = new ArrayList<>();
+        create.select()
+                .from(mailingListMembersTable)
+                .where(mailingListMembersTable.mailingListId.eq(ml.getId()))
+                .fetch()
+                .forEach(record -> {
+                    recipients.add(getRecipientType(record));
+                });
+        ml.setEntries(recipients);
 
         //Populate permissions
         ml.setReadPermission(permissionService.get(ml.getReadPermission().getId()));
@@ -170,39 +166,30 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
         return ml;
     }
 
-    class EmailRecipientRowMapper implements RowMapper<MailingListRecipient> {
-        @Override
-        public MailingListRecipient mapRow(ResultSet rs, int rowNum) throws SQLException {
-            int intType = rs.getInt(1);
-            RecipientListEntryType type = RecipientListEntryType.fromValue(intType);
-            switch (type) {
-                case ADDRESS:
-                    AddressEntry ae = new AddressEntry();
-                    ae.setAddress(rs.getString(3));
-                    return ae;
-                case MAILING_LIST:
-                    MailingListEntry ml = new MailingListEntry();
-                    ml.setMailingListId(rs.getInt(2));
-                    return ml;
-                case PHONE_NUMBER:
-                    PhoneEntry pe = new PhoneEntry();
-                    pe.setPhone(rs.getString(3));
-                    return pe;
-                case USER:
-                case USER_PHONE_NUMBER:
-                    UserEntry ue = new UserEntry();
-                    ue.setUserId(rs.getInt(2));
-                    return ue;
-                default:
-                    throw new ShouldNeverHappenException("Unknown mailing list entry type: " + intType);
-            }
-        }
-    }
-
-    class MailingListScheduleInactiveMapper implements RowMapper<Integer> {
-        @Override
-        public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-            return rs.getInt(1);
+    private MailingListRecipient getRecipientType(Record record) {
+        int intType = record.get(mailingListMembersTable.typeId);
+        RecipientListEntryType type = RecipientListEntryType.fromValue(intType);
+        Integer userId = record.get(mailingListMembersTable.userId);
+        switch (type) {
+            case ADDRESS:
+                AddressEntry ae = new AddressEntry();
+                ae.setAddress(record.get(mailingListMembersTable.address));
+                return ae;
+            case MAILING_LIST:
+                MailingListEntry ml = new MailingListEntry();
+                ml.setMailingListId(userId != null ? userId : 0);
+                return ml;
+            case PHONE_NUMBER:
+                PhoneEntry pe = new PhoneEntry();
+                pe.setPhone(record.get(mailingListMembersTable.address));
+                return pe;
+            case USER:
+            case USER_PHONE_NUMBER:
+                UserEntry ue = new UserEntry();
+                ue.setUserId(userId != null ? userId : 0);
+                return ue;
+            default:
+                throw new ShouldNeverHappenException("Unknown mailing list entry type: " + intType);
         }
     }
 }

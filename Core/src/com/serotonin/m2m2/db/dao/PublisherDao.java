@@ -3,11 +3,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.io.InputStream;
-import java.io.Serializable;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -22,10 +17,9 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 
+import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.Publishers;
 import com.infiniteautomation.mango.db.tables.records.PublishersRecord;
 import com.infiniteautomation.mango.spring.DaoDependencies;
@@ -56,6 +50,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
     static final Logger LOG = LoggerFactory.getLogger(PublisherDao.class);
 
     private final DataPointDao dataPointDao;
+    private final EventHandlersMapping handlerMapping;
 
     @Autowired
     private PublisherDao(DaoDependencies dependencies, DataPointDao dataPointDao) {
@@ -63,6 +58,7 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
                 Publishers.PUBLISHERS,
                 new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
         this.dataPointDao = dataPointDao;
+        this.handlerMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
     }
 
     /**
@@ -89,30 +85,31 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
      * @param publisherType
      */
     public void deletePublisherType(final String publisherType) {
-        List<Integer> pubIds = ejt.queryForList("SELECT id FROM publishers WHERE publisherType=?", Integer.class, publisherType);
-        for (Integer pubId : pubIds)
-            delete(pubId);
+        create.select(table.id)
+                .from(table)
+                .where(table.publisherType.eq(publisherType))
+                .fetch()
+                .forEach(record -> {
+                    int id = record.get(table.id);
+                    delete(id);
+                });
     }
 
     public Object getPersistentData(int id) {
-        return ejt.query("select rtdata from publishers where id=?", new ResultSetExtractor<Serializable>() {
-            @Override
-            public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
-                if (!rs.next())
-                    return null;
-
-                InputStream in = rs.getBinaryStream(1);
-                if (in == null)
-                    return null;
-
-                return (Serializable) SerializationHelper.readObjectInContext(in);
-            }
-        }, id);
+        return create.select(table.rtdata)
+                .from(table)
+                .where(table.id.eq(id))
+                .fetchSingle(record -> {
+                    byte[] rtData = record.get(table.rtdata);
+                    return SerializationHelper.readObjectFromArray(rtData);
+                });
     }
 
     public void savePersistentData(int id, Object data) {
-        ejt.update("update publishers set rtdata=? where id=?", new Object[] { SerializationHelper.writeObject(data),
-                id }, new int[] { Types.BINARY, Types.INTEGER });
+        create.update(table)
+                .set(table.rtdata, SerializationHelper.writeObjectToArray(data))
+                .where(table.id.eq(id))
+                .execute();
     }
 
     public int countPointsForPublisherType(String publisherType, int excludeId) {
@@ -219,7 +216,10 @@ public class PublisherDao extends AbstractVoDao<PublisherVO<? extends PublishedP
 
     @Override
     public void deleteRelationalData(PublisherVO<?> vo) {
-        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", EventTypeNames.PUBLISHER, vo.getId());
+        create.deleteFrom(handlerMapping)
+                .where(handlerMapping.eventTypeName.eq(EventTypeNames.PUBLISHER))
+                .and(handlerMapping.eventTypeRef1.eq(vo.getId()))
+                .execute();
         vo.getDefinition().deleteRelationalData(vo);
     }
 

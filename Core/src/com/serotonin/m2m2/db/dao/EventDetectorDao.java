@@ -20,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
+import com.infiniteautomation.mango.db.tables.EventHandlersMapping;
 import com.infiniteautomation.mango.db.tables.records.EventDetectorsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.DaoDependencies;
@@ -57,6 +58,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     /* Map of Source Type to Source ID Column Names */
     private final DataPoints dataPointTable;
     private final DataSources dataSourceTable;
+    private final EventHandlersMapping eventHandlersMappingTable;
 
     private final Map<String, Field<Integer>> sourceTypeToField;
 
@@ -68,6 +70,7 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"));
         this.dataPointTable = DataPoints.DATA_POINTS;
         this.dataSourceTable = DataSources.DATA_SOURCES;
+        this.eventHandlersMappingTable = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
         //Build our ordered column set from the Module Registry
 
         this.sourceTypeToField = ModuleRegistry.getEventDetectorDefinitions()
@@ -183,14 +186,8 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
         EventTypeVO et = vo.getEventType();
         EventHandlerDao eventHandlerDao = EventHandlerDao.getInstance();
         if (vo.getAddedEventHandlers() != null) {
-            if (existing != null) {
-                for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
-                    eventHandlerDao.addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
-                }
-            } else {
-                for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
-                    eventHandlerDao.saveEventHandlerMapping(ehVo.getId(), et.getEventType());
-                }
+            for (AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers()) {
+                eventHandlerDao.saveEventHandlerMapping(ehVo.getId(), et.getEventType());
             }
         } else if (vo.getEventHandlerXids() != null) {
             //Remove all mappings if we are updating the detector
@@ -228,8 +225,11 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     @Override
     public void deleteRelationalData(AbstractEventDetectorVO vo) {
         //Also update the Event Handlers
-        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
-                vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId());
+        create.deleteFrom(eventHandlersMappingTable)
+                .where(eventHandlersMappingTable.eventTypeName.eq(vo.getEventType().getEventType().getEventType()))
+                .and(eventHandlersMappingTable.eventTypeRef1.eq(vo.getSourceId()))
+                .and(eventHandlersMappingTable.eventTypeRef2.eq(vo.getId()))
+                .execute();
     }
 
     @Override

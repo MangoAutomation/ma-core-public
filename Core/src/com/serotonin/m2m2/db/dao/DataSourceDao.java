@@ -3,21 +3,15 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.io.InputStream;
-import java.io.Serializable;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jooq.Record;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.tables.DataSources;
@@ -136,19 +130,13 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
      * @return
      */
     public Object getPersistentData(int id) {
-        return ejt.query("select rtdata from dataSources where id=?", new ResultSetExtractor<Serializable>() {
-            @Override
-            public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
-                if (!rs.next())
-                    return null;
-
-                InputStream in = rs.getBinaryStream(1);
-                if (in == null)
-                    return null;
-
-                return (Serializable) SerializationHelper.readObjectInContext(in);
-            }
-        }, id);
+        return create.select(table.rtdata)
+                .from(table)
+                .where(table.id.eq(id))
+                .fetchSingle(record -> {
+                    byte[] rtData = record.get(table.rtdata);
+                    return SerializationHelper.readObjectFromArray(rtData);
+                });
     }
 
     /**
@@ -157,8 +145,10 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
      * @param data
      */
     public void savePersistentData(int id, Object data) {
-        ejt.update("UPDATE dataSources SET rtdata=? WHERE id=?", new Object[] { SerializationHelper.writeObject(data),
-                id }, new int[] { Types.BINARY, Types.INTEGER });
+        create.update(table)
+                .set(table.rtdata, SerializationHelper.writeObjectToArray(data))
+                .where(table.id.eq(id))
+                .execute();
     }
 
     /**
@@ -166,15 +156,18 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
      * @return
      */
     public List<DataSourceUsageStatistics> getUsage() {
-        return ejt.query("SELECT dataSourceType, COUNT(dataSourceType) FROM dataSources GROUP BY dataSourceType", new RowMapper<DataSourceUsageStatistics>() {
-            @Override
-            public DataSourceUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
-                DataSourceUsageStatistics usage = new DataSourceUsageStatistics();
-                usage.setDataSourceType(rs.getString(1));
-                usage.setCount(rs.getInt(2));
-                return usage;
-            }
-        });
+        List<DataSourceUsageStatistics> result = new ArrayList<>();
+        create.select(table.dataSourceType, DSL.count(table.dataSourceType))
+                .from(table)
+                .groupBy(table.dataSourceType)
+                .fetch()
+                .forEach(record -> {
+                    DataSourceUsageStatistics usage = new DataSourceUsageStatistics();
+                    usage.setDataSourceType(record.get(table.dataSourceType));
+                    usage.setCount(record.get(DSL.count(table.dataSourceType)));
+                    result.add(usage);
+                });
+        return result;
     }
 
     @Override
