@@ -17,7 +17,6 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.IDataPoint;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -104,9 +103,8 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
      * Validate a new published point
      * @param response
      * @param vo
-     * @param user
      */
-    abstract public void validate(ProcessResult response, PublishedPointVO vo, PermissionHolder user);
+    abstract public void validate(ProcessResult response, PublishedPointVO vo);
 
     /**
      * Validate a published point to be updated
@@ -114,10 +112,9 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
      * @param response
      * @param existing
      * @param vo
-     * @param user
      */
-    public void validate(ProcessResult response, PublishedPointVO existing, PublishedPointVO vo, PermissionHolder user) {
-        validate(response, vo, user);
+    public void validate(ProcessResult response, PublishedPointVO existing, PublishedPointVO vo) {
+        validate(response, vo);
     }
     /**
      * If the module is uninstalled, delete any publishers of this type. If this method is overridden, be sure to call
