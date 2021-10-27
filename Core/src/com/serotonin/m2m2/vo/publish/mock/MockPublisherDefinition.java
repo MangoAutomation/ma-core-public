@@ -12,7 +12,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.m2m2.module.PublisherDefinition;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 /**
@@ -46,7 +45,7 @@ public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO
     }
 
     @Override
-    public void validate(ProcessResult response, PublishedPointVO vo, PermissionHolder user) {
+    public void validate(ProcessResult response, PublishedPointVO vo) {
 
     }
 
