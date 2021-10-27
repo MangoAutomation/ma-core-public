@@ -80,6 +80,24 @@
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="pointValueMigration" filePattern="${mango:paths.logs}/%d{MM-dd-yyyy}-%i.pointValueMigration.log.gz" fileName="${mango:paths.logs}/pointValueMigration.log">
+			<PatternLayout pattern="${mango:appender.pointValueMigration.pattern}"/>
+			<Policies>
+				<OnStartupTriggeringPolicy />
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="${mango:appender.pointValueMigration.size}"/>
+			</Policies>
+			<DefaultRolloverStrategy fileIndex="nomax">
+				<Delete basePath="${mango:paths.logs}" >
+					<IfFileName glob="*.pointValueMigration.{log,log.gz}" />
+					<IfAny>
+						<IfLastModified age="${mango:appender.pointValueMigration.delete.age}" />
+						<IfAccumulatedFileSize exceeds="${mango:appender.pointValueMigration.delete.size}" />
+						<IfAccumulatedFileCount exceeds="${mango:appender.pointValueMigration.delete.count}" />
+					</IfAny>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>
 	</Appenders>
 	<Loggers>
 		<AsyncLogger name="com.infiniteautomation.tsdb.corruption" level="info" additivity="false">
@@ -93,6 +111,9 @@
 		</AsyncLogger>
 		<AsyncLogger name="script" includeLocation="${mango:logger.script.includeLocation}" level="${mango:logger.script.level}" additivity="false">
 			<AppenderRef ref="script" level="${mango:appender.script.level}" />
+		</AsyncLogger>
+		<AsyncLogger name="pointValueMigration" includeLocation="${mango:logger.pointValueMigration.includeLocation}" level="${mango:logger.pointValueMigration.level}" additivity="false">
+			<AppenderRef ref="script" level="${mango:appender.pointValueMigration.level}" />
 		</AsyncLogger>
 		<AsyncLogger name="com.serotonin.m2m2" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
 		<AsyncLogger name="com.infiniteautomation" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>

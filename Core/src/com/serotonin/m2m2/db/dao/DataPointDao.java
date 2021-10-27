@@ -13,11 +13,14 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jooq.Condition;
 import org.jooq.Cursor;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
@@ -152,6 +155,16 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     public Set<Integer> getSeriesIds() {
         return create.select(table.seriesId).from(table).fetchSet(table.seriesId);
+    }
+
+    public IntStream streamSeriesIds() {
+        return create.select(table.seriesId).from(table).stream().mapToInt(Record1::value1);
+    }
+
+    public @Nullable DataPointVO getBySeriesId(int seriesId) {
+        return getJoinedSelectQuery()
+                .where(table.seriesId.eq(seriesId))
+                .fetchOne(this::mapRecordLoadRelationalData);
     }
 
     /**

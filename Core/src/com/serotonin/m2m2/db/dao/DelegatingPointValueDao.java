@@ -35,15 +35,15 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
         DELETE
     }
 
-    public abstract boolean primarySupports(Operation operation);
+    public abstract boolean handleWithPrimary(Operation operation);
 
-    public boolean primaryShouldHandle(DataPointVO vo, Operation operation) {
-        return primarySupports(operation);
+    public boolean handleWithPrimary(DataPointVO vo, Operation operation) {
+        return handleWithPrimary(operation);
     }
 
     @Override
     public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
-        if (primaryShouldHandle(vo, Operation.WRITE)) {
+        if (handleWithPrimary(vo, Operation.WRITE)) {
             return primary.savePointValueSync(vo, pointValue, source);
         } else {
             return secondary.savePointValueSync(vo, pointValue, source);
@@ -52,7 +52,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
 
     @Override
     public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
-        if (primaryShouldHandle(vo, Operation.WRITE)) {
+        if (handleWithPrimary(vo, Operation.WRITE)) {
             primary.savePointValueAsync(vo, pointValue, source);
         } else {
             secondary.savePointValueAsync(vo, pointValue, source);
@@ -64,7 +64,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
                                        @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback) {
 
         Map<Boolean, ? extends List<? extends DataPointVO>> dataPoints = vos.stream()
-                .collect(Collectors.partitioningBy(vo -> primaryShouldHandle(vo, Operation.READ)));
+                .collect(Collectors.partitioningBy(vo -> handleWithPrimary(vo, Operation.READ)));
 
         primary.getPointValuesPerPoint(dataPoints.get(true), from, to, limit, sortOrder, callback);
         secondary.getPointValuesPerPoint(dataPoints.get(false), from, to, limit, sortOrder, callback);
@@ -75,7 +75,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
                                        @Nullable Integer limit, TimeOrder sortOrder, Consumer<? super IdPointValueTime> callback) {
 
         Map<Boolean, ? extends List<? extends DataPointVO>> dataPoints = vos.stream()
-                .collect(Collectors.partitioningBy(vo -> primaryShouldHandle(vo, Operation.READ)));
+                .collect(Collectors.partitioningBy(vo -> handleWithPrimary(vo, Operation.READ)));
 
         List<? extends DataPointVO> primaryPoints = dataPoints.get(true);
         List<? extends DataPointVO> secondaryPoints = dataPoints.get(false);
@@ -117,7 +117,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
 
     @Override
     public long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
-        if (primaryShouldHandle(vo, Operation.READ)) {
+        if (handleWithPrimary(vo, Operation.READ)) {
             return primary.dateRangeCount(vo, from, to);
         } else {
             return secondary.dateRangeCount(vo, from, to);
@@ -126,7 +126,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
 
     @Override
     public Optional<Long> deletePointValuesBetween(DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime) {
-        if (primaryShouldHandle(vo, Operation.DELETE)) {
+        if (handleWithPrimary(vo, Operation.DELETE)) {
             primary.deletePointValuesBetween(vo, startTime, endTime);
         } else {
             secondary.deletePointValuesBetween(vo, startTime, endTime);
@@ -136,7 +136,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
 
     @Override
     public Optional<Long> deleteAllPointData() {
-        if (primarySupports(Operation.DELETE)) {
+        if (handleWithPrimary(Operation.DELETE)) {
             primary.deleteAllPointData();
         }
         secondary.deleteAllPointData();
@@ -145,7 +145,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
 
     @Override
     public Optional<Long> deleteOrphanedPointValues() {
-        if (primarySupports(Operation.DELETE)) {
+        if (handleWithPrimary(Operation.DELETE)) {
             primary.deleteOrphanedPointValues();
         }
         secondary.deleteOrphanedPointValues();
@@ -154,7 +154,7 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
 
     @Override
     public List<Long> getFiledataIds(DataPointVO vo) {
-        if (primaryShouldHandle(vo, Operation.READ)) {
+        if (handleWithPrimary(vo, Operation.READ)) {
             return primary.getFiledataIds(vo);
         } else {
             return secondary.getFiledataIds(vo);

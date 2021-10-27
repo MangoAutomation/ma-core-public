@@ -501,6 +501,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
         customizedQuery(applySortLimitOffset(afterWhere, sort, limit, offset), callback);
     }
 
+    public Stream<T> streamQuery(@Nullable Condition condition, List<SortField<?>> sort, @Nullable Integer limit, @Nullable Integer offset) {
+        return streamQuery(getJoinedSelectQuery(), condition, sort, limit, offset);
+    }
+
+    public Stream<T> streamQuery(SelectJoinStep<Record> select, @Nullable Condition condition, List<SortField<?>> sort, @Nullable Integer limit, @Nullable Integer offset) {
+        var afterWhere = condition == null ? select : select.where(condition);
+        return applySortLimitOffset(afterWhere, sort, limit, offset)
+                .stream()
+                .map(this::mapRecordLoadRelationalData)
+                .filter(Objects::nonNull);
+    }
+
     public <X extends Record> @NonNull Select<X> applySortLimitOffset(
             @NonNull SelectOrderByStep<X> select,
             @NonNull ConditionSortLimit conditions) {

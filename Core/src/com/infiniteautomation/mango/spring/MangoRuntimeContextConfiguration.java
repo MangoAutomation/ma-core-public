@@ -62,6 +62,7 @@ import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.MigratingPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
@@ -372,10 +373,16 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions) {
+    public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions, @Value("${migration.enabled:false}") boolean migrate, DataPointDao dataPointDao) {
         PointValueDaoDefinition highestPriority = definitions.stream().findFirst().orElseThrow();
         highestPriority.initialize();
-        return highestPriority.getPointValueDao();
+        PointValueDao highestPriorityDao = highestPriority.getPointValueDao();
+        if (migrate) {
+            PointValueDaoDefinition second = definitions.stream().skip(1).findFirst().orElseThrow();
+            second.initialize();
+            return new MigratingPointValueDao(highestPriorityDao, second.getPointValueDao(), dataPointDao, vo -> true);
+        }
+        return highestPriorityDao;
     }
 
     @Bean
