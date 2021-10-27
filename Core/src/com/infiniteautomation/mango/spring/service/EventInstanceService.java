@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import net.jazdw.rql.parser.ASTNode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,8 +46,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-
-import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -425,28 +424,15 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     }
 
     @Override
-    public ProcessResult validate(EventInstanceVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
-        permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
+    public ProcessResult validate(EventInstanceVO vo) {
+        ProcessResult result = new ProcessResult();
+        permissionService.validatePermission(result, "readPermission", Common.getUser(), vo.getReadPermission());
         return result;
     }
     @Override
-    public ProcessResult validate(EventInstanceVO existing, EventInstanceVO vo,
-            PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
-        permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
-        return result;
-    }
-
-    /**
-     * @param vo
-     * @param user
-     * @return
-     */
-    private ProcessResult commonValidation(EventInstanceVO vo, PermissionHolder user) {
+    public ProcessResult validate(EventInstanceVO existing, EventInstanceVO vo) {
         ProcessResult result = new ProcessResult();
+        permissionService.validatePermission(result, "readPermission", Common.getUser(), existing.getReadPermission(), vo.getReadPermission());
         return result;
     }
-
-
 }

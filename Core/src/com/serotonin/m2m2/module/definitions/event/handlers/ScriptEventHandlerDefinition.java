@@ -69,10 +69,11 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
     }
 
     @Override
-    public void validate(ProcessResult response, ScriptEventHandlerVO handler, PermissionHolder user) {
-        commonValidation(response, handler, user);
+    public void validate(ProcessResult response, ScriptEventHandlerVO handler) {
+        commonValidation(response, handler);
 
         if(handler.getScriptRoles() != null) {
+            PermissionHolder user = Common.getUser();
             permissionService.validatePermissionHolderRoles(response, "scriptRoles", user, handler.getScriptRoles());
         }else {
             response.addContextualMessage("scriptRoles", "validate.permission.null");
@@ -100,20 +101,20 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
 
     @Override
     public void validate(ProcessResult response, ScriptEventHandlerVO existing,
-            ScriptEventHandlerVO vo, PermissionHolder user) {
-        commonValidation(response, vo, user);
+            ScriptEventHandlerVO vo) {
+        commonValidation(response, vo);
 
         if (vo.getScriptRoles() == null) {
             response.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
+            PermissionHolder user = Common.getUser();
             Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles();
             permissionService.validatePermissionHolderRoles(response, "scriptRoles", user,
                     vo.getScriptRoles());
         }
     }
 
-    private void commonValidation(ProcessResult response, ScriptEventHandlerVO handler,
-            PermissionHolder user) {
+    private void commonValidation(ProcessResult response, ScriptEventHandlerVO handler) {
         String script = handler.getScript();
         String engineName = handler.getEngineName();
 

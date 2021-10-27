@@ -10,6 +10,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import net.jazdw.rql.parser.ASTNode;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -30,8 +31,6 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-
-import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -63,10 +62,9 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Validate a new VO
      * @param vo
-     * @param user
      * @return
      */
-    abstract public ProcessResult validate(T vo, PermissionHolder user);
+    abstract public ProcessResult validate(T vo);
 
     /**
      * Can this user edit this VO
@@ -97,44 +95,37 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     }
 
     /**
-     * TODO Mango 4.0 remove user from parameters
      * Ensure this vo is valid compared to the previous one.
      *
      * Override as necessary, most VOs won't need this.
      *
      * @param existing
      * @param vo
-     * @param user
      * @return
      */
-    public ProcessResult validate(T existing, T vo, PermissionHolder user) {
-        return validate(vo, user);
+    public ProcessResult validate(T existing, T vo) {
+        return validate(vo);
     }
 
     /**
-     * TODO Mango 4.0 remove user from parameters
-     *
      * Ensure that this VO is valid.
      * Note: validation will only fail if there are Error level messages in the result
      * @param vo
-     * @param user
      */
-    public void ensureValid(T vo, PermissionHolder user) throws ValidationException {
-        ProcessResult result = validate(vo, user);
+    public void ensureValid(T vo) throws ValidationException {
+        ProcessResult result = validate(vo);
         if(!result.isValid())
             throw new ValidationException(result, vo.getClass());
     }
 
     /**
-     * TODO Mango 4.0 remove user from parameters
      * Note: validation will only fail if there are Error level messages in the result
      * @param existing
      * @param vo
-     * @param user
      * @throws ValidationException
      */
-    public void ensureValid(T existing, T vo, PermissionHolder user) throws ValidationException {
-        ProcessResult result = validate(existing, vo, user);
+    public void ensureValid(T existing, T vo) throws ValidationException {
+        ProcessResult result = validate(existing, vo);
         if(!result.isValid()) {
             throw new ValidationException(result, vo.getClass());
         }
@@ -176,7 +167,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
             throw new ValidationException(result, vo.getClass());
         }
 
-        ensureValid(vo, user);
+        ensureValid(vo);
         dao.insert(vo);
         return vo;
     }
@@ -206,7 +197,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
         PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
-        ensureValid(existing, vo, user);
+        ensureValid(existing, vo);
         dao.update(existing, vo);
         return vo;
     }

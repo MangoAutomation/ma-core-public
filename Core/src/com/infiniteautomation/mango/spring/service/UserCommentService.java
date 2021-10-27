@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -86,9 +87,11 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     }
 
     @Override
-    public ProcessResult validate(UserCommentVO vo, PermissionHolder user) {
+    public ProcessResult validate(UserCommentVO vo) {
         //Don't use super, we don't have a 'name' field
-        ProcessResult result = commonValidation(vo, user);
+        ProcessResult result = commonValidation(vo);
+
+        PermissionHolder user = Common.getUser();
         if (!permissionService.hasAdminRole(user)) {
             if (user.getUser() != null) {
                 if (user.getUser().getId() != vo.getUserId()) {
@@ -102,10 +105,11 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     }
 
     @Override
-    public ProcessResult validate(UserCommentVO existing, UserCommentVO vo, PermissionHolder user) {
+    public ProcessResult validate(UserCommentVO existing, UserCommentVO vo) {
         //Don't use super, we don't have a 'name' field
-        ProcessResult result = commonValidation(vo, user);
+        ProcessResult result = commonValidation(vo);
 
+        PermissionHolder user = Common.getUser();
         if(!permissionService.hasAdminRole(user) && (existing.getUserId() != vo.getUserId())) {
             result.addContextualMessage("userId", "validate.cannotChangeOwner");
         }
@@ -113,7 +117,7 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
         return result;
     }
 
-    protected ProcessResult commonValidation(UserCommentVO vo, PermissionHolder user) {
+    protected ProcessResult commonValidation(UserCommentVO vo) {
         ProcessResult result = new ProcessResult();
         if (StringUtils.isBlank(vo.getXid()))
             result.addContextualMessage("xid", "validate.required");

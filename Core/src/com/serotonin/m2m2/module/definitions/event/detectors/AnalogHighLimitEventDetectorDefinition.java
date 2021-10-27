@@ -7,7 +7,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -38,8 +37,8 @@ public class AnalogHighLimitEventDetectorDefinition extends TimeoutDetectorDefin
 	}
 	
 	   @Override
-	    public void validate(ProcessResult response, AnalogHighLimitDetectorVO vo, PermissionHolder user) {
-	        super.validate(response, vo, user);
+	    public void validate(ProcessResult response, AnalogHighLimitDetectorVO vo) {
+	        super.validate(response, vo);
 	        
 	        if(vo.isUseResetLimit()) {
 	            if(vo.isNotHigher() && vo.getResetLimit() <= vo.getLimit()) {

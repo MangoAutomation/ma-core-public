@@ -12,7 +12,6 @@ import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * A data source is the means by which MA gets values into a data point, and writes set point values back to source
@@ -97,9 +96,8 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * Validate a new data source
      * @param response
      * @param ds
-     * @param user
      */
-    abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
+    abstract public void validate(ProcessResult response, T ds);
 
     /**
      * Validate a data source about to be updated
@@ -107,10 +105,9 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * @param response
      * @param existing
      * @param ds
-     * @param user
      */
-    public void validate(ProcessResult response, T existing, T ds, PermissionHolder user) {
-        validate(response, ds, user);
+    public void validate(ProcessResult response, T existing, T ds) {
+        validate(response, ds);
     }
 
     /**
@@ -195,9 +192,8 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * @param response
      * @param dpvo
      * @param dsvo
-     * @param user - permission holder saving the point
      */
-    abstract public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo, PermissionHolder user);
+    abstract public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo);
 
     /**
      * Validate a point locator with access to a pre-existing point, when updating.
@@ -205,10 +201,9 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * @param existing
      * @param dpvo
      * @param dsvo
-     * @param user
      */
-    public void validate(ProcessResult response, DataPointVO existing, DataPointVO dpvo, DataSourceVO dsvo, PermissionHolder user) {
-        validate(response, dpvo, dsvo, user);
+    public void validate(ProcessResult response, DataPointVO existing, DataPointVO dpvo, DataSourceVO dsvo) {
+        validate(response, dpvo, dsvo);
     }
 
     /**

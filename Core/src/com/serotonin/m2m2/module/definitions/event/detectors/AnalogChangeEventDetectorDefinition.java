@@ -7,7 +7,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -38,8 +37,8 @@ public class AnalogChangeEventDetectorDefinition extends TimeoutDetectorDefiniti
 	}
 	
     @Override
-    public void validate(ProcessResult response, AnalogChangeDetectorVO vo, PermissionHolder user) {
-        super.validate(response, vo, user);
+    public void validate(ProcessResult response, AnalogChangeDetectorVO vo) {
+        super.validate(response, vo);
         if(!vo.isCheckIncrease() && !vo.isCheckDecrease()) {
             response.addContextualMessage("checkIncrease", "validate.atLeast1");
             response.addContextualMessage("checkDecrease", "validate.atLeast1");

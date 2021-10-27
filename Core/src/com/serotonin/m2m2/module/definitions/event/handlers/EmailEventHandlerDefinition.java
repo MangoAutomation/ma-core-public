@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
+import freemarker.template.Template;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,8 +31,6 @@ import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
-
-import freemarker.template.Template;
 
 /**
  * @author Terry Packer
@@ -92,9 +91,10 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     }
 
     @Override
-    public void validate(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
-        commonValidation(result, vo, savingUser);
+    public void validate(ProcessResult result, EmailEventHandlerVO vo) {
+        commonValidation(result, vo);
         if(vo.getScriptRoles() != null) {
+            PermissionHolder savingUser = Common.getUser();
             service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, vo.getScriptRoles().getRoles());
         }else {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
@@ -103,18 +103,19 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
 
     @Override
     public void validate(ProcessResult result, EmailEventHandlerVO existing,
-            EmailEventHandlerVO vo, PermissionHolder savingUser) {
-        commonValidation(result, vo, savingUser);
+            EmailEventHandlerVO vo) {
+        commonValidation(result, vo);
         if (vo.getScriptRoles() == null) {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
+            PermissionHolder savingUser = Common.getUser();
             Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
             service.validatePermissionHolderRoles(result, "scriptRoles", savingUser,
                     vo.getScriptRoles().getRoles());
         }
     }
 
-    private void commonValidation(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
+    private void commonValidation(ProcessResult result, EmailEventHandlerVO vo) {
         if(vo.getActiveRecipients() != null) {
             int pos = 0;
             for(MailingListRecipient b : vo.getActiveRecipients()) {

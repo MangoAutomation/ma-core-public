@@ -7,7 +7,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -38,8 +37,8 @@ public class PositiveCusumEventDetectorDefinition extends TimeoutDetectorDefinit
 	}
 	
     @Override
-    public void validate(ProcessResult response, PositiveCusumDetectorVO vo, PermissionHolder user) {
-        super.validate(response, vo, user);
+    public void validate(ProcessResult response, PositiveCusumDetectorVO vo) {
+        super.validate(response, vo);
         
         if(Double.isInfinite(vo.getLimit()) || Double.isNaN(vo.getLimit()))
             response.addContextualMessage("limit", "validate.invalidValue");

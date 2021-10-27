@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -97,25 +98,29 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     }
 
     @Override
-    public ProcessResult validate(AbstractEventDetectorVO vo, PermissionHolder user) {
-        ProcessResult response = commonValidation(vo, user);
+    public ProcessResult validate(AbstractEventDetectorVO vo) {
+        ProcessResult response = commonValidation(vo);
+
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(response, "readPermission", user, vo.getReadPermission());
         permissionService.validatePermission(response, "editPermission", user, vo.getEditPermission());
-        vo.getDefinition().validate(response, vo, user);
+        vo.getDefinition().validate(response, vo);
         return response;
     }
 
     @Override
-    public ProcessResult validate(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo, PermissionHolder user) {
-        ProcessResult response = commonValidation(vo, user);
+    public ProcessResult validate(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo) {
+        ProcessResult response = commonValidation(vo);
+
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(response, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
         permissionService.validatePermission(response, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
 
-        vo.getDefinition().validate(response, existing, vo, user);
+        vo.getDefinition().validate(response, existing, vo);
         return response;
     }
 
-    private ProcessResult commonValidation(AbstractEventDetectorVO vo, PermissionHolder user) {
+    private ProcessResult commonValidation(AbstractEventDetectorVO vo) {
         ProcessResult response = new ProcessResult();
         if (StringUtils.isBlank(vo.getXid()))
             response.addContextualMessage("xid", "validate.required");

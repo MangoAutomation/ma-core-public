@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -78,9 +79,10 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     }
 
     @Override
-    public ProcessResult validate(JsonDataVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(JsonDataVO vo) {
+        ProcessResult result = commonValidation(vo);
 
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
 
@@ -88,17 +90,19 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     }
 
     @Override
-    public ProcessResult validate(JsonDataVO existing, JsonDataVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(JsonDataVO existing, JsonDataVO vo) {
+        ProcessResult result = commonValidation(vo);
+
         //Additional checks for existing list
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
 
         return result;
     }
 
-    private ProcessResult commonValidation(JsonDataVO vo, PermissionHolder user) {
-        ProcessResult result = super.validate(vo, user);
+    private ProcessResult commonValidation(JsonDataVO vo) {
+        ProcessResult result = super.validate(vo);
         try{
             dao.writeValueAsString(vo.getJsonData());
         }catch(Exception e){

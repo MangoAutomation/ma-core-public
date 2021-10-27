@@ -39,11 +39,10 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
     /**
      * Validate a VO
      * @param vo
-     * @param user
      * @return
      */
     @Override
-    public ProcessResult validate(T vo, PermissionHolder user) {
+    public ProcessResult validate(T vo) {
         ProcessResult result = new ProcessResult();
         if (StringUtils.isBlank(vo.getXid()))
             result.addContextualMessage("xid", "validate.required");
@@ -103,7 +102,7 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
 
-        ensureValid(vo, user);
+        ensureValid(vo);
         dao.insert(vo);
         return vo;
     }

@@ -7,7 +7,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -39,8 +38,8 @@ public class AlphanumericStateEventDetectorDefinition extends TimeoutDetectorDef
 	
 
     @Override
-    public void validate(ProcessResult response, AlphanumericStateDetectorVO vo, PermissionHolder user) {
-        super.validate(response, vo, user);
+    public void validate(ProcessResult response, AlphanumericStateDetectorVO vo) {
+        super.validate(response, vo);
         
         if(vo.getState() == null)
             response.addContextualMessage("state", "emport.error.missingValue", "state");

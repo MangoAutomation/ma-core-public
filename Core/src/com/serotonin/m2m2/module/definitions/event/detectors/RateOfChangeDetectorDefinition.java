@@ -9,7 +9,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.CalculationMode;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.ComparisonMode;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -35,8 +34,8 @@ public class RateOfChangeDetectorDefinition extends TimeoutDetectorDefinition<Ra
     }
     
     @Override
-    public void validate(ProcessResult response, RateOfChangeDetectorVO vo, PermissionHolder user) {
-        super.validate(response, vo, user);
+    public void validate(ProcessResult response, RateOfChangeDetectorVO vo) {
+        super.validate(response, vo);
 
         if(vo.getComparisonMode() == null) {
             response.addContextualMessage("comparisonMode", "validate.required");

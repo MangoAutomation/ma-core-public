@@ -53,7 +53,7 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
     }
 
     @Override
-    public ProcessResult validate(AuditEventInstanceVO vo, PermissionHolder user) {
+    public ProcessResult validate(AuditEventInstanceVO vo) {
         return new ProcessResult();
     }
 

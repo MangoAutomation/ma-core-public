@@ -63,13 +63,13 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
     }
 
     @Override
-    public ProcessResult validate(RoleVO vo, PermissionHolder user) {
-        return commonValidation(vo, user);
+    public ProcessResult validate(RoleVO vo) {
+        return commonValidation(vo);
     }
 
     @Override
-    public ProcessResult validate(RoleVO existing, RoleVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(RoleVO existing, RoleVO vo) {
+        ProcessResult result = commonValidation(vo);
         if (!StringUtils.equals(existing.getXid(), vo.getXid())) {
             result.addContextualMessage("xid", "validate.role.cannotChangeXid");
         }
@@ -93,8 +93,8 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         });
     }
 
-    public ProcessResult commonValidation(RoleVO vo, PermissionHolder user) {
-        ProcessResult result = super.validate(vo, user);
+    public ProcessResult commonValidation(RoleVO vo) {
+        ProcessResult result = super.validate(vo);
 
         //Don't allow the use of role 'user' or 'superadmin'
         if (StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {

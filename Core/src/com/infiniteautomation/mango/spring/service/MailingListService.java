@@ -232,18 +232,21 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     }
 
     @Override
-    public ProcessResult validate(MailingList vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(MailingList vo) {
+        ProcessResult result = commonValidation(vo);
+
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
         return result;
     }
 
     @Override
-    public ProcessResult validate(MailingList existing, MailingList vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(MailingList existing, MailingList vo) {
+        ProcessResult result = commonValidation(vo);
 
         //Additional checks for existing list
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
         return result;
@@ -252,11 +255,10 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     /**
      * Common validation logic for insert/update of Mailing lists
      * @param vo
-     * @param user
      * @return
      */
-    protected ProcessResult commonValidation(MailingList vo, PermissionHolder user) {
-        ProcessResult result = super.validate(vo, user);
+    protected ProcessResult commonValidation(MailingList vo) {
+        ProcessResult result = super.validate(vo);
 
         if(vo.getReceiveAlarmEmails() == null) {
             result.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");

@@ -3,9 +3,6 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -48,7 +45,9 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.CalculationMode;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.ComparisonMode;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author Terry Packer
@@ -732,15 +731,15 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     }
 
     private void validate(MockDataSourceVO ds) {
-        Common.getBean(DataSourceService.class).validate(ds, PermissionHolder.SYSTEM_SUPERADMIN);
+        Common.getBean(DataSourceService.class).validate(ds);
     }
 
     private void validate(DataPointVO dp) {
-        Common.getBean(DataPointService.class).validate(dp, PermissionHolder.SYSTEM_SUPERADMIN);
+        Common.getBean(DataPointService.class).validate(dp);
     }
 
     private void validate(RateOfChangeDetectorVO vo) {
-        Common.getBean(EventDetectorsService.class).validate(vo, PermissionHolder.SYSTEM_SUPERADMIN);
+        Common.getBean(EventDetectorsService.class).validate(vo);
     }
 
     @Override

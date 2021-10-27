@@ -102,9 +102,8 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * Validate a new event detector
      * @param response
      * @param ds
-     * @param user
      */
-    abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
+    abstract public void validate(ProcessResult response, T ds);
 
     /**
      * Validate an event detector that is about to be updated
@@ -112,10 +111,9 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * @param response
      * @param existing
      * @param ds
-     * @param user
      */
-    public void validate(ProcessResult response, T existing, T ds, PermissionHolder user) {
-        validate(response, ds, user);
+    public void validate(ProcessResult response, T existing, T ds) {
+        validate(response, ds);
     }
 
     /**

@@ -198,7 +198,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         copy.setName(newName);
         copy.setXid(newXid);
         copy.setEnabled(enabled);
-        ensureValid(copy, user);
+        ensureValid(copy);
 
         //Save it
         insert(copy);
@@ -211,19 +211,23 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     }
 
     @Override
-    public ProcessResult validate(DataSourceVO vo, PermissionHolder user) {
-        ProcessResult response = commonValidation(vo, user);
+    public ProcessResult validate(DataSourceVO vo) {
+        ProcessResult response = commonValidation(vo);
+
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(response, "editPermission", user, vo.getEditPermission());
         permissionService.validatePermission(response, "readPermission", user, vo.getReadPermission());
 
         //Allow module to define validation logic
-        vo.getDefinition().validate(response, vo, user);
+        vo.getDefinition().validate(response, vo);
         return response;
     }
 
     @Override
-    public ProcessResult validate(DataSourceVO existing, DataSourceVO vo, PermissionHolder user) {
-        ProcessResult response = commonValidation(vo, user);
+    public ProcessResult validate(DataSourceVO existing, DataSourceVO vo) {
+        ProcessResult response = commonValidation(vo);
+
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(response, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
         permissionService.validatePermission(response, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
 
@@ -234,12 +238,12 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         }
 
         //Allow module to define validation logic
-        vo.getDefinition().validate(response, existing, vo, user);
+        vo.getDefinition().validate(response, existing, vo);
         return response;
     }
 
-    protected ProcessResult commonValidation(DataSourceVO vo, PermissionHolder user) {
-        ProcessResult response = super.validate(vo, user);
+    protected ProcessResult commonValidation(DataSourceVO vo) {
+        ProcessResult response = super.validate(vo);
         if (vo.isPurgeOverride()) {
             if (vo.getPurgeType() != PurgeTypes.DAYS && vo.getPurgeType() != PurgeTypes.MONTHS && vo.getPurgeType() != PurgeTypes.WEEKS
                     && vo.getPurgeType() != PurgeTypes.YEARS)

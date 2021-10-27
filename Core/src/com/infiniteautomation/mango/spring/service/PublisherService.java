@@ -120,22 +120,21 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     }
 
     @Override
-    public ProcessResult validate(PublisherVO<? extends PublishedPointVO> vo, PermissionHolder user) {
-        ProcessResult response = commonValidation(vo, user);
-        vo.getDefinition().validate(response, vo, user);
+    public ProcessResult validate(PublisherVO<? extends PublishedPointVO> vo) {
+        ProcessResult response = commonValidation(vo);
+        vo.getDefinition().validate(response, vo);
         return response;
     }
 
     @Override
-    public ProcessResult validate(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo,
-            PermissionHolder user) {
-        ProcessResult response = commonValidation(vo, user);
-        vo.getDefinition().validate(response, existing, vo, user);
+    public ProcessResult validate(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo) {
+        ProcessResult response = commonValidation(vo);
+        vo.getDefinition().validate(response, existing, vo);
         return response;
     }
 
-    private ProcessResult commonValidation(PublisherVO<? extends PublishedPointVO> vo, PermissionHolder user) {
-        ProcessResult response = super.validate(vo, user);
+    private ProcessResult commonValidation(PublisherVO<? extends PublishedPointVO> vo) {
+        ProcessResult response = super.validate(vo);
         if (vo.isSendSnapshot()) {
             if (vo.getSnapshotSendPeriods() <= 0)
                 response.addContextualMessage("snapshotSendPeriods", "validate.greaterThanZero");

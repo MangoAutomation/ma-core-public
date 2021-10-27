@@ -88,9 +88,10 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     }
 
     @Override
-    public void validate(ProcessResult result, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
-        commonValidation(result, vo, savingUser);
+    public void validate(ProcessResult result, SetPointEventHandlerVO vo) {
+        commonValidation(result, vo);
         if(vo.getScriptRoles() != null) {
+            PermissionHolder savingUser = Common.getUser();
             service.validatePermissionHolderRoles(result, "scriptRoles", savingUser, vo.getScriptRoles().getRoles());
         }else {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
@@ -98,18 +99,19 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     }
 
     @Override
-    public void validate(ProcessResult result, SetPointEventHandlerVO existing, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
-        commonValidation(result, vo, savingUser);
+    public void validate(ProcessResult result, SetPointEventHandlerVO existing, SetPointEventHandlerVO vo) {
+        commonValidation(result, vo);
         if (vo.getScriptRoles() == null) {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
+            PermissionHolder savingUser = Common.getUser();
             Set<Role> roles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
             service.validatePermissionHolderRoles(result, "scriptRoles", savingUser,
                     vo.getScriptRoles().getRoles());
         }
     }
 
-    private void commonValidation(ProcessResult response, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
+    private void commonValidation(ProcessResult response, SetPointEventHandlerVO vo) {
         DataPointVO dp = DataPointDao.getInstance().get(vo.getTargetPointId());
 
         int dataType = DataTypes.UNKNOWN;

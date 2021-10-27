@@ -38,7 +38,7 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
 
     /**
      * The right way to create a point event detector
-     * @param vo
+     * @param dp
      * @return
      */
     public T baseCreateEventDetectorVO(DataPointVO dp) {
@@ -74,7 +74,7 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
     protected abstract T createEventDetectorVO(DataPointVO dp);
 
     @Override
-    public void validate(ProcessResult response, T vo, PermissionHolder user) {
+    public void validate(ProcessResult response, T vo) {
 
         //We currently don't check to see if the point exists
         // because of SQL constraints

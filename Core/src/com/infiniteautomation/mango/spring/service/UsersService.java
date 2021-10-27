@@ -3,8 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
-
+import freemarker.template.TemplateException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
@@ -21,7 +20,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
-
 import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +55,7 @@ import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
-import freemarker.template.TemplateException;
+import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
 
 /**
  * Service to access Users
@@ -211,7 +209,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         if (StringUtils.isEmpty(vo.getUsername()))
             vo.setUsername(dao.generateUniqueXid());
 
-        ensureValid(vo, currentUser);
+        ensureValid(vo);
 
         //After validation we can set the created date if necessary
         if (vo.getCreated() == null) {
@@ -253,7 +251,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             }
         }
 
-        ensureValid(existing, vo, currentUser);
+        ensureValid(existing, vo);
         dao.update(existing, vo);
         return vo;
     }
@@ -285,7 +283,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
         User copy = this.get(user.getId());
         copy.setPlainTextPassword(newPassword);
-        ensureValid(user, copy, Common.getUser());
+        ensureValid(user, copy);
         copy.hashPlainText();
 
         this.dao.updatePasswordHash(user, copy.getPassword());
@@ -309,7 +307,8 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     }
 
     @Override
-    public ProcessResult validate(User vo, PermissionHolder holder) {
+    public ProcessResult validate(User vo) {
+        PermissionHolder holder = Common.getUser();
         ProcessResult result = commonValidation(vo, holder);
 
         if (vo.isSessionExpirationOverride()) {
@@ -320,6 +319,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                 result.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
             }
         }
+
         // validate roles
         permissionService.validatePermissionHolderRoles(result, "roles", holder,
                 vo.getRoles());
@@ -334,7 +334,8 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     }
 
     @Override
-    public ProcessResult validate(User existing, User vo, PermissionHolder holder) {
+    public ProcessResult validate(User existing, User vo) {
+        PermissionHolder holder = Common.getUser();
         ProcessResult result = commonValidation(vo, holder);
 
         boolean hasExplicitEditPermission = hasExplicitEditPermission(holder, existing);

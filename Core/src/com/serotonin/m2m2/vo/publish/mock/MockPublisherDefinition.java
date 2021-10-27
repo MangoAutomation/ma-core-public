@@ -6,7 +6,6 @@ package com.serotonin.m2m2.vo.publish.mock;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.m2m2.module.PublisherDefinition;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  *
@@ -35,8 +34,7 @@ public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO
     }
 
     @Override
-    public void validate(ProcessResult response, MockPublisherVO pub,
-            PermissionHolder user) {
+    public void validate(ProcessResult response, MockPublisherVO pub) {
     }
 
 }

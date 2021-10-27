@@ -3,6 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.components;
 
+import freemarker.template.TemplateException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -12,7 +16,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.mail.internet.AddressException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +36,6 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-
-import freemarker.template.TemplateException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtBuilder;
 
 /**
  * @author Jared Wiltshire
@@ -222,7 +220,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
         User copy = usersService.get(user.getId());
         copy.setPlainTextPassword(password);
-        usersService.ensureValid(copy, holder);
+        usersService.ensureValid(copy);
 
         systemSettingsDao.updateSettings(settings);
         return usersService.update(user.getId(), copy);

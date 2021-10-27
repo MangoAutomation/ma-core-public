@@ -10,7 +10,6 @@ import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.ProcessHandlerRT;
 import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -36,7 +35,7 @@ public class ProcessEventHandlerDefinition extends EventHandlerDefinition<Proces
 	}
 
     @Override
-    public void validate(ProcessResult result, ProcessEventHandlerVO vo, PermissionHolder savingUser) {
+    public void validate(ProcessResult result, ProcessEventHandlerVO vo) {
         if (StringUtils.isBlank(vo.getActiveProcessCommand()) && StringUtils.isBlank(vo.getInactiveProcessCommand()))
             result.addGenericMessage("eventHandlers.invalidCommands");
 

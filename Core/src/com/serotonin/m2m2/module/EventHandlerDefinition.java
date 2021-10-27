@@ -15,7 +15,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -118,9 +117,8 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * Validate a new event handler
      * @param response
      * @param vo
-     * @param user
      */
-    abstract public void validate(ProcessResult response, T vo, PermissionHolder user);
+    abstract public void validate(ProcessResult response, T vo);
 
     /**
      * Validate an event handler that is about to be updated
@@ -128,10 +126,9 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * @param response
      * @param existing
      * @param vo
-     * @param user
      */
-    public void validate(ProcessResult response, T existing, T vo, PermissionHolder user) {
-        validate(response, vo, user);
+    public void validate(ProcessResult response, T existing, T vo) {
+        validate(response, vo);
     }
 
     /**

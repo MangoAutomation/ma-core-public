@@ -4,10 +4,8 @@
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.PointChangeDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -37,7 +35,4 @@ public class PointChangeEventDetectorDefinition extends PointEventDetectorDefini
         return new PointChangeDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 
-    @Override
-    public void validate(ProcessResult response, PointChangeDetectorVO ds, PermissionHolder user) {
-    }
 }

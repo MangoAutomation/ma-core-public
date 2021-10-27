@@ -103,29 +103,31 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     }
 
     @Override
-    public ProcessResult validate(AbstractEventHandlerVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(AbstractEventHandlerVO vo) {
+        ProcessResult result = commonValidation(vo);
 
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
 
-        vo.getDefinition().validate(result, vo, user);
+        vo.getDefinition().validate(result, vo);
         return result;
     }
 
     @Override
-    public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo) {
+        ProcessResult result = commonValidation(vo);
 
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
 
-        vo.getDefinition().validate(result, existing, vo, user);
+        vo.getDefinition().validate(result, existing, vo);
         return result;
     }
 
-    private ProcessResult commonValidation(AbstractEventHandlerVO vo, PermissionHolder user) {
-        ProcessResult result = super.validate(vo, user);
+    private ProcessResult commonValidation(AbstractEventHandlerVO vo) {
+        ProcessResult result = super.validate(vo);
 
         //TODO is this true?
         //eventTypes are not validated because it assumed they

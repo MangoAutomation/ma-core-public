@@ -156,17 +156,17 @@ public class MangoJavaScriptService {
     /**
      * Validate a script with its parts
      * @param vo
-     * @param user
      * @return
      */
-    public ProcessResult validate(MangoJavaScript vo, PermissionHolder user) {
+    public ProcessResult validate(MangoJavaScript vo) {
         ProcessResult result = new ProcessResult();
+        PermissionHolder user = Common.getUser();
 
         //Ensure the user has ALL of the permissions as we will likely test/run this script
         if(!permissionService.hasSupersetOfRoles(user, vo.getPermissions()))
             result.addContextualMessage("permissions", "permission.exception.doesNotHaveRequiredPermission");
 
-        validateContext(vo.getContext(), user, result);
+        validateContext(vo.getContext(), result);
 
         if(vo.getResultDataTypeId() != null) {
             if(!DataTypes.CODES.isValidId(vo.getResultDataTypeId()))
@@ -183,10 +183,10 @@ public class MangoJavaScriptService {
     /**
      * Validate a script context
      * @param context
-     * @param user
      * @param result
      */
-    public void validateContext(List<ScriptContextVariable> context, PermissionHolder user, ProcessResult result) {
+    public void validateContext(List<ScriptContextVariable> context, ProcessResult result) {
+        PermissionHolder user = Common.getUser();
         //Validate the context, can we read all points and are the var names valid
         List<String> varNameSpace = new ArrayList<>();
         for(ScriptContextVariable var : context) {
@@ -221,12 +221,12 @@ public class MangoJavaScriptService {
     /**
      * Ensure the script is valid
      * @param vo
-     * @param user
      * @throws ValidationException
      */
-    public void ensureValid(MangoJavaScript vo, PermissionHolder user) throws ValidationException {
+    public void ensureValid(MangoJavaScript vo) throws ValidationException {
+        PermissionHolder user = Common.getUser();
         permissionService.ensurePermission(user, dataSourcePermissionDefinition.getPermission());
-        ProcessResult result = validate(vo, user);
+        ProcessResult result = validate(vo);
         if(!result.isValid())
             throw new ValidationException(result);
     }
@@ -262,7 +262,7 @@ public class MangoJavaScriptService {
     public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter, String noChangeKey) {
         PermissionHolder user = Common.getUser();
 
-        ensureValid(vo, user);
+        ensureValid(vo);
         final StringWriter scriptOut = new StringWriter();
         MangoJavaScriptResult result = new  MangoJavaScriptResult();
         try {
@@ -314,7 +314,7 @@ public class MangoJavaScriptService {
     public MangoJavaScriptResult executeScript(MangoJavaScript vo, ScriptPointValueSetter setter) throws ValidationException, PermissionException {
         PermissionHolder user = Common.getUser();
 
-        ensureValid(vo, user);
+        ensureValid(vo);
         MangoJavaScriptResult result = new MangoJavaScriptResult();
         final Writer scriptOut;
         final PrintWriter scriptWriter;

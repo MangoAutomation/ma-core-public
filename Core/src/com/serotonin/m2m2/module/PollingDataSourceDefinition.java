@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.CronTimerTrigger;
 
 /**
@@ -20,7 +19,7 @@ import com.serotonin.timer.CronTimerTrigger;
 public abstract class PollingDataSourceDefinition<T extends PollingDataSourceVO> extends DataSourceDefinition<T> {
 
     @Override
-    public void validate(ProcessResult response, T vo, PermissionHolder holder) {
+    public void validate(ProcessResult response, T vo) {
         if(vo.isUseCron()) {
             if (StringUtils.isBlank(vo.getCronPattern()))
                 response.addContextualMessage("cronPattern", "validate.required");

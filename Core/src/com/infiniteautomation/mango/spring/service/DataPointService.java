@@ -189,7 +189,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.preInsert(vo);
         }
 
-        ensureValid(vo, user);
+        ensureValid(vo);
         dao.insert(vo);
 
         List<AbstractPointEventDetectorVO> detectors = new ArrayList<>();
@@ -224,7 +224,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             def.preUpdate(vo);
         }
 
-        ensureValid(existing, vo, user);
+        ensureValid(existing, vo);
 
         getRuntimeManager().stopDataPoint(vo.getId());
         dao.update(existing, vo);
@@ -451,8 +451,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
 
     @Override
-    public ProcessResult validate(DataPointVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(DataPointVO vo) {
+        ProcessResult result = commonValidation(vo);
 
         DataSourceVO dsvo = dataSourceDao.get(vo.getDataSourceId());
         if(dsvo == null) {
@@ -467,10 +467,11 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 throw new ShouldNeverHappenException("No data source definition for type " + vo.getPointLocator().getDataSourceType());
             }else {
                 //Validate the point locator
-                def.validate(result, vo, dsvo, user);
+                def.validate(result, vo, dsvo);
             }
         }
 
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, vo.getEditPermission());
         permissionService.validatePermission(result, "setPermission", user, vo.getSetPermission(), false);
@@ -478,8 +479,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
 
     @Override
-    public ProcessResult validate(DataPointVO existing, DataPointVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(DataPointVO existing, DataPointVO vo) {
+        ProcessResult result = commonValidation(vo);
 
         //Don't allow moving to new data source
         if(existing.getDataSourceId() != vo.getDataSourceId()) {
@@ -499,11 +500,12 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 throw new ShouldNeverHappenException("No data source definition for type " + vo.getPointLocator().getDataSourceType());
             }else {
                 //Validate the point locator
-                def.validate(result, existing, vo, dsvo, user);
+                def.validate(result, existing, vo, dsvo);
             }
         }
 
         //Validate permissions
+        PermissionHolder user = Common.getUser();
         permissionService.validatePermission(result, "readPermission", user, existing.getReadPermission(), vo.getReadPermission());
         permissionService.validatePermission(result, "editPermission", user, existing.getEditPermission(), vo.getEditPermission());
         permissionService.validatePermission(result, "setPermission", user, existing.getSetPermission(), vo.getSetPermission(), false);
@@ -513,11 +515,10 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     /**
      * Common validation logic
      * @param vo
-     * @param user
      * @return
      */
-    protected ProcessResult commonValidation(DataPointVO vo, PermissionHolder user) {
-        ProcessResult response = super.validate(vo, user);
+    protected ProcessResult commonValidation(DataPointVO vo) {
+        ProcessResult response = super.validate(vo);
         if (StringValidation.isLengthGreaterThan(vo.getDeviceName(), 255))
             response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
 

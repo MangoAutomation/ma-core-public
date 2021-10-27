@@ -12,7 +12,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericRegexStateDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -44,8 +43,8 @@ public class AlphanumericRegexStateEventDetectorDefinition extends TimeoutDetect
     }
 
     @Override
-    public void validate(ProcessResult response, AlphanumericRegexStateDetectorVO vo, PermissionHolder user) {
-        super.validate(response, vo, user);
+    public void validate(ProcessResult response, AlphanumericRegexStateDetectorVO vo) {
+        super.validate(response, vo);
 
         if(StringUtils.isEmpty(vo.getState()))
             response.addContextualMessage("state", "validate.cannotContainEmptyString");

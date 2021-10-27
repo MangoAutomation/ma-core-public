@@ -6,7 +6,6 @@ package com.serotonin.m2m2.module;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -24,12 +23,6 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  *
  * <dt>Subclass of {@link PublisherRT}</dt>
  * <dd>A runtime implementation of the publisher.</dd>
- *
- * <dt>Editing JSP</dt>
- * <dd>The page on which a user can edit an instance of the publisher</dd>
- *
- * <dt>Subclass of {@link PublisherEditDwr}</dt>
- * <dd>The server-side AJAX controller for the editing JSP</dd>
  *
  * <dt>Optional</dt>
  * <dd>Online documentation files, translation files (strongly recommended), publisher commissioning tools.</dd>
@@ -74,20 +67,18 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
      * Validate a new publisher
      * @param response
      * @param pub
-     * @param user
      */
-    abstract public void validate(ProcessResult response, PUB pub, PermissionHolder user);
+    abstract public void validate(ProcessResult response, PUB pub);
 
     /**
      * Validate a data source about to be updated
      *  override as necessary
      * @param response
      * @param existing
-     * @param ds
-     * @param user
+     * @param vo
      */
-    public void validate(ProcessResult response, PUB existing, PUB vo, PermissionHolder user) {
-        validate(response, vo, user);
+    public void validate(ProcessResult response, PUB existing, PUB vo) {
+        validate(response, vo);
     }
 
     /**
