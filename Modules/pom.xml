@@ -50,18 +50,6 @@
             </properties>
         </profile>
         <profile>
-            <!-- skips webpack when building inside Eclipse -->
-            <id>eclipse-build</id>
-            <activation>
-                <property>
-                    <name>m2e.version</name>
-                </property>
-            </activation>
-            <properties>
-                <webpackPhase>none</webpackPhase>
-            </properties>
-        </profile>
-        <profile>
             <id>yarn-run</id>
             <properties>
                 <yarnVersionPhase>none</yarnVersionPhase>
