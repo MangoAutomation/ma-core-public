@@ -86,7 +86,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
         vo.setId(existing.getId());
 
-        ensureValid(existing, vo, user);
+        ensureValid(existing, vo);
 
         getRuntimeManager().stopPublishedPoint(vo.getId());
         dao.update(existing, vo);
@@ -111,8 +111,8 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     }
 
     @Override
-    public ProcessResult validate(PublishedPointVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(PublishedPointVO vo) {
+        ProcessResult result = commonValidation(vo);
 
         PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
         //Ensure the definition exists
@@ -120,25 +120,25 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
             return result;
         }
-        definition.validate(result, vo, user);
+        definition.validate(result, vo);
         return result;
     }
 
     @Override
-    public ProcessResult validate(PublishedPointVO existing, PublishedPointVO vo, PermissionHolder user) {
-        ProcessResult result = commonValidation(vo, user);
+    public ProcessResult validate(PublishedPointVO existing, PublishedPointVO vo) {
+        ProcessResult result = commonValidation(vo);
         PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
         //Ensure the definition exists
         if(definition == null) {
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
             return result;
         }
-        definition.validate(result, existing, vo, user);
+        definition.validate(result, existing, vo);
         return result;
     }
 
-    private ProcessResult commonValidation(PublishedPointVO vo, PermissionHolder user) {
-        ProcessResult result = super.validate(vo, user);
+    private ProcessResult commonValidation(PublishedPointVO vo) {
+        ProcessResult result = super.validate(vo);
 
         //Ensure publisher exists
         if(publisherDao.getXidById(vo.getPublisherId()) == null) {
@@ -235,7 +235,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
         publisherService.ensureEditPermission(Common.getUser(), vo);
         //Validate all points
         for(PublishedPointVO point : pointVos) {
-            ensureValid(point, Common.getUser());
+            ensureValid(point);
         }
         dao.replacePoints(vo.getId(), pointVos);
     }
