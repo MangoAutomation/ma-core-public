@@ -4,6 +4,10 @@
 
 package com.serotonin.m2m2.db.dao;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -24,8 +28,6 @@ import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
-
-import static org.junit.Assert.*;
 
 public class DataPointDaoTest extends AbstractVoDaoTest<DataPointVO, DataPointDao> {
 
@@ -68,7 +70,7 @@ public class DataPointDaoTest extends AbstractVoDaoTest<DataPointVO, DataPointDa
             pointValueDaoSQL.savePointValueSync(point, newPvt, null);
             timer.fastForwardTo(timer.currentTimeMillis() + 1);
         }
-        List<PointHistoryCount> historyCounts = dao.getTopPointHistoryCounts();
+        List<PointHistoryCount> historyCounts = pointValueDaoSQL.topPointHistoryCounts(100);
         assertEquals(1, historyCounts.size());
 
         DataPointVO fromDB = dao.get(point.getId());

@@ -46,6 +46,7 @@ import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 
 public interface PointValueDao {
 
@@ -812,5 +813,15 @@ public interface PointValueDao {
      */
     default int chunkSize() {
         return 100;
+    }
+
+    /**
+     * Retrieves series with the most point values, sorted by the number of point values.
+     *
+     * @param limit max number of series to return
+     * @return list of points and their value counts
+     */
+    default List<PointHistoryCount> topPointHistoryCounts(int limit) {
+        throw new UnsupportedOperationException();
     }
 }

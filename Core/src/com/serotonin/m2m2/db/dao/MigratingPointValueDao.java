@@ -134,9 +134,9 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             }
 
             if (seriesId == null) {
-                log.info("Migration thread stopped, migration is complete. {}/{} series migrated, {} skipped.", migratedCount.get(), migratedTotal.get(), skippedCount.get());
+                log.info("Migration complete, no more work. {}/{} series migrated, {} skipped.", migratedCount.get(), migratedTotal.get(), skippedCount.get());
             } else {
-                log.warn("Migration thread stopped, migration is incomplete.  {}/{} series migrated, {} skipped.", migratedCount.get(), migratedTotal.get(), skippedCount.get());
+                log.warn("Migration interrupted. {}/{} series migrated, {} skipped.", migratedCount.get(), migratedTotal.get(), skippedCount.get());
             }
         }
 

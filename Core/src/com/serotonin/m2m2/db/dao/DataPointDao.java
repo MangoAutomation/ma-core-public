@@ -46,7 +46,6 @@ import com.infiniteautomation.mango.db.tables.TimeSeries;
 import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.DaoDependencies;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -70,7 +69,6 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -102,16 +100,12 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     private final EventHandlersMapping eventHandlersMapping;
     private final PointValues pointValues;
     private final DataPointPermissionDefinition dataPointPermissionDefinition;
-    private final PointValueDao pointValueDao;
-    private final PointValueCache pointValueCache;
 
     @Autowired
     private DataPointDao(DaoDependencies dependencies,
             DataPointTagsDao dataPointTagsDao,
                          EventDetectorDao eventDetectorDao,
-                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataPointPermissionDefinition dataPointPermissionDefinition,
-                         PointValueDao pointValueDao,
-                         PointValueCache pointValueCache) {
+                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") DataPointPermissionDefinition dataPointPermissionDefinition) {
 
         super(dependencies, AuditEventType.TYPE_DATA_POINT, DataPoints.DATA_POINTS,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
@@ -119,8 +113,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         this.dataPointTagsDao = dataPointTagsDao;
         this.eventDetectorDao = eventDetectorDao;
         this.dataPointPermissionDefinition = dataPointPermissionDefinition;
-        this.pointValueDao = pointValueDao;
-        this.pointValueCache = pointValueCache;
         this.changeDefinitions = ModuleRegistry.getDataPointChangeDefinitions();
 
         this.eventDetectors = EventDetectors.EVENT_DETECTORS;
@@ -227,17 +219,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
             vo.defaultTextRenderer();
 
         super.insert(vo);
-    }
-
-    @Override
-    public void update(DataPointVO existing, DataPointVO vo) {
-        //If have a new data type we will wipe our history
-        if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId()) {
-            pointValueDao.deletePointValues(vo);
-            pointValueCache.removeAllValues(vo);
-        }
-
-        super.update(existing, vo);
     }
 
     /**
@@ -470,81 +451,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      */
     public void loadEventDetectors(DataPointWithEventDetectors dp) {
         dp.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dp.getDataPoint().getId(), dp.getDataPoint()));
-    }
-
-    /**
-     * Get the count of all point values for all points
-     *
-     * @return
-     */
-    public List<PointHistoryCount> getTopPointHistoryCounts() {
-        if (pointValueDao instanceof PointValueDaoSQL) {
-            return this.getTopPointHistoryCountsSql();
-        }
-        return this.getTopPointHistoryCountsNoSql();
-    }
-
-    /**
-     * NoSQL version to count point values for each point
-     * @return
-     */
-    private List<PointHistoryCount> getTopPointHistoryCountsNoSql() {
-        //For now we will do this the slow way
-
-        List<DataPointVO> points = getJoinedSelectQuery()
-                .orderBy(table.deviceName, table.name)
-                .fetch(this::mapRecordLoadRelationalData);
-
-        List<PointHistoryCount> counts = new ArrayList<>();
-        for (DataPointVO point : points) {
-            PointHistoryCount phc = new PointHistoryCount();
-            long count = pointValueDao.dateRangeCount(point, 0L, Long.MAX_VALUE);
-            phc.setCount((int) count);
-            phc.setPointId(point.getId());
-            phc.setPointName(point.getExtendedName());
-            counts.add(phc);
-        }
-        counts.sort((count1, count2) -> count2.getCount() - count1.getCount());
-
-        return counts;
-    }
-
-    /**
-     * SQL version to count point values for each point
-     * @return
-     */
-    private List<PointHistoryCount> getTopPointHistoryCountsSql() {
-        List<PointHistoryCount> counts = new ArrayList<>();
-        create.select(pointValues.dataPointId, DSL.count())
-                .from(pointValues)
-                .groupBy(pointValues.dataPointId)
-                .orderBy(DSL.inline(2).desc())
-                .fetch()
-                .forEach(record -> {
-                    PointHistoryCount c1 = new PointHistoryCount();
-                    c1.setPointId(record.get(pointValues.dataPointId));
-                    c1.setCount(record.get(DSL.count()));
-                    counts.add(c1);
-                });
-
-        List<DataPointVO> points = getJoinedSelectQuery()
-                .orderBy(table.deviceName, table.name)
-                .fetch(this::mapRecordLoadRelationalData);
-
-        // Collate in the point names.
-        for (PointHistoryCount c : counts) {
-            for (DataPointVO point : points) {
-                if (point.getId() == c.getPointId()) {
-                    c.setPointName(point.getExtendedName());
-                    break;
-                }
-            }
-        }
-
-        // Remove the counts for which there are no point, i.e. deleted.
-        counts.removeIf(c -> c.getPointName() == null);
-
-        return counts;
     }
 
     /**

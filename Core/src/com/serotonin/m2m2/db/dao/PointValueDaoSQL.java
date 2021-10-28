@@ -19,6 +19,8 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
@@ -26,6 +28,8 @@ import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 
 import com.infiniteautomation.mango.db.iterators.ChunkingSpliterator;
+import com.infiniteautomation.mango.db.tables.DataPoints;
+import com.infiniteautomation.mango.db.tables.DataSources;
 import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
@@ -40,6 +44,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.metrics.EventHistogram;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.util.queue.ObjectQueue;
@@ -81,8 +86,10 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     private final SystemSettingsDao systemSettingsDao;
     private final MonitoredValues monitoredValues;
+    private final DataPointDao dataPointDao;
 
-    public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues, SystemSettingsDao systemSettingsDao) {
+    public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues,
+                            SystemSettingsDao systemSettingsDao, DataPointDao dataPointDao) {
         super(databaseProxy);
         this.monitoredValues = monitoredValues;
         this.systemSettingsDao = systemSettingsDao;
@@ -109,6 +116,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 .build();
 
         this.batchInsertSize = databaseProxy.batchSize();
+        this.dataPointDao = dataPointDao;
     }
 
     @Override
@@ -186,6 +194,29 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     @Override
     public boolean enablePerPointPurge() {
         return systemSettingsDao.getBooleanValue(SystemSettingsDao.ENABLE_POINT_DATA_PURGE);
+    }
+
+    @Override
+    public List<PointHistoryCount> topPointHistoryCounts(int limit) {
+        PointValueDao.validateLimit(limit);
+
+        DataPoints points = DataPoints.DATA_POINTS;
+        DataSources dataSources = DataSources.DATA_SOURCES;
+        Field<Integer> count = DSL.count().as("count");
+
+        return create.select(count)
+                .select(dataPointDao.getSelectFields())
+                .from(pv)
+                .innerJoin(points).on(points.id.eq(pv.dataPointId))
+                .leftJoin(dataSources).on(dataSources.id.eq(points.dataSourceId))
+                .groupBy(pv.dataPointId)
+                .orderBy(count.desc())
+                .limit(limit)
+                .fetch(record -> {
+                    DataPointVO point = dataPointDao.mapRecord(record);
+                    dataPointDao.loadRelationalData(point);
+                    return new PointHistoryCount(point, record.get(count));
+                });
     }
 
     private long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, final SetPointSource source, boolean async) {
