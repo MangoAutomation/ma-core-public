@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.util.Objects;
+
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -16,16 +18,13 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnno
     private static final long serialVersionUID = 1L;
     private final TranslatableMessage sourceMessage;
 
-    /**
-     * @param seriesId
-     * @param value
-     * @param time
-     * @param sourceMessage
-     */
-    public AnnotatedIdPointValueTime(int seriesId, DataValue value, long time,
-            TranslatableMessage sourceMessage) {
+    public AnnotatedIdPointValueTime(IdPointValueTime value, TranslatableMessage sourceMessage) {
+        this(value.getSeriesId(), value.getValue(), value.getTime(), sourceMessage);
+    }
+
+    public AnnotatedIdPointValueTime(int seriesId, DataValue value, long time, TranslatableMessage sourceMessage) {
         super(seriesId, value, time);
-        this.sourceMessage = sourceMessage;
+        this.sourceMessage = Objects.requireNonNull(sourceMessage);
     }
 
     @Override

@@ -43,7 +43,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -68,14 +67,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue) {
         PointValueDao.validateNotNull(vo);
         PointValueDao.validateNotNull(pointValue);
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue) {
         PointValueDao.validateNotNull(vo);
         PointValueDao.validateNotNull(pointValue);
         throw new UnsupportedOperationException();

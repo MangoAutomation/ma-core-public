@@ -155,8 +155,7 @@ public class DataPointRTTest extends MangoTestBase {
         }
 
         @Override
-        public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue,
-                SetPointSource source) {
+        public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue) {
             values.add(pointValue);
         }
 

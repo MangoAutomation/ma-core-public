@@ -42,6 +42,7 @@ import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
+import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -139,15 +140,28 @@ public interface PointValueDao {
     default void savePointValues(Stream<? extends BatchPointValue> pointValues, int chunkSize) {
         PointValueDao.validateNotNull(pointValues);
         PointValueDao.validateChunkSize(chunkSize);
-        pointValues.forEach(v -> savePointValueSync(v.getVo(), v.getPointValue(), v.getSource()));
+        pointValues.forEach(v -> savePointValueSync(v.getVo(), v.getPointValue()));
     }
 
+    default PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+        if (source != null) {
+            pointValue = new AnnotatedPointValueTime(pointValue, source.getSetPointSourceMessage());
+        }
+        return savePointValueSync(vo, pointValue);
+    }
     /**
      * Save a point value synchronously i.e. immediately.
      *
      * @throws IllegalArgumentException if vo or pointValue are null
      */
-    PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
+    PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue);
+
+    default void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+        if (source != null) {
+            pointValue = new AnnotatedPointValueTime(pointValue, source.getSetPointSourceMessage());
+        }
+        savePointValueAsync(vo, pointValue);
+    }
 
     /**
      * Save a point value asynchronously i.e. delayed.
@@ -155,7 +169,7 @@ public interface PointValueDao {
      *
      * @throws IllegalArgumentException if vo or pointValue are null
      */
-    void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source);
+    void savePointValueAsync(DataPointVO vo, PointValueTime pointValue);
 
     /**
      * Flushes all queued/batched point values (saved via {@link #savePointValueAsync})

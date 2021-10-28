@@ -16,10 +16,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -35,26 +33,19 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue,
-            SetPointSource source) {
+    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue) {
         List<PointValueTime> pvts = data.computeIfAbsent(vo.getId(), k -> new ArrayList<>());
-
-        PointValueTime newPvt = null;
-        if(source != null)
-            newPvt = new AnnotatedPointValueTime(pointValue.getValue(), pointValue.getTime(), source.getSetPointSourceMessage());
-        else
-            newPvt = new PointValueTime(pointValue.getValue(), pointValue.getTime());
-        pvts.add(newPvt);
+        pvts.add(pointValue);
 
         //Keep in time order?
         Collections.sort(pvts);
 
-        return newPvt;
+        return pointValue;
     }
 
     @Override
-    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
-        savePointValueSync(vo, pointValue, source);
+    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue) {
+        savePointValueSync(vo, pointValue);
     }
 
     @Override

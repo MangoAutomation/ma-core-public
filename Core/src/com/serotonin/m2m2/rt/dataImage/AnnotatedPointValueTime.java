@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.util.Objects;
+
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -19,9 +21,13 @@ public class AnnotatedPointValueTime extends PointValueTime implements IAnnotate
     private static final long serialVersionUID = -1;
     private final TranslatableMessage sourceMessage;
 
+    public AnnotatedPointValueTime(PointValueTime value, TranslatableMessage sourceMessage) {
+        this(value.getValue(), value.getTime(), sourceMessage);
+    }
+
     public AnnotatedPointValueTime(DataValue value, long time, TranslatableMessage sourceMessage) {
         super(value, time);
-        this.sourceMessage = sourceMessage;
+        this.sourceMessage = Objects.requireNonNull(sourceMessage);
     }
     
     @Override

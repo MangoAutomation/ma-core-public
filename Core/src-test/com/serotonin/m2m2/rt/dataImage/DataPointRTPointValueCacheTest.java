@@ -191,15 +191,13 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
         }
 
         @Override
-        public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue,
-                SetPointSource source) {
+        public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue) {
             values.add(pointValue);
             return pointValue;
         }
 
         @Override
-        public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue,
-                SetPointSource source) {
+        public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue) {
             values.add(pointValue);
         }
     }

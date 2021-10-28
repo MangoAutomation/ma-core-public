@@ -16,7 +16,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 public abstract class DelegatingPointValueDao implements PointValueDao {
@@ -42,20 +41,20 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
     }
 
     @Override
-    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue) {
         if (handleWithPrimary(vo, Operation.WRITE)) {
-            return primary.savePointValueSync(vo, pointValue, source);
+            return primary.savePointValueSync(vo, pointValue);
         } else {
-            return secondary.savePointValueSync(vo, pointValue, source);
+            return secondary.savePointValueSync(vo, pointValue);
         }
     }
 
     @Override
-    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
+    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue) {
         if (handleWithPrimary(vo, Operation.WRITE)) {
-            primary.savePointValueAsync(vo, pointValue, source);
+            primary.savePointValueAsync(vo, pointValue);
         } else {
-            secondary.savePointValueAsync(vo, pointValue, source);
+            secondary.savePointValueAsync(vo, pointValue);
         }
     }
 

@@ -19,6 +19,7 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
 import org.springframework.dao.ConcurrencyFailureException;
@@ -38,8 +39,8 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.IAnnotated;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
@@ -125,12 +126,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         var stream = pointValues.map(v -> {
             var point = v.getVo();
             var pointValue = v.getPointValue();
-            var source = v.getSource();
             var dataType = pointValue.getValue().getDataType();
 
             // can't batch save annotations or IMAGE/ALPHANUMERIC point values
-            if (source != null || dataType == DataTypes.IMAGE || dataType == DataTypes.ALPHANUMERIC) {
-                savePointValueImpl(point, pointValue, source, false);
+            if (pointValue instanceof IAnnotated || dataType == DataTypes.IMAGE || dataType == DataTypes.ALPHANUMERIC) {
+                savePointValueImpl(point, pointValue, false);
                 syncCallsCounter.hit();
                 syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
                 return null;
@@ -153,10 +153,10 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     }
 
     @Override
-    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+    public PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue) {
         syncCallsCounter.hit();
         syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
-        long id = savePointValueImpl(vo, pointValue, source, false);
+        long id = savePointValueImpl(vo, pointValue, false);
 
         PointValueTime savedPointValue;
         int retries = 5;
@@ -174,8 +174,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     }
 
     @Override
-    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
-        savePointValueImpl(vo, pointValue, source, true);
+    public void savePointValueAsync(DataPointVO vo, PointValueTime pointValue) {
+        savePointValueImpl(vo, pointValue, true);
         asyncCallsCounter.hit();
         asyncInsertsSpeedCounter.setValue(asyncCallsCounter.getEventCounts()[0] / 5);
     }
@@ -219,7 +219,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 });
     }
 
-    private long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, final SetPointSource source, boolean async) {
+    private @Nullable TranslatableMessage getAnnotation(PointValueTime pointValue) {
+        return pointValue instanceof IAnnotated ? ((IAnnotated) pointValue).getSourceMessage() : null;
+    }
+
+    private long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, boolean async) {
         DataValue value = pointValue.getValue();
         final int dataType = DataTypes.getDataType(value);
         double dvalue = 0;
@@ -238,12 +242,10 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         // Check if we need to create an annotation.
         long id;
         try {
-            if (svalue != null || source != null || dataType == DataTypes.IMAGE)
-                async = false;
-            id = savePointValue(vo, dataType, dvalue, pointValue.getTime(), svalue, source, async);
+            id = savePointValue(vo, dataType, dvalue, pointValue.getTime(), svalue, getAnnotation(pointValue), async);
         } catch (ConcurrencyFailureException e) {
             // Still failed to insert after all of the retries. Store the data
-            unsavedPointValues.add(new UnsavedPointValue(vo, pointValue, source));
+            unsavedPointValues.add(new UnsavedPointValue(vo, pointValue));
             return -1;
         }
 
@@ -273,15 +275,15 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private void writeUnsavedPointValues() {
         UnsavedPointValue data;
         while ((data = unsavedPointValues.poll()) != null) {
-            savePointValueImpl(data.vo, data.pointValue, data.source, false);
+            savePointValueImpl(data.vo, data.pointValue, false);
         }
     }
 
-    private long savePointValue(DataPointVO vo, int dataType, double dvalue, long time, String svalue, SetPointSource source, boolean async) {
+    private long savePointValue(DataPointVO vo, int dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage, boolean async) {
         // Apply database specific bounds on double values.
         dvalue = databaseProxy.applyBounds(dvalue);
 
-        if (async) {
+        if (async && svalue == null && sourceMessage == null && dataType != DataTypes.IMAGE) {
             addBatchWriteEntry(new BatchWriteEntry(vo.getSeriesId(), dataType, dvalue, time));
             return -1;
         }
@@ -289,7 +291,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         int retries = 5;
         while (true) {
             try {
-                return savePointValueImpl(vo, dataType, dvalue, time, svalue, source);
+                return savePointValueImpl(vo, dataType, dvalue, time, svalue, sourceMessage);
             } catch (ConcurrencyFailureException e) {
                 if (retries <= 0)
                     throw e;
@@ -300,7 +302,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private long savePointValueImpl(DataPointVO vo, int dataType, double dvalue, long time, String svalue, SetPointSource source) {
+    private long savePointValueImpl(DataPointVO vo, int dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage) {
         long id = this.create.insertInto(pv)
                 .set(pv.dataPointId, vo.getSeriesId())
                 .set(pv.dataType, dataType)
@@ -313,11 +315,6 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
         if (svalue == null && dataType == DataTypes.IMAGE)
             svalue = Long.toString(id);
-
-        // Check if we need to create an annotation.
-        TranslatableMessage sourceMessage = null;
-        if (source != null)
-            sourceMessage = source.getSetPointSourceMessage();
 
         if (svalue != null || sourceMessage != null) {
             String shortString = null;
@@ -348,12 +345,10 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private static class UnsavedPointValue {
         private final DataPointVO vo;
         private final PointValueTime pointValue;
-        private final SetPointSource source;
 
-        public UnsavedPointValue(DataPointVO vo, PointValueTime pointValue, SetPointSource source) {
+        public UnsavedPointValue(DataPointVO vo, PointValueTime pointValue) {
             this.vo = vo;
             this.pointValue = pointValue;
-            this.source = source;
         }
     }
 

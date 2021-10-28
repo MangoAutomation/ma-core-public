@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 
@@ -14,9 +16,9 @@ public interface IAnnotated {
     
     /**
      * Get the Translatable Message of the Annotation
-     * @return
+     * @return translatable message
      */
-    TranslatableMessage getSourceMessage();
+    @NonNull TranslatableMessage getSourceMessage();
     
     /**
      * Get the translated annotation
