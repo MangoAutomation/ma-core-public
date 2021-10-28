@@ -399,8 +399,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         // add annotation to newValue before firing events so event detectors can
         // fetch the annotation
         if (source != null) {
-            newValue = new AnnotatedPointValueTime(newValue.getValue(),
-                    newValue.getTime(), source.getSetPointSourceMessage());
+            newValue = newValue.withAnnotationFromSource(source);
         }
 
         valueCache.savePointValue(newValue, source, logValue, async);
@@ -501,7 +500,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                         AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, null, averagingValues);
                         PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
                         // Save the new value and get a point value time back that has the id and annotations set, as appropriate.
-                        valueCache.savePointValueAsync(newValue, null);
+                        valueCache.savePointValueAsync(newValue);
                         //Fire logged Events
                         fireEvents(null, newValue, null, false, false, true, false, false);
                         averagingValues.clear();
@@ -682,7 +681,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 }
 
                 // Save the new value and get a point value time back that has the id and annotations set, as appropriate.
-                valueCache.savePointValueAsync(newValue, null);
+                valueCache.savePointValueAsync(newValue);
                 //Fire logged Events
                 fireEvents(null, newValue, null, false, false, true, false, false);
             }

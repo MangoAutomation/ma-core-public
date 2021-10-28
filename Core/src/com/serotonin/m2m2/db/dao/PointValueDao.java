@@ -42,10 +42,8 @@ import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
-import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 
@@ -143,30 +141,29 @@ public interface PointValueDao {
         pointValues.forEach(v -> savePointValueSync(v.getVo(), v.getPointValue()));
     }
 
-    default PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
-        if (source != null) {
-            pointValue = new AnnotatedPointValueTime(pointValue, source.getSetPointSourceMessage());
-        }
-        return savePointValueSync(vo, pointValue);
-    }
     /**
      * Save a point value synchronously i.e. immediately.
      *
+     * <p>If the point value implements {@link com.serotonin.m2m2.rt.dataImage.IAnnotated IAnnotated}
+     * e.g. {@link com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime AnnotatedPointValueTime}, then the
+     * annotation should also be stored in the database.</p>
+     *
+     * @param vo data point
+     * @param pointValue value to save for point (may be annotated)
      * @throws IllegalArgumentException if vo or pointValue are null
      */
     PointValueTime savePointValueSync(DataPointVO vo, PointValueTime pointValue);
-
-    default void savePointValueAsync(DataPointVO vo, PointValueTime pointValue, @Nullable SetPointSource source) {
-        if (source != null) {
-            pointValue = new AnnotatedPointValueTime(pointValue, source.getSetPointSourceMessage());
-        }
-        savePointValueAsync(vo, pointValue);
-    }
 
     /**
      * Save a point value asynchronously i.e. delayed.
      * The implementation may batch and save point values at a later time.
      *
+     * <p>If the point value implements {@link com.serotonin.m2m2.rt.dataImage.IAnnotated IAnnotated}
+     * e.g. {@link com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime AnnotatedPointValueTime}, then the
+     * annotation should also be stored in the database.</p>
+     *
+     * @param vo data point
+     * @param pointValue value to save for point (may be annotated)
      * @throws IllegalArgumentException if vo or pointValue are null
      */
     void savePointValueAsync(DataPointVO vo, PointValueTime pointValue);

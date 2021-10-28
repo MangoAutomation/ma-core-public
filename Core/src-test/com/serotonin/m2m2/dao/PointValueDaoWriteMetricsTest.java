@@ -33,7 +33,7 @@ public class PointValueDaoWriteMetricsTest extends MangoTestBase {
                 this.timer.fastForwardTo(this.timer.currentTimeMillis() + period / events);
             }
             PointValueTime p2vt = new PointValueTime(-2.0, this.timer.currentTimeMillis());
-            pointValueDao.savePointValueAsync((DataPointVO) vo, p2vt, null);
+            pointValueDao.savePointValueAsync((DataPointVO) vo, p2vt);
             i++;
 
         }
@@ -53,7 +53,7 @@ public class PointValueDaoWriteMetricsTest extends MangoTestBase {
                 this.timer.fastForwardTo(this.timer.currentTimeMillis() + period / events);
             }
             PointValueTime p2vt = new PointValueTime(-2.0, this.timer.currentTimeMillis());
-            pointValueDao.savePointValueSync((DataPointVO) vo, p2vt, null);
+            pointValueDao.savePointValueSync((DataPointVO) vo, p2vt);
             i++;
 
         }

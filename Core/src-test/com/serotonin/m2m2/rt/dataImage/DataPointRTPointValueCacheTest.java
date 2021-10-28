@@ -151,7 +151,7 @@ public class DataPointRTPointValueCacheTest extends MangoTestBase {
         for(int i=0; i<limit; i++) {
             long time = Common.timer.currentTimeMillis();
             this.timer.fastForwardTo(this.timer.currentTimeMillis() + 1);
-            dao.savePointValueSync(vo, new PointValueTime((double)i, time), null);
+            dao.savePointValueSync(vo, new PointValueTime((double)i, time));
         }
         return dao.getLatestPointValues(vo, limit);
     }

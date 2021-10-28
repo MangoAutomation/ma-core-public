@@ -125,7 +125,7 @@ public class NumericPointValueDaoTestHelper {
 
         dao.savePointValues(values.stream().peek(v -> {
             data.computeIfAbsent(v.getVo().getSeriesId(), k -> new ArrayList<>()).add(v.getPointValue());
-        }));
+        }), 10000);
     }
 
     public Map<Long, PointValueTime> timeIndexedValues(DataPointVO point) {

@@ -67,7 +67,7 @@ public class DataPointDaoTest extends AbstractVoDaoTest<DataPointVO, DataPointDa
         dao.insert(point);
         for (int i = 0; i < 5; i++) {
             PointValueTime newPvt = new PointValueTime(i, timer.currentTimeMillis());
-            pointValueDaoSQL.savePointValueSync(point, newPvt, null);
+            pointValueDaoSQL.savePointValueSync(point, newPvt);
             timer.fastForwardTo(timer.currentTimeMillis() + 1);
         }
         List<PointHistoryCount> historyCounts = pointValueDaoSQL.topPointHistoryCounts(100);

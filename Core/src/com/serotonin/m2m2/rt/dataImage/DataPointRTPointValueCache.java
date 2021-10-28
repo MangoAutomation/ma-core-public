@@ -45,20 +45,21 @@ public class DataPointRTPointValueCache {
         }
     }
 
-    void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
-        dao.savePointValueAsync(vo, pvt, source);
+    void savePointValueAsync(PointValueTime pvt) {
+        dao.savePointValueAsync(vo, pvt);
     }
 
-    PointValueTime savePointValueSync(PointValueTime pvt, SetPointSource source) {
-        return dao.savePointValueSync(vo, pvt, source);
+    PointValueTime savePointValueSync(PointValueTime pvt) {
+        return dao.savePointValueSync(vo, pvt);
     }
 
     public void savePointValue(PointValueTime pvt, @Nullable SetPointSource source, boolean logValue, boolean async) {
+        pvt = pvt.withAnnotationFromSource(source);
         if (logValue) {
             if (async) {
-                savePointValueAsync(pvt, source);
+                savePointValueAsync(pvt);
             } else {
-                pvt = savePointValueSync(pvt, source);
+                pvt = savePointValueSync(pvt);
             }
         }
 

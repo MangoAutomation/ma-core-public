@@ -6,7 +6,10 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.infiniteautomation.mango.util.Functions;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -109,4 +112,14 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
         return 0;
     }
 
+    public PointValueTime withAnnotationFromSource(@Nullable SetPointSource source) {
+        if (source != null && source.getSetPointSourceMessage() != null) {
+            return withAnnotation(source.getSetPointSourceMessage());
+        }
+        return this;
+    }
+
+    public PointValueTime withAnnotation(TranslatableMessage message) {
+        return new AnnotatedPointValueTime(this, message);
+    }
 }
