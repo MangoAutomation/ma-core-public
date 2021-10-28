@@ -496,10 +496,13 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         //Validate pl if there is one
         if(vo.getPointLocator() != null) {
             DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
-            if(def == null) {
+            if (def == null) {
                 throw new ShouldNeverHappenException("No data source definition for type " + vo.getPointLocator().getDataSourceType());
-            }else {
+            } else {
                 //Validate the point locator
+                if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId()) {
+                    result.addContextualMessage("dataTypeId", "validate.cantChangeDataType");
+                }
                 def.validate(result, existing, vo, dsvo);
             }
         }
