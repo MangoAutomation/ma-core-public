@@ -102,6 +102,8 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             MigrationTask task = new MigrationTask(tasks.size() + 1);
             tasks.add(task);
             task.getFinished().whenComplete((v, e) -> {
+                // if there was no exception the queue was exhausted; and we are finished.
+                // cancellation also results in an exception
                 if (e == null) {
                     this.fullyMigrated = true;
                 }
@@ -125,7 +127,9 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
 
     @Override
     public void close() throws Exception {
+        // adjust threads back to 0 to cancel them
         for (MigrationTask task : adjustThreads(0)) {
+            // wait for the cancelled threads to complete
             task.getFinished().get(60, TimeUnit.SECONDS);
             if (!task.getFinished().isDone()) {
                 log.error("Failed to stop migration task {}", task.getName());
@@ -140,6 +144,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     }
 
     public boolean handleWithPrimary(DataPointVO vo, Operation operation) {
+        // short-circuit, faster than looking up map
         if (fullyMigrated) return true;
 
         @Nullable MigrationStatus migrated = migratedSeries.get(vo.getSeriesId());
@@ -188,6 +193,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                     }
                 }
 
+                // future is not marked as done if the queue was exhausted
                 if (!finished.isDone()) {
                     if (log.isInfoEnabled()) {
                         log.info("{} Migration complete, no more work", stats());
@@ -252,6 +258,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             MutableLong lastTimestamp = new MutableLong();
             MutableLong count = new MutableLong();
 
+            // stream from secondary (old) db to the primary db (new) in chunks of matching size
             try (var stream = secondary.streamPointValues(point, from, null, null, TimeOrder.ASCENDING, batchSize)) {
                 primary.savePointValues(stream.map(pv -> {
                     lastTimestamp.setValue(pv.getTime());
