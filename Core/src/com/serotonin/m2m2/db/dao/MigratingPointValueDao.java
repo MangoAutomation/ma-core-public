@@ -173,16 +173,14 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             MutableLong lastTimestamp = new MutableLong();
             MutableLong count = new MutableLong();
 
-            // TODO overload that allows specifying chunk size
-            try (var stream = secondary.streamPointValues(point, from, null, null, TimeOrder.ASCENDING)) {
-
+            try (var stream = secondary.streamPointValues(point, from, null, null, TimeOrder.ASCENDING, batchSize)) {
                 // TODO save methods should support Annotated PVT if source is null?
-                // TODO make savePointValues batch insert size configurable
+                // TODO check flag and abort
                 primary.savePointValues(stream.map(pv -> {
                     lastTimestamp.setValue(pv.getTime());
                     count.incrementAndGet();
                     return new BatchPointValueImpl(point, pv, null);
-                }));
+                }), batchSize);
             }
 
             sampleCount.add(count.longValue());

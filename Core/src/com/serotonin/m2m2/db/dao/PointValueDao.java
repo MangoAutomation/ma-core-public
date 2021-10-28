@@ -57,6 +57,12 @@ public interface PointValueDao {
         }
     }
 
+    static void validateChunkSize(int chunkSize) {
+        if (chunkSize <= 0) {
+            throw new IllegalArgumentException("Chunk size must be greater than zero");
+        }
+    }
+
     static void validateTimePeriod(Long from, Long to) {
         if (from != null && to != null && to < from) {
             throw new IllegalArgumentException("To time must be greater than or equal to from time");
@@ -112,11 +118,26 @@ public interface PointValueDao {
 
     /**
      * Save a stream of point values synchronously i.e. immediately.
+     * This method blocks until all elements in the stream are consumed.
      *
+     * @param pointValues stream of values to save
      * @throws IllegalArgumentException if pointValues is null
      */
     default void savePointValues(Stream<? extends BatchPointValue> pointValues) {
+        savePointValues(pointValues, chunkSize());
+    }
+
+    /**
+     * Save a stream of point values synchronously i.e. immediately.
+     * This method blocks until all elements in the stream are consumed.
+     *
+     * @param pointValues stream of values to save
+     * @param chunkSize chunk or batch size to save at once, this may be ignored by databases which support streams natively
+     * @throws IllegalArgumentException if pointValues is null
+     */
+    default void savePointValues(Stream<? extends BatchPointValue> pointValues, int chunkSize) {
         PointValueDao.validateNotNull(pointValues);
+        PointValueDao.validateChunkSize(chunkSize);
         pointValues.forEach(v -> savePointValueSync(v.getVo(), v.getPointValue(), v.getSource()));
     }
 
@@ -354,6 +375,14 @@ public interface PointValueDao {
     }
 
     /**
+     * @see #streamPointValues(DataPointVO, Long, Long, Integer, TimeOrder, int)
+     */
+    default Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to,
+                                                       @Nullable Integer limit, TimeOrder sortOrder) {
+        return streamPointValues(vo, from, to, limit, sortOrder, chunkSize());
+    }
+
+    /**
      * Stream the point values for a single point, for the time range {@code [from,to)}.
      * Values are streamed in either ascending or descending time order.
      *
@@ -378,8 +407,16 @@ public interface PointValueDao {
      * @throws IllegalArgumentException if vo is null, if to is less than from
      */
     default Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to,
-                                                       @Nullable Integer limit, TimeOrder sortOrder) {
-        int chunkSize = limit != null ? Math.min(limit, chunkSize()) : chunkSize();
+                                                       @Nullable Integer limit, TimeOrder sortOrder, int chunkSize) {
+        PointValueDao.validateNotNull(vo);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+        PointValueDao.validateNotNull(sortOrder);
+        PointValueDao.validateChunkSize(chunkSize);
+
+        if (limit != null) {
+            chunkSize = Math.min(limit, chunkSize);
+        }
         PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
         Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it,
                 Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);

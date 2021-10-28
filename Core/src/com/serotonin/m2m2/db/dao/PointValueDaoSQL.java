@@ -15,16 +15,17 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 
+import com.infiniteautomation.mango.db.iterators.ChunkingSpliterator;
 import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
@@ -112,10 +113,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     @Override
     public void savePointValues(Stream<? extends BatchPointValue> pointValues) {
+        PointValueDao.validateNotNull(pointValues);
         var stream = pointValues.map(v -> {
-            syncCallsCounter.hit();
-            syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
-
             var point = v.getVo();
             var pointValue = v.getPointValue();
             var source = v.getSource();
@@ -124,6 +123,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
             // can't batch save annotations or IMAGE/ALPHANUMERIC point values
             if (source != null || dataType == DataTypes.IMAGE || dataType == DataTypes.ALPHANUMERIC) {
                 savePointValueImpl(point, pointValue, source, false);
+                syncCallsCounter.hit();
+                syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
                 return null;
             }
 
@@ -136,7 +137,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
             return new BatchWriteEntry(point.getSeriesId(), dataType, boundedValue, pointValue.getTime());
         });
 
-        writeMultiple(stream, false);
+        ChunkingSpliterator.chunkStream(stream, chunkSize()).forEach(chunk -> {
+            int count = writeMultiple(chunk.stream());
+            syncCallsCounter.hitMultiple(count);
+            syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
+        });
     }
 
     @Override
@@ -372,7 +377,9 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                         entriesMonitor.setValue(entries.size());
                     }
                     // Create the sql and parameters
-                    writeMultiple(Arrays.stream(inserts), true);
+                    int count = writeMultiple(Arrays.stream(inserts));
+                    writesPerSecond.hitMultiple(count);
+                    batchWriteSpeedMonitor.setValue(writesPerSecond.getEventCounts()[0] / 5);
                 }
             } finally {
                 instances.remove(this);
@@ -407,31 +414,29 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private void writeMultiple(Stream<BatchWriteEntry> entryStream, boolean incrementBatchWrites) {
+    private int writeMultiple(Stream<BatchWriteEntry> entryStream) {
         PointValues pv = PointValues.POINT_VALUES;
         var insert = create.insertInto(pv)
                 .columns(pv.dataPointId, pv.dataType, pv.pointValue, pv.ts);
 
-        AtomicInteger count = new AtomicInteger();
+        MutableInt count = new MutableInt();
         entryStream.forEach(entry -> {
             insert.values(entry.seriesId, entry.dataType, entry.dvalue, entry.time);
             count.incrementAndGet();
         });
+        int written = 0;
 
         // Insert the data
         int retries = 10;
         while (true) {
             try {
                 insert.execute();
-                if (incrementBatchWrites) {
-                    writesPerSecond.hitMultiple(count.get());
-                    batchWriteSpeedMonitor.setValue(writesPerSecond.getEventCounts()[0] / 5);
-                }
+                written = count.intValue();
                 break;
             } catch (RuntimeException e) {
                 if (RETRIED_EXCEPTIONS.contains(e.getClass())) {
                     if (retries <= 0) {
-                        log.error("Concurrency failure saving {} point values after 10 tries. Data lost.", count.get());
+                        log.error("Concurrency failure saving {} point values after 10 tries. Data lost.", count.intValue());
                         break;
                     }
 
@@ -448,10 +453,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
                     retries--;
                 } else {
-                    log.error("Error saving {} point values. Data lost.", count.get(), e);
+                    log.error("Error saving {} point values. Data lost.", count.intValue(), e);
                     break;
                 }
             }
         }
+        return written;
     }
 }
