@@ -19,13 +19,9 @@ import java.util.function.Predicate;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.mutable.MutableLong;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
@@ -33,7 +29,7 @@ import org.springframework.core.env.Environment;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
-public class MigratingPointValueDao extends DelegatingPointValueDao implements AutoCloseable, ApplicationContextAware {
+public class MigratingPointValueDao extends DelegatingPointValueDao implements AutoCloseable {
 
     /**
      * Separate log file is configured for this logger
@@ -54,10 +50,6 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     private final ExecutorService executorService;
 
     private volatile boolean fullyMigrated = false;
-
-    @Override
-    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
-    }
 
     public enum MigrationStatus {
         NOT_STARTED,
@@ -148,6 +140,8 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     }
 
     public boolean handleWithPrimary(DataPointVO vo, Operation operation) {
+        if (fullyMigrated) return true;
+
         @Nullable MigrationStatus migrated = migratedSeries.get(vo.getSeriesId());
         if (migrated == null || migrated == MigrationStatus.MIGRATED) {
             // series is a new series, or has been migrated
