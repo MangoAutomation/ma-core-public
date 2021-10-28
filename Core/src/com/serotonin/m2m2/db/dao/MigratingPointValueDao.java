@@ -110,12 +110,14 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
 
         private MigrationThread(int threadId) {
             super();
-            setName(String.format("pv-migration-%03d", threadId));
+            setName(String.format("pv-migration-%03d", threadId + 1));
         }
 
         @Override
         public void run() {
-            log.info("Migration thread starting");
+            if (log.isInfoEnabled()) {
+                log.info("{} Migration thread starting", stats());
+            }
 
             Integer seriesId = null;
             while (!stopFlag.get() && (seriesId = seriesQueue.poll()) != null) {
@@ -134,9 +136,13 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             }
 
             if (seriesId == null) {
-                log.info("Migration complete, no more work. {}/{} series migrated, {} skipped.", migratedCount.get(), migratedTotal.get(), skippedCount.get());
+                if (log.isInfoEnabled()) {
+                    log.info("{} Migration complete, no more work", stats());
+                }
             } else {
-                log.warn("Migration interrupted. {}/{} series migrated, {} skipped.", migratedCount.get(), migratedTotal.get(), skippedCount.get());
+                if (log.isWarnEnabled()) {
+                    log.warn("{} Migration interrupted", stats());
+                }
             }
         }
 
@@ -145,6 +151,9 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             if (point == null || !migrationFilter.test(point)) {
                 migratedSeries.put(seriesId, MigrationStatus.SKIPPED);
                 skippedCount.incrementAndGet();
+                if (log.isInfoEnabled()) {
+                    log.info("{} Skipped point {} (seriesId={})", stats(), point == null ? null : point.getXid(), seriesId);
+                }
                 return;
             }
 
@@ -163,8 +172,17 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             });
             migratedCount.incrementAndGet();
 
-            log.info("Series {} complete. Copied {} samples for data point {}. {}/{} series migrated, {} skipped.",
-                    point.getSeriesId(), sampleCount.longValue(), point.getXid(), migratedCount.get(), migratedTotal.get(), skippedCount.get());
+            if (log.isInfoEnabled()) {
+                log.info("{} Migrated point {} (seriesId={}, values={})", stats(), point.getXid(), seriesId, sampleCount.longValue());
+            }
+        }
+
+        private String stats() {
+            long migrated = migratedCount.get();
+            long skipped = skippedCount.get();
+            long total = migratedTotal.get();
+            double progress = migrated * 100d / total;
+            return String.format("[%6.2f%% complete, %d migrated, %d skipped, %d total]", progress, migrated, skipped, total);
         }
 
         private Long copyPointValues(DataPointVO point, Long from, MutableLong sampleCount) {

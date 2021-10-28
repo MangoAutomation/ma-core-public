@@ -113,7 +113,7 @@
 			<AppenderRef ref="script" level="${mango:appender.script.level}" />
 		</AsyncLogger>
 		<AsyncLogger name="pointValueMigration" includeLocation="${mango:logger.pointValueMigration.includeLocation}" level="${mango:logger.pointValueMigration.level}" additivity="false">
-			<AppenderRef ref="script" level="${mango:appender.pointValueMigration.level}" />
+			<AppenderRef ref="pointValueMigration" level="${mango:appender.pointValueMigration.level}" />
 		</AsyncLogger>
 		<AsyncLogger name="com.serotonin.m2m2" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
 		<AsyncLogger name="com.infiniteautomation" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
