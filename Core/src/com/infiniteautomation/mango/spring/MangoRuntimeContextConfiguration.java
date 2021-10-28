@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,6 +36,7 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
@@ -373,14 +375,19 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions, @Value("${migration.enabled:false}") boolean migrate, DataPointDao dataPointDao) {
+    public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions,
+                                       @Value("${db.migration.enabled:false}") boolean migrate,
+                                       DataPointDao dataPointDao,
+                                       Environment env,
+                                       ExecutorService executorService,
+                                       ConfigurableApplicationContext context) {
         PointValueDaoDefinition highestPriority = definitions.stream().findFirst().orElseThrow();
         highestPriority.initialize();
         PointValueDao highestPriorityDao = highestPriority.getPointValueDao();
         if (migrate) {
             PointValueDaoDefinition second = definitions.stream().skip(1).findFirst().orElseThrow();
             second.initialize();
-            return new MigratingPointValueDao(highestPriorityDao, second.getPointValueDao(), dataPointDao, vo -> true);
+            return new MigratingPointValueDao(highestPriorityDao, second.getPointValueDao(), dataPointDao, vo -> true, env, executorService, context);
         }
         return highestPriorityDao;
     }

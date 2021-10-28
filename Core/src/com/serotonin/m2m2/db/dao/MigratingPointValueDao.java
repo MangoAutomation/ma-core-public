@@ -4,24 +4,36 @@
 
 package com.serotonin.m2m2.db.dao;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.mutable.MutableLong;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
-public class MigratingPointValueDao extends DelegatingPointValueDao implements AutoCloseable {
+public class MigratingPointValueDao extends DelegatingPointValueDao implements AutoCloseable, ApplicationContextAware {
 
     /**
      * Separate log file is configured for this logger
@@ -32,14 +44,20 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
      */
     private final ConcurrentMap<Integer, MigrationStatus> migratedSeries = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Integer> seriesQueue = new ConcurrentLinkedQueue<>();
-    private final AtomicBoolean fullyMigrated = new AtomicBoolean();
-    private final AtomicBoolean stopFlag = new AtomicBoolean();
     private final AtomicLong migratedCount = new AtomicLong();
     private final AtomicLong skippedCount = new AtomicLong();
     private final AtomicLong migratedTotal = new AtomicLong();
-    private final MigrationThread[] threads;
+    private final ArrayList<MigrationTask> tasks = new ArrayList<>();
     private final Predicate<DataPointVO> migrationFilter;
     private final DataPointDao dataPointDao;
+    private final Environment env;
+    private final ExecutorService executorService;
+
+    private volatile boolean fullyMigrated = false;
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+    }
 
     public enum MigrationStatus {
         NOT_STARTED,
@@ -49,12 +67,25 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     }
 
     // TODO add time filter
-    public MigratingPointValueDao(PointValueDao primary, PointValueDao secondary, DataPointDao dataPointDao, Predicate<DataPointVO> migrationFilter) {
+    public MigratingPointValueDao(PointValueDao primary,
+                                  PointValueDao secondary,
+                                  DataPointDao dataPointDao,
+                                  Predicate<DataPointVO> migrationFilter,
+                                  Environment env,
+                                  ExecutorService executorService,
+                                  ConfigurableApplicationContext context) {
         super(primary, secondary);
-        // TODO configurable
-        this.threads = new MigrationThread[4];
         this.dataPointDao = dataPointDao;
         this.migrationFilter = migrationFilter;
+        this.env = env;
+        this.executorService = executorService;
+
+        context.addApplicationListener((ApplicationListener<MangoConfigurationReloadedEvent>) this::propertiesReloaded);
+    }
+
+    // event listener annotation doesn't work here, bean registered after listeners scanned?
+    private void propertiesReloaded(@SuppressWarnings("unused") MangoConfigurationReloadedEvent event) {
+        adjustThreads(env.getRequiredProperty("db.migration.threadCount", int.class));
     }
 
     @PostConstruct
@@ -66,30 +97,53 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                 migratedTotal.incrementAndGet();
             });
         }
+        adjustThreads(env.getRequiredProperty("db.migration.threadCount", int.class));
+    }
 
-        for (int i = 0; i < threads.length; i++) {
-            MigrationThread thread = new MigrationThread(i);
-            this.threads[i] = thread;
-            thread.start();
+    private synchronized List<MigrationTask> adjustThreads(int threadCount) {
+        if (fullyMigrated || threadCount == tasks.size()) return Collections.emptyList();
+
+        log.info("Adjusting migration threads from {} to {}", tasks.size(), threadCount);
+        List<MigrationTask> stoppedTasks = new ArrayList<>();
+
+        while (tasks.size() < threadCount) {
+            MigrationTask task = new MigrationTask(tasks.size() + 1);
+            tasks.add(task);
+            task.getFinished().whenComplete((v, e) -> {
+                if (e == null) {
+                    this.fullyMigrated = true;
+                }
+                removeTask(task);
+            });
+            executorService.execute(task);
         }
+
+        while (tasks.size() > threadCount) {
+            MigrationTask task = tasks.remove(tasks.size() - 1);
+            task.stopTask();
+            stoppedTasks.add(task);
+        }
+
+        return stoppedTasks;
+    }
+
+    private synchronized void removeTask(MigrationTask task) {
+        tasks.remove(task);
     }
 
     @Override
     public void close() throws Exception {
-        stopFlag.set(true);
-        for (MigrationThread thread : threads) {
-            if (thread != null) {
-                thread.join(TimeUnit.SECONDS.toMillis(60));
-                thread.interrupt();
+        for (MigrationTask task : adjustThreads(0)) {
+            task.getFinished().get(60, TimeUnit.SECONDS);
+            if (!task.getFinished().isDone()) {
+                log.error("Failed to stop migration task {}", task.getName());
             }
         }
     }
 
     @Override
     public boolean handleWithPrimary(Operation operation) {
-        if (fullyMigrated.get()) {
-            return true;
-        }
+        if (fullyMigrated) return true;
         throw new UnsupportedOperationException();
     }
 
@@ -106,44 +160,58 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         return false;
     }
 
-    private class MigrationThread extends Thread {
+    private class MigrationTask implements Runnable {
 
-        private MigrationThread(int threadId) {
+        private final CompletableFuture<Void> finished = new CompletableFuture<>();
+        private final String name;
+
+        private MigrationTask(int threadId) {
             super();
-            setName(String.format("pv-migration-%03d", threadId + 1));
+            this.name = String.format("pv-migration-%03d", threadId);
         }
 
         @Override
         public void run() {
-            if (log.isInfoEnabled()) {
-                log.info("{} Migration thread starting", stats());
-            }
-
-            Integer seriesId = null;
-            while (!stopFlag.get() && (seriesId = seriesQueue.poll()) != null) {
-                MigrationStatus previous = migratedSeries.put(seriesId, MigrationStatus.RUNNING);
-                if (previous != MigrationStatus.NOT_STARTED) {
-                    throw new IllegalStateException("Migration should not have stared for series: " + seriesId);
-                }
-
-                try {
-                    migrateSeries(seriesId);
-                } catch (Exception e) {
-                    log.error("Error migrating series {}", seriesId, e);
-                    migratedSeries.put(seriesId, MigrationStatus.NOT_STARTED);
-                    seriesQueue.add(seriesId);
-                }
-            }
-
-            if (seriesId == null) {
+            try {
+                Thread.currentThread().setName(name);
                 if (log.isInfoEnabled()) {
-                    log.info("{} Migration complete, no more work", stats());
+                    log.info("{} Migration task starting", stats());
                 }
-            } else {
-                if (log.isWarnEnabled()) {
-                    log.warn("{} Migration interrupted", stats());
+
+                Integer seriesId;
+                while (!finished.isDone() && (seriesId = seriesQueue.poll()) != null) {
+                    MigrationStatus previous = migratedSeries.put(seriesId, MigrationStatus.RUNNING);
+                    if (previous != MigrationStatus.NOT_STARTED) {
+                        throw new IllegalStateException("Migration should not have stared for series: " + seriesId);
+                    }
+
+                    try {
+                        migrateSeries(seriesId);
+                    } catch (Exception e) {
+                        log.error("Error migrating series {}", seriesId, e);
+                        migratedSeries.put(seriesId, MigrationStatus.NOT_STARTED);
+                        seriesQueue.add(seriesId);
+                    }
                 }
+
+                if (!finished.isDone()) {
+                    if (log.isInfoEnabled()) {
+                        log.info("{} Migration complete, no more work", stats());
+                    }
+                } else {
+                    if (log.isWarnEnabled()) {
+                        log.warn("{} Migration task cancelled", stats());
+                    }
+                }
+            } catch (Exception e) {
+                finished.completeExceptionally(e);
+            } finally {
+                finished.complete(null);
             }
+        }
+
+        private void stopTask() {
+            finished.cancel(false);
         }
 
         private void migrateSeries(Integer seriesId) {
@@ -186,13 +254,11 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         }
 
         private Long copyPointValues(DataPointVO point, Long from, MutableLong sampleCount) {
-            // TODO configurable
-            int batchSize = 10_000;
+            int batchSize = env.getRequiredProperty("db.migration.batchSize", int.class);
             MutableLong lastTimestamp = new MutableLong();
             MutableLong count = new MutableLong();
 
             try (var stream = secondary.streamPointValues(point, from, null, null, TimeOrder.ASCENDING, batchSize)) {
-                // TODO check flag and abort
                 primary.savePointValues(stream.map(pv -> {
                     lastTimestamp.setValue(pv.getTime());
                     count.incrementAndGet();
@@ -202,6 +268,14 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
 
             sampleCount.add(count.longValue());
             return lastTimestamp.longValue();
+        }
+
+        public CompletableFuture<Void> getFinished() {
+            return finished;
+        }
+
+        public String getName() {
+            return name;
         }
     }
 }
