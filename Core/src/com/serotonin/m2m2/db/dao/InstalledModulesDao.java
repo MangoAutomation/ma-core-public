@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao;
 import java.time.Instant;
 import java.util.Date;
 
+import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -20,6 +21,7 @@ import com.infiniteautomation.mango.db.tables.InstalledModules;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.Module;
+import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
 @Repository
@@ -29,8 +31,14 @@ public class InstalledModulesDao extends BaseDao {
     private final InstalledModules table = InstalledModules.INSTALLED_MODULES;
     private final LazyInitSupplier<Instant> lastUpgrade = new LazyInitSupplier<>(this::computeLastUpgradeTime);
 
+    /**
+     *
+     * @param databaseProxy
+     * @param definitions - autowired to ensure the PostConstruct will have all definitions as
+     *                    beans when executing the upgrades
+     */
     @Autowired
-    public InstalledModulesDao(DatabaseProxy databaseProxy) {
+    public InstalledModulesDao(DatabaseProxy databaseProxy, List<ModuleElementDefinition> definitions) {
         super(databaseProxy);
     }
 
