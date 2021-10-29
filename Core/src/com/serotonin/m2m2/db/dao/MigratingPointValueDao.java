@@ -4,6 +4,7 @@
 
 package com.serotonin.m2m2.db.dao;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,7 +19,6 @@ import java.util.function.Predicate;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.mutable.MutableLong;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +48,8 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     private final DataPointDao dataPointDao;
     private final Environment env;
     private final ExecutorService executorService;
+    private final ConfigurableApplicationContext context;
+    private final Long migrateFrom;
 
     private volatile boolean fullyMigrated = false;
 
@@ -58,7 +60,6 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         SKIPPED
     }
 
-    // TODO add time filter
     public MigratingPointValueDao(PointValueDao primary,
                                   PointValueDao secondary,
                                   DataPointDao dataPointDao,
@@ -71,8 +72,14 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         this.migrationFilter = migrationFilter;
         this.env = env;
         this.executorService = executorService;
+        this.context = context;
 
-        context.addApplicationListener((ApplicationListener<MangoConfigurationReloadedEvent>) this::propertiesReloaded);
+        String fromStr = env.getProperty("db.migration.fromDate");
+        if (fromStr != null) {
+            this.migrateFrom = ZonedDateTime.parse(fromStr).toInstant().toEpochMilli();
+        } else {
+            this.migrateFrom = null;
+        }
     }
 
     // event listener annotation doesn't work here, bean registered after listeners scanned?
@@ -89,6 +96,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                 migratedTotal.incrementAndGet();
             });
         }
+        context.addApplicationListener((ApplicationListener<MangoConfigurationReloadedEvent>) this::propertiesReloaded);
         adjustThreads(env.getRequiredProperty("db.migration.threadCount", int.class));
     }
 
@@ -102,9 +110,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             MigrationTask task = new MigrationTask(tasks.size() + 1);
             tasks.add(task);
             task.getFinished().whenComplete((v, e) -> {
-                // if there was no exception the queue was exhausted; and we are finished.
-                // cancellation also results in an exception
-                if (e == null) {
+                if (seriesQueue.peek() == null) {
                     this.fullyMigrated = true;
                 }
                 removeTask(task);
@@ -159,10 +165,20 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         return false;
     }
 
+    private String stats() {
+        long migrated = migratedCount.get();
+        long skipped = skippedCount.get();
+        long total = migratedTotal.get();
+        double progress = migrated * 100d / total;
+        return String.format("[%6.2f%% complete, %d migrated, %d skipped, %d total]", progress, migrated, skipped, total);
+    }
+
     private class MigrationTask implements Runnable {
 
         private final CompletableFuture<Void> finished = new CompletableFuture<>();
         private final String name;
+
+        private volatile boolean stopFlag = false;
 
         private MigrationTask(int threadId) {
             super();
@@ -177,15 +193,16 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                     log.info("{} Migration task starting", stats());
                 }
 
+                boolean stopped;
                 Integer seriesId;
-                while (!finished.isDone() && (seriesId = seriesQueue.poll()) != null) {
+                while (!(stopped = stopFlag) && (seriesId = seriesQueue.poll()) != null) {
                     MigrationStatus previous = migratedSeries.put(seriesId, MigrationStatus.RUNNING);
                     if (previous != MigrationStatus.NOT_STARTED) {
                         throw new IllegalStateException("Migration should not have stared for series: " + seriesId);
                     }
 
                     try {
-                        migrateSeries(seriesId);
+                        new MigrateSeries(seriesId, migrateFrom).migrateSeries();
                     } catch (Exception e) {
                         log.error("Error migrating series {}", seriesId, e);
                         migratedSeries.put(seriesId, MigrationStatus.NOT_STARTED);
@@ -193,14 +210,13 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                     }
                 }
 
-                // future is not marked as done if the queue was exhausted
-                if (!finished.isDone()) {
-                    if (log.isInfoEnabled()) {
-                        log.info("{} Migration complete, no more work", stats());
+                if (stopped) {
+                    if (log.isWarnEnabled()) {
+                        log.warn("{} Migration task was stopped", stats());
                     }
                 } else {
-                    if (log.isWarnEnabled()) {
-                        log.warn("{} Migration task cancelled", stats());
+                    if (log.isInfoEnabled()) {
+                        log.info("{} Migration complete, no more work", stats());
                     }
                 }
             } catch (Exception e) {
@@ -211,72 +227,68 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         }
 
         private void stopTask() {
-            finished.cancel(false);
-        }
-
-        private void migrateSeries(Integer seriesId) {
-            DataPointVO point = dataPointDao.getBySeriesId(seriesId);
-            if (point == null || !migrationFilter.test(point)) {
-                migratedSeries.put(seriesId, MigrationStatus.SKIPPED);
-                skippedCount.incrementAndGet();
-                if (log.isInfoEnabled()) {
-                    log.info("{} Skipped point {} (seriesId={})", stats(), point == null ? null : point.getXid(), seriesId);
-                }
-                return;
-            }
-
-            MutableLong sampleCount = new MutableLong();
-            // initial pass at copying data
-            Long lastTimestamp = copyPointValues(point, null, sampleCount);
-            // copy again as the first run might have taken a long time
-            lastTimestamp = copyPointValues(point, lastTimestamp, sampleCount);
-
-            Long lastTimestampFinal = lastTimestamp;
-
-            // do a final copy inside the compute method so inserts are blocked
-            migratedSeries.computeIfPresent(point.getSeriesId(), (k,v) -> {
-                copyPointValues(point, lastTimestampFinal, sampleCount);
-                return MigrationStatus.MIGRATED;
-            });
-            migratedCount.incrementAndGet();
-
-            if (log.isInfoEnabled()) {
-                log.info("{} Migrated point {} (seriesId={}, values={})", stats(), point.getXid(), seriesId, sampleCount.longValue());
-            }
-        }
-
-        private String stats() {
-            long migrated = migratedCount.get();
-            long skipped = skippedCount.get();
-            long total = migratedTotal.get();
-            double progress = migrated * 100d / total;
-            return String.format("[%6.2f%% complete, %d migrated, %d skipped, %d total]", progress, migrated, skipped, total);
-        }
-
-        private Long copyPointValues(DataPointVO point, Long from, MutableLong sampleCount) {
-            int batchSize = env.getRequiredProperty("db.migration.batchSize", int.class);
-            MutableLong lastTimestamp = new MutableLong();
-            MutableLong count = new MutableLong();
-
-            // stream from secondary (old) db to the primary db (new) in chunks of matching size
-            try (var stream = secondary.streamPointValues(point, from, null, null, TimeOrder.ASCENDING, batchSize)) {
-                primary.savePointValues(stream.map(pv -> {
-                    lastTimestamp.setValue(pv.getTime());
-                    count.incrementAndGet();
-                    return new BatchPointValueImpl(point, pv);
-                }), batchSize);
-            }
-
-            sampleCount.add(count.longValue());
-            return lastTimestamp.longValue();
+            this.stopFlag = true;
         }
 
         public CompletableFuture<Void> getFinished() {
-            return finished;
+            return finished.copy();
         }
 
         public String getName() {
             return name;
+        }
+
+        private class MigrateSeries {
+
+            private final int seriesId;
+            private final int batchSize = env.getRequiredProperty("db.migration.batchSize", int.class);
+
+            private Long startFrom;
+            private long sampleCount;
+
+            private MigrateSeries(int seriesId, Long startFrom) {
+                this.seriesId = seriesId;
+                this.startFrom = startFrom;
+            }
+
+            private void migrateSeries() {
+                DataPointVO point = dataPointDao.getBySeriesId(seriesId);
+                if (point == null || !migrationFilter.test(point)) {
+                    migratedSeries.put(seriesId, MigrationStatus.SKIPPED);
+                    skippedCount.incrementAndGet();
+                    if (log.isInfoEnabled()) {
+                        log.info("{} Skipped point {} (seriesId={})", stats(), point == null ? null : point.getXid(), seriesId);
+                    }
+                    return;
+                }
+
+                // initial pass at copying data
+                copyPointValues(point);
+                // copy again as the first run might have taken a long time
+                copyPointValues(point);
+
+                // do a final copy inside the compute method so inserts are blocked
+                migratedSeries.computeIfPresent(point.getSeriesId(), (k,v) -> {
+                    copyPointValues(point);
+                    return MigrationStatus.MIGRATED;
+                });
+                migratedCount.incrementAndGet();
+
+                if (log.isInfoEnabled()) {
+                    log.info("{} Migrated point {} (seriesId={}, values={})", stats(), point.getXid(), seriesId, sampleCount);
+                }
+            }
+
+            private void copyPointValues(DataPointVO point) {
+                // stream from secondary (old) db to the primary db (new) in chunks of matching size
+                try (var stream = secondary.streamPointValues(point, startFrom, null, null, TimeOrder.ASCENDING, batchSize)) {
+                    primary.savePointValues(stream.map(pv -> {
+                        startFrom = pv.getTime() + 1;
+                        sampleCount++;
+                        return new BatchPointValueImpl(point, pv);
+                    }), batchSize);
+                }
+            }
         }
     }
 }
