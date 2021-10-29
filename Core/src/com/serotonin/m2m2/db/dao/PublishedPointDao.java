@@ -164,7 +164,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Count the points for a type of publisher (used for metrics reporting)
-     * TODO Published Points - Need TEST for this
      * @return
      */
     public  List<PublisherPointsUsageStatistics> getUsage() {
