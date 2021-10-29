@@ -4,6 +4,7 @@
 
 package com.serotonin.m2m2.db.dao;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -262,6 +263,8 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                     return;
                 }
 
+                long startTime = System.currentTimeMillis();
+
                 // initial pass at copying data
                 copyPointValues(point);
                 // copy again as the first run might have taken a long time
@@ -275,7 +278,9 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                 migratedCount.incrementAndGet();
 
                 if (log.isInfoEnabled()) {
-                    log.info("{} Migrated point {} (seriesId={}, values={})", stats(), point.getXid(), seriesId, sampleCount);
+                    long duration = System.currentTimeMillis() - startTime;
+                    log.info("{} Migrated point {} (seriesId={}, values={}, duration={}, speed={}/s)",
+                            stats(), point.getXid(), seriesId, sampleCount, Duration.ofMillis(duration), String.format("%.2f", sampleCount / (duration / 1000d)));
                 }
             }
 
