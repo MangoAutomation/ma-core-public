@@ -4,7 +4,9 @@
 package com.serotonin.m2m2.db.upgrade;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.jooq.Field;
@@ -37,8 +39,6 @@ public class Upgrade42 extends DBUpgrade {
 
     @Override
     protected void upgrade() throws Exception {
-        //TODO Published Points add all database types
-        //TODO check to see if there are duplicate unique mappings for publisherId and dataPointId before adding constraint?
         runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, new String[] {
                 "CREATE TABLE publishedPoints (id INT NOT NULL AUTO_INCREMENT, xid VARCHAR(100) NOT NULL, name VARCHAR(255), enabled CHAR(1), publisherId INT NOT NULL, dataPointId INT NOT NULL, data LONGTEXT, jsonData LONGTEXT, PRIMARY KEY (id));",
                 "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn1 UNIQUE (xid);",
@@ -52,9 +52,14 @@ public class Upgrade42 extends DBUpgrade {
 
         //Convert existing to new table
         Table<Record> publishersTable = DSL.table(DSL.name("publishers"));
+        Table<Record> dataPointsTable = DSL.table(DSL.name("dataPoints"));
+        Field<String> nameField = DSL.field(DSL.name("name"), String.class);
         Field<Integer> idField = DSL.field(DSL.name("id"), Integer.class);
         Field<String> publisherTypeField = DSL.field(DSL.name("publisherType"), String.class);
         Field<byte[]> dataField = DSL.field(DSL.name("data"), byte[].class);
+
+        //Map of data point id to Name to ensure existence of point
+        Map<Integer, String> dataPointNameMap = new HashMap<>();
 
         this.create.select(idField, publisherTypeField, dataField).from(publishersTable).forEach(row -> {
             int publisherId = row.get(idField);
@@ -67,7 +72,6 @@ public class Upgrade42 extends DBUpgrade {
 
             PublishedPoints publishedPoints = PublishedPoints.PUBLISHED_POINTS;
 
-            //TODO Published Points - auto closeable insert?
             //For all published points, insert them into new table
             InsertValuesStep6<PublishedPointsRecord, String, String, String, Integer, Integer, String> insertPoint = create.insertInto(publishedPoints).columns(
                     publishedPoints.xid,
@@ -76,26 +80,38 @@ public class Upgrade42 extends DBUpgrade {
                     publishedPoints.publisherId,
                     publishedPoints.dataPointId,
                     publishedPoints.data);
-
-            List<PublishedPointVO> points = (List<PublishedPointVO>)p.deletedProperties().get("points");
-            for(PublishedPointVO point : points) {
-                //TODO Published Points Batch insert points
-                // - decide on a decent name or remove the field?
-                // - ensure data point exists before inserting new point
-                try {
-                    insertPoint.values(
-                            PublishedPointVO.XID_PREFIX + UUID.randomUUID().toString(),
-                            "default name",
-                            BaseDao.boolToChar(true),
-                            p.getId(),
-                            point.getDataPointId(),
-                            definition.createPublishedPointDbData(point)
-                    );
-                } catch (JsonProcessingException e) {
-                    LOG.error("Failed to write published point JSON for data point with id {}, published point removed", point.getDataPointId(), e);
+            try (insertPoint) {
+                List<PublishedPointVO> points = (List<PublishedPointVO>) p.deletedProperties().get("points");
+                for (PublishedPointVO point : points) {
+                    // Optimize the access to data point name to ensure it exists as the blob can contain deleted points
+                    // - use the data point name as the published point's name
+                    // - ensure data point exists before inserting new point
+                    // - this is sub-optimal as multiple requests for points that DNE will make DB calls but
+                    // the assumption is this isn't going to happen a lot
+                    String name = dataPointNameMap.computeIfAbsent(point.getDataPointId(), (k) -> {
+                       return this.create.select(nameField)
+                               .from(dataPointsTable)
+                               .where(idField.eq(point.getDataPointId()))
+                               .limit(1)
+                               .fetchOneInto(String.class);
+                    });
+                    if(name != null) {
+                        try {
+                            insertPoint.values(
+                                    PublishedPointVO.XID_PREFIX + UUID.randomUUID().toString(),
+                                    name,
+                                    BaseDao.boolToChar(true),
+                                    p.getId(),
+                                    point.getDataPointId(),
+                                    definition.createPublishedPointDbData(point)
+                            );
+                        } catch (JsonProcessingException e) {
+                            LOG.error("Failed to write published point JSON for data point with id {}, published point removed", point.getDataPointId(), e);
+                        }
+                    }
                 }
+                insertPoint.execute();
             }
-            insertPoint.execute();
 
             //update publisher data to re-serialize and remove points
             this.create.update(publishersTable)
