@@ -180,12 +180,13 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
 
         long complete = migrated + skipped;
         long seriesLeft = total - complete;
-        long timeLeft = (long) (seriesLeft * ((double) duration / complete));
+        double avgDuration = (double) duration / complete;
+        long timeLeft = (long) (seriesLeft * avgDuration);
         Duration durationLeft = Duration.ofMillis(timeLeft);
 
         double progress = complete * 100d / total;
         return String.format("[%6.2f%% complete, %d migrated, %d skipped, %d total, %s left, %s ETA]",
-                progress, migrated, skipped, total, durationLeft.truncatedTo(ChronoUnit.MINUTES).toDays(),
+                progress, migrated, skipped, total, durationLeft.truncatedTo(ChronoUnit.MINUTES),
                 ZonedDateTime.now().plus(durationLeft)
                         .truncatedTo(ChronoUnit.MINUTES)
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
