@@ -6,11 +6,10 @@ package com.infiniteautomation.mango.spring.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import net.jazdw.rql.parser.ASTNode;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -31,6 +30,8 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -439,19 +440,19 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
         }
     }
 
-    public CompletionStage<T> getAsync(int id) {
+    public CompletableFuture<T> getAsync(int id) {
         return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.GET, id));
     }
 
-    public CompletionStage<T> insertAsync(T vo) {
+    public CompletableFuture<T> insertAsync(T vo) {
         return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.CREATE, Common.NEW_ID, vo));
     }
 
-    public CompletionStage<T> deleteAsync(int id) {
+    public CompletableFuture<T> deleteAsync(int id) {
         return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.DELETE, id));
     }
 
-    public CompletionStage<T> updateAsync(int id, T vo) {
+    public CompletableFuture<T> updateAsync(int id, T vo) {
         return concurrentProcessor.add(new BasicAsyncOperation<>(DaoEventType.UPDATE, id, vo));
     }
 }

@@ -6,7 +6,6 @@ package com.infiniteautomation.mango.async;
 
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -47,7 +46,7 @@ public final class ConcurrentProcessor<T, R> {
      * @param item item to be processed
      * @return future that will be completed when item was processed
      */
-    public CompletionStage<R> add(T item) {
+    public CompletableFuture<R> add(T item) {
         QueuedItem<T, R> queuedItem = new QueuedItem<>(item);
         queue.add(queuedItem);
 
@@ -61,7 +60,7 @@ public final class ConcurrentProcessor<T, R> {
             }
         }
 
-        return queuedItem.future;
+        return queuedItem.future.copy();
     }
 
     private void processQueue() {

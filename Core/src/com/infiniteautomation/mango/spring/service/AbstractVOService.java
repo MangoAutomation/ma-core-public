@@ -3,7 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -166,15 +166,15 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
         return super.doAsyncOperation(operation);
     }
 
-    public CompletionStage<T> getAsync(String xid) {
+    public CompletableFuture<T> getAsync(String xid) {
         return concurrentProcessor.add(new AsyncOperation<>(DaoEventType.GET, xid));
     }
 
-    public CompletionStage<T> deleteAsync(String xid) {
+    public CompletableFuture<T> deleteAsync(String xid) {
         return concurrentProcessor.add(new AsyncOperation<>(DaoEventType.DELETE, xid));
     }
 
-    public CompletionStage<T> updateAsync(String xid, T vo) {
+    public CompletableFuture<T> updateAsync(String xid, T vo) {
         return concurrentProcessor.add(new AsyncOperation<>(DaoEventType.UPDATE, xid, vo));
     }
 }
