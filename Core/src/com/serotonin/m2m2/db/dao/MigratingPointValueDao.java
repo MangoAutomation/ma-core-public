@@ -6,6 +6,8 @@ package com.serotonin.m2m2.db.dao;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,11 +41,12 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     /**
      * Map key is series id
      */
-    private final ConcurrentMap<Integer, MigrationStatus> migratedSeries = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, MigrationStatus> seriesStatus = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Integer> seriesQueue = new ConcurrentLinkedQueue<>();
     private final AtomicLong migratedCount = new AtomicLong();
+    private final AtomicLong totalDuration = new AtomicLong();
     private final AtomicLong skippedCount = new AtomicLong();
-    private final AtomicLong migratedTotal = new AtomicLong();
+    private final AtomicLong totalSeries = new AtomicLong();
     private final ArrayList<MigrationTask> tasks = new ArrayList<>();
     private final Predicate<DataPointVO> migrationFilter;
     private final DataPointDao dataPointDao;
@@ -92,9 +95,9 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     private void postConstruct() {
         try (var stream = dataPointDao.streamSeriesIds()) {
             stream.forEach(seriesId -> {
-                migratedSeries.put(seriesId, MigrationStatus.NOT_STARTED);
+                seriesStatus.put(seriesId, MigrationStatus.NOT_STARTED);
                 seriesQueue.add(seriesId);
-                migratedTotal.incrementAndGet();
+                totalSeries.incrementAndGet();
             });
         }
         context.addApplicationListener((ApplicationListener<MangoConfigurationReloadedEvent>) this::propertiesReloaded);
@@ -111,6 +114,9 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             MigrationTask task = new MigrationTask(tasks.size() + 1);
             tasks.add(task);
             task.getFinished().whenComplete((v, e) -> {
+                if (e != null) {
+                    log.error("Error in migration task, task terminated", e);
+                }
                 if (seriesQueue.peek() == null) {
                     this.fullyMigrated = true;
                 }
@@ -154,7 +160,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         // short-circuit, faster than looking up map
         if (fullyMigrated) return true;
 
-        @Nullable MigrationStatus migrated = migratedSeries.get(vo.getSeriesId());
+        @Nullable MigrationStatus migrated = seriesStatus.get(vo.getSeriesId());
         if (migrated == null || migrated == MigrationStatus.MIGRATED) {
             // series is a new series, or has been migrated
             return true;
@@ -169,9 +175,20 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
     private String stats() {
         long migrated = migratedCount.get();
         long skipped = skippedCount.get();
-        long total = migratedTotal.get();
-        double progress = migrated * 100d / total;
-        return String.format("[%6.2f%% complete, %d migrated, %d skipped, %d total]", progress, migrated, skipped, total);
+        long total = totalSeries.get();
+        long duration = totalDuration.get();
+
+        long complete = migrated + skipped;
+        long seriesLeft = total - complete;
+        long timeLeft = (long) (seriesLeft * ((double) duration / complete));
+        Duration durationLeft = Duration.ofMillis(timeLeft);
+
+        double progress = complete * 100d / total;
+        return String.format("[%6.2f%% complete, %d migrated, %d skipped, %d total, %s left, %s ETA]",
+                progress, migrated, skipped, total, durationLeft.truncatedTo(ChronoUnit.MINUTES).toDays(),
+                ZonedDateTime.now().plus(durationLeft)
+                        .truncatedTo(ChronoUnit.MINUTES)
+                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     }
 
     private class MigrationTask implements Runnable {
@@ -197,7 +214,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                 boolean stopped;
                 Integer seriesId;
                 while (!(stopped = stopFlag) && (seriesId = seriesQueue.poll()) != null) {
-                    MigrationStatus previous = migratedSeries.put(seriesId, MigrationStatus.RUNNING);
+                    MigrationStatus previous = seriesStatus.put(seriesId, MigrationStatus.RUNNING);
                     if (previous != MigrationStatus.NOT_STARTED) {
                         throw new IllegalStateException("Migration should not have stared for series: " + seriesId);
                     }
@@ -206,7 +223,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                         new MigrateSeries(seriesId, migrateFrom).migrateSeries();
                     } catch (Exception e) {
                         log.error("Error migrating series {}", seriesId, e);
-                        migratedSeries.put(seriesId, MigrationStatus.NOT_STARTED);
+                        seriesStatus.put(seriesId, MigrationStatus.NOT_STARTED);
                         seriesQueue.add(seriesId);
                     }
                 }
@@ -255,7 +272,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
             private void migrateSeries() {
                 DataPointVO point = dataPointDao.getBySeriesId(seriesId);
                 if (point == null || !migrationFilter.test(point)) {
-                    migratedSeries.put(seriesId, MigrationStatus.SKIPPED);
+                    seriesStatus.put(seriesId, MigrationStatus.SKIPPED);
                     skippedCount.incrementAndGet();
                     if (log.isInfoEnabled()) {
                         log.info("{} Skipped point {} (seriesId={})", stats(), point == null ? null : point.getXid(), seriesId);
@@ -271,14 +288,16 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
                 copyPointValues(point);
 
                 // do a final copy inside the compute method so inserts are blocked
-                migratedSeries.computeIfPresent(point.getSeriesId(), (k,v) -> {
+                seriesStatus.computeIfPresent(point.getSeriesId(), (k, v) -> {
                     copyPointValues(point);
                     return MigrationStatus.MIGRATED;
                 });
+
                 migratedCount.incrementAndGet();
+                long duration = System.currentTimeMillis() - startTime;
+                totalDuration.addAndGet(duration);
 
                 if (log.isInfoEnabled()) {
-                    long duration = System.currentTimeMillis() - startTime;
                     log.info("{} Migrated point {} (seriesId={}, values={}, duration={}, speed={}/s)",
                             stats(), point.getXid(), seriesId, sampleCount, Duration.ofMillis(duration), String.format("%.2f", sampleCount / (duration / 1000d)));
                 }
