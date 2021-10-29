@@ -678,7 +678,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      */
     public int deleteOrphanedTimeSeries() {
         return this.create.deleteFrom(TimeSeries.TIME_SERIES)
-                .whereNotExists(DSL.select().from(DataPoints.DATA_POINTS).where(DataPoints.DATA_POINTS.id.eq(TimeSeries.TIME_SERIES.id)))
+                .whereNotExists(DSL.select().from(DataPoints.DATA_POINTS)
+                        .where(DataPoints.DATA_POINTS.seriesId.eq(TimeSeries.TIME_SERIES.id)))
                 .execute();
     }
 

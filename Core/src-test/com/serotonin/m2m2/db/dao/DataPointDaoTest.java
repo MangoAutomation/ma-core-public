@@ -4,16 +4,21 @@
 
 package com.serotonin.m2m2.db.dao;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.db.tables.DataPoints;
+import com.infiniteautomation.mango.db.tables.TimeSeries;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -85,6 +90,118 @@ public class DataPointDaoTest extends AbstractVoDaoTest<DataPointVO, DataPointDa
         DataPointUsageStatistics stat = stats.get(0);
         assertEquals((Integer) 5, stat.getCount());
         assertEquals(MockDataSourceDefinition.TYPE_NAME, stat.getDataSourceType());
+    }
+
+    @Test
+    public void testDeletePointsAndSeriesIds() {
+        //Insert some points that won't go away for this test
+        for(int i=0; i<5; i++) {
+            DataPointVO point = newVO();
+            dao.insert(point);
+        }
+        //Insert points to delete
+        List<IDataPoint> points = new ArrayList<>();
+        for(int i=0; i<5; i++) {
+            DataPointVO point = newVO();
+            dao.insert(point);
+            points.add(point);
+        }
+
+        DatabaseProxy proxy = Common.getBean(DatabaseProxy.class);
+        DataPoints dataPoints = DataPoints.DATA_POINTS;
+        TimeSeries timeSeries = TimeSeries.TIME_SERIES;
+
+        //Delete the data points but not the series id
+        for(IDataPoint point : points) {
+            dao.delete((DataPointVO)point);
+        }
+
+        //Ensure the series Ids are gone via the delete post relational
+        for(IDataPoint point : points) {
+            assertEquals(0, proxy.getContext().selectCount().from(timeSeries).where(timeSeries.id.eq(point.getSeriesId())).fetchSingle().value1().intValue());
+        }
+
+        //delete the orphaned series ids (none)
+        assertEquals(0, dao.deleteOrphanedTimeSeries());
+    }
+
+    @Test
+    public void testDeleteOrphanedSeries() {
+        //Insert some points that won't go away for this test
+        for(int i=0; i<5; i++) {
+            DataPointVO point = newVO();
+            dao.insert(point);
+        }
+        //Insert points to delete
+        List<IDataPoint> points = new ArrayList<>();
+        for(int i=0; i<5; i++) {
+            DataPointVO point = newVO();
+            dao.insert(point);
+            points.add(point);
+        }
+
+        DatabaseProxy proxy = Common.getBean(DatabaseProxy.class);
+        DataPoints dataPoints = DataPoints.DATA_POINTS;
+        TimeSeries timeSeries = TimeSeries.TIME_SERIES;
+
+        //Delete the data points but not the series id
+        for(IDataPoint point : points) {
+            proxy.getContext().deleteFrom(dataPoints).where(dataPoints.id.eq(point.getId())).execute();
+        }
+
+        //Ensure the series Ids are still there
+        for(IDataPoint point : points) {
+            assertEquals(1, proxy.getContext().selectCount().from(timeSeries).where(timeSeries.id.eq(point.getSeriesId())).fetchSingle().value1().intValue());
+        }
+        //delete the orphaned series id and ensure it is gone
+        assertEquals(5, dao.deleteOrphanedTimeSeries());
+
+        //Ensure the series Id are gone
+        for(IDataPoint point : points) {
+            assertEquals(0, proxy.getContext().selectCount().from(timeSeries).where(timeSeries.id.eq(point.getSeriesId())).fetchSingle().value1().intValue());
+        }
+    }
+
+    @Test
+    public void testDeleteOrphanedSeriesUsingCustomSeriesId() {
+        DatabaseProxy proxy = Common.getBean(DatabaseProxy.class);
+        DataPoints dataPoints = DataPoints.DATA_POINTS;
+        TimeSeries timeSeries = TimeSeries.TIME_SERIES;
+
+        int seriesIdCounter = 10;
+        //Insert some points that won't go away for this test
+        for(int i=0; i<5; i++) {
+            DataPointVO point = newVO();
+            proxy.getContext().insertInto(timeSeries).columns(timeSeries.id).values(seriesIdCounter).execute();
+            point.setSeriesId(seriesIdCounter++);
+            dao.insert(point);
+        }
+        //Insert points to delete
+        List<IDataPoint> points = new ArrayList<>();
+        for(int i=0; i<5; i++) {
+            DataPointVO point = newVO();
+            proxy.getContext().insertInto(timeSeries).columns(timeSeries.id).values(seriesIdCounter).execute();
+            point.setSeriesId(seriesIdCounter++);
+            dao.insert(point);
+            points.add(point);
+        }
+
+        //Delete the data points but not the series id
+        for(IDataPoint point : points) {
+            proxy.getContext().deleteFrom(dataPoints).where(dataPoints.id.eq(point.getId())).execute();
+        }
+
+        //Ensure the series Ids are still there
+        for(IDataPoint point : points) {
+            assertEquals(1, proxy.getContext().selectCount().from(timeSeries).where(timeSeries.id.eq(point.getSeriesId())).fetchSingle().value1().intValue());
+        }
+        //delete the orphaned series id and ensure it is gone
+        assertEquals(5, dao.deleteOrphanedTimeSeries());
+
+        //Ensure the series Id are gone
+        for(IDataPoint point : points) {
+            assertEquals(0, proxy.getContext().selectCount().from(timeSeries).where(timeSeries.id.eq(point.getSeriesId())).fetchSingle().value1().intValue());
+        }
     }
 
     @Override
