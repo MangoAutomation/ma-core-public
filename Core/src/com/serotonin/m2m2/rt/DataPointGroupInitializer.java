@@ -112,7 +112,7 @@ public class DataPointGroupInitializer extends GroupProcessor<List<DataPointWith
             } catch (Exception e) {
                 //Ensure only 1 can fail at a time
                 failedCount++;
-                log.error("Failed to start data point", e);
+                log.error("Failed to start data point with xid: {}", dataPoint.getDataPoint().getXid(), e);
             }
         }
 
