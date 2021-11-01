@@ -372,7 +372,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         User user = insertNewVO(readUser);
         user.setDisabled(true);
         service.update(user.getId(), user);
-        List<User> active = getDao().getActiveUsers();
+        List<User> active = getDao().getEnabledUsers();
         List<User> all = getDao().getAll();
         assertEquals(all.size() - 1, active.size());
     }

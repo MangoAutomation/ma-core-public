@@ -188,7 +188,7 @@ public class EventManagerImpl implements EventManager {
         List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
-        for (User user : userDao.getActiveUsers()) {
+        for (User user : userDao.getEnabledUsers()) {
             // Do not create an event for this user if the event type says the
             // user should be skipped.
             if (type.excludeUser(user))
@@ -334,7 +334,7 @@ public class EventManagerImpl implements EventManager {
                     );
         }
 
-        List<User> activeUsers = userDao.getActiveUsers();
+        List<User> activeUsers = userDao.getEnabledUsers();
         UserEventListener multicaster = userEventMulticaster;
 
         // Loop in case of multiples
@@ -381,7 +381,7 @@ public class EventManagerImpl implements EventManager {
      * @param inactiveCause
      */
     protected void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
-        List<User> activeUsers = userDao.getActiveUsers();
+        List<User> activeUsers = userDao.getEnabledUsers();
 
         List<Integer> eventIds = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
@@ -451,7 +451,7 @@ public class EventManagerImpl implements EventManager {
         List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
-        for (User user : userDao.getActiveUsers()) {
+        for (User user : userDao.getEnabledUsers()) {
             // Do not create an event for this user if the event type says the
             // user should be skipped.
             if (evt.getEventType().excludeUser(user))

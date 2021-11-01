@@ -69,7 +69,7 @@ public class UserLoginEventTypeDefinition extends SystemEventTypeDefinition {
 
         List<User> users;
         if (permissionService.hasAdminRole(user)) {
-            users = userDao.getActiveUsers();
+            users = userDao.getEnabledUsers();
         } else if (user.getUser() != null) {
             users = Collections.singletonList(user.getUser());
         } else {
