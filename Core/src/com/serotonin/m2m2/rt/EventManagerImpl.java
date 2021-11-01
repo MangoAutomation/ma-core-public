@@ -65,7 +65,6 @@ public class EventManagerImpl implements EventManager {
     private final List<EventInstance> recentEvents = new ArrayList<>();
     private EventDao eventDao;
     private UserDao userDao;
-    private long lastAlarmTimestamp = 0;
     private int highestActiveAlarmLevel = 0;
     private UserEventListener userEventMulticaster = null;
     private MailingListService mailingListService;
@@ -183,8 +182,6 @@ public class EventManagerImpl implements EventManager {
             eventDao.saveEvent(evt);
         }
 
-        // Create user alarm records for all applicable users
-        List<Integer> eventUserIds = new ArrayList<>();
         // set of email addresses which have been configured to receive events over a certain level
         Set<String> emailUsers = new HashSet<>();
 
@@ -198,7 +195,6 @@ public class EventManagerImpl implements EventManager {
                 continue;
 
             if (type.hasPermission(user, permissionService)) {
-                eventUserIds.add(user.getId());
                 // add email addresses for users which have been configured to receive events over a certain level
                 if (user.getReceiveAlarmEmails().value() > AlarmLevels.IGNORE.value() && alarmLevel.value() >= user.getReceiveAlarmEmails().value() && !StringUtils.isEmpty(user.getEmail()))
                     emailUsers.add(user.getEmail());
@@ -218,12 +214,6 @@ public class EventManagerImpl implements EventManager {
                 RecipientListEntryType.MAILING_LIST,
                 RecipientListEntryType.ADDRESS,
                 RecipientListEntryType.USER));
-
-        //No Audit or Do Not Log events are User Events
-        if ((eventUserIds.size() > 0) && (alarmLevel != AlarmLevels.DO_NOT_LOG) && (!evt.getEventType().getEventType().equals(EventTypeNames.AUDIT))) {
-            if (autoAckMessage == null)
-                lastAlarmTimestamp = Common.timer.currentTimeMillis();
-        }
 
         if (evt.isRtnApplicable()) {
             activeEventsLock.writeLock().lock();
@@ -519,11 +509,6 @@ public class EventManagerImpl implements EventManager {
         }
 
         return dbEvent;
-    }
-
-    @Override
-    public long getLastAlarmTimestamp() {
-        return lastAlarmTimestamp;
     }
 
     /**
@@ -827,8 +812,7 @@ public class EventManagerImpl implements EventManager {
             activeEventsLock.writeLock().unlock();
         }
 
-        lastAlarmTimestamp = Common.timer.currentTimeMillis();
-        resetHighestAlarmLevel(lastAlarmTimestamp);
+        resetHighestAlarmLevel(Common.timer.currentTimeMillis());
         state = ILifecycleState.RUNNING;
     }
 
@@ -1107,9 +1091,6 @@ public class EventManagerImpl implements EventManager {
             return WorkItem.PRIORITY_LOW;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
-         */
         @Override
         public String getDescription() {
             String type = "";
@@ -1124,9 +1105,6 @@ public class EventManagerImpl implements EventManager {
             return "Event " + type + " Notification for event: " + event.getId();
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-         */
         @Override
         public String getTaskId() {
             if(raised)
@@ -1141,17 +1119,11 @@ public class EventManagerImpl implements EventManager {
                 return prefix + event.getId() + UNK;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-         */
         @Override
         public int getQueueSize() {
             return Common.defaultTaskQueueSize;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-         */
         @Override
         public void rejected(RejectedTaskReason reason) {
             //No special handling, tracking/logging handled by WorkItemRunnable

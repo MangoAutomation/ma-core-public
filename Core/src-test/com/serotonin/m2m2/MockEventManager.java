@@ -75,15 +75,6 @@ public class MockEventManager extends EventManagerImpl {
     }
 
     @Override
-    public long getLastAlarmTimestamp() {
-        if(useDatabase) {
-            return super.getLastAlarmTimestamp();
-        }else {
-            return 0;
-        }
-    }
-
-    @Override
     public int purgeAllEvents() {
         if(useDatabase) {
             return super.purgeAllEvents();
