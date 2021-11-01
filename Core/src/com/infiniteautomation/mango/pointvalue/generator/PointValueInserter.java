@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.infiniteautomation.mango.util;
+package com.infiniteautomation.mango.pointvalue.generator;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -12,12 +12,12 @@ import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class DataInserter implements Consumer<DataPointVO> {
+public class PointValueInserter implements Consumer<DataPointVO> {
     private final Function<DataPointVO, Stream<BatchPointValue>> generator;
     private final int chunkSize;
     private final PointValueDao pointValueDao;
 
-    public DataInserter(Function<DataPointVO, Stream<BatchPointValue>> generator, int chunkSize, PointValueDao pointValueDao) {
+    public PointValueInserter(Function<DataPointVO, Stream<BatchPointValue>> generator, int chunkSize, PointValueDao pointValueDao) {
         this.generator = generator;
         this.chunkSize = chunkSize;
         this.pointValueDao = pointValueDao;
