@@ -8,6 +8,8 @@
 * Change Script utility DataSourceQuery to require read permission to query for a data source, was previously edit permission
 * Fix bug where nightly purge would fail to delete orphaned series ids if they didn't match the data point id
 * Remove tracking latest alarm timestamp from EventManager
+* Remove env property cache.users.size
+* Cache all users in memory for performance, disable by setting cache.users.enabled=false (defaults to true)
 
 *Version 4.2.2*
 * Fix bug in mailing lists that would prevent emails from being sent to them

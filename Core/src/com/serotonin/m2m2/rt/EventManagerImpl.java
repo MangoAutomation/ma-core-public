@@ -24,10 +24,10 @@ import org.slf4j.LoggerFactory;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -64,7 +64,7 @@ public class EventManagerImpl implements EventManager {
     private final ReadWriteLock recentEventsLock = new ReentrantReadWriteLock();
     private final List<EventInstance> recentEvents = new ArrayList<>();
     private EventDao eventDao;
-    private UserDao userDao;
+    private UsersService usersService;
     private int highestActiveAlarmLevel = 0;
     private UserEventListener userEventMulticaster = null;
     private MailingListService mailingListService;
@@ -188,7 +188,7 @@ public class EventManagerImpl implements EventManager {
         List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
-        for (User user : userDao.getEnabledUsers()) {
+        for (User user : usersService.getEnabledUsers()) {
             // Do not create an event for this user if the event type says the
             // user should be skipped.
             if (type.excludeUser(user))
@@ -334,7 +334,7 @@ public class EventManagerImpl implements EventManager {
                     );
         }
 
-        List<User> activeUsers = userDao.getEnabledUsers();
+        List<User> activeUsers = usersService.getEnabledUsers();
         UserEventListener multicaster = userEventMulticaster;
 
         // Loop in case of multiples
@@ -381,7 +381,7 @@ public class EventManagerImpl implements EventManager {
      * @param inactiveCause
      */
     protected void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
-        List<User> activeUsers = userDao.getEnabledUsers();
+        List<User> activeUsers = usersService.getEnabledUsers();
 
         List<Integer> eventIds = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
@@ -451,7 +451,7 @@ public class EventManagerImpl implements EventManager {
         List<Integer> userIdsToNotify = new ArrayList<>();
         UserEventListener multicaster = userEventMulticaster;
 
-        for (User user : userDao.getEnabledUsers()) {
+        for (User user : usersService.getEnabledUsers()) {
             // Do not create an event for this user if the event type says the
             // user should be skipped.
             if (evt.getEventType().excludeUser(user))
@@ -799,7 +799,7 @@ public class EventManagerImpl implements EventManager {
 
         permissionService = Common.getBean(PermissionService.class);
         eventDao = Common.getBean(EventDao.class);
-        userDao = Common.getBean(UserDao.class);
+        usersService = Common.getBean(UsersService.class);
         mailingListService = Common.getBean(MailingListService.class);
         auditEventDao = Common.getBean(AuditEventDao.class);
         eventHandlerService = Common.getBean(EventHandlerService.class);

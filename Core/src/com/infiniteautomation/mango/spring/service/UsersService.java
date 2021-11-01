@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,13 +30,15 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.infiniteautomation.mango.cache.WeakValueCache;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -61,9 +64,9 @@ import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
  * Service to access Users
  * <p>
  * NOTES:
- * Users are cached by username
+ * Users are cached by username based on the env property cache.users.enabled
  * <p>
- * by using any variation of the get(String, user) methods you are returned
+ * by using any variation of the get(String, user) methods you are potentially returned
  * a cached user, any modifications to this will result in changes to a session user
  * to avoid this use the get(Integer, user) variations
  *
@@ -79,8 +82,22 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     private final PermissionDefinition changeOwnUsernamePermission;
     private final PermissionDefinition createPermission;
     private final ApplicationEventPublisher eventPublisher;
-    private final WeakValueCache<String, User> userByUsername;
+    private final Cache<String, User> userByUsername;
 
+    /**
+     * Create the UsersService
+     *
+     * @param dao
+     * @param dependencies
+     * @param systemSettings
+     * @param passwordService
+     * @param editSelfPermission
+     * @param changeOwnUsernamePermission
+     * @param createPermission
+     * @param eventPublisher
+     * @param databaseProxy - added as a dependency to ensure the database is fully created before initializing the cache
+     *                         as the admin user is created in the PostConstruct method of that bean
+     */
     @Autowired
     public UsersService(UserDao dao,
                         ServiceDependencies dependencies,
@@ -89,7 +106,8 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") UserEditSelfPermission editSelfPermission,
                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ChangeOwnUsernamePermissionDefinition changeOwnUsernamePermission,
                         @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") UserCreatePermission createPermission,
-                        ApplicationEventPublisher eventPublisher) {
+                        ApplicationEventPublisher eventPublisher,
+                        DatabaseProxy databaseProxy) {
         super(dao, dependencies);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
@@ -97,7 +115,13 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
         this.changeOwnUsernamePermission = changeOwnUsernamePermission;
         this.createPermission = createPermission;
         this.eventPublisher = eventPublisher;
-        this.userByUsername = new WeakValueCache<>(env.getProperty("cache.users.size", Integer.class, 1000));
+        if(env.getProperty("cache.users.enabled", Boolean.class, true)) {
+            this.userByUsername = Caffeine.newBuilder().build();
+            populateUserByUsernameCache();
+        }else {
+            this.userByUsername = null;
+        }
+
     }
 
     @Override
@@ -112,25 +136,30 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
                     event.getOriginalVo().getRole() :
                     event.getVo().getRole();
 
-            userByUsername.forEach((username, user) -> {
-                if (user.getRoles().contains(originalRole)) {
-                    Set<Role> updatedRoles = new HashSet<>(user.getRoles());
-                    if (event.getType() == DaoEventType.DELETE) {
-                        //Remove this role
-                        updatedRoles.remove(originalRole);
-                    } else if (event.getType() == DaoEventType.UPDATE) {
-                        //Replace this role
-                        updatedRoles.remove(originalRole);
-                        updatedRoles.add(event.getVo().getRole());
-                    }
-                    user.setRoles(Collections.unmodifiableSet(updatedRoles));
+            // TODO Mango 4.0 this is only weakly consistent, such that
+            //  changes to the map during iteration may not be reflected
+            //  in the user here
+            if(userByUsername != null) {
+                userByUsername.asMap().forEach((username, user) -> {
+                    if (user.getRoles().contains(originalRole)) {
+                        Set<Role> updatedRoles = new HashSet<>(user.getRoles());
+                        if (event.getType() == DaoEventType.DELETE) {
+                            //Remove this role
+                            updatedRoles.remove(originalRole);
+                        } else if (event.getType() == DaoEventType.UPDATE) {
+                            //Replace this role
+                            updatedRoles.remove(originalRole);
+                            updatedRoles.add(event.getVo().getRole());
+                        }
+                        user.setRoles(Collections.unmodifiableSet(updatedRoles));
 
-                    // publish the event using the same user for originalVo, we aren't changing the XID
-                    // so it shouldn't matter
-                    DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, user);
-                    this.eventPublisher.publishEvent(userUpdatedEvent);
-                }
-            });
+                        // publish the event using the same user for originalVo, we aren't changing the XID
+                        // so it shouldn't matter
+                        DaoEvent<User> userUpdatedEvent = new DaoEvent<>(this.dao, UPDATE, user, user);
+                        this.eventPublisher.publishEvent(userUpdatedEvent);
+                    }
+                });
+            }
         }
     }
 
@@ -141,19 +170,21 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             return;
         }
 
-        if (event.getType() == DaoEventType.UPDATE) {
-            String originalUsername = event.getOriginalVo().getUsername().toLowerCase(Locale.ROOT);
-            String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
-            if (!username.equals(originalUsername)) {
-                this.userByUsername.remove(originalUsername);
+        if(userByUsername != null) {
+            if (event.getType() == DaoEventType.UPDATE) {
+                String originalUsername = event.getOriginalVo().getUsername().toLowerCase(Locale.ROOT);
+                String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+                if (!username.equals(originalUsername)) {
+                    this.userByUsername.invalidate(originalUsername);
+                }
+                this.userByUsername.put(username, event.getVo());
+            } else if (event.getType() == DaoEventType.DELETE) {
+                String originalUsername = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+                this.userByUsername.invalidate(originalUsername);
+            } else if (event.getType() == DaoEventType.CREATE) {
+                String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
+                this.userByUsername.put(username, event.getVo());
             }
-            this.userByUsername.put(username, event.getVo());
-        } else if (event.getType() == DaoEventType.DELETE) {
-            String originalUsername = event.getVo().getUsername().toLowerCase(Locale.ROOT);
-            this.userByUsername.remove(originalUsername);
-        } else if (event.getType() == DaoEventType.CREATE) {
-            String username = event.getVo().getUsername().toLowerCase(Locale.ROOT);
-            this.userByUsername.put(username, event.getVo());
         }
     }
 
@@ -163,15 +194,18 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     @Override
     public User get(String username) throws NotFoundException, PermissionException {
         Assert.notNull(username, "Username required");
-
-        String usernameLower = username.toLowerCase(Locale.ROOT);
-        User vo = userByUsername.computeIfAbsent(usernameLower, dao::getByXid);
-        if (vo == null) {
-            throw new NotFoundException();
+        if(this.userByUsername != null) {
+            String usernameLower = username.toLowerCase(Locale.ROOT);
+            User vo = userByUsername.get(usernameLower, dao::getByXid);
+            if (vo == null) {
+                throw new NotFoundException();
+            }
+            PermissionHolder currentUser = Common.getUser();
+            ensureReadPermission(currentUser, vo);
+            return vo;
+        }else{
+            return super.get(username);
         }
-        PermissionHolder currentUser = Common.getUser();
-        ensureReadPermission(currentUser, vo);
-        return vo;
     }
 
     /**
@@ -601,7 +635,15 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     @Override
     public void clearCaches() {
         permissionService.ensureAdminRole(Common.getUser());
-        userByUsername.clear();
+        if(userByUsername != null) {
+            //This cache must always retain all users in it
+            userByUsername.invalidateAll();
+            populateUserByUsernameCache();
+        }
+    }
+
+    private void populateUserByUsernameCache() {
+        this.dao.getAll().forEach(u -> this.userByUsername.put(u.getUsername().toLowerCase(Locale.ROOT), u));
     }
 
     public User getByIdViaCache(int id) {
@@ -645,5 +687,30 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     public List<LinkedAccount> getLinkedAccounts(User user) {
         ensureReadPermission(Common.getUser(), user);
         return dao.getLinkedAccounts(user.getId());
+    }
+
+    /**
+     * Get all enabled users
+     *  - Superadmin access only
+     * @return
+     */
+    public List<User> getEnabledUsers() {
+        permissionService.ensureAdminRole(Common.getUser());
+        if(userByUsername != null) {
+            List<User> result = new ArrayList<>();
+
+            //TODO This is only weakly consistent in that the underlying
+            // map's changes may not be reflected while iterating
+            // This method should be removed when we modify the EventManager
+            //  to be able to cache users for notification
+            userByUsername.asMap().forEach((username, u) -> {
+                if (u.isEnabled()) {
+                    result.add(u);
+                }
+            });
+            return result;
+        }else {
+            return dao.getEnabledUsers();
+        }
     }
 }
