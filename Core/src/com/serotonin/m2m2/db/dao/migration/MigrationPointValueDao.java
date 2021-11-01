@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
  */
 
-package com.serotonin.m2m2.db.dao;
+package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -29,10 +29,14 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 
+import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DelegatingPointValueDao;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
-public class MigratingPointValueDao extends DelegatingPointValueDao implements AutoCloseable {
+public class MigrationPointValueDao extends DelegatingPointValueDao implements AutoCloseable {
 
     /**
      * Separate log file is configured for this logger
@@ -64,7 +68,7 @@ public class MigratingPointValueDao extends DelegatingPointValueDao implements A
         SKIPPED
     }
 
-    public MigratingPointValueDao(PointValueDao primary,
+    public MigrationPointValueDao(PointValueDao primary,
                                   PointValueDao secondary,
                                   DataPointDao dataPointDao,
                                   Predicate<DataPointVO> migrationFilter,
