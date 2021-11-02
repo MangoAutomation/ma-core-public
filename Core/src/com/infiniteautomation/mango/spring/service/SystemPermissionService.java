@@ -75,9 +75,11 @@ public class SystemPermissionService {
             throw new ValidationException(validation);
         }
 
-        //TODO Mango 4.2 Transaction rollback etc?
-        dao.update(def.getPermissionTypeName(), def.getPermission(), permission);
-        def.setPermission(permission);
+        //Execute in transaction as def.setPermission may make database calls
+        dao.doInTransaction(tx -> {
+            dao.update(def.getPermissionTypeName(), def.getPermission(), permission);
+            def.setPermission(permission);
+        });
         this.eventPublisher.publishEvent(new SystemPermissionUpdated(def));
     }
 
