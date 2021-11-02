@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.Users;
@@ -372,7 +373,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         User user = insertNewVO(readUser);
         user.setDisabled(true);
         service.update(user.getId(), user);
-        List<User> active = getDao().getActiveUsers();
+        List<User> active = getDao().getEnabledUsers();
         List<User> all = getDao().getAll();
         assertEquals(all.size() - 1, active.size());
     }
@@ -771,6 +772,62 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             self.setSessionExpirationPeriodType("MINUTES");
             service.update(self.getId(), self);
         });
+    }
+
+    @Test
+    public void testGetEnabledUsers() {
+        User user1 = insertUser();
+        User user2 = insertUser();
+
+        //Make sure everyone is enabled
+        List<User> enabled = service.getEnabledUsers();
+        assertEquals(service.list().size(), enabled.size());
+
+        //Disable one
+        User toModify = service.get(user2.getId());
+        toModify.setDisabled(true);
+        service.update(toModify.getId(), toModify);
+        enabled = service.getEnabledUsers();
+        assertEquals(service.list().size() - 1, enabled.size());
+        for(User u : enabled) {
+            if(StringUtils.equals(u.getUsername(), user2.getUsername())) {
+                fail("User should be disabled");
+            }
+        }
+
+        //Enable one
+        toModify = service.get(user2.getId());
+        toModify.setDisabled(false);
+        service.update(toModify.getId(), toModify);
+        enabled = service.getEnabledUsers();
+        assertEquals(service.list().size(), enabled.size());
+    }
+
+    @Test
+    public void testDeleteDisabledUser() {
+        User user1 = insertUser();
+        User user2 = insertUser();
+
+        //Make sure everyone is enabled
+        List<User> enabled = service.getEnabledUsers();
+        assertEquals(service.list().size(), enabled.size());
+
+        //Disable one
+        User toModify = service.get(user2.getId());
+        toModify.setDisabled(true);
+        service.update(toModify.getId(), toModify);
+        enabled = service.getEnabledUsers();
+        assertEquals(service.list().size() - 1, enabled.size());
+        for(User u : enabled) {
+            if(StringUtils.equals(u.getUsername(), user2.getUsername())) {
+                fail("User should be disabled");
+            }
+        }
+
+        //Delete them and make sure they go away
+        service.delete(user2);
+        enabled = service.getEnabledUsers();
+        assertEquals(service.list().size(), enabled.size());
     }
 
 }

@@ -59,12 +59,6 @@ public interface EventManager extends ILifecycle {
     public EventInstance acknowledgeEventById(int eventId, long time, User user, TranslatableMessage alternateAckSource);
 
     /**
-     * Get the latest alarm's timestamp
-     * @return
-     */
-    long getLastAlarmTimestamp();
-
-    /**
      * Purge All Events We have
      * @return
      */

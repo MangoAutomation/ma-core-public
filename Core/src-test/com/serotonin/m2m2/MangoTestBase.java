@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2;
 
-import static org.junit.Assert.fail;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,6 +78,8 @@ import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
 import com.serotonin.util.properties.MangoProperties;
+
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -171,6 +171,10 @@ public class MangoTestBase {
             }
         }
 
+        DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
+        databaseProxy.clean();
+        databaseProxy.initialize();
+
         //clear all caches in services
         Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()
                 .filter(s -> !(s instanceof PermissionService))
@@ -180,9 +184,6 @@ public class MangoTestBase {
         // repopulate the role hierarchy cache
         Common.getRuntimeContext().getBean(PermissionService.class).clearCaches();
 
-        DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
-        databaseProxy.clean();
-        databaseProxy.initialize();
     }
 
     @AfterClass

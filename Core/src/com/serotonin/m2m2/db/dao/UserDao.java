@@ -284,7 +284,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
                 .fetchOne(this::mapRecordLoadRelationalData);
     }
 
-    public List<User> getActiveUsers() {
+    public List<User> getEnabledUsers() {
         return getJoinedSelectQuery()
                 .where(table.disabled.equal(boolToChar(false)))
                 .fetch(this::mapRecordLoadRelationalData);
