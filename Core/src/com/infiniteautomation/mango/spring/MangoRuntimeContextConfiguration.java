@@ -64,9 +64,9 @@ import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.EventManager;
@@ -76,6 +76,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
+import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoConfigurationWatcher;
 import com.serotonin.util.properties.MangoProperties;
 
@@ -380,14 +381,15 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
                                        DataPointDao dataPointDao,
                                        Environment env,
                                        ExecutorService executorService,
-                                       ConfigurableApplicationContext context) {
+                                       ConfigurableApplicationContext context,
+                                       AbstractTimer timer) {
         PointValueDaoDefinition highestPriority = definitions.stream().findFirst().orElseThrow();
         highestPriority.initialize();
         PointValueDao highestPriorityDao = highestPriority.getPointValueDao();
         if (migrate) {
             PointValueDaoDefinition second = definitions.stream().skip(1).findFirst().orElseThrow();
             second.initialize();
-            return new MigrationPointValueDao(highestPriorityDao, second.getPointValueDao(), dataPointDao, vo -> true, env, executorService, context);
+            return new MigrationPointValueDao(highestPriorityDao, second.getPointValueDao(), dataPointDao, vo -> true, env, executorService, context, timer);
         }
         return highestPriorityDao;
     }
