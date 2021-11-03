@@ -13,6 +13,7 @@ import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -247,12 +248,19 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public void startPublishedPoint(PublishedPointVO vo) {
-
+        if(useDatabase) {
+            vo.setEnabled(true);
+            PublishedPointDao.getInstance().saveEnabledColumn(vo);
+        }
     }
 
     @Override
     public void stopPublishedPoint(int id) {
-
+        if(useDatabase) {
+            PublishedPointVO vo = PublishedPointDao.getInstance().get(id);
+            vo.setEnabled(false);
+            PublishedPointDao.getInstance().saveEnabledColumn(vo);
+        }
     }
 
     @Override
