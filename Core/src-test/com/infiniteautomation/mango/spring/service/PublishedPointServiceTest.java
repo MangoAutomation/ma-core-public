@@ -4,25 +4,27 @@
 
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.records.PublishedPointsRecord;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PublishedPointDao;
+import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
+
+import static org.junit.Assert.*;
 
 public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedPointVO, PublishedPointsRecord, PublishedPoints, PublishedPointDao, PublishedPointService> {
 
@@ -36,6 +38,17 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
         publisherService = Common.getBean(PublisherService.class);
         dataPointService = Common.getBean(DataPointService.class);
         dataSourceService = Common.getBean(DataSourceService.class);
+    }
+
+
+    @After
+    @Override
+    public void after() {
+        //Since we cannot restart the RuntimeManager yet we need to clean out the runtime
+        publisherService.list().forEach((p) -> {
+            publisherService.delete(p);
+        });
+        super.after();
     }
 
     @Override
@@ -110,9 +123,22 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
 
     @Test
     public void testSetPublishedPointState() {
-        PublishedPointVO vo = insertNewVO(readUser);
+        //Start out with a running publisher and an enabled point
+        IDataPoint dp = createMockDataPoints(1).get(0);
+        MockPublisherVO publisher = createMockPublisher(true);
+        MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dp);
+        pp.setName(dp.getName());
+        pp.setEnabled(true);
+
+        PublishedPointVO vo = service.insert(pp);
+
         assertTrue(service.setPublishedPointState(vo.getXid(), false, false));
+        //Ensure it is not running
+        assertNull(getRuntimeManager().getPublishedPoint(vo.getId()));
+
         assertTrue(service.setPublishedPointState(vo.getXid(), true, false));
+        //Ensure it is running
+        assertNotNull(getRuntimeManager().getPublishedPoint(vo.getId()));
     }
 
     @Test
@@ -133,5 +159,19 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
         for (int i = 0; i < actualPoints.size(); i++) {
             assertVoEqual(pps.get(i), actualPoints.get(i));
         }
+    }
+
+    @Override
+    protected MockMangoLifecycle getLifecycle() {
+        return new MockMangoLifecycle(modules) {
+            @Override
+            protected RuntimeManager getRuntimeManager() {
+                return PublishedPointServiceTest.this.getRuntimeManager();
+            }
+        };
+    }
+
+    RuntimeManager getRuntimeManager() {
+        return Common.getBean(RuntimeManager.class);
     }
 }
