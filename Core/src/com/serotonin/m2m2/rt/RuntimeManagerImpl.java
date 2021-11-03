@@ -642,6 +642,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
+    public void stopPublishedPointsForDataPoint(int dataPointId) {
+        for(PublisherRT<?,?> rt : runningPublishers.values()) {
+            for(PublishedPointRT<?> point : rt.getPointsForDataPoint(dataPointId)) {
+                stopPublishedPoint(point.getId());
+            }
+        }
+    }
+
+    @Override
     public boolean isPublishedPointRunning(int id) {
         PublishedPointRT<? extends PublishedPointVO> point = getPublishedPoint(id);
         return point != null && point.getLifecycleState() == ILifecycleState.RUNNING;
