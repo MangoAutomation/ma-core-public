@@ -25,6 +25,7 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.StateChangeEvent;
 import com.infiniteautomation.mango.spring.events.audit.ToggleAuditEvent;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.m2m2.Common;
@@ -41,11 +42,23 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     private final Publishers publishers;
     private final DataPoints dataPoints;
 
+    private static final LazyInitSupplier<PublishedPointDao> springInstance = new LazyInitSupplier<>(() -> {
+        return Common.getRuntimeContext().getBean(PublishedPointDao.class);
+    });
+
     private PublishedPointDao(DaoDependencies dependencies) {
         super(dependencies, AuditEventType.TYPE_PUBLISHED_POINT, PublishedPoints.PUBLISHED_POINTS,
                 new TranslatableMessage("internal.monitor.PUBLISHED_POINT_COUNT"));
         this.publishers = Publishers.PUBLISHERS;
         this.dataPoints = DataPoints.DATA_POINTS;
+    }
+
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static PublishedPointDao getInstance() {
+        return springInstance.get();
     }
 
     @Override
