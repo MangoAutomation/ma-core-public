@@ -255,14 +255,18 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     /**
      * Published points are deleted on cascade by a data point
-     *
+     *  ensure they are removed from the runtime and DAO notifications are sent
      * @param event
      */
     @EventListener
     protected void handleRoleEvent(DaoEvent<? extends DataPointVO> event) {
         if (event.getType() == DaoEventType.DELETE) {
             //Stop the point
-            getRuntimeManager().stopPublishedPointsForDataPoint(event.getVo().getId());
+            List<PublishedPointVO> stopped = getRuntimeManager().stopPublishedPointsForDataPoint(event.getVo().getId());
+            for(PublishedPointVO vo : stopped) {
+                //Send websocket messages etc.
+                dao.notifyPointDeleted(vo);
+            }
         }
     }
 }

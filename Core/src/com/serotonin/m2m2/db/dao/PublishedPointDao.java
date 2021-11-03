@@ -234,4 +234,12 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
         eventPublisher.publishEvent(new StateChangeEvent<>(this, state, vo));
     }
 
+    /**
+     * Send a notification when a data point has cascade deleted
+     *  a point
+     * @param vo
+     */
+    public void notifyPointDeleted(PublishedPointVO vo) {
+        publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
+    }
 }
