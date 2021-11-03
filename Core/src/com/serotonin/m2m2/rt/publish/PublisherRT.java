@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -597,5 +598,14 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         } finally {
             pointListChangeLock.readLock().unlock();
         }
+    }
+
+    /**
+     * Get any points published for the provided data point id by this publisher
+     * @param dataPointId
+     * @return
+     */
+    public List<PublishedPointRT<POINT>> getPointsForDataPoint(int dataPointId) {
+        return streamPoints().filter(p -> p.getVo().getDataPointId() == dataPointId).collect(Collectors.toList());
     }
 }

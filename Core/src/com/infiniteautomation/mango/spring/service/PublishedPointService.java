@@ -7,8 +7,11 @@ package com.infiniteautomation.mango.spring.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -37,7 +40,6 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     private final PublisherService publisherService;
 
     /**
-     *
      * @param publishedPointDao
      * @param dependencies
      * @param publisherDao
@@ -116,7 +118,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
         PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
         //Ensure the definition exists
-        if(definition == null) {
+        if (definition == null) {
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
             return result;
         }
@@ -129,7 +131,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
         ProcessResult result = commonValidation(vo);
         PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
         //Ensure the definition exists
-        if(definition == null) {
+        if (definition == null) {
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
             return result;
         }
@@ -141,22 +143,13 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
         ProcessResult result = super.validate(vo);
 
         //Ensure publisher exists
-        if(publisherDao.getXidById(vo.getPublisherId()) == null) {
+        if (publisherDao.getXidById(vo.getPublisherId()) == null) {
             result.addContextualMessage("publisherId", "validate.publisher.missingPublisher", vo.getPublisherId());
         }
         //Ensure data point exists
         String dataPointXid = dataPointDao.getXidById(vo.getDataPointId());
-        if(dataPointXid == null) {
+        if (dataPointXid == null) {
             result.addContextualMessage("dataPointId", "validate.publisher.missingPoint", vo.getDataPointId());
-        }else {
-            List<PublishedPointVO> points = dao.getPublishedPoints(vo.getPublisherId());
-            for (PublishedPointVO point : points) {
-                if (point.getDataPointId() == vo.getDataPointId() && point.getId() != vo.getId()) {
-                    //This point is already published by another point
-                    DataPointVO dp = dataPointDao.get(vo.getDataPointId());
-                    result.addContextualMessage("dataPointId", "validate.publisher.duplicatePoint", dataPointXid);
-                }
-            }
         }
 
         return result;
@@ -164,10 +157,10 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     /**
      * Enable/Disable/Restart a published point
-     * @param xid - xid of point to restart
+     *
+     * @param xid     - xid of point to restart
      * @param enabled - Enable or disable the published point
      * @param restart - Restart the published point, enabled must equal true
-     *
      * @throws NotFoundException
      * @throws PermissionException
      */
@@ -181,7 +174,8 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     /**
      * Set the state helper method
-     * @param vo - The point to restart
+     *
+     * @param vo      - The point to restart
      * @param enabled - Enable or disable the published point
      * @param restart - Restart the published point, enabled must equal true (will start a stopped point)
      * @return - true if the state changed
@@ -190,17 +184,17 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
         vo.setEnabled(enabled);
         boolean publisherRunning = getRuntimeManager().isPublisherRunning(vo.getPublisherId());
 
-        if(!publisherRunning) {
+        if (!publisherRunning) {
             //We must check its state in the DB
             boolean enabledInDB = dao.isEnabled(vo.getId());
-            if(enabledInDB && !enabled){
+            if (enabledInDB && !enabled) {
                 dao.saveEnabledColumn(vo);
                 return true;
-            }else if(!enabledInDB && enabled) {
+            } else if (!enabledInDB && enabled) {
                 dao.saveEnabledColumn(vo);
                 return true;
             }
-        }else {
+        } else {
             boolean running = getRuntimeManager().isPublishedPointRunning(vo.getId());
             if (running && !enabled) {
                 //Running, so stop it
@@ -212,7 +206,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
                 dao.saveEnabledColumn(vo);
                 getRuntimeManager().startPublishedPoint(vo);
                 return true;
-            }else if(enabled && restart) {
+            } else if (enabled && restart) {
                 //May be running or not, will either start or restart it (stopping a non running point will do nothing which is ok)
                 getRuntimeManager().stopPublishedPoint(vo.getId());
                 getRuntimeManager().startPublishedPoint(vo);
@@ -224,6 +218,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     /**
      * Replace all points on a publisher with these points, must have read and edit permission for this publisher
+     *
      * @param publisherId
      * @param pointVos
      */
@@ -234,7 +229,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     protected void replacePoints(PublisherVO vo, List<PublishedPointVO> pointVos) throws NotFoundException, PermissionException, ValidationException {
         publisherService.ensureEditPermission(Common.getUser(), vo);
         //Validate all points
-        for(PublishedPointVO point : pointVos) {
+        for (PublishedPointVO point : pointVos) {
             ensureValid(point);
         }
         dao.replacePoints(vo.getId(), pointVos);
@@ -246,6 +241,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     /**
      * Get the points for a publisher, must have read permission for publisher
+     *
      * @param id
      * @return
      */
@@ -255,5 +251,18 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     protected List<PublishedPointVO> getPublishedPoints(PublisherVO vo) throws NotFoundException, PermissionException {
         return dao.getPublishedPoints(vo.getId());
+    }
+
+    /**
+     * Published points are deleted on cascade by a data point
+     *
+     * @param event
+     */
+    @EventListener
+    protected void handleRoleEvent(DaoEvent<? extends DataPointVO> event) {
+        if (event.getType() == DaoEventType.DELETE) {
+            //Stop the point
+            getRuntimeManager().stopPublishedPointsForDataPoint(event.getVo().getId());
+        }
     }
 }

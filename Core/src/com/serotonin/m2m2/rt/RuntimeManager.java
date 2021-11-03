@@ -245,6 +245,13 @@ public interface RuntimeManager extends ILifecycle {
     void stopPublishedPoint(int id);
 
     /**
+     * Stop all running published points for a given data point.  Used
+     * when a data point is deleted
+     * @param dataPointId of source data point
+     */
+    void stopPublishedPointsForDataPoint(int dataPointId);
+
+    /**
      * Check if a published point is running
      * @param id id of published point
      * @return true if running
