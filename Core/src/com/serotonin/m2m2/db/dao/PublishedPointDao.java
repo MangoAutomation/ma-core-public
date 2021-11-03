@@ -155,7 +155,7 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
      */
     public void replacePoints(int id, List<PublishedPointVO> pointVos) {
         doInTransaction(txStatus -> {
-            this.create.deleteFrom(table).where(table.publisherId.eq(id));
+            this.create.deleteFrom(table).where(table.publisherId.eq(id)).execute();
             for(PublishedPointVO vo : pointVos) {
                 this.insert(vo);
             }
@@ -236,7 +236,7 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Send a notification when a data point has cascade deleted
-     *  a point
+     *  a running published point
      * @param vo
      */
     public void notifyPointDeleted(PublishedPointVO vo) {
