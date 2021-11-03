@@ -42,7 +42,6 @@ public class Upgrade42 extends DBUpgrade {
         runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, new String[] {
                 "CREATE TABLE publishedPoints (id INT NOT NULL AUTO_INCREMENT, xid VARCHAR(100) NOT NULL, name VARCHAR(255), enabled CHAR(1), publisherId INT NOT NULL, dataPointId INT NOT NULL, data LONGTEXT, jsonData LONGTEXT, PRIMARY KEY (id));",
                 "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn1 UNIQUE (xid);",
-                "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn2 UNIQUE (publisherId, dataPointId);",
                 "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk1 FOREIGN KEY (publisherId) REFERENCES publishers (id) ON DELETE CASCADE;",
                 "ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsFk2 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;",
                 "CREATE INDEX publishedPointNameIndex on publishedPoints (name ASC);",

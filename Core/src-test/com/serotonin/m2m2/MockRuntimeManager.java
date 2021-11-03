@@ -256,6 +256,11 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
+    public void stopPublishedPointsForDataPoint(int dataPointId) {
+
+    }
+
+    @Override
     public boolean isPublishedPointRunning(int id) {
         return false;
     }
