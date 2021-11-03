@@ -571,7 +571,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
     /**
      * Care must be taken to close the stream. Always use a try-with-resources statement e.g.
      * <pre>{@code
-     * try (Stream<PublishedPointRT> stream = streamPoints()) {
+     * try (Stream<PublishedPointRT<POINT>> stream = streamPoints()) {
      *     return stream.mapToInt(PublishedPointRT::getId).toArray();
      * }
      * }</pre>
@@ -606,6 +606,8 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      * @return
      */
     public List<PublishedPointRT<POINT>> getPointsForDataPoint(int dataPointId) {
-        return streamPoints().filter(p -> p.getVo().getDataPointId() == dataPointId).collect(Collectors.toList());
+        try (Stream<PublishedPointRT<POINT>> stream = streamPoints()) {
+            return stream.filter(p -> p.getVo().getDataPointId() == dataPointId).collect(Collectors.toList());
+        }
     }
 }
