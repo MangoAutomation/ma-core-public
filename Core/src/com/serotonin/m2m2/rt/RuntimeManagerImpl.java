@@ -642,12 +642,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void stopPublishedPointsForDataPoint(int dataPointId) {
+    public List<PublishedPointVO> stopPublishedPointsForDataPoint(int dataPointId) {
+        List<PublishedPointVO> stopped = new ArrayList<>();
         for(PublisherRT<?,?> rt : runningPublishers.values()) {
             for(PublishedPointRT<?> point : rt.getPointsForDataPoint(dataPointId)) {
                 stopPublishedPoint(point.getId());
+                stopped.add(point.getVo());
             }
         }
+        return stopped;
     }
 
     @Override

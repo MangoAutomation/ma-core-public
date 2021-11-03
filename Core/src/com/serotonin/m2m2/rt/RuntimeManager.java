@@ -248,8 +248,9 @@ public interface RuntimeManager extends ILifecycle {
      * Stop all running published points for a given data point.  Used
      * when a data point is deleted
      * @param dataPointId of source data point
+     * @return all stopped points
      */
-    void stopPublishedPointsForDataPoint(int dataPointId);
+    List<PublishedPointVO> stopPublishedPointsForDataPoint(int dataPointId);
 
     /**
      * Check if a published point is running

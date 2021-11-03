@@ -256,8 +256,8 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void stopPublishedPointsForDataPoint(int dataPointId) {
-
+    public List<PublishedPointVO>  stopPublishedPointsForDataPoint(int dataPointId) {
+        return new ArrayList<>();
     }
 
     @Override
