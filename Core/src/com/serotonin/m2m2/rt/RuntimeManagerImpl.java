@@ -91,7 +91,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * TERMINATED
      *
      */
-    private ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
+    protected ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     public RuntimeManagerImpl(ExecutorService executorService, DataSourceDao dataSourceDao, PublisherDao publisherDao,
                               DataPointDao dataPointDao, PointValueDao pointValueDao, PointValueCache pointValueCache) {
@@ -560,7 +560,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public boolean isPublisherRunning(int publisherId) {
-        DataSourceRT<? extends DataSourceVO> publisher = runningDataSources.get(publisherId);
+        PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher = runningPublishers.get(publisherId);
         return publisher != null && publisher.getLifecycleState() == ILifecycleState.RUNNING;
     }
 
