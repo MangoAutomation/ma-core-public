@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -458,5 +459,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 lock.readLock().unlock();
             }
         }
+    }
+
+    @Override
+    public void setRetentionPolicy(Period period) {
+        throw new UnsupportedOperationException();
     }
 }
