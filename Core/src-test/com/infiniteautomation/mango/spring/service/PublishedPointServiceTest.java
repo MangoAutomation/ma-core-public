@@ -4,27 +4,28 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.junit.After;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.records.PublishedPointsRecord;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
-
-import static org.junit.Assert.*;
 
 public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedPointVO, PublishedPointsRecord, PublishedPoints, PublishedPointDao, PublishedPointService> {
 
@@ -149,16 +150,36 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
         for (IDataPoint dp : dps) {
             MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dp);
             pp.setName(dp.getName());
-            pp.setXid(UUID.randomUUID().toString());
             pp.setEnabled(true);
-            pps.add(pp);
+            pps.add(service.insert(pp));
         }
+
         service.replacePoints(publisher.getId(), pps);
-        List<PublishedPointVO> actualPoints =service.getPublishedPoints(publisher.getId());
+        List<PublishedPointVO> actualPoints = service.getPublishedPoints(publisher.getId());
         assertEquals(pps.size(), actualPoints.size());
         for (int i = 0; i < actualPoints.size(); i++) {
             assertVoEqual(pps.get(i), actualPoints.get(i));
         }
+    }
+
+    @Test(expected = NotFoundException.class)
+    public void testDeletePoint() {
+        IDataPoint dp = createMockDataPoints(1).get(0);
+        MockPublisherVO publisher = createMockPublisher(true);
+        MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dp);
+        pp.setName(dp.getName());
+        pp.setEnabled(true);
+
+        PublishedPointVO vo = service.insert(pp);
+        //Ensure it is running
+        assertNotNull(getRuntimeManager().getPublishedPoint(vo.getId()));
+
+        DataPointVO point = dataPointService.get(dp.getId());
+        //Delete datapoint
+        dataPointService.delete(point);
+
+        //Ensure published point deleted
+        service.get(pp.getId());
     }
 
     @Override
