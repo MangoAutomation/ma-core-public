@@ -76,7 +76,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final AbstractTimer timer;
 
     private volatile boolean fullyMigrated = false;
-    private volatile int batchSize;
+    private volatile int readChunkSize;
+    private volatile int writeChunkSize;
     private volatile int numTasks;
     private boolean terminated;
 
@@ -129,8 +130,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     }
 
     private void loadProperties() {
-        adjustThreads(env.getRequiredProperty("db.migration.threadCount", int.class));
-        this.batchSize = env.getRequiredProperty("db.migration.batchSize", int.class);
+        adjustThreads(env.getProperty("db.migration.threadCount", int.class, Math.max(1, Runtime.getRuntime().availableProcessors() / 4)));
+        this.readChunkSize = env.getProperty("db.migration.readChunkSize", int.class, 10000);
+        this.writeChunkSize = env.getProperty("db.migration.writeChunkSize", int.class, 10000);
     }
 
     private List<MigrationTask> adjustThreads(int threadCount) {
@@ -434,11 +436,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         private void copyPointValues(long from, long to) {
             this.sampleCount = 0;
             // stream from secondary (old) db to the primary db (new) in chunks of matching size
-            try (var stream = secondary.streamPointValues(point, from, to, null, TimeOrder.ASCENDING, batchSize)) {
+            try (var stream = secondary.streamPointValues(point, from, to, null, TimeOrder.ASCENDING, readChunkSize)) {
                 primary.savePointValues(stream.map(pv -> {
                     this.sampleCount++;
                     return new BatchPointValueImpl(point, pv);
-                }), batchSize);
+                }), writeChunkSize);
             }
             this.timestamp = to;
             completedPeriods.incrementAndGet();
