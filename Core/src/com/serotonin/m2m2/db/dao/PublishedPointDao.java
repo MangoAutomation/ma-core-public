@@ -151,13 +151,25 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     }
 
     /**
-     * Get the published points for a given publisher
+     * Get the published points for a given publisher.
+     *  - NOTE this returns both enabled and disabled points
      * @param publisherId
      * @return
      */
     public List<PublishedPointVO> getPublishedPoints(int publisherId) {
         return getJoinedSelectQuery()
                 .where(table.publisherId.eq(publisherId))
+                .fetch(this::mapRecordLoadRelationalData);
+    }
+
+    /**
+     * Get only the enabled points for a publisher
+     * @param publisherId
+     * @return
+     */
+    public List<PublishedPointVO> getEnabledPublishedPoints(int publisherId) {
+        return getJoinedSelectQuery()
+                .where(table.publisherId.eq(publisherId), table.enabled.eq(boolToChar(true)))
                 .fetch(this::mapRecordLoadRelationalData);
     }
 
