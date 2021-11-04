@@ -18,6 +18,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.publish.PublishedPointRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
+import com.serotonin.m2m2.rt.publish.SendThread;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -206,10 +207,10 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Publishers
     //
-    Collection<PublisherRT<? extends PublisherVO, ? extends PublishedPointVO>> getRunningPublishers();
+    Collection<PublisherRT<? extends PublisherVO, ? extends PublishedPointVO, ? extends SendThread>> getRunningPublishers();
 
     @Nullable
-    PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> getRunningPublisher(int publisherId);
+    PublisherRT<? extends PublisherVO, ? extends PublishedPointVO, ? extends SendThread> getRunningPublisher(int publisherId);
 
     boolean isPublisherRunning(int publisherId);
 
@@ -230,7 +231,7 @@ public interface RuntimeManager extends ILifecycle {
      * Removes a publisher from the running publishers list. Must be terminated.
      * @param publisher publisher to remove
      */
-    void removePublisher(PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher);
+    void removePublisher(PublisherRT<? extends PublisherVO, ? extends PublishedPointVO, ? extends SendThread> publisher);
 
     /**
      * Start a published point, will confirm that it is enabled

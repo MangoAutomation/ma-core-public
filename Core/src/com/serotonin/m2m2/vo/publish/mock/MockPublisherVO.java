@@ -6,7 +6,6 @@ package com.serotonin.m2m2.vo.publish.mock;
 import java.util.List;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.rt.publish.mock.MockPublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
@@ -31,7 +30,7 @@ public class MockPublisherVO extends PublisherVO {
     }
 
     @Override
-    public PublisherRT<MockPublisherVO, MockPublishedPointVO> createPublisherRT() {
+    public MockPublisherRT createPublisherRT() {
         return new MockPublisherRT(this);
     }
 

@@ -47,7 +47,7 @@ import com.serotonin.util.ILifecycleState;
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherRT<T extends PublisherVO, POINT extends PublishedPointVO> extends TimeoutClient implements ILifecycle {
+abstract public class PublisherRT<T extends PublisherVO, POINT extends PublishedPointVO, SEND extends SendThread> extends TimeoutClient implements ILifecycle {
     private final Logger log = LoggerFactory.getLogger(PublisherRT.class);
     public static final int POINT_DISABLED_EVENT = 1;
     public static final int QUEUE_SIZE_WARNING_EVENT = 2;
@@ -88,7 +88,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
     protected final AttributePublishQueue<POINT> attributesChangedQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
-    private SendThread sendThread;
+    protected SEND sendThread;
     private TimerTask snapshotTask;
     private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
     protected final DataPointDao dataPointDao;
@@ -282,7 +282,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      * Create a new send thread
      * @return
      */
-    protected abstract SendThread createSendThread();
+    protected abstract SEND createSendThread();
 
     /**
      * Hook to know when all points are added, the publisher is fully initialized
