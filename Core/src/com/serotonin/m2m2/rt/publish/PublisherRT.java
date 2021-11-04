@@ -334,7 +334,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         ExecutorService executorService = Common.getBean(ExecutorService.class);
 
         // Add the enabled points to the data source.
-        List<PublishedPointVO> points = publishedPointDao.getPublishedPoints(getId());
+        List<PublishedPointVO> points = publishedPointDao.getEnabledPublishedPoints(getId());
 
         //Startup multi threaded
         int pointsPerThread = Common.envProps.getInt("runtime.publishedPoint.startupThreads.pointsPerThread", 1000);
