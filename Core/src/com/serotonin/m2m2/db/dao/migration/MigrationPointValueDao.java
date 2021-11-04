@@ -78,6 +78,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private volatile boolean fullyMigrated = false;
     private volatile int batchSize;
     private volatile int numTasks;
+    private boolean terminated;
 
     public enum MigrationStatus {
         NOT_STARTED,
@@ -134,6 +135,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     private List<MigrationTask> adjustThreads(int threadCount) {
         synchronized (tasks) {
+            if (terminated) throw new IllegalStateException();
             if (fullyMigrated || threadCount == tasks.size()) return Collections.emptyList();
 
             log.info("Adjusting migration threads from {} to {}", tasks.size(), threadCount);
@@ -163,6 +165,14 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         }
     }
 
+    private List<MigrationTask> terminate() {
+        synchronized (tasks) {
+            var stopped = this.adjustThreads(0);
+            this.terminated = true;
+            return stopped;
+        }
+    }
+
     private void removeTask(MigrationTask task) {
         synchronized (tasks) {
             tasks.remove(task);
@@ -180,7 +190,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         TimeUnit closeWaitUnit = env.getProperty("db.migration.closeWaitUnit", TimeUnit.class, TimeUnit.MINUTES);
 
         // adjust threads back to 0 to cancel them
-        for (MigrationTask task : adjustThreads(0)) {
+        for (MigrationTask task : terminate()) {
             // wait for the cancelled threads to complete
             task.getFinished().get(closeWait, closeWaitUnit);
             if (!task.getFinished().isDone()) {
