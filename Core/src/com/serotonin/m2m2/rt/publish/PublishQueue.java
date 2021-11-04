@@ -33,14 +33,14 @@ public class PublishQueue<PUB extends PublisherVO, T extends PublishedPointVO, V
     final ValueMonitor<Integer> queueSizeMonitor;
 
     protected final ConcurrentLinkedQueue<PublishQueueEntry<T, V>> queue = new ConcurrentLinkedQueue<PublishQueueEntry<T, V>>();
-    private final PublisherRT<PUB, T> owner;
+    private final PublisherRT<PUB, T, ? extends SendThread> owner;
     private final int warningSize;
     private final int dewarningSize;
     private final int discardSize;
     private boolean warningActive = false;
     private long lastSizeCheck;
 
-    public PublishQueue(PublisherRT<PUB, T> owner, int warningSize, int discardSize) {
+    public PublishQueue(PublisherRT<PUB, T, ? extends SendThread> owner, int warningSize, int discardSize) {
         this.owner = owner;
         this.warningSize = warningSize;
         this.dewarningSize = (int) (warningSize * 0.9); // Deactivate the size warning at 90% of the warning size.

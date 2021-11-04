@@ -28,6 +28,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.publish.PublishedPointRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
+import com.serotonin.m2m2.rt.publish.SendThread;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -220,7 +221,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public PublisherRT<?,?> getRunningPublisher(int publisherId) {
+    public PublisherRT<?,?,?> getRunningPublisher(int publisherId) {
 
         return null;
     }
@@ -242,7 +243,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void removePublisher(PublisherRT<? extends PublisherVO, ? extends PublishedPointVO> publisher) {
+    public void removePublisher(PublisherRT<? extends PublisherVO, ? extends PublishedPointVO, ? extends SendThread> publisher) {
 
     }
 
@@ -289,9 +290,9 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public Collection<PublisherRT<? extends PublisherVO, ? extends PublishedPointVO>> getRunningPublishers() {
+    public Collection<PublisherRT<? extends PublisherVO, ? extends PublishedPointVO, ? extends SendThread>> getRunningPublishers() {
         if(useDatabase) {
-            List<PublisherRT<?,?>> running = new ArrayList<>();
+            List<PublisherRT<?,?,?>> running = new ArrayList<>();
             for(PublisherVO vo : PublisherDao.getInstance().getAll()) {
                 if(vo.isEnabled()) {
                     running.add(vo.createPublisherRT());

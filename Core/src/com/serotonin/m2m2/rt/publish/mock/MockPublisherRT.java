@@ -15,14 +15,14 @@ import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
  *
  * @author Terry Packer
  */
-public class MockPublisherRT extends PublisherRT<MockPublisherVO, MockPublishedPointVO> {
+public class MockPublisherRT extends PublisherRT<MockPublisherVO, MockPublishedPointVO, MockPublisherRT.MockSendThread> {
 
     public MockPublisherRT(MockPublisherVO vo) {
         super(vo);
     }
 
     @Override
-    protected SendThread createSendThread() {
+    protected MockSendThread createSendThread() {
         return new MockSendThread();
     }
 
