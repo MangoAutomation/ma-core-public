@@ -25,6 +25,6 @@ public class PointValueInserter implements Consumer<DataPointVO> {
 
     @Override
     public void accept(DataPointVO point) {
-        pointValueDao.savePointValues(generator.apply(point), chunkSize);
+        pointValueDao.savePointValues(generator.apply(point));
     }
 }
