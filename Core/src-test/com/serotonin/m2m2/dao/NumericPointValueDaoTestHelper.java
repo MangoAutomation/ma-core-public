@@ -26,6 +26,8 @@ import org.junit.Assert;
 
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.db.query.WideCallback;
+import com.serotonin.m2m2.db.dao.BatchPointValue;
+import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
@@ -76,6 +78,8 @@ public class NumericPointValueDaoTestHelper {
      * Call before every test.
      */
     public void before() {
+        List<BatchPointValue> values = new ArrayList<>();
+
         //Start back 30 days
         endTs = System.currentTimeMillis();
         startTs = endTs - (30L * 24L * 60L * 60L * 1000L);
@@ -84,23 +88,23 @@ public class NumericPointValueDaoTestHelper {
         series2StartTs = startTs - (1000 * 60 * 15);
         long time = series2StartTs;
         PointValueTime p2vt = new PointValueTime(-3.0, time);
-        this.savePointValue(vo2, p2vt);
+        values.add(new BatchPointValueImpl(vo2, p2vt));
 
         time = startTs - (1000 * 60 * 10);
         p2vt = new PointValueTime(-2.0, time);
-        this.savePointValue(vo2, p2vt);
+        values.add(new BatchPointValueImpl(vo2, p2vt));
 
         time = startTs - (1000 * 60 * 5);
         p2vt = new PointValueTime(-1.0, time);
-        this.savePointValue(vo2, p2vt);
+        values.add(new BatchPointValueImpl(vo2, p2vt));
 
         time = startTs;
         //Insert a sample every 5 minutes
         double value = 0.0;
         while(time < endTs){
             PointValueTime pvt = new PointValueTime(value, time);
-            this.savePointValue(vo1, pvt);
-            this.savePointValue(vo2, pvt);
+            values.add(new BatchPointValueImpl(vo1, pvt));
+            values.add(new BatchPointValueImpl(vo2, pvt));
             time = time + 1000 * 60 * 5;
             totalSampleCount++;
             value++;
@@ -108,21 +112,20 @@ public class NumericPointValueDaoTestHelper {
 
         //Add a few more samples for series 2 after our time
         p2vt = new PointValueTime(value++, time);
-        this.savePointValue(vo2, p2vt);
+        values.add(new BatchPointValueImpl(vo2, p2vt));
 
         time = time + (1000 * 60 * 5);
         p2vt = new PointValueTime(value++, time);
-        this.savePointValue(vo2, p2vt);
+        values.add(new BatchPointValueImpl(vo2, p2vt));
 
         time = time + (1000 * 60 * 5);
         p2vt = new PointValueTime(value, time);
-        this.savePointValue(vo2, p2vt);
+        values.add(new BatchPointValueImpl(vo2, p2vt));
         this.series2EndTs = time;
-    }
 
-    public void savePointValue(DataPointVO point, PointValueTime value) {
-        this.dao.savePointValueSync(point, value, null);
-        this.data.computeIfAbsent(point.getSeriesId(), k -> new ArrayList<>()).add(value);
+        dao.savePointValues(values.stream().peek(v -> {
+            data.computeIfAbsent(v.getVo().getSeriesId(), k -> new ArrayList<>()).add(v.getPointValue());
+        }));
     }
 
     public Map<Long, PointValueTime> timeIndexedValues(DataPointVO point) {
