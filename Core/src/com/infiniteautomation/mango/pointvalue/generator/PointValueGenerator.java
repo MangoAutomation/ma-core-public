@@ -13,8 +13,14 @@ import com.serotonin.m2m2.vo.DataPointVO;
 
 public interface PointValueGenerator extends Function<DataPointVO, Stream<BatchPointValue>> {
 
+    BatchPointValueSupplier createSupplier(DataPointVO point);
+
     default PointValueInserter createInserter(PointValueDao pointValueDao, int chunkSize) {
         return new PointValueInserter(this, chunkSize, pointValueDao);
     }
 
+    @Override
+    default Stream<BatchPointValue> apply(DataPointVO point) {
+        return createSupplier(point).stream();
+    }
 }
