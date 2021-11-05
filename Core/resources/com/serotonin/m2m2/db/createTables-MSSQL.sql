@@ -396,7 +396,7 @@ alter table publishers add constraint publishersUn1 unique (xid);
 CREATE TABLE publishedPoints (
    id INT NOT NULL identity,
    xid VARCHAR(100) NOT NULL,
-   name VARCHAR(255),
+   name VARCHAR(255) NOT NULL,
    enabled CHAR(1),
    publisherId INT NOT NULL,
    dataPointId INT NOT NULL,
