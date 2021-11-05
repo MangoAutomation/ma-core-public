@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -36,7 +35,6 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
@@ -66,7 +64,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.EventManager;
@@ -76,7 +73,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
-import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoConfigurationWatcher;
 import com.serotonin.util.properties.MangoProperties;
 
@@ -146,7 +142,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     public static final String SYSTEM_SUPERADMIN_PERMISSION_HOLDER = "systemSuperadminPermissionHolder";
     public static final String ANONYMOUS_PERMISSION_HOLDER = "anonymousPermissionHolder";
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private final Logger log = LoggerFactory.getLogger(MangoRuntimeContextConfiguration.class);
 
     /**
      * ContextStartedEvent is not fired for root web context, only ContextRefreshedEvent.
@@ -376,22 +372,13 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions,
-                                       @Value("${db.migration.enabled:false}") boolean migrate,
-                                       DataPointDao dataPointDao,
-                                       Environment env,
-                                       ExecutorService executorService,
-                                       ConfigurableApplicationContext context,
-                                       AbstractTimer timer) {
+    public PointValueDao pointValueDao(List<PointValueDaoDefinition> definitions) {
         PointValueDaoDefinition highestPriority = definitions.stream().findFirst().orElseThrow();
         highestPriority.initialize();
-        PointValueDao highestPriorityDao = highestPriority.getPointValueDao();
-        if (migrate) {
-            PointValueDaoDefinition second = definitions.stream().skip(1).findFirst().orElseThrow();
-            second.initialize();
-            return new MigrationPointValueDao(highestPriorityDao, second.getPointValueDao(), dataPointDao, vo -> true, env, executorService, context, timer);
+        if (log.isInfoEnabled()) {
+            log.info("Time series database {} initialized", highestPriority.getClass().getSimpleName());
         }
-        return highestPriorityDao;
+        return highestPriority.getPointValueDao();
     }
 
     @Bean

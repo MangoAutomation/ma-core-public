@@ -7,6 +7,7 @@ package com.serotonin.m2m2.module.definitions.db;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.monitor.MonitoredValues;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -44,6 +45,6 @@ public class DefaultPointValueDaoDefinition extends PointValueDaoDefinition {
 
     @Override
     public int getOrder() {
-        return Integer.MAX_VALUE;
+        return Common.envProps.getInt("db.default.order", Integer.MAX_VALUE);
     }
 }
