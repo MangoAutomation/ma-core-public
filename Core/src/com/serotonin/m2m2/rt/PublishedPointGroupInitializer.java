@@ -63,7 +63,7 @@ public class PublishedPointGroupInitializer extends GroupProcessor<List<Publishe
         }
 
         if (log.isInfoEnabled()) {
-            log.info("Group {} successfully initialized {} of {} data points in {} ms",
+            log.info("Group {} successfully initialized {} of {} published points in {} ms",
                     itemId, subgroup.size() - failedCount, subgroup.size(), Common.timer.currentTimeMillis() - startTs);
         }
         return null;
