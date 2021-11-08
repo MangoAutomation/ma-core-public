@@ -277,6 +277,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                         .set(handlerMapping.eventTypeRef1, type.getReferenceId1())
                         .set(handlerMapping.eventTypeRef2, type.getReferenceId2())
                         .execute();
+                break;
             default:
                 create.mergeInto(handlerMapping)
                         .using(DSL.selectOne())
@@ -297,6 +298,7 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                         .values(eventHandlerId, type.getEventType(), subType,
                                 type.getReferenceId1(), type.getReferenceId2())
                         .execute();
+                break;
         }
     }
 
