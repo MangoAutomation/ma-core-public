@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2;
 
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,8 +83,6 @@ import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
 import com.serotonin.util.properties.MangoProperties;
-
-import static org.junit.Assert.fail;
 
 /**
  *
@@ -246,11 +246,14 @@ public class MangoTestBase {
         }
     }
 
-    protected void loadConfiguration(InputStream jsonFile) throws IOException, JsonException {
+    protected void loadConfiguration(InputStream jsonFile) throws JsonException, IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(jsonFile, StandardCharsets.UTF_8));
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
+        loadConfiguration(jo);
+    }
 
+    protected void loadConfiguration(JsonObject jo) {
         ImportTaskDependencies dependencies = new ImportTaskDependencies(Common.getTranslations(),
                 Common.getBean(RoleService.class),
                 Common.getBean(UsersService.class),

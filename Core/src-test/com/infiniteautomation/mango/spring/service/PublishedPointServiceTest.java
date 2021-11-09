@@ -7,18 +7,25 @@ package com.infiniteautomation.mango.spring.service;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.records.PublishedPointsRecord;
+import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.json.JsonException;
+import com.serotonin.json.type.JsonArray;
+import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.util.JsonSerializableUtility;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
@@ -31,24 +38,20 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
 
     private PublisherService publisherService;
     private DataPointService dataPointService;
-    private DataSourceService dataSourceService;
 
     @Override
     public void before() {
         super.before();
         publisherService = Common.getBean(PublisherService.class);
         dataPointService = Common.getBean(DataPointService.class);
-        dataSourceService = Common.getBean(DataSourceService.class);
     }
 
 
     @After
     @Override
     public void after() {
-        //Since we cannot restart the RuntimeManager yet we need to clean out the runtime
-        publisherService.list().forEach((p) -> {
-            publisherService.delete(p);
-        });
+        //Since we cannot restart the RuntimeManager, yet we need to clean out the runtime
+        publisherService.list().forEach(p -> publisherService.delete(p));
         super.after();
     }
 
@@ -194,5 +197,91 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
 
     RuntimeManager getRuntimeManager() {
         return Common.getBean(RuntimeManager.class);
+    }
+
+    @Test
+    public void testEmport() {
+        //Create publisher and publishedPoints
+        MockPublisherVO publisher = createMockPublisher(false);
+        List<IDataPoint> dps = createMockDataPoints(5);
+        List<PublishedPointVO> pps = new ArrayList<>();
+        for (IDataPoint dp : dps) {
+            MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dp);
+            pp.setName(dp.getName());
+            pp.setEnabled(true);
+            pps.add(service.insert(pp));
+        }
+
+        //Export publishedPoints
+        String [] exportElements = new String[]{"publishedPoints"};
+        Map<String,Object> data = ConfigurationExportData.createExportDataMap(exportElements);
+        JsonObject json = null;
+        try {
+            json = JsonSerializableUtility.convertMapToJsonObject(data);
+        } catch (JsonException e) {
+            fail(e.getMessage());
+        }
+
+        //Ensure publishedPoints
+        assertEquals(5, json.getJsonArray("publishedPoints").size());
+
+        //Import publishedPoints for update
+        loadConfiguration(json);
+        assertEquals(5, service.count());
+
+        //Remove publishedPoints
+        pps.forEach(p -> service.delete(p));
+        assertEquals(0, service.count());
+
+        //Import publishedPoints for create
+        loadConfiguration(json);
+        assertEquals(5, service.count());
+    }
+
+    @Test
+    public void testEmportWithPublisher() {
+        //Create publisher without publishedPoints
+        createMockPublisher(false);
+
+        //Export publishers
+        String [] exportElements = new String[]{"publishers"};
+        Map<String,Object> data = ConfigurationExportData.createExportDataMap(exportElements);
+        JsonObject json = null;
+        try {
+            json = JsonSerializableUtility.convertMapToJsonObject(data);
+        } catch (JsonException e) {
+            fail(e.getMessage());
+        }
+
+        //Ensure publisher
+        JsonArray publishers = json.getJsonArray("publishers");
+        assertEquals(1, publishers.size());
+
+        //Ensure no publishedPoints
+        assertEquals(0, service.count());
+
+        //Generate legacy import format
+        List<IDataPoint> dps = createMockDataPoints(5);
+        JsonArray legacyPoints = new JsonArray();
+        for (IDataPoint dp : dps) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("dataPointId", dp.getXid());
+            try {
+                JsonObject item = JsonSerializableUtility.convertMapToJsonObject(map);
+                legacyPoints.add(item);
+            } catch (JsonException e) {
+                fail(e.getMessage());
+            }
+        }
+        JsonObject publisherNode = publishers.getJsonObject(0);
+        publisherNode.put("points", legacyPoints);
+
+        //Import publishedPoints for create(replace)
+        loadConfiguration(json);
+        assertEquals(5, service.count());
+
+        //Import publishedPoints for update(replace)
+        loadConfiguration(json);
+        assertEquals(5, service.count());
     }
 }
