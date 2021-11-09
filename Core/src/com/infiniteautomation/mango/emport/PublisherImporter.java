@@ -15,6 +15,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PublishedPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -91,6 +92,7 @@ public class PublisherImporter extends Importer {
                             try {
                                 DataPointVO dataPointVO = dataPointService.get(dataPointXid);
                                 PublishedPointVO point = vo.getDefinition().createPublishedPointVO(vo, dataPointVO);
+                                point.setName(dataPointVO.getName());
                                 ctx.getReader().readInto(point, jv.toJsonObject());
                                 points.add(point);
                             }catch(NotFoundException e) {
@@ -99,7 +101,7 @@ public class PublisherImporter extends Importer {
                                         new TranslatableMessage("emport.error.missingPoint", dataPointXid));
                             }
                         }
-                        savePublishedPoints(xid, points);
+                        replacePublishedPoints(xid, points);
                     }
                 }else{
                     addFailureMessage("emport.publisher.runtimeManagerNotRunning", xid);
@@ -115,19 +117,18 @@ public class PublisherImporter extends Importer {
     }
 
     /**
-     * Save published points, these must always be new points
-     *  since importing this way they could not already exist
-     *  TODO Published Points - Is this the best way to handle this?
+     *  Replace published points
      * @param publisherXid
      * @param points
      */
-    private void savePublishedPoints(String publisherXid, List<PublishedPointVO> points) {
-        for(PublishedPointVO vo : points) {
-            try {
-                publishedPointService.insert(vo);
-            }catch(ValidationException e) {
-                setValidationMessages(e.getValidationResult(), "emport.publisher.prefix", publisherXid);
-            }
+    private void replacePublishedPoints(String publisherXid, List<PublishedPointVO> points) {
+        try {
+            PublishedPointDao publishedPointDao = PublishedPointDao.getInstance();
+            points.forEach(p -> p.setXid(publishedPointDao.generateUniqueXid()));
+            PublisherVO publisher = service.get(publisherXid);
+            publishedPointService.replacePoints(publisher.getId(), points);
+        } catch (ValidationException e) {
+            setValidationMessages(e.getValidationResult(), "emport.publisher.prefix", publisherXid);
         }
     }
 }
