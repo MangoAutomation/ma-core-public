@@ -101,20 +101,24 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Validate a new published point
+     *
      * @param response
      * @param vo
+     * @param publisher
      */
-    abstract public void validate(ProcessResult response, PublishedPointVO vo);
+    abstract public void validate(ProcessResult response, PublishedPointVO vo, PublisherVO publisher);
 
     /**
      * Validate a published point to be updated
      *  override as necessary
+     *
      * @param response
      * @param existing
      * @param vo
+     * @param publisher
      */
-    public void validate(ProcessResult response, PublishedPointVO existing, PublishedPointVO vo) {
-        validate(response, vo);
+    public void validate(ProcessResult response, PublishedPointVO existing, PublishedPointVO vo, PublisherVO publisher) {
+        validate(response, vo, publisher);
     }
     /**
      * If the module is uninstalled, delete any publishers of this type. If this method is overridden, be sure to call

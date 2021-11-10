@@ -116,26 +116,40 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     public ProcessResult validate(PublishedPointVO vo) {
         ProcessResult result = commonValidation(vo);
 
-        PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
+        PublisherDefinition<? extends PublisherVO> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
         //Ensure the definition exists
         if (definition == null) {
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
             return result;
         }
-        definition.validate(result, vo);
+
+        //Check the publisher exists
+        PublisherVO pub = publisherDao.get(vo.getPublisherId());
+        if(pub == null) {
+            result.addContextualMessage("publisherId", "validate.invalidValue");
+            return result;
+        }
+        definition.validate(result, vo, pub);
         return result;
     }
 
     @Override
     public ProcessResult validate(PublishedPointVO existing, PublishedPointVO vo) {
         ProcessResult result = commonValidation(vo);
-        PublisherDefinition<?> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
+        PublisherDefinition<? extends PublisherVO> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
         //Ensure the definition exists
         if (definition == null) {
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
             return result;
         }
-        definition.validate(result, existing, vo);
+        //Check the publisher exists
+        PublisherVO pub = publisherDao.get(vo.getPublisherId());
+        if(pub == null) {
+            result.addContextualMessage("publisherId", "validate.invalidValue");
+            return result;
+        }
+
+        definition.validate(result, existing, vo, pub);
         return result;
     }
 

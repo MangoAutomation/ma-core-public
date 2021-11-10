@@ -13,6 +13,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
+import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
  *
@@ -45,12 +46,20 @@ public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO
     }
 
     @Override
-    public void validate(ProcessResult response, PublishedPointVO vo) {
+    public void validate(ProcessResult response, PublishedPointVO vo, PublisherVO publisher) {
+        if(!(vo instanceof MockPublishedPointVO)) {
+            response.addContextualMessage("id", "validate.publishedPoints.invalidPublishedPointType");
+            return;
+        }
 
+        if(!(publisher instanceof MockPublisherVO)) {
+            response.addContextualMessage("publisherId", "validate.publishedPoints.invalidPublisherType");
+            return;
+        }
     }
 
     @Override
-    protected @NonNull PublishedPointVO newPublishedPointVO() {
+    protected @NonNull MockPublishedPointVO newPublishedPointVO() {
         return new MockPublishedPointVO();
     }
 
