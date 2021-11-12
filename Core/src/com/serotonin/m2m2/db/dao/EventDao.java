@@ -3,34 +3,20 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
-import org.jooq.Select;
-import org.jooq.SelectConditionStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.Table;
-import org.jooq.UpdateConditionStep;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.support.DataAccessUtils;
-import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -45,7 +31,6 @@ import com.infiniteautomation.mango.db.tables.records.EventsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
@@ -139,11 +124,12 @@ public class EventDao extends BaseDao {
 
     private void insertEvent(EventInstance event) {
         savePreRelationalData(event);
-        int id = -1;
-        InsertSetMoreStep<EventsRecord> insert = this.create.insertInto(table).set(voToObjectArray(event));
-        String sql = insert.getSQL();
-        List<Object> args = insert.getBindValues();
-        id = ejt.doInsert(sql, args.toArray(new Object[0]));
+        EventsRecord result = create.insertInto(table)
+                .set(voToObjectArray(event))
+                .returning(table.id)
+                .fetchOne();
+
+        int id = result == null ? -1 : result.get(table.id);
         event.setId(id);
     }
 
@@ -248,113 +234,16 @@ public class EventDao extends BaseDao {
     }
 
     /**
-     * Available to overload the result set extractor for callback queries
-     *  to customize error handling
-     * @param callback
-     * @return
-     */
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<EventInstance> callback) {
-        return getCallbackResultSetExtractor(callback, (e, rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException) {
-                LOG.error(e.getCause().getMessage(), e.getCause());
-            }else {
-                LOG.error(e.getMessage(), e);
-                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
-                // want to see the 500 error in the API etc.
-                throw new ShouldNeverHappenException(e);
-            }
-        });
-    }
-
-    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(Consumer<EventInstance> callback, BiConsumer<Exception, ResultSet> error) {
-        return new ResultSetExtractor<Void>() {
-
-            @Override
-            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
-                RowMapper<EventInstance> rowMapper = getRowMapper();
-                int rowNum = 0;
-                while (rs.next()) {
-                    try {
-                        EventInstance row = rowMapper.mapRow(rs, rowNum);
-                        loadRelationalData(row);
-                        callback.accept(row);
-                    }catch (Exception e) {
-                        error.accept(e, rs);
-                    }finally {
-                        rowNum++;
-                    }
-                }
-                return null;
-            }
-        };
-    }
-
-    /**
-     * Available to overload the result set extractor for list queries
-     * @return
-     */
-    protected ResultSetExtractor<EventInstance> getObjectResultSetExtractor() {
-        return getObjectResultSetExtractor((e,rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException) {
-                //We will log and continue as to not prevent someone from loading module based VOs for
-                // which the modules are actually installed.
-                LOG.error(e.getCause().getMessage(), e.getCause());
-            }else {
-                LOG.error(e.getMessage(), e);
-                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
-                // want to see the 500 error in the API etc.
-                throw new ShouldNeverHappenException(e);
-            }
-        });
-    }
-
-    /**
-     *
-     * @param error
-     * @return
-     */
-    protected ResultSetExtractor<EventInstance> getObjectResultSetExtractor(BiConsumer<Exception, ResultSet> error) {
-        return new ResultSetExtractor<EventInstance>() {
-
-            @Override
-            public EventInstance extractData(ResultSet rs) throws SQLException, DataAccessException {
-                RowMapper<EventInstance> rowMapper = getRowMapper();
-                List<EventInstance> results = new ArrayList<>();
-                int rowNum = 0;
-                while (rs.next()) {
-                    try {
-                        EventInstance row = rowMapper.mapRow(rs, rowNum);
-                        loadRelationalData(row);
-                        results.add(row);
-                    } catch (Exception e) {
-                        error.accept(e, rs);
-                    } finally {
-                        rowNum++;
-                    }
-                    return DataAccessUtils.uniqueResult(results);
-                }
-                return null;
-            }
-        };
-    }
-
-    public EventInstanceRowMapper getRowMapper() {
-        return new EventInstanceRowMapper();
-    }
-
-    /**
      * Set rtnTs and rtnCause for this event
      * @param event
      */
     private void updateEvent(EventInstance event) {
         if (event.isRtnApplicable()) {
-            Map<Field<?>, Object> values = new LinkedHashMap<>();
-            values.put(table.rtnTs, event.getRtnTimestamp());
-            values.put(table.rtnCause, event.getRtnCause().value());
-            UpdateConditionStep<?> update = this.create.update(table).set(values).where(table.id.eq(event.getId()));
-            String sql = update.getSQL();
-            List<Object> args = update.getBindValues();
-            ejt.update(sql, args.toArray(new Object[args.size()]));
+            create.update(table)
+                    .set(table.rtnTs, event.getRtnTimestamp())
+                    .set(table.rtnCause, event.getRtnCause().value())
+                    .where(table.id.eq(event.getId()))
+                    .execute();
         }
     }
 
@@ -370,15 +259,13 @@ public class EventDao extends BaseDao {
             throw new ShouldNeverHappenException("Not enough Ids!");
         }
 
-        Map<Field<?>, Object> values = new LinkedHashMap<>();
-        values.put(table.rtnTs, timestamp);
-        values.put(table.rtnCause, cause.value());
-
         for(List<Integer> batch : partitionInParameters(eventIds.stream())) {
-            UpdateConditionStep<?> update = this.create.update(table).set(values).where(table.rtnApplicable.eq(boolToChar(true)).and(table.id.in(batch)));
-            String sql = update.getSQL();
-            List<Object> args = update.getBindValues();
-            ejt.update(sql, args.toArray(new Object[0]));
+            create.update(table)
+                    .set(table.rtnTs, timestamp)
+                    .set(table.rtnCause, cause.value())
+                    .where(table.rtnApplicable.eq(boolToChar(true)))
+                    .and(table.id.in(batch))
+                    .execute();
         }
     }
 
@@ -391,14 +278,13 @@ public class EventDao extends BaseDao {
      * @return
      */
     public boolean ackEvent(int eventId, long time, Integer userId, TranslatableMessage alternateAckSource) {
-        Map<Field<?>, Object> values = new LinkedHashMap<>();
-        values.put(table.ackTs, time);
-        values.put(table.ackUserId, userId);
-        values.put(table.alternateAckSource, writeTranslatableMessage(alternateAckSource));
-        UpdateConditionStep<?> update = this.create.update(table).set(values).where(table.id.eq(eventId).and(table.ackTs.isNull()));
-        String sql = update.getSQL();
-        List<Object> args = update.getBindValues();
-        return ejt.update(sql, args.toArray(new Object[0])) > 0;
+        return create.update(table)
+                .set(table.ackTs, time)
+                .set(table.ackUserId, userId)
+                .set(table.alternateAckSource, writeTranslatableMessage(alternateAckSource))
+                .where(table.id.eq(eventId))
+                .and(table.ackTs.isNull())
+                .execute() > 0;
     }
 
     /**
@@ -407,14 +293,15 @@ public class EventDao extends BaseDao {
      */
     public List<EventInstance> getActiveEvents() {
         List<EventInstance> events = new ArrayList<>();
-        SelectJoinStep<Record> query = this.getJoinedSelectQuery();
-        SelectConditionStep<Record> where = query.where(table.rtnApplicable.eq(boolToChar(true)).and(table.rtnTs.isNull()));
-        String sql = where.getSQL();
-        List<Object> args = where.getBindValues();
-        ejt.query(sql, getCallbackResultSetExtractor((item) -> {
-            loadRelationalData(item);
-            events.add(item);
-        }), args.toArray());
+        getJoinedSelectQuery()
+                .where(table.rtnApplicable.eq(boolToChar(true)))
+                .and(table.rtnTs.isNull())
+                .fetch()
+                .forEach(record -> {
+                    EventInstance item = mapRecord(record);
+                    loadRelationalData(item);
+                    events.add(item);
+                });
         return events;
     }
 
@@ -423,13 +310,12 @@ public class EventDao extends BaseDao {
      * @param id
      * @return
      */
-    public EventInstance get(int id){
-        Select<Record> query = this.getJoinedSelectQuery()
+    public EventInstance get(int id) {
+        EventInstance item = getJoinedSelectQuery()
                 .where(table.id.eq(id))
-                .limit(1);
-        String sql = query.getSQL();
-        List<Object> args = query.getBindValues();
-        EventInstance item = ejt.query(sql, args.toArray(new Object[0]), getObjectResultSetExtractor());
+                .limit(1)
+                .fetchOne(this::mapRecord);
+
         if (item != null) {
             loadRelationalData(item);
         }
@@ -437,76 +323,82 @@ public class EventDao extends BaseDao {
     }
 
 
-    public static class EventInstanceRowMapper implements RowMapper<EventInstance> {
-        @Override
-        public EventInstance mapRow(ResultSet rs, int rowNum) throws SQLException {
-            EventType type = createEventType(rs, 2);
-            EventInstance event = new EventInstance(type, rs.getLong(6), charToBool(rs.getString(7)), AlarmLevels.fromValue(rs.getInt(10)),
-                    BaseDao.readTranslatableMessage(rs, 11), null);
-            event.setId(rs.getInt(1));
-            long rtnTs = rs.getLong(8);
-            if (!rs.wasNull())
-                event.returnToNormal(rtnTs, ReturnCause.fromValue(rs.getInt(9)));
+    public EventInstance mapRecord(Record record) {
+        EventType type = createEventType(record);
+        EventInstance event = new EventInstance(
+                type,
+                record.get(table.activeTs),
+                charToBool(record.get(table.rtnApplicable)),
+                AlarmLevels.fromValue(record.get(table.alarmLevel)),
+                BaseDao.readTranslatableMessage(record.get(table.message)),
+                null
+        );
+        event.setId(record.get(table.id));
+        Long rtnTs = record.get(table.rtnTs);
+        if (rtnTs != null)
+            event.returnToNormal(rtnTs, ReturnCause.fromValue(record.get(table.rtnCause)));
 
-            MangoPermission read = new MangoPermission(rs.getInt(15));
-            event.supplyReadPermission(() -> read);
+        MangoPermission read = new MangoPermission(record.get(table.readPermissionId));
+        event.supplyReadPermission(() -> read);
 
-            long ackTs = rs.getLong(12);
-            if (!rs.wasNull()) {
-                event.setAcknowledgedTimestamp(ackTs);
-                event.setAcknowledgedByUserId(rs.getInt(13));
-                if (!rs.wasNull())
-                    event.setAcknowledgedByUsername(rs.getString(16));
-                event.setAlternateAckSource(BaseDao.readTranslatableMessage(rs, 14));
-            }
-            event.setHasComments(rs.getInt(17) > 0);
+        Long ackTs = record.get(table.ackTs);
+        if (ackTs != null) {
+            event.setAcknowledgedTimestamp(ackTs);
+            Integer ackUserId = record.get(table.ackUserId);
+            if (ackUserId != null)
+                event.setAcknowledgedByUsername(record.get(userTable.username));
 
-            return event;
+            event.setAlternateAckSource(BaseDao.readTranslatableMessage(record.get(table.alternateAckSource)));
         }
+
+        Integer cnt = (Integer) record.get("cnt");
+        event.setHasComments(cnt != null && cnt > 0);
+        return event;
     }
 
-    /**
-     * Get an event type from a result set
-     *
-     * eventTypeName = offset
-     * eventSubtypeName = offset + 1
-     * eventTypeRef1 = offset + 2
-     * eventTypeRef2 = offset + 3
-     *
-     * @param rs
-     * @param offset
-     * @return
-     * @throws SQLException
-     */
-    public static EventType createEventType(ResultSet rs, int offset) throws SQLException {
-        String typeName = rs.getString(offset);
-        String subtypeName = rs.getString(offset + 1);
+    public EventType createEventType(Record record) {
+        String typeName = record.get(table.typeName);
+        String subTypeName = record.get(table.subTypeName);
+        Integer typeRef1 = record.get(table.typeRef1);
+        Integer typeRef2 = record.get(table.typeRef2);
+        return createEventType(typeName, subTypeName, typeRef1, typeRef2);
+    }
+
+    public EventType createEventType(String typeName, String subTypeName, Integer typeRef1, Integer typeRef2) {
         EventType type;
-        if (typeName.equals(EventTypeNames.DATA_POINT))
-            type = new DataPointEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
-        else if (typeName.equals(EventTypeNames.DATA_SOURCE))
-            type = new DataSourceEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
-        else if (typeName.equals(EventTypeNames.SYSTEM))
-            type = new SystemEventType(subtypeName, rs.getInt(offset + 2));
-        else if (typeName.equals(EventTypeNames.PUBLISHER))
-            type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
-        else if (typeName.equals(EventTypeNames.AUDIT))
-            type = new AuditEventType(subtypeName, -1, rs.getInt(offset + 3)); //TODO allow tracking the various types of audit events...
-        else {
-            EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
-            if (def == null) {
-                //Create Missing Event Type
-                type = new MissingEventType(typeName, null, rs.getInt(offset + 2), rs.getInt(offset + 3));
-            }else {
-                type = def.createEventType(subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
-                if (type == null) {
-                    //Create Missing Event type
-                    type = new MissingEventType(typeName, subtypeName, rs.getInt(offset + 2), rs.getInt(offset + 3));
+        switch (typeName) {
+            case EventType.EventTypeNames.DATA_POINT:
+                type = new DataPointEventType(typeRef1, typeRef2);
+                break;
+            case EventType.EventTypeNames.DATA_SOURCE:
+                type = new DataSourceEventType(typeRef1, typeRef2);
+                break;
+            case EventType.EventTypeNames.SYSTEM:
+                type = new SystemEventType(subTypeName, typeRef1);
+                break;
+            case EventType.EventTypeNames.PUBLISHER:
+                type = new PublisherEventType(typeRef1, typeRef2);
+                break;
+            case EventType.EventTypeNames.AUDIT:
+                type = new AuditEventType(subTypeName, -1, typeRef2); //TODO allow tracking the various of audit events...
+                break;
+            default:
+                EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
+                if (def == null) {
+                    //Create Missing Event Type
+                    type = new MissingEventType(typeName, null, typeRef1, typeRef2);
+                } else {
+                    type = def.createEventType(subTypeName, typeRef1, typeRef2);
+                    if (type == null) {
+                        //Create Missing Event type
+                        type = new MissingEventType(typeName, subTypeName, typeRef1, typeRef2);
+                    }
                 }
-            }
+                break;
         }
         return type;
     }
+
 
     /**
      * Insert a comment and return the event commented on
