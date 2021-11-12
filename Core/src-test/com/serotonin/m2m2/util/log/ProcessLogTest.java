@@ -206,7 +206,7 @@ public class ProcessLogTest {
         //cleanLogs("processLog.test-multi-thread-multi-file");
     }
 
-    private final String logRegex = "(\\D.*) \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3} \\((.*):(\\d.*)\\) - (.*)\n";
+    private final String logRegex = "(\\D.*) \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3} \\((.*):(\\d.*)\\) - (.*)" + System.lineSeparator();
     private void assertMatch(String message, LogLevel level, String result) {
         //Messages of the form:
         //LEVEL yyyy-MM-dd HH:mm:SS,sss (location:line) - message

@@ -140,7 +140,7 @@ public class ScriptingTest extends MangoTestBase {
                         DataTypes.NUMERIC);
 
                 String result = scriptOut.toString();
-                String[] messages = result.split("\\n");
+                String[] messages = result.split(System.lineSeparator());
                 Assert.assertEquals(6, messages.length);
 
                 for(int i=0; i<messages.length; i++) {
@@ -254,7 +254,7 @@ public class ScriptingTest extends MangoTestBase {
                 Assert.assertTrue(scriptLog.getFile().exists());
 
                 String result = readFile(scriptLog.getFile().toPath());
-                String[] messages = result.split("\\n");
+                String[] messages = result.split(System.lineSeparator());
                 Assert.assertEquals(6, messages.length);
 
                 for(int i=0; i<messages.length; i++) {
@@ -318,7 +318,7 @@ public class ScriptingTest extends MangoTestBase {
                         DataTypes.NUMERIC);
 
                 String result = scriptOut.toString();
-                Assert.assertEquals("testing context writer\n", result);
+                Assert.assertEquals("testing context writer" + System.lineSeparator(), result);
             }
         }catch(Exception e) {
             e.printStackTrace();
@@ -367,7 +367,7 @@ public class ScriptingTest extends MangoTestBase {
                 Assert.assertTrue(scriptLog.getFile().exists());
 
                 String result = readFile(scriptLog.getFile().toPath());
-                String[] messages = result.split("\\n");
+                String[] messages = result.split(System.lineSeparator());
                 Assert.assertEquals(6, messages.length);
 
                 for(int i=0; i<messages.length; i++) {
