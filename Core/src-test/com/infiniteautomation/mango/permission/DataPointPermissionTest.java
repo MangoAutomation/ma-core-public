@@ -7,18 +7,18 @@ package com.infiniteautomation.mango.permission;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jooq.DSLContext;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.db.tables.Permissions;
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.service.DataPointService;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.DatabaseProxy;
@@ -29,7 +29,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.infiniteautomation.mango.spring.components.RunAs;
 
 /**
  *
@@ -63,26 +62,11 @@ public class DataPointPermissionTest extends MangoTestBase {
         dao.update(point.getId(), point);
 
         //Check for the recently orphaned permission (it should not be there)
-        ExtendedJdbcTemplate ejt = Common.getBean(DatabaseProxy.class).getJdbcTemplate();
-        List<Integer> permissionIds = ejt.query("SELECT id from permissions WHERE id=" + permissionId, new RowMapper<Integer>() {
-
-            @Override
-            public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return rs.getInt(1);
-            }
-
-        });
+        List<Integer> permissionIds = getPermissionIds(permissionId);
         assertEquals(0, permissionIds.size());
 
         //Check for orphaned minterm mappings
-        List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permissionId, new RowMapper<Integer>() {
-
-            @Override
-            public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return rs.getInt(1);
-            }
-
-        });
+        List<Integer> mintermIds = getMintermIds(permissionId);
         assertEquals(0, mintermIds.size());
     }
 
@@ -123,31 +107,13 @@ public class DataPointPermissionTest extends MangoTestBase {
                 assertTrue(points.contains(vo));
             }
 
-            ExtendedJdbcTemplate ejt = Common.getBean(DatabaseProxy.class).getJdbcTemplate();
-            List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
-
-                @Override
-                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    return rs.getInt(1);
-                }
-
-            });
+            List<Integer> existing = getPermissionIds(null);
 
             //Delete the source and point
             DataSourceDao.getInstance().delete(vos.get(0).getDataSourceId());
 
-
-            List<Integer> permissions = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
-
-                @Override
-                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    return rs.getInt(1);
-                }
-
-            });
-
             //We should have removed 1 permission
-            assertEquals(existing.size() - 1, permissions.size());
+            assertEquals(existing.size() - 1, getPermissionIds(null).size());
         });
     }
 
@@ -185,30 +151,13 @@ public class DataPointPermissionTest extends MangoTestBase {
                 assertTrue(points.contains(vo));
             }
 
-            ExtendedJdbcTemplate ejt = Common.getBean(ExtendedJdbcTemplate.class);
-            List<Integer> existing = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
-
-                @Override
-                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    return rs.getInt(1);
-                }
-
-            });
+            List<Integer> existing = getPermissionIds(null);
 
             //Delete a point
             DataPointDao.getInstance().delete(vos.get(0));
 
-            List<Integer> permissions = ejt.query("SELECT id from permissions", new RowMapper<Integer>() {
-
-                @Override
-                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    return rs.getInt(1);
-                }
-
-            });
-
             //The set and read permission for point 2 still exist
-            assertEquals(existing.size(), permissions.size());
+            assertEquals(existing.size(), getPermissionIds(null).size());
 
             //ensure all minterms ect still exist for the un-deleted point
             vos = query.query();
@@ -219,4 +168,27 @@ public class DataPointPermissionTest extends MangoTestBase {
         });
     }
 
+    private List<Integer> getPermissionIds(Integer permissionId) {
+        DSLContext create = Common.getBean(DatabaseProxy.class).getContext();
+        Permissions table = Permissions.PERMISSIONS;
+        if (permissionId != null) {
+            return create.select(table.id)
+                    .from(table)
+                    .where(table.id.eq(permissionId))
+                    .fetch(table.id);
+        }
+
+        return create.select(table.id)
+                .from(table)
+                .fetch(table.id);
+    }
+
+    private List<Integer> getMintermIds(int permissionId) {
+        DSLContext create = Common.getBean(DatabaseProxy.class).getContext();
+        PermissionsMinterms table = PermissionsMinterms.PERMISSIONS_MINTERMS;
+            return create.select(table.mintermId)
+                    .from(table)
+                    .where(table.permissionId.eq(permissionId))
+                    .fetch(table.mintermId);
+    }
 }
