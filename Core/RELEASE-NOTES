@@ -1,3 +1,7 @@
+*Version 4.2.3*
+* Fix bug in runtime where Update data point events were not reliably fired
+* Fix bug in runtime where backdated values would be set as the current value of the point
+
 *Version 4.2.2*
 * Fix bug in mailing lists that would prevent emails from being sent to them
 * Fix bug where Mango logo was not inserted into email template (Excel reports and Email event handler)

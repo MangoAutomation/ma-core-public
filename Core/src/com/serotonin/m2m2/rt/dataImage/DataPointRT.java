@@ -273,7 +273,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             return;
         }
 
-        boolean backdated = pointValue.get() != null && newValue.getTime() < pointValue.get().getTime();
+        PointValueTime oldValue = pointValue.get();
+        boolean backdated = oldValue != null && newValue.getTime() < oldValue.getTime();
 
         // Determine whether the new value qualifies for logging.
         boolean logValue;
@@ -282,7 +283,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         switch (vo.getLoggingType()) {
             case LoggingTypes.ON_CHANGE_INTERVAL:
             case LoggingTypes.ON_CHANGE:
-                if (pointValue.get() == null) {
+                if (oldValue == null) {
                     logValue = true;
                     if(newValue.getValue() instanceof NumericValue) {
                         //Set the tolerance origin so the next value has
@@ -309,9 +310,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                         else
                             logValue = false;
                     } else if(newValue.getValue() instanceof ImageValue) {
-                        logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.get().getValue()).getDigest());
+                        logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)oldValue.getValue()).getDigest());
                     } else
-                        logValue = !Objects.equals(newValue.getValue(), pointValue.get().getValue());
+                        logValue = !Objects.equals(newValue.getValue(), oldValue.getValue());
                 }
 
                 saveValue = logValue;
@@ -320,13 +321,13 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 logValue = true;
                 break;
             case LoggingTypes.ON_TS_CHANGE:
-                if (pointValue.get() == null)
+                if (oldValue == null)
                     logValue = true;
                 else if (backdated)
                     // Backdated. Ignore it
                     logValue = false;
                 else
-                    logValue = newValue.getTime() != pointValue.get().getTime();
+                    logValue = newValue.getTime() != oldValue.getTime();
 
                 saveValue = logValue;
                 break;
@@ -353,9 +354,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     newValue.getTime(), source.getSetPointSourceMessage());
         }
 
-        PointValueTime oldValue = pointValue.get();
-        pointValue.set(newValue);
-        fireEvents(oldValue, newValue, null, source != null, backdated, logValue, saveValue, false);
+        if(!backdated) {
+            pointValue.set(newValue);
+        }
+        fireEvents(oldValue, newValue, null, source != null, backdated, logValue, !backdated, false);
 
     }
 
