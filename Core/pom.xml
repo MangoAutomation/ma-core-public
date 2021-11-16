@@ -341,6 +341,18 @@ with Springfox 3.
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-client</artifactId>
             <version>${springSecurityVersion}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.minidev</groupId>
+                    <artifactId>json-smart</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- to fix https://ossindex.sonatype.org/vuln/2f4d58e2-444b-4231-bec2-2a2c2135b9d7 Remove exclusion from oauth2-client when fixed-->
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>2.4.7</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
