@@ -3,6 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.Assert.*;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -31,10 +35,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.junit.Assert.*;
 
 /**
  * @author Terry Packer
@@ -734,7 +734,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         User user = insertUser();
         runAs.runAs(user, () -> {
             User self = service.get(user.getId());
-            self.setCreated(new Date());
+            Date differentDate = new Date(self.getCreated().getTime() + 1);
+            self.setCreated(differentDate);
             service.update(self.getId(), self);
         });
     }
@@ -744,7 +745,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         User user = insertUser(editRole);
         runAs.runAs(user, () -> {
             User self = service.get(user.getId());
-            self.setCreated(new Date());
+            Date differentDate = new Date(self.getCreated().getTime() + 1);
+            self.setCreated(differentDate);
             service.update(self.getId(), self);
         });
     }

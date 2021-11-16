@@ -7,21 +7,20 @@ package com.infiniteautomation.mango.permission;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jooq.DSLContext;
 import org.junit.Test;
-import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.db.tables.PermissionsMinterms;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -173,16 +172,17 @@ public class PermissionPersistenceTest extends MangoTestBase {
         assertEquals(0, read.getRoles().size());
 
         //Check for orphaned minterm mappings
-        ExtendedJdbcTemplate ejt = Common.getBean(ExtendedJdbcTemplate.class);
-        List<Integer> mintermIds = ejt.query("SELECT mintermId from permissionsMinterms WHERE permissionId=" + permission.getId(), new RowMapper<Integer>() {
-
-            @Override
-            public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
-                return rs.getInt(1);
-            }
-
-        });
+        List<Integer> mintermIds = getMintermIds(permission.getId());
         assertEquals(0, mintermIds.size());
+    }
+
+    private List<Integer> getMintermIds(int permissionId) {
+        DSLContext create = Common.getBean(DatabaseProxy.class).getContext();
+        PermissionsMinterms table = PermissionsMinterms.PERMISSIONS_MINTERMS;
+        return create.select(table.mintermId)
+                .from(table)
+                .where(table.permissionId.eq(permissionId))
+                .fetch(table.mintermId);
     }
 
 }

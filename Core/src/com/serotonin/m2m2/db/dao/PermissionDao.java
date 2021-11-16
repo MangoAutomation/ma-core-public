@@ -3,25 +3,16 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.default_;
-import static org.jooq.impl.DSL.when;
+import static org.jooq.impl.DSL.*;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.SelectSeekStep2;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -67,59 +58,26 @@ public class PermissionDao extends BaseDao {
             return null;
         }
 
-        List<Field<?>> fields = new ArrayList<>();
-        fields.add(roleTable.id);
-        fields.add(roleTable.xid);
-        fields.add(permissionsMinterms.mintermId);
-
-        SelectSeekStep2<Record, Integer, Integer> select = create.select(fields).from(permissionsMinterms)
+        Map<Integer, Set<Role>> mintermMap = new HashMap<>();
+        create.select(roleTable.id, roleTable.xid, permissionsMinterms.mintermId)
+                .from(permissionsMinterms)
                 .join(mintermsRoles).on(permissionsMinterms.mintermId.eq(mintermsRoles.mintermId))
                 .join(roleTable).on(roleTable.id.eq(mintermsRoles.roleId))
                 .where(permissionsMinterms.permissionId.eq(id))
-                .orderBy(permissionsMinterms.permissionId.asc(), permissionsMinterms.mintermId.asc());
+                .orderBy(permissionsMinterms.permissionId.asc(), permissionsMinterms.mintermId.asc())
+                .fetch()
+                .forEach(record -> {
+                    Role role = new Role(record.get(roleTable.id), record.get(roleTable.xid));
+                    Integer mintermId = record.get(permissionsMinterms.mintermId);
+                    mintermMap.computeIfAbsent(mintermId, m -> new HashSet<>()).add(role);
+                });
 
-        String sql = select.getSQL();
-        List<Object> arguments = select.getBindValues();
-        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+        if (mintermMap.size() > 0) {
+            Set<Set<Role>> roleSet = new HashSet<>(mintermMap.values());
+            return new MangoPermission(roleSet).withId(id);
+        }
 
-        //Add to current minterm
-        //Add to next minterm
-        return ejt.query(sql, new ResultSetExtractor<MangoPermission>() {
-
-            private int roleIdIndex = 1;
-            private int roleXidIndex = 2;
-            private int minterIdIndex = 3;
-            @Override
-            public MangoPermission extractData(ResultSet rs)
-                    throws SQLException, DataAccessException {
-
-                if(rs.next()) {
-                    Set<Set<Role>> roleSet = new HashSet<>();
-                    Set<Role> minTerm = new HashSet<>();
-                    roleSet.add(minTerm);
-                    minTerm.add(new Role(rs.getInt(roleIdIndex), rs.getString(roleXidIndex)));
-
-                    int mintermId = rs.getInt(minterIdIndex);
-                    while(rs.next()) {
-                        if(rs.getInt(minterIdIndex) == mintermId) {
-                            //Add to current minterm
-                            minTerm.add(new Role(rs.getInt(roleIdIndex), rs.getString(roleXidIndex)));
-                        }else {
-                            //Add to next minterm
-                            minTerm = new HashSet<>();
-                            roleSet.add(minTerm);
-                            minTerm.add(new Role(rs.getInt(roleIdIndex), rs.getString(roleXidIndex)));
-                            mintermId = rs.getInt(minterIdIndex);
-                        }
-                    }
-                    MangoPermission permission = new MangoPermission(roleSet);
-                    return permission.withId(id);
-                }else {
-                    return new MangoPermission(id);
-                }
-            }
-
-        }, argumentsArray);
+        return new MangoPermission(id);
     }
 
     /**
