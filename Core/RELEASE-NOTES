@@ -11,6 +11,8 @@
 * Remove env property cache.users.size
 * Cache all users in memory for performance, disable by setting cache.users.enabled=false (defaults to true)
 * Set system permissions within a transaction to ensure any failures are rolled back and don't affect the runtime
+* Fix bug in runtime where Update type data point events were not reliably fired
+* Fix bug in runtime where backdated values would be set as the current value of the point
 
 *Version 4.2.2*
 * Fix bug in mailing lists that would prevent emails from being sent to them
