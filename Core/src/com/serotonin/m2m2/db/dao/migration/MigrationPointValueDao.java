@@ -20,7 +20,9 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -55,7 +57,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
      * Map key is series id
      */
     private final Map<Integer, MigrationSeries> seriesStatus = new HashMap<>();
-    private final Queue<MigrationSeries> seriesQueue = new PriorityBlockingQueue<>(128,
+    private final Queue<MigrationSeries> seriesQueue = new PriorityBlockingQueue<>(1024,
             Comparator.nullsFirst(Comparator.comparingLong(MigrationSeries::getTimestamp)));
 
     private final AtomicLong completedPeriods = new AtomicLong();
@@ -71,6 +73,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final DataPointDao dataPointDao;
     private final Environment env;
     private final ExecutorService executorService;
+    private final ScheduledExecutorService scheduledExecutorService;
     private final ConfigurableApplicationContext context;
     private final Long migrateFrom;
     private final long period;
@@ -81,6 +84,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private volatile int writeChunkSize;
     private volatile int numTasks;
     private boolean terminated;
+
+    private final Object periodicLogFutureMutex = new Object();
+    private Future<?> periodicLogFuture;
 
     public enum MigrationStatus {
         NOT_STARTED,
@@ -96,6 +102,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                                   Predicate<DataPointVO> migrationFilter,
                                   Environment env,
                                   ExecutorService executorService,
+                                  ScheduledExecutorService scheduledExecutorService,
                                   ConfigurableApplicationContext context,
                                   AbstractTimer timer) {
         super(primary, secondary);
@@ -103,6 +110,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.migrationFilter = migrationFilter;
         this.env = env;
         this.executorService = executorService;
+        this.scheduledExecutorService = scheduledExecutorService;
         this.context = context;
         this.timer = timer;
 
@@ -134,6 +142,17 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         adjustThreads(env.getProperty("db.migration.threadCount", int.class, Math.max(1, Runtime.getRuntime().availableProcessors() / 4)));
         this.readChunkSize = env.getProperty("db.migration.readChunkSize", int.class, 10000);
         this.writeChunkSize = env.getProperty("db.migration.writeChunkSize", int.class, 10000);
+
+        synchronized (periodicLogFutureMutex) {
+            if (periodicLogFuture != null) {
+                periodicLogFuture.cancel(false);
+            }
+            this.periodicLogFuture = scheduledExecutorService.scheduleAtFixedRate(() -> {
+                if (log.isInfoEnabled()) {
+                    log.info("{} Periodic update.", stats());
+                }
+            }, 0, env.getProperty("db.migration.logPeriodSeconds", int.class, 60), TimeUnit.SECONDS);
+        }
     }
 
     private List<MigrationTask> adjustThreads(int threadCount) {
@@ -288,7 +307,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             try {
                 Thread.currentThread().setName(name);
                 if (log.isInfoEnabled()) {
-                    log.info("Migration task starting");
+                    log.info("{} Migration task starting.", stats());
                 }
 
                 boolean stopped;
@@ -301,11 +320,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
                 if (stopped) {
                     if (log.isWarnEnabled()) {
-                        log.warn("Migration task was stopped");
+                        log.warn("{} Migration task was stopped.", stats());
                     }
                 } else {
                     if (log.isInfoEnabled()) {
-                        log.info("Migration complete, no more work");
+                        log.info("{} Migration complete, no more work.", stats());
                     }
                 }
             } catch (Exception e) {

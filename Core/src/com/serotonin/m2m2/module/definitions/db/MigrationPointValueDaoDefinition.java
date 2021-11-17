@@ -6,6 +6,7 @@ package com.serotonin.m2m2.module.definitions.db;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
     @Autowired DataPointDao dataPointDao;
     @Autowired Environment env;
     @Autowired ExecutorService executorService;
+    @Autowired ScheduledExecutorService scheduledExecutorService;
     @Autowired ConfigurableApplicationContext context;
     @Autowired AbstractTimer timer;
     @Autowired List<PointValueDaoDefinition> definitions;
@@ -52,7 +54,7 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
         this.pointValueDao = new MigrationPointValueDao(
                 primary.getPointValueDao(),
                 secondary.getPointValueDao(),
-                dataPointDao, vo -> true, env, executorService, context, timer);
+                dataPointDao, vo -> true, env, executorService, scheduledExecutorService, context, timer);
 
         if (log.isInfoEnabled()) {
             log.info("Time series migration enabled, from {} (secondary) to {} (primary)",
