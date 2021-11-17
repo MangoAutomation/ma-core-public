@@ -76,9 +76,9 @@ public class PurgeSettingsListener {
 
         try {
             pointValueDao.setRetentionPolicy(period);
-            log.info("Retention policy of {} configured", period);
+            log.info("Retention policy of {} configured for {}", period, pointValueDao.getClass().getSimpleName());
         } catch (UnsupportedOperationException e) {
-            log.info("Database does not support setting retention policy");
+            log.info("Setting retention policy is not supported for {}", pointValueDao.getClass().getSimpleName());
         }
     }
 }
