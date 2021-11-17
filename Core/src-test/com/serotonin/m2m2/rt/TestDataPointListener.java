@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
@@ -16,7 +18,13 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public class TestDataPointListener implements DataPointListener {
     int dataPointId;
     String name;
-    AtomicInteger eventCount = new AtomicInteger();
+    AtomicInteger initialized = new AtomicInteger();
+    List<PointValueTime> updated = new ArrayList<>();
+    List<PointValueTime> changed = new ArrayList<>();
+    List<PointValueTime> logged = new ArrayList<>();
+    List<PointValueTime> backdated = new ArrayList<>();
+    List<PointValueTime> set = new ArrayList<>();
+    AtomicInteger terminated = new AtomicInteger();
 
     public TestDataPointListener(String name, int dataPointId) {
         this.name = name;
@@ -30,37 +38,66 @@ public class TestDataPointListener implements DataPointListener {
 
     @Override
     public void pointInitialized() {
-        eventCount.incrementAndGet();
+        initialized.incrementAndGet();
+    }
+
+    public int getInitializedCount() {
+        return initialized.get();
     }
 
     @Override
     public void pointUpdated(PointValueTime newValue) {
-        eventCount.incrementAndGet();
+        updated.add(newValue);
+    }
+
+    public List<PointValueTime> getUpdated() {
+        return updated;
     }
 
     @Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        eventCount.incrementAndGet();
+        changed.add(newValue);
     }
 
-    @Override
-    public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
-        eventCount.incrementAndGet();
-    }
-
-    @Override
-    public void pointBackdated(PointValueTime value) {
-        eventCount.incrementAndGet();
-    }
-
-    @Override
-    public void pointTerminated(DataPointVO vo) {
-        eventCount.incrementAndGet();
+    public List<PointValueTime> getChanged() {
+        return changed;
     }
 
     @Override
     public void pointLogged(PointValueTime value) {
-        eventCount.incrementAndGet();
+        logged.add(value);
     }
+
+    public List<PointValueTime> getLogged() {
+        return logged;
+    }
+
+    @Override
+    public void pointBackdated(PointValueTime value) {
+        backdated.add(value);
+    }
+
+    public List<PointValueTime> getBackdated() {
+        return backdated;
+    }
+
+    @Override
+    public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
+        set.add(newValue);
+    }
+
+    public List<PointValueTime> getSet() {
+        return set;
+    }
+
+    @Override
+    public void pointTerminated(DataPointVO vo) {
+        terminated.incrementAndGet();
+    }
+
+    public int getTerminated() {
+        return terminated.get();
+    }
+
 
 }
