@@ -108,6 +108,9 @@ public class MangoConfigurationWatcher {
     private void reloadAndFireEvent() {
         try {
             mangoProperties.reload();
+            if (log.isInfoEnabled()) {
+                log.info("Mango properties file {} reloaded", mangoProperties.getEnvPropertiesPath());
+            }
             eventPublisher.publishEvent(new MangoConfigurationReloadedEvent());
         } catch (Exception e) {
             log.error("Error reloading config file", e);
