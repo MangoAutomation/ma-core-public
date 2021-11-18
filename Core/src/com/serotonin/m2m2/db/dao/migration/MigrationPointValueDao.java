@@ -47,6 +47,10 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+
 public class MigrationPointValueDao extends DelegatingPointValueDao implements AutoCloseable {
 
     /**
@@ -78,12 +82,13 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Long migrateFrom;
     private final long period;
     private final AbstractTimer timer;
+    private final RetryConfig retryConfig;
+    private final Retry retry;
 
     private volatile boolean fullyMigrated = false;
     private volatile int readChunkSize;
     private volatile int writeChunkSize;
     private volatile int numTasks;
-    private volatile int maxAttempts;
     private boolean terminated;
 
     private final Object periodicLogFutureMutex = new Object();
@@ -125,6 +130,14 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         long period = env.getProperty("db.migration.period", Long.class, 1L);
         TimeUnit periodUnit = env.getProperty("db.migration.periodUnit", TimeUnit.class, TimeUnit.DAYS);
         this.period = periodUnit.toMillis(period);
+
+        int maxAttempts = env.getProperty("db.migration.maxAttempts", int.class, 5);
+        this.retryConfig = RetryConfig.custom()
+                .maxAttempts(maxAttempts)
+                .failAfterMaxAttempts(true)
+                .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(500, 2.0D, 0.2D, 60_000))
+                .build();
+        this.retry = Retry.of("migratePeriod", retryConfig);
     }
 
     @PostConstruct
@@ -143,7 +156,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         adjustThreads(env.getProperty("db.migration.threadCount", int.class, Math.max(1, Runtime.getRuntime().availableProcessors() / 4)));
         this.readChunkSize = env.getProperty("db.migration.readChunkSize", int.class, 10000);
         this.writeChunkSize = env.getProperty("db.migration.writeChunkSize", int.class, 10000);
-        this.maxAttempts = env.getProperty("db.migration.maxAttempts", int.class, 3);
 
         synchronized (periodicLogFutureMutex) {
             if (periodicLogFuture != null) {
@@ -284,7 +296,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             durationLeft = Duration.ofSeconds(secondsLeft);
         }
 
-        return String.format("[%6.2f%% complete, %d/%d periods, %.1f values/s, %.1f values/period, %s ETA (%s), %d aborted (error)]",
+        return String.format("[%6.2f%% complete, %d/%d periods, %.1f values/s, %.1f values/period, %s ETA (%s), %d aborted series, %d threads]",
                 progress,
                 completedPeriods,
                 totalPeriods,
@@ -295,7 +307,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                         .truncatedTo(ChronoUnit.MINUTES)
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : "—",
                 durationLeft != null ? durationLeft.truncatedTo(ChronoUnit.MINUTES) : "∞",
-                errored);
+                errored,
+                numTasks);
     }
 
     private class MigrationTask implements Runnable {
@@ -367,7 +380,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         private volatile long timestamp;
         private long sampleCount;
         private boolean initialPassComplete;
-        private int attempts = 0;
+
+        private final Runnable initialPassRetry = Retry.decorateRunnable(retry, this::initialPass);
+        private final Runnable migrateNextPeriodRetry = Retry.decorateRunnable(retry, this::migrateNextPeriod);
 
         private MigrationSeries(int seriesId) {
             this.seriesId = seriesId;
@@ -376,19 +391,14 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         private synchronized MigrationStatus run() {
             try {
                 if (!initialPassComplete) {
-                    initialPass();
+                    initialPassRetry.run();
                 } else {
-                    attempts++;
-                    migrateNextPeriod();
+                    migrateNextPeriodRetry.run();
                 }
             } catch (Exception e) {
-                if (attempts < maxAttempts) {
-                    log.warn("Error migrating period for series {}, migration will be re-attempted", seriesId, e);
-                } else {
-                    erroredSeries.incrementAndGet();
-                    this.status = MigrationStatus.ERROR;
-                    log.error("Error migrating period for series {}, migration aborted for series", seriesId, e);
-                }
+                erroredSeries.incrementAndGet();
+                this.status = MigrationStatus.ERROR;
+                log.error("Error migrating period for series {}, migration aborted for series", seriesId, e);
             } catch (Throwable t) {
                 erroredSeries.incrementAndGet();
                 this.status = MigrationStatus.ERROR;
