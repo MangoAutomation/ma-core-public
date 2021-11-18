@@ -83,6 +83,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private volatile int readChunkSize;
     private volatile int writeChunkSize;
     private volatile int numTasks;
+    private volatile int maxAttempts;
     private boolean terminated;
 
     private final Object periodicLogFutureMutex = new Object();
@@ -142,6 +143,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         adjustThreads(env.getProperty("db.migration.threadCount", int.class, Math.max(1, Runtime.getRuntime().availableProcessors() / 4)));
         this.readChunkSize = env.getProperty("db.migration.readChunkSize", int.class, 10000);
         this.writeChunkSize = env.getProperty("db.migration.writeChunkSize", int.class, 10000);
+        this.maxAttempts = env.getProperty("db.migration.maxAttempts", int.class, 3);
 
         synchronized (periodicLogFutureMutex) {
             if (periodicLogFuture != null) {
@@ -282,7 +284,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             durationLeft = Duration.ofSeconds(secondsLeft);
         }
 
-        return String.format("[%6.2f%% complete, %d/%d periods, %.1f values/s, %.1f values/period, %s ETA (%s)]",
+        return String.format("[%6.2f%% complete, %d/%d periods, %.1f values/s, %.1f values/period, %s ETA (%s), %d aborted (error)]",
                 progress,
                 completedPeriods,
                 totalPeriods,
@@ -292,7 +294,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 ZonedDateTime.now().plus(durationLeft)
                         .truncatedTo(ChronoUnit.MINUTES)
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : "—",
-                durationLeft != null ? durationLeft.truncatedTo(ChronoUnit.MINUTES) : "∞");
+                durationLeft != null ? durationLeft.truncatedTo(ChronoUnit.MINUTES) : "∞",
+                errored);
     }
 
     private class MigrationTask implements Runnable {
@@ -317,7 +320,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 boolean stopped;
                 MigrationSeries series;
                 while (!(stopped = stopFlag) && (series = seriesQueue.poll()) != null) {
-                    if (series.run() == MigrationStatus.RUNNING) {
+                    MigrationStatus status = series.run();
+                    if (status == MigrationStatus.RUNNING) {
                         seriesQueue.add(series);
                     }
                 }
@@ -362,6 +366,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         private DataPointVO point;
         private volatile long timestamp;
         private long sampleCount;
+        private boolean initialPassComplete;
+        private int attempts = 0;
 
         private MigrationSeries(int seriesId) {
             this.seriesId = seriesId;
@@ -369,15 +375,20 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
         private synchronized MigrationStatus run() {
             try {
-                if (point == null) {
+                if (!initialPassComplete) {
                     initialPass();
                 } else {
+                    attempts++;
                     migrateNextPeriod();
                 }
             } catch (Exception e) {
-                erroredSeries.incrementAndGet();
-                this.status = MigrationStatus.ERROR;
-                log.error("Error migrating series {}, migration aborted for series", seriesId, e);
+                if (attempts < maxAttempts) {
+                    log.warn("Error migrating period for series {}, migration will be re-attempted", seriesId, e);
+                } else {
+                    erroredSeries.incrementAndGet();
+                    this.status = MigrationStatus.ERROR;
+                    log.error("Error migrating period for series {}, migration aborted for series", seriesId, e);
+                }
             } catch (Throwable t) {
                 erroredSeries.incrementAndGet();
                 this.status = MigrationStatus.ERROR;
@@ -414,6 +425,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                     lock.writeLock().unlock();
                 }
             }
+            this.initialPassComplete = true;
         }
 
         private void migrateNextPeriod() {
