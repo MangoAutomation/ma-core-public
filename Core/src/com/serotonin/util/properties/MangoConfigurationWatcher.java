@@ -109,7 +109,7 @@ public class MangoConfigurationWatcher {
         try {
             mangoProperties.reload();
             if (log.isInfoEnabled()) {
-                log.info("Mango properties file {} reloaded", mangoProperties.getEnvPropertiesPath());
+                log.info("Mango properties file reloaded: {}", mangoProperties.getEnvPropertiesPath());
             }
             eventPublisher.publishEvent(new MangoConfigurationReloadedEvent());
         } catch (Exception e) {
