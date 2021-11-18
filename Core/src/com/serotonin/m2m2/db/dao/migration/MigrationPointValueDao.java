@@ -146,12 +146,16 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         synchronized (periodicLogFutureMutex) {
             if (periodicLogFuture != null) {
                 periodicLogFuture.cancel(false);
+                this.periodicLogFuture = null;
             }
-            this.periodicLogFuture = scheduledExecutorService.scheduleAtFixedRate(() -> {
-                if (log.isInfoEnabled() && numTasks > 0) {
-                    log.info("{} Periodic update.", stats());
-                }
-            }, 0, env.getProperty("db.migration.logPeriodSeconds", int.class, 60), TimeUnit.SECONDS);
+            int logPeriod = env.getProperty("db.migration.logPeriodSeconds", int.class, 60);
+            if (logPeriod > 0) {
+                this.periodicLogFuture = scheduledExecutorService.scheduleAtFixedRate(() -> {
+                    if (log.isInfoEnabled() && numTasks > 0) {
+                        log.info("{}", stats());
+                    }
+                }, 0, logPeriod, TimeUnit.SECONDS);
+            }
         }
     }
 
