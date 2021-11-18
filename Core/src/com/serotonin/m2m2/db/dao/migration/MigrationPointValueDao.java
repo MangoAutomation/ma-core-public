@@ -148,7 +148,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 periodicLogFuture.cancel(false);
             }
             this.periodicLogFuture = scheduledExecutorService.scheduleAtFixedRate(() -> {
-                if (log.isInfoEnabled()) {
+                if (log.isInfoEnabled() && numTasks > 0) {
                     log.info("{} Periodic update.", stats());
                 }
             }, 0, env.getProperty("db.migration.logPeriodSeconds", int.class, 60), TimeUnit.SECONDS);
