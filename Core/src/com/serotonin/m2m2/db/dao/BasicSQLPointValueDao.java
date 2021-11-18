@@ -611,4 +611,22 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .and(pv.dataType.eq(DataTypes.IMAGE))
                 .fetch(pv.id);
     }
+
+    @Override
+    public double writeSpeed() {
+        // this implementation does not support writes
+        return 0D;
+    }
+
+    @Override
+    public long queueSize() {
+        // this implementation does not support writes
+        return 0L;
+    }
+
+    @Override
+    public int threadCount() {
+        // this implementation does not support writes
+        return 0;
+    }
 }

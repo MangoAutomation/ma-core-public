@@ -36,6 +36,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.ServerStatus;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
@@ -98,6 +99,20 @@ public class ServerMonitoringService extends PollingService {
     public static final String MANGO_PROCESS_RESIDENT_SET_SIZE = "mango.process.residentSetSize";
     public static final String FORK_JOIN_POOL_SIZE = "mango.process.forkJoinPool";
 
+    // PointValueDao monitors
+    /**
+     * Number of queued point values from {@link PointValueDao#queueSize()}. Legacy ID.
+     */
+    public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
+    /**
+     * Number of batch writer threads from {@link PointValueDao#threadCount()}. Legacy ID.
+     */
+    public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
+    /**
+     * Write speed (point values per second) from {@link PointValueDao#writeSpeed()}. Legacy ID.
+     */
+    public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
+
     private final ValueMonitor<Integer> threads;
     private final ValueMonitor<Integer> idleThreads;
     private final ValueMonitor<Integer> queueSize;
@@ -139,7 +154,9 @@ public class ServerMonitoringService extends PollingService {
                                     IMangoLifecycle lifecycle,
                                     ServerInformationService serverInfoService,
                                     MonitoredValues mv,
-                                    Environment env, DatabaseProxy databaseProxy) {
+                                    Environment env,
+                                    DatabaseProxy databaseProxy,
+                                    PointValueDao pointValueDao) {
 
         this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
@@ -221,6 +238,19 @@ public class ServerMonitoringService extends PollingService {
         mv.<Integer>create(THREAD_DAEMON_COUNT_ID).supplier(threadBean::getDaemonThreadCount).addTo(monitors).buildPollable();
         mv.<Integer>create(THREAD_PEAK_COUNT_ID).supplier(threadBean::getPeakThreadCount).addTo(monitors).buildPollable();
         mv.<Long>create(THREAD_TOTAL_STARTED_ID).supplier(threadBean::getTotalStartedThreadCount).addTo(monitors).buildPollable();
+
+        mv.<Integer>create(ENTRIES_MONITOR_ID)
+                .name(new TranslatableMessage("internal.monitor.BATCH_ENTRIES"))
+                .supplier(() -> Math.toIntExact(pointValueDao.queueSize()))
+                .buildReadThrough();
+        mv.<Integer>create(INSTANCES_MONITOR_ID)
+                .name(new TranslatableMessage("internal.monitor.BATCH_INSTANCES"))
+                .supplier(pointValueDao::threadCount)
+                .buildReadThrough();
+        mv.<Double>create(BATCH_WRITE_SPEED_MONITOR_ID)
+                .name(new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"))
+                .supplier(pointValueDao::writeSpeed)
+                .buildReadThrough();
     }
 
     @PostConstruct

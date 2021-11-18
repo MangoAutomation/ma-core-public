@@ -835,4 +835,20 @@ public interface PointValueDao {
     default List<PointHistoryCount> topPointHistoryCounts(int limit) {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * @return number of point values written per second, generally a 5-second average is suitable
+     */
+    double writeSpeed();
+
+    /**
+     * @return number of point values queued for insertion via {@link #savePointValueAsync(DataPointVO, PointValueTime)}
+     * that have not been written yet.
+     */
+    long queueSize();
+
+    /**
+     * @return number of active batch writer threads processing the queue.
+     */
+    int threadCount();
 }

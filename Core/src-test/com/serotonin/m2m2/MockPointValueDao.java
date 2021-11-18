@@ -225,6 +225,21 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
+    public double writeSpeed() {
+        return 0D;
+    }
+
+    @Override
+    public long queueSize() {
+        return 0L;
+    }
+
+    @Override
+    public int threadCount() {
+        return 0;
+    }
+
+    @Override
     public Optional<Long> deletePointValue(DataPointVO vo, long ts) {
         return Optional.empty();
     }

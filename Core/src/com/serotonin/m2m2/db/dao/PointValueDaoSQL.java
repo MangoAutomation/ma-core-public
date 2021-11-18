@@ -56,9 +56,6 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     public static final String SYNC_INSERTS_SPEED_COUNTER_ID = "com.serotonin.m2m2.db.dao.PointValueDaoSQL.SYNC_INSERTS_SPEED_COUNTER";
     public static final String ASYNC_INSERTS_SPEED_COUNTER_ID = "com.serotonin.m2m2.db.dao.PointValueDaoSQL.ASYNC_INSERTS_SPEED_COUNTER";
-    public static final String ENTRIES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.ENTRIES_MONITOR";
-    public static final String INSTANCES_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.INSTANCES_MONITOR";
-    public static final String BATCH_WRITE_SPEED_MONITOR_ID = "com.serotonin.m2m2.db.dao.PointValueDao$BatchWriteBehind.BATCH_WRITE_SPEED_MONITOR";
 
     private static final int SPAWN_THRESHOLD = 10000;
     private static final int MAX_INSTANCES = 5;
@@ -79,10 +76,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     private final ValueMonitor<Integer> syncInsertsSpeedCounter;
     private final ValueMonitor<Integer> asyncInsertsSpeedCounter;
-    private final ValueMonitor<Integer> entriesMonitor;
-    private final ValueMonitor<Integer> instancesMonitor;
-    //TODO Create ValueMonitor<Double> but will need to upgrade the Internal data source to do this
-    private final ValueMonitor<Integer> batchWriteSpeedMonitor;
+    private volatile long queueSize = 0;
+    private volatile int threadCount = 0;
     private final int batchInsertSize;
 
     private final SystemSettingsDao systemSettingsDao;
@@ -101,18 +96,6 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 .build();
         this.asyncInsertsSpeedCounter = monitoredValues.<Integer>create(ASYNC_INSERTS_SPEED_COUNTER_ID)
                 .name(new TranslatableMessage("internal.monitor.ASYNC_INSERTS_SPEED_COUNTER_ID"))
-                .value(0)
-                .build();
-        this.entriesMonitor = monitoredValues.<Integer>create(ENTRIES_MONITOR_ID)
-                .name(new TranslatableMessage("internal.monitor.BATCH_ENTRIES"))
-                .value(0)
-                .build();
-        this.instancesMonitor = monitoredValues.<Integer>create(INSTANCES_MONITOR_ID)
-                .name(new TranslatableMessage("internal.monitor.BATCH_INSTANCES"))
-                .value(0)
-                .build();
-        this.batchWriteSpeedMonitor = monitoredValues.<Integer>create(BATCH_WRITE_SPEED_MONITOR_ID)
-                .name(new TranslatableMessage("internal.monitor.BATCH_WRITE_SPEED_MONITOR"))
                 .value(0)
                 .build();
 
@@ -181,11 +164,24 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     }
 
     @Override
-    public void flushPointValues() {
-        ValueMonitor<?> monitor = monitoredValues.getMonitor(ENTRIES_MONITOR_ID);
+    public double writeSpeed() {
+        return writesPerSecond.getEventCounts()[0] / 5.0D;
+    }
 
-        Object value;
-        while ((value = monitor.getValue()) instanceof Integer && ((Integer) value > 0)) {
+    @Override
+    public long queueSize() {
+        return queueSize;
+    }
+
+    @Override
+    public int threadCount() {
+        return threadCount;
+    }
+
+    @Override
+    public void flushPointValues() {
+        long value;
+        while ((value = queueSize) > 0) {
             log.debug("Waiting for {} values to be written", value);
             LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1L));
         }
@@ -369,20 +365,23 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private void addBatchWriteEntry(BatchWriteEntry e) {
         synchronized (entries) {
             entries.push(e);
-            entriesMonitor.setValue(entries.size());
-            if (entries.size() > instances.size() * SPAWN_THRESHOLD) {
-                if (instances.size() < MAX_INSTANCES) {
-                    BatchWriteTask bwb = new BatchWriteTask();
-                    instances.add(bwb);
-                    instancesMonitor.setValue(instances.size());
-                    try {
-                        Common.backgroundProcessing.addWorkItem(bwb);
-                    } catch (RejectedExecutionException ree) {
-                        instances.remove(bwb);
-                        instancesMonitor.setValue(instances.size());
-                        throw ree;
+            queueSize = entries.size();
+
+            try {
+                if (entries.size() > instances.size() * SPAWN_THRESHOLD) {
+                    if (instances.size() < MAX_INSTANCES) {
+                        BatchWriteTask bwb = new BatchWriteTask();
+                        instances.add(bwb);
+                        try {
+                            Common.backgroundProcessing.addWorkItem(bwb);
+                        } catch (RejectedExecutionException ree) {
+                            instances.remove(bwb);
+                            throw ree;
+                        }
                     }
                 }
+            } finally {
+                threadCount = instances.size();
             }
         }
     }
@@ -400,16 +399,15 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
                         inserts = new BatchWriteEntry[Math.min(entries.size(), batchInsertSize)];
                         entries.pop(inserts);
-                        entriesMonitor.setValue(entries.size());
+                        queueSize = entries.size();
                     }
                     // Create the sql and parameters
                     int count = writeMultiple(Arrays.stream(inserts));
                     writesPerSecond.hitMultiple(count);
-                    batchWriteSpeedMonitor.setValue(writesPerSecond.getEventCounts()[0] / 5);
                 }
             } finally {
                 instances.remove(this);
-                instancesMonitor.setValue(instances.size());
+                threadCount = instances.size();
             }
         }
 
@@ -436,7 +434,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         @Override
         public void rejected(RejectedTaskReason reason) {
             instances.remove(this);
-            instancesMonitor.setValue(instances.size());
+            threadCount = instances.size();
         }
     }
 

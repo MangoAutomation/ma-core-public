@@ -101,6 +101,7 @@ public class MonitoredValues implements DynamicMBean {
         private T value;
         private boolean uploadToStore;
         private Function<Long, T> function;
+        private Supplier<T> supplier;
         private Collection<ValueMonitor<?>> addTo;
 
         private ValueMonitorBuilder(String id) {
@@ -123,7 +124,7 @@ public class MonitoredValues implements DynamicMBean {
             return this;
         }
         public ValueMonitorBuilder<T> supplier(Supplier<T> supplier) {
-            this.function = ts -> supplier.get();
+            this.supplier = supplier;
             return this;
         }
         public ValueMonitorBuilder<T> addTo(Collection<ValueMonitor<?>> addTo) {
@@ -139,7 +140,22 @@ public class MonitoredValues implements DynamicMBean {
             return monitor;
         }
         public PollableMonitor<T> buildPollable() {
-            PollableMonitor<T> monitor = new PollableMonitorImpl<T>(id, name, function, uploadToStore);
+            PollableMonitor<T> monitor;
+            if (function != null) {
+                monitor = new PollableMonitorImpl<T>(id, name, function, uploadToStore);
+            } else if (supplier != null) {
+                monitor = new PollableMonitorImpl<T>(id, name, ts -> supplier.get(), uploadToStore);
+            } else {
+                throw new IllegalStateException("Either function or supplier must be provided");
+            }
+            MonitoredValues.this.add(monitor);
+            if (addTo != null) {
+                addTo.add(monitor);
+            }
+            return monitor;
+        }
+        public ReadThroughMonitor<T> buildReadThrough() {
+            ReadThroughMonitor<T> monitor = new ReadThroughMonitor<T>(id, name, supplier, uploadToStore);
             MonitoredValues.this.add(monitor);
             if (addTo != null) {
                 addTo.add(monitor);

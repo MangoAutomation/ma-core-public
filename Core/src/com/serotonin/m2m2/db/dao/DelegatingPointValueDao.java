@@ -161,6 +161,21 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
     }
 
     @Override
+    public double writeSpeed() {
+        return primary.writeSpeed() + secondary.writeSpeed();
+    }
+
+    @Override
+    public long queueSize() {
+        return primary.queueSize() + secondary.queueSize();
+    }
+
+    @Override
+    public int threadCount() {
+        return primary.threadCount() + secondary.threadCount();
+    }
+
+    @Override
     public void flushPointValues() {
         primary.flushPointValues();
         secondary.flushPointValues();
