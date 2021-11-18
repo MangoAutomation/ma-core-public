@@ -273,7 +273,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
      * @param event
      */
     @EventListener
-    protected void handleRoleEvent(DaoEvent<? extends DataPointVO> event) {
+    protected void handleDataPointEvent(DaoEvent<? extends DataPointVO> event) {
         if (event.getType() == DaoEventType.DELETE) {
             //Stop the point
             List<PublishedPointVO> stopped = getRuntimeManager().stopPublishedPointsForDataPoint(event.getVo().getId());
