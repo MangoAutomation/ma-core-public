@@ -82,7 +82,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Long migrateFrom;
     private final long period;
     private final AbstractTimer timer;
-    private final RetryConfig retryConfig;
     private final Retry retry;
 
     private volatile boolean fullyMigrated = false;
@@ -132,7 +131,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.period = periodUnit.toMillis(period);
 
         int maxAttempts = env.getProperty("db.migration.maxAttempts", int.class, 5);
-        this.retryConfig = RetryConfig.custom()
+        RetryConfig retryConfig = RetryConfig.custom()
                 .maxAttempts(maxAttempts)
                 .failAfterMaxAttempts(true)
                 .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(500, 2.0D, 0.2D, 60_000))
@@ -184,6 +183,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             while (tasks.size() < threadCount) {
                 MigrationTask task = new MigrationTask(tasks.size() + 1);
                 tasks.add(task);
+                this.numTasks = tasks.size();
                 task.getFinished().whenComplete((v, e) -> {
                     if (e != null) {
                         log.error("Error in migration task, task terminated", e);
@@ -195,12 +195,12 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
             while (tasks.size() > threadCount) {
                 MigrationTask task = tasks.remove(tasks.size() - 1);
+                this.numTasks = tasks.size();
                 task.stopTask();
                 stoppedTasks.add(task);
             }
 
             writeSpeed.clear();
-            this.numTasks = tasks.size();
             return stoppedTasks;
         }
     }
@@ -216,11 +216,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private void removeTask(MigrationTask task) {
         synchronized (tasks) {
             tasks.remove(task);
+            this.numTasks = tasks.size();
             if (tasks.isEmpty() && seriesQueue.isEmpty()) {
                 this.fullyMigrated = true;
             }
             writeSpeed.clear();
-            this.numTasks = tasks.size();
         }
     }
 
