@@ -19,6 +19,7 @@ import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao;
+import com.serotonin.m2m2.db.dao.migration.MigrationProgressDao;
 import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.timer.AbstractTimer;
 
@@ -34,6 +35,7 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
     @Autowired ConfigurableApplicationContext context;
     @Autowired AbstractTimer timer;
     @Autowired List<PointValueDaoDefinition> definitions;
+    @Autowired MigrationProgressDao migrationProgressDao;
 
     PointValueDaoDefinition primary;
     PointValueDaoDefinition secondary;
@@ -54,7 +56,8 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
         this.pointValueDao = new MigrationPointValueDao(
                 primary.getPointValueDao(),
                 secondary.getPointValueDao(),
-                dataPointDao, vo -> true, env, executorService, scheduledExecutorService, context, timer);
+                dataPointDao, vo -> true,
+                env, executorService, scheduledExecutorService, context, timer, migrationProgressDao);
 
         if (log.isInfoEnabled()) {
             log.info("Time series migration enabled, from {} (secondary) to {} (primary)",
