@@ -214,6 +214,17 @@ CREATE TABLE timeSeries (
 	PRIMARY KEY (id)
 );
 
+CREATE TABLE timeSeriesMigrationProgress
+(
+    seriesId INT NOT NULL,
+    status VARCHAR(100) NOT NULL,
+    timestamp BIGINT NOT NULL
+);
+ALTER TABLE timeSeriesMigrationProgress
+    ADD CONSTRAINT timeSeriesMigrationProgressUn1 UNIQUE (seriesId);
+ALTER TABLE timeSeriesMigrationProgress
+    ADD CONSTRAINT timeSeriesMigrationProgressFk1 FOREIGN KEY (seriesId) REFERENCES timeSeries (id) ON DELETE CASCADE;
+
 --
 --
 -- Data Points
