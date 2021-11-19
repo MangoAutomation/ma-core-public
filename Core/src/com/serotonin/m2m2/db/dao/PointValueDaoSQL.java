@@ -28,6 +28,7 @@ import org.springframework.dao.TransientDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 
+import com.codahale.metrics.Meter;
 import com.infiniteautomation.mango.db.iterators.ChunkingSpliterator;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.DataSources;
@@ -69,7 +70,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     private final EventHistogram syncCallsCounter = new EventHistogram(5000, 2);
     private final EventHistogram asyncCallsCounter = new EventHistogram(5000, 2);
-    private final EventHistogram writesPerSecond = new EventHistogram(5000, 2);
+    private final Meter writeMeter = new Meter();
 
     private final ObjectQueue<BatchWriteEntry> entries = new ObjectQueue<>();
     private final CopyOnWriteArrayList<BatchWriteTask> instances = new CopyOnWriteArrayList<>();
@@ -81,13 +82,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private final int batchInsertSize;
 
     private final SystemSettingsDao systemSettingsDao;
-    private final MonitoredValues monitoredValues;
     private final DataPointDao dataPointDao;
 
     public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues,
                             SystemSettingsDao systemSettingsDao, DataPointDao dataPointDao) {
         super(databaseProxy);
-        this.monitoredValues = monitoredValues;
         this.systemSettingsDao = systemSettingsDao;
 
         this.syncInsertsSpeedCounter = monitoredValues.<Integer>create(SYNC_INSERTS_SPEED_COUNTER_ID)
@@ -165,7 +164,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     @Override
     public double writeSpeed() {
-        return writesPerSecond.getEventCounts()[0] / 5.0D;
+        return writeMeter.getOneMinuteRate();
     }
 
     @Override
@@ -403,7 +402,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                     }
                     // Create the sql and parameters
                     int count = writeMultiple(Arrays.stream(inserts));
-                    writesPerSecond.hitMultiple(count);
+                    writeMeter.mark(count);
                 }
             } finally {
                 instances.remove(this);

@@ -37,6 +37,7 @@ import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import com.codahale.metrics.Meter;
 import com.infiniteautomation.mango.db.iterators.MergingIterator;
 import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
@@ -837,7 +838,10 @@ public interface PointValueDao {
     }
 
     /**
-     * @return number of point values written per second, generally a 5-second average is suitable
+     * Get the write-speed in values/second. Generally a 1-minute moving average is suitable, see
+     * {@link Meter#getOneMinuteRate()}.
+     *
+     * @return number of point values written per second
      */
     double writeSpeed();
 
