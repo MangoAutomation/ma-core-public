@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.math3.stat.descriptive.SynchronizedSummaryStatistics;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +40,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 
+import com.codahale.metrics.ExponentiallyDecayingReservoir;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DelegatingPointValueDao;
@@ -72,8 +74,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final AtomicLong skippedSeries = new AtomicLong();
     private final AtomicLong erroredSeries = new AtomicLong();
 
-    private final SynchronizedSummaryStatistics writeSpeed = new SynchronizedSummaryStatistics();
-    private final SynchronizedSummaryStatistics totalValues = new SynchronizedSummaryStatistics();
+    private final Meter writeMeter = new Meter();
+    private final Histogram valuesPerPeriod = new Histogram(new ExponentiallyDecayingReservoir());
 
     private final ArrayList<MigrationTask> tasks = new ArrayList<>();
     private final Predicate<DataPointVO> migrationFilter;
@@ -226,7 +228,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 stoppedTasks.add(task);
             }
 
-            writeSpeed.clear();
             return stoppedTasks;
         }
     }
@@ -246,7 +247,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             if (tasks.isEmpty() && seriesQueue.isEmpty()) {
                 this.fullyMigrated = true;
             }
-            writeSpeed.clear();
         }
     }
 
@@ -306,11 +306,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             }
         }
 
-        double avgPointValuesPerPeriod = totalValues.getMean();
-        double avgSpeed = writeSpeed.getMean() * numTasks;
-        if (Double.isNaN(avgSpeed)) {
-            avgSpeed = 0D;
-        }
+        double avgPointValuesPerPeriod = valuesPerPeriod.getSnapshot().getMean();
+        double writeRate = writeMeter.getOneMinuteRate();
 
         long totalPeriods = remainingPeriods + completedPeriods;
         double progress = remainingPeriods == 0L ? 100D: completedPeriods * 100d / totalPeriods;
@@ -318,8 +315,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         double pointValuesRemaining = remainingPeriods * avgPointValuesPerPeriod;
         String eta = "—";
         String timeLeft = "∞";
-        if (avgSpeed > 0D) {
-            long secondsLeft = (long) (pointValuesRemaining / avgSpeed);
+        if (writeRate > 0D) {
+            long secondsLeft = (long) (pointValuesRemaining / writeRate);
             Duration durationLeft = Duration.ofSeconds(secondsLeft);
             eta = ZonedDateTime.now()
                     .plus(durationLeft)
@@ -339,7 +336,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 progress,
                 completedPeriods,
                 totalPeriods,
-                avgSpeed,
+                writeRate,
                 avgPointValuesPerPeriod,
                 currentTimeFormatted,
                 eta,
@@ -520,8 +517,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             long duration = System.currentTimeMillis() - startTime;
             double valuesPerSecond = sampleCount / (duration / 1000d);
 
-            writeSpeed.addValue(valuesPerSecond);
-            totalValues.addValue(sampleCount);
+            valuesPerPeriod.update(sampleCount);
+            writeMeter.mark(sampleCount);
 
             if (log.isDebugEnabled()) {
                 log.debug("{} Completed period for {}, from {} to {} (seriesId={}, values={}, duration={}, speed={} values/s)",
