@@ -6,8 +6,12 @@ package com.serotonin.m2m2.vo.publish;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -37,6 +41,11 @@ abstract public class PublishedPointVO extends AbstractActionVO {
      * These fields are only used for JSON export, and for outputting to the REST model
      */
     private transient String dataPointXid;
+
+
+    private String dataPointName;
+    private LazyField<Map<String, String>> dataPointTags = new LazyField<>(new HashMap<>());
+
     @JsonProperty
     private transient String publisherXid;
 
@@ -84,6 +93,22 @@ abstract public class PublishedPointVO extends AbstractActionVO {
 
     public void setPublisherXid(String publisherXid) {
         this.publisherXid = publisherXid;
+    }
+
+    public String getDataPointName() {
+        return dataPointName;
+    }
+
+    public void setDataPointName(String dataPointName) {
+        this.dataPointName = dataPointName;
+    }
+
+    public Map<String,String> getDataPointTags() {
+        return dataPointTags.get();
+    }
+
+    public void supplyDataPointTags(Supplier<Map<String,String>> dataPointTags) {
+        this.dataPointTags = new LazyField<Map<String,String>>(dataPointTags);
     }
 
     @Override

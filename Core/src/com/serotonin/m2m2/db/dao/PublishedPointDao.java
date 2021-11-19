@@ -6,6 +6,8 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jooq.Field;
@@ -16,6 +18,10 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.db.query.RQLSubSelectCondition;
+import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.tables.DataPoints;
 import com.infiniteautomation.mango.db.tables.PublishedPoints;
 import com.infiniteautomation.mango.db.tables.Publishers;
@@ -41,16 +47,19 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     private final Publishers publishers;
     private final DataPoints dataPoints;
+    private final DataPointTagsDao dataPointTagsDao;
 
     private static final LazyInitSupplier<PublishedPointDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(PublishedPointDao.class);
     });
 
-    private PublishedPointDao(DaoDependencies dependencies) {
+    private PublishedPointDao(DaoDependencies dependencies,
+                              DataPointTagsDao dataPointTagsDao) {
         super(dependencies, AuditEventType.TYPE_PUBLISHED_POINT, PublishedPoints.PUBLISHED_POINTS,
                 new TranslatableMessage("internal.monitor.PUBLISHED_POINT_COUNT"));
         this.publishers = Publishers.PUBLISHERS;
         this.dataPoints = DataPoints.DATA_POINTS;
+        this.dataPointTagsDao = dataPointTagsDao;
     }
 
     /**
@@ -135,8 +144,23 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        SelectJoinStep<R> s = select.join(publishers).on(publishers.id.eq(table.publisherId));
-        return s.join(dataPoints).on(dataPoints.id.eq(table.dataPointId));
+       select = select.join(publishers).on(publishers.id.eq(table.publisherId));
+        if (conditions instanceof ConditionSortLimitWithTagKeys) {
+            Map<String, Field<String>> tagFields = ((ConditionSortLimitWithTagKeys) conditions).getTagFields();
+            select = dataPointTagsDao.joinTags(select, table.dataPointId, tagFields);
+        }
+        return select.join(dataPoints).on(dataPoints.id.eq(table.dataPointId));
+    }
+
+    @Override
+    public void loadRelationalData(PublishedPointVO vo) {
+        vo.supplyDataPointTags(() -> dataPointTagsDao.getTagsForDataPointId(vo.getDataPointId()));
+    }
+
+    @Override
+    protected RQLToCondition createRqlToCondition(Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap,
+                                                  Map<String, Function<Object, Object>> converterMap) {
+        return new RQLToConditionWithTagKeys(fieldMap, converterMap);
     }
 
     @Override
