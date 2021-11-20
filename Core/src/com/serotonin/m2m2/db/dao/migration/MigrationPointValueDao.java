@@ -176,7 +176,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     private void addMigration(MigrationSeries migration) {
         seriesStatus.put(migration.seriesId, migration);
-        seriesQueue.add(migration);
+        if (migration.status == MigrationStatus.NOT_STARTED || migration.status == MigrationStatus.RUNNING) {
+            seriesQueue.add(migration);
+        }
     }
 
     private void loadProperties() {
@@ -462,7 +464,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 if (log.isInfoEnabled()) {
                     log.info("{} Skipped point {} (seriesId={})", stats(), point != null ? point.getXid() : null, seriesId);
                 }
-            } else {
+            } else if (this.status == MigrationStatus.NOT_STARTED) {
+                // only get the initial timestamp if migration was not started yet, otherwise we already have retrieved it from the database
                 lock.writeLock().lock();
                 try {
                     Optional<Long> inception = secondary.getInceptionDate(point);
