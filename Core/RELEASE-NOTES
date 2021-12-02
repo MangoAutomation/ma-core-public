@@ -11,6 +11,12 @@
 * Remove env property cache.users.size
 * Cache all users in memory for performance, disable by setting cache.users.enabled=false (defaults to true)
 * Set system permissions within a transaction to ensure any failures are rolled back and don't affect the runtime
+* It is no longer possible to change the data type of a data point, e.g. from NUMERIC to BINARY
+* Time-series database modules can be disabled via property (e.g. db.nosql.enabled=false)
+* MapDB module is no longer available, please remove before attempting to upgrade
+* Beta feature: Point value migration, allows for migration from one time-series database to another
+* Re-factor PointValueDao (time-series) interface, methods have been substantially modified for ease of implementation
+* Rename PointValueCacheDao to PointValueCache, methods have been substantially modified for ease of implementation
 
 *Version 4.2.3*
 * Fix bug in runtime where Update data point events were not reliably fired
