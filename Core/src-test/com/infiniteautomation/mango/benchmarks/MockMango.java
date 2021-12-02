@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.openjdk.jmh.annotations.Level;
@@ -114,9 +115,12 @@ public class MockMango extends MangoTestBase {
      */
     @Setup(Level.Trial)
     public void setupTrial(@SuppressWarnings("unused") SetSecurityContext setSecurityContext) throws Exception {
+        long start = System.nanoTime();
         MangoTestBase.staticSetup();
         preInitialize();
         before();
+        long duration = System.nanoTime() - start;
+        System.out.printf("Initialized mock Mango in %.2f seconds.%n", TimeUnit.NANOSECONDS.toMillis(duration) / 1000.0);
     }
 
     /**
