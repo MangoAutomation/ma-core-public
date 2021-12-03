@@ -58,10 +58,8 @@ import io.github.resilience4j.retry.RetryConfig;
 
 public class MigrationPointValueDao extends DelegatingPointValueDao implements AutoCloseable {
 
-    /**
-     * Separate log file is configured for this logger
-     */
-    private final Logger log = LoggerFactory.getLogger("pointValueMigration");
+    private final Logger log = LoggerFactory.getLogger(MigrationPointValueDao.class);
+
     /**
      * Map key is series id
      */
