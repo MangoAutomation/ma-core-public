@@ -54,6 +54,7 @@ import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfiguratio
 
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.Retry.Metrics;
 import io.github.resilience4j.retry.RetryConfig;
 
 public class MigrationPointValueDao extends DelegatingPointValueDao implements AutoCloseable {
@@ -144,6 +145,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(500, 2.0D, 0.2D, 60_000))
                 .build();
         this.retry = Retry.of("migratePeriod", retryConfig);
+
+        this.retry.getEventPublisher()
+                .onRetry(event -> log.debug("Retry, waiting {} until attempt {}.", event.getWaitInterval(), event.getNumberOfRetryAttempts(), event.getLastThrowable()))
+                .onError(event -> log.debug("Recorded a failed retry attempt. Number of retry attempts: {}. Giving up.", event.getNumberOfRetryAttempts(), event.getLastThrowable()));
     }
 
     @PostConstruct
@@ -332,7 +337,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
 
-        return String.format("[%6.2f%% complete, %d/%d periods, %.1f values/s, %.1f values/period, position %s, ETA %s (%s), %d aborted series, %d threads]",
+        Metrics retryMetrics = retry.getMetrics();
+
+        return String.format("[%6.2f%% complete, %d/%d periods, %.1f values/s, %.1f values/period, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
                 progress,
                 completedPeriods,
                 totalPeriods,
@@ -341,7 +348,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 currentTimeFormatted,
                 eta,
                 timeLeft,
-                errored,
+                retryMetrics.getNumberOfFailedCallsWithRetryAttempt() + retryMetrics.getNumberOfFailedCallsWithoutRetryAttempt(),
+                retryMetrics.getNumberOfSuccessfulCallsWithRetryAttempt(),
+                retryMetrics.getNumberOfSuccessfulCallsWithoutRetryAttempt(),
                 numTasks);
     }
 
