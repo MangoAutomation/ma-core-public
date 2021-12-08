@@ -390,21 +390,23 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     public DataValue createDataValue(PointValuesRecord pvRecord, PointValueAnnotationsRecord pvaRecord) {
-        int dataType = pvRecord.get(pv.dataType);
+        DataTypes dataType = DataTypes.fromId(pvRecord.get(pv.dataType));
+        if (dataType == null) return null;
+
         switch (dataType) {
-            case (DataTypes.NUMERIC): {
+            case NUMERIC: {
                 Double doubleValue = pvRecord.get(pv.pointValue);
                 return new NumericValue(doubleValue);
             }
-            case (DataTypes.BINARY): {
+            case BINARY: {
                 boolean booleanValue = pvRecord.get(pv.pointValue) == 1;
                 return new BinaryValue(booleanValue);
             }
-            case (DataTypes.MULTISTATE): {
+            case MULTISTATE: {
                 int intValue = (int) Math.round(pvRecord.get(pv.pointValue));
                 return new MultistateValue(intValue);
             }
-            case (DataTypes.ALPHANUMERIC): {
+            case ALPHANUMERIC: {
                 String shortTextValue = pvaRecord.get(pva.textPointValueShort);
                 if (shortTextValue != null) {
                     return new AlphanumericValue(shortTextValue);
@@ -412,7 +414,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 String longTextValue = pvaRecord.get(pva.textPointValueLong);
                 return new AlphanumericValue(longTextValue);
             }
-            case (DataTypes.IMAGE):
+            case IMAGE:
                 String shortTextValue = pvaRecord.get(pva.textPointValueShort);
                 int intValue = (int) Math.round(pvRecord.get(pv.pointValue));
                 return new ImageValue(Long.parseLong(shortTextValue), intValue);
@@ -608,7 +610,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     public List<Long> getFiledataIds(DataPointVO vo) {
         return create.select(pv.id).from(pv)
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
-                .and(pv.dataType.eq(DataTypes.IMAGE))
+                .and(pv.dataType.eq(DataTypes.IMAGE.getId()))
                 .fetch(pv.id);
     }
 

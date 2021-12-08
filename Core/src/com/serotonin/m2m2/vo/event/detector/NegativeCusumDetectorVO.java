@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.util.EnumSet;
+
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -25,7 +27,7 @@ public class NegativeCusumDetectorVO extends TimeoutDetectorVO<NegativeCusumDete
 	private double weight;
 
 	public NegativeCusumDetectorVO(DataPointVO vo) {
-		super(vo, new int[] { DataTypes.NUMERIC });
+		super(vo, EnumSet.of(DataTypes.NUMERIC));
 	}
 	
 	public double getLimit() {

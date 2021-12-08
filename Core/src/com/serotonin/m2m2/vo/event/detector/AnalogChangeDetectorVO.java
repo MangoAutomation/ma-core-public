@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
+import java.util.EnumSet;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -53,7 +54,7 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	private int updateEvent = UpdateEventType.LOGGED_ONLY;
 
 	public AnalogChangeDetectorVO(DataPointVO vo) {
-		super(vo, new int[] { DataTypes.NUMERIC });
+		super(vo, EnumSet.of(DataTypes.NUMERIC));
 	}
 	
 	public double getLimit() {

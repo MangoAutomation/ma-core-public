@@ -6,6 +6,7 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.EnumSet;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,8 +29,8 @@ import com.serotonin.util.SerializationHelper;
  * @author mlohbihler
  */
 public class BinaryTextRenderer extends BaseTextRenderer {
-    private static ImplDefinition definition = new ImplDefinition("textRendererBinary", "BINARY",
-            "textRenderer.binary", new int[] { DataTypes.BINARY });
+    private static final ImplDefinition definition = new ImplDefinition("textRendererBinary", "BINARY",
+            "textRenderer.binary", EnumSet.of(DataTypes.BINARY));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -138,7 +139,7 @@ public class BinaryTextRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public DataValue parseText(String s, int dataType) {
+    public DataValue parseText(String s, DataTypes dataType) {
         if (oneLabel.equalsIgnoreCase(s))
             return new BinaryValue(true);
         if (zeroLabel.equalsIgnoreCase(s))
@@ -174,7 +175,7 @@ public class BinaryTextRenderer extends BaseTextRenderer {
     }
 
 	@Override
-	public void validate(ProcessResult result, int sourcePointDataType) {
+	public void validate(ProcessResult result, DataTypes sourcePointDataType) {
 	    super.validate(result, sourcePointDataType);
         try {
             if (!StringUtils.isBlank(zeroColour))

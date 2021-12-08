@@ -4,12 +4,13 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
-
-import org.apache.commons.lang3.ArrayUtils;
+import java.util.Collections;
+import java.util.Set;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
@@ -26,9 +27,9 @@ public abstract class AbstractPointEventDetectorVO extends AbstractEventDetector
 
     //Extra Fields
     protected final DataPointVO dataPoint;
-    private final int[] supportedDataTypes;
+    private final Set<DataTypes> supportedDataTypes;
 
-    public AbstractPointEventDetectorVO(DataPointVO dataPoint, int[] supportedDataTypes){
+    public AbstractPointEventDetectorVO(DataPointVO dataPoint, Set<DataTypes> supportedDataTypes){
         this.sourceId = dataPoint == null ? Common.NEW_ID : dataPoint.getId();
         this.dataPoint = dataPoint;
         this.supportedDataTypes = supportedDataTypes;
@@ -41,12 +42,12 @@ public abstract class AbstractPointEventDetectorVO extends AbstractEventDetector
     /**
      * What data types are supported
      */
-    public boolean supports(int dataType) {
-        return ArrayUtils.contains(supportedDataTypes, dataType);
+    public boolean supports(DataTypes dataType) {
+        return supportedDataTypes.contains(dataType);
     }
 
-    public int[] getSupportedDataTypes(){
-        return supportedDataTypes;
+    public Set<DataTypes> getSupportedDataTypes(){
+        return Collections.unmodifiableSet(supportedDataTypes);
     }
 
     @Override

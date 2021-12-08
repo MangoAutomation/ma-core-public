@@ -4,6 +4,8 @@
 
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.util.EnumSet;
+
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -25,7 +27,7 @@ public class MultistateBitDetectorVO extends TimeoutDetectorVO<MultistateBitDete
 	private boolean inverted;
 
 	public MultistateBitDetectorVO(DataPointVO vo) {
-		super(vo, new int[] { DataTypes.MULTISTATE });
+		super(vo, EnumSet.of(DataTypes.MULTISTATE));
 	}
 
 	public int getBitmask() {

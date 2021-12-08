@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,8 +18,8 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
 
 public class MultistateRenderer extends BaseTextRenderer {
-    private static ImplDefinition definition = new ImplDefinition("textRendererMultistate", "MULTISTATE",
-            "textRenderer.multistate", new int[] { DataTypes.MULTISTATE });
+    private static final ImplDefinition definition = new ImplDefinition("textRendererMultistate", "MULTISTATE",
+            "textRenderer.multistate", EnumSet.of(DataTypes.MULTISTATE));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -101,7 +102,7 @@ public class MultistateRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public DataValue parseText(String s, int dataType) {
+    public DataValue parseText(String s, DataTypes dataType) {
         for (MultistateValue mv : multistateValues) {
             if (mv.getText().equalsIgnoreCase(s))
                 return new com.serotonin.m2m2.rt.dataImage.types.MultistateValue(mv.getKey());
@@ -133,8 +134,8 @@ public class MultistateRenderer extends BaseTextRenderer {
     }
 
 	@Override
-	public void validate(ProcessResult result, int sourcePointDataTypeId) {
-	    super.validate(result, sourcePointDataTypeId);
+	public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+	    super.validate(result, sourcePointDataType);
 		if(multistateValues == null || multistateValues.size() == 0)
 			result.addContextualMessage("textRenderer.multistateValues", "validate.atLeast1");
 		else {

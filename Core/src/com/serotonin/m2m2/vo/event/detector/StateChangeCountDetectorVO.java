@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.util.EnumSet;
+
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -22,7 +24,7 @@ public class StateChangeCountDetectorVO extends TimeoutDetectorVO<StateChangeCou
 	private int changeCount = 2;
 	
 	public StateChangeCountDetectorVO(DataPointVO vo) {
-		super(vo, new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC });
+		super(vo, EnumSet.of(DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC));
 		this.setDuration(1);
 	}
 

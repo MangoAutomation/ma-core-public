@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.util.EnumSet;
+
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -18,11 +20,7 @@ public class NoUpdateDetectorVO extends TimeoutDetectorVO<NoUpdateDetectorVO>{
 	private static final long serialVersionUID = 1L;
 	
 	public NoUpdateDetectorVO(DataPointVO vo) {
-		super(vo, new int[] { DataTypes.BINARY, 
-				DataTypes.MULTISTATE, 
-				DataTypes.NUMERIC, 
-				DataTypes.ALPHANUMERIC,
-				DataTypes.IMAGE});
+		super(vo, EnumSet.allOf(DataTypes.class));
 		this.setDuration(1);
 	}
 	

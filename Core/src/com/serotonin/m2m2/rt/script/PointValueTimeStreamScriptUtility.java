@@ -307,20 +307,20 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
                     continue;
 
                 DataPointStatisticsQuantizer<?> quantizer;
-                switch(vo.getPointLocator().getDataTypeId()) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.IMAGE:
+                switch(vo.getPointLocator().getDataType()) {
+                    case ALPHANUMERIC:
+                    case IMAGE:
                         quantizer = new ValueChangeCounterDataPointQuantizer(vo, getBucketCalculator(), this);
                         break;
-                    case DataTypes.BINARY:
-                    case DataTypes.MULTISTATE:
+                    case BINARY:
+                    case MULTISTATE:
                         quantizer = new StartsAndRuntimeListDataPointQuantizer(vo, getBucketCalculator(), this);
                         break;
-                    case DataTypes.NUMERIC:
+                    case NUMERIC:
                         quantizer = new AnalogStatisticsDataPointQuantizer(vo, getBucketCalculator(), this);
                         break;
                     default:
-                        throw new RuntimeException("Unknown Data Type: " + vo.getPointLocator().getDataTypeId());
+                        throw new RuntimeException("Unknown Data Type: " + vo.getPointLocator().getDataType());
                 }
 
                 this.quantizerMap.put(vo.getId(), quantizer);

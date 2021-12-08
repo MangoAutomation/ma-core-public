@@ -5,42 +5,43 @@ package com.serotonin.m2m2.vo.dataSource;
 
 import java.io.Serializable;
 
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 
 public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializable {
     /**
-     * One of the com.serotonin.m2m2.DataTypes
+     * @return data type of the point
      */
-    public int getDataTypeId();
+    DataTypes getDataType();
 
     /**
      * The text representation of the data type
      */
-    public TranslatableMessage getDataTypeMessage();
+    TranslatableMessage getDataTypeMessage();
 
     /**
      * An arbitrary description of the point location configuration for human consumption.
      */
-    public TranslatableMessage getConfigurationDescription();
+    TranslatableMessage getConfigurationDescription();
 
     /**
      * Can the value be set in the data source?
      */
-    public boolean isSettable();
+    boolean isSettable();
 
     /**
      * Supplemental to being settable, can the set value be relinquished?
      */
-    public Boolean isRelinquishable();
+    Boolean isRelinquishable();
 
     /**
      * Create a runtime version of the locator
      */
-    public PointLocatorRT<VO> createRuntime();
+    PointLocatorRT<VO> createRuntime();
 
     /**
-     * Return the type of data source to look up its definition
+     * @return the type of data source to look up its definition
      */
-    public String getDataSourceType();
+    String getDataSourceType();
 }

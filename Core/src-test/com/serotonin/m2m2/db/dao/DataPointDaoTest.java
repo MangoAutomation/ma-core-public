@@ -213,7 +213,7 @@ public class DataPointDaoTest extends AbstractVoDaoTest<DataPointVO, DataPointDa
         assertEquals(expected.getName(), actual.getName());
 
         assertEquals(expected.getDataSourceId(), actual.getDataSourceId());
-        assertEquals(expected.getPointLocator().getDataTypeId(), actual.getPointLocator().getDataTypeId());
+        assertEquals(expected.getPointLocator().getDataType(), actual.getPointLocator().getDataType());
 
         assertEquals(expected.getSeriesId(), actual.getSeriesId());
 

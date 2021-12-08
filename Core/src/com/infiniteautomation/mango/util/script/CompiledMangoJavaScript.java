@@ -18,6 +18,7 @@ import org.springframework.util.Assert;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -225,11 +226,11 @@ public class CompiledMangoJavaScript {
     /**
      * Execute this script expecting a PointValueTime result
      */
-    public MangoJavaScriptResult execute(long runtime, long timestamp, Integer resultDataTypeId) throws ScriptError, ResultTypeException, ScriptPermissionsException {
+    public MangoJavaScriptResult execute(long runtime, long timestamp, DataTypes resultDataType) throws ScriptError, ResultTypeException, ScriptPermissionsException {
         Assert.notNull(compiledScript, "Script must be compiled first");
         Assert.isTrue(initialized, "Context must be initialized first");
         Assert.notNull(log, "Log must be set");
-        service.execute(this, runtime, timestamp, resultDataTypeId);
+        service.execute(this, runtime, timestamp, resultDataType);
         return result;
     }
 

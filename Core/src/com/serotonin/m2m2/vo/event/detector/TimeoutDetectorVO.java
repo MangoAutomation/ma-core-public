@@ -4,12 +4,14 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
+import java.util.Set;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -22,7 +24,7 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO> 
 
     /**
      */
-    public TimeoutDetectorVO(DataPointVO vo, int[] supportedDataTypes) {
+    public TimeoutDetectorVO(DataPointVO vo, Set<DataTypes> supportedDataTypes) {
         super(vo, supportedDataTypes);
     }
 

@@ -63,7 +63,7 @@ public class MultistateValue extends DataValue implements Comparable<MultistateV
     }
 
     @Override
-    public int getDataType() {
+    public DataTypes getDataType() {
         return DataTypes.MULTISTATE;
     }
 

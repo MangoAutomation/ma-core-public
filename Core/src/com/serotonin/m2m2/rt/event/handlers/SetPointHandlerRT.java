@@ -69,7 +69,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             return;
         }
 
-        int targetDataType = targetPoint.getVO().getPointLocator().getDataTypeId();
+        DataTypes targetDataType = targetPoint.getVO().getPointLocator().getDataType();
 
         DataValue value = null;
         if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
@@ -86,7 +86,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                 return;
             }
 
-            if (DataTypes.getDataType(valueTime.getValue()) != targetDataType) {
+            if (valueTime.getValue().getDataType() != targetDataType) {
                 raiseFailureEvent(new TranslatableMessage("event.setPoint.activePointDataType"), evt.getEventType());
                 return;
             }
@@ -130,7 +130,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                 activeScript.compile(vo.getActiveScript(), true);
                 activeScript.initialize(context);
                 
-                MangoJavaScriptResult result = activeScript.execute(Common.timer.currentTimeMillis(), evt.getActiveTimestamp(), targetPoint.getDataTypeId());
+                MangoJavaScriptResult result = activeScript.execute(Common.timer.currentTimeMillis(), evt.getActiveTimestamp(), targetPoint.getDataType());
 	        	PointValueTime pvt = (PointValueTime)result.getResult();
 	        	if(pvt != null)
 	        	    value = pvt.getValue();
@@ -171,7 +171,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             return;
         }
 
-        int targetDataType = targetPoint.getVO().getPointLocator().getDataTypeId();
+        DataTypes targetDataType = targetPoint.getVO().getPointLocator().getDataType();
 
         DataValue value = null;
         if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
@@ -188,7 +188,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                 return;
             }
 
-            if (DataTypes.getDataType(valueTime.getValue()) != targetDataType) {
+            if (valueTime.getValue().getDataType() != targetDataType) {
                 raiseFailureEvent(new TranslatableMessage("event.setPoint.inactivePointDataType"), evt.getEventType());
                 return;
             }
@@ -230,7 +230,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                 inactiveScript.compile(vo.getInactiveScript(), true);
                 inactiveScript.initialize(context);
                 
-                MangoJavaScriptResult result = inactiveScript.execute(Common.timer.currentTimeMillis(), evt.getRtnTimestamp(), targetPoint.getDataTypeId());
+                MangoJavaScriptResult result = inactiveScript.execute(Common.timer.currentTimeMillis(), evt.getRtnTimestamp(), targetPoint.getDataType());
 
 	        	PointValueTime pvt = (PointValueTime)result.getResult();
 	        	if(pvt != null)
@@ -306,7 +306,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
             // We may, however, need to coerce the given value.
             try {
-                DataValue mangoValue = service.coerce(value, dprt.getDataTypeId());
+                DataValue mangoValue = service.coerce(value, dprt.getDataType());
                 SetPointSource source;
                 PointValueTime newValue = new PointValueTime(mangoValue, timestamp);
                 if(StringUtils.isBlank(annotation))

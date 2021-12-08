@@ -214,7 +214,7 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
     }
 
     @Override
-    public int getDataType() {
+    public DataTypes getDataType() {
         return DataTypes.IMAGE;
     }
 

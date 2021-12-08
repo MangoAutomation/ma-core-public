@@ -19,6 +19,7 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.spi.TypeResolver;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -41,7 +42,7 @@ abstract public class BaseTextRenderer implements TextRenderer, JsonSerializable
         }
     }
 
-    public static List<ImplDefinition> getImplementation(int dataType) {
+    public static List<ImplDefinition> getImplementation(DataTypes dataType) {
         ensureDefinitions();
         List<ImplDefinition> impls = new ArrayList<ImplDefinition>(definitions.size());
         for (ImplDefinition def : definitions) {
@@ -153,7 +154,7 @@ abstract public class BaseTextRenderer implements TextRenderer, JsonSerializable
     //
     // Parse
     @Override
-    public DataValue parseText(String s, int dataType) {
+    public DataValue parseText(String s, DataTypes dataType) {
         return DataValue.stringToValue(s, dataType);
     }
 

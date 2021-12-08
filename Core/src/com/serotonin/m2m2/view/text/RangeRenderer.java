@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,8 +24,8 @@ import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
 public class RangeRenderer extends ConvertingRenderer {
-    private static ImplDefinition definition = new ImplDefinition("textRendererRange", "RANGE", "textRenderer.range",
-            new int[] { DataTypes.NUMERIC });
+    private static final ImplDefinition definition = new ImplDefinition("textRendererRange", "RANGE", "textRenderer.range",
+            EnumSet.of(DataTypes.NUMERIC));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -192,8 +193,8 @@ public class RangeRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public void validate(ProcessResult result, int sourcePointDataTypeId) {
-        super.validate(result, sourcePointDataTypeId);
+    public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+        super.validate(result, sourcePointDataType);
         if((format == null)||(format.equals("")))
             result.addContextualMessage("textRenderer.format", "validate.required");
 

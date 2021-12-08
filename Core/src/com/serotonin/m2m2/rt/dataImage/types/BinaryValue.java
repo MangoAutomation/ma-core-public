@@ -57,7 +57,7 @@ public class BinaryValue extends DataValue implements Comparable<BinaryValue> {
     }
 
     @Override
-    public int getDataType() {
+    public DataTypes getDataType() {
         return DataTypes.BINARY;
     }
 

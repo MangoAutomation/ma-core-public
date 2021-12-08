@@ -5,6 +5,7 @@ package com.serotonin.m2m2.rt.script;
 
 import java.util.List;
 
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -28,7 +29,7 @@ public class ScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public List<PointValueTime> getLatestPointValues(int limit) {
-		return RhinoScriptTestData.getLatestPointValues(vo.getPointLocator().getDataTypeId(), vo.getId(), limit);
+		return RhinoScriptTestData.getLatestPointValues(vo.getPointLocator().getDataType(), vo.getId(), limit);
 	}
 
 	/* (non-Javadoc)
@@ -63,7 +64,7 @@ public class ScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public PointValueTime getPointValue() {
-		return RhinoScriptTestData.getLatestPointValue(vo.getPointLocator().getDataTypeId(), vo.getId());
+		return RhinoScriptTestData.getLatestPointValue(vo.getPointLocator().getDataType(), vo.getId());
 
 	}
 
@@ -99,15 +100,15 @@ public class ScriptingTestPointValueRT implements IDataPointValueSource{
 	 */
 	@Override
 	public List<PointValueTime> getPointValuesBetween(long from, long to) {
-		return RhinoScriptTestData.getPointValuesBetween(vo.getPointLocator().getDataTypeId(), vo.getId(), from, to);
+		return RhinoScriptTestData.getPointValuesBetween(vo.getPointLocator().getDataType(), vo.getId(), from, to);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getDataTypeId()
 	 */
 	@Override
-	public int getDataTypeId() {
-		return vo.getPointLocator().getDataTypeId();
+	public DataTypes getDataType() {
+		return vo.getPointLocator().getDataType();
 	}
 
 	@Override

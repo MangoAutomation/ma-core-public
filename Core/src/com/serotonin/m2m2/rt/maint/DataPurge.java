@@ -192,7 +192,7 @@ public class DataPurge {
             }
 
             // If this is an image data type, get the point value ids.
-            if (dataPoint.getPointLocator().getDataTypeId() == DataTypes.IMAGE)
+            if (dataPoint.getPointLocator().getDataType() == DataTypes.IMAGE)
                 fileIds.addAll(pointValueDao.getFiledataIds(dataPoint));
         }
     }

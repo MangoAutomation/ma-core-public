@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
+import java.util.EnumSet;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -56,7 +57,7 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     private boolean useAbsoluteValue; 
     
     public RateOfChangeDetectorVO(DataPointVO vo) {
-        super(vo, new int[] {DataTypes.NUMERIC} );
+        super(vo, EnumSet.of(DataTypes.NUMERIC));
     }
     
     public double getRateOfChangeThreshold() {

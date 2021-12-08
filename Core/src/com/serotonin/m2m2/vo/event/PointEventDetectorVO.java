@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -59,43 +60,46 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
 
     private static List<ImplDefinition> definitions;
 
-    public static List<ImplDefinition> getImplementations(int dataType) {
+    private static void initializeDefinitions() {
         if (definitions == null) {
             List<ImplDefinition> d = new ArrayList<>();
             d.add(new ImplDefinition(TYPE_ANALOG_HIGH_LIMIT, null, "pointEdit.detectors.highLimit",
-                    new int[] { DataTypes.NUMERIC }));
+                    EnumSet.of(DataTypes.NUMERIC)));
             d.add(new ImplDefinition(TYPE_ANALOG_LOW_LIMIT, null, "pointEdit.detectors.lowLimit",
-                    new int[] { DataTypes.NUMERIC }));
-            d.add(new ImplDefinition(TYPE_POINT_CHANGE, null, "pointEdit.detectors.change", new int[] {
-                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC }));
+                    EnumSet.of(DataTypes.NUMERIC)));
+            d.add(new ImplDefinition(TYPE_POINT_CHANGE, null, "pointEdit.detectors.change", EnumSet.of(
+                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_BINARY_STATE, null, "pointEdit.detectors.state",
-                    new int[] { DataTypes.BINARY }));
+                    EnumSet.of(DataTypes.BINARY)));
             d.add(new ImplDefinition(TYPE_MULTISTATE_STATE, null, "pointEdit.detectors.state",
-                    new int[] { DataTypes.MULTISTATE }));
+                    EnumSet.of(DataTypes.MULTISTATE)));
             d.add(new ImplDefinition(TYPE_ALPHANUMERIC_STATE, null, "pointEdit.detectors.state",
-                    new int[] { DataTypes.ALPHANUMERIC }));
+                    EnumSet.of(DataTypes.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_ALPHANUMERIC_REGEX_STATE, null, "pointEdit.detectors.regexState",
-                    new int[] { DataTypes.ALPHANUMERIC }));
-            d.add(new ImplDefinition(TYPE_STATE_CHANGE_COUNT, null, "pointEdit.detectors.changeCount", new int[] {
-                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC }));
-            d.add(new ImplDefinition(TYPE_NO_CHANGE, null, "pointEdit.detectors.noChange", new int[] {
-                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC }));
+                    EnumSet.of(DataTypes.ALPHANUMERIC)));
+            d.add(new ImplDefinition(TYPE_STATE_CHANGE_COUNT, null, "pointEdit.detectors.changeCount", EnumSet.of(
+                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC)));
+            d.add(new ImplDefinition(TYPE_NO_CHANGE, null, "pointEdit.detectors.noChange", EnumSet.of(
+                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_NO_UPDATE, null, "pointEdit.detectors.noUpdate",
-                    new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC,
-                            DataTypes.IMAGE }));
+                    EnumSet.of(DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC,
+                            DataTypes.IMAGE)));
             d.add(new ImplDefinition(TYPE_POSITIVE_CUSUM, null, "pointEdit.detectors.posCusum",
-                    new int[] { DataTypes.NUMERIC }));
+                    EnumSet.of(DataTypes.NUMERIC)));
             d.add(new ImplDefinition(TYPE_NEGATIVE_CUSUM, null, "pointEdit.detectors.negCusum",
-                    new int[] { DataTypes.NUMERIC }));
+                    EnumSet.of(DataTypes.NUMERIC)));
             d.add(new ImplDefinition(TYPE_ANALOG_RANGE, null, "pointEdit.detectors.range",
-                    new int[] { DataTypes.NUMERIC }));
+                    EnumSet.of(DataTypes.NUMERIC)));
             //            d.add(new ImplDefinition(TYPE_ANALOG_CHANGE, null, "pointEdit.detectors.analogChange",
-            //                    new int[] { DataTypes.NUMERIC }));
+            //                    EnumSet.of( DataTypes.NUMERIC )));
             d.add(new ImplDefinition(TYPE_SMOOTHNESS, null, "pointEdit.detectors.smoothness",
-                    new int[] { DataTypes.NUMERIC }));
+                    EnumSet.of(DataTypes.NUMERIC)));
             definitions = d;
         }
+    }
 
+    public static List<ImplDefinition> getImplementations(DataTypes dataType) {
+        initializeDefinitions();
         List<ImplDefinition> impls = new ArrayList<>();
         for (ImplDefinition def : definitions) {
             if (def.supports(dataType))
@@ -127,9 +131,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     }
 
     public ImplDefinition getDef() {
-        // Ensure that definitions is not null.
-        if (definitions == null)
-            getImplementations(0);
+        initializeDefinitions();
 
         for (ImplDefinition def : definitions) {
             if (def.getId() == detectorType)

@@ -79,7 +79,7 @@ public class NumericValue extends DataValue implements Comparable<NumericValue> 
     }
 
     @Override
-    public int getDataType() {
+    public DataTypes getDataType() {
         return DataTypes.NUMERIC;
     }
 

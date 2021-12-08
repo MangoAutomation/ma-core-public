@@ -27,23 +27,23 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
  */
 public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorVO> implements JsonSerializable {
 
-    private int dataTypeId = DataTypes.NUMERIC;
+    private DataTypes dataType = DataTypes.NUMERIC;
     private boolean settable = false;
 
-    public MockPointLocatorVO(int dataTypeId, boolean settable){
-        this.dataTypeId = dataTypeId;
+    public MockPointLocatorVO(DataTypes dataType, boolean settable){
+        this.dataType = dataType;
         this.settable = settable;
     }
 
     public MockPointLocatorVO() {}
 
     @Override
-    public int getDataTypeId() {
-        return this.dataTypeId;
+    public DataTypes getDataType() {
+        return this.dataType;
     }
 
-    public void setDataTypeId(int type) {
-        this.dataTypeId = type;
+    public void setDataType(DataTypes type) {
+        this.dataType = type;
     }
 
     @Override
@@ -67,10 +67,9 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        Integer value = readDataType(jsonObject, DataTypes.IMAGE);
-        if (value != null)
-            dataTypeId = value;
-
+        if (jsonObject.containsKey("dataType")) {
+            this.dataType = readDataType(jsonObject, DataTypes.IMAGE);
+        }
     }
 
     @Override
@@ -83,7 +82,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
-        out.writeInt(dataTypeId);
+        out.writeInt(dataType.getId());
         out.writeBoolean(settable);
     }
 
@@ -92,7 +91,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
         if(version == 1) {
 
         }else if(version == 2) {
-            dataTypeId = in.readInt();
+            dataType = DataTypes.fromId(in.readInt());
             settable = in.readBoolean();
         }
     }

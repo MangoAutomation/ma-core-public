@@ -483,7 +483,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         record.set(table.discardExtremeValues, boolToChar(vo.isDiscardExtremeValues()));
         record.set(table.engineeringUnits, vo.getEngineeringUnits());
         record.set(table.rollup, vo.getRollup());
-        record.set(table.dataTypeId, vo.getPointLocator().getDataTypeId());
+        record.set(table.dataTypeId, vo.getPointLocator().getDataType().getId());
         record.set(table.settable, boolToChar(vo.getPointLocator().isSettable()));
         record.set(table.jsonData, convertData(vo.getData()));
         record.set(table.seriesId, vo.getSeriesId());
@@ -761,7 +761,8 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         Map<String, Function<Object, Object>> myConverters = new HashMap<>();
         myConverters.put("dataTypeId", value -> {
             if (value instanceof String) {
-                return DataTypes.CODES.getId((String) value);
+                DataTypes type = DataTypes.fromName((String) value);
+                return type == null ? null : type.getId();
             }
             return value;
         });

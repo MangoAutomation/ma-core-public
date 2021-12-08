@@ -4,7 +4,6 @@
 package com.serotonin.m2m2.rt.dataImage.types;
 
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.util.StringUtils;
 
 /**
  * @author Matthew Lohbihler
@@ -48,7 +47,7 @@ public class AlphanumericValue extends DataValue implements Comparable<Alphanume
     }
 
     @Override
-    public int getDataType() {
+    public DataTypes getDataType() {
         return DataTypes.ALPHANUMERIC;
     }
 

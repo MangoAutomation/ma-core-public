@@ -384,7 +384,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.getInstance().getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
             log.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
-                    + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime()));
+                    + ", type=" + vo.getPointLocator().getDataType() + ", ts=" + newValue.getTime()));
             return;
         }
 
@@ -417,14 +417,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private boolean discardUnwantedValues(PointValueTime pvt) {
 
         // Check the data type of the value against that of the locator, just for fun.
-        int valueDataType = DataTypes.getDataType(pvt.getValue());
-        if (valueDataType != DataTypes.UNKNOWN && valueDataType != vo.getPointLocator().getDataTypeId())
+        DataTypes valueDataType = pvt.getValue().getDataType();
+        if (valueDataType != vo.getPointLocator().getDataType())
             // This should never happen, but if it does it can have serious downstream consequences. Also, we need
             // to know how it happened, and the stack trace here provides the best information.
             throw new ShouldNeverHappenException("Data type mismatch between new value and point locator: newValue="
-                    + DataTypes.getDataType(pvt.getValue()) + ", locator=" + vo.getPointLocator().getDataTypeId());
+                    + pvt.getValue().getDataType() + ", locator=" + vo.getPointLocator().getDataType());
 
-        if (vo.isDiscardExtremeValues() && vo.getPointLocator().getDataTypeId()== DataTypes.NUMERIC) {
+        if (vo.isDiscardExtremeValues() && vo.getPointLocator().getDataType()== DataTypes.NUMERIC) {
             double newd = pvt.getDoubleValue();
             //Discard if NaN
             if(Double.isNaN(newd))
@@ -442,7 +442,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             // Too far future dated. Toss it. But log a message first.
             log.warn("Discarding point value", new Exception("Future dated value detected: pointId="
                     + vo.getId() + ", value=" + pvt.getValue().toString()
-                    + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + pvt.getTime()));
+                    + ", type=" + vo.getPointLocator().getDataType() + ", ts=" + pvt.getTime()));
             return true;
         }
         return false;
@@ -604,7 +604,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
                         return;
 
-                    if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE) {
+                    if(vo.getPointLocator().getDataType() == DataTypes.MULTISTATE) {
                         StartsAndRuntimeList stats = new StartsAndRuntimeList(intervalStartTime, fireTime, intervalValue, averagingValues);
                         double maxProportion = -1;
                         Object valueAtMax = null;
@@ -622,9 +622,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                         AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue, averagingValues);
                         if (stats.getAverage() == null || (stats.getAverage() == Double.NaN && stats.getCount() == 0))
                             value = null;
-                        else if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
+                        else if(vo.getPointLocator().getDataType() == DataTypes.NUMERIC)
                             value = new NumericValue(stats.getAverage());
-                        else if(vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
+                        else if(vo.getPointLocator().getDataType() == DataTypes.BINARY)
                             value = new BinaryValue(stats.getAverage() >= 0.5);
                         else
                             throw new ShouldNeverHappenException("Unsupported average interval logging data type.");
@@ -649,7 +649,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 //Okay, no changes rescheduled the timer. Get a value,
                 if(pointValue.get() != null) {
                     value = pointValue.get().getValue();
-                    if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
+                    if(vo.getPointLocator().getDataType() == DataTypes.NUMERIC)
                         toleranceOrigin = pointValue.get().getDoubleValue();
                 } else
                     value = null;
@@ -733,8 +733,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     @Override
-    public int getDataTypeId() {
-        return vo.getPointLocator().getDataTypeId();
+    public DataTypes getDataType() {
+        return vo.getPointLocator().getDataType();
     }
 
     public Map<String, Object> getAttributes() {

@@ -9,6 +9,7 @@ import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.EnumSet;
 import java.util.Locale;
 
 import javax.measure.unit.Unit;
@@ -29,8 +30,8 @@ import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
 public class AnalogRenderer extends ConvertingRenderer {
-    private static ImplDefinition definition = new ImplDefinition("textRendererAnalog", "ANALOG",
-            "textRenderer.analog", new int[] { DataTypes.NUMERIC });
+    private static final ImplDefinition definition = new ImplDefinition("textRendererAnalog", "ANALOG",
+            "textRenderer.analog", EnumSet.of(DataTypes.NUMERIC));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -128,7 +129,7 @@ public class AnalogRenderer extends ConvertingRenderer {
     //
     // Parse
     @Override
-    public DataValue parseText(String s, int dataType) {
+    public DataValue parseText(String s, DataTypes dataType) {
         if(StringUtils.isEmpty(s))
             return new NumericValue(0);
         else if(s.startsWith("0x") || s.startsWith("0X")) {
@@ -227,8 +228,8 @@ public class AnalogRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public void validate(ProcessResult result, int sourceDataTypeId) {
-        super.validate(result, sourceDataTypeId);
+    public void validate(ProcessResult result, DataTypes sourceDataType) {
+        super.validate(result, sourceDataType);
         if((format == null)||(format.equals("")))
             result.addContextualMessage("textRenderer.format", "validate.required");
         if (format == null) return;

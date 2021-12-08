@@ -38,58 +38,43 @@ public class RhinoScriptTestData {
 		}
 		
 	}
-	
-	
-	
-	
-	/**
-     */
-	public static List<PointValueTime> getLatestPointValues(int dataTypeId, int id, int limit) {
+
+	public static List<PointValueTime> getLatestPointValues(DataTypes dataType, int id, int limit) {
 		if(limit > pointValueCount)
 			throw new ShouldNeverHappenException("Not Enough Data!");
 		if((id <= 0 )||(id > pointCount))
 			throw new ShouldNeverHappenException("Invalid Data Point ID!");
 		
-		switch(dataTypeId){
-			case DataTypes.ALPHANUMERIC:
-			case DataTypes.BINARY:
-			case DataTypes.IMAGE:
-			case DataTypes.MULTISTATE:
+		switch(dataType){
+			case ALPHANUMERIC:
+			case BINARY:
+			case IMAGE:
+			case MULTISTATE:
 			default:
 				throw new ShouldNeverHappenException("Unimplemented");
-			case DataTypes.NUMERIC:
+			case NUMERIC:
 				return numericPvts.get(id-1).subList(numericPvts.get(id-1).size()-limit, numericPvts.get(id-1).size());
 		}
 		
 	}
 
-
-
-
-	/**
-     */
-	public static PointValueTime getLatestPointValue(int dataTypeId, int id) {
-		List<PointValueTime> pvts = getLatestPointValues(dataTypeId, id, 1);
+	public static PointValueTime getLatestPointValue(DataTypes dataType, int id) {
+		List<PointValueTime> pvts = getLatestPointValues(dataType, id, 1);
 		if(pvts.size() > 0)
 			return pvts.get(0);
 		else
 			return null;
 	}
 
-
-
-
-	/**
-     */
-	public static List<PointValueTime> getPointValuesBetween(int dataTypeId, int id, long from, long to) {
-		switch(dataTypeId){
-		case DataTypes.ALPHANUMERIC:
-		case DataTypes.BINARY:
-		case DataTypes.IMAGE:
-		case DataTypes.MULTISTATE:
+	public static List<PointValueTime> getPointValuesBetween(DataTypes dataType, int id, long from, long to) {
+		switch(dataType){
+		case ALPHANUMERIC:
+		case BINARY:
+		case IMAGE:
+		case MULTISTATE:
 		default:
 			throw new ShouldNeverHappenException("Unimplemented");
-		case DataTypes.NUMERIC:
+		case NUMERIC:
 			List<PointValueTime> values = new ArrayList<PointValueTime>();
 			List<PointValueTime> pvts = numericPvts.get(id);
 			for(PointValueTime pvt : pvts){

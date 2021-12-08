@@ -166,11 +166,6 @@ public class MangoJavaScriptService {
 
         validateContext(vo.getContext(), result);
 
-        if(vo.getResultDataTypeId() != null) {
-            if(!DataTypes.CODES.isValidId(vo.getResultDataTypeId()))
-                result.addContextualMessage("resultDataTypeId", "validate.invalidValue");
-        }
-
         //Can't validate a null script
         if(StringUtils.isEmpty(vo.getScript()))
             result.addContextualMessage("script", "validate.invalidValue");
@@ -258,8 +253,8 @@ public class MangoJavaScriptService {
 
                 long time = Common.timer.currentTimeMillis();
                 runAs.runAsCallable(vo.getPermissions(), () -> {
-                    if(vo.getResultDataTypeId() != null) {
-                        script.execute(time, time, vo.getResultDataTypeId());
+                    if(vo.getResultDataType() != null) {
+                        script.execute(time, time, vo.getResultDataType());
                         //Convert the UNCHANGED value
                         Object o = script.getResult().getResult();
                         if(o instanceof PointValueTime && ((PointValueTime)o).getValue() == UNCHANGED) {
@@ -316,8 +311,8 @@ public class MangoJavaScriptService {
 
                 long time = Common.timer.currentTimeMillis();
                 runAs.runAsCallable(script.getPermissionHolder(), () -> {
-                    if(vo.getResultDataTypeId() != null) {
-                        script.execute(time, time, vo.getResultDataTypeId());
+                    if(vo.getResultDataType() != null) {
+                        script.execute(time, time, vo.getResultDataType());
                     }else {
                         script.execute(time, time);
                     }
@@ -507,7 +502,7 @@ public class MangoJavaScriptService {
     /**
      * Reset the result and execute for PointValueTime result
      */
-    public void execute(CompiledMangoJavaScript script, long runtime, long timestamp, Integer resultDataTypeId) throws ScriptError, ResultTypeException, ScriptPermissionsException {
+    public void execute(CompiledMangoJavaScript script, long runtime, long timestamp, DataTypes resultDataType) throws ScriptError, ResultTypeException, ScriptPermissionsException {
         try {
             runAs.runAsCallable(script.getPermissionHolder(), () -> {
                 execute(script, runtime, timestamp);
@@ -526,7 +521,7 @@ public class MangoJavaScriptService {
                     scriptRuntime = timestamp;
                 }
                 Object resultObject = script.getResult().getResult();
-                DataValue value = coerce(resultObject, resultDataTypeId);
+                DataValue value = coerce(resultObject, resultDataType);
                 script.getResult().setResult(new PointValueTime(value, scriptRuntime));
                 return null;
             });
@@ -602,7 +597,7 @@ public class MangoJavaScriptService {
      */
     public AbstractPointWrapper wrapPoint(ScriptEngine engine, IDataPointValueSource point,
             ScriptPointValueSetter setter) {
-        int dt = point.getDataTypeId();
+        DataTypes dt = point.getDataType();
         if (dt == DataTypes.BINARY)
             return new BinaryPointWrapper(point, engine, setter);
         if (dt == DataTypes.MULTISTATE)
@@ -613,7 +608,7 @@ public class MangoJavaScriptService {
             return new AlphanumericPointWrapper(point, engine, setter);
         if (dt == DataTypes.IMAGE)
             return new ImagePointWrapper(point, engine, setter);
-        throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
+        throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataType());
     }
 
     private static String FUNCTIONS;
@@ -699,7 +694,7 @@ public class MangoJavaScriptService {
     /**
      * Coerce an object into a DataValue
      */
-    public DataValue coerce(Object input, int toDataTypeId) throws ResultTypeException {
+    public DataValue coerce(Object input, DataTypes toDataType) throws ResultTypeException {
         DataValue value;
 
         if(input instanceof DataValue)
@@ -708,27 +703,27 @@ public class MangoJavaScriptService {
             return ((PointValueTime)input).getValue();
 
         if (input == null) {
-            if (toDataTypeId == DataTypes.BINARY)
+            if (toDataType == DataTypes.BINARY)
                 value = new BinaryValue(false);
-            else if (toDataTypeId == DataTypes.MULTISTATE)
+            else if (toDataType == DataTypes.MULTISTATE)
                 value = new MultistateValue(0);
-            else if (toDataTypeId == DataTypes.NUMERIC)
+            else if (toDataType == DataTypes.NUMERIC)
                 value = new NumericValue(0);
-            else if (toDataTypeId == DataTypes.ALPHANUMERIC)
+            else if (toDataType == DataTypes.ALPHANUMERIC)
                 value = new AlphanumericValue("");
             else
                 value = null;
         }
         else if (input instanceof AbstractPointWrapper) {
             value = ((AbstractPointWrapper) input).getValueImpl();
-            if ((value != null)&&(value.getDataType() != toDataTypeId))
+            if ((value != null)&&(value.getDataType() != toDataType))
                 throw new ResultTypeException(new TranslatableMessage("event.script.convertError", input,
-                        DataTypes.getDataTypeMessage(toDataTypeId)));
+                        toDataType.getDescription()));
         }
         // See if the type matches.
-        else if (toDataTypeId == DataTypes.BINARY && input instanceof Boolean)
+        else if (toDataType == DataTypes.BINARY && input instanceof Boolean)
             value = new BinaryValue((Boolean) input);
-        else if (toDataTypeId == DataTypes.MULTISTATE) {
+        else if (toDataType == DataTypes.MULTISTATE) {
             if (input instanceof Number)
                 value = new MultistateValue(((Number) input).intValue());
             else if (input instanceof String) {
@@ -737,14 +732,14 @@ public class MangoJavaScriptService {
                 }
                 catch (NumberFormatException e) {
                     throw new ResultTypeException(new TranslatableMessage("event.script.convertError", input,
-                            DataTypes.getDataTypeMessage(toDataTypeId)));
+                            toDataType.getDescription()));
                 }
             }
             else
                 throw new ResultTypeException(new TranslatableMessage("event.script.convertError", input,
-                        DataTypes.getDataTypeMessage(toDataTypeId)));
+                        toDataType.getDescription()));
         }
-        else if (toDataTypeId == DataTypes.NUMERIC) {
+        else if (toDataType == DataTypes.NUMERIC) {
             if (input instanceof Number)
                 value = new NumericValue(((Number) input).doubleValue());
             else if (input instanceof String) {
@@ -753,19 +748,19 @@ public class MangoJavaScriptService {
                 }
                 catch (NumberFormatException e) {
                     throw new ResultTypeException(new TranslatableMessage("event.script.convertError", input,
-                            DataTypes.getDataTypeMessage(toDataTypeId)));
+                            toDataType.getDescription()));
                 }
             }
             else
                 throw new ResultTypeException(new TranslatableMessage("event.script.convertError", input,
-                        DataTypes.getDataTypeMessage(toDataTypeId)));
+                        toDataType.getDescription()));
         }
-        else if (toDataTypeId == DataTypes.ALPHANUMERIC)
+        else if (toDataType == DataTypes.ALPHANUMERIC)
             value = new AlphanumericValue(input.toString());
         else
             // If not, ditch it.
             throw new ResultTypeException(new TranslatableMessage("event.script.convertError", input,
-                    DataTypes.getDataTypeMessage(toDataTypeId)));
+                    toDataType.getDescription()));
 
         return value;
     }

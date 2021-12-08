@@ -3,9 +3,11 @@
  */
 package com.serotonin.m2m2.view;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
+import com.serotonin.m2m2.DataTypes;
 
 public class ImplDefinition {
     public static ImplDefinition findByName(List<ImplDefinition> list, String name) {
@@ -28,16 +30,16 @@ public class ImplDefinition {
     private String name;
     private String exportName;
     private final String nameKey;
-    private final int[] supportedDataTypes;
+    private final Set<DataTypes> supportedDataTypes;
 
-    public ImplDefinition(int id, String exportName, String nameKey, int[] supportedDataTypes) {
+    public ImplDefinition(int id, String exportName, String nameKey, Set<DataTypes> supportedDataTypes) {
         this.id = id;
         this.nameKey = nameKey;
         this.exportName = exportName;
         this.supportedDataTypes = supportedDataTypes;
     }
 
-    public ImplDefinition(String name, String exportName, String nameKey, int[] supportedDataTypes) {
+    public ImplDefinition(String name, String exportName, String nameKey, Set<DataTypes> supportedDataTypes) {
         this.name = name;
         this.nameKey = nameKey;
         this.exportName = exportName;
@@ -64,11 +66,11 @@ public class ImplDefinition {
         this.exportName = exportName;
     }
 
-    public int[] getSupportedDataTypes() {
-        return supportedDataTypes;
+    public Set<DataTypes> getSupportedDataTypes() {
+        return Collections.unmodifiableSet(supportedDataTypes);
     }
 
-    public boolean supports(int dataType) {
-        return ArrayUtils.contains(supportedDataTypes, dataType);
+    public boolean supports(DataTypes dataType) {
+        return supportedDataTypes.contains(dataType);
     }
 }

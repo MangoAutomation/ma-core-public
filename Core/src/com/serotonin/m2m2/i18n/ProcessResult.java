@@ -144,4 +144,8 @@ public class ProcessResult implements Serializable {
                 ", contextKeyPrefix='" + contextKeyPrefix + '\'' +
                 '}';
     }
+
+    public boolean hasContextualMessage(String contextKey) {
+        return messages.stream().anyMatch(m -> contextKey.equals(m.getContextKey()));
+    }
 }

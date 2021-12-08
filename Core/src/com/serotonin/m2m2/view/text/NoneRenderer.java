@@ -6,18 +6,18 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.EnumSet;
 import java.util.Locale;
 
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
 
 @JsonEntity
 public class NoneRenderer extends BaseTextRenderer {
-    private static ImplDefinition definition = new ImplDefinition("textRendererNone", "NONE", "textRenderer.none",
-            new int[] { DataTypes.IMAGE });
+    private static final ImplDefinition definition = new ImplDefinition("textRendererNone", "NONE", "textRenderer.none",
+            EnumSet.of(DataTypes.IMAGE));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -77,8 +77,4 @@ public class NoneRenderer extends BaseTextRenderer {
         }
     }
 
-    @Override
-    public void validate(ProcessResult result, int sourcePointDataTypeId) {
-        super.validate(result, sourcePointDataTypeId);
-    }
 }

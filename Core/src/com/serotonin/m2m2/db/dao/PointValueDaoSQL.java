@@ -220,7 +220,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     private long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, boolean async) {
         DataValue value = pointValue.getValue();
-        final int dataType = DataTypes.getDataType(value);
+        final DataTypes dataType = value.getDataType();
         double dvalue = 0;
         String svalue = null;
 
@@ -274,7 +274,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private long savePointValue(DataPointVO vo, int dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage, boolean async) {
+    private long savePointValue(DataPointVO vo, DataTypes dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage, boolean async) {
         // Apply database specific bounds on double values.
         dvalue = databaseProxy.applyBounds(dvalue);
 
@@ -297,10 +297,10 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private long savePointValueImpl(DataPointVO vo, int dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage) {
+    private long savePointValueImpl(DataPointVO vo, DataTypes dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage) {
         long id = this.create.insertInto(pv)
                 .set(pv.dataPointId, vo.getSeriesId())
-                .set(pv.dataType, dataType)
+                .set(pv.dataType, dataType.getId())
                 .set(pv.pointValue, dvalue)
                 .set(pv.ts, time)
                 .returningResult(pv.id)
@@ -349,11 +349,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     private static class BatchWriteEntry {
         private final int seriesId;
-        private final int dataType;
+        private final DataTypes dataType;
         private final double dvalue;
         private final long time;
 
-        public BatchWriteEntry(int seriesId, int dataType, double dvalue, long time) {
+        public BatchWriteEntry(int seriesId, DataTypes dataType, double dvalue, long time) {
             this.seriesId = seriesId;
             this.dataType = dataType;
             this.dvalue = dvalue;
@@ -444,7 +444,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
         MutableInt count = new MutableInt();
         entryStream.forEach(entry -> {
-            insert.values(entry.seriesId, entry.dataType, entry.dvalue, entry.time);
+            insert.values(entry.seriesId, entry.dataType.getId(), entry.dvalue, entry.time);
             count.incrementAndGet();
         });
         int written = 0;

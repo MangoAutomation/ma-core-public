@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
+import java.util.EnumSet;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -33,7 +34,7 @@ public class AnalogRangeDetectorVO extends TimeoutDetectorVO<AnalogRangeDetector
 	private boolean withinRange;
 
 	public AnalogRangeDetectorVO(DataPointVO vo) {
-		super(vo, new int[] { DataTypes.NUMERIC });
+		super(vo, EnumSet.of(DataTypes.NUMERIC));
 	}
 	
 	public double getLow() {

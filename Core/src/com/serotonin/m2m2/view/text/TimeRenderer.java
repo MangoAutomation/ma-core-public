@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Locale;
 
 import com.serotonin.json.spi.JsonProperty;
@@ -19,8 +20,8 @@ import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
 public class TimeRenderer extends BaseTextRenderer {
-    private static ImplDefinition definition = new ImplDefinition("textRendererTime", "TIME", "textRenderer.time",
-            new int[] { DataTypes.NUMERIC });
+    private static final ImplDefinition definition = new ImplDefinition("textRendererTime", "TIME", "textRenderer.time",
+            EnumSet.of(DataTypes.NUMERIC));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -124,8 +125,8 @@ public class TimeRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public void validate(ProcessResult result, int sourcePointDataTypeId) {
-        super.validate(result, sourcePointDataTypeId);
+    public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+        super.validate(result, sourcePointDataType);
         if((format == null)||(format.equals("")))
             result.addContextualMessage("textRenderer.format", "validate.required");
     }

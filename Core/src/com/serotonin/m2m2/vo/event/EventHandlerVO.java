@@ -365,7 +365,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (dp == null)
                 response.addGenericMessage("eventHandlers.noTargetPoint");
             else {
-                int dataType = dp.getPointLocator().getDataTypeId();
+                DataTypes dataType = dp.getPointLocator().getDataType();
 
                 if (activeAction == SET_ACTION_NONE && inactiveAction == SET_ACTION_NONE)
                     response.addGenericMessage("eventHandlers.noSetPointAction");
@@ -394,7 +394,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
                     if (dpActive == null)
                         response.addGenericMessage("eventHandlers.invalidActiveSource");
-                    else if (dataType != dpActive.getPointLocator().getDataTypeId())
+                    else if (dataType != dpActive.getPointLocator().getDataType())
                         response.addGenericMessage("eventHandlers.invalidActiveSourceType");
                 }
 
@@ -422,7 +422,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
                     if (dpInactive == null)
                         response.addGenericMessage("eventHandlers.invalidInactiveSource");
-                    else if (dataType != dpInactive.getPointLocator().getDataTypeId())
+                    else if (dataType != dpInactive.getPointLocator().getDataType())
                         response.addGenericMessage("eventHandlers.invalidInactiveSourceType");
                 }
             }

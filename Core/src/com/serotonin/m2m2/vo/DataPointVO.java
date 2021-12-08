@@ -234,11 +234,11 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         if (pointLocator == null)
             setTextRenderer(new PlainRenderer("", false));
         else {
-            switch (pointLocator.getDataTypeId()) {
-                case DataTypes.IMAGE:
+            switch (pointLocator.getDataType()) {
+                case IMAGE:
                     setTextRenderer(new NoneRenderer());
                     break;
-                case DataTypes.NUMERIC:
+                case NUMERIC:
                     setTextRenderer(new PlainRenderer("", true));
                     break;
                 default:

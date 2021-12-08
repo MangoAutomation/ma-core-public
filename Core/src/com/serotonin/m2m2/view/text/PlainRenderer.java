@@ -6,6 +6,7 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.EnumSet;
 import java.util.Locale;
 
 import javax.measure.unit.Unit;
@@ -24,8 +25,8 @@ import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
 public class PlainRenderer extends ConvertingRenderer {
-    private static ImplDefinition definition = new ImplDefinition("textRendererPlain", "PLAIN", "textRenderer.plain",
-            new int[] { DataTypes.BINARY, DataTypes.ALPHANUMERIC, DataTypes.MULTISTATE, DataTypes.NUMERIC });
+    private static final ImplDefinition definition = new ImplDefinition("textRendererPlain", "PLAIN", "textRenderer.plain",
+            EnumSet.of(DataTypes.BINARY, DataTypes.ALPHANUMERIC, DataTypes.MULTISTATE, DataTypes.NUMERIC));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -214,7 +215,7 @@ public class PlainRenderer extends ConvertingRenderer {
     }
 
 	@Override
-	public void validate(ProcessResult result, int sourcePointDataTypeId) {
-	    super.validate(result, sourcePointDataTypeId);
+	public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+	    super.validate(result, sourcePointDataType);
 	}
 }

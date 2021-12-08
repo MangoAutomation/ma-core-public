@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.db.tables.EventDetectors;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -81,8 +82,8 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
         else {
             //Is valid data type
             boolean valid = false;
-            for(int type : vo.getSupportedDataTypes()){
-                if(type == vo.getDataPoint().getPointLocator().getDataTypeId()){
+            for(DataTypes type : vo.getSupportedDataTypes()){
+                if(type == vo.getDataPoint().getPointLocator().getDataType()){
                     valid = true;
                     break;
                 }

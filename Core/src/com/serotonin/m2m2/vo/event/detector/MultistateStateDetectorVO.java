@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.vo.event.detector;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 import com.serotonin.json.spi.JsonProperty;
@@ -33,7 +34,7 @@ public class MultistateStateDetectorVO extends TimeoutDetectorVO<MultistateState
 	private boolean inverted;
 
 	public MultistateStateDetectorVO(DataPointVO vo) {
-		super(vo, new int[] { DataTypes.MULTISTATE });
+		super(vo, EnumSet.of(DataTypes.MULTISTATE));
 	}
 
 	public int getState() {

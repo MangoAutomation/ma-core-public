@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.util.EnumSet;
+
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -18,11 +20,11 @@ public class PointChangeDetectorVO extends AbstractPointEventDetectorVO {
     private static final long serialVersionUID = 1L;
 
     public PointChangeDetectorVO(DataPointVO vo) {
-        super(vo, new int[] {
+        super(vo, EnumSet.of(
                 DataTypes.BINARY,
                 DataTypes.MULTISTATE,
                 DataTypes.NUMERIC,
-                DataTypes.ALPHANUMERIC });
+                DataTypes.ALPHANUMERIC));
     }
 
     @Override

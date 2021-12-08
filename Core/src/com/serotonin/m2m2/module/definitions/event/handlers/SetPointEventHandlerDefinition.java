@@ -114,11 +114,11 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     private void commonValidation(ProcessResult response, SetPointEventHandlerVO vo) {
         DataPointVO dp = DataPointDao.getInstance().get(vo.getTargetPointId());
 
-        int dataType = DataTypes.UNKNOWN;
+        DataTypes dataType = null;
         if (dp == null)
             response.addContextualMessage("targetPointId", "eventHandlers.noTargetPoint");
         else {
-            dataType = dp.getPointLocator().getDataTypeId();
+            dataType = dp.getPointLocator().getDataType();
             if(!dp.getPointLocator().isSettable())
                 response.addContextualMessage("targetPointId", "event.setPoint.targetNotSettable");
         }
@@ -150,7 +150,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
 
             if (dpActive == null)
                 response.addContextualMessage("activePointId", "eventHandlers.invalidActiveSource");
-            else if (dataType != dpActive.getPointLocator().getDataTypeId())
+            else if (dataType != dpActive.getPointLocator().getDataType())
                 response.addContextualMessage("activeDataPointId", "eventHandlers.invalidActiveSourceType");
         }
         else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
@@ -187,7 +187,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
 
             if (dpInactive == null)
                 response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSource");
-            else if (dataType != dpInactive.getPointLocator().getDataTypeId())
+            else if (dataType != dpInactive.getPointLocator().getDataType())
                 response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSourceType");
         }
         else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {

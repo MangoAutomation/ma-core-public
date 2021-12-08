@@ -13,15 +13,15 @@ import com.serotonin.m2m2.DataTypes;
  * @author Matthew Lohbihler
  */
 abstract public class DataValue {
-    public static DataValue stringToValue(String valueStr, int dataType) {
+    public static DataValue stringToValue(String valueStr, DataTypes dataType) {
         switch (dataType) {
-        case DataTypes.BINARY:
+        case BINARY:
             return BinaryValue.parseBinary(valueStr);
-        case DataTypes.MULTISTATE:
+        case MULTISTATE:
             return MultistateValue.parseMultistate(valueStr);
-        case DataTypes.NUMERIC:
+        case NUMERIC:
             return NumericValue.parseNumeric(valueStr);
-        case DataTypes.IMAGE:
+        case IMAGE:
             try {
                 return new ImageValue(valueStr);
             }
@@ -29,7 +29,7 @@ abstract public class DataValue {
                 // no op
             }
             return null;
-        case DataTypes.ALPHANUMERIC:
+        case ALPHANUMERIC:
             return new AlphanumericValue(valueStr);
         }
         throw new ShouldNeverHappenException("Invalid data type " + dataType + ". Cannot instantiate DataValue");
@@ -64,7 +64,7 @@ abstract public class DataValue {
 
     abstract public Object getObjectValue();
 
-    abstract public int getDataType();
+    abstract public DataTypes getDataType();
 
     abstract public Number numberValue();
 

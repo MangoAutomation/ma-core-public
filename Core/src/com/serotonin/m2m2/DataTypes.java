@@ -3,52 +3,54 @@
  */
 package com.serotonin.m2m2;
 
+import java.util.EnumSet;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import com.infiniteautomation.mango.util.enums.EnumDeserializer;
+import com.infiniteautomation.mango.util.enums.NameEnumDeserializer;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.util.ExportCodes;
 
-public class DataTypes {
-    public static final int UNKNOWN = 0;
-    public static final int BINARY = 1;
-    public static final int MULTISTATE = 2;
-    public static final int NUMERIC = 3;
-    public static final int ALPHANUMERIC = 4;
-    public static final int IMAGE = 5;
+public enum DataTypes {
+    // 0 reserved, used to be UNKNOWN
+    BINARY(1, new TranslatableMessage("common.dataTypes.binary")),
+    MULTISTATE(2, new TranslatableMessage("common.dataTypes.multistate")),
+    NUMERIC(3, new TranslatableMessage("common.dataTypes.numeric")),
+    ALPHANUMERIC(4, new TranslatableMessage("common.dataTypes.alphanumeric")),
+    IMAGE(5, new TranslatableMessage("common.dataTypes.image"));
 
-    public static TranslatableMessage getDataTypeMessage(int id) {
-        switch (id) {
-        case BINARY:
-            return new TranslatableMessage("common.dataTypes.binary");
-        case MULTISTATE:
-            return new TranslatableMessage("common.dataTypes.multistate");
-        case NUMERIC:
-            return new TranslatableMessage("common.dataTypes.numeric");
-        case ALPHANUMERIC:
-            return new TranslatableMessage("common.dataTypes.alphanumeric");
-        case IMAGE:
-            return new TranslatableMessage("common.dataTypes.image");
-        }
-        return new TranslatableMessage("common.unknown");
+    private static final EnumDeserializer<DataTypes, Integer> IDS = new EnumDeserializer<>(DataTypes.class, DataTypes::getId);
+    private static final EnumDeserializer<DataTypes, String> NAMES = new NameEnumDeserializer<>(DataTypes.class);
+
+    private final int id;
+    private final TranslatableMessage description;
+
+    DataTypes(int id, TranslatableMessage description) {
+        this.id = id;
+        this.description = description;
     }
 
-    public static final ExportCodes CODES = new ExportCodes();
-    static {
-        CODES.addElement(BINARY, "BINARY");
-        CODES.addElement(MULTISTATE, "MULTISTATE");
-        CODES.addElement(NUMERIC, "NUMERIC");
-        CODES.addElement(ALPHANUMERIC, "ALPHANUMERIC");
-        CODES.addElement(IMAGE, "IMAGE");
+    public int getId() {
+        return id;
     }
 
-    public static int getDataType(DataValue value) {
-        if (value == null)
-            return UNKNOWN;
-        return value.getDataType();
+    public TranslatableMessage getDescription() {
+        return description;
     }
 
-    public static String valueToString(DataValue value) {
-        if (value == null)
-            return null;
-        return value.toString();
+    public static @Nullable DataTypes fromId(int id) {
+        return IDS.deserializeNullable(id);
+    }
+
+    public static @Nullable DataTypes fromName(String name) {
+        return NAMES.deserializeNullable(name);
+    }
+
+    public static String formatNames() {
+        return NAMES.formatIdentifiers();
+    }
+
+    public static String formatNames(EnumSet<DataTypes> exclude) {
+        return NAMES.formatIdentifiers(exclude);
     }
 }

@@ -91,7 +91,7 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
         if(start != null && start.getTime() == from)
             values.add(0, start);
         StartsAndRuntimeList stats = new StartsAndRuntimeList(from, to, start, values);
-        if (point.getDataTypeId() == DataTypes.BINARY)
+        if (point.getDataType() == DataTypes.BINARY)
             return new BinaryStartsAndRuntimeListWrapper(stats);
         else
             return new MultistateStartsAndRuntimeListWrapper(stats);

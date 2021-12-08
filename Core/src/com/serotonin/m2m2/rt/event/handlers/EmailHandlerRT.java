@@ -601,7 +601,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
             // We may, however, need to coerce the given value.
             try {
-                DataValue mangoValue = service.coerce(value, dprt.getDataTypeId());
+                DataValue mangoValue = service.coerce(value, dprt.getDataType());
                 SetPointSource source;
                 PointValueTime newValue = new PointValueTime(mangoValue, timestamp);
                 if(StringUtils.isBlank(annotation))
