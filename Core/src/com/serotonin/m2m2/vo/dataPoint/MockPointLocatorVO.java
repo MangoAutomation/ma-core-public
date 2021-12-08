@@ -89,7 +89,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
     private void readObject(ObjectInputStream in) throws IOException {
         int version = in.readInt();
         if(version == 1) {
-
+            dataType = DataType.NUMERIC;
         }else if(version == 2) {
             dataType = DataType.fromId(in.readInt());
             settable = in.readBoolean();
