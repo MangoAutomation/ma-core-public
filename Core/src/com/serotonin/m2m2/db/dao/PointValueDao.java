@@ -814,13 +814,6 @@ public interface PointValueDao {
     }
 
     /**
-     * Get the FileData ids for point values types with corresponding files.
-     * @param vo data point
-     * @return list of ids
-     */
-    List<Long> getFiledataIds(DataPointVO vo);
-
-    /**
      * @return number of point values to read/write at once when streaming data
      */
     default int chunkSize() {

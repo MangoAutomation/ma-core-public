@@ -607,14 +607,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public List<Long> getFiledataIds(DataPointVO vo) {
-        return create.select(pv.id).from(pv)
-                .where(pv.dataPointId.eq(vo.getSeriesId()))
-                .and(pv.dataType.eq(DataType.IMAGE.getId()))
-                .fetch(pv.id);
-    }
-
-    @Override
     public double writeSpeed() {
         // this implementation does not support writes
         return 0D;

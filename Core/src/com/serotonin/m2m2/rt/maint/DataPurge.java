@@ -3,14 +3,12 @@
  */
 package com.serotonin.m2m2.rt.maint;
 
-import java.io.File;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,17 +19,14 @@ import org.slf4j.LoggerFactory;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.module.FiledataDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PurgeDefinition;
 import com.serotonin.m2m2.module.PurgeFilterDefinition;
 import com.serotonin.m2m2.module.definitions.actions.PurgeFilter;
-import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.util.DateUtils;
@@ -51,9 +46,7 @@ public class DataPurge {
     private final PointValueDao pointValueDao;
     private long deletedSamples;
     private boolean numberDeletedSamplesKnown;
-    private long deletedFiles;
     private long deletedEvents;
-    private final List<Long> fileIds = new ArrayList<>();
 
     public DataPurge() {
         this(Common.getBean(SystemSettingsDao.class), Common.getBean(DataPointDao.class), Common.getBean(PointValueDao.class));
@@ -139,11 +132,6 @@ public class DataPurge {
             log.info("Point value purge is not enabled, skipping.");
         }
 
-        // File data purge
-        filedataPurge();
-        if (deletedFiles > 0)
-            log.info("Filedata purge ended, " + deletedFiles + " files deleted");
-
         // Event purge
         eventPurge();
 
@@ -189,47 +177,6 @@ public class DataPurge {
 
                 Common.runtimeManager.purgeDataPointValues(dataPoint, cutoff.getMillis())
                         .ifPresent(this::addDeletedSamples);
-            }
-
-            // If this is an image data type, get the point value ids.
-            if (dataPoint.getPointLocator().getDataType() == DataType.IMAGE)
-                fileIds.addAll(pointValueDao.getFiledataIds(dataPoint));
-        }
-    }
-
-    private void filedataPurge() {
-        // The file ids for points will have been filled in by the purge point method calls. Now get the ids from
-        // elsewhere.
-
-        List<List<Long>> imageIds = new ArrayList<>();
-        imageIds.add(fileIds);
-        for (FiledataDefinition def : ModuleRegistry.getDefinitions(FiledataDefinition.class))
-            imageIds.add(def.getFiledataImageIds());
-
-        // Sort the data
-        for (List<Long> ids : imageIds)
-            Collections.sort(ids);
-
-        // Get all of the existing filenames.
-        File dir = Common.getFiledataPath().toFile();
-        String[] files = dir.list();
-        if (files != null) {
-            for (String filename : files) {
-                long pointId = ImageValue.parseIdFromFilename(filename);
-                // If the point id exists in any list, don't delete it.
-                boolean found = false;
-                for (List<Long> ids : imageIds) {
-                    if (Collections.binarySearch(ids, pointId) >= 0) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    // Not found, so the point was deleted from the database. Delete the file.
-                    new File(dir, filename).delete();
-                    deletedFiles++;
-                }
             }
         }
     }
@@ -312,10 +259,6 @@ public class DataPurge {
 
     public long getDeletedSamples() {
         return deletedSamples;
-    }
-
-    public long getDeletedFiles() {
-        return deletedFiles;
     }
 
     public long getDeletedEvents() {

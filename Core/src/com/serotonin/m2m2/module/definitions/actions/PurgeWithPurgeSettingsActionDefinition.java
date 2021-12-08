@@ -58,7 +58,6 @@ public class PurgeWithPurgeSettingsActionDefinition extends SystemActionDefiniti
             dataPurge.execute(Common.timer.currentTimeMillis());
             this.results.put("countPointValues", dataPurge.isNumberDeletedSamplesKnown());
             this.results.put("deletedPointValues", dataPurge.isNumberDeletedSamplesKnown() ? dataPurge.getDeletedSamples() : -1);
-            this.results.put("deletedFiles", dataPurge.getDeletedFiles());
             this.results.put("deletedEvents", dataPurge.getDeletedEvents());
             this.results.put("anyDeletedSamples", !dataPurge.isNumberDeletedSamplesKnown() || dataPurge.getDeletedSamples() > 0);
         }

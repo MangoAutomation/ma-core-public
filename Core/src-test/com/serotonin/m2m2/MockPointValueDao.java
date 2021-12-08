@@ -220,11 +220,6 @@ public class MockPointValueDao implements PointValueDao{
     }
 
     @Override
-    public List<Long> getFiledataIds(DataPointVO vo) {
-        return null;
-    }
-
-    @Override
     public double writeSpeed() {
         return 0D;
     }

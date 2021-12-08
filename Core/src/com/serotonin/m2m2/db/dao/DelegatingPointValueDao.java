@@ -152,15 +152,6 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
     }
 
     @Override
-    public List<Long> getFiledataIds(DataPointVO vo) {
-        if (handleWithPrimary(vo, Operation.READ)) {
-            return primary.getFiledataIds(vo);
-        } else {
-            return secondary.getFiledataIds(vo);
-        }
-    }
-
-    @Override
     public double writeSpeed() {
         return primary.writeSpeed() + secondary.writeSpeed();
     }
