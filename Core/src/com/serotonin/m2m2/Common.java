@@ -133,7 +133,6 @@ public class Common {
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
 
     private static final Path TEMP_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("paths.temp", System.getProperty("java.io.tmpdir"))).normalize());
-    private static final Path FILEDATA_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
     private static final Path BACKUP_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("paths.backup", "backup")).normalize());
     private static final Path MODULE_DATA_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString(Module.MODULE_DATA_ENV_PROP, Module.MODULE_DATA_ENV_PROP_DEFAULT)).normalize());
     private static final Path FILE_STORE_PATH = createDirectories(MA_DATA_PATH.resolve(envProps.getString("filestore.location", "filestore")).normalize());
@@ -430,10 +429,6 @@ public class Common {
             }
         }
         throw new PermissionException(new TranslatableMessage("permission.exception.noAuthenticationSet"), null);
-    }
-
-    public static Path getFiledataPath() {
-        return FILEDATA_PATH;
     }
 
     public static Path getTempPath() {

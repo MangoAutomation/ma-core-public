@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -20,7 +21,6 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 
@@ -51,21 +51,18 @@ public class PointValueTimeDeserializer extends StdDeserializer<PointValueTime> 
         long timestamp = timestampNode.asLong();
 
         String dataTypeStr = dataTypeNode.asText();
-        DataValue dataValue;
-        switch (dataTypeStr) {
-            case "ALPHANUMERIC": dataValue = new AlphanumericValue(valueNode.asText()); break;
-            case "BINARY": dataValue = new BinaryValue(valueNode.asBoolean()); break;
-            case "MULTISTATE": dataValue = new MultistateValue(valueNode.asInt()); break;
-            case "NUMERIC": dataValue = new NumericValue(valueNode.asDouble()); break;
-            case "IMAGE":
+        DataType dataType = DataType.fromName(dataTypeStr);
+        if (dataType == null) {
+            throw JsonMappingException.from(jsonParser, "Unknown dataType: " + dataTypeStr);
+        }
 
-                if(valueNode.get("saved").asBoolean()) {
-                    dataValue = new ImageValue(valueNode.get("id").asLong(), valueNode.get("type").asInt());
-                }else {
-                    dataValue = new ImageValue(valueNode.get("data").binaryValue(), valueNode.get("type").asInt());
-                }
-                break;
-            default: throw JsonMappingException.from(jsonParser, "Unknown dataType " + dataTypeStr);
+        DataValue dataValue;
+        switch (dataType) {
+            case ALPHANUMERIC: dataValue = new AlphanumericValue(valueNode.asText()); break;
+            case BINARY: dataValue = new BinaryValue(valueNode.asBoolean()); break;
+            case MULTISTATE: dataValue = new MultistateValue(valueNode.asInt()); break;
+            case NUMERIC: dataValue = new NumericValue(valueNode.asDouble()); break;
+            default: throw JsonMappingException.from(jsonParser, "Unsupported dataType " + dataType);
         }
 
         JsonNode annotationNode = node.get("serializedAnnotation");

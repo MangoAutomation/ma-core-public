@@ -5,7 +5,6 @@ package com.serotonin.m2m2.rt.dataImage.types;
 
 import java.util.Objects;
 
-import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.DataType;
 
@@ -21,14 +20,6 @@ abstract public class DataValue {
             return MultistateValue.parseMultistate(valueStr);
         case NUMERIC:
             return NumericValue.parseNumeric(valueStr);
-        case IMAGE:
-            try {
-                return new ImageValue(valueStr);
-            }
-            catch (InvalidArgumentException e) {
-                // no op
-            }
-            return null;
         case ALPHANUMERIC:
             return new AlphanumericValue(valueStr);
         }

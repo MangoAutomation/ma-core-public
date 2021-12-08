@@ -3,11 +3,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -37,13 +32,11 @@ import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataType;
-import com.serotonin.m2m2.ImageSaveException;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.IAnnotated;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
@@ -224,12 +217,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         double dvalue = 0;
         String svalue = null;
 
-        if (dataType == DataType.IMAGE) {
-            ImageValue imageValue = (ImageValue) value;
-            dvalue = imageValue.getType();
-            if (imageValue.isSaved())
-                svalue = Long.toString(imageValue.getId());
-        } else if (value.hasDoubleRepresentation())
+        if (value.hasDoubleRepresentation())
             dvalue = value.getDoubleValue();
         else
             svalue = value.getStringValue();
@@ -242,25 +230,6 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
             // Still failed to insert after all of the retries. Store the data
             unsavedPointValues.add(new UnsavedPointValue(vo, pointValue));
             return -1;
-        }
-
-        // Check if we need to save an image
-        if (dataType == DataType.IMAGE) {
-            ImageValue imageValue = (ImageValue) value;
-            if (!imageValue.isSaved()) {
-                imageValue.setId(id);
-
-                Path filePath = Common.getFiledataPath().resolve(imageValue.getFilename());
-                try (InputStream is = new ByteArrayInputStream(imageValue.getData())) {
-                    Files.copy(is, filePath);
-                } catch (IOException e) {
-                    // Rethrow as an RTE
-                    throw new ImageSaveException(e);
-                }
-
-                // Allow the data to be GC'ed
-                imageValue.setData(null);
-            }
         }
 
         writeUnsavedPointValues();

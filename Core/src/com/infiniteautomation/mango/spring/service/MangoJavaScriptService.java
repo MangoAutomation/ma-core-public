@@ -72,7 +72,6 @@ import com.serotonin.m2m2.rt.script.AlphanumericPointWrapper;
 import com.serotonin.m2m2.rt.script.BinaryPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointStateException;
 import com.serotonin.m2m2.rt.script.DateTimeUtility;
-import com.serotonin.m2m2.rt.script.ImagePointWrapper;
 import com.serotonin.m2m2.rt.script.MultistatePointWrapper;
 import com.serotonin.m2m2.rt.script.NumericPointWrapper;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
@@ -606,8 +605,6 @@ public class MangoJavaScriptService {
             return new NumericPointWrapper(point, engine, setter);
         if (dt == DataType.ALPHANUMERIC)
             return new AlphanumericPointWrapper(point, engine, setter);
-        if (dt == DataType.IMAGE)
-            return new ImagePointWrapper(point, engine, setter);
         throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataType());
     }
 

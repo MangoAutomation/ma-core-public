@@ -28,7 +28,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.rt.DataPointEventNotifyWorkItem;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
@@ -301,10 +300,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                         }
                         else
                             logValue = false;
-                    } else if(newValue.getValue() instanceof ImageValue) {
-                        logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)oldValue.getValue()).getDigest());
-                    } else
+                    } else {
                         logValue = !Objects.equals(newValue.getValue(), oldValue.getValue());
+                    }
                 }
 
                 saveValue = logValue;

@@ -46,7 +46,6 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -414,10 +413,6 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 String longTextValue = pvaRecord.get(pva.textPointValueLong);
                 return new AlphanumericValue(longTextValue);
             }
-            case IMAGE:
-                String shortTextValue = pvaRecord.get(pva.textPointValueShort);
-                int intValue = (int) Math.round(pvRecord.get(pv.pointValue));
-                return new ImageValue(Long.parseLong(shortTextValue), intValue);
         }
         return null;
     }
