@@ -12,7 +12,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
 import com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO;
@@ -27,10 +27,10 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
  */
 public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorVO> implements JsonSerializable {
 
-    private DataTypes dataType = DataTypes.NUMERIC;
+    private DataType dataType = DataType.NUMERIC;
     private boolean settable = false;
 
-    public MockPointLocatorVO(DataTypes dataType, boolean settable){
+    public MockPointLocatorVO(DataType dataType, boolean settable){
         this.dataType = dataType;
         this.settable = settable;
     }
@@ -38,11 +38,11 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
     public MockPointLocatorVO() {}
 
     @Override
-    public DataTypes getDataType() {
+    public DataType getDataType() {
         return this.dataType;
     }
 
-    public void setDataType(DataTypes type) {
+    public void setDataType(DataType type) {
         this.dataType = type;
     }
 
@@ -68,7 +68,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         if (jsonObject.containsKey("dataType")) {
-            this.dataType = readDataType(jsonObject, DataTypes.IMAGE);
+            this.dataType = readDataType(jsonObject, DataType.IMAGE);
         }
     }
 
@@ -91,7 +91,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
         if(version == 1) {
 
         }else if(version == 2) {
-            dataType = DataTypes.fromId(in.readInt());
+            dataType = DataType.fromId(in.readInt());
             settable = in.readBoolean();
         }
     }

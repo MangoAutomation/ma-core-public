@@ -21,7 +21,7 @@ import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
@@ -76,7 +76,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
         point.setName("permissions_test_datasource");
         point.setReadPermission(MangoPermission.requireAnyRole(readRoles));
         point.setSetPermission(MangoPermission.requireAnyRole(setRoles));
-        point.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
+        point.setPointLocator(new MockPointLocatorVO(DataType.NUMERIC, true));
 
         point = dataPointService.insert(point);
         return point;

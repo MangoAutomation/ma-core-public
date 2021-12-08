@@ -37,7 +37,7 @@ import com.infiniteautomation.mango.db.tables.PointValueAnnotations;
 import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.db.tables.records.PointValueAnnotationsRecord;
 import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
@@ -390,7 +390,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     public DataValue createDataValue(PointValuesRecord pvRecord, PointValueAnnotationsRecord pvaRecord) {
-        DataTypes dataType = DataTypes.fromId(pvRecord.get(pv.dataType));
+        DataType dataType = DataType.fromId(pvRecord.get(pv.dataType));
         if (dataType == null) return null;
 
         switch (dataType) {
@@ -610,7 +610,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     public List<Long> getFiledataIds(DataPointVO vo) {
         return create.select(pv.id).from(pv)
                 .where(pv.dataPointId.eq(vo.getSeriesId()))
-                .and(pv.dataType.eq(DataTypes.IMAGE.getId()))
+                .and(pv.dataType.eq(DataType.IMAGE.getId()))
                 .fetch(pv.id);
     }
 

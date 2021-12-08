@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
@@ -30,18 +30,18 @@ public class DataSourceUtils {
     
 	/**
 	 * Get a value from string data via pattern matching on group 1
-     */
-	public static DataValue getValue(Pattern valuePattern, String data, DataTypes dataType, String binary0Value,
-            TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
+	 */
+	public static DataValue getValue(Pattern valuePattern, String data, DataType dataType, String binary0Value,
+                                     TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
 		return getValue(valuePattern, 1, data, dataType, binary0Value,
 	            textRenderer, valueFormat, pointName);
     }
 
 	/**
 	 * Get DataValue from String using group number
-     */
-	public static DataValue getValue(Pattern valuePattern, int group, String data, DataTypes dataType, String binary0Value,
-            TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
+	 */
+	public static DataValue getValue(Pattern valuePattern, int group, String data, DataType dataType, String binary0Value,
+                                     TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
         if (data == null)
             throw new TranslatableException(new TranslatableMessage("event.valueParse.noData", pointName));
 
@@ -100,15 +100,15 @@ public class DataSourceUtils {
     /**
      * Create Data Value From String
      */
-    public static DataValue getValue(String valueStr, DataTypes dataType, String binary0Value, TextRenderer textRenderer,
-            DecimalFormat valueFormat, String pointName) throws TranslatableException {
-        if (dataType == DataTypes.ALPHANUMERIC)
+    public static DataValue getValue(String valueStr, DataType dataType, String binary0Value, TextRenderer textRenderer,
+                                     DecimalFormat valueFormat, String pointName) throws TranslatableException {
+        if (dataType == DataType.ALPHANUMERIC)
             return new AlphanumericValue(valueStr);
 
-        if (dataType == DataTypes.BINARY)
+        if (dataType == DataType.BINARY)
             return new BinaryValue(!valueStr.equals(binary0Value));
 
-        if (dataType == DataTypes.MULTISTATE) {
+        if (dataType == DataType.MULTISTATE) {
             if (textRenderer instanceof MultistateRenderer) {
                 List<MultistateValue> multistateValues = ((MultistateRenderer) textRenderer).getMultistateValues();
                 for (MultistateValue multistateValue : multistateValues) {
@@ -128,7 +128,7 @@ public class DataSourceUtils {
             }
         }
 
-        if (dataType == DataTypes.NUMERIC) {
+        if (dataType == DataType.NUMERIC) {
             try {
                 if (valueFormat != null)
                     return new NumericValue(valueFormat.parse(valueStr).doubleValue());

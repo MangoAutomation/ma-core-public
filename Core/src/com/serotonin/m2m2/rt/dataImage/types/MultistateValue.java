@@ -3,7 +3,7 @@
  */
 package com.serotonin.m2m2.rt.dataImage.types;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 
 /**
  * @author Matthew Lohbihler
@@ -63,8 +63,8 @@ public class MultistateValue extends DataValue implements Comparable<MultistateV
     }
 
     @Override
-    public DataTypes getDataType() {
-        return DataTypes.MULTISTATE;
+    public DataType getDataType() {
+        return DataType.MULTISTATE;
     }
 
     @Override

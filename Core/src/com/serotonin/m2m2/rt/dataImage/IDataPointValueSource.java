@@ -5,7 +5,7 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.List;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -69,7 +69,7 @@ public interface IDataPointValueSource {
     /**
      * Get the data type for this source
      */
-    DataTypes getDataType();
+    DataType getDataType();
     
     DataPointWrapper getDataPointWrapper(AbstractPointWrapper wrapper);
     DataPointVO getVO();

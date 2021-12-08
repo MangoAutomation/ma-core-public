@@ -21,7 +21,7 @@ import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockEventManager;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -648,7 +648,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      */
     protected DataPointWithEventDetectors createDisabledPoint(double rocThreshold, Double resetThreshold, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
         //Create point locator
-        MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
+        MockPointLocatorVO plVo = new MockPointLocatorVO(DataType.NUMERIC, true);
 
         //Setup Data Point VO
         DataPointVO dpVo = new DataPointVO();

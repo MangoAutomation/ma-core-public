@@ -22,7 +22,7 @@ import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -365,13 +365,13 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             if (dp == null)
                 response.addGenericMessage("eventHandlers.noTargetPoint");
             else {
-                DataTypes dataType = dp.getPointLocator().getDataType();
+                DataType dataType = dp.getPointLocator().getDataType();
 
                 if (activeAction == SET_ACTION_NONE && inactiveAction == SET_ACTION_NONE)
                     response.addGenericMessage("eventHandlers.noSetPointAction");
 
                 // Active
-                if (activeAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
+                if (activeAction == SET_ACTION_STATIC_VALUE && dataType == DataType.MULTISTATE) {
                     try {
                         Integer.parseInt(activeValueToSet);
                     }
@@ -380,7 +380,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                     }
                 }
 
-                if (activeAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+                if (activeAction == SET_ACTION_STATIC_VALUE && dataType == DataType.NUMERIC) {
                     try {
                         Double.parseDouble(activeValueToSet);
                     }
@@ -399,7 +399,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 // Inactive
-                if (inactiveAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
+                if (inactiveAction == SET_ACTION_STATIC_VALUE && dataType == DataType.MULTISTATE) {
                     try {
                         Integer.parseInt(inactiveValueToSet);
                     }
@@ -408,7 +408,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                     }
                 }
 
-                if (inactiveAction == SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+                if (inactiveAction == SET_ACTION_STATIC_VALUE && dataType == DataType.NUMERIC) {
                     try {
                         Double.parseDouble(inactiveValueToSet);
                     }

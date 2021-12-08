@@ -3,7 +3,7 @@
  */
 package com.serotonin.m2m2.rt.dataImage.types;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 
 /**
  * @author Matthew Lohbihler
@@ -47,8 +47,8 @@ public class AlphanumericValue extends DataValue implements Comparable<Alphanume
     }
 
     @Override
-    public DataTypes getDataType() {
-        return DataTypes.ALPHANUMERIC;
+    public DataType getDataType() {
+        return DataType.ALPHANUMERIC;
     }
 
     @Override

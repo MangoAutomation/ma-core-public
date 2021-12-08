@@ -42,7 +42,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -454,7 +454,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 def.validate(result, vo, dsvo);
 
                 if (vo.getPointLocator().getDataType() == null && !result.hasContextualMessage("dataType")) {
-                    result.addContextualMessage("dataType", "validate.invalidValueWithAcceptable", DataTypes.formatNames());
+                    result.addContextualMessage("dataType", "validate.invalidValueWithAcceptable", DataType.formatNames());
                 }
             }
         }
@@ -493,7 +493,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 if (existing.getPointLocator().getDataType() != vo.getPointLocator().getDataType()) {
                     result.addContextualMessage("dataType", "validate.cantChangeDataType");
                 } else if (vo.getPointLocator().getDataType() == null && !result.hasContextualMessage("dataType")) {
-                    result.addContextualMessage("dataType", "validate.invalidValueWithAcceptable", DataTypes.formatNames());
+                    result.addContextualMessage("dataType", "validate.invalidValueWithAcceptable", DataType.formatNames());
                 }
             }
         }
@@ -515,7 +515,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
 
         if(vo.getPointLocator() != null){
-            if (vo.getPointLocator().getDataType() == DataTypes.NUMERIC && (vo.getLoggingType() == LoggingTypes.ON_CHANGE ||
+            if (vo.getPointLocator().getDataType() == DataType.NUMERIC && (vo.getLoggingType() == LoggingTypes.ON_CHANGE ||
                     vo.getLoggingType() == LoggingTypes.ON_CHANGE_INTERVAL)) {
                 if (vo.getTolerance() < 0)
                     response.addContextualMessage("tolerance", "validate.cannotBeNegative");
@@ -534,7 +534,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         if (!DataPointVO.INTERVAL_LOGGING_TYPE_CODES.isValidId(vo.getIntervalLoggingType()))
             response.addContextualMessage("intervalLoggingType", "validate.invalidValue");
 
-        if(vo.getPointLocator().getDataType() == DataTypes.IMAGE || vo.getPointLocator().getDataType() == DataTypes.ALPHANUMERIC ) {
+        if(vo.getPointLocator().getDataType() == DataType.IMAGE || vo.getPointLocator().getDataType() == DataType.ALPHANUMERIC ) {
             if(vo.getLoggingType() == LoggingTypes.INTERVAL && vo.getIntervalLoggingType() != IntervalLoggingTypes.INSTANT)
                 response.addContextualMessage("intervalLoggingType", "validate.intervalType.incompatible",
                         DataPointVO.INTERVAL_LOGGING_TYPE_CODES.getCode(vo.getIntervalLoggingType()), vo.getPointLocator().getDataType());
@@ -560,7 +560,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             response.addContextualMessage("discardHighLimit", "validate.greaterThanDiscardLow");
         }
 
-        if(vo.getPointLocator().getDataType() != DataTypes.NUMERIC && vo.getPointLocator().getDataType() != DataTypes.MULTISTATE) {
+        if(vo.getPointLocator().getDataType() != DataType.NUMERIC && vo.getPointLocator().getDataType() != DataType.MULTISTATE) {
             vo.setPreventSetExtremeValues(false);
         }
 
@@ -600,15 +600,15 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         // Check the plot type
         if (!DataPointVO.PLOT_TYPE_CODES.isValidId(vo.getPlotType()))
             response.addContextualMessage("plotType", "validate.invalidValue");
-        if (vo.getPlotType() != PlotTypes.STEP && vo.getPointLocator().getDataType() != DataTypes.NUMERIC)
+        if (vo.getPlotType() != PlotTypes.STEP && vo.getPointLocator().getDataType() != DataType.NUMERIC)
             response.addContextualMessage("plotType", "validate.invalidValue");
 
         if(!DataPointVO.SIMPLIFY_TYPE_CODES.isValidId(vo.getSimplifyType()))
             response.addContextualMessage("simplifyType", "validate.invalidValue");
         else if(vo.getSimplifyType() == SimplifyTypes.TARGET && vo.getSimplifyTarget() < 10)
             response.addContextualMessage("simplifyTarget", "validate.greaterThan", 10);
-        else if(vo.getSimplifyType() != SimplifyTypes.NONE && (vo.getPointLocator().getDataType() == DataTypes.ALPHANUMERIC ||
-                vo.getPointLocator().getDataType() == DataTypes.IMAGE))
+        else if(vo.getSimplifyType() != SimplifyTypes.NONE && (vo.getPointLocator().getDataType() == DataType.ALPHANUMERIC ||
+                vo.getPointLocator().getDataType() == DataType.IMAGE))
             response.addContextualMessage("simplifyType", "validate.cannotSimplifyType", vo.getPointLocator().getDataType().getDescription());
 
         //Validate the unit
@@ -684,7 +684,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * Is a rollup valid based on data type?
      */
     private boolean validateRollup(DataPointVO vo) {
-        boolean numeric = vo.getPointLocator().getDataType() == DataTypes.NUMERIC;
+        boolean numeric = vo.getPointLocator().getDataType() == DataType.NUMERIC;
         switch(vo.getRollup()) {
             case Rollups.FIRST :
             case Rollups.LAST :

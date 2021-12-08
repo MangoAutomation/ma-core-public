@@ -17,7 +17,7 @@ import org.junit.Before;
 
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -48,7 +48,7 @@ public class DataPointTagsDaoTest extends MangoTestBase {
         MockDataSourceVO ds = createMockDataSource(true);
 
         List<DataPointVO> points = Stream.generate(() -> createMockDataPoint(ds,
-                new MockPointLocatorVO(DataTypes.NUMERIC, true), true)
+                new MockPointLocatorVO(DataType.NUMERIC, true), true)
         ).limit(numPoints).collect(Collectors.toList());
 
         AtomicInteger count = new AtomicInteger();

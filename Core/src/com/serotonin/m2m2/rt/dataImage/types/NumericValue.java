@@ -8,7 +8,7 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 
 /**
  * @author Matthew Lohbihler
@@ -79,8 +79,8 @@ public class NumericValue extends DataValue implements Comparable<NumericValue> 
     }
 
     @Override
-    public DataTypes getDataType() {
-        return DataTypes.NUMERIC;
+    public DataType getDataType() {
+        return DataType.NUMERIC;
     }
 
     @Override

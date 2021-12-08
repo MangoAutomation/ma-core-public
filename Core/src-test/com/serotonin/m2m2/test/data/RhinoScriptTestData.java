@@ -8,7 +8,7 @@ import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 
@@ -39,7 +39,7 @@ public class RhinoScriptTestData {
 		
 	}
 
-	public static List<PointValueTime> getLatestPointValues(DataTypes dataType, int id, int limit) {
+	public static List<PointValueTime> getLatestPointValues(DataType dataType, int id, int limit) {
 		if(limit > pointValueCount)
 			throw new ShouldNeverHappenException("Not Enough Data!");
 		if((id <= 0 )||(id > pointCount))
@@ -58,7 +58,7 @@ public class RhinoScriptTestData {
 		
 	}
 
-	public static PointValueTime getLatestPointValue(DataTypes dataType, int id) {
+	public static PointValueTime getLatestPointValue(DataType dataType, int id) {
 		List<PointValueTime> pvts = getLatestPointValues(dataType, id, 1);
 		if(pvts.size() > 0)
 			return pvts.get(0);
@@ -66,7 +66,7 @@ public class RhinoScriptTestData {
 			return null;
 	}
 
-	public static List<PointValueTime> getPointValuesBetween(DataTypes dataType, int id, long from, long to) {
+	public static List<PointValueTime> getPointValuesBetween(DataType dataType, int id, long from, long to) {
 		switch(dataType){
 		case ALPHANUMERIC:
 		case BINARY:

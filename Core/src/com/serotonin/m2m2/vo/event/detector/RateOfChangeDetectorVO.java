@@ -14,7 +14,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -57,7 +57,7 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     private boolean useAbsoluteValue; 
     
     public RateOfChangeDetectorVO(DataPointVO vo) {
-        super(vo, EnumSet.of(DataTypes.NUMERIC));
+        super(vo, EnumSet.of(DataType.NUMERIC));
     }
     
     public double getRateOfChangeThreshold() {

@@ -11,7 +11,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -24,7 +24,7 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO> 
 
     /**
      */
-    public TimeoutDetectorVO(DataPointVO vo, Set<DataTypes> supportedDataTypes) {
+    public TimeoutDetectorVO(DataPointVO vo, Set<DataType> supportedDataTypes) {
         super(vo, supportedDataTypes);
     }
 

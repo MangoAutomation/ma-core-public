@@ -16,7 +16,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.util.SerializationHelper;
@@ -94,7 +94,7 @@ public class Upgrade19 extends DBUpgrade {
                 dp.id = rs.getInt(1);
                 dp.dataSourceTypeName = rs.getString(2);
                 DataPointVO dpVo = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(3));
-                DataTypes dataType = dpVo.getPointLocator().getDataType();
+                DataType dataType = dpVo.getPointLocator().getDataType();
                 dp.dataTypeId = dataType == null ? 0 : dataType.getId();
             }catch(Exception e) {
                 //Munchy munch, we will handle this later when we see the dataTypeId is null

@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.Locale;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -106,12 +106,12 @@ public interface TextRenderer extends Serializable {
 
     public String getSetPointSnippetFilename();
 
-    public DataValue parseText(String s, DataTypes dataType);
+    public DataValue parseText(String s, DataType dataType);
     
     /**
      * Validate the settings of the renderer
      */
-    public default void validate(ProcessResult result, DataTypes sourcePointDataType) {
+    public default void validate(ProcessResult result, DataType sourcePointDataType) {
         if(!getDef().supports(sourcePointDataType))
             result.addContextualMessage("dataType", "validate.text.incompatible");
     }

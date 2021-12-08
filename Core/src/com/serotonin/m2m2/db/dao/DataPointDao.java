@@ -57,7 +57,7 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -761,7 +761,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
         Map<String, Function<Object, Object>> myConverters = new HashMap<>();
         myConverters.put("dataTypeId", value -> {
             if (value instanceof String) {
-                DataTypes type = DataTypes.fromName((String) value);
+                DataType type = DataType.fromName((String) value);
                 return type == null ? null : type.getId();
             }
             return value;

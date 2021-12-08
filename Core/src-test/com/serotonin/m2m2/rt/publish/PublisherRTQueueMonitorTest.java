@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.test.SuperadminSecurityContextRunner;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -75,7 +75,7 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
 
         //create DS and DP and enable them (need to be running)
         MockDataSourceVO  dataSource = this.createMockDataSource(true);
-        DataPointVO dataPoint = this.createMockDataPoint(dataSource, new MockPointLocatorVO(DataTypes.NUMERIC, true), true);
+        DataPointVO dataPoint = this.createMockDataPoint(dataSource, new MockPointLocatorVO(DataType.NUMERIC, true), true);
 
         //create publisher with a published point (this is a listener) for the DP
         TestPublisherVO publisherVO = (TestPublisherVO)createMockPublisher(true);

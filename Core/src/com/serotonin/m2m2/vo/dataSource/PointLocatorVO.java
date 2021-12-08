@@ -5,7 +5,7 @@ package com.serotonin.m2m2.vo.dataSource;
 
 import java.io.Serializable;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 
@@ -13,7 +13,7 @@ public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializa
     /**
      * @return data type of the point
      */
-    DataTypes getDataType();
+    DataType getDataType();
 
     /**
      * The text representation of the data type

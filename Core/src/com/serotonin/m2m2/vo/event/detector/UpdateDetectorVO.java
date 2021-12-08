@@ -5,7 +5,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.util.EnumSet;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.UpdateDetectorRT;
@@ -19,7 +19,7 @@ public class UpdateDetectorVO extends AbstractPointEventDetectorVO {
     private static final long serialVersionUID = 1L;
 
     public UpdateDetectorVO(DataPointVO vo) {
-        super(vo, EnumSet.allOf(DataTypes.class));
+        super(vo, EnumSet.allOf(DataType.class));
     }
 
     @Override

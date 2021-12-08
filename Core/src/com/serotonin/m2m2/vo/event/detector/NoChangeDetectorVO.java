@@ -5,7 +5,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.util.EnumSet;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.NoChangeDetectorRT;
@@ -20,7 +20,7 @@ public class NoChangeDetectorVO extends TimeoutDetectorVO<NoChangeDetectorVO>{
 	private static final long serialVersionUID = 1L;
 	
 	public NoChangeDetectorVO(DataPointVO vo) {
-		super(vo, EnumSet.of(DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC));
+		super(vo, EnumSet.of(DataType.BINARY, DataType.MULTISTATE, DataType.NUMERIC, DataType.ALPHANUMERIC));
 		this.setDuration(1);
 	}
 	

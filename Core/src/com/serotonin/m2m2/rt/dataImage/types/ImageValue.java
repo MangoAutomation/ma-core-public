@@ -18,7 +18,7 @@ import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.util.ArrayUtils;
 import com.serotonin.util.image.ImageUtils;
 
@@ -214,8 +214,8 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
     }
 
     @Override
-    public DataTypes getDataType() {
-        return DataTypes.IMAGE;
+    public DataType getDataType() {
+        return DataType.IMAGE;
     }
 
     @Override

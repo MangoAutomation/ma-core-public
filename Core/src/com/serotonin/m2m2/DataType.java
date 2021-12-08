@@ -11,7 +11,7 @@ import com.infiniteautomation.mango.util.enums.EnumDeserializer;
 import com.infiniteautomation.mango.util.enums.NameEnumDeserializer;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
-public enum DataTypes {
+public enum DataType {
     // 0 reserved, used to be UNKNOWN
     BINARY(1, new TranslatableMessage("common.dataTypes.binary")),
     MULTISTATE(2, new TranslatableMessage("common.dataTypes.multistate")),
@@ -19,13 +19,13 @@ public enum DataTypes {
     ALPHANUMERIC(4, new TranslatableMessage("common.dataTypes.alphanumeric")),
     IMAGE(5, new TranslatableMessage("common.dataTypes.image"));
 
-    private static final EnumDeserializer<DataTypes, Integer> IDS = new EnumDeserializer<>(DataTypes.class, DataTypes::getId);
-    private static final EnumDeserializer<DataTypes, String> NAMES = new NameEnumDeserializer<>(DataTypes.class);
+    private static final EnumDeserializer<DataType, Integer> IDS = new EnumDeserializer<>(DataType.class, DataType::getId);
+    private static final EnumDeserializer<DataType, String> NAMES = new NameEnumDeserializer<>(DataType.class);
 
     private final int id;
     private final TranslatableMessage description;
 
-    DataTypes(int id, TranslatableMessage description) {
+    DataType(int id, TranslatableMessage description) {
         this.id = id;
         this.description = description;
     }
@@ -38,11 +38,11 @@ public enum DataTypes {
         return description;
     }
 
-    public static @Nullable DataTypes fromId(int id) {
+    public static @Nullable DataType fromId(int id) {
         return IDS.deserializeNullable(id);
     }
 
-    public static @Nullable DataTypes fromName(String name) {
+    public static @Nullable DataType fromName(String name) {
         return NAMES.deserializeNullable(name);
     }
 
@@ -50,7 +50,7 @@ public enum DataTypes {
         return NAMES.formatIdentifiers();
     }
 
-    public static String formatNames(EnumSet<DataTypes> exclude) {
+    public static String formatNames(EnumSet<DataType> exclude) {
         return NAMES.formatIdentifiers(exclude);
     }
 }

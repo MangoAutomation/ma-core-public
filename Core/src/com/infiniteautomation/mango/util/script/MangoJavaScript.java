@@ -6,7 +6,7 @@ package com.infiniteautomation.mango.util.script;
 import java.util.List;
 import java.util.Map;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.util.log.LogLevel;
@@ -24,7 +24,7 @@ public class MangoJavaScript {
     private ScriptPermissions permissions;
     private LogLevel logLevel;
     //If non-null coerce the result into a PointValueTime with this data type
-    private DataTypes resultDataType;
+    private DataType resultDataType;
     //Any additional context for the run
     private Map<String, Object> additionalContext;
     //Any test utilities without module element definitions as those are added automatically
@@ -100,14 +100,14 @@ public class MangoJavaScript {
     /**
      * @return the resultDataTypeId
      */
-    public DataTypes getResultDataType() {
+    public DataType getResultDataType() {
         return resultDataType;
     }
     
     /**
      * @param resultDataType the resultDataTypeId to set
      */
-    public void setResultDataType(DataTypes resultDataType) {
+    public void setResultDataType(DataType resultDataType) {
         this.resultDataType = resultDataType;
     }
     

@@ -12,7 +12,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -51,29 +51,29 @@ abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<V
     }
 
 
-    protected DataTypes readDataType(JsonObject json) throws JsonException {
-        return readDataType(json, EnumSet.noneOf(DataTypes.class));
+    protected DataType readDataType(JsonObject json) throws JsonException {
+        return readDataType(json, EnumSet.noneOf(DataType.class));
     }
 
-    protected DataTypes readDataType(JsonObject json, DataTypes excludeType) throws JsonException {
+    protected DataType readDataType(JsonObject json, DataType excludeType) throws JsonException {
         return readDataType(json, EnumSet.of(excludeType));
     }
 
-    protected DataTypes readDataType(JsonObject json, EnumSet<DataTypes> excludeTypes) throws JsonException {
+    protected DataType readDataType(JsonObject json, EnumSet<DataType> excludeTypes) throws JsonException {
         String text = json.getString("dataType");
         if (text == null) {
-            throw new TranslatableJsonException("emport.error.missing", "dataType", DataTypes.formatNames(excludeTypes));
+            throw new TranslatableJsonException("emport.error.missing", "dataType", DataType.formatNames(excludeTypes));
         }
 
-        DataTypes dataType;
+        DataType dataType;
         try {
-            dataType = DataTypes.valueOf(text);
+            dataType = DataType.valueOf(text);
         } catch (IllegalArgumentException e) {
-            throw new TranslatableJsonException("emport.error.invalid", "dataType", text, DataTypes.formatNames(excludeTypes));
+            throw new TranslatableJsonException("emport.error.invalid", "dataType", text, DataType.formatNames(excludeTypes));
         }
 
         if (excludeTypes.contains(dataType)) {
-            throw new TranslatableJsonException("emport.error.invalid", "dataType", text, DataTypes.formatNames(excludeTypes));
+            throw new TranslatableJsonException("emport.error.invalid", "dataType", text, DataType.formatNames(excludeTypes));
         }
 
         return dataType;

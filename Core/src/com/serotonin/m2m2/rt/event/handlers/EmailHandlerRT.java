@@ -41,7 +41,7 @@ import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -445,7 +445,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                             );
                     compiledScript.compile(script, true);
                     compiledScript.initialize(context);
-                    MangoJavaScriptResult r = compiledScript.execute(Common.timer.currentTimeMillis(), time, DataTypes.ALPHANUMERIC);
+                    MangoJavaScriptResult r = compiledScript.execute(Common.timer.currentTimeMillis(), time, DataType.ALPHANUMERIC);
 
                     PointValueTime result = (PointValueTime)r.getResult();
                     if(result != null && result.getValue() == MangoJavaScriptService.UNCHANGED) //The script cancelled the email

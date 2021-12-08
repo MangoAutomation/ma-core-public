@@ -5,7 +5,7 @@ package com.serotonin.m2m2.rt.script;
 
 import java.util.List;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -107,7 +107,7 @@ public class ScriptingTestPointValueRT implements IDataPointValueSource{
 	 * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getDataTypeId()
 	 */
 	@Override
-	public DataTypes getDataType() {
+	public DataType getDataType() {
 		return vo.getPointLocator().getDataType();
 	}
 

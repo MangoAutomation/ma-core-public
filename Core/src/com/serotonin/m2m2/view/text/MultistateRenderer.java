@@ -12,14 +12,14 @@ import java.util.List;
 import java.util.Locale;
 
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
 
 public class MultistateRenderer extends BaseTextRenderer {
     private static final ImplDefinition definition = new ImplDefinition("textRendererMultistate", "MULTISTATE",
-            "textRenderer.multistate", EnumSet.of(DataTypes.MULTISTATE));
+            "textRenderer.multistate", EnumSet.of(DataType.MULTISTATE));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -102,7 +102,7 @@ public class MultistateRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public DataValue parseText(String s, DataTypes dataType) {
+    public DataValue parseText(String s, DataType dataType) {
         for (MultistateValue mv : multistateValues) {
             if (mv.getText().equalsIgnoreCase(s))
                 return new com.serotonin.m2m2.rt.dataImage.types.MultistateValue(mv.getKey());
@@ -134,7 +134,7 @@ public class MultistateRenderer extends BaseTextRenderer {
     }
 
 	@Override
-	public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+	public void validate(ProcessResult result, DataType sourcePointDataType) {
 	    super.validate(result, sourcePointDataType);
 		if(multistateValues == null || multistateValues.size() == 0)
 			result.addContextualMessage("textRenderer.multistateValues", "validate.atLeast1");

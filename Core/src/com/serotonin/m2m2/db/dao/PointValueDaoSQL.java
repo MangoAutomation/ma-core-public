@@ -36,7 +36,7 @@ import com.infiniteautomation.mango.db.tables.PointValues;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.ImageSaveException;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -111,7 +111,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
             var dataType = pointValue.getValue().getDataType();
 
             // can't batch save annotations or IMAGE/ALPHANUMERIC point values
-            if (pointValue instanceof IAnnotated || dataType == DataTypes.IMAGE || dataType == DataTypes.ALPHANUMERIC) {
+            if (pointValue instanceof IAnnotated || dataType == DataType.IMAGE || dataType == DataType.ALPHANUMERIC) {
                 savePointValueImpl(point, pointValue, false);
                 syncCallsCounter.hit();
                 syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
@@ -220,11 +220,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     private long savePointValueImpl(final DataPointVO vo, final PointValueTime pointValue, boolean async) {
         DataValue value = pointValue.getValue();
-        final DataTypes dataType = value.getDataType();
+        final DataType dataType = value.getDataType();
         double dvalue = 0;
         String svalue = null;
 
-        if (dataType == DataTypes.IMAGE) {
+        if (dataType == DataType.IMAGE) {
             ImageValue imageValue = (ImageValue) value;
             dvalue = imageValue.getType();
             if (imageValue.isSaved())
@@ -245,7 +245,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
 
         // Check if we need to save an image
-        if (dataType == DataTypes.IMAGE) {
+        if (dataType == DataType.IMAGE) {
             ImageValue imageValue = (ImageValue) value;
             if (!imageValue.isSaved()) {
                 imageValue.setId(id);
@@ -274,11 +274,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private long savePointValue(DataPointVO vo, DataTypes dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage, boolean async) {
+    private long savePointValue(DataPointVO vo, DataType dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage, boolean async) {
         // Apply database specific bounds on double values.
         dvalue = databaseProxy.applyBounds(dvalue);
 
-        if (async && svalue == null && sourceMessage == null && dataType != DataTypes.IMAGE) {
+        if (async && svalue == null && sourceMessage == null && dataType != DataType.IMAGE) {
             addBatchWriteEntry(new BatchWriteEntry(vo.getSeriesId(), dataType, dvalue, time));
             return -1;
         }
@@ -297,7 +297,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         }
     }
 
-    private long savePointValueImpl(DataPointVO vo, DataTypes dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage) {
+    private long savePointValueImpl(DataPointVO vo, DataType dataType, double dvalue, long time, String svalue, TranslatableMessage sourceMessage) {
         long id = this.create.insertInto(pv)
                 .set(pv.dataPointId, vo.getSeriesId())
                 .set(pv.dataType, dataType.getId())
@@ -308,7 +308,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 .orElseThrow()
                 .value1();
 
-        if (svalue == null && dataType == DataTypes.IMAGE)
+        if (svalue == null && dataType == DataType.IMAGE)
             svalue = Long.toString(id);
 
         if (svalue != null || sourceMessage != null) {
@@ -349,11 +349,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     private static class BatchWriteEntry {
         private final int seriesId;
-        private final DataTypes dataType;
+        private final DataType dataType;
         private final double dvalue;
         private final long time;
 
-        public BatchWriteEntry(int seriesId, DataTypes dataType, double dvalue, long time) {
+        public BatchWriteEntry(int seriesId, DataType dataType, double dvalue, long time) {
             this.seriesId = seriesId;
             this.dataType = dataType;
             this.dvalue = dvalue;

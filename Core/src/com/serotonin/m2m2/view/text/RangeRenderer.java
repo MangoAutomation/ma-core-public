@@ -15,7 +15,7 @@ import java.util.Locale;
 import javax.measure.unit.Unit;
 
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -25,7 +25,7 @@ import com.serotonin.util.SerializationHelper;
 
 public class RangeRenderer extends ConvertingRenderer {
     private static final ImplDefinition definition = new ImplDefinition("textRendererRange", "RANGE", "textRenderer.range",
-            EnumSet.of(DataTypes.NUMERIC));
+            EnumSet.of(DataType.NUMERIC));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -193,7 +193,7 @@ public class RangeRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+    public void validate(ProcessResult result, DataType sourcePointDataType) {
         super.validate(result, sourcePointDataType);
         if((format == null)||(format.equals("")))
             result.addContextualMessage("textRenderer.format", "validate.required");

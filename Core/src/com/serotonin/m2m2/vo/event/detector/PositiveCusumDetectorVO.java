@@ -6,7 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 import java.util.EnumSet;
 
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PositiveCusumDetectorRT;
@@ -27,7 +27,7 @@ public class PositiveCusumDetectorVO extends TimeoutDetectorVO<PositiveCusumDete
 	private double weight;
 
 	public PositiveCusumDetectorVO(DataPointVO vo) {
-		super(vo, EnumSet.of(DataTypes.NUMERIC));
+		super(vo, EnumSet.of(DataType.NUMERIC));
 	}
 	
 	public double getLimit() {

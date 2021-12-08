@@ -22,7 +22,7 @@ import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.CallingThreadMockBackgroundProcessing;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -50,7 +50,7 @@ public class DataPointEventsTest extends MangoTestBase {
 
         MockDataSourceVO ds = createMockDataSource(true);
         //Note the default is to have a logging type of ON_CHANGE
-        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataTypes.MULTISTATE, true), true);
+        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataType.MULTISTATE, true), true);
 
         TestDataPointListener l = new TestDataPointListener("Listener One", point.getId());
         Common.runtimeManager.addDataPointListener(l.dataPointId, l);
@@ -80,7 +80,7 @@ public class DataPointEventsTest extends MangoTestBase {
 
         MockDataSourceVO ds = createMockDataSource(true);
         //Note the default is to have a logging type of ON_CHANGE
-        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataTypes.MULTISTATE, true), true);
+        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataType.MULTISTATE, true), true);
 
         TestDataPointListener l = new TestDataPointListener("Listener One", point.getId());
         Common.runtimeManager.addDataPointListener(l.dataPointId, l);
@@ -126,7 +126,7 @@ public class DataPointEventsTest extends MangoTestBase {
 
         MockDataSourceVO ds = createMockDataSource(true);
         //Note the default is to have a logging type of ON_CHANGE
-        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataTypes.MULTISTATE, true), true);
+        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataType.MULTISTATE, true), true);
 
         TestDataPointListener l = new TestDataPointListener("Listener One", point.getId());
         Common.runtimeManager.addDataPointListener(l.dataPointId, l);
@@ -174,7 +174,7 @@ public class DataPointEventsTest extends MangoTestBase {
 
         MockDataSourceVO ds = createMockDataSource(true);
         //Note the default is to have a logging type of ON_CHANGE
-        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataTypes.MULTISTATE, true), true);
+        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataType.MULTISTATE, true), true);
 
         TestDataPointListener l = new TestDataPointListener("Listener One", point.getId());
         Common.runtimeManager.addDataPointListener(l.dataPointId, l);
@@ -223,7 +223,7 @@ public class DataPointEventsTest extends MangoTestBase {
             throws InterruptedException, JsonException, IOException, URISyntaxException {
 
         MockDataSourceVO ds = createMockDataSource(true);
-        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataTypes.NUMERIC, true), true);
+        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataType.NUMERIC, true), true);
 
 
         int inserted = 1000;

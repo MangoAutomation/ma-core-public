@@ -15,7 +15,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -26,7 +26,7 @@ import com.serotonin.util.SerializationHelper;
 
 public class PlainRenderer extends ConvertingRenderer {
     private static final ImplDefinition definition = new ImplDefinition("textRendererPlain", "PLAIN", "textRenderer.plain",
-            EnumSet.of(DataTypes.BINARY, DataTypes.ALPHANUMERIC, DataTypes.MULTISTATE, DataTypes.NUMERIC));
+            EnumSet.of(DataType.BINARY, DataType.ALPHANUMERIC, DataType.MULTISTATE, DataType.NUMERIC));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -215,7 +215,7 @@ public class PlainRenderer extends ConvertingRenderer {
     }
 
 	@Override
-	public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+	public void validate(ProcessResult result, DataType sourcePointDataType) {
 	    super.validate(result, sourcePointDataType);
 	}
 }

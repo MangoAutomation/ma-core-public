@@ -17,7 +17,7 @@ import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
@@ -114,7 +114,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     private void commonValidation(ProcessResult response, SetPointEventHandlerVO vo) {
         DataPointVO dp = DataPointDao.getInstance().get(vo.getTargetPointId());
 
-        DataTypes dataType = null;
+        DataType dataType = null;
         if (dp == null)
             response.addContextualMessage("targetPointId", "eventHandlers.noTargetPoint");
         else {
@@ -129,7 +129,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
         }
         MangoJavaScriptService javaScriptService = Common.getBean(MangoJavaScriptService.class);
         // Active
-        if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
+        if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataType.MULTISTATE) {
             try {
                 Integer.parseInt(vo.getActiveValueToSet());
             }
@@ -137,7 +137,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
                 response.addContextualMessage("activeValueToSet", "eventHandlers.invalidActiveValue");
             }
         }
-        else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+        else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataType.NUMERIC) {
             try {
                 Double.parseDouble(vo.getActiveValueToSet());
             }
@@ -166,7 +166,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
         }
 
         // Inactive
-        if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
+        if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataType.MULTISTATE) {
             try {
                 Integer.parseInt(vo.getInactiveValueToSet());
             }
@@ -174,7 +174,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
                 response.addContextualMessage("inactiveValueToSet", "eventHandlers.invalidInactiveValue");
             }
         }
-        else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+        else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataType.NUMERIC) {
             try {
                 Double.parseDouble(vo.getInactiveValueToSet());
             }

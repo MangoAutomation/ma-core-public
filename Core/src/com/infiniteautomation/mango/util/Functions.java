@@ -13,7 +13,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -91,7 +91,7 @@ public class Functions {
         String text = point.getTextRenderer().getText(pointValue, TextRenderer.HINT_FULL);
         String colour = point.getTextRenderer().getColour(pointValue);
         return getHtml(colour, text,
-                point.getPointLocator().getDataType() == DataTypes.ALPHANUMERIC);
+                point.getPointLocator().getDataType() == DataType.ALPHANUMERIC);
     }
 
     public static String getRenderedText(DataPointVO point, PointValueTime pointValue) {
@@ -137,7 +137,7 @@ public class Functions {
         String text = point.getTextRenderer().getText(value, hint);
         String colour = point.getTextRenderer().getColour(value);
         return getHtml(colour, text,
-                point.getPointLocator().getDataType() == DataTypes.ALPHANUMERIC);
+                point.getPointLocator().getDataType() == DataType.ALPHANUMERIC);
     }
 
     private static String getHtml(String colour, String text, boolean detectOverflow) {

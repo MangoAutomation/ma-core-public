@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT.FireEvents;
@@ -80,7 +80,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
     }
 
     @Override
-    public DataTypes getDataType() {
+    public DataType getDataType() {
         return vo.getPointLocator().getDataType();
     }
 

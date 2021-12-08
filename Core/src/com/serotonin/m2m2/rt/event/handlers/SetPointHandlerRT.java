@@ -19,7 +19,7 @@ import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
@@ -69,7 +69,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             return;
         }
 
-        DataTypes targetDataType = targetPoint.getVO().getPointLocator().getDataType();
+        DataType targetDataType = targetPoint.getVO().getPointLocator().getDataType();
 
         DataValue value = null;
         if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
@@ -171,7 +171,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             return;
         }
 
-        DataTypes targetDataType = targetPoint.getVO().getPointLocator().getDataType();
+        DataType targetDataType = targetPoint.getVO().getPointLocator().getDataType();
 
         DataValue value = null;
         if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {

@@ -26,7 +26,7 @@ import org.openjdk.jmh.annotations.TearDown;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -61,7 +61,7 @@ public class MockMango extends MangoTestBase {
             DataPointVO dp = new DataPointVO();
             dp.setName(UUID.randomUUID().toString());
             dp.setDeviceName(ds.getName());
-            dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
+            dp.setPointLocator(new MockPointLocatorVO(DataType.NUMERIC, true));
             dp.setDataSourceId(ds.getId());
             dp.setTags(tags);
             points.add(service.insertAsync(dp).toCompletableFuture());

@@ -3,7 +3,7 @@
  */
 package com.serotonin.m2m2.rt.dataImage.types;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 
 /**
  * @author Matthew Lohbihler
@@ -57,8 +57,8 @@ public class BinaryValue extends DataValue implements Comparable<BinaryValue> {
     }
 
     @Override
-    public DataTypes getDataType() {
-        return DataTypes.BINARY;
+    public DataType getDataType() {
+        return DataType.BINARY;
     }
 
     @Override

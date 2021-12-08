@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -30,7 +30,7 @@ import com.serotonin.util.SerializationHelper;
  */
 public class BinaryTextRenderer extends BaseTextRenderer {
     private static final ImplDefinition definition = new ImplDefinition("textRendererBinary", "BINARY",
-            "textRenderer.binary", EnumSet.of(DataTypes.BINARY));
+            "textRenderer.binary", EnumSet.of(DataType.BINARY));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -139,7 +139,7 @@ public class BinaryTextRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public DataValue parseText(String s, DataTypes dataType) {
+    public DataValue parseText(String s, DataType dataType) {
         if (oneLabel.equalsIgnoreCase(s))
             return new BinaryValue(true);
         if (zeroLabel.equalsIgnoreCase(s))
@@ -175,7 +175,7 @@ public class BinaryTextRenderer extends BaseTextRenderer {
     }
 
 	@Override
-	public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+	public void validate(ProcessResult result, DataType sourcePointDataType) {
 	    super.validate(result, sourcePointDataType);
         try {
             if (!StringUtils.isBlank(zeroColour))

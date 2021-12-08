@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 
 public class ImplDefinition {
     public static ImplDefinition findByName(List<ImplDefinition> list, String name) {
@@ -30,16 +30,16 @@ public class ImplDefinition {
     private String name;
     private String exportName;
     private final String nameKey;
-    private final Set<DataTypes> supportedDataTypes;
+    private final Set<DataType> supportedDataTypes;
 
-    public ImplDefinition(int id, String exportName, String nameKey, Set<DataTypes> supportedDataTypes) {
+    public ImplDefinition(int id, String exportName, String nameKey, Set<DataType> supportedDataTypes) {
         this.id = id;
         this.nameKey = nameKey;
         this.exportName = exportName;
         this.supportedDataTypes = supportedDataTypes;
     }
 
-    public ImplDefinition(String name, String exportName, String nameKey, Set<DataTypes> supportedDataTypes) {
+    public ImplDefinition(String name, String exportName, String nameKey, Set<DataType> supportedDataTypes) {
         this.name = name;
         this.nameKey = nameKey;
         this.exportName = exportName;
@@ -66,11 +66,11 @@ public class ImplDefinition {
         this.exportName = exportName;
     }
 
-    public Set<DataTypes> getSupportedDataTypes() {
+    public Set<DataType> getSupportedDataTypes() {
         return Collections.unmodifiableSet(supportedDataTypes);
     }
 
-    public boolean supports(DataTypes dataType) {
+    public boolean supports(DataType dataType) {
         return supportedDataTypes.contains(dataType);
     }
 }

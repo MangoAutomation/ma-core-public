@@ -21,7 +21,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -31,7 +31,7 @@ import com.serotonin.util.SerializationHelper;
 
 public class AnalogRenderer extends ConvertingRenderer {
     private static final ImplDefinition definition = new ImplDefinition("textRendererAnalog", "ANALOG",
-            "textRenderer.analog", EnumSet.of(DataTypes.NUMERIC));
+            "textRenderer.analog", EnumSet.of(DataType.NUMERIC));
 
     public static ImplDefinition getDefinition() {
         return definition;
@@ -129,7 +129,7 @@ public class AnalogRenderer extends ConvertingRenderer {
     //
     // Parse
     @Override
-    public DataValue parseText(String s, DataTypes dataType) {
+    public DataValue parseText(String s, DataType dataType) {
         if(StringUtils.isEmpty(s))
             return new NumericValue(0);
         else if(s.startsWith("0x") || s.startsWith("0X")) {
@@ -228,7 +228,7 @@ public class AnalogRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public void validate(ProcessResult result, DataTypes sourceDataType) {
+    public void validate(ProcessResult result, DataType sourceDataType) {
         super.validate(result, sourceDataType);
         if((format == null)||(format.equals("")))
             result.addContextualMessage("textRenderer.format", "validate.required");

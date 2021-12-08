@@ -30,7 +30,7 @@ import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
@@ -93,7 +93,7 @@ public class ScriptingTest extends MangoTestBase {
                 MangoJavaScriptResult result = compiled.execute(
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC);
+                        DataType.NUMERIC);
 
                 PointValueTime pvt = (PointValueTime)result.getResult();
                 assertNotNull(pvt);
@@ -137,7 +137,7 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.execute(
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC);
+                        DataType.NUMERIC);
 
                 String result = scriptOut.toString();
                 String[] messages = result.split(System.lineSeparator());
@@ -204,7 +204,7 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.execute(
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC);
+                        DataType.NUMERIC);
                 Assert.assertTrue(!scriptLog.getFile().exists());
             }
         }catch(Exception e) {
@@ -249,7 +249,7 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.execute(
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC);
+                        DataType.NUMERIC);
 
                 Assert.assertTrue(scriptLog.getFile().exists());
 
@@ -315,7 +315,7 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.execute(
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC);
+                        DataType.NUMERIC);
 
                 String result = scriptOut.toString();
                 Assert.assertEquals("testing context writer" + System.lineSeparator(), result);
@@ -362,7 +362,7 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.execute(
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC);
+                        DataType.NUMERIC);
 
                 Assert.assertTrue(scriptLog.getFile().exists());
 

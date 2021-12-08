@@ -7,13 +7,13 @@ import java.util.Objects;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 
 /**
  * @author Matthew Lohbihler
  */
 abstract public class DataValue {
-    public static DataValue stringToValue(String valueStr, DataTypes dataType) {
+    public static DataValue stringToValue(String valueStr, DataType dataType) {
         switch (dataType) {
         case BINARY:
             return BinaryValue.parseBinary(valueStr);
@@ -64,7 +64,7 @@ abstract public class DataValue {
 
     abstract public Object getObjectValue();
 
-    abstract public DataTypes getDataType();
+    abstract public DataType getDataType();
 
     abstract public Number numberValue();
 

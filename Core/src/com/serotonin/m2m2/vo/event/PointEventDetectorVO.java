@@ -18,7 +18,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -64,41 +64,41 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
         if (definitions == null) {
             List<ImplDefinition> d = new ArrayList<>();
             d.add(new ImplDefinition(TYPE_ANALOG_HIGH_LIMIT, null, "pointEdit.detectors.highLimit",
-                    EnumSet.of(DataTypes.NUMERIC)));
+                    EnumSet.of(DataType.NUMERIC)));
             d.add(new ImplDefinition(TYPE_ANALOG_LOW_LIMIT, null, "pointEdit.detectors.lowLimit",
-                    EnumSet.of(DataTypes.NUMERIC)));
+                    EnumSet.of(DataType.NUMERIC)));
             d.add(new ImplDefinition(TYPE_POINT_CHANGE, null, "pointEdit.detectors.change", EnumSet.of(
-                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC)));
+                    DataType.BINARY, DataType.MULTISTATE, DataType.NUMERIC, DataType.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_BINARY_STATE, null, "pointEdit.detectors.state",
-                    EnumSet.of(DataTypes.BINARY)));
+                    EnumSet.of(DataType.BINARY)));
             d.add(new ImplDefinition(TYPE_MULTISTATE_STATE, null, "pointEdit.detectors.state",
-                    EnumSet.of(DataTypes.MULTISTATE)));
+                    EnumSet.of(DataType.MULTISTATE)));
             d.add(new ImplDefinition(TYPE_ALPHANUMERIC_STATE, null, "pointEdit.detectors.state",
-                    EnumSet.of(DataTypes.ALPHANUMERIC)));
+                    EnumSet.of(DataType.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_ALPHANUMERIC_REGEX_STATE, null, "pointEdit.detectors.regexState",
-                    EnumSet.of(DataTypes.ALPHANUMERIC)));
+                    EnumSet.of(DataType.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_STATE_CHANGE_COUNT, null, "pointEdit.detectors.changeCount", EnumSet.of(
-                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC)));
+                    DataType.BINARY, DataType.MULTISTATE, DataType.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_NO_CHANGE, null, "pointEdit.detectors.noChange", EnumSet.of(
-                    DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC)));
+                    DataType.BINARY, DataType.MULTISTATE, DataType.NUMERIC, DataType.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_NO_UPDATE, null, "pointEdit.detectors.noUpdate",
-                    EnumSet.of(DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC,
-                            DataTypes.IMAGE)));
+                    EnumSet.of(DataType.BINARY, DataType.MULTISTATE, DataType.NUMERIC, DataType.ALPHANUMERIC,
+                            DataType.IMAGE)));
             d.add(new ImplDefinition(TYPE_POSITIVE_CUSUM, null, "pointEdit.detectors.posCusum",
-                    EnumSet.of(DataTypes.NUMERIC)));
+                    EnumSet.of(DataType.NUMERIC)));
             d.add(new ImplDefinition(TYPE_NEGATIVE_CUSUM, null, "pointEdit.detectors.negCusum",
-                    EnumSet.of(DataTypes.NUMERIC)));
+                    EnumSet.of(DataType.NUMERIC)));
             d.add(new ImplDefinition(TYPE_ANALOG_RANGE, null, "pointEdit.detectors.range",
-                    EnumSet.of(DataTypes.NUMERIC)));
+                    EnumSet.of(DataType.NUMERIC)));
             //            d.add(new ImplDefinition(TYPE_ANALOG_CHANGE, null, "pointEdit.detectors.analogChange",
             //                    EnumSet.of( DataTypes.NUMERIC )));
             d.add(new ImplDefinition(TYPE_SMOOTHNESS, null, "pointEdit.detectors.smoothness",
-                    EnumSet.of(DataTypes.NUMERIC)));
+                    EnumSet.of(DataType.NUMERIC)));
             definitions = d;
         }
     }
 
-    public static List<ImplDefinition> getImplementations(DataTypes dataType) {
+    public static List<ImplDefinition> getImplementations(DataType dataType) {
         initializeDefinitions();
         List<ImplDefinition> impls = new ArrayList<>();
         for (ImplDefinition def : definitions) {

@@ -13,7 +13,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -112,7 +112,7 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public void validate(ProcessResult result, DataTypes sourcePointDataType) {
+    public void validate(ProcessResult result, DataType sourcePointDataType) {
         super.validate(result, sourcePointDataType);
         if(useUnitAsSuffix) {
             if(unit == null)

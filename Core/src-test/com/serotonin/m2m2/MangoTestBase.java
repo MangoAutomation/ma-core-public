@@ -495,7 +495,7 @@ public class MangoTestBase {
         DataPointVO dp = new DataPointVO();
         dp.setName(UUID.randomUUID().toString());
         dp.setDeviceName(ds.getName());
-        dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
+        dp.setPointLocator(new MockPointLocatorVO(DataType.NUMERIC, true));
         dp.setDataSourceId(ds.getId());
 
         customizer.accept(dp);

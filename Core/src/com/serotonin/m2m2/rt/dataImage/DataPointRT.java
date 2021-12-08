@@ -21,7 +21,7 @@ import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.util.LazyField;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -417,14 +417,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private boolean discardUnwantedValues(PointValueTime pvt) {
 
         // Check the data type of the value against that of the locator, just for fun.
-        DataTypes valueDataType = pvt.getValue().getDataType();
+        DataType valueDataType = pvt.getValue().getDataType();
         if (valueDataType != vo.getPointLocator().getDataType())
             // This should never happen, but if it does it can have serious downstream consequences. Also, we need
             // to know how it happened, and the stack trace here provides the best information.
             throw new ShouldNeverHappenException("Data type mismatch between new value and point locator: newValue="
                     + pvt.getValue().getDataType() + ", locator=" + vo.getPointLocator().getDataType());
 
-        if (vo.isDiscardExtremeValues() && vo.getPointLocator().getDataType()== DataTypes.NUMERIC) {
+        if (vo.isDiscardExtremeValues() && vo.getPointLocator().getDataType()== DataType.NUMERIC) {
             double newd = pvt.getDoubleValue();
             //Discard if NaN
             if(Double.isNaN(newd))
@@ -604,7 +604,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
                         return;
 
-                    if(vo.getPointLocator().getDataType() == DataTypes.MULTISTATE) {
+                    if(vo.getPointLocator().getDataType() == DataType.MULTISTATE) {
                         StartsAndRuntimeList stats = new StartsAndRuntimeList(intervalStartTime, fireTime, intervalValue, averagingValues);
                         double maxProportion = -1;
                         Object valueAtMax = null;
@@ -622,9 +622,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                         AnalogStatistics stats = new AnalogStatistics(intervalStartTime, fireTime, intervalValue, averagingValues);
                         if (stats.getAverage() == null || (stats.getAverage() == Double.NaN && stats.getCount() == 0))
                             value = null;
-                        else if(vo.getPointLocator().getDataType() == DataTypes.NUMERIC)
+                        else if(vo.getPointLocator().getDataType() == DataType.NUMERIC)
                             value = new NumericValue(stats.getAverage());
-                        else if(vo.getPointLocator().getDataType() == DataTypes.BINARY)
+                        else if(vo.getPointLocator().getDataType() == DataType.BINARY)
                             value = new BinaryValue(stats.getAverage() >= 0.5);
                         else
                             throw new ShouldNeverHappenException("Unsupported average interval logging data type.");
@@ -649,7 +649,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 //Okay, no changes rescheduled the timer. Get a value,
                 if(pointValue.get() != null) {
                     value = pointValue.get().getValue();
-                    if(vo.getPointLocator().getDataType() == DataTypes.NUMERIC)
+                    if(vo.getPointLocator().getDataType() == DataType.NUMERIC)
                         toleranceOrigin = pointValue.get().getDoubleValue();
                 } else
                     value = null;
@@ -733,7 +733,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     @Override
-    public DataTypes getDataType() {
+    public DataType getDataType() {
         return vo.getPointLocator().getDataType();
     }
 

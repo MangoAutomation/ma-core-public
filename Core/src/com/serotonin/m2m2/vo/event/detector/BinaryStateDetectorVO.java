@@ -6,7 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 import java.util.EnumSet;
 
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
@@ -25,7 +25,7 @@ public class BinaryStateDetectorVO extends TimeoutDetectorVO<BinaryStateDetector
 	private boolean state;
 	
 	public BinaryStateDetectorVO(DataPointVO vo) {
-		super(vo, EnumSet.of(DataTypes.BINARY));
+		super(vo, EnumSet.of(DataType.BINARY));
 	}
 	
 	public boolean isState() {

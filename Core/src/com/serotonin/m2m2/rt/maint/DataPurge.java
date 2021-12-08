@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -192,7 +192,7 @@ public class DataPurge {
             }
 
             // If this is an image data type, get the point value ids.
-            if (dataPoint.getPointLocator().getDataType() == DataTypes.IMAGE)
+            if (dataPoint.getPointLocator().getDataType() == DataType.IMAGE)
                 fileIds.addAll(pointValueDao.getFiledataIds(dataPoint));
         }
     }
