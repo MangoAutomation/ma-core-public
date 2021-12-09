@@ -97,18 +97,15 @@ public class DataPurge {
             log.warn("Unsupported purge period type, should be days, weeks, months or years.");
         }
 
-        if (period != null) {
-            ZonedDateTime before = ZonedDateTime.ofInstant(Instant.ofEpochMilli(runtime), ZoneId.systemDefault())
-                    .minus(period);
-            try {
-                pointValueDao.deletePointValuesBefore(before.toInstant().toEpochMilli())
-                        .ifPresent(this::addDeletedSamples);
-            } catch (UnsupportedOperationException e) {
-                log.debug("purgePointValuesBefore operation is not supported by {}.", pointValueDao.getClass().getSimpleName());
-            }
+        log.info("Removing orphaned time-series");
+        int deletedTimeSeries = dataPointDao.deleteOrphanedTimeSeries();
+        if (deletedTimeSeries > 0) {
+            log.info("Removed {} orphaned time-series", deletedTimeSeries);
         }
 
-        if(pointValueDao.enablePerPointPurge()){
+        if (systemSettingDao.getBooleanValue(SystemSettingsDao.ENABLE_POINT_DATA_PURGE) && pointValueDao.enablePerPointPurge()) {
+            log.info("Purging point values on a point-by-point basis. Using data source and data point purge overrides.");
+
             // Get any filters for the data purge from the modules
             List<PurgeFilter> purgeFilters = new ArrayList<>();
             for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
@@ -121,19 +118,25 @@ public class DataPurge {
 
             pointValueDao.deleteOrphanedPointValues().ifPresent(this::addDeletedSamples);
 
-            int deletedTimeSeries = dataPointDao.deleteOrphanedTimeSeries();
-
             if (numberDeletedSamplesKnown) {
-                log.info("Data purge ended, " + deletedSamples + " point values were deleted");
+                log.info("Point value purge complete, " + deletedSamples + " point values were deleted");
             } else {
-                log.info("Data purge ended, unknown number of point values were deleted");
+                log.info("Point value purge complete, unknown number of point values were deleted");
             }
+        } else if (systemSettingDao.getBooleanValue(SystemSettingsDao.ENABLE_POINT_DATA_PURGE) && period != null) {
+            log.info("Purging all point values older than {}, Data source and data point purge overrides have been ignored.", period);
 
-            if (deletedTimeSeries > 0) {
-                log.info("Time series purged, total deleted: " + deletedTimeSeries );
+            ZonedDateTime before = ZonedDateTime.ofInstant(Instant.ofEpochMilli(runtime), ZoneId.systemDefault())
+                    .minus(period);
+            try {
+                pointValueDao.deletePointValuesBefore(before.toInstant().toEpochMilli())
+                        .ifPresent(this::addDeletedSamples);
+            } catch (UnsupportedOperationException e) {
+                log.debug("purgePointValuesBefore operation is not supported by {}.", pointValueDao.getClass().getSimpleName());
             }
-        }else{
-            log.info("Per-point purge for point values not enabled, skipping.");
+            log.info("Point value purge is complete");
+        } else {
+            log.info("Point value purge is not enabled, skipping.");
         }
 
         // File data purge

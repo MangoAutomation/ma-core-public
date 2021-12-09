@@ -188,7 +188,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
     @Override
     public boolean enablePerPointPurge() {
-        return systemSettingsDao.getBooleanValue(SystemSettingsDao.ENABLE_POINT_DATA_PURGE);
+        return systemSettingsDao.getBooleanValue(SystemSettingsDao.ENABLE_POINT_DATA_PURGE_PER_POINT);
     }
 
     @Override

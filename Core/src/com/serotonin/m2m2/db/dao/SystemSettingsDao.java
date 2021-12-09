@@ -90,6 +90,7 @@ public class SystemSettingsDao extends BaseDao {
 
     // Point data purging
     public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
+    public static final String ENABLE_POINT_DATA_PURGE_PER_POINT = "enablePurgePointValuesPerPoint";
     public static final String POINT_DATA_PURGE_PERIOD_TYPE = "pointDataPurgePeriodType";
     public static final String POINT_DATA_PURGE_PERIODS = "pointDataPurgePeriods";
 
@@ -638,6 +639,7 @@ public class SystemSettingsDao extends BaseDao {
         defaultValues.put(EMAIL_SEND_TIMEOUT, 60000);
 
         defaultValues.put(ENABLE_POINT_DATA_PURGE, true);
+        defaultValues.put(ENABLE_POINT_DATA_PURGE_PER_POINT, true);
         defaultValues.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         defaultValues.put(POINT_DATA_PURGE_PERIODS, 1);
 
