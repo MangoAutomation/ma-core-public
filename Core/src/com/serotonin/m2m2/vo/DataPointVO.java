@@ -26,6 +26,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -34,7 +35,6 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.JUnitUtil;
 import com.serotonin.m2m2.view.text.AnalogRenderer;
 import com.serotonin.m2m2.view.text.ConvertingRenderer;
-import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
@@ -233,15 +233,10 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         if (pointLocator == null)
             setTextRenderer(new PlainRenderer("", false));
         else {
-            switch (pointLocator.getDataType()) {
-                case IMAGE:
-                    setTextRenderer(new NoneRenderer());
-                    break;
-                case NUMERIC:
-                    setTextRenderer(new PlainRenderer("", true));
-                    break;
-                default:
-                    setTextRenderer(new PlainRenderer("", false));
+            if (pointLocator.getDataType() == DataType.NUMERIC) {
+                setTextRenderer(new PlainRenderer("", true));
+            } else {
+                setTextRenderer(new PlainRenderer("", false));
             }
         }
     }

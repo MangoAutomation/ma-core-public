@@ -6,7 +6,6 @@ package com.serotonin.m2m2.vo.dataSource;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.EnumSet;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
@@ -50,30 +49,17 @@ abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<V
         writer.writeEntry("dataType", getDataType().name());
     }
 
-
     protected DataType readDataType(JsonObject json) throws JsonException {
-        return readDataType(json, EnumSet.noneOf(DataType.class));
-    }
-
-    protected DataType readDataType(JsonObject json, DataType excludeType) throws JsonException {
-        return readDataType(json, EnumSet.of(excludeType));
-    }
-
-    protected DataType readDataType(JsonObject json, EnumSet<DataType> excludeTypes) throws JsonException {
         String text = json.getString("dataType");
         if (text == null) {
-            throw new TranslatableJsonException("emport.error.missing", "dataType", DataType.formatNames(excludeTypes));
+            throw new TranslatableJsonException("emport.error.missing", "dataType", DataType.formatNames());
         }
 
         DataType dataType;
         try {
             dataType = DataType.valueOf(text);
         } catch (IllegalArgumentException e) {
-            throw new TranslatableJsonException("emport.error.invalid", "dataType", text, DataType.formatNames(excludeTypes));
-        }
-
-        if (excludeTypes.contains(dataType)) {
-            throw new TranslatableJsonException("emport.error.invalid", "dataType", text, DataType.formatNames(excludeTypes));
+            throw new TranslatableJsonException("emport.error.invalid", "dataType", text, DataType.formatNames());
         }
 
         return dataType;

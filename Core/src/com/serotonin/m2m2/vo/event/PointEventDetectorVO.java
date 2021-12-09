@@ -67,8 +67,8 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
                     EnumSet.of(DataType.NUMERIC)));
             d.add(new ImplDefinition(TYPE_ANALOG_LOW_LIMIT, null, "pointEdit.detectors.lowLimit",
                     EnumSet.of(DataType.NUMERIC)));
-            d.add(new ImplDefinition(TYPE_POINT_CHANGE, null, "pointEdit.detectors.change", EnumSet.of(
-                    DataType.BINARY, DataType.MULTISTATE, DataType.NUMERIC, DataType.ALPHANUMERIC)));
+            d.add(new ImplDefinition(TYPE_POINT_CHANGE, null, "pointEdit.detectors.change",
+                    EnumSet.allOf(DataType.class)));
             d.add(new ImplDefinition(TYPE_BINARY_STATE, null, "pointEdit.detectors.state",
                     EnumSet.of(DataType.BINARY)));
             d.add(new ImplDefinition(TYPE_MULTISTATE_STATE, null, "pointEdit.detectors.state",
@@ -77,13 +77,12 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
                     EnumSet.of(DataType.ALPHANUMERIC)));
             d.add(new ImplDefinition(TYPE_ALPHANUMERIC_REGEX_STATE, null, "pointEdit.detectors.regexState",
                     EnumSet.of(DataType.ALPHANUMERIC)));
-            d.add(new ImplDefinition(TYPE_STATE_CHANGE_COUNT, null, "pointEdit.detectors.changeCount", EnumSet.of(
-                    DataType.BINARY, DataType.MULTISTATE, DataType.ALPHANUMERIC)));
-            d.add(new ImplDefinition(TYPE_NO_CHANGE, null, "pointEdit.detectors.noChange", EnumSet.of(
-                    DataType.BINARY, DataType.MULTISTATE, DataType.NUMERIC, DataType.ALPHANUMERIC)));
+            d.add(new ImplDefinition(TYPE_STATE_CHANGE_COUNT, null, "pointEdit.detectors.changeCount",
+                    EnumSet.of(DataType.BINARY, DataType.MULTISTATE, DataType.ALPHANUMERIC)));
+            d.add(new ImplDefinition(TYPE_NO_CHANGE, null, "pointEdit.detectors.noChange",
+                    EnumSet.allOf(DataType.class)));
             d.add(new ImplDefinition(TYPE_NO_UPDATE, null, "pointEdit.detectors.noUpdate",
-                    EnumSet.of(DataType.BINARY, DataType.MULTISTATE, DataType.NUMERIC, DataType.ALPHANUMERIC,
-                            DataType.IMAGE)));
+                    EnumSet.allOf(DataType.class)));
             d.add(new ImplDefinition(TYPE_POSITIVE_CUSUM, null, "pointEdit.detectors.posCusum",
                     EnumSet.of(DataType.NUMERIC)));
             d.add(new ImplDefinition(TYPE_NEGATIVE_CUSUM, null, "pointEdit.detectors.negCusum",

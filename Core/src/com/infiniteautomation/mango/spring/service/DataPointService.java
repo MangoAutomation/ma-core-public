@@ -534,7 +534,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         if (!DataPointVO.INTERVAL_LOGGING_TYPE_CODES.isValidId(vo.getIntervalLoggingType()))
             response.addContextualMessage("intervalLoggingType", "validate.invalidValue");
 
-        if(vo.getPointLocator().getDataType() == DataType.IMAGE || vo.getPointLocator().getDataType() == DataType.ALPHANUMERIC ) {
+        if(vo.getPointLocator().getDataType() == DataType.ALPHANUMERIC ) {
             if(vo.getLoggingType() == LoggingTypes.INTERVAL && vo.getIntervalLoggingType() != IntervalLoggingTypes.INSTANT)
                 response.addContextualMessage("intervalLoggingType", "validate.intervalType.incompatible",
                         DataPointVO.INTERVAL_LOGGING_TYPE_CODES.getCode(vo.getIntervalLoggingType()), vo.getPointLocator().getDataType());
@@ -607,8 +607,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             response.addContextualMessage("simplifyType", "validate.invalidValue");
         else if(vo.getSimplifyType() == SimplifyTypes.TARGET && vo.getSimplifyTarget() < 10)
             response.addContextualMessage("simplifyTarget", "validate.greaterThan", 10);
-        else if(vo.getSimplifyType() != SimplifyTypes.NONE && (vo.getPointLocator().getDataType() == DataType.ALPHANUMERIC ||
-                vo.getPointLocator().getDataType() == DataType.IMAGE))
+        else if(vo.getSimplifyType() != SimplifyTypes.NONE && vo.getPointLocator().getDataType() == DataType.ALPHANUMERIC)
             response.addContextualMessage("simplifyType", "validate.cannotSimplifyType", vo.getPointLocator().getDataType().getDescription());
 
         //Validate the unit

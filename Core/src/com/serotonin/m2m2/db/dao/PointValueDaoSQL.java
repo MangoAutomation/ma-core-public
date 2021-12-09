@@ -103,8 +103,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
             var pointValue = v.getPointValue();
             var dataType = pointValue.getValue().getDataType();
 
-            // can't batch save annotations or IMAGE/ALPHANUMERIC point values
-            if (pointValue instanceof IAnnotated || dataType == DataType.IMAGE || dataType == DataType.ALPHANUMERIC) {
+            // can't batch save annotations or ALPHANUMERIC point values
+            if (pointValue instanceof IAnnotated || dataType == DataType.ALPHANUMERIC) {
                 savePointValueImpl(point, pointValue, false);
                 syncCallsCounter.hit();
                 syncInsertsSpeedCounter.setValue(syncCallsCounter.getEventCounts()[0] / 5);
@@ -247,7 +247,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
         // Apply database specific bounds on double values.
         dvalue = databaseProxy.applyBounds(dvalue);
 
-        if (async && svalue == null && sourceMessage == null && dataType != DataType.IMAGE) {
+        if (async && svalue == null && sourceMessage == null) {
             addBatchWriteEntry(new BatchWriteEntry(vo.getSeriesId(), dataType, dvalue, time));
             return -1;
         }
@@ -276,9 +276,6 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 .fetchOptional()
                 .orElseThrow()
                 .value1();
-
-        if (svalue == null && dataType == DataType.IMAGE)
-            svalue = Long.toString(id);
 
         if (svalue != null || sourceMessage != null) {
             String shortString = null;

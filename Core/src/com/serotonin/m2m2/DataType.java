@@ -16,8 +16,8 @@ public enum DataType {
     BINARY(1, new TranslatableMessage("common.dataTypes.binary")),
     MULTISTATE(2, new TranslatableMessage("common.dataTypes.multistate")),
     NUMERIC(3, new TranslatableMessage("common.dataTypes.numeric")),
-    ALPHANUMERIC(4, new TranslatableMessage("common.dataTypes.alphanumeric")),
-    IMAGE(5, new TranslatableMessage("common.dataTypes.image"));
+    ALPHANUMERIC(4, new TranslatableMessage("common.dataTypes.alphanumeric"));
+    // 5 reserved, used to be IMAGE
 
     private static final EnumDeserializer<DataType, Integer> IDS = new EnumDeserializer<>(DataType.class, DataType::getId);
     private static final EnumDeserializer<DataType, String> NAMES = new NameEnumDeserializer<>(DataType.class);

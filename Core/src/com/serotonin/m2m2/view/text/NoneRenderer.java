@@ -14,10 +14,14 @@ import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.ImplDefinition;
 
+/**
+ * WARNING: Serialized inside old IMAGE data-points, required for upgrading old databases. Do not remove.
+ */
+@Deprecated
 @JsonEntity
 public class NoneRenderer extends BaseTextRenderer {
     private static final ImplDefinition definition = new ImplDefinition("textRendererNone", "NONE", "textRenderer.none",
-            EnumSet.of(DataType.IMAGE));
+            EnumSet.noneOf(DataType.class));
 
     public static ImplDefinition getDefinition() {
         return definition;

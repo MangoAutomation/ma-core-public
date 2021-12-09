@@ -34,7 +34,6 @@ abstract public class BaseTextRenderer implements TextRenderer, JsonSerializable
             d.add(AnalogRenderer.getDefinition());
             d.add(BinaryTextRenderer.getDefinition());
             d.add(MultistateRenderer.getDefinition());
-            d.add(NoneRenderer.getDefinition());
             d.add(PlainRenderer.getDefinition());
             d.add(RangeRenderer.getDefinition());
             d.add(TimeRenderer.getDefinition());
@@ -211,8 +210,6 @@ abstract public class BaseTextRenderer implements TextRenderer, JsonSerializable
                 clazz = BinaryTextRenderer.class;
             else if (def == MultistateRenderer.getDefinition())
                 clazz = MultistateRenderer.class;
-            else if (def == NoneRenderer.getDefinition())
-                clazz = NoneRenderer.class;
             else if (def == PlainRenderer.getDefinition())
                 clazz = PlainRenderer.class;
             else if (def == RangeRenderer.getDefinition())
