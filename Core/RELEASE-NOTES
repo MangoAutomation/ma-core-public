@@ -1,5 +1,7 @@
 *Version 4.4.0*
-* Upgraded for Mango 4.4.0
+* Drop support for IMAGE data points
+* Delete all data points with IMAGE dataType
+* Delete all data sources of type HTTP_IMAGE
 
 *Version 4.3.0*
 * Move Publisher points into separate table and add xid, name and enabled fields for better performance and control of publishers
