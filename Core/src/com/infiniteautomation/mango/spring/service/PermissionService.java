@@ -703,38 +703,6 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * TODO Mango 4.0 remove
-     * This should only be called on the upgrade to Mango 4.0 as it will create new roles,
-     *  it is designed to be used during serialization to extract and create roles from serialized data
-     * @param permissionSet
-     * @return
-     */
-    public Set<Role> upgradeScriptRoles(Set<String> permissionSet) {
-        if(permissionSet == null) {
-            return new HashSet<>();
-        }
-
-        Set<Role> roles = new HashSet<>();
-        for(String permission : permissionSet) {
-            RoleVO role = roleDao.getByXid(permission);
-            if(role != null) {
-                roles.add(role.getRole());
-            }else {
-                RoleVO r = new RoleVO(Common.NEW_ID, permission, permission);
-                try {
-                    roleDao.insert(r);
-                    roles.add(r.getRole());
-                }catch(Exception e) {
-                    //Someone maybe inserted this role while we were doing this.
-                    roles.add(r.getRole());
-                }
-            }
-        }
-
-        return roles;
-    }
-
-    /**
      * Does this user have access to owned resource
      * @param user the user to test
      * @param resource the owned resource

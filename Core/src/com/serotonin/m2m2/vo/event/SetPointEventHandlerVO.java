@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -20,13 +19,11 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -158,6 +155,18 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
     private static final long serialVersionUID = -1;
     private static final int version = 4;
 
+    //Legacy serialization fields
+    private Set<String> legacyScriptRoles;
+    private String legacyPermissionHolderName;
+
+    public Set<String> getLegacyScriptRoles() {
+        return this.legacyScriptRoles;
+    }
+
+    public String getLegacyPermissionHolderName() {
+        return legacyPermissionHolderName;
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeInt(targetPointId);
@@ -214,9 +223,10 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null) {
-                PermissionService permissionService = Common.getBean(PermissionService.class);
-                Set<Role> roles = permissionService.upgradeScriptRoles(oldPermissions.getAllLegacyPermissions());
-                scriptRoles = new ScriptPermissions(roles, oldPermissions.getPermissionHolderName());
+                //We will be using this in the upgrade so this is temporary and will be used to set
+                //  the scriptRoles
+                legacyScriptRoles = oldPermissions.getAllLegacyPermissions();
+                legacyPermissionHolderName = oldPermissions.getPermissionHolderName();
             }else {
                 scriptRoles = new ScriptPermissions();
             }

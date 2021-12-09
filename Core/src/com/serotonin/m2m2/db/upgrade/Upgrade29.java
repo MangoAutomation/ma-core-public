@@ -6,6 +6,8 @@ package com.serotonin.m2m2.db.upgrade;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,19 +17,26 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.FileSystemUtils;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseType;
 import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
+import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
+import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.util.SerializationHelper;
 
 /**
  * Fix MySQL data source table to have a name column length of 255
@@ -429,6 +438,66 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseType.MSSQL.name(), eventHandlersPermissionNotNull);
         scripts.put(DatabaseType.POSTGRES.name(), eventHandlersPermissionNotNull);
         runScript(scripts, out);
+
+        //Upgrade Email Event Handlers to fix the script permission serialization
+        this.ejt.query("SELECT eh.id, eh.data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int id = rs.getInt(1);
+                EmailEventHandlerVO vo = (EmailEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
+                Set<String> legacyScriptRoles = vo.getLegacyScriptRoles();
+                if(legacyScriptRoles != null) {
+                    Set<Role> roles = new HashSet<>();
+                    for(String r : legacyScriptRoles) {
+                        roles.add(getOrCreateRole(new Role(Common.NEW_ID, r)));
+                    }
+                    vo.setScriptRoles(new ScriptPermissions(roles, vo.getLegacyPermissionHolderName()));
+                }else {
+                    //Must be a ScriptPermission that might need to be upgraded
+                    ScriptPermissions permission = vo.getScriptRoles();
+                    if(permission.getLegacyScriptRoles() != null) {
+                        Set<Role> roles = new HashSet<>();
+                        for(String r : permission.getLegacyScriptRoles()) {
+                            roles.add(getOrCreateRole(new Role(Common.NEW_ID, r)));
+                        }
+                        ScriptPermissions upgraded = new ScriptPermissions(roles,
+                                permission.getPermissionHolderName());
+                        vo.setScriptRoles(upgraded);
+                    }
+                }
+                ejt.update("UPDATE eventHandlers SET data=? where id=?", SerializationHelper.writeObjectToArray(vo), id);
+            }
+        });
+
+        //Upgrade Set Point Event Handlers
+        this.ejt.query("SELECT eh.id, eh.data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {SetPointEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int id = rs.getInt(1);
+                SetPointEventHandlerVO vo = (SetPointEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
+                Set<String> legacyScriptRoles = vo.getLegacyScriptRoles();
+                if(legacyScriptRoles != null) {
+                    Set<Role> roles = new HashSet<>();
+                    for(String r : legacyScriptRoles) {
+                        roles.add(getOrCreateRole(new Role(Common.NEW_ID, r)));
+                    }
+                    vo.setScriptRoles(new ScriptPermissions(roles, vo.getLegacyPermissionHolderName()));
+                }else {
+                    //Must be a ScriptPermission that might need to be upgraded
+                    ScriptPermissions permission = vo.getScriptRoles();
+                    if(permission.getLegacyScriptRoles() != null) {
+                        Set<Role> roles = new HashSet<>();
+                        for(String r : permission.getLegacyScriptRoles()) {
+                            roles.add(getOrCreateRole(new Role(Common.NEW_ID, r)));
+                        }
+                        ScriptPermissions upgraded = new ScriptPermissions(roles,
+                                permission.getPermissionHolderName());
+                        vo.setScriptRoles(upgraded);
+                    }
+                }
+                ejt.update("UPDATE eventHandlers SET data=? where id=?", SerializationHelper.writeObjectToArray(vo), id);
+            }
+        });
     }
 
     private void convertFileStores(OutputStream out) {

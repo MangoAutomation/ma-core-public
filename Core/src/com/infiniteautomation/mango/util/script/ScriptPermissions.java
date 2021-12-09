@@ -12,8 +12,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -70,6 +68,13 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
     private static final int version = 2;
     private static final long serialVersionUID = 1L;
 
+    //Legacy serialization fields
+    private Set<String> legacyRoles;
+
+    public Set<String> getLegacyScriptRoles() {
+        return this.legacyRoles;
+    }
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeObject(roles);
@@ -79,8 +84,8 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         if(ver == 1) {
-            PermissionService service = Common.getBean(PermissionService.class);
-            this.roles = Collections.unmodifiableSet(service.upgradeScriptRoles((Set<String>) in.readObject()));
+            //Read into legacy roles and expect an upgrade to transfer to roles
+            this.legacyRoles = (Set<String>) in.readObject();
         }else if(ver == 2){
             //Will be cleaned in the load relational data method
             this.roles = Collections.unmodifiableSet((Set<Role>)in.readObject());
