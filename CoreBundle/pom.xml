@@ -222,7 +222,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>dnp3-ds</artifactId>
-            <version>4.2.1-SNAPSHOT</version>
+            <version>4.2.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
