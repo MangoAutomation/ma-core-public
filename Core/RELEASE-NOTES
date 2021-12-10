@@ -1,3 +1,6 @@
+*Version 3.7.9*
+* Update log4j2 to version 2.15.0, fix for CVE-2021-44228
+
 *Version 3.7.8*
 * Upgrade Jetty webserver to 9.4.43.v20210629 to fix performance issues
 * Remove ssl.alpn.debug env property, this is now enabled by configuring log4j logger for the org.eclipse.jetty.alpn.server package
