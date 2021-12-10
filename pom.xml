@@ -2,7 +2,7 @@
  <modelVersion>4.0.0</modelVersion>
  <groupId>com.infiniteautomation.mango</groupId>
  <artifactId>mango-parent</artifactId>
- <version>3.7.9-SNAPSHOT</version>
+ <version>3.7.9</version>
  <name>Mango Parent</name>
  <packaging>pom</packaging>
  <properties>
