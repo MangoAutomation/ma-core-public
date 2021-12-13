@@ -27,10 +27,12 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -45,14 +47,16 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
     });
 
     private final EventHandlersMapping handlerMapping;
+    private final MailingListDao mailingListDao;
 
     @Autowired
-    private EventHandlerDao(DaoDependencies dependencies) {
+    private EventHandlerDao(DaoDependencies dependencies, MailingListDao mailingListDao) {
         super(dependencies, AuditEventType.TYPE_EVENT_HANDLER,
                 EventHandlers.EVENT_HANDLERS,
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
 
         this.handlerMapping = EventHandlersMapping.EVENT_HANDLERS_MAPPING;
+        this.mailingListDao = mailingListDao;
     }
 
     /**
@@ -93,6 +97,15 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
         MangoPermission edit = new MangoPermission(record.get(table.editPermissionId));
         h.supplyEditPermission(() -> edit);
 
+        //Ensure the recipient list is clean
+        switch(h.getHandlerType()) {
+            case EmailEventHandlerDefinition.TYPE_NAME:
+                EmailEventHandlerVO ehVo = (EmailEventHandlerVO)h;
+                mailingListDao.cleanRecipientList(ehVo.getActiveRecipients());
+                mailingListDao.cleanRecipientList(ehVo.getEscalationRecipients());
+                mailingListDao.cleanRecipientList(ehVo.getInactiveRecipients());
+                break;
+        }
         return h;
     }
 

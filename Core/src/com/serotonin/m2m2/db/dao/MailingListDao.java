@@ -5,8 +5,10 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Record;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,14 +46,16 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
 
     private final MailingListInactive mailingListInactiveTable;
     private final MailingListMembers mailingListMembersTable;
+    private final UserDao userDao;
 
     @Autowired
-    private MailingListDao(DaoDependencies dependencies){
+    private MailingListDao(DaoDependencies dependencies, UserDao userDao){
         super(dependencies, AuditEventType.TYPE_MAILING_LIST,
                 MailingLists.MAILING_LISTS,
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"));
         this.mailingListInactiveTable = MailingListInactive.MAILING_LIST_INACTIVE;
         this.mailingListMembersTable = MailingListMembers.MAILING_LIST_MEMBERS;
+        this.userDao = userDao;
     }
 
     public static MailingListDao getInstance() {
@@ -190,6 +194,43 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
                 return ue;
             default:
                 throw new ShouldNeverHappenException("Unknown mailing list entry type: " + intType);
+        }
+    }
+
+    /**
+     * Clean a list of recipients by removing any entries with dead references,
+     *  i.e. a user was deleted while this list was serialized in the database
+     * @param list
+     */
+    public void cleanRecipientList(List<MailingListRecipient> list) {
+        if(list == null)
+            return;
+
+        ListIterator<MailingListRecipient> it = list.listIterator();
+        while(it.hasNext()) {
+            MailingListRecipient recipient = it.next();
+            switch(recipient.getRecipientType()){
+                case ADDRESS:
+                case PHONE_NUMBER:
+                    if(StringUtils.isEmpty(recipient.getReferenceAddress())) {
+                        it.remove();
+                    }
+                    break;
+                case MAILING_LIST:
+                    if(getXidById(recipient.getReferenceId()) == null) {
+                        it.remove();
+                    }
+                    break;
+                case USER:
+                case USER_PHONE_NUMBER:
+                    if(userDao.getXidById(recipient.getReferenceId()) == null) {
+                        it.remove();
+                    }
+                    break;
+                default:
+                    break;
+
+            }
         }
     }
 }

@@ -439,7 +439,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         scripts.put(DatabaseType.POSTGRES.name(), eventHandlersPermissionNotNull);
         runScript(scripts, out);
 
-        //Upgrade Email Event Handlers to fix the script permission serialization
+        //Upgrade Email Event Handlers to fix the script permission serialization, we don't need to clean the
+        // recipient list here as we aren't going to use it.
         this.ejt.query("SELECT eh.id, eh.data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {

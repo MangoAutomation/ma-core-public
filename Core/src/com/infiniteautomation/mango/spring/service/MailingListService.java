@@ -9,7 +9,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -147,43 +146,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
             }
         }
         return addresses;
-    }
-
-    /**
-     * Clean a list of recipients by removing any entries with dead references,
-     *  i.e. a user was deleted while this list was serialized in the database
-     * @param list
-     */
-    public void cleanRecipientList(List<MailingListRecipient> list){
-        if(list == null)
-            return;
-
-        ListIterator<MailingListRecipient> it = list.listIterator();
-        while(it.hasNext()) {
-            MailingListRecipient recipient = it.next();
-            switch(recipient.getRecipientType()){
-                case ADDRESS:
-                case PHONE_NUMBER:
-                    if(StringUtils.isEmpty(recipient.getReferenceAddress())) {
-                        it.remove();
-                    }
-                    break;
-                case MAILING_LIST:
-                    if(dao.getXidById(recipient.getReferenceId()) == null) {
-                        it.remove();
-                    }
-                    break;
-                case USER:
-                case USER_PHONE_NUMBER:
-                    if(userDao.getXidById(recipient.getReferenceId()) == null) {
-                        it.remove();
-                    }
-                    break;
-                default:
-                    break;
-
-            }
-        }
     }
 
     @Override
