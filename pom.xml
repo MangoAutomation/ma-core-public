@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.infiniteautomation.mango</groupId>
     <artifactId>mango-parent</artifactId>
-    <version>4.2.5-SNAPSHOT</version>
+    <version>4.2.5</version>
     <name>Mango Parent</name>
     <packaging>pom</packaging>
     <properties>
@@ -13,7 +13,7 @@
         <log4jVersion>2.16.0</log4jVersion>
         <slf4jVersion>1.8.0-beta4</slf4jVersion>
         <jacksonVersion>2.12.1</jacksonVersion>
-        <mangoVersion>4.2.5-SNAPSHOT</mangoVersion>
+        <mangoVersion>4.2.5</mangoVersion>
         <coreApiVersion>${coreVersion.majorVersion}.${coreVersion.minorVersion}</coreApiVersion>
         <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
         <compilerSourceVersion>11</compilerSourceVersion>
@@ -174,7 +174,7 @@
                         <dependency>
                             <groupId>com.infiniteautomation.mango</groupId>
                             <artifactId>assembly-descriptors</artifactId>
-                            <version>4.2.5-SNAPSHOT</version>
+                            <version>4.2.5</version>
                         </dependency>
                     </dependencies>
                 </plugin>
