@@ -4,6 +4,8 @@
 
 package com.infiniteautomation.mango.spring.script.engines;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.function.Function;
 
 import javax.script.ScriptEngine;
@@ -11,13 +13,9 @@ import javax.script.ScriptEngineFactory;
 
 import com.serotonin.m2m2.module.ConditionalDefinition;
 
-import jdk.nashorn.api.scripting.JSObject;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-
 /**
  * @author Jared Wiltshire
  */
-@SuppressWarnings({"removal", "deprecation", "restriction"})
 @ConditionalDefinition(requireClasses = {"jdk.nashorn.api.scripting.NashornScriptEngineFactory"})
 public class BuiltInNashornScriptEngineDefinition extends NashornScriptEngineDefinition {
 
@@ -28,7 +26,13 @@ public class BuiltInNashornScriptEngineDefinition extends NashornScriptEngineDef
 
     @Override
     protected Object callFunction(Object function, Object thiz, Object... args) {
-        return ((JSObject) function).call(thiz, args);
+        try {
+            Method call = Class.forName("jdk.nashorn.api.scripting.JSObject")
+                    .getDeclaredMethod("call", Object.class, Object[].class);
+            return call.invoke(thiz, args);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -36,7 +40,24 @@ public class BuiltInNashornScriptEngineDefinition extends NashornScriptEngineDef
         if (filter == null) {
             return engineFactory.getScriptEngine();
         }
-        return ((NashornScriptEngineFactory) engineFactory).getScriptEngine(filter::apply);
+
+        try {
+            Class<?> classFilterType = Class.forName("jdk.nashorn.api.scripting.ClassFilter");
+            Method getScriptEngine = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory")
+                    .getDeclaredMethod("getScriptEngine", classFilterType);
+
+            Object classFilter = Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { classFilterType }, (instance, method, args) -> {
+                if ("exposeToScripts".equals(method.getName()) && args.length == 1 && args[0] instanceof String) {
+                    return filter.apply((String) args[0]);
+                }
+                throw new IllegalStateException("Unknown method");
+            });
+
+            //noinspection JavaReflectionInvocation
+            return (ScriptEngine) getScriptEngine.invoke(engineFactory, classFilter);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
