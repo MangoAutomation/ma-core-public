@@ -111,16 +111,15 @@ public abstract class Task {
      * again. (If the task is running when this call occurs, the task will run to completion, but will never run again.)
      *
      * <p>
-     * Note that calling this method from within the <tt>run</tt> method of a repeating timer task absolutely guarantees
+     * Note that calling this method from within the {@link #run} method of a repeating timer task absolutely guarantees
      * that the timer task will not run again.
-     *
      * <p>
      * This method may be called repeatedly; the second and subsequent calls have no effect.
      *
      * @return true if this task is scheduled for one-time execution and has not yet run, or this task is scheduled for
      *         repeated execution. Returns false if the task was scheduled for one-time execution and has already run,
      *         or if the task was never scheduled, or if the task was already cancelled. (Loosely speaking, this method
-     *         returns <tt>true</tt> if it prevents one or more scheduled executions from taking place.)
+     *         returns true if it prevents one or more scheduled executions from taking place.)
      */
     public boolean cancel() {
         synchronized (lock) {

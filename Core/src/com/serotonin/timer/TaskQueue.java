@@ -7,7 +7,7 @@ class TaskQueue {
      * Priority queue represented as a balanced binary heap: the two children of queue[n] are queue[2*n] and
      * queue[2*n+1]. The priority queue is ordered on the nextExecutionTime field: The TimerTask with the lowest
      * nextExecutionTime is in queue[1] (assuming the queue is nonempty). For each node n in the heap, and each
-     * descendant of n, d, n.nextExecutionTime <= d.nextExecutionTime.
+     * descendant of n, d, n.nextExecutionTime &lt;= d.nextExecutionTime.
      */
     private TimerTask[] queue = new TimerTask[128];
 
@@ -61,7 +61,7 @@ class TaskQueue {
 
     /**
      * Removes the ith element from queue without regard for maintaining the heap invariant. Recall that queue is
-     * one-based, so 1 <= i <= size.
+     * one-based, so {@code i} must be between 1 and {@link #size} (inclusive).
      */
     void quickRemove(int i) {
         assert i <= size;

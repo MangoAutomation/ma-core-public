@@ -17,7 +17,7 @@ import com.serotonin.util.ILifecycleState;
 
 /**
  * Container for lifecycle DaoEvents
- * @param <T>
+ * @param <T> action VO type
  */
 public class StateChangeEvent<T extends AbstractActionVO> extends ApplicationEvent implements ResolvableTypeProvider, PropagatingEvent {
 

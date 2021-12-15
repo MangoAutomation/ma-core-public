@@ -90,7 +90,7 @@ public class RealTimeTimer extends AbstractTimer {
      * initial execution time, but not period.
      * 
      * @throws IllegalArgumentException
-     *             if <tt>time()</tt> is negative.
+     *             if {@link TimerTrigger#getFirstExecutionTime()} returns negative.
      * @throws IllegalStateException
      *             if task was already scheduled or cancelled, timer was cancelled, or timer thread terminated.
      */
