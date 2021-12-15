@@ -61,7 +61,6 @@ public class OrderedTaskInfo {
     public OrderedTaskInfo(){ }
 
     /**
-     * @param task
      */
     public OrderedTaskInfo(Task task) {
         this.id = task.id;
@@ -116,7 +115,6 @@ public class OrderedTaskInfo {
     /**
      * Add one execution time to our average and increase
      * the run count by 1
-     * @param ms
      */
     public void addExecutionTime(long ms){
         this.avgExecutionTimeMs = (ms + (this.executionCount * this.avgExecutionTimeMs))/(this.executionCount + 1);
@@ -126,7 +124,6 @@ public class OrderedTaskInfo {
 
     /**
      * Update the current size and track the max
-     * @param size
      */
     public void updateCurrentQueueSize(int size){
         if(size > this.maxQueueSize)

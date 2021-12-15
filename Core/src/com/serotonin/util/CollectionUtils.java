@@ -46,10 +46,7 @@ public class CollectionUtils {
 
     /**
      * Compares to lists for equality, regardless of current sort order.
-     * 
-     * @param list1
-     * @param list2
-     * @return
+     *
      */
     public static boolean equal(List<?> list1, List<?> list2) {
         if (list1 == null && list2 == null)

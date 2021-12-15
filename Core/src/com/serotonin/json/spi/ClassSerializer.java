@@ -27,8 +27,6 @@ public interface ClassSerializer<T> {
      *            the JSON writer to which to write.
      * @param value
      *            the object to write
-     * @throws IOException
-     * @throws JsonException
      */
     void jsonWrite(ObjectWriter writer, T value) throws IOException, JsonException;
 
@@ -42,7 +40,6 @@ public interface ClassSerializer<T> {
      * @param jsonObject
      *            the JSON value from which attributes can be read
      * @return the created and populated object
-     * @throws JsonException
      */
     T jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException;
 
@@ -57,7 +54,6 @@ public interface ClassSerializer<T> {
      *            the object to populate
      * @return the populated object. Implementation can optionally create a new object if necessary (if, say, the class
      *         in question is immutable)
-     * @throws JsonException
      */
     T jsonRead(JsonReader reader, JsonObject jsonObject, T o) throws JsonException;
 }

@@ -83,17 +83,12 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Validate a new publisher
-     * @param response
-     * @param pub
      */
     abstract public void validate(ProcessResult response, PUB pub);
 
     /**
      * Validate a publisher about to be updated
      *  override as necessary
-     * @param response
-     * @param existing
-     * @param vo
      */
     public void validate(ProcessResult response, PUB existing, PUB vo) {
         validate(response, vo);
@@ -102,9 +97,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
     /**
      * Validate a new published point
      *
-     * @param response
-     * @param vo
-     * @param publisher
      */
     abstract public void validate(ProcessResult response, PublishedPointVO vo, PublisherVO publisher);
 
@@ -112,10 +104,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
      * Validate a published point to be updated
      *  override as necessary
      *
-     * @param response
-     * @param existing
-     * @param vo
-     * @param publisher
      */
     public void validate(ProcessResult response, PublishedPointVO existing, PublishedPointVO vo, PublisherVO publisher) {
         validate(response, vo, publisher);
@@ -137,7 +125,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void savePreRelationalData(PUB existing, PUB vo) {
 
@@ -149,7 +136,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void saveRelationalData(PUB existing, PUB vo) {
 
@@ -159,7 +145,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
      * Delete any relational data for the publisher.
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deleteRelationalData(PUB vo) {
 
@@ -169,7 +154,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
      * Delete any relational data for the publisher.
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deletePostRelationalData(PUB vo) {
 
@@ -178,7 +162,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
     /**
      * Load in relational data for the publisher
      *
-     * @param vo
      */
     public void loadRelationalData(PUB vo) {
 
@@ -186,7 +169,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Create a new published point vo with all base field initialized
-     * @return
      */
     @NonNull
     public <T extends PublishedPointVO> T createPublishedPointVO(PUB publisher, IDataPoint dataPoint) {
@@ -201,10 +183,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Create a point with the publisher id, type and data point id set
-     * @param publisherId
-     * @param dataPointId
-     * @param <T>
-     * @return
      */
     @NonNull
     public <T extends PublishedPointVO> T createPublishedPointVO(int publisherId, int dataPointId) {
@@ -217,7 +195,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Instantiate a new published point VO for use when creating new points
-     * @return
      */
     @NonNull
     abstract protected <T extends PublishedPointVO> T newPublishedPointVO();
@@ -237,8 +214,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Store any module defined point settings into this JsonNode
-     * @param point
-     * @return
      */
     public String createDbJson(PublishedPointVO point) {
         return null;
@@ -247,7 +222,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Get a writer for serializing JSON
-     * @return
      */
     protected ObjectWriter getObjectWriter(Class<?> type) {
         return dbMapper.writerFor(type);
@@ -255,7 +229,6 @@ abstract public class PublisherDefinition<PUB extends PublisherVO> extends Modul
 
     /**
      * Get a reader for use de-serializing JSON
-     * @return
      */
     protected ObjectReader getObjectReader(Class<?> type) {
         return dbMapper.readerFor(type);

@@ -27,13 +27,7 @@ public class MangoServiceLoader {
      * We need to load the service file using a class loader for a single module then create the instances using the full class loader.
      *
      * <p>TODO Java 9+ use the ServiceLoader.stream() method</p>
-     * @param <T>
-     * @param service
-     * @param classloader
      * @param location defaults to "META-INF/services"
-     * @return
-     * @throws IOException
-     * @throws ClassNotFoundException
      */
     public static <T> Set<Class<? extends T>> load(Class<T> service, ClassLoader classloader, String location) throws IOException, ClassNotFoundException {
         if (location == null) {

@@ -151,7 +151,6 @@ public class EventInstance implements EventInstanceI {
     /**
      * This method should only be used by the EventDao for creating and updating.
      *
-     * @param id
      */
     public void setId(int id) {
         this.id = id;

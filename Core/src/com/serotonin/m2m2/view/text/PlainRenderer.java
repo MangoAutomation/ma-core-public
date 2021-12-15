@@ -49,7 +49,6 @@ public class PlainRenderer extends ConvertingRenderer {
     }
     
     /**
-     * @param suffix
      */
     public PlainRenderer(String suffix) {
         super();
@@ -57,8 +56,6 @@ public class PlainRenderer extends ConvertingRenderer {
     }
 
     /**
-     * @param suffix
-     * @param useUnitAsSuffix
      */
     public PlainRenderer(String suffix, boolean useUnitAsSuffix) {
         super();

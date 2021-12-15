@@ -51,7 +51,6 @@ public class RangeRenderer extends ConvertingRenderer {
     }
 
     /**
-     * @param format
      */
     public RangeRenderer(String format) {
         super();

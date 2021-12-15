@@ -77,7 +77,6 @@ public class ProcessLog implements Closeable {
 
     /**
      * Shortcut for Null Writer
-     * @param id
      */
     public ProcessLog(String id) {
         this("processLog.", id, LogLevel.NONE, false, new PrintWriter(new NullWriter()) ,true);
@@ -85,11 +84,7 @@ public class ProcessLog implements Closeable {
     
     /**
      * Create a Log Writer using the supplied writer
-     * 
-     * @param id
-     * @param logLevel
-     * @param includeLocationInfo
-     * @param out
+     *
      */
     public ProcessLog(String id, LogLevel logLevel, boolean includeLocationInfo, PrintWriter out) {
     	this("processLog.", id, logLevel, includeLocationInfo, out, false);
@@ -102,13 +97,7 @@ public class ProcessLog implements Closeable {
     /**
      * Construct a rolling Process Log in the ${paths.logs}
      * Name: prefix + id + ".log"
-     * 
-     * @param prefix
-     * @param id
-     * @param logLevel
-     * @param includeLocationInfo
-     * @param fileSize
-     * @param maxFiles
+     *
      */
     public ProcessLog(String prefix, String id, LogLevel logLevel, boolean includeLocationInfo, int fileSize, int maxFiles) {
         this(prefix, id, logLevel, includeLocationInfo, null, false);
@@ -121,13 +110,7 @@ public class ProcessLog implements Closeable {
      * Create a non-rolling Process Log in ${paths.logs}
      * 
      * Name: prefix + id + ".log"
-     * 
-     * @param prefix
-     * @param id
-     * @param logLevel
-     * @param includeLocationInfo
-     * @param out
-     * @param deleteExisting
+     *
      */
     public ProcessLog(String prefix, String id, LogLevel logLevel, boolean includeLocationInfo, PrintWriter out, boolean deleteExisting) {
         this.id = id;
@@ -152,7 +135,6 @@ public class ProcessLog implements Closeable {
     
     /**
      * Get the file currently being written to
-     * @return
      */
     public File getFile(){
     	return file;
@@ -376,7 +358,6 @@ public class ProcessLog implements Closeable {
     
     /**
      * List all the files
-     * @return
      */
     public File[] getFiles(){
         if(roll) {

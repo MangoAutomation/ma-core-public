@@ -140,8 +140,7 @@ public class ByteArrayBuilder {
 
     /**
      * String serialization with optimization for short strings.
-     * 
-     * @param s
+     *
      */
     public void putString(String s) {
         byte[] bytes = null;

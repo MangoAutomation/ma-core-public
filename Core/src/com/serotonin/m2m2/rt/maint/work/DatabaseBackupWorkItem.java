@@ -102,7 +102,6 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
     /**
      * To know when the task is completed
-     * @return
      */
     public Future<Void> getCompletableFuture() {
         return completed;
@@ -111,7 +110,6 @@ public class DatabaseBackupWorkItem implements WorkItem {
     /**
      * Queue a backup for execution
      *
-     * @param backupLocation
      */
     public static Future<Void> queueBackup(String backupLocation) {
         DatabaseBackupWorkItem item = new DatabaseBackupWorkItem();
@@ -284,7 +282,6 @@ public class DatabaseBackupWorkItem implements WorkItem {
     }// end backup settings task
 
     /**
-     * @return
      */
     public static File[] getBackupFiles(String backupLocation) {
         File backupDir = new File(backupLocation);
@@ -302,7 +299,6 @@ public class DatabaseBackupWorkItem implements WorkItem {
     /**
      * Restore a database from a backup
      *
-     * @param filename
      */
     public static ProcessResult restore(String filename) {
         ProcessResult result = new ProcessResult();
@@ -387,14 +383,6 @@ public class DatabaseBackupWorkItem implements WorkItem {
      * Backup mysql database without the database name implied, easier to import
      * into various systems
      *
-     * @param dumpExePath
-     * @param host
-     * @param port
-     * @param user
-     * @param password
-     * @param database
-     * @param backupPath
-     * @return
      */
     public void backupMysqlWithOutDatabase(String dumpExePath, String host, String port, String user,
             String password, String database, Path backupPath, String baseFilename) {
@@ -539,14 +527,12 @@ public class DatabaseBackupWorkItem implements WorkItem {
     }
 
     /**
-     * @param location
      */
     public void setBackupLocation(String location) {
         this.backupLocation = location;
     }
 
     /**
-     * @return
      */
     public boolean isFinished() {
         return this.finished;

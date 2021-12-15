@@ -26,7 +26,6 @@ public class SimulationTimerProvider  implements TimerProvider<AbstractTimer> {
     
     /**
      * Create a timer provider with an optionally async thread pool executor in the timer
-     * @param async
      */
     public SimulationTimerProvider(boolean async) {
         this(new SimulationTimer(async));
@@ -43,7 +42,6 @@ public class SimulationTimerProvider  implements TimerProvider<AbstractTimer> {
     /**
      * Create a timer provider using the given timer and set 
      *   Common.timer and Providers(TimerProvider) to use it.
-     * @param timer
      */
     public SimulationTimerProvider(SimulationTimer timer) {
         this.timer = timer;

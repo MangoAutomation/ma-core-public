@@ -452,8 +452,6 @@ public class StoreLatestProductionTest {
 
     /**
      * Setup the core and modules for request
-     * @param coreVersion
-     * @param moduleVersionState
      */
     protected void setupModules(Version coreVersion, String moduleVersion) {
 
@@ -486,9 +484,6 @@ public class StoreLatestProductionTest {
 
     /**
      * Helper to print the json neatly
-     * @param response
-     * @throws IOException
-     * @throws JsonException
      */
     protected void printResponse(JsonValue response) throws IOException, JsonException{
         StringWriter stringWriter = new StringWriter();

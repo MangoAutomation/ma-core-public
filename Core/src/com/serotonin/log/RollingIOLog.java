@@ -33,7 +33,6 @@ public class RollingIOLog extends BaseIOLog{
     /**
      * 
      * @param baseFilename - The base filename for all logfiles ie. dataLog.log
-     * @param logDirectory
      * @param fileSize - in bytes of file before rolling over
      * @param maxFiles - max number to keep in addition to the current log file
      */

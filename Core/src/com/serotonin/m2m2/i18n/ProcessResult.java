@@ -91,7 +91,6 @@ public class ProcessResult implements Serializable {
 
     /**
      * A result is valid if there are no messages at the WARN or ERROR level
-     * @return
      */
     public boolean isValid() {
         for(ProcessMessage m : messages)
@@ -104,7 +103,6 @@ public class ProcessResult implements Serializable {
      * Do not use this method. Instead your VO or model should implement Validatable and override the validate(ProcessResult response) method.
      *
      * Ensure this result is valid
-     * @throws ValidationException
      */
     @Deprecated
     public void ensureValid() throws ValidationException {
@@ -114,7 +112,6 @@ public class ProcessResult implements Serializable {
 
     /**
      * Sets a prefix on all context messages
-     * @param prefix
      */
     public void prefixContextKey(String prefix) {
         Objects.requireNonNull(prefix);
@@ -131,7 +128,6 @@ public class ProcessResult implements Serializable {
 
     /**
      * Copies all messages and data another ProcessResult into this one
-     * @param other
      */
     public void addMessages(ProcessResult other) {
         Objects.requireNonNull(other);

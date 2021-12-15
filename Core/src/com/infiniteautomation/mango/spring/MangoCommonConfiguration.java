@@ -68,9 +68,6 @@ public class MangoCommonConfiguration {
 
     /**
      * Calls getBeansOfType() then sorts and returns as list
-     * @param lbf
-     * @param type
-     * @return
      */
     public static <T> List<T> beansOfType(ListableBeanFactory lbf, Class<T> type) {
         List<T> beans = new ArrayList<>(lbf.getBeansOfType(type).values());
@@ -80,9 +77,6 @@ public class MangoCommonConfiguration {
 
     /**
      * Calls BeanFactoryUtils.beansOfTypeIncludingAncestors() then sorts and returns as list
-     * @param lbf
-     * @param type
-     * @return
      */
     public static <T> List<T> beansOfTypeIncludingAncestors(ListableBeanFactory lbf, Class<T> type) {
         List<T> beans = new ArrayList<>(BeanFactoryUtils.beansOfTypeIncludingAncestors(lbf, type).values());
@@ -92,7 +86,6 @@ public class MangoCommonConfiguration {
 
     /**
      * BeanPostProcessor are per application context.
-     * @return
      */
     @Bean
     public SystemSettingsListenerProcessor systemSettingsListenerProcessor() {

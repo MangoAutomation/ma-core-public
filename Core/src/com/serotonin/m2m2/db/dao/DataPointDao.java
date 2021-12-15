@@ -124,7 +124,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static DataPointDao getInstance() {
         return springInstance.get();
@@ -136,8 +135,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     //
     /**
      * Get data points for a data source, no permissions checks are done by this method.
-     * @param dataSourceId
-     * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
         return getJoinedSelectQuery()
@@ -162,8 +159,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     /**
      * Get points for runtime in an efficient manner by joining with the event detectors and only returning
      *  data points that are enabled
-     * @param dataSourceId
-     * @return
      */
     public List<DataPointWithEventDetectors> getDataPointsForDataSourceStart(int dataSourceId) {
         List<Field<?>> fields = new ArrayList<>(this.getSelectFields());
@@ -253,8 +248,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Is a data point enabled, returns false if point is disabled or DNE.
-     * @param id
-     * @return
      */
     public boolean isEnabled(int id) {
         String enabled = create.select(table.enabled)
@@ -269,7 +262,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      * Delete the data point for a data source, this must be called within a transaction
      *  and will does not specifically load relational data.  This will clean permissions
      *
-     * @param dataSourceId
      */
     void deleteDataPoints(final int dataSourceId) {
         List<DataPointVO> batch = new ArrayList<>();
@@ -319,10 +311,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     /**
      * Delete a batch of data points in bulk (for performance)
      *
-     * @param batch
-     * @param ids
-     * @param permissionIds
-     * @param seriesIds
      */
     protected void deleteBatch(List<DataPointVO> batch, List<Integer> ids,
             Set<Integer> permissionIds, Set<Integer> seriesIds) {
@@ -389,8 +377,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Count the data points on a data source, used for licensing
-     * @param dataSourceType
-     * @return
      */
     public int countPointsForDataSourceType(String dataSourceType) {
         return create.select(DSL.countDistinct(table.id))
@@ -404,8 +390,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Get a summary of a data point
-     * @param xid
-     * @return
      */
     public DataPointSummary getSummary(String xid) {
         return create.select(
@@ -447,7 +431,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
      *
      * Loads the event detectors from the database and sets them on the data point.
      *
-     * @param dp
      */
     public void loadEventDetectors(DataPointWithEventDetectors dp) {
         dp.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dp.getDataPoint().getId(), dp.getDataPoint()));
@@ -455,7 +438,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Get the count of data points per type of data source
-     * @return
      */
     public List<DataPointUsageStatistics> getUsage() {
         List<DataPointUsageStatistics> result = new ArrayList<>();
@@ -580,8 +562,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Does this series id exist in the database
-     * @param id
-     * @return
      */
     public boolean seriesIdExists(int id) {
         return this.create.select(DSL.count(TimeSeries.TIME_SERIES.id))
@@ -653,7 +633,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
     /**
      * Loads the event detectors, point comments, tags data source and template name
      * Used by getFull()
-     * @param vo
      */
     @Override
     public void loadRelationalData(DataPointVO vo) {
@@ -748,9 +727,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Query points that the user has edit permission for
-     * @param conditions
-     * @param user
-     * @param callback
      */
     public void customizedEditQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<DataPointVO> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
@@ -812,7 +788,6 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     /**
      * Get the read permission ID for in memory checks
-     * @param dataPointId
      * @return permission id or null
      */
     public Integer getReadPermissionId(int dataPointId) {

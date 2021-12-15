@@ -47,12 +47,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
     private TimeSource timer;
 
     /**
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param keepAliveTime
-     * @param unit
-     * @param workQueue
-     * @param handler
      */
     public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit,
@@ -65,13 +59,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
     }
 
     /**
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param keepAliveTime
-     * @param unit
-     * @param workQueue
-     * @param threadFactory
-     * @param handler
      */
     public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit,
@@ -86,12 +73,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
     }
 
     /**
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param keepAliveTime
-     * @param unit
-     * @param workQueue
-     * @param threadFactory
      */
     public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit,
@@ -106,13 +87,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
      *
      * Overloaded constructor to allow tuning the task queues
      *
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param keepAliveTime
-     * @param unit
-     * @param workQueue
-     * @param threadFactory
-     * @param flushFullQueue
      */
     public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit,
@@ -131,13 +105,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
      *
      * Overloaded constructor to allow tuning the task queues
      *
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param keepAliveTime
-     * @param unit
-     * @param workQueue
-     * @param threadFactory
-     * @param flushFullQueue
      */
     public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit,
@@ -151,11 +118,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
     }
 
     /**
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param keepAliveTime
-     * @param unit
-     * @param workQueue
      */
     public OrderedThreadPoolExecutor(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue,
@@ -259,7 +221,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
     /**
      * Removes the queue from the map and discards it's tasks.
-     * @param taskId
      */
     public void removeTaskQueue(String taskId) {
         keyedTasks.remove(taskId);
@@ -267,8 +228,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
     /**
      * Get the task queue for observation
-     * @param taskId
-     * @return
      */
     public OrderedTaskQueue getTaskQueue(String taskId) {
         return keyedTasks.get(taskId);
@@ -276,8 +235,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 
     /**
      * Test to see if a queue for this task id exists
-     * @param taskId
-     * @return
      */
     public boolean queueExists(String taskId){
         return keyedTasks.containsKey(taskId);
@@ -500,7 +457,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
     /**
      * Get information on all tasks running in the ordered queue
      *
-     * @return
      */
     public List<OrderedTaskInfo> getOrderedQueueInfo() {
         List<OrderedTaskInfo> stats = new ArrayList<OrderedTaskInfo>(keyedTasks.size());

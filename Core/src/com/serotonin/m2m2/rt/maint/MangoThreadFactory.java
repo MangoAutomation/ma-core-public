@@ -23,20 +23,13 @@ public class MangoThreadFactory implements ThreadFactory {
 	private final UncaughtExceptionHandler uncaughtExceptionHandler;
 
 	/**
-	 * @param namePrefix
-	 * @param threadPriority
-	 * @param moduleClassLoader
-	 */
+     */
 	public MangoThreadFactory(String namePrefix, int threadPriority, ClassLoader moduleClassLoader) {
 		this(namePrefix, threadPriority, moduleClassLoader, null);
 	}
 
 	/**
-	 * @param namePrefix
-	 * @param threadPriority
-	 * @param moduleClassLoader
-	 * @param uncaughtExceptionHandler
-	 */
+     */
 	public MangoThreadFactory(String namePrefix, int threadPriority, ClassLoader moduleClassLoader, UncaughtExceptionHandler uncaughtExceptionHandler){
 		this.prefix = namePrefix + "-";
 		this.priority = threadPriority;

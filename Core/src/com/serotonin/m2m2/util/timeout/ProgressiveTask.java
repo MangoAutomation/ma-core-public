@@ -15,9 +15,6 @@ abstract public class ProgressiveTask extends HighPriorityTask {
 
     /**
      * Queueable Progressive Task
-     * @param name
-     * @param id
-     * @param queueSize
      */
     public ProgressiveTask(String name, String id, int queueSize){
         super(name, id, queueSize);
@@ -25,9 +22,6 @@ abstract public class ProgressiveTask extends HighPriorityTask {
     
     /**
      * Queueable Progressive Task
-     * @param name
-     * @param id
-     * @param queueSize
      */
     public ProgressiveTask(String name, String id, int queueSize, ProgressiveTaskListener l){
         super(name, id, queueSize);
@@ -36,11 +30,6 @@ abstract public class ProgressiveTask extends HighPriorityTask {
     
     /**
      * Non-Queueable Task
-     * @param name
-     * @param id
-     * @param queueSize
-     * @param queueable
-     * @param l
      */
     public ProgressiveTask(String name, ProgressiveTaskListener l) {
     	    super(name);

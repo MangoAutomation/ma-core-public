@@ -48,7 +48,6 @@ public class DailySchedule {
     }
 
     /**
-     * @param msOffset
      */
     public void addChange(String change) {
         this.changes.add(change);
@@ -56,8 +55,7 @@ public class DailySchedule {
 
 
     /**
-     * 
-     * @param response
+     *
      */
     public void validate(ProcessResult response){
         long lastOffset = -1;

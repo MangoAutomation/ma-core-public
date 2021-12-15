@@ -78,8 +78,6 @@ public class TimeValue implements Comparable<TimeValue>{
     
     
     /**
-     * @param runtime
-     * @return
      */
     public static TimeValue get(ZonedDateTime runtime) {
         TimeValue value = new TimeValue();
@@ -111,7 +109,6 @@ public class TimeValue implements Comparable<TimeValue>{
     
     /**
      * Get the nanoseconds since midnight of a day
-     * @return
      */
     public long getNanos() {
        long nanos = ((long)hour)*3600000000000l;
@@ -123,7 +120,6 @@ public class TimeValue implements Comparable<TimeValue>{
     
     /**
      * get the seconds since midnight of a day
-     * @return
      */
     public long getSeconds() {
         long seconds = ((long)hour)*3600l;
@@ -137,14 +133,11 @@ public class TimeValue implements Comparable<TimeValue>{
         return String.format("%02d:%02d:%02d.%03d", hour, minute, second, millisecond);
     }
     /**
-     * @return
      */
     public boolean isMidnight() {
         return hour==0&&minute==0&&second==0&&millisecond==0;
     }
     /**
-     * @param zdt
-     * @return
      */
     public Instant getInstant(ZonedDateTime zdt) {
         ZonedDateTime offset = zdt.withHour(hour).withMinute(minute).withSecond(second).withNano((int)(millisecond * 1000000l));

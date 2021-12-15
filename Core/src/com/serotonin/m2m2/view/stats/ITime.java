@@ -15,7 +15,6 @@ public interface ITime {
 
 	/**
 	 * Get the time
-	 * @return
-	 */
+     */
     long getTime();
 }

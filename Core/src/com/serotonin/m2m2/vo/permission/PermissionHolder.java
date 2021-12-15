@@ -73,7 +73,6 @@ public interface PermissionHolder {
 
     /**
      * The directly assigned roles for this permission holder, does not include inherited roles
-     * @return
      */
     Set<Role> getRoles();
 

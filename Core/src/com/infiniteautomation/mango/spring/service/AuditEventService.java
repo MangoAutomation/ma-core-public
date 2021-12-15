@@ -74,7 +74,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
 
     /**
      * VO created
-     * @param event
      */
     protected void raiseCreatedEvent(CreateAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
@@ -91,7 +90,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
 
     /**
      * VO changed
-     * @param event
      */
     protected void raiseChangedEvent(ChangeAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
@@ -114,7 +112,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
 
     /**
      * An action VO was toggled
-     * @param event
      */
     protected void raiseToggledEvent(ToggleAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
@@ -125,7 +122,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
 
     /**
      * VO deleted
-     * @param event
      */
     protected void raiseDeletedEvent(DeleteAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
@@ -135,7 +131,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
 
     /**
      * System setting changed
-     * @param event
      */
     protected void raiseSystemSettingChangedEvent(SystemSettingChangeAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
@@ -148,7 +143,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
 
     /**
      * System setting deleted (set back to default)
-     * @param event
      */
     protected void raiseSystemSettingDeletedEvent(SystemSettingDeleteAuditEvent event) {
         Assert.notNull(event.getAuditEventType(), "auditEventType cannot be null");
@@ -180,12 +174,6 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
     /**
      * Common raise event logic
      *
-     * @param changeType
-     * @param auditEventType
-     * @param permissionHolder
-     * @param to
-     * @param key
-     * @param context
      */
     private void raiseVoAuditEvent(int changeType, String auditEventType, PermissionHolder permissionHolder, AbstractVO to, String key, Map<String, Object> context) {
 

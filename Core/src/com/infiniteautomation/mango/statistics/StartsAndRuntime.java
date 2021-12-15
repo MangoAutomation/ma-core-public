@@ -16,7 +16,6 @@ public class StartsAndRuntime {
     
     /**
      * Constructs a StartsAndRuntime for a value that did not occur
-     * @param value
      */
     public StartsAndRuntime(DataValue value) {
         this.value = value;

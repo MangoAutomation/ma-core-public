@@ -140,9 +140,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Can this user set this data point?
-     * @param user
-     * @param vo
-     * @return
      */
     public boolean hasSetPermission(PermissionHolder user, DataPointVO vo) {
         return permissionService.hasPermission(user, vo.getSetPermission());
@@ -270,8 +267,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * @param enabled - Enable or disable the data point
      * @param restart - Restart the data point, enabled must equal true
      *
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public boolean setDataPointState(String xid, boolean enabled, boolean restart) throws NotFoundException, PermissionException {
         PermissionHolder user = Common.getUser();
@@ -284,7 +279,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     /**
      * Reload a potentially running data point, if not running
      *  then ignore
-     * @param xid
      * @return true if state changed
      */
     public boolean reloadDataPoint(String xid) {
@@ -296,7 +290,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * Reload a potentially running data point, if not running
      *  then ignore
      *
-     * @param id
      * @return true if state changed
      */
     public boolean reloadDataPoint(Integer id) {
@@ -306,7 +299,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Reload a running point common logic
-     * @param vo
      * @return true if state changed
      */
     protected boolean reloadDataPoint(DataPointVO vo) {
@@ -369,9 +361,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     /**
      * Make a copy of the points on an existing data source, then place them onto the new data source
      *
-     * @param existingDataSourceId
-     * @param newDataSourceId
-     * @param newDeviceName
      */
     public void copyDataSourcePoints(int existingDataSourceId, int newDataSourceId, String newDeviceName) {
         for (DataPointVO dataPoint : getDataPoints(existingDataSourceId)) {
@@ -407,11 +396,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Query for device names on data points a user can read
-     * @param conditions
-     * @param sortAsc
-     * @param limit
-     * @param offset
-     * @param callback
      */
     public void queryDeviceNames(Condition conditions, boolean sortAsc, Integer limit, Integer offset, Consumer<String> callback) {
         PermissionHolder user = Common.getUser();
@@ -517,8 +501,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Common validation logic
-     * @param vo
-     * @return
      */
     protected ProcessResult commonValidation(DataPointVO vo) {
         ProcessResult response = super.validate(vo);
@@ -693,8 +675,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Is a rollup valid based on data type?
-     * @param vo
-     * @return
      */
     private boolean validateRollup(DataPointVO vo) {
         boolean numeric = vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC;
@@ -720,8 +700,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      *
-     * @param dataSourceId
-     * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
         List<DataPointVO> points = dao.getDataPoints(dataSourceId);
@@ -735,8 +713,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     /**
      * Get a summary for a data point.
      *  A summary is a subset of a data point configuration.
-     * @param xid
-     * @return
      */
     public DataPointSummary getSummary(String xid) {
         DataPointSummary vo = dao.getSummary(xid);
@@ -749,10 +725,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Get a data point and its detectors from the database
-     * @param xid
-     * @return
-     * @throws PermissionException
-     * @throws NotFoundException
      */
     public DataPointWithEventDetectors getWithEventDetectors(String xid) throws PermissionException, NotFoundException {
         DataPointVO vo = get(xid);
@@ -762,10 +734,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Set the value of a data point
-     * @param id
-     * @param valueTime
-     * @param source
-     * @throws NotFoundException
      * @throws PermissionException - if the setting permission holder does not have set permission
      * @throws RTException - if the point is not enabled and settable
      */
@@ -779,10 +747,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Set the value, let Mango use now as the time of the value
-     * @param id
-     * @param value
-     * @param source
-     * @throws NotFoundException
      * @throws PermissionException - if the setting permission holder does not have set permission
      * @throws RTException - if the point is not enabled and settable
      */
@@ -792,8 +756,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Force the point to read it's value (if supported by data source)
-     * @param id
-     * @throws NotFoundException
      * @throws PermissionException - if calling permission holder does not have read permission
      * @throws RTException - if point or source is disabled
      */
@@ -804,8 +766,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Relinquish the value of a BACnet data point
-     * @param id
-     * @throws NotFoundException
      * @throws PermissionException - if calling permission holder does not have read permission
      * @throws RTException - if point or source is disabled
      */
@@ -816,10 +776,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
     /**
      * Get the read permission for this data point
-     * @param dataPointId
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public MangoPermission getReadPermission(int dataPointId) throws NotFoundException, PermissionException{
         PermissionHolder user = Common.getUser();

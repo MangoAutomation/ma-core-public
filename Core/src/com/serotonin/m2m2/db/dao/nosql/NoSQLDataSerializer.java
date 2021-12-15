@@ -13,9 +13,7 @@ public interface NoSQLDataSerializer {
 	
 	/**
 	 * Create the object from a byte
-	 * @param bytes
-	 * @return
-	 */
+     */
 	public ITime getObject(ByteArrayBuilder b, long timestamp, String seriesId);
 	
 	public void putBytes(ByteArrayBuilder b, ITime entry, long timestamp, String seriesId);

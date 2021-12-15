@@ -454,7 +454,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     /**
      * @deprecated
      *             Use getUnit() instead
-     * @return
      */
     @Deprecated
     public int getEngineeringUnits() {
@@ -464,7 +463,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     /**
      * @deprecated
      *             Use setUnit() instead
-     * @param engineeringUnits
      */
     @Deprecated
     public void setEngineeringUnits(int engineeringUnits) {
@@ -629,7 +627,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     /**
      * Get the current series Id for our data.  Common.NEW_ID means
      *  generate new series ID on insert of this point
-     * @return
      */
     public int getSeriesId() {
         return seriesId;
@@ -637,7 +634,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     /**
      * Get the series id for where we store our data
-     * @param seriesId
      */
     public void setSeriesId(int seriesId) {
         this.seriesId = seriesId;
@@ -703,7 +699,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      * Validate the Integral Unit
      * Setting a default if its not enabled
      *
-     * @return
      */
     public boolean validateIntegralUnit() {
         if (!useIntegralUnit) {
@@ -1436,7 +1431,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      * Note "name" and "device" keys are removed when setting the tags.  The original map
      *  is not modified and may still contain "name" and/or "device"
      *
-     * @param tags
      */
     public void setTags(Map<String, String> tags) {
         if (tags == null) {
@@ -1455,7 +1449,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      * Note "name" and "device" keys are removed when setting the tags.  The original map
      *  is not modified and may still contain "name" and/or "device"
      *
-     * @param tags
      */
     public void supplyTags(Supplier<Map<String, String>> tags) {
         this.tags = new LazyField<>(() -> {

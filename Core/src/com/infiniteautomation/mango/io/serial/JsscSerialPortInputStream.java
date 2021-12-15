@@ -43,8 +43,6 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
     protected final ScheduledFuture<?> reader;
 
     /**
-     * @param serialPort
-     * @throws SerialPortException
      */
     public JsscSerialPortInputStream(SerialPort serialPort, long readPollPeriod, TimeUnit readPollPeriodType, List<SerialPortProxyEventListener> listeners)
             throws jssc.SerialPortException {
@@ -140,7 +138,6 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
     /**
      * Peek at the head of the stream, do not remove the byte
      *
-     * @return
      */
     @Override
     public int peek() {

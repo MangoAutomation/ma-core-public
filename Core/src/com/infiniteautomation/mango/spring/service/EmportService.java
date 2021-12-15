@@ -83,8 +83,6 @@ public class EmportService {
 
     /**
      * Create an import task to import the root JSON object
-     * @param root
-     * @return
      */
     public ImportTask getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations) {
         permissionService.ensurePermission(Common.getUser(), importPermissionDefinition.getPermission());
@@ -106,10 +104,6 @@ public class EmportService {
 
     /**
      * Export JSON as a String
-     * @param prettyIndent
-     * @param exportElements
-     * @return
-     * @throws PermissionException
      */
     public String createExportData(int prettyIndent, String[] exportElements) throws PermissionException {
         // permission check happens again later but dont want them to create the export data without the permission
@@ -127,10 +121,6 @@ public class EmportService {
 
     /**
      * Export JSON to a Writer
-     * @param data
-     * @param prettyIndent
-     * @return
-     * @throws PermissionException
      */
     public void export(Map<String, Object> data, Writer writer, int prettyIndent) throws PermissionException {
         permissionService.ensurePermission(Common.getUser(), exportPermissionDefinition.getPermission());

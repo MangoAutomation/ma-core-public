@@ -44,8 +44,6 @@ public interface PermissionMigration {
 
     /**
      * Get an existing permission, will be null if not found
-     * @param id
-     * @return
      */
     default MangoPermission getExistingPermission(int id) {
 

@@ -34,7 +34,6 @@ public class JsscSerialPortProxy extends SerialPortProxy {
 
     /**
      * Package Private method to ensure that the only way ports are used is via the manager
-     * @param serialParameters
      */
     JsscSerialPortProxy(SerialPortIdentifier id, int baudRate, FlowControl flowControlIn,
 			FlowControl flowControlOut, DataBits dataBits, StopBits stopBits, Parity parity) {
@@ -140,8 +139,6 @@ public class JsscSerialPortProxy extends SerialPortProxy {
     }
     
     /**
-     * @param parity2
-     * @return
      */
     public int createParity(Parity parity) {
         switch(parity) {
@@ -161,8 +158,6 @@ public class JsscSerialPortProxy extends SerialPortProxy {
     }
 
     /**
-     * @param stopBits2
-     * @return
      */
     public int createStopBits(StopBits stopBits) {
         switch(stopBits) {
@@ -178,8 +173,6 @@ public class JsscSerialPortProxy extends SerialPortProxy {
     }
 
     /**
-     * @param dataBits2
-     * @return
      */
     public int createDataBits(DataBits dataBits) {
         switch(dataBits) {
@@ -198,7 +191,6 @@ public class JsscSerialPortProxy extends SerialPortProxy {
 
     /**
      * Specifically massage into JSSC format
-     * @return
      */
     public static int createFlowControlMode(FlowControl in, FlowControl out) {
         int flowIn = SerialPort.FLOWCONTROL_NONE;

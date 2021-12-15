@@ -630,17 +630,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      *
      *  NOTE: The poll period is 1s for the data source
      *
-     * @param rocThreshold
-     * @param resetThreshold
-     * @param rocThresholdPeriodType
-     * @param useAbsoluteValue
-     * @param calculationMode
-     * @param rocDuration
-     * @param rocDurationType
-     * @param comparisonMode
      * @param durationPeriods - duration for RoC to match its comparison before event will go active
      * @param durationPeriodType - duration for RoC to match its comparison before event will go active
-     * @return
      */
     protected DataPointRT createRunningPoint(double rocThreshold, Double resetThreshold, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
         DataPointWithEventDetectors dp = createDisabledPoint(rocThreshold, resetThreshold, rocThresholdPeriodType, useAbsoluteValue, calculationMode, rocDuration, rocDurationType, comparisonMode, durationPeriods, durationPeriodType);
@@ -654,17 +645,6 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      *
      * NOTE: The poll period is 1s for the data source
      *
-     * @param rocThreshold
-     * @param resetThreshold
-     * @param rocThresholdPeriodType
-     * @param useAbsoluteValue
-     * @param calculationMode
-     * @param rocDuration
-     * @param rocDurationType
-     * @param comparisonMode
-     * @param durationPeriods
-     * @param durationPeriodType
-     * @return
      */
     protected DataPointWithEventDetectors createDisabledPoint(double rocThreshold, Double resetThreshold, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
         //Create point locator

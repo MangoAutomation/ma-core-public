@@ -24,9 +24,7 @@ public class ScriptError extends TranslatableException {
     /**
      * Extract a useful message and line/col info for the exception
      * 
-     * @param e
      * @param wrapped - was this script wrapped within a function calls (hidden to submitting user)
-     * @return
      */
     public static ScriptError create(ScriptException e, boolean wrapped) {        
         Throwable t = e;
@@ -68,9 +66,7 @@ public class ScriptError extends TranslatableException {
 
     /**
      * Generic wrap all for things like ClassNotFoundException etc. that have no line numbers
-     * 
-     * @param cause
-     * @return
+     *
      */
     public static ScriptError createFromThrowable(Throwable cause) {
         if(cause == null)

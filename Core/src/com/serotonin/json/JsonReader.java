@@ -160,7 +160,6 @@ public class JsonReader {
      * @param clazz
      *            the explicit class of object to return
      * @return the populated object
-     * @throws JsonException
      */
     @SuppressWarnings("unchecked")
     public <T> T read(Class<T> clazz) throws JsonException, IOException {
@@ -175,7 +174,6 @@ public class JsonReader {
      * @param type
      *            the generic type of object to return
      * @return the populated object
-     * @throws JsonException
      */
     public Object read(Type type) throws JsonException, IOException {
         JsonValue value = next();
@@ -194,7 +192,6 @@ public class JsonReader {
      * @param jsonValue
      *            the JSON value from which to get object data
      * @return the populated object
-     * @throws JsonException
      */
     @SuppressWarnings("unchecked")
     public <T> T read(Class<T> clazz, JsonValue jsonValue) throws JsonException {
@@ -210,7 +207,6 @@ public class JsonReader {
      * @param jsonValue
      *            the JSON value from which to get object data
      * @return the populated object
-     * @throws JsonException
      */
     public Object read(Type type, JsonValue jsonValue) throws JsonException {
         if (jsonValue == null)
@@ -234,7 +230,6 @@ public class JsonReader {
      * 
      * @param obj
      *            the object to populate
-     * @throws JsonException
      */
     public void readInto(Object obj) throws JsonException, IOException {
         readInto(obj, next());
@@ -247,7 +242,6 @@ public class JsonReader {
      *            the object to populate
      * @param jsonValue
      *            the JSON value from which to get object data
-     * @throws JsonException
      */
     public void readInto(Object obj, JsonValue jsonValue) throws JsonException {
         if (obj == null)
@@ -263,7 +257,6 @@ public class JsonReader {
      *            this information.
      * @param obj
      *            the object to populate
-     * @throws JsonException
      */
     public void readInto(Type type, Object obj) throws JsonException, IOException {
         readInto(type, obj, next());
@@ -279,7 +272,6 @@ public class JsonReader {
      *            the object to populate
      * @param jsonValue
      *            the JSON value from which to get object data
-     * @throws JsonException
      */
     public void readInto(Type type, Object obj, JsonValue jsonValue) throws JsonException {
         if (obj == null || jsonValue == null)

@@ -56,8 +56,6 @@ public class DataPointQuery extends ScriptUtility {
 
     /**
      * Perform a query on the data points table
-     * @param query
-     * @return
      */
     public List<DataPointWrapper> query(String query){
         ASTNode root = RQLUtils.parseRQLtoAST(query);

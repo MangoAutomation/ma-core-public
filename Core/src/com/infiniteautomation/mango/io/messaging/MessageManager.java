@@ -21,43 +21,33 @@ public interface MessageManager extends ILifecycle  {
      * Send a message using all message senders available for the
      * specific message type
      *
-     * @param message
-     * @return
      */
     public List<CompletionStage<SentMessage>> sendMessage(Message message);
 
     /**
      * Send the message using the first transport that will accept it
-     * @param message
-     * @return
      */
     public CompletionStage<SentMessage> sendMessageUsingFirstAvailableTransport(Message message);
 
     /**
      * Get the highest priority transport for this type of messages
      *
-     * @param type
-     * @return
-     * @throws NoTransportAvailableException
      */
     MessageTransport getPriorityTransport(Message type) throws NoTransportAvailableException;
 
     /**
      * Get all senders running in Mango
-     * @return
      */
     List<MessageTransport> getSenders();
 
 
     /**
      * Add listener for received messages
-     * @param l
      */
     public void addListener(MessageReceivedListener l);
 
     /**
      * Remove listener for received messages
-     * @param l
      */
     public void removeListener(MessageReceivedListener l);
 

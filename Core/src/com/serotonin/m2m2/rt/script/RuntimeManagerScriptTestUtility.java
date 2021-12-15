@@ -28,7 +28,6 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
     /**
      * Mock refresh a data point with the given XID.
      *
-     * @param xid
      * @return status of operation
      * 0 - Point not enabled
      * -1 - Point does not exist
@@ -64,7 +63,6 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
     /**
      * Mock refresh a data source with the given XID.
      *
-     * @param xid
      * @return status of operation
      * 0 - Source not enabled
      * -1 - Source does not exist
@@ -99,7 +97,6 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 
     /**
      * Would start a Data Source via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it would be sent to RuntimeManager
      */
     @Override
@@ -115,7 +112,6 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 
     /**
      * Would stop a Data Source via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it would be sent to RuntimeManager
      */
     @Override
@@ -131,7 +127,6 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 
     /**
      * Would start a Data Point via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it would be sent to RuntimeManager
      */
     @Override
@@ -147,7 +142,6 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 
     /**
      * Would stop a Data Point via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it would be sent to RuntimeManager
      */
     @Override

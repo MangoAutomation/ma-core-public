@@ -201,7 +201,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     /**
      * @return true if database was restored
-     * @throws IOException
      */
     protected boolean restoreTables() throws IOException {
         String restoreFrom = env.getProperty("db.createTables.restoreFrom");

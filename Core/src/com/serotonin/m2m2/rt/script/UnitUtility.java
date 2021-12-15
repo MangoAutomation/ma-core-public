@@ -15,23 +15,15 @@ public class UnitUtility {
 
 	public static final String CONTEXT_KEY = "UnitConverter";
 	/**
-	 * 
-	 * @param base
-	 * @param convert
-	 * @param value
-	 * @return
-	 */
+	 *
+     */
 	public double convertUnit(Unit<?> base, Unit<?> convert, double value){
 		return base.getConverterTo(convert).convert(value);
 	}
 
 	/**
 	 * Convert value using unit symbols
-	 * @param baseSymbol
-	 * @param convertSymbol
-	 * @param value
-	 * @return
-	 */
+     */
 	public double convertUnitSymbol(String baseSymbol, String convertSymbol, double value){
 		return this.convertUnit(JUnitUtil.parseLocal(baseSymbol), JUnitUtil.parseLocal(convertSymbol), value);
 	}

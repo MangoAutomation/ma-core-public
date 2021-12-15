@@ -92,9 +92,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     /**
      * Get the active summary of events for a user
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public List<UserEventLevelSummary> getActiveSummary() throws PermissionException {
         PermissionHolder user = Common.getUser();
@@ -117,7 +114,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     }
 
     /**
-     * @return
      */
     public List<UserEventLevelSummary> getUnacknowledgedSummary() {
         PermissionHolder user = Common.getUser();
@@ -138,10 +134,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     /**
      * Get a summary of data point events for a list of data points
-     * @param dataPointXids
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids) throws NotFoundException, PermissionException {
         PermissionHolder user = Common.getUser();
@@ -167,7 +159,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     }
 
     /**
-     * @return
      */
     public List<EventInstance> getAllActiveUserEvents() {
         PermissionHolder user = Common.getUser();
@@ -176,9 +167,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     }
 
     /**
-     * @param id
-     * @param user
-     * @param message
      */
     public EventInstanceVO acknowledgeEventById(Integer id, User user, TranslatableMessage message) throws NotFoundException, PermissionException {
         EventInstanceVO vo = get(id);

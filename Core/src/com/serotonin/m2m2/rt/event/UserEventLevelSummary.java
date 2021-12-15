@@ -54,7 +54,6 @@ public class UserEventLevelSummary {
 
     /**
      * Increment the count and set the latest event instance
-     * @param latest
      */
     public void increment(EventInstanceI latest) {
         this.count++;

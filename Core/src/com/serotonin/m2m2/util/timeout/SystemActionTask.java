@@ -33,9 +33,7 @@ public abstract class SystemActionTask extends TimerTask {
 	
 	/**
 	 * Unqueued task
-	 * @param trigger
-	 * @param name
-	 */
+     */
 	public SystemActionTask(TimerTrigger trigger, String name) {
 		super(trigger, name);
 		this.results = new ConcurrentHashMap<String, Object>();
@@ -43,11 +41,7 @@ public abstract class SystemActionTask extends TimerTask {
 
 	/**
 	 * Create an ordered queueable task
-	 * @param trigger
-	 * @param name
-	 * @param id
-	 * @param queueSize
-	 */
+     */
 	public SystemActionTask(TimerTrigger trigger, String name, String id, int queueSize){
 		super(trigger, name, id, queueSize);
 		this.results = new ConcurrentHashMap<String, Object>();
@@ -60,8 +54,7 @@ public abstract class SystemActionTask extends TimerTask {
 	
 	/**
 	 * Perform any work here, exceptions are caught and logged
-	 * @param runtime
-	 */
+     */
 	protected abstract void runImpl(long runtime);
 	
 	/* (non-Javadoc)
@@ -99,8 +92,7 @@ public abstract class SystemActionTask extends TimerTask {
 	
 	/**
 	 * Get the task priority
-	 * @return
-	 */
+     */
 	public int getPriority(){
 		return PRIORITY_MEDIUM;
 	}

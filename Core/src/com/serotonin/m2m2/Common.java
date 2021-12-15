@@ -232,7 +232,6 @@ public class Common {
 
     /**
      *
-     * @return
      */
     public static int getDatabaseSchemaVersion() {
         return 44;
@@ -493,8 +492,6 @@ public class Common {
 
     /**
      * Uses BCrypt by default
-     * @param plaintext
-     * @return
      */
     public static String encrypt(String plaintext) {
         String alg = getHashAlgorithm();
@@ -586,7 +583,6 @@ public class Common {
 
     /**
      * Get default HTTP Client with 30s timeout
-     * @return
      */
     public static HttpClient getHttpClient() {
         return getHttpClient(30000); // 30 seconds.
@@ -594,9 +590,6 @@ public class Common {
 
     /**
      * Get HTPT Client with default settings and assigned timeout and retries
-     * @param timeout
-     * @param retries
-     * @return
      */
     public static HttpClient getHttpClient(int timeout, int retries) {
         // Create global request configuration
@@ -612,8 +605,6 @@ public class Common {
 
     /**
      * Get an HTTP Client with default settings and assigned timeout
-     * @param timeout
-     * @return
      */
     public static HttpClient getHttpClient(int timeout) {
         // Create global request configuration
@@ -627,7 +618,6 @@ public class Common {
 
     /**
      * Get a builder defaulted with System Settings values
-     * @return
      */
     public static HttpClientBuilder getDefaultHttpClientBuilder() {
         if (SystemSettingsDao.getInstance().getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
@@ -651,7 +641,6 @@ public class Common {
 
     /**
      * Get the default request config builder to customize
-     * @return
      */
     public static Builder getDefaultRequestConfig() {
         return RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT)
@@ -753,7 +742,6 @@ public class Common {
 
     /**
      * Get the HTTP/HTTPS Cookie Name based on scheme and port
-     * @return
      */
     public static String getCookieName() {
         if (Common.envProps.getBoolean("sessionCookie.useGuid", true)) {
@@ -796,8 +784,6 @@ public class Common {
 
     /**
      * Get a bean from the runtime context.
-     * @param clazz
-     * @return
      */
     public static <T> T getBean(Class<T> clazz) {
         return getRuntimeContext().getBean(clazz);
@@ -805,9 +791,6 @@ public class Common {
 
     /**
      * Get a bean from the runtime context.
-     * @param clazz
-     * @param name
-     * @return
      */
     public static <T> T getBean(Class<T> clazz, String name) {
         return getRuntimeContext().getBean(name, clazz);
@@ -825,10 +808,6 @@ public class Common {
      * Copy all files from srcDirectory to dstDirectory. Preserves existing files by default unless
      * {@link java.nio.file.StandardCopyOption#REPLACE_EXISTING REPLACE_EXISTING} is supplied as an option.
      *
-     * @param srcDirectory
-     * @param dstDirectory
-     * @param options
-     * @throws IOException
      */
     public static void copyDirectory(Path srcDirectory, Path dstDirectory, CopyOption... options) throws IOException {
         boolean replaceExisting = Arrays.stream(options).anyMatch(o -> o == StandardCopyOption.REPLACE_EXISTING);
@@ -852,9 +831,6 @@ public class Common {
     /**
      * Tokenizes a string, splitting on the pattern but keeping the delimiters.
      *
-     * @param pattern
-     * @param input
-     * @return
      */
     public static List<String> tokenize(Pattern pattern, String input) {
         List<String> tokens = new ArrayList<>();
@@ -934,8 +910,6 @@ public class Common {
 
     /**
      * Recursively lists all files in a directory
-     * @param baseDir
-     * @return
      */
     public static Stream<Path> listRecursive(Path baseDir) {
         try {

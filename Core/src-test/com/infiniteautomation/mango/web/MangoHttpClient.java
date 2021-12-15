@@ -42,10 +42,7 @@ public class MangoHttpClient implements Closeable {
     private final HttpClientContext context;
     
     /**
-     * 
-     * @param host
-     * @param port
-     * @param ssl
+     *
      */
     public MangoHttpClient(String host, int port, boolean ssl) {
         this.host = host;
@@ -62,13 +59,7 @@ public class MangoHttpClient implements Closeable {
     }
     
     /**
-     * 
-     * @param username
-     * @param password
-     * @return
-     * @throws ClientProtocolException
-     * @throws IOException
-     * @throws URISyntaxException
+     *
      */
     public CloseableHttpResponse login(String username, String password) throws ClientProtocolException, IOException, URISyntaxException {
         URIBuilder b = new URIBuilder();
@@ -89,12 +80,7 @@ public class MangoHttpClient implements Closeable {
     }
     
     /**
-     * 
-     * @param uri
-     * @return
-     * @throws ClientProtocolException
-     * @throws IOException
-     * @throws URISyntaxException
+     *
      */
     public CloseableHttpResponse get(String uri) throws ClientProtocolException, IOException, URISyntaxException {
         URIBuilder b = new URIBuilder();
@@ -105,27 +91,14 @@ public class MangoHttpClient implements Closeable {
     }
 
     /**
-     * 
-     * @param uri
-     * @param body
-     * @return
-     * @throws ClientProtocolException
-     * @throws IOException
-     * @throws URISyntaxException
+     *
      */
     public CloseableHttpResponse post(String uri, HttpEntity body) throws ClientProtocolException, IOException, URISyntaxException {
         return post(uri, body, new NameValuePair[0]);
     }
     
     /**
-     * Post 
-     * @param uri
-     * @param body
-     * @param nvps
-     * @return
-     * @throws ClientProtocolException
-     * @throws IOException
-     * @throws URISyntaxException
+     * Post
      */
     public CloseableHttpResponse post(String uri, HttpEntity body, NameValuePair... nvps) throws ClientProtocolException, IOException, URISyntaxException {
         HttpPost request = new HttpPost(createURI(uri, nvps));
@@ -143,11 +116,6 @@ public class MangoHttpClient implements Closeable {
 
     /**
      * Execute an arbitrary request
-     * @param request
-     * @param includeXSRFHeader
-     * @return
-     * @throws ClientProtocolException
-     * @throws IOException
      */
     public CloseableHttpResponse execute(HttpUriRequest request, boolean includeXSRFHeader) throws ClientProtocolException, IOException {
         if(includeXSRFHeader) {

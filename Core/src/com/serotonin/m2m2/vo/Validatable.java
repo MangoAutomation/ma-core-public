@@ -14,14 +14,12 @@ public interface Validatable {
      * Validates the object and adds messages to the response.
      * This method should NOT throw a ValidationException!
      *
-     * @param response
      */
     void validate(ProcessResult response);
 
     /**
      * Validates the object and throws a ValidationException if it is not valid
      *
-     * @throws ValidationException
      */
     default void ensureValid() throws ValidationException {
         ProcessResult response = new ProcessResult();

@@ -29,7 +29,6 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
 
     /**
      *
-     * @param dao
      * @param dependencies dependencies for service
      */
     public AbstractVOService(DAO dao, ServiceDependencies dependencies) {
@@ -38,8 +37,6 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
 
     /**
      * Validate a VO
-     * @param vo
-     * @return
      */
     @Override
     public ProcessResult validate(T vo) {
@@ -64,10 +61,6 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
 
     /**
      *
-     * @param xid
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public T get(String xid) throws NotFoundException, PermissionException {
         T vo = dao.getByXid(xid);
@@ -80,10 +73,6 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
 
     /**
      *
-     * @param vo
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
      */
     @Override
     public T insert(T vo) throws PermissionException, ValidationException {
@@ -109,12 +98,6 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
 
     /**
      * Update a vo
-     * @param existingXid
-     * @param vo
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     * @throws NotFoundException
      */
     public T update(String existingXid, T vo) throws PermissionException, ValidationException, NotFoundException {
         return update(get(existingXid), vo);
@@ -123,10 +106,6 @@ public abstract class AbstractVOService<T extends AbstractVO, DAO extends Abstra
 
     /**
      * Delete a VO and its relational data
-     * @param xid
-     * @return
-     * @throws PermissionException
-     * @throws NotFoundException
      */
     public T delete(String xid) throws PermissionException, NotFoundException {
         T vo = get(xid);

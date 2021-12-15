@@ -241,7 +241,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
      * Sets a new plaintext password, i.e. prepends it with {PLAINTEXT} so it will be hashed upon saving
      * (after validation).
      *
-     * @param password
      */
     public void setPlainTextPassword(String password) {
         this.setPasswordHash(PLAIN_TEXT_ALGORITHM, password);
@@ -250,8 +249,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     /**
      * Sets the password field to the given algorithm and hash. It is saved in the form {HASH_ALGORITHM}passwordHash
      *
-     * @param algorithm
-     * @param hash
      */
     public void setPasswordHash(String algorithm, String hash) {
         this.password = "{" + algorithm + "}" + hash;
@@ -263,7 +260,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
      *
      * You shouldn't use this directly in most cases (except in tests). Use setPlainTextPassword() or setPasswordHash() instead.
      *
-     * @param password
      */
     public void setPassword(String password) {
         this.password = password;
@@ -544,7 +540,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
 
     /**
      * Get the translations for a User's locale
-     * @return
      */
     public Translations getTranslations(){
         return Translations.getTranslations(getLocaleObject());

@@ -41,10 +41,6 @@ public class JsscSerialPortManager {
     
     /**
      * Add a read task
-     * @param reader
-     * @param period
-     * @param unit
-     * @return
      */
     public ScheduledFuture<?> addReader(Runnable reader, long period, TimeUnit unit) {
         return this.readExecutor.scheduleAtFixedRate(reader, 0, period, unit);
@@ -52,8 +48,6 @@ public class JsscSerialPortManager {
     
     /**
      * Add a task to be processed
-     * @param task
-     * @return
      */
     public boolean addEvent(SerialPortProxyEventTask task) {
         return this.eventQueue.offer(task);

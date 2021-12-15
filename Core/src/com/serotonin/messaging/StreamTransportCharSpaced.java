@@ -16,9 +16,7 @@ public class StreamTransportCharSpaced extends StreamTransport{
 	private final long charSpacing;
 	
 	/**
-	 * @param in
-	 * @param out
-	 */
+     */
 	public StreamTransportCharSpaced(InputStream in, OutputStream out, long charSpacing) {
 		super(in, out);
 		this.charSpacing = charSpacing;

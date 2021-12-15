@@ -43,7 +43,6 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
     /**
      * Get cached instance from Spring Context
      *
-     * @return
      */
     public static JsonDataDao getInstance() {
         return springInstance.get();
@@ -124,11 +123,6 @@ public class JsonDataDao extends AbstractVoDao<JsonDataVO, JsonDataRecord, JsonD
 
     /**
      *
-     * @param json
-     * @return
-     * @throws JsonParseException
-     * @throws JsonMappingException
-     * @throws IOException
      */
     public JsonNode readValueFromString(String json) throws JsonParseException, JsonMappingException, IOException {
         return getObjectReader(JsonNode.class).readTree(json);

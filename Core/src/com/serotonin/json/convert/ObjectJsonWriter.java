@@ -12,9 +12,7 @@ public class ObjectJsonWriter implements ObjectWriter {
 
     /**
      * Constructs an ObjectWriter and starts the object serialization by writing a '{' to the JsonWriter.
-     * 
-     * @param writer
-     * @throws IOException
+     *
      */
     public ObjectJsonWriter(JsonWriter writer) throws IOException {
         this.writer = writer;
@@ -30,9 +28,7 @@ public class ObjectJsonWriter implements ObjectWriter {
      *            the object attribute name
      * @param value
      *            the object to write. This will be serialized like any other object.
-     * 
-     * @throws IOException
-     * @throws JsonException
+     *
      */
     @Override
     public void writeEntry(String name, Object value) throws IOException, JsonException {
@@ -49,8 +45,7 @@ public class ObjectJsonWriter implements ObjectWriter {
     /**
      * Closes the object by writing a '}' to the JsonWriter. Remember to always call this method for every ObjectWriter
      * instance.
-     * 
-     * @throws IOException
+     *
      */
     @Override
     public void finish() throws IOException {

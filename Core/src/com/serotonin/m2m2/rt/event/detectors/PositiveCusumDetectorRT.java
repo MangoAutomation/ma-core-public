@@ -80,7 +80,6 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
      * This method is only called when the positive CUSUM changes between being active or not, i.e. if the point's CUSUM
      * is currently above the limit, then it should never be called with a value of true.
      *
-     * @param b
      */
     private void changePositiveCusumActive(long time) {
         positiveCusumActive = !positiveCusumActive;

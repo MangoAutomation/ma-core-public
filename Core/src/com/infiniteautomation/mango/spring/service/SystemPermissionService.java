@@ -49,9 +49,6 @@ public class SystemPermissionService {
 
     /**
      *
-     * @param permission
-     * @param def
-     * @throws ValidationException
      */
     public void update(MangoPermission permission, PermissionDefinition def) throws ValidationException {
         Objects.requireNonNull(def, "Permission definition cannot be null");

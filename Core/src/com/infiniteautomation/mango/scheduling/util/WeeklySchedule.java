@@ -47,14 +47,12 @@ public class WeeklySchedule {
     }
 
     /**
-     * @param day
      */
     public void addDay(DailySchedule day) {
         this.dailySchedules.add(day);
     }
 
     /**
-     * @param response
      */
     public void validate(ProcessResult response) {
         for(DailySchedule schedule : dailySchedules) {
@@ -63,7 +61,6 @@ public class WeeklySchedule {
     }
 
     /**
-     * @return
      */
     public int getOffsetCount() {
         int count = 0;

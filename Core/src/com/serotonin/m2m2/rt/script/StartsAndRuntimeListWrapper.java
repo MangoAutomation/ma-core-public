@@ -19,8 +19,7 @@ public abstract class StartsAndRuntimeListWrapper {
 	protected StartsAndRuntimeList statistics;
 
 	/**
-	 * @param statistics
-	 */
+     */
 	public StartsAndRuntimeListWrapper(StartsAndRuntimeList statistics) {
 		this.statistics = statistics;
 	}

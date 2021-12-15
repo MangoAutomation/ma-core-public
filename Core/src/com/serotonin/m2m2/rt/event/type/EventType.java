@@ -202,8 +202,6 @@ abstract public class EventType implements JsonSerializable {
 
     /**
      * Check to see if a user has permission to this specific event type
-     * @param user
-     * @return
      */
     abstract public boolean hasPermission(PermissionHolder user, PermissionService service);
 
@@ -213,7 +211,6 @@ abstract public class EventType implements JsonSerializable {
      *  and one can assume the context is filled
      *
      * @param context from raised event
-     * @return
      */
     abstract public MangoPermission getEventPermission(Map<String, Object> context, PermissionService service);
 
@@ -221,7 +218,6 @@ abstract public class EventType implements JsonSerializable {
      * Determines if the notification of this event to the given user should be suppressed. Useful if the action of the
      * user resulted in the event being raised.
      *
-     * @return
      */
     public boolean excludeUser(User user) {
         return false;

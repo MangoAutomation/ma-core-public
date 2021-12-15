@@ -53,7 +53,6 @@ abstract public class SystemSettingsDefinition extends ModuleElementDefinition {
 
     /**
      * Get the default values for the defined system settings
-     * @return
      */
     abstract public Map<String, Object> getDefaultValues();
 
@@ -87,8 +86,6 @@ abstract public class SystemSettingsDefinition extends ModuleElementDefinition {
      *
      * <p>A value of null indicates that the key is to be removed from the system settings table.</p>
      *
-     * @param settings
-     * @param response
      */
     abstract public void validateSettings(Map<String, Object> settings, ProcessResult response);
 }

@@ -93,8 +93,6 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
     }
 
     /**
-     * @param vo
-     * @param data
      */
     private void maybeSetUserId(MangoSessionDataVO vo, SessionData data) {
         Object context = data.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
@@ -190,7 +188,6 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implemen
     }
 
     /**
-     * @return
      */
     @Override
     public SessionContext getSessionContext() {

@@ -102,8 +102,6 @@ public class BearerAuthenticationFilter extends OncePerRequestFilter {
     /**
      * Pulled from BasicAuthenticationFilter, checks if the user is already authenticated
      *
-     * @param username
-     * @return
      */
     private boolean authenticationIsRequired() {
         // Only reauthenticate if username doesn't match SecurityContextHolder and user

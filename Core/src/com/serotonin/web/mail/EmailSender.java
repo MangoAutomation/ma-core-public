@@ -189,7 +189,6 @@ public class EmailSender {
 
     /**
      * Enable debugging and return the stream
-     * @return
      */
     public void setDebug(PrintStream stream) {
         senderImpl.getSession().setDebug(true);

@@ -40,11 +40,6 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     private final PublisherService publisherService;
 
     /**
-     * @param publishedPointDao
-     * @param dependencies
-     * @param publisherDao
-     * @param dataPointDao
-     * @param publisherService
      */
     @Autowired
     public PublishedPointService(PublishedPointDao publishedPointDao,
@@ -175,8 +170,6 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
      * @param xid     - xid of point to restart
      * @param enabled - Enable or disable the published point
      * @param restart - Restart the published point, enabled must equal true
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public boolean setPublishedPointState(String xid, boolean enabled, boolean restart) throws NotFoundException, PermissionException {
         PermissionHolder user = Common.getUser();
@@ -233,8 +226,6 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     /**
      * Replace all points on a publisher with these points, must have read and edit permission for this publisher
      *
-     * @param publisherId
-     * @param pointVos
      */
     public void replacePoints(int publisherId, List<PublishedPointVO> pointVos) throws NotFoundException, PermissionException, ValidationException {
         replacePoints(publisherService.get(publisherId), pointVos);
@@ -256,8 +247,6 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     /**
      * Get the points for a publisher, must have read permission for publisher
      *
-     * @param id
-     * @return
      */
     public List<PublishedPointVO> getPublishedPoints(int id) throws NotFoundException, PermissionException {
         return getPublishedPoints(publisherService.get(id));
@@ -270,7 +259,6 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
     /**
      * Published points are deleted on cascade by a data point
      *  ensure they are removed from the runtime and DAO notifications are sent
-     * @param event
      */
     @EventListener
     protected void handleDataPointEvent(DaoEvent<? extends DataPointVO> event) {

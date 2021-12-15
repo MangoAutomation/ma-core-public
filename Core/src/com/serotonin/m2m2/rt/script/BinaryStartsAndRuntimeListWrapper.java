@@ -17,8 +17,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 public class BinaryStartsAndRuntimeListWrapper extends StartsAndRuntimeListWrapper{
 
 	/**
-	 * @param statistics
-	 */
+     */
 	public BinaryStartsAndRuntimeListWrapper(StartsAndRuntimeList statistics) {
 		super(statistics);
 	}

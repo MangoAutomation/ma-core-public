@@ -87,8 +87,6 @@ public class DataSourceQuery extends ScriptUtility {
 
     /**
      * Helper to extract points for a source
-     * @param ds
-     * @return
      */
     private List<DataPointWrapper> getPointsForSource(DataSourceVO ds) {
         List<DataPointWrapper> points = new ArrayList<DataPointWrapper>();

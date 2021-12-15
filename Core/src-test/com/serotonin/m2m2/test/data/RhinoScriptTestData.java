@@ -43,11 +43,7 @@ public class RhinoScriptTestData {
 	
 	
 	/**
-	 * @param dataTypeId
-	 * @param index
-	 * @param limit
-	 * @return 
-	 */
+     */
 	public static List<PointValueTime> getLatestPointValues(int dataTypeId, int id, int limit) {
 		if(limit > pointValueCount)
 			throw new ShouldNeverHappenException("Not Enough Data!");
@@ -71,10 +67,7 @@ public class RhinoScriptTestData {
 
 
 	/**
-	 * @param dataTypeId
-	 * @param id
-	 * @return
-	 */
+     */
 	public static PointValueTime getLatestPointValue(int dataTypeId, int id) {
 		List<PointValueTime> pvts = getLatestPointValues(dataTypeId, id, 1);
 		if(pvts.size() > 0)
@@ -87,10 +80,7 @@ public class RhinoScriptTestData {
 
 
 	/**
-	 * @param dataTypeId
-	 * @param from
-	 * @param to
-	 */
+     */
 	public static List<PointValueTime> getPointValuesBetween(int dataTypeId, int id, long from, long to) {
 		switch(dataTypeId){
 		case DataTypes.ALPHANUMERIC:

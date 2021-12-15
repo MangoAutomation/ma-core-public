@@ -92,8 +92,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * definition (if available) will be used. Results are not cached, so the definition can vary its response
      * contextually.
      *
-     * @param request
-     * @param response
      * @param user - can be null if this resource is accessed before login
      * @return the URI of the default logged in page to use, or null.
      */
@@ -131,8 +129,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * @see org.eclipse.jetty.server.handler.ErrorHandler for how to get information out of
      * the response about the error
      *
-     * @param request
-     * @param response
      * @return URI of page or null
      */
     public String getErrorPageUri(HttpServletRequest request, HttpServletResponse response){
@@ -141,8 +137,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
 
     /**
      * Return the 404 Error page
-     * @param request
-     * @param response
      * @return URI of page or null
      */
     public String getNotFoundPageUri(HttpServletRequest request, HttpServletResponse response){
@@ -152,8 +146,6 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
     /**
      * Return the startup page.  This call cannot depend on the database or any other Mango subsystems
      * since it is called before any systems are initialized
-     * @param request
-     * @param response
      * @return URI of page or null
      */
     public String getStartupPageUri(HttpServletRequest request, HttpServletResponse response) {

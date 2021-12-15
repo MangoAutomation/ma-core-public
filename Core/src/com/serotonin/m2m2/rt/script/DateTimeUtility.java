@@ -26,8 +26,7 @@ public class DateTimeUtility {
 	 * 
 	 * @param timezoneId - Example "Europe/Rome"
 	 * @param timestamp - ms timestamp
-	 * @return
-	 */
+     */
 	public int getOffset(String timezoneId, long timestamp){
 		
 		DateTimeZone tz = DateTimeZone.forID(timezoneId);
@@ -47,9 +46,7 @@ public class DateTimeUtility {
 	
 	/**
 	 * Get the UTC Offset of where the script is being run in Milliseconds for a given time
-	 * @param timestamp
-	 * @return
-	 */
+     */
 	public int getUtcOffset(long timestamp){
 		DateTimeZone tz = DateTimeZone.getDefault();
 		return tz.getOffset(timestamp);
@@ -61,8 +58,7 @@ public class DateTimeUtility {
 	 * @param format - Format of Date String see @DateTimeFormatter
 	 * @param dateString - Input Date String
 	 * @param timezoneId - Id of timezone ie. "Europe/Rome"
-	 * @return
-	 */
+     */
 	public long parseDate(String format, String dateString, String timezoneId){
 		DateTimeFormatter formatter = DateTimeFormat.forPattern(format);
 		
@@ -78,8 +74,7 @@ public class DateTimeUtility {
 	 * @param format - Format of Date String see @DateTimeFormatter
 	 * @param timestamp - ms since epoch
 	 * @param timezoneId - Id of timezone ie. "Europe/Rome"
-	 * @return
-	 */
+     */
 	public String formatDate(String format, long timestamp, String timezoneId){
 		DateTimeZone tz = DateTimeZone.forID(timezoneId);
 		DateTimeFormatter formatter = DateTimeFormat.forPattern(format).withZone(tz);

@@ -18,8 +18,6 @@ public interface JsonSerializable {
      *
      * @param writer
      *            the object writer to which to write.
-     * @throws IOException
-     * @throws JsonException
      */
     void jsonWrite(ObjectWriter writer) throws IOException, JsonException;
 
@@ -31,7 +29,6 @@ public interface JsonSerializable {
      *            the JSON reader
      * @param jsonObject
      *            the JSON object from which to read attributes for this object
-     * @throws JsonException
      */
     void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException;
 

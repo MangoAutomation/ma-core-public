@@ -56,7 +56,6 @@ public class LazyField<T> {
 
     /**
      * Set the value even if not initialized
-     * @param value
      */
     public void set(T value) {
         synchronized(this) {

@@ -23,8 +23,6 @@ public abstract class PostEmailRunnable implements Runnable {
 
     /**
      * When email is finished we save state and run
-     * @param success
-     * @param failure
      */
     public void emailFinished(boolean success, Exception failure){
         this.success = success;

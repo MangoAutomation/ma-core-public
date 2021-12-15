@@ -42,7 +42,6 @@ public abstract class ScriptUtility {
     
     /**
      * The key to use in the context for the utility
-     * @return
      */
     public abstract String getContextKey();
     

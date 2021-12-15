@@ -58,10 +58,6 @@ public class ImportTask extends ProgressiveTask {
     /**
      * Create an Import task with a listener to be scheduled now
      *
-     * @param root
-     * @param dependencies
-     * @param listener
-     * @param schedule
      */
     public ImportTask(JsonObject root,
             ImportTaskDependencies dependencies,
@@ -283,7 +279,6 @@ public class ImportTask extends ProgressiveTask {
      * Since detectors can be attached to a data point we will import them in bulk here.  This will
      *  remove any fully imported detectors and their container after there are no more detectors to import 
      *  for that point.
-     * @param eventDetectorMap
      */
     private void processUpdatedDetectors(Map<String, DataPointWithEventDetectors> eventDetectorMap) {
         Iterator<String> it = eventDetectorMap.keySet().iterator();

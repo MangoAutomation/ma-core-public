@@ -35,7 +35,6 @@ public class UserEventMulticaster implements UserEventListener {
      * 
      * @param a - Existing listener(s)
      * @param b - new listener
-     * @return
      */
     public static UserEventListener add(UserEventListener a, UserEventListener b) {
         if(a == null)
@@ -50,7 +49,6 @@ public class UserEventMulticaster implements UserEventListener {
      * 
      * @param existing - Existing listener(s)
      * @param toRemove - listener to remove from multicast
-     * @return
      */
     public static UserEventListener remove(UserEventListener existing, UserEventListener toRemove) {
         if (existing == toRemove || existing == null)

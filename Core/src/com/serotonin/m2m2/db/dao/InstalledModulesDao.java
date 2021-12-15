@@ -33,7 +33,6 @@ public class InstalledModulesDao extends BaseDao {
 
     /**
      *
-     * @param databaseProxy
      * @param definitions - autowired to ensure the PostConstruct will have all definitions as
      *                    beans when executing the upgrades
      */
@@ -63,7 +62,6 @@ public class InstalledModulesDao extends BaseDao {
 
     /**
      * Update a single module version to its latest
-     * @param module
      */
     public void updateModuleVersion(Module module) {
         doInTransaction(txStatus -> {

@@ -30,16 +30,7 @@ public class DataSourceUtils {
     
 	/**
 	 * Get a value from string data via pattern matching on group 1
-	 * @param valuePattern
-	 * @param data
-	 * @param dataTypeId
-	 * @param binary0Value
-	 * @param textRenderer
-	 * @param valueFormat
-	 * @param pointName
-	 * @return
-	 * @throws TranslatableException
-	 */
+     */
 	public static DataValue getValue(Pattern valuePattern, String data, int dataTypeId, String binary0Value,
             TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
 		return getValue(valuePattern, 1, data, dataTypeId, binary0Value,
@@ -48,17 +39,7 @@ public class DataSourceUtils {
 
 	/**
 	 * Get DataValue from String using group number
-	 * @param valuePattern
-	 * @param group
-	 * @param data
-	 * @param dataTypeId
-	 * @param binary0Value
-	 * @param textRenderer
-	 * @param valueFormat
-	 * @param pointName
-	 * @return
-	 * @throws TranslatableException
-	 */
+     */
 	public static DataValue getValue(Pattern valuePattern, int group, String data, int dataTypeId, String binary0Value,
             TextRenderer textRenderer, DecimalFormat valueFormat, String pointName) throws TranslatableException {
         if (data == null)
@@ -78,14 +59,7 @@ public class DataSourceUtils {
 	
 	/**
 	 * Get the timestamp from a string using the pattern by matching group 1
-	 * @param time
-	 * @param timePattern
-	 * @param data
-	 * @param timeFormat
-	 * @param pointName
-	 * @return
-	 * @throws TranslatableException
-	 */
+     */
     public static long getValueTime(long time, Pattern timePattern, String data, DateFormat timeFormat, String pointName)
             throws TranslatableException {
     	return getValueTime(time, timePattern, 1, data, timeFormat, pointName);
@@ -94,13 +68,6 @@ public class DataSourceUtils {
     /**
      * Get the timestamp from a string using the pattern by matching the provided group number
      * @param time - default time if none found
-     * @param timePattern
-     * @param group
-     * @param data
-     * @param timeFormat
-     * @param pointName
-     * @return
-     * @throws TranslatableException
      */
     public static long getValueTime(long time, Pattern timePattern, int group, String data, DateFormat timeFormat, String pointName)
             throws TranslatableException {
@@ -132,14 +99,6 @@ public class DataSourceUtils {
     
     /**
      * Create Data Value From String
-     * @param valueStr
-     * @param dataTypeId
-     * @param binary0Value
-     * @param textRenderer
-     * @param valueFormat
-     * @param pointName
-     * @return
-     * @throws TranslatableException
      */
     public static DataValue getValue(String valueStr, int dataTypeId, String binary0Value, TextRenderer textRenderer,
             DecimalFormat valueFormat, String pointName) throws TranslatableException {

@@ -17,8 +17,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 public class MultistateStartsAndRuntimeListWrapper extends StartsAndRuntimeListWrapper{
 
 	/**
-	 * @param statistics
-	 */
+     */
 	public MultistateStartsAndRuntimeListWrapper(StartsAndRuntimeList statistics) {
 		super(statistics);
 	}

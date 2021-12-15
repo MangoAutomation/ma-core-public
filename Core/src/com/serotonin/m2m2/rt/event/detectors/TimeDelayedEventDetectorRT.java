@@ -16,7 +16,6 @@ import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeoutDetectorRT<T> {
 
     /**
-     * @param vo
      */
     public TimeDelayedEventDetectorRT(T vo) {
         super(vo);
@@ -37,7 +36,6 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
      * Unschedule a job,
      *  - set event inactive if its active
      *  - raise and RTN an event in the past if it is inactive now
-     * @param conditionInactiveTime
      */
     synchronized protected void unscheduleJob(long conditionInactiveTime) {
         // Reset the eventActive if it is on
@@ -65,19 +63,16 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
     /**
      * The timestamp for when the condition has gone active
-     * @return
      */
     abstract public long getConditionActiveTime();
 
     /**
      * Change the state of the event, raise using the supplied timestamp if necessary
-     * @param timestamp
      */
     protected abstract void setEventActive(long timestamp);
 
     /**
      * Change the state of the event, rtn using the supplied timestamp if necessary
-     * @param timestamp
      */
     protected abstract void setEventInactive(long timestamp);
 

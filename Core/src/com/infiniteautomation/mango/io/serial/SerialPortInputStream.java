@@ -52,8 +52,7 @@ public abstract class SerialPortInputStream extends InputStream{
 
 	/**
 	 * The close implementation for the stream
-	 * @throws IOException
-	 */
+     */
 	public abstract void closeImpl() throws IOException;
     
 

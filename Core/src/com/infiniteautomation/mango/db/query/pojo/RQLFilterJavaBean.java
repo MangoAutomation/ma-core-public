@@ -21,7 +21,6 @@ public class RQLFilterJavaBean<T> extends RQLFilter<T> {
     public static final Pattern PROPERTY_SEPARATOR = Pattern.compile("\\.");
 
     /**
-     * @param node
      */
     public RQLFilterJavaBean(ASTNode node, Translations translations) {
         super(node, translations);

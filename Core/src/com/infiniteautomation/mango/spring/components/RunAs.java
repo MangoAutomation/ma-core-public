@@ -23,9 +23,6 @@ public interface RunAs {
      * The returned proxy object will implement all interfaces of the supplied instance.
      *
      * @param <T> must be an interface
-     * @param user
-     * @param instance
-     * @return
      */
     @SuppressWarnings("unchecked")
     <T> T runAsProxy(PermissionHolder user, T instance);

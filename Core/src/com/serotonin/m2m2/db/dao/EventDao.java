@@ -235,7 +235,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Set rtnTs and rtnCause for this event
-     * @param event
      */
     private void updateEvent(EventInstance event) {
         if (event.isRtnApplicable()) {
@@ -250,9 +249,6 @@ public class EventDao extends BaseDao {
     /**
      * Bulk return events to normal in batches based on the env property
      *
-     * @param eventIds
-     * @param timestamp
-     * @param cause
      */
     public void returnEventsToNormal(List<Integer> eventIds, long timestamp, ReturnCause cause){
         if(eventIds.size() == 0) {
@@ -271,11 +267,7 @@ public class EventDao extends BaseDao {
 
     /**
      * Acknowledge an event
-     * @param eventId
-     * @param time
      * @param userId the ID of the user that acknowledged the event, or null if acknowledged by system (e.g. EventManagerListenerDefinition)
-     * @param alternateAckSource
-     * @return
      */
     public boolean ackEvent(int eventId, long time, Integer userId, TranslatableMessage alternateAckSource) {
         return create.update(table)
@@ -289,7 +281,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Get all active events
-     * @return
      */
     public List<EventInstance> getActiveEvents() {
         List<EventInstance> events = new ArrayList<>();
@@ -307,8 +298,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Get a specfic event instance
-     * @param id
-     * @return
      */
     public EventInstance get(int id) {
         EventInstance item = getJoinedSelectQuery()
@@ -402,8 +391,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Insert a comment and return the event commented on
-     * @param comment
-     * @return
      */
     public EventInstance insertEventComment(UserCommentVO comment) {
         userCommentDao.insert(comment);
@@ -412,7 +399,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Purge all events by truncating the table
-     * @return
      */
     public int purgeAllEvents(){
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
@@ -431,9 +417,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Purge Events Before a given time with a given alarmLevel
-     * @param time
-     * @param alarmLevel
-     * @return
      */
     public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {
         // Find a list of event ids with no remaining acknowledgments pending.
@@ -455,9 +438,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Purge Events Before a given time with a given typeName
-     * @param time
-     * @param typeName
-     * @return
      */
     public int purgeEventsBefore(final long time, final String typeName) {
         // Find a list of event ids with no remaining acknowledgments pending.
@@ -480,8 +460,6 @@ public class EventDao extends BaseDao {
 
     /**
      * Purge Events Before a given time
-     * @param time
-     * @return
      */
     public int purgeEventsBefore(final long time) {
         // Find a list of event ids with no remaining acknowledgments pending.

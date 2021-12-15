@@ -19,17 +19,14 @@ public interface ObjectWriter {
      *            the object attribute name
      * @param value
      *            the object to write. This will be serialized like any other object.
-     * 
-     * @throws IOException
-     * @throws JsonException
+     *
      */
     public void writeEntry(String name, Object value) throws IOException, JsonException;
 
     /**
      * Closes the object by writing a '}' to the JsonWriter. Remember to always call this method for every ObjectWriter
      * instance.
-     * 
-     * @throws IOException
+     *
      */
     public void finish() throws IOException;
 }

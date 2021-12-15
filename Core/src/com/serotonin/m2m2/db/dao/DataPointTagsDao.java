@@ -66,7 +66,6 @@ public class DataPointTagsDao extends BaseDao {
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static DataPointTagsDao getInstance() {
         return springInstance.get(() -> Common.getRuntimeContext().getBean(DataPointTagsDao.class));
@@ -76,8 +75,6 @@ public class DataPointTagsDao extends BaseDao {
      * Retrieves all tag keys and values from the database for a datapoint.
      * Contains a "name" and "device" key as opposed to the tags retrieved via DataPointVO.getTags().
      *
-     * @param dataPointId
-     * @return
      */
     public Map<String, String> getTagsForDataPointId(int dataPointId) {
         Select<Record2<String, String>> query = this.create.select(table.tagKey, table.tagValue)
@@ -98,7 +95,6 @@ public class DataPointTagsDao extends BaseDao {
     /**
      * Inserts tags into the database for a DataPointVO. Also inserts the "name" and "device" tags from the data point properties.
      *
-     * @param dataPoint
      */
     public void insertTagsForDataPoint(DataPointVO dataPoint) {
         Map<String, String> tags = dataPoint.getTags();
@@ -175,7 +171,6 @@ public class DataPointTagsDao extends BaseDao {
      * Only to be used when saving data point tags independently from the DataPointVO itself.
      * The DataPointVO tags must not be null.
      *
-     * @param dataPoint
      */
     public void saveDataPointTags(DataPointVO dataPoint) {
         this.doInTransaction(txStatus -> {
@@ -232,10 +227,6 @@ public class DataPointTagsDao extends BaseDao {
 
     /**
      * For use in Script to get values for a key
-     * @param tagKey
-     * @param restrictions
-     * @param user
-     * @return
      */
     public Set<String> getTagValuesForKey(String tagKey, Map<String, String> restrictions, PermissionHolder user) {
         if (restrictions.isEmpty()) {
@@ -256,10 +247,6 @@ public class DataPointTagsDao extends BaseDao {
 
     /**
      * For use with AST node to get values for a key
-     * @param tagKey
-     * @param restrictions
-     * @param user
-     * @return
      */
     public Set<String> getTagValuesForKey(String tagKey, ASTNode restrictions, PermissionHolder user) {
         RQLToConditionWithTagKeys visitor = new RQLToConditionWithTagKeys();
@@ -316,7 +303,6 @@ public class DataPointTagsDao extends BaseDao {
 
     /**
      * Maps tag keys to generic keyX to prevent SQL injection
-     * @return
      */
     Map<String, Field<String>> getTagFields(Set<String> tagKeys) {
         int i = 0;

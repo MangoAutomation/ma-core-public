@@ -82,7 +82,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     /**
      * Get cached instance from Spring Context
      *
-     * @return
      */
     public static EventDetectorDao getInstance() {
         return springInstance.get();
@@ -245,8 +244,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
      * Get all data point event detectors with the corresponding sourceId AND the point loaded into it
      * Ordered by detector id.
      *
-     * @param sourceId
-     * @return
      */
     public List<AbstractPointEventDetectorVO> getWithSource(int sourceId, DataPointVO dp) {
         Field<Integer> sourceIdColumnName = sourceTypeToField.get(EventType.EventTypeNames.DATA_POINT);
@@ -264,8 +261,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     /**
      * Get the id for a given row
      *
-     * @param xid
-     * @return
      */
     public int getId(String xid, int dpId) {
         return this.create.select(table.id)
@@ -277,7 +272,6 @@ public class EventDetectorDao extends AbstractVoDao<AbstractEventDetectorVO, Eve
     /**
      * Get all point event detectors with the data point loaded
      *
-     * @return
      */
     public List<AbstractPointEventDetectorVO> getAllPointEventDetectors() {
         List<Field<?>> fields = new ArrayList<>(getSelectFields());

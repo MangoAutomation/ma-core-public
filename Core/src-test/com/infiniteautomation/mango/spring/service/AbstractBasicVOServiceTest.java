@@ -53,13 +53,10 @@ public abstract class AbstractBasicVOServiceTest<
      * Create a new VO with all fields populated except any roles
      *
      * @param owner - owner of VO if necessary
-     * @return
      */
     abstract VO newVO(User owner);
     /**
      * Update every field with a new value
-     * @param existing
-     * @return
      */
     abstract VO updateVO(VO existing);
 

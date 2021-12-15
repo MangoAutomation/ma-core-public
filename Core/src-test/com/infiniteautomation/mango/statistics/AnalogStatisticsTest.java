@@ -18,7 +18,6 @@ public class AnalogStatisticsTest {
     /**
      * Evenly spaced value's of 100 every 100 counts
      *
-     * @return
      */
     protected List<PointValueTime> getEvenlySpacedData() {
         List<PointValueTime> values = new ArrayList<PointValueTime>();
@@ -37,7 +36,6 @@ public class AnalogStatisticsTest {
     /**
      * One value set to 200 at 500ms in
      *
-     * @return
      */
     protected List<PointValueTime> getMidpointData() {
         List<PointValueTime> values = new ArrayList<PointValueTime>();

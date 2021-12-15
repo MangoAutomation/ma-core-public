@@ -71,8 +71,6 @@ public class PasswordService implements SystemSettingsListener {
      * Validate a freetext password against the set of rules defined
      * in the system settings
      *
-     * @param password
-     * @throws PasswordInvalidException
      */
     public void validatePassword(String password) throws PasswordInvalidException {
         PasswordValidator validator = new PasswordValidator(rules.get());

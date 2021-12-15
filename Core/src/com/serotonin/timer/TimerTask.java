@@ -14,7 +14,6 @@ public abstract class TimerTask extends Task {
 	}
 	/**
 	 * Create a Timer task with both a name and id
-	 * @param trigger
 	 * @param name - name of thread during runtime
 	 * @param id - not null will create an ordered queue of tasks if the timer supports it
 	 */

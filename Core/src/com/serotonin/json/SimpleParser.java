@@ -30,8 +30,7 @@ public class SimpleParser {
 
     /**
      * Convert the data in an I/O reader into a type graph.
-     * 
-     * @param reader
+     *
      */
     public SimpleParser(Reader reader) {
         this(reader, -1);
@@ -39,8 +38,7 @@ public class SimpleParser {
 
     /**
      * Convert the data in an I/O reader into a type graph.
-     * 
-     * @param reader
+     *
      */
     public SimpleParser(Reader reader, int maxCharacterCount) {
         if (!reader.markSupported())
@@ -56,7 +54,6 @@ public class SimpleParser {
      * List<Object>, Map<String, Object>.
      * 
      * @return the object that was read.
-     * @throws JsonException
      */
     public Object read() throws JsonException, IOException {
         if (testNextChar('{', true))

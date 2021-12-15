@@ -46,7 +46,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      * Service
-     * @param dao
      * @param dependencies dependencies for service
      */
     public AbstractBasicVOService(DAO dao, ServiceDependencies dependencies) {
@@ -62,26 +61,18 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      * Validate a new VO
-     * @param vo
-     * @return
      */
     abstract public ProcessResult validate(T vo);
 
     /**
      * Can this user edit this VO
      *
-     * @param user
-     * @param vo
-     * @return
      */
     abstract public boolean hasEditPermission(PermissionHolder user, T vo);
 
     /**
      * Can this user read this VO
      *
-     * @param user
-     * @param vo
-     * @return
      */
     abstract public boolean hasReadPermission(PermissionHolder user, T vo);
 
@@ -89,7 +80,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Get the create permission if defined
      *  override as necessary
-     * @return
      */
     protected PermissionDefinition getCreatePermission() {
         return null;
@@ -100,9 +90,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      *
      * Override as necessary, most VOs won't need this.
      *
-     * @param existing
-     * @param vo
-     * @return
      */
     public ProcessResult validate(T existing, T vo) {
         return validate(vo);
@@ -111,7 +98,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Ensure that this VO is valid.
      * Note: validation will only fail if there are Error level messages in the result
-     * @param vo
      */
     public void ensureValid(T vo) throws ValidationException {
         ProcessResult result = validate(vo);
@@ -121,9 +107,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      * Note: validation will only fail if there are Error level messages in the result
-     * @param existing
-     * @param vo
-     * @throws ValidationException
      */
     public void ensureValid(T existing, T vo) throws ValidationException {
         ProcessResult result = validate(existing, vo);
@@ -134,10 +117,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      *
-     * @param id
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public T get(int id) throws NotFoundException, PermissionException {
         T vo = dao.get(id);
@@ -151,10 +130,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      *
-     * @param vo
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
      */
     public T insert(T vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
@@ -175,11 +150,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      *
-     * @param existingId
-     * @param vo
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
      */
     public T update(int existingId, T vo) throws PermissionException, ValidationException {
         return update(get(existingId), vo);
@@ -187,12 +157,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      *
-     * @param existing
-     * @param vo
-     *
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
      */
     protected T update(T existing, T vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
@@ -205,10 +169,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      *
-     * @param id
-     * @return
-     * @throws PermissionException
-     * @throws NotFoundException
      */
     public T delete(int id) throws PermissionException, NotFoundException {
         T vo = get(id);
@@ -217,10 +177,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      *
-     * @param vo
-     * @return
-     * @throws PermissionException
-     * @throws NotFoundException
      */
     protected T delete(T vo) throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
@@ -233,11 +189,9 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
      *  and value converters to translate the RQL conditions into the values expected from the database.
      *
-     * @param rql
      * @param subSelectMap - can be null
      * @param fieldMap - can be null
      * @param valueConverters - can be null
-     * @return
      */
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
         return dao.rqlToCondition(rql, subSelectMap, fieldMap, valueConverters);
@@ -284,8 +238,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Query for VOs using RQL.  Permissions are filtered within the database if supported by the dao, if not
      * you must filter manually.
-     * @param conditions
-     * @param callback
      */
     public void customizedQuery(ASTNode conditions, Consumer<T> callback) {
         customizedQuery(dao.rqlToCondition(conditions, null, null, null), callback);
@@ -293,8 +245,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      * Count VOs
-     * @param conditions
-     * @return
      */
     public int customizedCount(ConditionSortLimit conditions) {
         PermissionHolder user = Common.getUser();
@@ -304,7 +254,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Count VOs
      * @param conditions - RQL AST Node
-     * @return
      */
     public int customizedCount(ASTNode conditions) {
         return customizedCount(dao.rqlToCondition(conditions, null, null, null));
@@ -313,9 +262,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Can this user create this VO
      *
-     * @param user
      * @param vo to insert
-     * @return
      */
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
         PermissionDefinition create = getCreatePermission();
@@ -328,9 +275,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      * Optionally override to have specific delete permissions, default is same as edit
-     * @param user
-     * @param vo
-     * @return
      */
     public boolean hasDeletePermission(PermissionHolder user, T vo) {
         return hasEditPermission(user, vo);
@@ -339,8 +283,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Ensure this user can create this vo
      *
-     * @param user
-     * @throws PermissionException
      */
     public void ensureCreatePermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasCreatePermission(user, vo))
@@ -350,8 +292,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Ensure this user can edit this vo
      *
-     * @param user
-     * @param vo
      */
     public void ensureEditPermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasEditPermission(user, vo))
@@ -361,9 +301,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Ensure this user can read this vo
      *
-     * @param user
-     * @param vo
-     * @throws PermissionException
      */
     public void ensureReadPermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasReadPermission(user, vo))
@@ -372,9 +309,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     /**
      * Ensure this user can delete this vo
-     * @param user
-     * @param vo
-     * @throws PermissionException
      */
     public void ensureDeletePermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasDeletePermission(user, vo))

@@ -57,7 +57,6 @@ abstract public class PublisherVO extends AbstractActionVO implements Serializab
 
     /**
      * Get the description for this publisher configuration
-     * @return
      */
     abstract public TranslatableMessage getConfigDescription();
 
@@ -127,8 +126,6 @@ abstract public class PublisherVO extends AbstractActionVO implements Serializab
     /**
      * Set an alarm level based on the sub-type of the publisher event type
      * which MUST (and already is) one of the codes in getEventCodes()
-     * @param subType
-     * @param level
      */
     public void setAlarmLevel(String subType, AlarmLevels level) throws ValidationException {
         ExportCodes codes = getEventCodes();

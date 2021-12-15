@@ -40,8 +40,6 @@ public abstract class AbstractPointEventDetectorVO extends AbstractEventDetector
 
     /**
      * What data types are supported
-     * @param dataType
-     * @return
      */
     public boolean supports(int dataType) {
         return ArrayUtils.contains(supportedDataTypes, dataType);

@@ -47,7 +47,6 @@ public class ConditionSortLimit {
 
     /**
      * Add an AND condition
-     * @param and
      */
     public void andCondition(Condition and) {
         if(condition != null) {
@@ -59,7 +58,6 @@ public class ConditionSortLimit {
 
     /**
      * Add an OR condition
-     * @param or
      */
     public void orCondition(Condition or) {
         if(condition != null) {

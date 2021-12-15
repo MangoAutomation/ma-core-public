@@ -34,8 +34,6 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
     /**
      * Add attributes to be published.  There is only 1 entry for attributes per published point and the order is 
      *   insertion based.
-     * @param vo
-     * @param value
      */
     public void add(T vo, Map<String,Object> value) {
         lock.lock();
@@ -50,8 +48,7 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
      * Re-add the attributes to the queue if an entry for this vo does not already exist.  
      *  This is used when the attributes didn't get published and potentially an attribute update
      *  happened while they were out of this structure.
-     *  
-     * @param entry
+     *
      */
     public void attributePublishFailed(PublishQueueEntry<T,Map<String,Object>> entry) {
         lock.lock();
@@ -64,7 +61,6 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
 
     /**
      * Remove the next item from the queue
-     * @return
      */
     public PublishQueueEntry<T,Map<String,Object>> next() {
         lock.lock();

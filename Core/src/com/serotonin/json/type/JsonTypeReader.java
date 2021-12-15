@@ -34,8 +34,7 @@ public class JsonTypeReader {
 
     /**
      * Convert the data in an I/O reader into a type graph.
-     * 
-     * @param reader
+     *
      */
     public JsonTypeReader(Reader reader) {
         this(reader, -1);
@@ -43,8 +42,7 @@ public class JsonTypeReader {
 
     /**
      * Convert the data in an I/O reader into a type graph.
-     * 
-     * @param reader
+     *
      */
     public JsonTypeReader(Reader reader, int maxCharacterCount) {
         if (!reader.markSupported())
@@ -59,7 +57,6 @@ public class JsonTypeReader {
      * Read the next JsonValue from the input source.
      * 
      * @return the JsonValue that was read. Will not be null (but could be JsonNull).
-     * @throws JsonException
      */
     public JsonValue read() throws JsonException, IOException {
         if (testNextChar('{', true))
@@ -116,7 +113,6 @@ public class JsonTypeReader {
      * multiple JSON documents in a single input source.
      * 
      * @return true if the end of stream has been reached.
-     * @throws JsonException
      */
     public boolean isEos() throws JsonException, IOException {
         try {

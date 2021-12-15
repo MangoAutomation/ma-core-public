@@ -82,7 +82,6 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
 
     /**
      * Called when no further data will be added to the Quantizer
-     * @throws IOException
      */
     public void done() throws QueryCancelledException {
         //Special case where there is no data
@@ -100,7 +99,6 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      *            the value that occurs next after the end of this period.
      * @param time
      * 			  the time that the endValue occurred
-     * @throws IOException
      */
     private void nextPeriod(IValueTime endValue, long time) throws QueryCancelledException {
         closePeriod();
@@ -112,8 +110,6 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
 
     /**
      * Fast forward in time to cover any gaps in data with the last value known
-     * @param time
-     * @throws IOException
      */
     public void fastForward(long time) throws QueryCancelledException {
         while (periodToMillis <= time)
@@ -155,8 +151,6 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     /**
      * A value that occurred in the period. Data will be provided to this method in chronological order.
      *
-     * @param value
-     * @param time
      */
     protected void dataInPeriod(IValueTime vt) {
         statistics.addValueTime(vt);
@@ -167,7 +161,6 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      *
      * @param done
      *            indicates that there will never be any more data in this period
-     * @throws QueryCancelledException
      */
     protected void closePeriod() throws QueryCancelledException {
         if (statistics != null) {

@@ -61,7 +61,6 @@ public enum LifecycleState {
      * Get the percentage 0-100
      * 0 is Not Started
      * 100 is running
-     * @return
      */
     public int getStartupProgress() {
         if (this.value >= RUNNING.value)
@@ -73,7 +72,6 @@ public enum LifecycleState {
      * Get the percentage 0-100
      * 0 is Running
      * 100 is Shutdown
-     * @return
      */
     public int getShutdownProgress() {
         if (this.value <= RUNNING.value)

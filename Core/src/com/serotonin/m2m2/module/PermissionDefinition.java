@@ -71,7 +71,6 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     /**
      * Set the permission after being saved into the database.  This call
      * is made within the transaction of updating the permission in the database
-     * @param permission
      */
     public void setPermission(MangoPermission permission) {
         this.permission = permission;

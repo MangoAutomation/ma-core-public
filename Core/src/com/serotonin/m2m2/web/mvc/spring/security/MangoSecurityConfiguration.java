@@ -529,8 +529,6 @@ public class MangoSecurityConfiguration {
     /**
      * Ensure the headers are properly configured
      *
-     * @param http
-     * @throws Exception
      */
     private void configureHeaders(HttpSecurity http) throws Exception {
         HeadersConfigurer<HttpSecurity> headers = http.headers();

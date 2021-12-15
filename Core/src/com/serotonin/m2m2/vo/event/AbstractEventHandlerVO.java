@@ -69,7 +69,6 @@ public abstract class AbstractEventHandlerVO extends AbstractVO {
 
     /**
      * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
-     * @param alias
      */
     public void setAlias(String alias) {
         setName(alias);

@@ -28,27 +28,21 @@ public abstract class AbstractVoDaoTest<VO extends AbstractVO, DAO extends Abstr
 
     /**
      * Get the DAO for testing
-     * @return
      */
     abstract DAO getDao();
 
     /**
      * Create a new VO
-     * @return
      */
     abstract VO newVO();
 
     /**
      * Modify the fields of the VO to ensure they are saved in the database
-     * @param toUpdate
-     * @return
      */
     abstract VO updateVO(VO toUpdate);
 
     /**
      * Assert that the 2 are equal
-     * @param expected
-     * @param actual
      */
     abstract void assertVoEqual(VO expected, VO actual);
 }

@@ -148,7 +148,6 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
      * ContextStartedEvent is not fired for root web context, only ContextRefreshedEvent.
      * Initialize our static holders in this event handler.
      *
-     * @param event
      */
     @EventListener
     private void contextRefreshed(ContextRefreshedEvent event) {
@@ -270,7 +269,6 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     /**
      * J.W. This is used to convert properties from strings into lists of integers etc when they are injected by Spring
-     * @return
      */
     @Bean
     public static ConfigurableConversionService conversionService() {
@@ -304,7 +302,6 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     /**
      * The SystemSettingsEventDispatcher is used inside SystemSettingsListenerProcessor which means it is instantiated early and cannot use dependency injection.
-     * @return
      */
     @Bean
     public SystemSettingsEventDispatcher systemSettingsEventDispatcher() {

@@ -43,8 +43,7 @@ public class SerialPortProxyEventTask {
 	
 	/**
 	 * Get the time the task was created
-	 * @return
-	 */
+     */
 	public long getEventCreationTime(){
 		return this.creationTime;
 	}

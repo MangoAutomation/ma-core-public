@@ -42,9 +42,6 @@ public class TimeoutTask extends TimerTask {
     
     /**
      * Timeout Task for simulations using custom timers
-     * @param trigger
-     * @param client
-     * @param timer
      */
     public TimeoutTask(TimerTrigger trigger, TimeoutClient client, AbstractTimer timer) {
         super(trigger, client.getThreadName(), client.getTaskId(), client.getQueueSize());

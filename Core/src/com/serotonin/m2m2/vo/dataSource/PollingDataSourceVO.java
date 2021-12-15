@@ -85,7 +85,6 @@ public abstract class PollingDataSourceVO extends DataSourceVO {
      *
      * This should be overridden in that case.
      *
-     * @return
      */
     public abstract int getPollAbortedExceptionEventId();
 
@@ -99,7 +98,6 @@ public abstract class PollingDataSourceVO extends DataSourceVO {
      *
      * Events are fired by the Polling Data Source RT
      *
-     * @return
      */
     private EventTypeVO createPollAbortedEventType(int eventId) {
         AlarmLevels alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);

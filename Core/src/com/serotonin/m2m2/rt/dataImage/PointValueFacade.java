@@ -83,7 +83,6 @@ public class PointValueFacade {
      * 			fetch the previous point value before 'since', and insert it at time 'since'
      * @param insertFinal
      * 			take the last point value from the list and insert it at the current time
-     * @return
      */
     public List<PointValueTime> getPointValues(long since, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> list = getPointValues(since);
@@ -129,7 +128,6 @@ public class PointValueFacade {
      * 			fetch the previous point value before 'from', and insert it at time 'from'
      * @param insertFinal
      * 			take the last point value from the list and insert it at time 'to'
-     * @return
      */
     public List<PointValueTime> getPointValuesBetween(long from, long to, boolean insertInitial, boolean insertFinal) {
         List<PointValueTime> values = new ArrayList<>();
@@ -179,10 +177,7 @@ public class PointValueFacade {
      * Write out any cached values that would be equal to or between the time of the incomming
      *   point value and the next one to be returned by the query.
      *   this should be called before processing this value
-     * @param value
-     * @param bookend
      * @return true to continue to process the incoming value, false if it was a bookend that was replaced via the cache
-     * @throws IOException
      */
     protected boolean processValueThroughCache(PointValueTime value, boolean bookend, List<PointValueTime> pointCache, List<PointValueTime> values) throws QueryCancelledException {
         if(pointCache != null && pointCache.size() > 0) {
@@ -225,8 +220,6 @@ public class PointValueFacade {
 
     /**
      * Return a view of the cache if there are points within the range, if the facade is not to use cache return null
-     * @param from
-     * @param to
      * @return cacheView or null if not allowed to use cache
      */
     private List<PointValueTime> buildCacheView(long from, long to) {

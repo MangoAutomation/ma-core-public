@@ -184,8 +184,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     /**
      * Get all roles that inherit this role
-     * @param role
-     * @return
      */
     public Set<Role> getRolesThatInherit(Role role) {
         return this.doInTransaction((tx) -> {
@@ -197,8 +195,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     /**
      * Recursively add all roles that inherit this role
-     * @param role
-     * @param all
      */
     private void addRolesThatInherit(Role role, Set<Role> all) {
         Set<Role> inherited = getRolesThatInherit(role.getId());
@@ -210,8 +206,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     /**
      * Get the roles that inherit this role, one level deep.
-     * @param roleId
-     * @return
      */
     private Set<Role> getRolesThatInherit(int roleId) {
         try (Stream<Record> stream = this.create.select(getSelectFields())
@@ -227,8 +221,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     /**
      * Recursively get a set of all inherited roles of this role
-     * @param role
-     * @return
      */
     public Set<Role> getFlatInheritance(Role role) {
         return this.doInTransaction((tx) -> {
@@ -240,8 +232,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
 
     /**
      * Recursively add all inherited roles
-     * @param role
-     * @param all
      */
     private void addInheritance(Role role, Set<Role> all) {
         Set<Role> inherited = getInherited(role.getId());
@@ -254,8 +244,6 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     /**
      * Get the inherited roles of this role from the database,
      *  one level deep only.
-     * @param roleId
-     * @return
      */
     private Set<Role> getInherited(int roleId) {
         try (Stream<Record> stream = this.create.select(getSelectFields())

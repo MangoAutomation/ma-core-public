@@ -109,7 +109,6 @@ public interface TextRenderer extends Serializable {
     
     /**
      * Validate the settings of the renderer
-     * @param result
      */
     public default void validate(ProcessResult result, int sourcePointDataTypeId) {
         if(!getDef().supports(sourcePointDataTypeId))

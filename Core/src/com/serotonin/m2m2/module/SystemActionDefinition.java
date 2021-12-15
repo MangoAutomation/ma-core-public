@@ -37,8 +37,6 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
     /**
      * Validate the inputs and create the Task with input that will be scheduled and run
      *
-     * @param input
-     * @return
      */
     public SystemActionTask getTask(final PermissionHolder user, final JsonNode input)
             throws ValidationException, AccessDeniedException {
@@ -50,8 +48,6 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
     /**
      * Check the permission to the task
      *
-     * @param user
-     * @throws AccessDeniedException
      */
     protected void hasTaskPermission(PermissionHolder user) throws AccessDeniedException {
         PermissionDefinition permission = getPermissionDefinition();
@@ -63,7 +59,6 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
     /**
      * Get the permission definition for this action
      *
-     * @return
      */
     protected PermissionDefinition getPermissionDefinition() {
         return ModuleRegistry.getPermissionDefinition(getPermissionTypeName());
@@ -72,23 +67,18 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
     /**
      * Get the TypeName of the permission definition
      *
-     * @return
      */
     abstract protected String getPermissionTypeName();
 
     /**
      * Return the Task configured with inputs
      *
-     * @param input
-     * @return
      */
     abstract protected SystemActionTask getTaskImpl(final JsonNode input);
 
     /**
      * Validate the inputs for the task
      *
-     * @param input
-     * @throws ValidationException
      */
     abstract protected void validate(final JsonNode input) throws ValidationException;
 

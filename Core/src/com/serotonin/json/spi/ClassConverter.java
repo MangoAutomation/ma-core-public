@@ -21,7 +21,6 @@ public interface ClassConverter {
      * 
      * @param value
      *            the object to write
-     * @throws JsonException
      */
     JsonValue jsonWrite(JsonTypeWriter writer, Object value) throws JsonException;
 
@@ -32,8 +31,6 @@ public interface ClassConverter {
      *            the JSON writer to which to write.
      * @param value
      *            the object to write
-     * @throws IOException
-     * @throws JsonException
      */
     void jsonWrite(JsonWriter writer, Object value) throws IOException, JsonException;
 
@@ -49,7 +46,6 @@ public interface ClassConverter {
      * @param type
      *            the generic type of object to return.
      * @return the created and populated object
-     * @throws JsonException
      */
     Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException;
 
@@ -64,7 +60,6 @@ public interface ClassConverter {
      *            the object to populate
      * @param type
      *            the generic type of the given object
-     * @throws JsonException
      */
     void jsonRead(JsonReader reader, JsonValue jsonValue, Object obj, Type type) throws JsonException;
 }

@@ -60,7 +60,6 @@ public abstract class Restorer<T extends AbstractVO> {
 
     /**
      * Restore the object based on the Audit Trail
-     * @return
      */
     public T restore(){
         T vo = null;
@@ -99,9 +98,6 @@ public abstract class Restorer<T extends AbstractVO> {
 
     /**
      * Build a brand new one from the JSON
-     * @param json
-     * @return
-     * @throws JsonException
      */
     protected T build(int id, JsonObject json, JsonReader reader) throws JsonException{
         T vo = build(null, json, reader);
@@ -129,8 +125,6 @@ public abstract class Restorer<T extends AbstractVO> {
 
     /**
      * Build a new Vo From scratch
-     * @param json
-     * @return
      */
     protected abstract T buildNewVO(JsonObject json);
 

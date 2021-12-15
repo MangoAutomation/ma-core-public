@@ -49,8 +49,6 @@ public final class MangoPermission {
 
     /**
      * Return a new permission with the same roles but with a new ID.
-     * @param id
-     * @param permission
      */
     public MangoPermission(int id, MangoPermission permission) {
         this.id = id;
@@ -78,8 +76,6 @@ public final class MangoPermission {
 
     /**
      * Construct a permission that must already exist in the database
-     * @param id
-     * @param minterms
      */
     private MangoPermission(Integer id, Set<Set<Role>> minterms) {
         this.id = id;
@@ -106,8 +102,6 @@ public final class MangoPermission {
 
     /**
      * Return a new permission with the same roles but with a new ID.
-     * @param id
-     * @return
      */
     public MangoPermission withId(Integer id) {
         return new MangoPermission(id, this);

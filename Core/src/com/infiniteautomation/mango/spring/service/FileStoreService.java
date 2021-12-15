@@ -138,9 +138,6 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
 
     /**
      * @param xid xid of the user file store, or the storeName of the {@link FileStoreDefinition}
-     * @return
-     * @throws PermissionException
-     * @throws NotFoundException
      */
     @Override
     public FileStore get(String xid) throws PermissionException, NotFoundException {
@@ -322,8 +319,6 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
      * Does not check if the file exists, only that the filestore exists.
      *
      * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
-     * @param path
-     * @return
      * @throws PermissionException user does not have permission to write to the file store
      * @throws NotFoundException   file store does not exist
      */
@@ -336,8 +331,6 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
      * Does not check if the file exists, only that the filestore exists.
      *
      * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
-     * @param path
-     * @return
      * @throws PermissionException user does not have permission to read from the file store
      * @throws NotFoundException   file store does not exist
      */
@@ -350,8 +343,6 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
      * Does not check if the file exists, only that the filestore exists.
      *
      * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
-     * @param path
-     * @return
      * @throws PermissionException user does not have permission to write to the file store
      * @throws NotFoundException   file store does not exist
      */
@@ -366,8 +357,6 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
      * Does not check if the file exists, only that the filestore exists.
      *
      * @param xid  xid of the user file store, or the storeName of the {@link FileStoreDefinition}
-     * @param path
-     * @return
      * @throws PermissionException user does not have permission to read from the file store
      * @throws NotFoundException   file store does not exist
      */
@@ -392,7 +381,6 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
     }
 
     /**
-     * @param path
      * @throws IllegalArgumentException if path is not located inside the filestore root
      * @throws NotFoundException        if filestore was not found
      * @throws PermissionException      filestore exists but user does not have read access
@@ -403,7 +391,6 @@ public class FileStoreService extends AbstractVOService<FileStore, FileStoreDao>
     }
 
     /**
-     * @param path
      * @throws IllegalArgumentException if path is not located inside the filestore root
      * @throws NotFoundException        if filestore was not found
      * @throws PermissionException      filestore exists but user does not have write access

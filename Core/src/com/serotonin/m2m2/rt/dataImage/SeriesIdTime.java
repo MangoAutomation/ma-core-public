@@ -13,7 +13,6 @@ public interface SeriesIdTime extends ITime {
 
     /**
      * Get the Series ID for the VO in Question
-     * @return
      */
     public int getSeriesId();
 

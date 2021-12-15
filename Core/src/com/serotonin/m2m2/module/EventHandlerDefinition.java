@@ -55,7 +55,6 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void savePreRelationalData(T existing, T vo) {
 
@@ -67,7 +66,6 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void saveRelationalData(T existing, T vo) {
 
@@ -76,7 +74,6 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
     /**
      * Load in relational data
      *
-     * @param vo
      */
     public void loadRelationalData(T vo) {
 
@@ -86,7 +83,6 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * Delete any relational data
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deleteRelationalData(T vo) {
 
@@ -96,7 +92,6 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * Delete any relational data
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deletePostRelationalData(T vo) {
 
@@ -104,8 +99,6 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
 
     /**
      * Handle a role being modified
-     * @param vo
-     * @param event
      */
     @Deprecated
     // TODO We should store the permissions as an array as per PTCP data sources/publishers
@@ -115,17 +108,12 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
 
     /**
      * Validate a new event handler
-     * @param response
-     * @param vo
      */
     abstract public void validate(ProcessResult response, T vo);
 
     /**
      * Validate an event handler that is about to be updated
      *  override as necessary
-     * @param response
-     * @param existing
-     * @param vo
      */
     public void validate(ProcessResult response, T existing, T vo) {
         validate(response, vo);
@@ -142,7 +130,6 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
 
     /**
      * Create the runtime handler
-     * @return
      */
     public abstract EventHandlerRT<T> createRuntime(T vo);
 

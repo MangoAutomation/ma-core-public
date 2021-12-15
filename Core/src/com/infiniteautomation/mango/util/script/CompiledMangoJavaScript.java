@@ -79,11 +79,6 @@ public class CompiledMangoJavaScript {
      *
      * NOTE: Script engine and utilities are run using permissions of vo
      *
-     * @param vo
-     * @param setter
-     * @param log
-     * @param result
-     * @param service
      */
     public CompiledMangoJavaScript(MangoJavaScript vo, ScriptPointValueSetter setter, ScriptLog log, MangoJavaScriptResult result,
                                    MangoJavaScriptService service, PointValueDao pointValueDao, PointValueCache pointValueCache) {
@@ -108,10 +103,6 @@ public class CompiledMangoJavaScript {
      *
      * NOTE: Script engine and utilities are run using permissions of user
      *
-     * @param setter
-     * @param log
-     * @param importExclusions
-     * @param permissionHolder
      */
     public CompiledMangoJavaScript(
             ScriptPointValueSetter setter,
@@ -123,14 +114,6 @@ public class CompiledMangoJavaScript {
 
     /**
      * Complete constructor for compiled script
-     * @param setter
-     * @param log
-     * @param additionalContext
-     * @param additionalUtilities
-     * @param importExclusions
-     * @param testRun
-     * @param service
-     * @param permissionHolder
      */
     public CompiledMangoJavaScript(
             ScriptPointValueSetter setter,
@@ -159,9 +142,7 @@ public class CompiledMangoJavaScript {
     /**
      * Compile the script and add global bindings
      *
-     * @param script
      * @param wrapInFunction - Should the script be wrapped in a function call which is called during execution
-     * @throws ScriptError
      */
     public void compile(String script, boolean wrapInFunction) throws ScriptError {
         MutableObject<ScriptError> error = new MutableObject<>();
@@ -179,8 +160,6 @@ public class CompiledMangoJavaScript {
     /**
      * Clear the engine scope and initialize it with an expandable context which is returned
      *
-     * @throws ScriptError
-     * @throws ScriptPermissionsException
      */
     public Map<String, IDataPointValueSource> initialize() throws ScriptError, ScriptPermissionsException {
         Map<String, IDataPointValueSource> context = new HashMap<>();
@@ -192,8 +171,6 @@ public class CompiledMangoJavaScript {
      *
      * Clear the engine scope and initialize it with an expandable context which is filled with the ScriptContextVariables and returned
      *
-     * @param variables
-     * @return
      * @throws ScriptPermissionsException - permission denied executing a command
      * @throws ScriptError - Execution failure, generally will have line and column number with message
      * @throws DataPointStateException - If a point is not enabled or missing (unless testRun is true, then a dummy point is created)
@@ -236,9 +213,6 @@ public class CompiledMangoJavaScript {
     /**
      * Clear the engine scope and initialize it with a known context which will be stored in the engine
      *
-     * @throws ScriptException
-     * @throws DataPointStateException
-     * @throws ScriptPermissionsException
      */
     public void initialize(Map<String, IDataPointValueSource> context) throws ScriptError, ScriptPermissionsException {
         Assert.notNull(compiledScript, "Script must be compiled first");
@@ -250,13 +224,6 @@ public class CompiledMangoJavaScript {
 
     /**
      * Execute this script expecting a PointValueTime result
-     * @param runtime
-     * @param timestamp
-     * @param resultDataTypeId
-     * @return
-     * @throws ScriptError
-     * @throws ResultTypeException
-     * @throws ScriptPermissionsException
      */
     public MangoJavaScriptResult execute(long runtime, long timestamp, Integer resultDataTypeId) throws ScriptError, ResultTypeException, ScriptPermissionsException {
         Assert.notNull(compiledScript, "Script must be compiled first");
@@ -268,11 +235,6 @@ public class CompiledMangoJavaScript {
 
     /**
      * Execute this script expecting any type of result
-     * @param runtime
-     * @param timestamp
-     * @return
-     * @throws ScriptError
-     * @throws ScriptPermissionsException
      */
     public MangoJavaScriptResult execute(long runtime, long timestamp) throws ScriptError, ScriptPermissionsException {
         Assert.notNull(compiledScript, "Script must be compiled first");

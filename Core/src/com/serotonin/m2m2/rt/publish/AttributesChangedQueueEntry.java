@@ -17,8 +17,6 @@ public class AttributesChangedQueueEntry<T extends PublishedPointVO> {
     final Map<String, Object> attributes;
     
     /**
-     * @param rt
-     * @param attributes
      */
     public AttributesChangedQueueEntry(PublishedPointRT<T> rt, Map<String, Object> attributes) {
         this.rt = rt;

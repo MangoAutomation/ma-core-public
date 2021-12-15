@@ -118,8 +118,6 @@ public class PublisherImporter extends Importer {
 
     /**
      *  Replace published points
-     * @param publisherXid
-     * @param points
      */
     private void replacePublishedPoints(String publisherXid, List<PublishedPointVO> points) {
         try {

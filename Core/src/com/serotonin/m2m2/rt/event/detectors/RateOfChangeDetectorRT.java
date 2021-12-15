@@ -494,7 +494,6 @@ public class RateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<RateOfCha
 
     /**
      * Compute the Rate of Change by using the first and last values over the full period
-     * @return
      */
     protected double firstLastRocAlgorithm(){
         if(vo.getCalculationMode() == CalculationMode.AVERAGE)

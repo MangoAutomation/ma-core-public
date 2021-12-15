@@ -33,7 +33,6 @@ public interface AbstractVOAccess<T extends AbstractVO> extends AbstractBasicVOA
      * Checks if a XID is unique
      *
      * @param xid to check
-     * @param excludeId
      * @return True if XID is unique
      */
     boolean isXidUnique(String xid, int excludeId);
@@ -71,7 +70,6 @@ public interface AbstractVOAccess<T extends AbstractVO> extends AbstractBasicVOA
 
     /**
      * Issues a SELECT FOR UPDATE for the row with the given xid. Enables transactional updates on rows.
-     * @param xid
      */
     void lockRow(String xid);
 

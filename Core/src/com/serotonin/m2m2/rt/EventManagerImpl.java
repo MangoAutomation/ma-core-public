@@ -91,7 +91,6 @@ public class EventManagerImpl implements EventManager {
     /**
      * Check the state of the EventManager
      *  useful if you are a task that may run before/after the RUNNING state
-     * @return
      */
     @Override
     public ILifecycleState getLifecycleState(){
@@ -104,12 +103,7 @@ public class EventManagerImpl implements EventManager {
     //
     /**
      * Raise Event
-     * @param type
-     * @param time
      * @param rtnApplicable - does this event return to normal?
-     * @param alarmLevel
-     * @param message
-     * @param context
      */
     @Override
     public void raiseEvent(EventType type, long time, boolean rtnApplicable,
@@ -376,9 +370,6 @@ public class EventManagerImpl implements EventManager {
     /**
      * Deactivate a group of similar events, these events should have been removed from the active events list already.
      *
-     * @param evts
-     * @param time
-     * @param inactiveCause
      */
     protected void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
         List<User> activeUsers = usersService.getEnabledUsers();
@@ -418,10 +409,7 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * Added to allow Acknowledge Events to be fired
-     * @param evt
-     * @param time
      * @param ackUser the user that acknowledged the event, or null if acknowledged by system (e.g. EventManagerListenerDefinition)
-     * @param alternateAckSource
      */
     private boolean acknowledgeEvent(EventInstance evt, long time, User ackUser, TranslatableMessage alternateAckSource) {
         boolean acked;
@@ -474,10 +462,6 @@ public class EventManagerImpl implements EventManager {
      * The returned EventInstance is a copy from the database, never the cached instance. If the returned instance
      * has a different time, userId or alternateAckSource to what was provided then the event must have been already acknowledged.
      *
-     * @param eventId
-     * @param time
-     * @param user
-     * @param alternateAckSource
      * @return the EventInstance for the ID if found, null otherwise
      */
     @Override
@@ -513,7 +497,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * Purge All Events We have
-     * @return
      */
     @Override
     public int purgeAllEvents(){
@@ -538,8 +521,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * Purge events prior to time
-     * @param time
-     * @return
      */
     @Override
     public int purgeEventsBefore(final long time){
@@ -564,9 +545,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * Purge Events before time with a given type
-     * @param time
-     * @param typeName
-     * @return
      */
     @Override
     public int purgeEventsBefore(final long time, final String typeName){
@@ -594,9 +572,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * Purge Events before time with a given type
-     * @param time
-     * @param alarmLevel
-     * @return
      */
     @Override
     public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel){
@@ -680,7 +655,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * Cancel active events for a Data Source
-     * @param dataSourceId
      */
     @Override
     public void cancelEventsForDataSource(int dataSourceId) {
@@ -712,7 +686,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * Cancel all events for a publisher
-     * @param publisherId
      */
     @Override
     public void cancelEventsForPublisher(int publisherId) {
@@ -926,7 +899,6 @@ public class EventManagerImpl implements EventManager {
 
     /**
      * To access all active events quickly
-     * @return
      */
     @Override
     public List<EventInstance> getAllActive() {
@@ -944,8 +916,6 @@ public class EventManagerImpl implements EventManager {
      * Finds and removes the first event instance with the given type. Returns
      * null if there is none.
      *
-     * @param type
-     * @return
      */
     private EventInstance remove(EventType type) {
         activeEventsLock.writeLock().lock();
@@ -988,7 +958,6 @@ public class EventManagerImpl implements EventManager {
      * Used to call eventRaised() on all EventHandlerRT instances, also sends emails to all users and mailing lists
      * which have been configured to receive events of this level.
      *
-     * @param evt
      * @param defaultAddresses A set of email addresses that will be notified of all events over a certain level
      * which is configured on each user or on a mailing list
      */

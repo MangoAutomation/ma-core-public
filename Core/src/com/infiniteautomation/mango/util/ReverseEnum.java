@@ -15,9 +15,6 @@ public interface ReverseEnum<V> {
      * Iterates over the enum constants and finds the enum constant that matches the value.
      * Typically one would use a ReverseEnumMap instead.
      *
-     * @param enumType
-     * @param value
-     * @return
      */
     public static <X, E extends Enum<E> & ReverseEnum<X>> E fromValue(Class<E> enumType, X value) {
         Objects.requireNonNull(enumType);

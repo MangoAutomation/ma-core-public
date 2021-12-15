@@ -120,13 +120,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     /**
      * To allow simulation of points using a timer implementation
      *
-     * @param vo
-     * @param pointLocator
-     * @param dataSource
-     * @param initialCache
-     * @param dao
-     * @param pointValueCache
-     * @param timer
      */
     public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource,
                        List<PointValueTime> initialCache, PointValueDao dao, PointValueCache pointValueCache, AbstractTimer timer) {
@@ -229,7 +222,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * This method should only be called by the data source. Other types of point setting should include a set point
      * source object so that the annotation can be logged.
      *
-     * @param newValue
      */
     @Override
     public void updatePointValue(PointValueTime newValue) {
@@ -421,8 +413,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      *  - if discarding extreme values then discard NaN or outside of extreme limits
      *  - anything too far in the future, see future date limit system setting
      *
-     * @param pvt
-     * @return
      */
     private boolean discardUnwantedValues(PointValueTime pvt) {
 
@@ -959,7 +949,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     /**
      * Get a copy of the current cache
-     * @return
      */
     public List<PointValueTime> getCacheCopy(){
         List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
@@ -970,7 +959,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     /**
      * Get a copy of the current cache, size limited
-     * @return
      */
     public List<PointValueTime> getCacheCopy(int limit){
         List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());

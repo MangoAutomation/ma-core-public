@@ -425,9 +425,6 @@ public class ScriptingTest extends MangoTestBase {
     /**
      * Helper to read files in
      *
-     * @param path
-     * @return
-     * @throws IOException
      */
     static String readFile(Path path) throws IOException {
         byte[] encoded = Files.readAllBytes(path);

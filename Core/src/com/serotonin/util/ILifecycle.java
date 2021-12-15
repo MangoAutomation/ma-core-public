@@ -27,14 +27,11 @@ public interface ILifecycle {
 
 	/**
 	 * Initialize only if not in safe mode
-	 * @param safe
-	 * @throws LifecycleException
-	 */
+     */
     void initialize(boolean safe) throws LifecycleException;
 
     /**
      * Begin the termination process
-     * @throws LifecycleException
      */
     void terminate() throws LifecycleException;
     

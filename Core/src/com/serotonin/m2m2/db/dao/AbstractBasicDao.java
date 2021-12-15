@@ -374,7 +374,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     /**
      * Get the base Count query
-     * @return
      */
     @Override
     public SelectSelectStep<Record1<Integer>> getCountQuery() {
@@ -392,7 +391,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     /**
      * Get the select columns, override as necessary
-     * @return
      */
     public List<Field<?>> getSelectFields() {
         return Arrays.stream(table.fields()).collect(Collectors.toCollection(ArrayList::new));
@@ -401,8 +399,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
     /**
      * Add any joins including those in the conditions
      *  Override as necessary
-     * @param select
-     * @return
      */
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
@@ -622,7 +618,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
      * @param subSelectMapping not null
      * @param fieldMap not null
      * @param converterMap not null
-     * @return
      */
     protected RQLToCondition createRqlToCondition(Map<String, RQLSubSelectCondition> subSelectMapping, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> converterMap) {
         return new RQLToCondition(subSelectMapping, fieldMap, converterMap);
@@ -644,7 +639,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     /**
      * Get a writer for serializing JSON
-     * @return
      */
     public ObjectWriter getObjectWriter(Class<?> type) {
         return mapper.writerFor(type);
@@ -652,7 +646,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     /**
      * Get a reader for use de-serializing JSON
-     * @return
      */
     public ObjectReader getObjectReader(Class<?> type) {
         return mapper.readerFor(type);
@@ -668,8 +661,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, R extends Reco
 
     /**
      * Helper to convert JSON Node for db
-     * @param data
-     * @return
      */
     protected String convertData(JsonNode data) {
         try {

@@ -26,9 +26,7 @@ public class RQLUtils {
 
     /**
      * Create an AST Node from the RQL query in the request
-     * @param queryString
      * @return ASTNode
-     * @throws InvalidRQLException
      */
     public static ASTNode parseRQLtoAST(String queryString, Converter converter) throws InvalidRQLException {
         if (queryString != null) {
@@ -50,8 +48,6 @@ public class RQLUtils {
     /**
      * Append an AND Restriction to a query
      * @param query - can be null
-     * @param restriction
-     * @return
      */
     public static ASTNode addAndRestriction(ASTNode query, ASTNode restriction){
         //Root query node
@@ -70,8 +66,6 @@ public class RQLUtils {
     /**
      * Append an OR restriction to the query
      * @param query - can be null
-     * @param restriction
-     * @return
      */
     public static ASTNode addOrRestriction(ASTNode query, ASTNode restriction){
         //Root query node

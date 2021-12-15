@@ -91,7 +91,6 @@ public class BackupWorkItem implements WorkItem {
 
     /**
      * Future to determine when the process is complete
-     * @return
      */
     public Future<Void> getCompletableFuture() {
         return completed;
@@ -99,7 +98,6 @@ public class BackupWorkItem implements WorkItem {
 
     /**
      * Queue a backup for execution
-     * @param backupLocation
      */
     public static Future<Void> queueBackup(String backupLocation){
         BackupWorkItem item = new BackupWorkItem();
@@ -200,7 +198,6 @@ public class BackupWorkItem implements WorkItem {
 
     /**
      * Get a JSON Backup
-     * @return
      */
     public String getBackup() {
         Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);

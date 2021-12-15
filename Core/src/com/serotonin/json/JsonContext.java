@@ -211,7 +211,6 @@ public class JsonContext {
      * @param clazz
      *            the class to look up
      * @return the converter that is bound to the class. May be null if no converter was registered.
-     * @throws JsonException
      */
     public ClassConverter getConverter(Class<?> clazz) throws JsonException {
         // First check if the class is already in the map.
@@ -533,7 +532,6 @@ public class JsonContext {
      *            the jsonValue to use for hints. The given class may be abstract or a base class, so the jsonValue can
      *            provider information as to the specific subclass of object to instantiate.
      * @return the new object instance
-     * @throws JsonException
      */
     public Object getNewInstance(Class<?> clazz, JsonValue jsonValue) throws JsonException {
         ObjectFactory factory = objectFactories.get(clazz);

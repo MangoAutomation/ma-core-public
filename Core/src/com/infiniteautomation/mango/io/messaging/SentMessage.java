@@ -12,7 +12,6 @@ public interface SentMessage {
 
     /**
      * The transport that sent me
-     * @return
      */
     MessageTransport getTransport();
 

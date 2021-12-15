@@ -36,9 +36,7 @@ public class ScheduleUtils {
 
     /**
      * Create a Zoned Date Time from an epoch
-     * 
-     * @param runtime
-     * @return
+     *
      */
     public static ZonedDateTime createZonedDateTime(long runtime) {
         return ZonedDateTime.ofInstant(Instant.ofEpochMilli(runtime), getTimeZone());
@@ -51,8 +49,6 @@ public class ScheduleUtils {
     /**
      * Create a ZonedDateTime at start of day on Sunday being the previous Sunday to today unless
      *   today is Sunday then we return start of today.
-     * @param time
-     * @return
      */
     public static ZonedDateTime getStartOfLastSunday(ZonedDateTime time) {
         //TODO https://stackoverflow.com/questions/29143910/java-8-date-time-get-start-of-day-from-zoneddatetime
@@ -68,8 +64,6 @@ public class ScheduleUtils {
 
     /**
      * Create a ZonedDateTime at the start of the day the date is in
-     * @param time
-     * @return
      */
     public static ZonedDateTime getStartOfDay(ZonedDateTime time) {
         //TODO https://stackoverflow.com/questions/29143910/java-8-date-time-get-start-of-day-from-zoneddatetime
@@ -78,9 +72,6 @@ public class ScheduleUtils {
     
     /**
      * Check if 'toCheck' is on or after the date portion of 'date'
-     * @param date
-     * @param toCheck
-     * @return
      */
     public static boolean isDateOnOrAfter(ZonedDateTime date, ZonedDateTime toCheck) {
         LocalDate localDate = date.toLocalDate();
@@ -95,9 +86,6 @@ public class ScheduleUtils {
     
     /**
      * Check if 'toCheck' is on or before the date portion of 'date'
-     * @param date
-     * @param toCheck
-     * @return
      */
     public static boolean isDateOnOrBefore(ZonedDateTime date, ZonedDateTime toCheck) {
         LocalDate localDate = date.toLocalDate();
@@ -113,8 +101,6 @@ public class ScheduleUtils {
     
     /**
      * Get the array index for a day of week 1=Sunday - 7=Saturday
-     * @param dow
-     * @return
      */
     public static int getDayOfWeekIndex(DayOfWeek dow) {
         switch(dow) {
@@ -160,10 +146,7 @@ public class ScheduleUtils {
 
     /**
      * Is a before b in our Days of Week listing
-     * 
-     * @param a
-     * @param b
-     * @return
+     *
      */
     public static boolean isBefore(DayOfWeek a, DayOfWeek b) {
         int indexA = getDayOfWeekIndex(a);
@@ -176,9 +159,6 @@ public class ScheduleUtils {
 
     /**
      * Is a after b in our Days of Week listing
-     * @param a
-     * @param b
-     * @return
      */
     public static boolean isAfter(DayOfWeek a, DayOfWeek b) {
         int indexA = getDayOfWeekIndex(a);

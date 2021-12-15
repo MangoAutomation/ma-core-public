@@ -64,7 +64,6 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
     /**
      * The module will check for this table and if it does not exist the install scripts
      *  will be run
-     * @return
      */
     abstract public String getNewInstallationCheckTableName();
 
@@ -103,7 +102,6 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
     /**
      * Get the install script path based on the database type
      *  assumes the scripts are within module at web/db/
-     * @return
      */
     protected InputStream getInstallScript() {
         String scriptName = "createTables-" + databaseProxy.getType().name() + ".sql";
@@ -117,7 +115,6 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
     /**
      * Get the un-install script path based on the database type
      *  assumes the scripts are within module at web/db/
-     * @return
      */
     protected InputStream getUninstallScript() {
         String scriptName = "uninstall.sql";

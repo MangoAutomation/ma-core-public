@@ -62,7 +62,6 @@ public @interface JsonProperty {
 
     /**
      * Any past field names that should be treated to refer to this property, useful when a field name has been changed
-     * @return
      */
     String[] readAliases() default {};
 }

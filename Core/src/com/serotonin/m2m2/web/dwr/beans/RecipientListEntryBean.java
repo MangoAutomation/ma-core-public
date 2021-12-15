@@ -40,7 +40,6 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
 
     /**
      * Convert to mailing list recipient
-     * @return
      */
     public MailingListRecipient createEmailRecipient() {
         RecipientListEntryType type = RecipientListEntryType.fromValue(recipientType);

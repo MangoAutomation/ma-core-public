@@ -56,8 +56,6 @@ public class AnalogRenderer extends ConvertingRenderer {
     }
 
     /**
-     * @param format
-     * @param suffix
      */
     public AnalogRenderer(String format, String suffix) {
         super();
@@ -66,9 +64,6 @@ public class AnalogRenderer extends ConvertingRenderer {
     }
 
     /**
-     * @param format
-     * @param suffix
-     * @param useUnitAsSuffix
      */
     public AnalogRenderer(String format, String suffix, boolean useUnitAsSuffix) {
         super();

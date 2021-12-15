@@ -358,10 +358,7 @@ public class RoleInheritanceTest extends MangoTestBase {
 
     /**
      * Create a role with a parent (
-     * @param xid
-     * @param name
      * @param parent - can be null to signify no parent
-     * @return
      */
     protected RoleVOHierarchy createRoleVOHierarchy(String xid, String name, RoleVOHierarchy... inherited) {
         return new RoleVOHierarchy(Common.NEW_ID, xid, name, new HashSet<>(Arrays.asList(inherited)));
@@ -406,7 +403,6 @@ public class RoleInheritanceTest extends MangoTestBase {
 
         /**
          * Get a set of this role and all the inherited roles
-         * @return
          */
         public Set<Role> getRoles() {
             Set<Role> roles = new HashSet<>();
@@ -421,8 +417,6 @@ public class RoleInheritanceTest extends MangoTestBase {
         /**
          * Trace the lineage of this role
          *
-         * @param role
-         * @param roles
          */
         private void followLineage(RoleVOHierarchy role, Set<Role> roles) {
             for(RoleVOHierarchy inherited : role.inheritedRoles) {

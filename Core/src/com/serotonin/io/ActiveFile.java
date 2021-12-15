@@ -20,9 +20,7 @@ public class ActiveFile {
 
     /**
      * Convenience constructor for cases where the file is known to be done, but an ActiveFile instance is required.
-     * 
-     * @param file
-     * @param active
+     *
      */
     public ActiveFile(File file, boolean active) {
         this.file = file;

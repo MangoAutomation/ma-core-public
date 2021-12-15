@@ -112,8 +112,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     /**
      * Refresh the ports list
-     * @throws UnsatisfiedLinkError
-     * @throws NoClassDefFoundError
      */
     protected void refreshPorts() throws UnsatisfiedLinkError,  NoClassDefFoundError {
         String[] portNames;

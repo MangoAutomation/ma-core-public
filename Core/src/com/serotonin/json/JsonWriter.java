@@ -22,8 +22,6 @@ public class JsonWriter {
      * @param value
      *            the object to serialize
      * @return the resulting JSON string
-     * @throws JsonException
-     * @throws IOException
      */
     public static String writeToString(JsonContext context, Object value) throws JsonException {
         if (context == null)
@@ -83,8 +81,7 @@ public class JsonWriter {
 
     /**
      * Creates a JSON writer around the given I/O writer. A new JSON context is created.
-     * 
-     * @param writer
+     *
      */
     public JsonWriter(Writer writer) {
         this.context = new JsonContext();
@@ -160,8 +157,6 @@ public class JsonWriter {
      * 
      * @param value
      *            the object to write. May be null.
-     * @throws JsonException
-     * @throws IOException
      */
     public void writeObject(Object value) throws JsonException, IOException {
         if (value == null) {
@@ -198,8 +193,7 @@ public class JsonWriter {
 
     /**
      * Flush the underlying I/O writer.
-     * 
-     * @throws IOException
+     *
      */
     public void flush() throws IOException {
         writer.flush();
@@ -207,9 +201,7 @@ public class JsonWriter {
 
     /**
      * Append the given character to the I/O writer. This method should not normally be used by client code.
-     * 
-     * @param c
-     * @throws IOException
+     *
      */
     public void append(char c) throws IOException {
         writer.append(c);
@@ -217,9 +209,7 @@ public class JsonWriter {
 
     /**
      * Append the given string literal to the I/O writer. This method should not normally be used by client code.
-     * 
-     * @param c
-     * @throws IOException
+     *
      */
     public void append(String s) throws IOException {
         writer.append(s);
@@ -228,9 +218,7 @@ public class JsonWriter {
     /**
      * Quote the given string literal and append the result to the I/O writer. This method should not normally be used
      * by client code.
-     * 
-     * @param c
-     * @throws IOException
+     *
      */
     public void quote(String s) throws IOException {
         if (s == null) {

@@ -15,22 +15,19 @@ import java.time.ZonedDateTime;
 public interface BucketCalculator {
     /**
      * The time from which the range is divided.
-     * 
-     * @return
+     *
      */
     ZonedDateTime getStartTime();
 
     /**
      * The next period end time. The value returned increments with each call.
-     * 
-     * @return
+     *
      */
     ZonedDateTime getNextPeriodTo();
 
     /**
      * The time to which the range is divided.
-     * 
-     * @return
+     *
      */
     ZonedDateTime getEndTime();
 }

@@ -25,8 +25,7 @@ class WaitingRoom {
     /**
      * The request message should be sent AFTER entering the waiting room so that the (vanishingly small) chance of a
      * response being returned before the thread is waiting for it is eliminated.
-     * 
-     * @return
+     *
      */
     void enter(WaitingRoomKey key) {
         Member member = new Member();
@@ -80,7 +79,6 @@ class WaitingRoom {
      * 
      * @param response
      *            the response message
-     * @throws WaitingRoomException
      */
     void response(IncomingResponseMessage response) throws WaitingRoomException {
         WaitingRoomKey key = keyFactory.createWaitingRoomKey(response);

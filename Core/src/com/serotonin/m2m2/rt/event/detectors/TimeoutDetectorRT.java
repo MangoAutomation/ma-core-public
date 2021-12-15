@@ -25,8 +25,7 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
     protected AbstractTimer timer;
     
     /**
-	 * @param vo
-	 */
+     */
 	public TimeoutDetectorRT(T vo) {
 		super(vo);
 		timeoutClient = new TimeoutClient(){
@@ -126,7 +125,6 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
 
     /**
      * Get the name of the Thread for Tracking/Reporting
-     * @return
      */
     abstract protected String getThreadNameImpl();
 	

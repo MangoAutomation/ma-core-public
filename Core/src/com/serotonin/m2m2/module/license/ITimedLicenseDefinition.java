@@ -9,7 +9,6 @@ public interface ITimedLicenseDefinition {
 	public void addLicenseWarnings(List<TranslatableMessage> warnings);
 	/**
 	 * 
-	 * @param initialization
 	 * @return long < 0 means no shutdown timeout, long > 0 = timeout milliseconds to expiry
 	 */
 	public long licenseCheck();

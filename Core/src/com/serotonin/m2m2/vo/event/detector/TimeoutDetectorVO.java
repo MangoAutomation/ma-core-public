@@ -21,7 +21,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO> extends AbstractPointEventDetectorVO {
 
     /**
-     * @param supportedDataTypes
      */
     public TimeoutDetectorVO(DataPointVO vo, int[] supportedDataTypes) {
         super(vo, supportedDataTypes);

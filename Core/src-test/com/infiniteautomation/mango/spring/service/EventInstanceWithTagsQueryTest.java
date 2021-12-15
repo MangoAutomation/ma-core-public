@@ -276,9 +276,7 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
 
     /**
      * Create RQL from a set of tags
-     * @param tags
      * @param and - should all tags be required on a point
-     * @return
      */
     protected String createRql(Map<String, String> tags, boolean and) {
         return tags.entrySet()

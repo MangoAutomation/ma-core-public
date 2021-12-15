@@ -79,14 +79,6 @@ public class JsonSerializableUtility {
 
     /**
      * Get all changes between to Objects based on JsonSerialization properties
-     * @param from
-     * @param to
-     * @return
-     * @throws IllegalAccessException
-     * @throws IllegalArgumentException
-     * @throws InvocationTargetException
-     * @throws JsonException
-     * @throws IOException
      */
     public Map<String,Object> findChanges(Object from, Object to) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException{
         Map<String,Object> allChanges = new HashMap<String,Object>();
@@ -442,9 +434,6 @@ public class JsonSerializableUtility {
 
     /**
      *
-     * @param map
-     * @return
-     * @throws JsonException
      */
     public static JsonObject convertMapToJsonObject(Map<String, Object> map) throws JsonException{
         JsonTypeWriter typeWriter = new JsonTypeWriter(Common.JSON_CONTEXT);

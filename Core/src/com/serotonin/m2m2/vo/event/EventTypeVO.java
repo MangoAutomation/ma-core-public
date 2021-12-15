@@ -32,7 +32,6 @@ public class EventTypeVO {
 
     /**
      * Used in DWR and JSP only
-     * @return
      */
     @Deprecated
     public String getType() {
@@ -41,7 +40,6 @@ public class EventTypeVO {
 
     /**
      * Used in DWR and JSP only
-     * @return
      */
     @Deprecated
     public String getSubtype() {
@@ -50,7 +48,6 @@ public class EventTypeVO {
 
     /**
      * Used in DWR and JSP only
-     * @return
      */
     @Deprecated
     public int getTypeRef1() {
@@ -59,7 +56,6 @@ public class EventTypeVO {
 
     /**
      * Used in DWR and JSP only
-     * @return
      */
     @Deprecated
     public int getTypeRef2() {

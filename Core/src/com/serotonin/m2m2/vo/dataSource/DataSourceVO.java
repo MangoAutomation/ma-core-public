@@ -89,7 +89,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
     /**
      * Create a data point with necessary settings about this data source
      *  set along with its point locator
-     * @return
      */
     public DataPointVO createDataPointVO() {
         DataPointVO vo = new DataPointVO();
@@ -121,8 +120,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
     /**
      * Set an alarm level based on the sub-type of the data source event type
      * which MUST (and already is) one of the codes in getEventCodes()
-     * @param subType
-     * @param level
      */
     public void setAlarmLevel(String subType, AlarmLevels level) throws ValidationException {
         ExportCodes codes = getEventCodes();
@@ -193,7 +190,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
     /**
      * Helper to get description on Page
      *
-     * @return
      */
     public String getConnectionDescriptionString() {
         return getConnectionDescription().translate(Common.getTranslations());
@@ -201,8 +197,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
 
     /**
      * @param dsSpecificEventTypeId corresponds to typeRef2
-     * @param message
-     * @return
      */
     protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message) {
         return createEventType(dsSpecificEventTypeId, message, DuplicateHandling.IGNORE, AlarmLevels.URGENT);
@@ -210,10 +204,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
 
     /**
      * @param dsSpecificEventTypeId corresponds to typeRef2
-     * @param message
-     * @param duplicateHandling
-     * @param defaultAlarmLevel
-     * @return
      */
     protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, DuplicateHandling duplicateHandling,
             AlarmLevels defaultAlarmLevel) {
@@ -229,7 +219,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
 
     /**
      *
-     * @return
      */
     public String getTypeDescriptionString() {
         return Common.translate(getDefinition().getDescriptionKey());

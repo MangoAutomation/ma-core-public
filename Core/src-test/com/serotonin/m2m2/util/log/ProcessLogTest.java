@@ -224,9 +224,6 @@ public class ProcessLogTest {
     }
 
     /**
-     * @param file
-     * @return
-     * @throws IOException
      */
     private String getLogContents(File file) throws IOException {
         return new String(Files.readAllBytes(file.toPath()));

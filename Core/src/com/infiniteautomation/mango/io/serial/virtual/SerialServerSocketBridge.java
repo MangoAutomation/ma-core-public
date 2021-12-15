@@ -44,12 +44,8 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 	
 	/**
 	 * 
-	 * @param id
-	 * @param address
-	 * @param port
 	 * @param timeout (in ms)
-	 * @param ipWhiteList
-	 */
+     */
 	public SerialServerSocketBridge(SerialPortIdentifier id, int port, int bufferSize, int timeout, String[] ipWhiteList) {
 		super(id);
 		this.port = port;

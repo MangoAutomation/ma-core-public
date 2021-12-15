@@ -45,17 +45,12 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     /**
      * Whether user has permission to create and edit event handlers for this even type.
      *
-     * @param user
-     * @param service
-     * @return
      */
     abstract public boolean hasCreatePermission(PermissionHolder user, PermissionService service);
 
     /**
      * Returns a list of EventTypeVOs representing the list of events to which handlers can be added/edited.
      *
-     * @param user
-     * @param service
      * @return the list of event type VO objects.
      */
     abstract public List<EventTypeVO> getEventTypeVOs(PermissionHolder user, PermissionService service);
@@ -78,27 +73,21 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     /**
      * Get all possible sub types for this even type
      *
-     * @param user
-     * @param service
-     * @return
      */
     abstract public List<String> getEventSubTypes(PermissionHolder user, PermissionService service);
 
     /**
      * Does this event type support sub-types?
-     * @return
      */
     abstract public boolean supportsSubType();
 
     /**
      * Does this event type use typeref1?
-     * @return
      */
     abstract public boolean supportsReferenceId1();
 
     /**
      * Does this event type use typeref2?
-     * @return
      */
     abstract public boolean supportsReferenceId2();
 
@@ -106,9 +95,6 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * If this event type supports sub types, return a list of all possible event types using
      *   the sub types
      *
-     * @param user
-     * @param service
-     * @return
      */
     public List<EventTypeVO> generatePossibleEventTypesWithSubtype(PermissionHolder user, PermissionService service) {
         throw new UnsupportedOperationException();
@@ -118,10 +104,6 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * If this event type supports reference id 1, return a list of the possible event types
      * for all the subtype
      *
-     * @param user
-     * @param subtype
-     * @param service
-     * @return
      */
     public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user, String subtype, PermissionService service) {
         throw new UnsupportedOperationException();
@@ -131,11 +113,6 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * If this event type supports reference id 1, return a list of the possible event types
      * for all the reference id 1s
      *
-     * @param user
-     * @param subtype
-     * @param ref1
-     * @param service
-     * @return
      */
     public List<EventTypeVO> generatePossibleEventTypesWithReferenceId2(PermissionHolder user, String subtype, int ref1, PermissionService service) {
         throw new UnsupportedOperationException();
@@ -165,7 +142,6 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     /**
      * Create a default event type with no sub type or reference information
      *
-     * @return
      */
     public EventType createDefaultEventType() {
         return createEventType(null, 0, 0);

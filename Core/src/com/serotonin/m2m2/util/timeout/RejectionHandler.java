@@ -13,7 +13,6 @@ public interface RejectionHandler {
 
 	/**
 	 * Task was rejected
-	 * @param reason
-	 */
+     */
 	public void rejected(RejectedTaskReason reason);
 }

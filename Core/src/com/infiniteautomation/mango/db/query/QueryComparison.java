@@ -56,14 +56,6 @@ public class QueryComparison {
      * This method uses reflection to extract the value and then
      * apply the condition.
      *
-     * @param instance
-     * @return
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     * @throws NoSuchFieldException
-     * @throws SecurityException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
      */
     public boolean apply(Object instance){
 
@@ -89,8 +81,6 @@ public class QueryComparison {
 
     /**
      * Compare the value by first determining its type
-     * @param value
-     * @return
      */
     public boolean compare(Object value){
 
@@ -303,8 +293,6 @@ public class QueryComparison {
     }
 
     /**
-     * @param object
-     * @return
      */
     private Integer castToInteger(Object object) {
         if(object instanceof Integer)
@@ -319,8 +307,6 @@ public class QueryComparison {
 
 
     /**
-     * @param object
-     * @return
      */
     private Long castToLong(Object object) {
         if(object instanceof Long)
@@ -334,8 +320,6 @@ public class QueryComparison {
     }
 
     /**
-     * @param object
-     * @return
      */
     private Double castToDouble(Object object) {
         if(object instanceof Double)
@@ -349,16 +333,12 @@ public class QueryComparison {
     }
 
     /**
-     * @param object
-     * @return
      */
     private String castToString(Object object) {
         return object.toString();
     }
 
     /**
-     * @param object
-     * @return
      */
     private Boolean castToBoolean(Object object) {
         if(object instanceof Boolean)

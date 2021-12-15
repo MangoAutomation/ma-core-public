@@ -99,9 +99,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     /**
      * Startup a dummy Mango with a basic infrastructure
-     * @throws ExecutionException
-     * @throws InterruptedException
-     * @throws IOException
      */
     public void initialize() throws InterruptedException, ExecutionException {
         //See if we have any translations to load

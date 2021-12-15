@@ -23,7 +23,6 @@ public interface IMangoLifecycle extends Provider {
     /**
      * Get the state of the Lifecycle
      *
-     * @return
      */
     public LifecycleState getLifecycleState();
 
@@ -33,7 +32,6 @@ public interface IMangoLifecycle extends Provider {
      * 100 is running
      *
      *
-     * @return
      */
     public int getStartupProgress();
 
@@ -42,7 +40,6 @@ public interface IMangoLifecycle extends Provider {
      * 0 is Running
      * 100 is Shutdown
      *
-     * @return
      */
     public int getShutdownProgress();
 
@@ -53,25 +50,20 @@ public interface IMangoLifecycle extends Provider {
 
     /**
      * Get the data point limit
-     * @return
      */
     public Integer dataPointLimit();
 
     /**
      * Check that the properties file the input stream is from contains the properties described in verify
-     * @return
      */
     public boolean verifyProperties(InputStream in, boolean signed, Map<String, String> verify);
 
     /**
-     * @param timeout
      * @param restart (should Mango restart?)
-     * @return
      */
     Thread scheduleShutdown(Long timeout, boolean restart, PermissionHolder user);
 
     /**
-     * @return
      */
     boolean isRestarting();
 

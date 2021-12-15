@@ -10,14 +10,11 @@ abstract public class AbstractTimer {
 
     /**
      * Execute a task with optional ordering if the Timer implementation supports this.
-     * @param command
      */
     abstract public void execute(Task command);
 
     /**
      * Schedule a task to run on this timer
-     * @param task
-     * @return
      */
     final public TimerTask schedule(TimerTask task) {
         if (task.getTimer() == this)

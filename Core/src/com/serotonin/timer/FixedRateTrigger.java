@@ -8,8 +8,6 @@ public class FixedRateTrigger extends AbstractTimerTrigger {
     /**
      * Use this constructor to quantize the start of the trigger to the period.
      * 
-     * @param period
-     * @param now
      * @param quantize
      *            unused. Required for signature uniqueness.
      */

@@ -46,13 +46,11 @@ abstract public class EmportDefinition extends ModuleElementDefinition {
      *            the import context
      * @param holder 
      *            the permission holder doing the import
-     * @throws JsonException
      */
     abstract public void doImport(JsonValue json, ImportContext importContext, PermissionHolder holder) throws JsonException;
     
     /**
      * Does this emporter need to show up in the UI and be included in configuration backups
-     * @return
      */
     public boolean getInView(){
     	return true; 

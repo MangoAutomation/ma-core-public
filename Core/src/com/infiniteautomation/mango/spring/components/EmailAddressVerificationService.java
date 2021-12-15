@@ -127,13 +127,9 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     /**
      * Verify an email address by sending the address a verification token which must then be submitted back to this service.
      *
-     * @param emailAddress
      * @param userToUpdate   Optional, may be null
      * @param expirationDate Optional, may be null
      * @return The generated token
-     * @throws TemplateException
-     * @throws IOException
-     * @throws AddressException
      */
     public String sendVerificationEmail(String emailAddress, User userToUpdate, Date expirationDate) throws TemplateException, IOException, AddressException {
         try {
@@ -156,10 +152,6 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     /**
      * Warns a user that someone tried to register a new account with their email address.
      *
-     * @param existingUser
-     * @throws TemplateException
-     * @throws IOException
-     * @throws AddressException
      */
     protected void doSendWarningEmail(User existingUser) throws TemplateException, IOException, AddressException {
         Translations translations = existingUser.getTranslations();
@@ -198,10 +190,8 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     /**
      * Generate an email verification token
      *
-     * @param emailAddress
      * @param userToUpdate   Optional, may be null
      * @param expirationDate Optional, may be null
-     * @return
      */
     public String generateToken(String emailAddress, User userToUpdate, Date expirationDate) {
         if (userToUpdate == null) {
@@ -241,9 +231,6 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     /**
      * Generate the URI for email verification
      *
-     * @param token
-     * @return
-     * @throws UnknownHostException
      */
     public URI generateEmailVerificationUrl(String token) throws UnknownHostException {
         UriComponentsBuilder builder = this.publicUrlService.getUriComponentsBuilder();
@@ -259,8 +246,6 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     /**
      * Verify an email address token for an existing user. Updates the user's email address with the one that was verified.
      *
-     * @param tokenString
-     * @return
      */
     public User updateUserEmailAddress(String tokenString) {
         Jws<Claims> token = this.parse(tokenString);
@@ -283,10 +268,6 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     /**
      * Verify an email address token and create a new disabled user with the verified email address.
      *
-     * @param tokenString
-     * @param newUser
-     * @return
-     * @throws ValidationException
      */
     public User publicRegisterNewUser(String tokenString, final User newUser) throws ValidationException {
         this.ensurePublicRegistrationEnabled();

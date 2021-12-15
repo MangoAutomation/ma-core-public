@@ -220,7 +220,6 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
      * Should only be called by EventManagerImpl. This method sends emails to all users and mailing lists
      * which have been configured to receive events of this level.
      *
-     * @param evt
      * @param addresses  A set of email addresses that will be notified of all events over a certain level
      * which is configured on each user or on a mailing list
      */

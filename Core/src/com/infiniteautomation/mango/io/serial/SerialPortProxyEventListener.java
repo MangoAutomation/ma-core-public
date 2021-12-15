@@ -10,8 +10,7 @@ package com.infiniteautomation.mango.io.serial;
 public interface SerialPortProxyEventListener {
 
 	/**
-	 * @param upstreamEvent
-	 */
+     */
 	public void serialEvent(SerialPortProxyEvent upstreamEvent);
 
 }

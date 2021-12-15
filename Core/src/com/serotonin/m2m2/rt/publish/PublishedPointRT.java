@@ -37,7 +37,6 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
     /**
      * Initialize by adding a data point listener and
      *   publishing the initial attributes
-     * @param safe
      */
     @Override
     public final synchronized void initialize(boolean safe) {

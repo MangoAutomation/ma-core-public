@@ -113,8 +113,6 @@ public class RunAsImpl implements RunAs {
     /**
      * Creates a new security context for the supplied user
      *
-     * @param user
-     * @return
      */
     private SecurityContext newSecurityContext(PermissionHolder user) {
         SecurityContext newContext = SecurityContextHolder.createEmptyContext();

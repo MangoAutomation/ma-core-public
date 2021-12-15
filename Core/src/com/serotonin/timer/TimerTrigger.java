@@ -57,8 +57,7 @@ abstract public class TimerTrigger {
 
     /**
      * Return the time of the next execution, or -1 if there isn't one.
-     * 
-     * @return
+     *
      */
     protected final long calculateNextExecutionTime() {
         long next = calculateNextExecutionTimeImpl();

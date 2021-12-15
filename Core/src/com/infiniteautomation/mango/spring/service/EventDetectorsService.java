@@ -39,11 +39,6 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     /**
      * Save a detector an optionally reload its source
      *
-     * @param vo
-     * @param restartSource
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
      */
     public AbstractEventDetectorVO insertAndReload(AbstractEventDetectorVO vo, boolean restartSource)
             throws PermissionException, ValidationException {
@@ -62,10 +57,6 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
      * Update and optionally restart the source
      *
      *
-     * @param existing
-     * @param vo
-     * @param restartSource
-     * @return
      */
     public AbstractEventDetectorVO updateAndReload(String existing, AbstractEventDetectorVO vo, boolean restartSource) {
         AbstractEventDetectorVO updated = update(get(existing), vo);

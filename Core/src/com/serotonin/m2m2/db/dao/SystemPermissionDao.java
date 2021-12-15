@@ -40,9 +40,6 @@ public class SystemPermissionDao extends BaseDao {
 
     /**
      * Update the permission
-     * @param permissionTypeName
-     * @param permission
-     * @return
      */
     public void insert(String permissionTypeName, MangoPermission permission) {
         MangoPermission toInsert = permissionService.findOrCreate(permission);
@@ -51,9 +48,6 @@ public class SystemPermissionDao extends BaseDao {
 
     /**
      * Update the permission
-     * @param permissionTypeName
-     * @param permission
-     * @return
      */
     public void update(String permissionTypeName, MangoPermission existing, MangoPermission permission) {
         if(!existing.equals(permission)) {

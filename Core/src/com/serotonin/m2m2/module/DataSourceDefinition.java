@@ -94,17 +94,12 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
 
     /**
      * Validate a new data source
-     * @param response
-     * @param ds
      */
     abstract public void validate(ProcessResult response, T ds);
 
     /**
      * Validate a data source about to be updated
      *  override as necessary
-     * @param response
-     * @param existing
-     * @param ds
      */
     public void validate(ProcessResult response, T existing, T ds) {
         validate(response, ds);
@@ -139,7 +134,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void savePreRelationalData(T existing, T vo) {
 
@@ -151,7 +145,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void saveRelationalData(T existing, T vo) {
 
@@ -161,7 +154,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * Delete any relational data for the data source.
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deleteRelationalData(T vo) {
 
@@ -171,7 +163,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * Delete any relational data for the data source.
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deletePostRelationalData(T vo) {
 
@@ -180,7 +171,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
     /**
      * Load in relational data for the data source
      *
-     * @param vo
      */
     public void loadRelationalData(T vo) {
 
@@ -189,18 +179,11 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
     /**
      * Validate a point locator, with access to the parent data point and data source both guaranteed to be non-null
      *
-     * @param response
-     * @param dpvo
-     * @param dsvo
      */
     abstract public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo);
 
     /**
      * Validate a point locator with access to a pre-existing point, when updating.
-     * @param response
-     * @param existing
-     * @param dpvo
-     * @param dsvo
      */
     public void validate(ProcessResult response, DataPointVO existing, DataPointVO dpvo, DataSourceVO dsvo) {
         validate(response, dpvo, dsvo);
@@ -210,7 +193,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
      * Save any relational data for this point locator i.e. script roles
      *
      * @param existing - null on inserts
-     * @param vo
      */
     public void saveRelationalData(DataPointVO existing, DataPointVO vo) {
 
@@ -218,7 +200,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
 
     /**
      * Delete any relational data for this point locator
-     * @param vo
      */
     public void deleteRelationalData(DataPointVO vo) {
 
@@ -226,7 +207,6 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
 
     /**
      * Load in relational data fort this point locator
-     * @param vo
      */
     public void loadRelationalData(DataPointVO vo) {
 

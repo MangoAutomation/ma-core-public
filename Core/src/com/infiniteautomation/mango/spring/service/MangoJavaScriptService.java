@@ -155,8 +155,6 @@ public class MangoJavaScriptService {
 
     /**
      * Validate a script with its parts
-     * @param vo
-     * @return
      */
     public ProcessResult validate(MangoJavaScript vo) {
         ProcessResult result = new ProcessResult();
@@ -182,8 +180,6 @@ public class MangoJavaScriptService {
 
     /**
      * Validate a script context
-     * @param context
-     * @param result
      */
     public void validateContext(List<ScriptContextVariable> context, ProcessResult result) {
         PermissionHolder user = Common.getUser();
@@ -220,8 +216,6 @@ public class MangoJavaScriptService {
 
     /**
      * Ensure the script is valid
-     * @param vo
-     * @throws ValidationException
      */
     public void ensureValid(MangoJavaScript vo) throws ValidationException {
         PermissionHolder user = Common.getUser();
@@ -233,10 +227,6 @@ public class MangoJavaScriptService {
 
     /**
      * Test a script
-     * @param vo
-     * @return
-     * @throws ValidationException
-     * @throws PermissionException
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, String noChangeKey) throws ValidationException, PermissionException {
         return testScript(vo, (result, holder) -> createValidationSetter(result), noChangeKey);
@@ -244,20 +234,12 @@ public class MangoJavaScriptService {
 
     /**
      * Test a script using the default no change key
-     * @param vo
-     * @return
-     * @throws ValidationException
-     * @throws PermissionException
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo) throws ValidationException, PermissionException {
         return testScript(vo, (result, holder) -> createValidationSetter(result), "eventHandlers.script.successUnchanged");
     }
 
     /**
-     * @param vo
-     * @param createSetter
-     * @param noChangeKey
-     * @return
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter, String noChangeKey) {
         PermissionHolder user = Common.getUser();
@@ -306,10 +288,6 @@ public class MangoJavaScriptService {
 
     /**
      * The preferred way to execute a script
-     * @param vo
-     * @return
-     * @throws ValidationException
-     * @throws PermissionException
      */
     public MangoJavaScriptResult executeScript(MangoJavaScript vo, ScriptPointValueSetter setter) throws ValidationException, PermissionException {
         PermissionHolder user = Common.getUser();
@@ -363,10 +341,6 @@ public class MangoJavaScriptService {
     /**
      * Compile a script to be run and add global bindings
      *
-     * @param script
-     * @param wrapInFunction
-     * @return
-     * @throws ScriptError
      */
     public CompiledScript compile(String script, boolean wrapInFunction) throws ScriptError {
         try {
@@ -411,7 +385,6 @@ public class MangoJavaScriptService {
 
     /**
      * Reset the engine scope of a script and initialize for running
-     * @param script
      * @param context - if provided points will be wrapped with script's setter (alternatively use script.addToContext()
      */
     public void initialize(CompiledMangoJavaScript script, Map<String, IDataPointValueSource> context) throws ScriptError {
@@ -494,11 +467,6 @@ public class MangoJavaScriptService {
     /**
      * Reset result and execute script for any type of result
      *
-     * @param script
-     * @param runtime
-     * @param timestamp
-     * @throws ScriptError
-     * @throws ScriptPermissionsException
      */
     public void execute(CompiledMangoJavaScript script, long runtime, long timestamp) throws ScriptError, ScriptPermissionsException {
         try {
@@ -538,13 +506,6 @@ public class MangoJavaScriptService {
 
     /**
      * Reset the result and execute for PointValueTime result
-     * @param script
-     * @param runtime
-     * @param timestamp
-     * @param resultDataTypeId
-     * @throws ScriptError
-     * @throws ResultTypeException
-     * @throws ScriptPermissionsException
      */
     public void execute(CompiledMangoJavaScript script, long runtime, long timestamp, Integer resultDataTypeId) throws ScriptError, ResultTypeException, ScriptPermissionsException {
         try {
@@ -588,8 +549,6 @@ public class MangoJavaScriptService {
 
     /**
      * Create a dumb setter that tracks actions but does not actually set anything
-     * @param result
-     * @return
      */
     public ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result) {
         PermissionHolder permissions = Common.getUser();
@@ -627,7 +586,6 @@ public class MangoJavaScriptService {
     /* Utilities for Script Execution */
     /**
      * Create a new script engine
-     * @return
      */
     public ScriptEngine newEngine() {
         if (nashornFactory == null || nashornEngineDefinition == null) {
@@ -641,10 +599,6 @@ public class MangoJavaScriptService {
 
     /**
      * Wrap a data point for insertion into script context
-     * @param engine
-     * @param point
-     * @param setter
-     * @return
      */
     public AbstractPointWrapper wrapPoint(ScriptEngine engine, IDataPointValueSource point,
             ScriptPointValueSetter setter) {
@@ -666,7 +620,6 @@ public class MangoJavaScriptService {
 
     /**
      * Get all Module defined functions
-     * @return
      */
     public String getGlobalFunctions() {
         synchronized(globalFunctionsLock) {
@@ -697,10 +650,6 @@ public class MangoJavaScriptService {
      *
      * Only to be called while script is not executing.
      *
-     * @param engine
-     * @param varName
-     * @param dprt
-     * @param setCallback
      */
     @SuppressWarnings("unchecked")
     public void addToContext(ScriptEngine engine, String varName, DataPointRT dprt, ScriptPointValueSetter setCallback) {
@@ -729,8 +678,6 @@ public class MangoJavaScriptService {
      * Remove a data point from the engine scope bindings.
      *
      * Only to be called while the script is not executing.
-     * @param engine
-     * @param varName
      */
     @SuppressWarnings("unchecked")
     public void removeFromContext(ScriptEngine engine, String varName) {
@@ -751,10 +698,6 @@ public class MangoJavaScriptService {
 
     /**
      * Coerce an object into a DataValue
-     * @param input
-     * @param toDataTypeId
-     * @return
-     * @throws ResultTypeException
      */
     public DataValue coerce(Object input, int toDataTypeId) throws ResultTypeException {
         DataValue value;
@@ -841,9 +784,6 @@ public class MangoJavaScriptService {
         private final boolean closeExtendedLog;
 
         /**
-         * @param id
-         * @param level
-         * @param out
          */
         public ScriptLogExtender(String id, LogLevel level, PrintWriter out, ScriptLog logger, boolean closeExtendedLog) {
             super(id, level, out);
@@ -904,7 +844,6 @@ public class MangoJavaScriptService {
 
         /**
          * Get the file currently being written to
-         * @return
          */
         @Override
         public File getFile(){
@@ -1151,7 +1090,6 @@ public class MangoJavaScriptService {
 
         /**
          * List all the files
-         * @return
          */
         @Override
         public File[] getFiles(){

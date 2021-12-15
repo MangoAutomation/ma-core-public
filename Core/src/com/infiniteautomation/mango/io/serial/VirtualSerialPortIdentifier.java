@@ -16,9 +16,7 @@ public class VirtualSerialPortIdentifier extends SerialPortIdentifier{
 	private VirtualSerialPortConfig config;
 	
 	/**
-	 * @param name
-	 * @param type
-	 */
+     */
 	public VirtualSerialPortIdentifier(VirtualSerialPortConfig config) {
 		super(config.getPortName(), config.getType());
 		this.config = config;

@@ -15,8 +15,6 @@ import com.serotonin.m2m2.view.stats.IValueTime;
 public class NoStatisticsQuantizer extends AbstractPointValueTimeQuantizer<NoStatisticsGenerator>{
 
     /**
-     * @param bucketCalculator
-     * @param callback
      */
     public NoStatisticsQuantizer(BucketCalculator bucketCalculator,
             StatisticsGeneratorQuantizerCallback<NoStatisticsGenerator> callback) {

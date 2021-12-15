@@ -197,10 +197,6 @@ public class UserEventsTest extends MangoTestBase {
 
     /**
      * Check the number raised and if there are duplicates
-     * @param listeners
-     * @param action
-     * @param events
-     * @throws InterruptedException
      */
     private void assertEvents(List<MockUserEventListener> listeners, EventAction action, List<MockEventTypeTime> events) throws InterruptedException {
 
@@ -318,8 +314,6 @@ public class UserEventsTest extends MangoTestBase {
         long time;
 
         /**
-         * @param type
-         * @param time
          */
         public MockEventTypeTime(MockEventType type, long time) {
             this.type = type;

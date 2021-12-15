@@ -37,7 +37,6 @@ public class SystemSettingsImporter extends Importer {
     private final RoleService roleService;
 
     /**
-     * @param json
      */
     public SystemSettingsImporter(JsonObject json, PermissionHolder user, SystemPermissionService permissionService, RoleService roleService) {
         super(json);

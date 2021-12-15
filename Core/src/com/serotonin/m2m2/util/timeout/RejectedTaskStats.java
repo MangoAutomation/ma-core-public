@@ -35,9 +35,7 @@ public 	class RejectedTaskStats {
 	
 	/**
 	 * Update our stats and inform if this is a loggable event
-	 * @param reason
-	 * @return
-	 */
+     */
 	public boolean update(RejectedTaskReason reason){
 		long now = Common.timer.currentTimeMillis();
 		totalRejections++;

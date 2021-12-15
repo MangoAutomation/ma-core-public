@@ -89,12 +89,6 @@ public class Module {
     /**
      * Module constructor. Should not be used by client code.
      *
-     * @param name
-     * @param version
-     * @param buildDate
-     * @param description
-     * @param vendor
-     * @param vendorUrl
      */
     public Module(String name, Version version, Date buildDate, TranslatableMessage description, String vendor, String vendorUrl,
             String dependencies, int loadOrder, boolean signed) {
@@ -111,7 +105,6 @@ public class Module {
 
     /**
      * Loads all the module element definition classes and uses ConditionalDefinition to filter them. Does not return any definitions from parent classloaders.
-     * @param classLoader
      */
     public void loadDefinitions(ClassLoader classLoader) {
         try {
@@ -177,7 +170,6 @@ public class Module {
      * of a schema definition
      *
      * @return true if module was installed or upgraded
-     * @throws Exception
      */
     public boolean upgrade(InstalledModule previous) throws Exception {
         if (previous != null) {
@@ -213,7 +205,6 @@ public class Module {
     /**
      * Called after the database is initialized, but before the event and runtime managers. Should not be
      * used by client code.
-     * @return true if module is new
      */
     public void postDatabase() {
         for (ModuleElementDefinition df : definitions)

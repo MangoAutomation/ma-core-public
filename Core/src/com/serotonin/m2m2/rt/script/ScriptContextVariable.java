@@ -40,10 +40,7 @@ public class ScriptContextVariable implements Serializable{
 	private boolean contextUpdate; //Do we update the context?
 	
 	/**
-	 * @param dataPointId
-	 * @param variableName
-	 * @param contextUpdate
-	 */
+     */
 	public ScriptContextVariable(int dataPointId, String variableName,
 			boolean contextUpdate) {
 		super();
@@ -130,10 +127,7 @@ public class ScriptContextVariable implements Serializable{
 
     /**
      * Read in context, 
-     * @param json
-     * @param context
      * @return if my XID is in the context, return the name it has to map into the VO otherwise return null
-     * @throws JsonException
      */
     public static String jsonReadVarContext(JsonObject json, List<ScriptContextVariable> context, boolean isContextUpdate) throws JsonException {
     	JsonArray jsonContext = json.getJsonArray("context");

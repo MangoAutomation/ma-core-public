@@ -46,7 +46,6 @@ public interface ProgressiveTaskListener {
     /**
      * Notification that the task was rejected from the pool, note 
      * by this point it has already been registered with the rejection handler
-     * @param reason
      */
     void taskRejected(RejectedTaskReason reason);
 }

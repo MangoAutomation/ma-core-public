@@ -62,7 +62,6 @@ public class ConfigurationExportData {
     public static final String PERMISSIONS = "permissions";
     /**
      * Get a list of all available export elements
-     * @return
      */
     private static String[] getAllExportNames() {
         List<String> names = new ArrayList<>();
@@ -90,7 +89,6 @@ public class ConfigurationExportData {
 
     /**
      * Get a list of pairs of i18n property and export names for all export items
-     * @return
      */
     public static List<StringStringPair> getAllExportDescriptions(){
         List<StringStringPair> elements = new ArrayList<StringStringPair>();
@@ -121,7 +119,6 @@ public class ConfigurationExportData {
      * Get a map of desired export data.
      *
      * @param exportElements if null full export is returned
-     * @return
      */
     public static Map<String, Object> createExportDataMap(String[] exportElements){
         if(exportElements == null)

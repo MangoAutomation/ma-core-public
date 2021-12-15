@@ -24,7 +24,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
 
     /**
      * Name of the column in the event detectors into which to store the source id
-     * @return
      */
     abstract public Field<Integer> getSourceIdColumnName();
 
@@ -32,7 +31,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * Name of the type of Source [DATA_POINT, DATA_SOURCE, SYSTEM, ...]
      * used to group detectors by source of event
      *
-     * @return
      */
     abstract public String getSourceTypeName();
 
@@ -55,7 +53,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
     /**
      * Create and return an instance of the event detector with its source id for use to look up
      * any additional information about the source
-     * @param sourceId
      * @return a new instance of the event detector.
      */
     abstract protected T createEventDetectorVO(int sourceId);
@@ -63,25 +60,18 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
     /**
      * Reload any runtime data for this detector's source as the
      * detector was updated
-     * @param vo
      */
     abstract public void restartSource(T vo);
 
     /**
      * Can this user create this detector?
      *
-     * @param user
-     * @param vo
-     * @return
      */
     public abstract boolean hasCreatePermission(PermissionHolder user, T vo);
 
     /**
      * Can this user edit this detector?
      *
-     * @param user
-     * @param vo
-     * @return
      */
     public boolean hasEditPermission(PermissionHolder user, T vo) {
         return permissionService.hasPermission(user, vo.getEditPermission());
@@ -90,9 +80,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
     /**
      * Can this user view this detector?
      *
-     * @param user
-     * @param vo
-     * @return
      */
     public boolean hasReadPermission(PermissionHolder user, T vo) {
         return permissionService.hasPermission(user, vo.getReadPermission());
@@ -100,17 +87,12 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
 
     /**
      * Validate a new event detector
-     * @param response
-     * @param ds
      */
     abstract public void validate(ProcessResult response, T ds);
 
     /**
      * Validate an event detector that is about to be updated
      *  override as necessary
-     * @param response
-     * @param existing
-     * @param ds
      */
     public void validate(ProcessResult response, T existing, T ds) {
         validate(response, ds);
@@ -132,7 +114,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void savePreRelationalData(T existing, T vo) {
 
@@ -144,7 +125,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * NOTE: this logic will be executed in a database transaction.
      *
      * @param existing - null on insert
-     * @param vo
      */
     public void saveRelationalData(T existing, T vo) {
 
@@ -154,7 +134,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * Delete any relational data
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deleteRelationalData(T vo) {
 
@@ -164,7 +143,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
      * Delete any relational data
      *
      * NOTE: this logic will be executed in a database transaction.
-     * @param vo
      */
     public void deletePostRelationalData(T vo) {
 
@@ -173,7 +151,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO>
     /**
      * Load in relational data for the data source
      *
-     * @param vo
      */
     public void loadRelationalData(T vo) {
 

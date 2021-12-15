@@ -17,36 +17,28 @@ public interface MessageTransport extends ILifecycle {
 
     /**
      * Does this transport support sending this type of message?
-     * @param type
-     * @return
      */
     public boolean supportsSending(Message type);
 
     /**
      * Does this transport support receiving this type of message?
-     * @param type
-     * @return
      */
     public boolean supportsReceiving(Message type);
 
     /**
      * Send a message, must be done in separate thread to not
      *  slow down Core processing
-     * @param message
-     * @return
      */
     public CompletionStage<SentMessage> sendMessage(Message message);
 
 
     /**
      * Add listener for received messages
-     * @param listener
      */
     public void addListener(MessageReceivedListener listener);
 
     /**
      * Remove a listener
-     * @param listener
      */
     public void removeListener(MessageReceivedListener listener);
 }

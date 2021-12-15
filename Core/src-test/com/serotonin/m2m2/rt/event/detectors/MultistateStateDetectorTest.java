@@ -116,8 +116,6 @@ public class MultistateStateDetectorTest extends MangoTestBase {
 
     /**
      * Create a detector for state 1
-     * @param dataPointVO
-     * @return
      */
     protected MultistateStateDetectorVO createEventDetector(DataPointVO dataPointVO) {
         PointEventDetectorDefinition<MultistateStateDetectorVO> multistateDef = ModuleRegistry.getEventDetectorDefinition(MultistateStateEventDetectorDefinition.TYPE_NAME);

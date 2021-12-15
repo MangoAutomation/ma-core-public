@@ -45,7 +45,6 @@ public class ImportItem {
     }
 
     /**
-     * @return
      */
     public EmportDefinition getEmportDefinition() {
         return emportDefinition;

@@ -38,7 +38,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static AuditEventDao getInstance() {
         return springInstance.get(() -> {
@@ -104,8 +103,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
     /**
      * Get the audit trail in time ascending order for this object
      *
-     * @param id
-     * @return
      */
     public List<AuditEventInstanceVO> getAllForObject(String typeName, int id) {
         return getJoinedSelectQuery()
@@ -116,7 +113,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
 
     /**
      * Purge all Audit Events
-     * @return
      */
     public int purgeAllEvents(){
         return create.deleteFrom(table).execute();
@@ -124,8 +120,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
 
     /**
      * Purge Audit Events Before a given time
-     * @param time
-     * @return
      */
     public int purgeEventsBefore(final long time) {
         return create.deleteFrom(table)
@@ -135,8 +129,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditR
 
     /**
      * Purge Audit Events Before a given time with a given alarmLevel
-     * @param time
-     * @return
      */
     public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {
         return create.deleteFrom(table)

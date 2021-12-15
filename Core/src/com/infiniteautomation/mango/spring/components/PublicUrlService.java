@@ -38,8 +38,6 @@ public class PublicUrlService {
      * <li>InetAddress.getLocalHost()</li>
      * <li>Hardcoded "localhost"</li>
      * </ol>
-     * @param skipBaseUrl
-     * @return
      */
     public String getHostname() {
         return this.getHostname(false);
@@ -77,7 +75,6 @@ public class PublicUrlService {
      * <li>The "publiclyResolvableBaseUrl" system setting</li>
      * <li>Generated from the hostname and SSL/port settings</li>
      * </ol>
-     * @return
      */
     public UriComponentsBuilder getUriComponentsBuilder() {
         return this.getUriComponentsBuilder(null);
@@ -91,8 +88,6 @@ public class PublicUrlService {
      * <li>Generated from the hostname and SSL/port settings</li>
      * </ol>
      *
-     * @param fallback
-     * @return
      */
     public UriComponentsBuilder getUriComponentsBuilder(UriComponentsBuilder fallback) {
         UriComponentsBuilder builder;

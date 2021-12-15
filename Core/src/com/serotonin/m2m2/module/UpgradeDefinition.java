@@ -37,8 +37,6 @@ public abstract class UpgradeDefinition extends ModuleElementDefinition {
      *
      * One can expect the ejt field to be set and ready for use on the database at the time of this call
      *
-     * @param previousVersion
-     * @param current
      */
     public abstract void upgrade(Version previousVersion, Version current) throws Exception;
 

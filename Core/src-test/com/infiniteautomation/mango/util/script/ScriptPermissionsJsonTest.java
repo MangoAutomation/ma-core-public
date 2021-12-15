@@ -92,8 +92,6 @@ public class ScriptPermissionsJsonTest extends MangoTestBase {
     }
 
     /**
-     * @param toSerialize
-     * @return
      */
     private ScriptPermissions convert(Object toSerialize) {
         try {

@@ -40,7 +40,6 @@ public class SystemSettingsEventDispatcher {
     /**
      * Add the listener, subscribing to the keys returned from {@link com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#getKeys() getKeys()}
      * Note: you can also simply declare your SystemSettingsListener as a Spring bean, it will be automatically added to the dispatcher (and removed when destroyed).
-     * @param l
      */
     public void addListener(SystemSettingsListener l) {
         //Add the listener for all supported keys
@@ -59,7 +58,6 @@ public class SystemSettingsEventDispatcher {
 
     /**
      * Remove the listener
-     * @param l
      */
     public void removeListener(SystemSettingsListener l) {
         //Remove the listener for any keys
@@ -76,9 +74,6 @@ public class SystemSettingsEventDispatcher {
 
     /**
      * Setting was saved
-     * @param key
-     * @param oldValue
-     * @param newValue
      */
     public void fireSystemSettingSaved(String key, String oldValue, String newValue) {
         Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, null);
@@ -89,9 +84,6 @@ public class SystemSettingsEventDispatcher {
 
     /**
      * Setting was removed
-     * @param key
-     * @param lastValue
-     * @param defaultValue
      */
     public void fireSystemSettingRemoved(String key, String lastValue, String defaultValue) {
         Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, null);

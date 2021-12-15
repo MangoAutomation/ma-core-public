@@ -49,36 +49,27 @@ public interface ModuleNotificationListener {
 	
 	/**
 	 * When a module is downloaded from the store
-	 * @param name
-	 * @param version
-	 */
+     */
 	public void moduleDownloaded(String name, String version);
 	
 	/**
 	 * When a module fails to download from the store
-	 * @param name
-	 * @param version
-	 * @param reason
-	 */
+     */
 	public void moduleDownloadFailed(String name, String version, String reason);
 	
 	/**
 	 * When an upgrade is available
-	 * @param name
-	 * @param version
-	 */
+     */
 	public void moduleUpgradeAvailable(String name, String version);
 
 	/**
 	 * When the upgrade process state changes
-	 * @param stage
-	 */
+     */
 	public void upgradeStateChanged(UpgradeState stage);
 
 	/**
 	 * When the upgrade process fails
-	 * @param error
-	 */
+     */
 	public void upgradeError(String error);
 	
 	/**
@@ -88,9 +79,7 @@ public interface ModuleNotificationListener {
 	
 	/**
 	 * New Module Available from Store
-	 * @param name
-	 * @param version
-	 */
+     */
 	public void newModuleAvailable(String name, String version);
 
 }

@@ -59,8 +59,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 
 	/**
 	 * Task was rejected, track its statistics and provide logging
-	 * @param reason
-	 */
+     */
 	public void rejectedTask(RejectedTaskReason reason){
 		
 		String id = reason.getTask().getId();
@@ -112,8 +111,7 @@ public class TaskRejectionHandler extends TimerTask implements RejectedExecution
 	
 	/**
 	 * Get a list of the current rejection stats
-	 * @return
-	 */
+     */
 	public List<RejectedTaskStats> getRejectedTaskStats(){
 		List<RejectedTaskStats> all = new ArrayList<RejectedTaskStats>(this.statsMap.size());
 		Iterator<String> it = this.statsMap.keySet().iterator();

@@ -104,11 +104,8 @@ public class DiskUsageMonitoringService extends PollingService {
     private final DatabaseProxy databaseProxy;
 
     /**
-     * @param scheduledExecutor
      * @param enabled - enable/disable service polling
      * @param period - how often to recalculate the usage
-     * @param definitions
-     * @param databaseProxy
      */
     @Autowired
     private DiskUsageMonitoringService(ExecutorService executor,
@@ -263,7 +260,6 @@ public class DiskUsageMonitoringService extends PollingService {
 
     /**
      * Get the size of a directory
-     * @return
      */
     private long getSize(File directory) {
         if(!directory.exists()) {
@@ -279,7 +275,6 @@ public class DiskUsageMonitoringService extends PollingService {
 
     /**
      * Get the SQL database size, limit how often
-     * @return
      */
     private Double getSqlDatabaseSizeMB() {
         if (env.getProperty("internal.monitor.diskUsage.monitorSql", Boolean.class, false)) {
@@ -302,7 +297,6 @@ public class DiskUsageMonitoringService extends PollingService {
 
     /**
      * Get the NoSQ database size, limit how often
-     * @return
      */
     private Double getNoSqlDatabaseSizeMB() {
         try {
@@ -324,8 +318,6 @@ public class DiskUsageMonitoringService extends PollingService {
 
     /**
      * Convert bytes to gibibytes
-     * @param bytes
-     * @return
      */
     private double getGiB(long bytes) {
         return bytes/ GIB;

@@ -105,8 +105,6 @@ public abstract class JwtSignerVerifier<T> {
 
     /**
      * Parses the token and verifies it's signature and expiration. Does NOT verify any other claims!
-     * @param token
-     * @return
      */
     public final Jws<Claims> parse(String token) {
         return parser.parseClaimsJws(token);
@@ -114,8 +112,6 @@ public abstract class JwtSignerVerifier<T> {
 
     /**
      * Parses the token and verifies it's signature, expiration and claims.
-     * @param token
-     * @return
      */
     public final T verify(String token) {
         return this.verify(this.parse(token));
@@ -123,8 +119,6 @@ public abstract class JwtSignerVerifier<T> {
 
     /**
      * Verify a parsed token's claims (NOT expiration).
-     * @param token
-     * @return
      */
     public final T verify(Jws<Claims> token) {
         return this.verifyClaims(token);
@@ -133,8 +127,6 @@ public abstract class JwtSignerVerifier<T> {
     /**
      * Throws IncorrectClaimException if token contains a claim with the specified name
      *
-     * @param token
-     * @param claimName
      */
     protected void verifyNoClaim(Jws<Claims> token, String claimName) {
         JwsHeader<?> header = token.getHeader();
@@ -167,9 +159,6 @@ public abstract class JwtSignerVerifier<T> {
     /**
      * Verifies that the token contains the specified claim and that it matches the expected value.
      *
-     * @param token
-     * @param expectedClaimName
-     * @param expectedClaimValue
      */
     protected void verifyClaim(Jws<Claims> token, String expectedClaimName, Object expectedClaimValue) {
         JwsHeader<?> header = token.getHeader();

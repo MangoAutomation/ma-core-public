@@ -87,14 +87,6 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     /**
      * Create the UsersService
      *
-     * @param dao
-     * @param dependencies
-     * @param systemSettings
-     * @param passwordService
-     * @param editSelfPermission
-     * @param changeOwnUsernamePermission
-     * @param createPermission
-     * @param eventPublisher
      * @param databaseProxy - added as a dependency to ensure the database is fully created before initializing the cache
      *                         as the admin user is created in the PostConstruct method of that bean
      */
@@ -692,7 +684,6 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     /**
      * Get all enabled users
      *  - Superadmin access only
-     * @return
      */
     public List<User> getEnabledUsers() {
         permissionService.ensureAdminRole(Common.getUser());

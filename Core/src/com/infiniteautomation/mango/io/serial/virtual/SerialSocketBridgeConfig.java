@@ -27,9 +27,6 @@ public class SerialSocketBridgeConfig extends VirtualSerialPortConfig{
 
     /**
      *
-     * @param name
-     * @param address
-     * @param port
      * @param timeout (ms)
      */
     public SerialSocketBridgeConfig(String xid, String name, String address, int port, int timeout){

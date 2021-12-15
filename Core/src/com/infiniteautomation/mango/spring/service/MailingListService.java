@@ -65,10 +65,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     /**
      *  Get any addresses for mailing lists that are mailed on alarm level up to and including 'alarmLevel'
      *
-     * @param alarmLevel
      * @param time of gathering addresses used to determine if a list is inactive
      * @param types for types of entries to return
-     * @return
      */
     public Set<String> getAlarmAddresses(AlarmLevels alarmLevel, long time, RecipientListEntryType... types) {
         PermissionHolder user = Common.getUser();
@@ -94,10 +92,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      * Get a list of all active recipients for the desired types of entries while also
      *  populating the entries of the list.
      *
-     * @param recipients
-     * @param sendTime
-     * @param types
-     * @return
      */
     public Set<String> getActiveRecipients(List<MailingListRecipient> recipients, long sendTime, RecipientListEntryType... types){
         PermissionHolder user = Common.getUser();
@@ -156,9 +150,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     /**
      * Can this user edit this mailing list
      *
-     * @param user
-     * @param item
-     * @return
      */
     @Override
     public boolean hasEditPermission(PermissionHolder user, MailingList item) {
@@ -168,9 +159,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     /**
      * All users can read mailing lists, however you must have READ permission to view the addresses
      *
-     * @param user
-     * @param item
-     * @return
      */
     @Override
     public boolean hasReadPermission(PermissionHolder user, MailingList item) {
@@ -179,9 +167,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
 
     /**
      * Can this user view the recipients on this list?
-     * @param user
-     * @param item
-     * @return
      */
     public boolean hasRecipientViewPermission(PermissionHolder user, MailingList item) {
         if(permissionService.hasPermission(user, item.getReadPermission())) {
@@ -216,8 +201,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
 
     /**
      * Common validation logic for insert/update of Mailing lists
-     * @param vo
-     * @return
      */
     protected ProcessResult commonValidation(MailingList vo) {
         ProcessResult result = super.validate(vo);
@@ -245,11 +228,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
 
     /**
      * For internal use to validate a mailing list
-     * @param list
-     * @param prefix
-     * @param recipient
-     * @param result
-     * @param acceptableTypes
      */
     protected void validateRecipient(MailingList list, String prefix, MailingListRecipient recipient, ProcessResult result, RecipientListEntryType... acceptableTypes) {
         if(!ArrayUtils.contains(acceptableTypes, recipient.getRecipientType())) {
@@ -311,8 +289,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     /**
      * Validate a recipient
      * @param prefix - recipients[1] or inactiveRecipients[2]
-     * @param recipient
-     * @param result
      * @param acceptableTypes - allowed types
      */
     public void validateRecipient(String prefix, MailingListRecipient recipient, ProcessResult result, RecipientListEntryType... acceptableTypes) {
@@ -320,8 +296,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     }
 
     /**
-     * @param listIds
-     * @param list
      */
     private void recursivelyCheckMailingListEntries(Set<Integer> listIds, MailingList list, String prefix, ProcessResult result) {
         for(MailingListRecipient recipient : list.getEntries()) {
@@ -344,7 +318,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
 
     /**
      * Keep our cache up to date by evicting changed roles
-     * @param event
      */
     @EventListener
     protected void handleMailingListEvent(DaoEvent<? extends MailingList> event) {
@@ -367,8 +340,6 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     public static class MailingListUtility {
         /**
          * Get the interval at this time based on the server timezone
-         * @param time
-         * @return
          */
         public static int getIntervalIdAt(long time) {
             Instant i = Instant.ofEpochMilli(time);

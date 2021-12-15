@@ -17,8 +17,6 @@ public class WorkItemInfo {
     public WorkItemInfo(){ }
     
     /**
-     * @param canonincalClassname
-     * @param description
      */
     public WorkItemInfo(String canonincalClassname, String description, String priority) {
         super();

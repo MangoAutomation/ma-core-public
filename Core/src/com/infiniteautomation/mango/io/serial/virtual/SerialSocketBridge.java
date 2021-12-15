@@ -35,9 +35,6 @@ public class SerialSocketBridge extends SerialPortProxy{
 	
 	/**
 	 * 
-	 * @param id
-	 * @param address
-	 * @param port
 	 * @param timeout (in ms)
 	 */
 	SerialSocketBridge(SerialPortIdentifier id, String address, int port, int timeout) {

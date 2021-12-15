@@ -64,7 +64,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static PublishedPointDao getInstance() {
         return springInstance.get();
@@ -177,8 +176,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     /**
      * Get the published points for a given publisher.
      *  - NOTE this returns both enabled and disabled points
-     * @param publisherId
-     * @return
      */
     public List<PublishedPointVO> getPublishedPoints(int publisherId) {
         return getJoinedSelectQuery()
@@ -188,8 +185,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Get only the enabled points for a publisher
-     * @param publisherId
-     * @return
      */
     public List<PublishedPointVO> getEnabledPublishedPoints(int publisherId) {
         return getJoinedSelectQuery()
@@ -199,8 +194,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Replace points for a given publisher
-     * @param id
-     * @param pointVos
      */
     public void replacePoints(int id, List<PublishedPointVO> pointVos) {
         doInTransaction(txStatus -> {
@@ -213,7 +206,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Count the points for a type of publisher (used for metrics reporting)
-     * @return
      */
     public  List<PublisherPointsUsageStatistics> getUsage() {
         Field<Integer> count = DSL.count(table.id);
@@ -262,8 +254,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Is a published point enabled, returns false if point is disabled or DNE.
-     * @param id
-     * @return
      */
     public boolean isEnabled(int id) {
         String enabled = create.select(table.enabled)
@@ -276,8 +266,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
 
     /**
      * Publish a notification of a runtime state change
-     * @param vo
-     * @param state
      */
     public void notifyStateChanged(PublishedPointVO vo, ILifecycleState state) {
         eventPublisher.publishEvent(new StateChangeEvent<>(this, state, vo));
@@ -286,7 +274,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     /**
      * Send a notification when a data point has cascade deleted
      *  a running published point
-     * @param vo
      */
     public void notifyPointDeleted(PublishedPointVO vo) {
         publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));

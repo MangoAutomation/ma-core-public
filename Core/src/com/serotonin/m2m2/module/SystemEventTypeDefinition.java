@@ -51,23 +51,18 @@ abstract public class SystemEventTypeDefinition extends ModuleElementDefinition 
     
     /**
      * Does this event type use typeref1?
-     * @return
      */
     abstract public boolean supportsReferenceId1();
     
     /**
      * Does this event type use typeref2?
-     * @return
      */
     abstract public boolean supportsReferenceId2();
     
     /**
      * If this event type support reference id 1, return a list of the possible event types 
      * for all the subtype
-     * 
-     * @param user
-     * @param subtype
-     * @return
+     *
      */
     public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user, String subtype) { 
         throw new UnsupportedOperationException("This event type does not suport referenceId1");
@@ -76,11 +71,7 @@ abstract public class SystemEventTypeDefinition extends ModuleElementDefinition 
     /**
      * If this event type support reference id 1, return a list of the possible event types 
      * for all the reference id 1s
-     * 
-     * @param user
-     * @param subtype
-     * @param ref1
-     * @return
+     *
      */
     public List<EventTypeVO> generatePossibleEventTypesWithReferenceId2(PermissionHolder user, String subtype, int ref1) { 
         throw new UnsupportedOperationException("This event type does not suport referenceId2");

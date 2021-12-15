@@ -22,24 +22,20 @@ abstract public interface MailingListRecipient extends Serializable, JsonSeriali
 
     /**
      * Return the type of recipient
-     * @return
      */
     abstract public RecipientListEntryType getRecipientType();
 
     /**
      * For reference types this will return the referenced VO's id
-     * @return
      */
     abstract public int getReferenceId();
 
     /**
      * For raw types this will return the address to use
-     * @return
      */
     abstract public String getReferenceAddress();
 
     /**
-     * @throws JsonException
      */
     @Override
     default public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {

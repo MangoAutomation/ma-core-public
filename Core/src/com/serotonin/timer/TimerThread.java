@@ -76,9 +76,7 @@ class TimerThread extends Thread {
     
 	/**
 	 * Override as necessary
-	 * @param task
-	 * @param e
-	 */
+     */
 	void taskRejected(long executionTime, TimerTask task, RejectedExecutionException e) {
 		task.rejectedAsDelegate(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, executionTime, task, this.executorService));
 	}

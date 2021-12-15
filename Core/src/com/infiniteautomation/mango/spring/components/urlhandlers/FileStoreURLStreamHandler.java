@@ -40,8 +40,6 @@ public class FileStoreURLStreamHandler extends URLStreamHandler {
     /**
      * Prevents DNS resolution of hostnames when calculating the hashcode. Note: This is not synchronized, unlike the super method.
      *
-     * @param u
-     * @return
      */
     @Override
     protected InetAddress getHostAddress(URL u) {

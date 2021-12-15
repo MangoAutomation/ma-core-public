@@ -96,8 +96,6 @@ public class ModuleRegistry {
 
     /**
      * Modules that could not be loaded are added here, only add one at a time
-     * @param module
-     * @return
      */
     public static void addUnloadedModule(Module module){
         if(!UNLOADED_MODULES.contains(module))
@@ -110,8 +108,6 @@ public class ModuleRegistry {
 
     /**
      * Add the missing dependency
-     * @param moduleName
-     * @param version
      */
     public static void addMissingDependency(String moduleName, String version){
         MISSING_DEPENDENCIES.put(moduleName, version);
@@ -121,7 +117,6 @@ public class ModuleRegistry {
      * List all missing dependencies
      *
      * Users must not modify this list.
-     * @return
      */
     public static Map<String, String> getMissingDependencies(){
         return MISSING_DEPENDENCIES;
@@ -303,8 +298,6 @@ public class ModuleRegistry {
 
     /**
      * Get based on definition type name
-     * @param type
-     * @return
      */
     @SuppressWarnings("unchecked")
     public static <T extends EventDetectorDefinition<?>> T getEventDetectorDefinition(String type) {
@@ -506,8 +499,6 @@ public class ModuleRegistry {
      *  It is preferred to go through the FileStoreDao.getInstance().getfileStoreDefinition method
      *  as that will also resolve any user defined filestores with that file store name. This is
      *  an acceptable method to call in a module if the module doesn't permit use of custom filestores.
-     * @param name
-     * @return
      */
     public static FileStoreDefinition getFileStoreDefinition(String name){
         ensureFileStoreDefinitions();

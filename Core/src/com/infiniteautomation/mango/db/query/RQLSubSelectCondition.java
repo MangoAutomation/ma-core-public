@@ -18,9 +18,6 @@ public interface RQLSubSelectCondition {
     /**
      * Create a condition for the source table using an AST node for this operation.
      *
-     * @param operation
-     * @param node
-     * @return
      */
     Condition createCondition(RQLOperation operation, ASTNode node);
 }

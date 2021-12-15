@@ -58,13 +58,11 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
 
     /**
      * Get the message of the event
-     * @return
      */
     abstract protected TranslatableMessage getMessage();
 
     /**
      * Is my event currently active?
-     * @return
      */
     public abstract boolean isEventActive();
 

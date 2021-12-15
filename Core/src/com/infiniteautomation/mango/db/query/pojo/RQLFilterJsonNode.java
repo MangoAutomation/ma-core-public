@@ -20,7 +20,6 @@ import net.jazdw.rql.parser.ASTNode;
 public class RQLFilterJsonNode extends RQLFilter<JsonNode> {
 
     /**
-     * @param node
      */
     public RQLFilterJsonNode(ASTNode node) {
         super(node, null);

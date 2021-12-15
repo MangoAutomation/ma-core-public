@@ -200,7 +200,6 @@ public class MailingListDao extends AbstractVoDao<MailingList, MailingListsRecor
     /**
      * Clean a list of recipients by removing any entries with dead references,
      *  i.e. a user was deleted while this list was serialized in the database
-     * @param list
      */
     public void cleanRecipientList(List<MailingListRecipient> list) {
         if(list == null)

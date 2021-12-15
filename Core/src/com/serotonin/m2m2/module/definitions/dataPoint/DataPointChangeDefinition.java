@@ -20,7 +20,6 @@ public abstract class DataPointChangeDefinition extends ModuleElementDefinition 
 
     /**
      * Pre insert of point
-     * @param vo
      */
     public void preInsert(DataPointVO vo) { }
 
@@ -40,25 +39,21 @@ public abstract class DataPointChangeDefinition extends ModuleElementDefinition 
 
     /**
      * Pre update of point
-     * @param vo
      */
     public void preUpdate(DataPointVO vo) { }
 
     /**
      * Post update of point
-     * @param vo
      */
     public void postUpdate(DataPointVO vo) { }
 
     /**
      * Pre delete of point
-     * @param vo
      */
     public void preDelete(DataPointVO vo) { }
 
     /**
      * Post delete of point
-     * @param vo
      */
     public void postDelete(DataPointVO vo) { }
 

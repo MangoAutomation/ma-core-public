@@ -52,8 +52,6 @@ public class MangoUserDetailsService implements UserDetailsService {
     /**
      * Create a set of Granted Authorities by parsing a set of roles
      *
-     * @param roles
-     * @return
      */
     public static Set<GrantedAuthority> getGrantedAuthorities(Set<Role> roles) {
         if (roles == null) {

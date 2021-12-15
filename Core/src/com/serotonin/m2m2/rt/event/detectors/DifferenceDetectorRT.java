@@ -39,7 +39,6 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
 
     /**
      * Received point data
-     * @param fireTime
      */
     synchronized protected void pointData(long fireTime) {
         if (!eventActive)

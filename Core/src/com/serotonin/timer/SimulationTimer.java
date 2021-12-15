@@ -35,7 +35,6 @@ public class SimulationTimer extends AbstractTimer {
     
     /**
      * Optionally submit tasks to the ordered thread pool executor
-     * @param async
      */
     public SimulationTimer(boolean async) {
         this.async = async;
@@ -134,7 +133,6 @@ public class SimulationTimer extends AbstractTimer {
 
     /**
      * Clear tasks, set time to 0l
-     * @return
      */
     public List<TimerTask> reset() {
         if(ownsExecutor) {
@@ -231,8 +229,6 @@ public class SimulationTimer extends AbstractTimer {
     
     /**
      * Override as necessary
-     * @param task
-     * @param e
      */
     void taskRejected(long executionTime, TimerTask task, RejectedExecutionException e) {
         task.rejectedAsDelegate(new RejectedTaskReason(RejectedTaskReason.POOL_FULL, executionTime, task, this.executorService));

@@ -61,7 +61,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO, PublishersRecord, P
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static PublisherDao getInstance() {
         return springInstance.get();
@@ -71,7 +70,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO, PublishersRecord, P
 
     /**
      * Delete all publishers of a given type
-     * @param publisherType
      */
     public void deletePublisherType(final String publisherType) {
         create.select(table.id)
@@ -114,7 +112,6 @@ public class PublisherDao extends AbstractVoDao<PublisherVO, PublishersRecord, P
 
     /**
      * Get the count of data sources per type
-     * @return
      */
     public List<PublisherUsageStatistics> getUsage() {
         Field<Integer> count = DSL.count(table.publisherType);

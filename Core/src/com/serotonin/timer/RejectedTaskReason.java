@@ -24,12 +24,8 @@ public class RejectedTaskReason {
 	private Executor executor;
 	
 	/**
-	 * 
-	 * @param reasonCode
-	 * @param scheduledExecutionTime
-	 * @param task
-	 * @param e
-	 */
+	 *
+     */
 	public RejectedTaskReason(int reasonCode, long scheduledExecutionTime, Task task, Executor e){
 		this.code = reasonCode;
 		this.scheduledExecutionTime = scheduledExecutionTime;
@@ -56,24 +52,21 @@ public class RejectedTaskReason {
 	
 	/**
 	 * Get the time at which the task should have fired
-	 * @return
-	 */
+     */
 	public long getScheduledExecutionTime(){
 		return this.scheduledExecutionTime;
 	}
 	
 	/**
-	 * 
-	 * @return
-	 */
+	 *
+     */
 	public Task getTask(){
 		return this.task;
 	}
 	
 	/**
 	 * Get the executor that it was rejected from
-	 * @return
-	 */
+     */
 	public Executor getExecutor(){
 		return this.executor;
 	}

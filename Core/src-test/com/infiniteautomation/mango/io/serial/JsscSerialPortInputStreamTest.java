@@ -70,7 +70,6 @@ public class JsscSerialPortInputStreamTest extends MangoTestBase {
     class SerialPortTestLifecycle extends MockMangoLifecycle {
 
         /**
-         * @param modules
          */
         public SerialPortTestLifecycle(List<Module> modules) {
             super(modules);
@@ -91,7 +90,6 @@ public class JsscSerialPortInputStreamTest extends MangoTestBase {
     class TestSerialPort extends SerialPort {
 
         /**
-         * @param portName
          */
         public TestSerialPort(String portName) {
             super(portName);

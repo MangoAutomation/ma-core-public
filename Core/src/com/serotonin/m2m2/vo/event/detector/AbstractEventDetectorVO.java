@@ -69,26 +69,22 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
 
     /**
      * What event type do we generate
-     * @return
      */
     public abstract EventTypeVO getEventType();
 
 
     /**
      * Create the runtime
-     * @return
      */
     public abstract AbstractEventDetectorRT<? extends AbstractEventDetectorVO> createRuntime();
 
     /**
      * Is our event Rtn Applicable?
-     * @return
      */
     public abstract boolean isRtnApplicable();
 
     /**
      * Return the configuration description for this handlers
-     * @return
      */
     protected abstract TranslatableMessage getConfigurationDescription();
 
@@ -102,7 +98,6 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
 
     /**
      * Our type name defintion
-     * @return
      */
     public String getDetectorType(){
         return this.definition.getEventDetectorTypeName();
@@ -110,7 +105,6 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
 
     /**
      * Our source type name
-     * @return
      */
     public String getDetectorSourceType(){
         return this.definition.getSourceTypeName();
@@ -129,7 +123,6 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
 
     /**
      * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
-     * @param alias
      */
     @Deprecated
     public String getAlias() {
@@ -138,7 +131,6 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
 
     /**
      * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
-     * @param alias
      */
     @Deprecated
     public void setAlias(String alias) {

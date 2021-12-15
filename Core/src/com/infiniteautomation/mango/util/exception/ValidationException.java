@@ -51,7 +51,6 @@ public class ValidationException extends TranslatableRuntimeException {
 
     /**
      * Create a formatted message from the validation result
-     * @return
      */
     public String getValidationErrorMessage(Translations translations) {
         String failureMessage = "";

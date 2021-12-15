@@ -158,8 +158,6 @@ abstract public class AbstractPointWrapper {
     /**
      * Get point values between the times.
      * Inclusive of the value at from, exclusive of the value at to, not using the cache
-     * @param from
-     * @param to
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesBetween(long from, long to){
@@ -169,9 +167,6 @@ abstract public class AbstractPointWrapper {
     /**
      * Get point values between the times.
      * Inclusive of the value at from, exclusive of the value at to, optionally using the cache
-     * @param from
-     * @param to
-     * @param cache
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesBetween(long from, long to, boolean cache){
@@ -183,7 +178,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get point values since timestamp, not using cache
-     * @param since
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesSince(long since){
@@ -193,8 +187,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get point values since timestamp, optionally using cache
-     * @param since
-     * @param cache
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesSince(long since, boolean cache){
@@ -206,7 +198,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get the nearest point value before the timestamp, not using cache
-     * @param timestamp
      * @return nearest value OR null
      */
     public PointValueTime pointValueBefore(long timestamp){
@@ -215,8 +206,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get the nearest point value before the timestamp, optionally using cache
-     * @param timestamp
-     * @param cache
      * @return nearest value OR null
      */
     public PointValueTime pointValueBefore(long timestamp, boolean cache){
@@ -228,7 +217,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get the nearest point value after the timestamp, not using cache
-     * @param timestamp
      * @return nearest value OR null
      */
     public PointValueTime pointValueAfter(long timestamp){
@@ -237,8 +225,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get the nearest point value after the timestamp, optionally using cache
-     * @param timestamp
-     * @param cache
      * @return nearest value OR null
      */
     public PointValueTime pointValueAfter(long timestamp, boolean cache){
@@ -250,7 +236,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get the point value AT this time, not using cache
-     * @param timestamp
      * @return value at exactly this time OR null
      */
     public PointValueTime pointValueAt(long timestamp){
@@ -259,7 +244,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get the point value AT this time, optionally using cache
-     * @param timestamp
      * @return value at exactly this time OR null
      */
     public PointValueTime pointValueAt(long timestamp, boolean cache){
@@ -271,7 +255,6 @@ abstract public class AbstractPointWrapper {
 
     /**
      * Get the wrapper for the data point's vo
-     * @param
      * @return vo of wrapper data point, as DataPointWrapper
      */
     public DataPointWrapper getDataPointWrapper(){
@@ -283,7 +266,6 @@ abstract public class AbstractPointWrapper {
     /**
      * Append method descriptions
      * The { and } for the object will be added afterwards.
-     * @param builder
      */
     protected abstract void helpImpl(StringBuilder builder);
 

@@ -15,8 +15,7 @@ public class ValueChangeCounterWrapper {
 	private ValueChangeCounter statistics;
 
 	/**
-	 * @param statistics
-	 */
+     */
 	public ValueChangeCounterWrapper(ValueChangeCounter statistics) {
 		this.statistics = statistics;
 	}

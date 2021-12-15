@@ -47,7 +47,6 @@ public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentsRe
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static UserCommentDao getInstance() {
         return springInstance.get();
@@ -63,8 +62,6 @@ public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentsRe
 
     /**
      * Return all comments for a given event
-     * @param id
-     * @return
      */
     public void getEventComments(int id, Consumer<UserCommentVO> callback) {
         getComments(UserCommentVO.TYPE_EVENT, id, callback);
@@ -72,8 +69,6 @@ public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentsRe
 
     /**
      * Return all comments for a given point
-     * @param dpId
-     * @return
      */
     public void getPointComments(int dpId, Consumer<UserCommentVO> callback){
         getComments(UserCommentVO.TYPE_POINT, dpId, callback);
@@ -81,8 +76,6 @@ public class UserCommentDao  extends AbstractVoDao<UserCommentVO, UserCommentsRe
 
     /**
      * Return all comments for a given JsonData Store Entry
-     * @param jsonDataId
-     * @param callback
      */
     public void getJsonDataComments(int jsonDataId, Consumer<UserCommentVO> callback){
         getComments(UserCommentVO.TYPE_JSON_DATA, jsonDataId, callback);

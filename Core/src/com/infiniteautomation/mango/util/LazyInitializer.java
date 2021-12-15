@@ -21,7 +21,6 @@ public class LazyInitializer<T> {
      * Get the already initialized value or use the provided supplier to initialize it.
      *
      * @param supplier must not return null
-     * @return
      */
     public T get(final Supplier<T> supplier) {
         Objects.requireNonNull(supplier);

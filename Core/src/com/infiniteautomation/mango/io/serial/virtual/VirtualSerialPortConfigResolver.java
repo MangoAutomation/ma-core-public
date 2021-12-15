@@ -34,10 +34,7 @@ public class VirtualSerialPortConfigResolver implements TypeResolver {
     }
     
     /**
-     * 
-     * @param typeStr
-     * @return
-     * @throws TranslatableJsonException
+     *
      */
     public static Class<?> findClass(String typeStr) throws TranslatableJsonException{
         int type = VirtualSerialPortConfig.PORT_TYPE_CODES.getId(typeStr);

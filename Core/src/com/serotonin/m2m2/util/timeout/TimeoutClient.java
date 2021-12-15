@@ -16,13 +16,11 @@ import com.serotonin.timer.RejectedTaskReason;
 public abstract class TimeoutClient {
 	/**
 	 * The task logic to run when timeout occurs
-	 * @param fireTime
-	 */
+     */
     abstract public void scheduleTimeout(long fireTime);
 
     /**
      * Get the name for the client's thread while it is running
-     * @return
      */
     abstract public String getThreadName();
     
@@ -38,8 +36,7 @@ public abstract class TimeoutClient {
     
     /**
      * The size of queue for Ordered Tasks to wait in, when full the tasks get rejected.
-     * 
-     * @return
+     *
      */
     public int getQueueSize(){
     	return Common.defaultTaskQueueSize;
@@ -48,7 +45,6 @@ public abstract class TimeoutClient {
     /**
      * Perform any necessary processing when a task is rejected 
      * from its pool due to resource limitations
-     * @param reason
      */
     public void rejected(RejectedTaskReason reason){
     	Common.backgroundProcessing.rejectedHighPriorityTask(reason);

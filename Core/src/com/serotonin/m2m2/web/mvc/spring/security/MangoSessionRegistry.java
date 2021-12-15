@@ -56,7 +56,6 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
      *  active sessions in Jetty and does not consider any
      *  sessions in the store that have not yet been loaded
      *
-     * @return
      */
     public int getActiveSessionCount(){
         int activeCount = 0;
@@ -94,8 +93,6 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
      * If the user's ID is the same as the current HTTP user's ID then the Spring Security context and
      * session attributes will be updated.
      *
-     * @param request
-     * @param user
      */
     public void userUpdated(HttpServletRequest request, User user) {
         PermissionHolder currentUser = Common.getUser();
@@ -150,7 +147,6 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
     /**
      * Be aware of any sessions that are loaded from the store this
      *  assumes that sessions in the store that are not actively loaded
-     * @param event
      */
     @EventListener
     public void handleSessionLoadedEvent(SessionLoadedEvent event) {

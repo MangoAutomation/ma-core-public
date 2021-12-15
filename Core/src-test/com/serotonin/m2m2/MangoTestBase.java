@@ -202,9 +202,6 @@ public class MangoTestBase {
 
     /**
      * Add a module to the test.  Before the before() method is called.
-     * @param name
-     * @param definitions
-     * @return
      */
     protected static MangoTestModule addModule(String name, ModuleElementDefinition... definitions) {
         MangoTestModule module = new MangoTestModule(name);
@@ -237,8 +234,6 @@ public class MangoTestBase {
 
     /**
      * Load a default test JSON Configuration into Mango
-     * @throws JsonException
-     * @throws IOException
      */
     protected void loadDefaultConfiguration() throws JsonException, IOException {
         try (InputStream is = getClass().getResourceAsStream("/testMangoConfig.json")) {
@@ -285,9 +280,6 @@ public class MangoTestBase {
 
     /**
      * Convert an object to sero json
-     * @param o
-     * @return
-     * @throws IOException
      */
     protected String convertToSeroJson(Object o) throws IOException {
         StringWriter stringWriter = new StringWriter();
@@ -306,10 +298,6 @@ public class MangoTestBase {
 
     /**
      * Convert from json string to Object
-     * @param clazz
-     * @param json
-     * @return
-     * @throws IOException
      */
     protected Object readSeroJson(Class<? extends Object> clazz, String json) throws IOException {
         JsonReader jr = new JsonReader(json);
@@ -336,9 +324,6 @@ public class MangoTestBase {
 
     /**
      * Create a role
-     * @param xid
-     * @param name
-     * @return
      */
     protected RoleVO createRole(String xid, String name) {
         return createRole(xid, name, new Role[0]);
@@ -346,9 +331,6 @@ public class MangoTestBase {
 
     /**
      * Create a role with inherited roles (
-     * @param xid
-     * @param name
-     * @return
      */
     protected RoleVO createRole(String xid, String name, Role... inherited) {
         RoleService service = Common.getBean(RoleService.class);
@@ -358,9 +340,6 @@ public class MangoTestBase {
 
     /**
      * Create users with password=password and supplied permissions
-     * @param count
-     * @param roles
-     * @return
      */
     protected List<User> createUsers(int count, Role... roles){
         List<User> users = new ArrayList<>();
@@ -377,12 +356,6 @@ public class MangoTestBase {
 
     /**
      * Create a single user
-     * @param name
-     * @param username
-     * @param password
-     * @param email
-     * @param roles
-     * @return
      */
     protected User createUser(String name, String username, String password, String email, Role... roles) {
         return createUser(Common.NEW_ID, name, username, password, email, roles);
@@ -390,13 +363,6 @@ public class MangoTestBase {
 
     /**
      * Create a user with pre-assigned ID
-     * @param id
-     * @param name
-     * @param username
-     * @param password
-     * @param email
-     * @param roles
-     * @return
      */
     protected User createUser(int id, String name, String username, String password, String email, Role... roles) {
         User user = new User();
@@ -544,8 +510,6 @@ public class MangoTestBase {
 
     /**
      * Create a publisher
-     * @param enabled
-     * @return
      */
     public MockPublisherVO createMockPublisher(boolean enabled) {
         MockPublisherVO publisherVO = (MockPublisherVO) ModuleRegistry.getPublisherDefinition(MockPublisherDefinition.TYPE_NAME).baseCreatePublisherVO();
@@ -562,9 +526,6 @@ public class MangoTestBase {
 
     /**
      * Create a publisher with points
-     * @param enabled
-     * @param points
-     * @return
      */
     public MockPublisherVO createMockPublisher(boolean enabled, List<MockPublishedPointVO> points) {
         MockPublisherVO publisherVO = (MockPublisherVO) ModuleRegistry.getPublisherDefinition(MockPublisherDefinition.TYPE_NAME).baseCreatePublisherVO();
@@ -586,10 +547,6 @@ public class MangoTestBase {
 
     /**
      * Create a published point
-     * @param publisher
-     * @param dataPoint
-     * @param enabled
-     * @return
      */
     public MockPublishedPointVO createMockPublishedPoint(MockPublisherVO publisher, IDataPoint dataPoint, boolean enabled) {
         MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dataPoint);
@@ -609,10 +566,6 @@ public class MangoTestBase {
 
     /**
      * Create a list of published points
-     * @param publisher
-     * @param dataPoints
-     * @param enabled
-     * @return
      */
     public List<PublishedPointVO> createMockPublishedPoints(MockPublisherVO publisher, List<IDataPoint> dataPoints, boolean enabled) {
         List<PublishedPointVO> points = new ArrayList<>();
@@ -629,8 +582,6 @@ public class MangoTestBase {
      * Useful when you have scheduled tasks that do not end, the sim timer
      * won't stop fast forwarding.
      *
-     * @param until
-     * @param step
      */
     protected void waitAndExecute(final long until, final long step) {
         //TODO Could wait until sync completed event is fired here by creating a mock event handler
@@ -661,7 +612,6 @@ public class MangoTestBase {
 
     /**
      * Override as necessary
-     * @return
      */
     protected MockMangoLifecycle getLifecycle() {
         return new MockMangoLifecycle(modules);

@@ -17,7 +17,6 @@ public interface ObjectFactory {
      * @param jsonValue
      *            the JSON value to use (if necessary) as a hint to the subclass to create.
      * @return the created instance.
-     * @throws JsonException
      */
     Object create(JsonValue jsonValue) throws JsonException;
 }

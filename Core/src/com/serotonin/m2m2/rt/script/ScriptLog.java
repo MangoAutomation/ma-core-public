@@ -25,7 +25,6 @@ public class ScriptLog extends ProcessLog implements Closeable {
     
     /**
      * Create a null log writer, useful for when logging is set to NONE
-     * @param id
      */
     public ScriptLog(String id) {
         super(null, id, LogLevel.NONE, false, new NullPrintWriter() ,true);
@@ -34,9 +33,6 @@ public class ScriptLog extends ProcessLog implements Closeable {
     /**
      * Create a non rolling logger with a PrintWriter, useful 
      * for writing to a String, Stream etc.
-     * @param id
-     * @param level
-     * @param out
      */
     public ScriptLog(String id, LogLevel level, PrintWriter out) {
         super(null, id, level, false, out, true);
@@ -47,9 +43,6 @@ public class ScriptLog extends ProcessLog implements Closeable {
      * Name: id + ".log" 
      * 
      * @param id - Unique to all Process/Script logs
-     * @param level
-     * @param logSize
-     * @param logCount
      */
     public ScriptLog(String id, LogLevel level, int logSize, int logCount) {
         super(null, id, level, false, logSize, logCount);

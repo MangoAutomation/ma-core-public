@@ -25,7 +25,6 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
 
     /**
      * The translation for the name of the store
-     * @return
      */
     abstract public TranslatableMessage getStoreDescription();
 
@@ -39,19 +38,16 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
 
     /**
      * Get the write permission, should delegate to a {@link PermissionDefinition}
-     * @return
      */
     public abstract MangoPermission getWritePermission();
 
     /**
      * Get the read permission, should delegate to a {@link PermissionDefinition}
-     * @return
      */
     public abstract MangoPermission getReadPermission();
 
     /**
      * Get the root of this filestore
-     * @return
      */
     public Path getRootPath() {
         return Common.getFileStorePath().resolve(getStoreName()).normalize();

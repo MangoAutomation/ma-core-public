@@ -26,20 +26,16 @@ public abstract class SerialPortProxy {
     }
 
     /**
-     * @param i
-     * @return
      */
     public abstract byte[] readBytes(int i) throws SerialPortException;
 
     /**
-     * @param arg0
      */
     public abstract void writeInt(int arg0) throws SerialPortException;
 
     /**
      * Close a serial port only once
      *  - package private -
-     * @throws SerialPortException
      */
     void close() throws SerialPortException {
         synchronized (closeLock) {
@@ -53,15 +49,13 @@ public abstract class SerialPortProxy {
 
     /**
      * Close Implementation of Proxy
-     * 
-     * @throws SerialPortException
+     *
      */
     protected abstract void closeImpl() throws SerialPortException;
 
     /**
      * Open a port only if it is currently closed. Throw exception if already open
      * - package private -
-     * @throws SerialPortException
      */
     void open() throws SerialPortException {
         synchronized (closeLock) {
@@ -78,7 +72,6 @@ public abstract class SerialPortProxy {
      * Get the identifier
      * 
      * - package private -
-     * @return
      */
     SerialPortIdentifier getSerialPortIdentifier(){
     	return this.commPortId;
@@ -86,8 +79,7 @@ public abstract class SerialPortProxy {
 
     /**
      * Open Implementation of Proxy
-     * 
-     * @throws SerialPortException
+     *
      */
     protected abstract void openImpl() throws SerialPortException;
 

@@ -104,9 +104,6 @@ public class JUnitUtil {
 
     /**
      * Parse the unit first using the default local then the Common locale
-     * @param unit
-     * @return
-     * @throws IllegalArgumentException
      */
     public static Unit<?> parseDefault(String unit) throws IllegalArgumentException {
         try {

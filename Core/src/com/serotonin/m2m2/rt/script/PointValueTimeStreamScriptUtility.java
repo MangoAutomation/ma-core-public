@@ -67,11 +67,6 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
     /**
      * Query and lookup points by id
-     * @param ids
-     * @param from
-     * @param to
-     * @param bookend
-     * @param callback
      */
     public void query(List<Integer> ids, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
         List<DataPointVO> vos = new ArrayList<>(ids.size());
@@ -87,11 +82,6 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
     /**
      * Query using points directly
-     * @param vos
-     * @param from
-     * @param to
-     * @param bookend
-     * @param callback
      */
     public void queryUsingPoints(List<DataPointVO> vos, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
         PointValueTimeStream pvts = new PointValueTimeStream(vos, from, to, bookend, callback);
@@ -100,15 +90,6 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
     /**
      * Rollup query using point ids to lookup data points
-     * @param ids
-     * @param from
-     * @param to
-     * @param callback
-     * @param rollupType
-     * @param rollupPeriods
-     * @param rollupPeriodType
-     * @throws IOException
-     * @throws ScriptPermissionsException
      */
     public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws QueryCancelledException, ScriptPermissionsException {
         List<DataPointVO> vos = new ArrayList<>(ids.size());
@@ -124,15 +105,6 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
     /**
      * Use data points for rollups
-     * @param vos
-     * @param from
-     * @param to
-     * @param callback
-     * @param rollupType
-     * @param rollupPeriods
-     * @param rollupPeriodType
-     * @throws IOException
-     * @throws ScriptPermissionsException
      */
     public void rollupQueryUsingPoints(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws QueryCancelledException, ScriptPermissionsException {
         RollupsStream rs = new RollupsStream(vos, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);

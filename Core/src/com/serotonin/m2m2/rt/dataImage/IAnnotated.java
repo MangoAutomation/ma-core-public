@@ -22,8 +22,6 @@ public interface IAnnotated {
     
     /**
      * Get the translated annotation
-     * @param translations
-     * @return
      */
     String getAnnotation(Translations translations);
 

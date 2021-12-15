@@ -104,7 +104,6 @@ public final class MangoExecutors {
 
     /**
      * Waits for termination of a collection of executors. If the tasks do no complete in a timely manner, shutdownNow() is called, interrupting the running tasks.
-     * @param executors
      */
     private void awaitTermination(Collection<ExecutorService> executors) {
         try {

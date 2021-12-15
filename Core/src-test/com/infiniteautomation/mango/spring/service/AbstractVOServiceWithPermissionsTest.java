@@ -38,33 +38,26 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
 
     /**
      * The type name for the create permission of the VO
-     * @return
      */
     abstract String getCreatePermissionType();
 
     /**
      * replace the read roles with these
-     * @param permission
-     * @param vo
      */
     abstract void setReadPermission(MangoPermission permission, VO vo);
 
     /**
      * Get the context key used in the validation of the read roles
-     * @return
      */
     abstract String getReadPermissionContextKey();
 
     /**
      * Replace the edit roles with these
-     * @param permission
-     * @param vo
      */
     abstract void setEditPermission(MangoPermission permission, VO vo);
 
     /**
      * Get the context key used in the validation of the edit roles
-     * @return
      */
     abstract String getEditPermissionContextKey();
 

@@ -77,7 +77,6 @@ public class ServerInformationService {
 
     /**
      * Get the Operating System
-     * @return
      */
     public OperatingSystem getOperatingSystem() {
         return os;
@@ -85,7 +84,6 @@ public class ServerInformationService {
 
     /**
      * Get the hardware abstraction layer
-     * @return
      */
     public HardwareAbstractionLayer getHardware() {
         return hal;
@@ -93,7 +91,6 @@ public class ServerInformationService {
 
     /**
      * Get Processor
-     * @return
      */
     public CentralProcessor getProcessor() {
         return hal.getProcessor();
@@ -101,7 +98,6 @@ public class ServerInformationService {
 
     /**
      * Get the process running Mango
-     * @return
      */
     public OSProcess getMangoProcess() {
         return process;
@@ -140,7 +136,6 @@ public class ServerInformationService {
      *   it is possible to call this faster than desired
      *   but will only result is slightly less accurate readings
      *
-     * @return
      */
     public Double processCpuLoadPercent(long timestamp) {
         if (failedToLoad) {
@@ -178,7 +173,6 @@ public class ServerInformationService {
      * Get the load average
      *
      * @param increment - 1=1 minute, 2=5 minute, 3=15 minute
-     * @return
      */
     public Double systemLoadAverage(int increment) throws ValidationException {
         if (failedToLoad) {
@@ -223,7 +217,6 @@ public class ServerInformationService {
     /**
      * Get the logical processors of the machine, this will never return null
      *  but could be an empty array.
-     * @return
      */
     public List<LogicalProcessor> availableProcessors() {
         if(failedToLoad) {

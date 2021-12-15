@@ -65,7 +65,6 @@ public class MangoInitializer implements WebApplicationInitializer {
      * Note:
      * {@link MangoSessionHandler.MangoSessionCookieConfig MangoSessionCookieConfig}
      * can now dynamically override the session cookie settings.
-     * @param ctx
      */
     private void configureServletContext(ServletContext ctx) {
         // Use our own MangoSessionListener instead of HttpSessionEventPublisher as there is a bug in Spring which

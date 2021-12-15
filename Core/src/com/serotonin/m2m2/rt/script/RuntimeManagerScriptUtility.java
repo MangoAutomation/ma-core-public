@@ -62,7 +62,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
     /**
      * Refresh a data point with the given XID.
      *
-     * @param xid
      * @return status of operation
      * 0 - Point not enabled
      * -1 - Point does not exist
@@ -97,7 +96,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
     /**
      * Refresh a data source with the given XID.
      *
-     * @param xid
      * @return status of operation
      * 0 - Source not enabled
      * -1 - Source does not exist
@@ -131,7 +129,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Is a data source enabled?
-     * @param xid
      * @return true if it is, false if it is not
      */
     public boolean isDataSourceEnabled(String xid){
@@ -150,7 +147,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Start a Data Source via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enableDataSource(String xid) {
@@ -176,7 +172,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Stop a Data Source via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disableDataSource(String xid){
@@ -205,7 +200,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      *
      * A point is enabled if both the data source and point are enabled.
      *
-     * @param xid
      * @return true if it is, false if it is not
      */
     public boolean isDataPointEnabled(String xid){
@@ -225,7 +219,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Start a Data Point via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enableDataPoint(String xid){
@@ -244,7 +237,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Stop a Data Point via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disableDataPoint(String xid){
@@ -263,7 +255,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Is a publisher enabled?
-     * @param xid
      * @return true if it is, false if it is not or no permission
      */
     public boolean isPublisherEnabled(String xid){
@@ -283,7 +274,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Start a publisher via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enablePublisher(String xid){
@@ -305,7 +295,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     /**
      * Stop a publisher via its XID
-     * @param xid
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disablePublisher(String xid){

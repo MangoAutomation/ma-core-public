@@ -38,8 +38,6 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
 
     /**
      * The right way to create a point event detector
-     * @param dp
-     * @return
      */
     public T baseCreateEventDetectorVO(DataPointVO dp) {
         T detector = createEventDetectorVO(dp);
@@ -68,8 +66,6 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
 
     /**
      * Implement in concrete classes
-     * @param dp
-     * @return
      */
     protected abstract T createEventDetectorVO(DataPointVO dp);
 

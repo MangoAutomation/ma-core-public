@@ -19,7 +19,6 @@ public interface TypeResolver {
      * @param jsonValue
      *            the JSON value to use (if necessary) as a hint to the subclass to create.
      * @return the resolved type.
-     * @throws JsonException
      */
     Type resolve(JsonValue jsonValue) throws JsonException;
 }

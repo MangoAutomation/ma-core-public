@@ -33,7 +33,6 @@ public class VirtualSerialPortConfigDao {
     
 	/**
 	 * Insert new configs or update existing ones 
-	 * @param config
 	 * @return current list of configs
 	 */
 	public List<VirtualSerialPortConfig> save(VirtualSerialPortConfig config){
@@ -55,9 +54,7 @@ public class VirtualSerialPortConfigDao {
 	
 	/**
 	 * Remove a config from the system
-	 * @param config
-	 * @return
-	 */
+     */
 	public List<VirtualSerialPortConfig> remove(VirtualSerialPortConfig config){
 		List<VirtualSerialPortConfig> all = getAll();
 		all.remove(config);
@@ -67,8 +64,7 @@ public class VirtualSerialPortConfigDao {
 	
 	/**
 	 * Retrieve all configs
-	 * @return
-	 */
+     */
 	public List<VirtualSerialPortConfig> getAll(){
 		SystemSettingsDao systemSettingsDao = Common.getBean(SystemSettingsDao.class);
         @SuppressWarnings("unchecked")
@@ -110,7 +106,6 @@ public class VirtualSerialPortConfigDao {
 	
     /**
      * Save all of them, overwrite existing
-     * @param configs
      */
     private void updateSystemSettings(List<VirtualSerialPortConfig> configs){
 		SystemSettingsDao systemSettingsDao = Common.getBean(SystemSettingsDao.class);
@@ -124,9 +119,7 @@ public class VirtualSerialPortConfigDao {
     }
 
 	/**
-	 * @param xid
-	 * @return
-	 */
+     */
 	public VirtualSerialPortConfig getByXid(String xid) {
 		List<VirtualSerialPortConfig> configs = getAll();
 		for(VirtualSerialPortConfig config : configs){

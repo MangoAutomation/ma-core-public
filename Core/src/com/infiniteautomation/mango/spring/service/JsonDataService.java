@@ -66,8 +66,6 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     /**
      * Gets JSON data for the public REST end point, does not expose if an item exists but is not accessible.
      *
-     * @param xid
-     * @return
      * @throws NotFoundException if it doesn't exist or if it exists and is not public
      */
     public JsonDataVO getPublicData(String xid) throws NotFoundException {
@@ -114,8 +112,6 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     /**
      * Update a store without touching its data.
      *
-     * @param xid
-     * @param item
      */
     public JsonDataVO updateStore(String xid, JsonDataVO item) {
         return dao.withLockedRow(xid, (txStatus) -> {
@@ -131,9 +127,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     /**
      * Get data inside an item using a JSON pointer
      *
-     * @param xid
      * @param pointer RFC 6901 JSON pointer
-     * @return
      */
     public JsonNode getDataAtPointer(String xid, String pointer) {
         JsonNode data = this.get(xid).getJsonData();
@@ -148,9 +142,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     /**
      * Set data inside an item using a JSON pointer
      *
-     * @param xid
      * @param pointer RFC 6901 JSON pointer
-     * @param data
      */
     public void setDataAtPointer(String xid, String pointer, JsonNode data) {
         this.dao.withLockedRow(xid, (txStatus) -> {
@@ -181,7 +173,6 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     /**
      * Delete data inside an item using a JSON pointer
      *
-     * @param xid
      * @param pointer RFC 6901 JSON pointer
      */
     public JsonNode deleteDataAtPointer(String xid, String pointer) {
@@ -216,7 +207,6 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
      * Retrieves a list of values inside an item using a JSON pointer.
      * Target must be an object or array
      *
-     * @param xid
      * @param pointer RFC 6901 JSON pointer
      */
     public ArrayNode valuesForDataAtPointer(String xid, String pointer) {

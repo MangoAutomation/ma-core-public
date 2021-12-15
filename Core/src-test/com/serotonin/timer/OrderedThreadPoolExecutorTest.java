@@ -49,7 +49,6 @@ public class OrderedThreadPoolExecutorTest {
     
     /**
      * Test inserting tasks faster than they can be run and ensure they run in insertion order
-     * @throws InterruptedException
      */
     @Test(timeout = 60 * 1000 * 3)
     public void testFailedExecutions() throws InterruptedException {
@@ -258,7 +257,6 @@ public class OrderedThreadPoolExecutorTest {
 
     /**
      * Test inserting tasks faster than they can be run and ensure they run in insertion order
-     * @throws InterruptedException
      */
     @Test
     public void testPoolFullRejectedExecutions() throws InterruptedException {
@@ -418,13 +416,6 @@ public class OrderedThreadPoolExecutorTest {
 
         /**
          *
-         * @param name
-         * @param id
-         * @param queueSize
-         * @param runId
-         * @param throwException
-         * @param rejectCode
-         * @param result
          * @param r - run at start of task
          */
         public TestTask(String name, String id, int queueSize, int runId, boolean throwException, int rejectCode,
@@ -505,12 +496,6 @@ public class OrderedThreadPoolExecutorTest {
 
         /**
          *
-         * @param name
-         * @param id
-         * @param queueSize
-         * @param runId
-         * @param throwException
-         * @param rejectCode
          * @param r - execute before waiting on the future to be completed
          */
         public DelayedTestTask(String name, String id, int queueSize, int runId,

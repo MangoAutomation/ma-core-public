@@ -80,7 +80,6 @@ public abstract class Task {
 
     /**
      * Create a non-ordered Task
-     * @param name
      */
     public Task(String name){
     	this(name, null, 0);
@@ -88,9 +87,6 @@ public abstract class Task {
 
     /**
      * Ordred Task that is queuable
-     * @param name
-     * @param id
-     * @param queueSize
      */
     public Task(String name, String id, int queueSize){
     	this.name = name;
@@ -148,7 +144,6 @@ public abstract class Task {
 
     /**
      * Perform the task
-     * @param runtime
      */
     abstract public void run(long runtime);
 
@@ -219,7 +214,6 @@ public abstract class Task {
 
     /**
      * Get a short description of what the task does
-     * @return
      */
     public String getName(){
     	return this.name;
@@ -228,7 +222,6 @@ public abstract class Task {
     /**
      * Get the unique ID for the task, used for tracking etc.
      * If this is null, the task cannot be queued
-     * @return
      */
     public String getId(){
     	return this.id;
@@ -236,7 +229,6 @@ public abstract class Task {
 
     /**
      * Get the Queue Size
-     * @return
      */
     public int getQueueSize(){
     	return this.queueSize;

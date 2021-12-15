@@ -31,43 +31,36 @@ public interface BackgroundProcessing extends ILifecycle {
 
     /**
      * Execute a high priority task as soon as possible
-     * @param task
      */
     void execute(HighPriorityTask task);
 
     /**
      * Schedule a timeout task to run at high priority
-     * @param task
      */
     void schedule(TimeoutTask task);
 
     /**
      * Schedule a timer task to run at high priority
-     * @param task
      */
     void schedule(TimerTask task);
 
     /**
      * Run tasks @ medium priority
-     * @param task
      */
     void executeMediumPriorityTask(TimerTask task);
 
     /**
      * add a work item into our queue
-     * @param item
      */
     void addWorkItem(WorkItem item);
 
     /**
      * A high priority task was rejected, track it
-     * @param reason
      */
     void rejectedHighPriorityTask(RejectedTaskReason reason);
 
     /**
      * Return the count of all scheduled tasks ever
-     * @return
      */
     int getHighPriorityServiceScheduledTaskCount();
 
@@ -85,7 +78,6 @@ public interface BackgroundProcessing extends ILifecycle {
      * Set the core pool size for the high priority service.
      * The new size must be greater than the lowest allowable limit
      * defined by HIGH_PRI_MAX_POOL_SIZE_MIN
-     * @param size
      */
     void setHighPriorityServiceCorePoolSize(int size);
 
@@ -93,7 +85,6 @@ public interface BackgroundProcessing extends ILifecycle {
      * Set the maximum pool size for the high priority service.
      * The new size must be larger than the core pool size for this change to take
      * effect.
-     * @param size
      */
     void setHighPriorityServiceMaximumPoolSize(int size);
 
@@ -117,7 +108,6 @@ public interface BackgroundProcessing extends ILifecycle {
      * Set the Core Pool Size, in the medium priority queue this
      * results in the maximum number of threads that will be run
      * due to the way the pool is setup.  This will only set the pool size up to Maximum Pool Size
-     * @param corePoolSize
      */
     void setMediumPriorityServiceCorePoolSize(int corePoolSize);
 
@@ -133,7 +123,6 @@ public interface BackgroundProcessing extends ILifecycle {
      * Set the Core Pool Size, in the medium priority queue this
      * results in the maximum number of threads that will be run
      * due to the way the pool is setup.
-     * @param corePoolSize
      */
     void setLowPriorityServiceCorePoolSize(int corePoolSize);
 
@@ -167,7 +156,6 @@ public interface BackgroundProcessing extends ILifecycle {
     /**
      * Util to get the Current Thread Information
      * @param stackDepth - Depth to trace the stack
-     * @return
      */
     List<ThreadInfo> getThreadsList(int stackDepth);
 

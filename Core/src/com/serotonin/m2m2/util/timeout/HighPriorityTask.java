@@ -15,19 +15,15 @@ public abstract class HighPriorityTask extends Task {
 
 	/**
 	 * For non-queueing tasks
-	 * @param name
-	 */
+     */
 	public HighPriorityTask(String name){
 		super(name);
 	}
 	
 	/**
 	 * For tasks that should be queued
-	 * @param name
 	 * @param id - Non null String identifier for rejection tracking and ordering
-	 * @param queueSize
-	 * @param queueable
-	 */
+     */
 	public HighPriorityTask(String name, String id, int queueSize) {
 		super(name, id, queueSize);
 	}

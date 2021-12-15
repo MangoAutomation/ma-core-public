@@ -57,7 +57,6 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
      * Checks if a user is granted a permission
      *
      * @param permissionName System setting key for the granted permission
-     * @return
      */
     public boolean isGrantedPermission(String permissionName) {
         if (!(this.getPrincipal() instanceof PermissionHolder)) {

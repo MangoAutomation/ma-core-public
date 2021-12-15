@@ -88,7 +88,6 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
      * This method is only called when the high limit changes between being active or not, i.e. if the point's value is
      * currently above the high limit, then it should never be called with a value of true.
      *
-     * @param b
      */
     private void changeHighLimitActive(long time) {
         highLimitActive = !highLimitActive;

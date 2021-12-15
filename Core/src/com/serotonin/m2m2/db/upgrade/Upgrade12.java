@@ -391,7 +391,6 @@ public class Upgrade12 extends DBUpgrade {
 
     /**
      * Upgrade a handler in the DB
-     * @param handler
      */
     void upgradeEventHandler(AbstractEventHandlerVO handler) {
         ejt.update("update eventHandlers set xid=?, alias=?, eventHandlerType=?, data=? where id=?", new Object[] { handler.getXid(),
@@ -424,8 +423,6 @@ public class Upgrade12 extends DBUpgrade {
 
     /**
      * Export all audit events prior to deleting from table
-     * @return
-     * @throws IOException
      */
     private void backupAuditEvents(OutputStream os){
         //Write them to disk
@@ -527,7 +524,6 @@ public class Upgrade12 extends DBUpgrade {
 
     /**
      * Upgrade the old detectors and move into new table
-     * @return
      */
     private int upgradeEventDetectors(OutputStream os){
 

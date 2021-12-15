@@ -31,9 +31,7 @@ public class LoopTester {
 
     /**
      * Checks if the object has already been added.
-     * 
-     * @param o
-     * @return
+     *
      */
     public static boolean contains(Object o) {
         LoopTester check = threadLocal.get();
@@ -44,8 +42,7 @@ public class LoopTester {
 
     /**
      * Adds the object.
-     * 
-     * @param o
+     *
      */
     public static void add(Object o) {
         LoopTester check = threadLocal.get();

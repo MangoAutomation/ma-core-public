@@ -25,7 +25,6 @@ public interface ChartRenderer extends Serializable {
     
     /**
      * Validate the settings
-     * @param result
      */
     public void validate(ProcessResult result);
 }

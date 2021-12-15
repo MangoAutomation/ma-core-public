@@ -71,8 +71,6 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
 
     /**
      * Finds and adds all Filters which are annotated with @WebFilter
-     * @param servletContext
-     * @throws ServletException
      */
     private void registerFilters(ServletContext servletContext) throws ServletException {
         List<Object> filtersAndInitializers = new ArrayList<>();
@@ -117,8 +115,6 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
 
     /**
      * Finds and adds all Servlets which are annotated with @WebServlet
-     * @param servletContext
-     * @throws ServletException
      */
     private void registerServlets(ServletContext servletContext) throws ServletException {
         List<Object> servletsAndInitializers = new ArrayList<>();

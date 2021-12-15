@@ -49,9 +49,6 @@ JsonSerializable, Cloneable {
 
     /**
      * Helper to safely get a boolean during import
-     * @param json
-     * @param name
-     * @return
      * @throws JsonException - if the field DNE or is not of the desired type
      */
     public static boolean getBoolean(JsonObject json, String name) throws JsonException {
@@ -67,9 +64,6 @@ JsonSerializable, Cloneable {
 
     /**
      * Helper to safely get a String during import
-     * @param json
-     * @param name
-     * @return
      * @throws JsonException - if the field DNE or is not of the desired type
      */
     public static String getString(JsonObject json, String name) throws JsonException {
@@ -85,9 +79,6 @@ JsonSerializable, Cloneable {
 
     /**
      * Helper to safely get a double during import
-     * @param json
-     * @param name
-     * @return
      * @throws JsonException - if the field DNE or is not of the desired type
      */
     @SuppressWarnings("deprecation")
@@ -105,9 +96,6 @@ JsonSerializable, Cloneable {
 
     /**
      * Helper to safely get a int during import
-     * @param json
-     * @param name
-     * @return
      * @throws JsonException - if the field DNE or is not of the desired type
      */
     @SuppressWarnings("deprecation")
@@ -129,7 +117,6 @@ JsonSerializable, Cloneable {
 
     /**
      * Get the audit event translatable message key
-     * @return
      */
     public abstract String getTypeKey();
 

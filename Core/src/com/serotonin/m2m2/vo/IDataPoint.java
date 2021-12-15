@@ -32,25 +32,21 @@ public interface IDataPoint {
 
     /**
      * Returns a map of the tag keys and values. Will not contain "name" or "device" keys.
-     * @return
      */
     Map<String, String> getTags();
 
     /**
      * Roles that can read this point's value and configuration
-     * @return
      */
     MangoPermission getReadPermission();
 
     /**
      * Roles that can edit the point's configuration
-     * @return
      */
     MangoPermission getEditPermission();
 
     /**
      * Roles that can set the point's value
-     * @return
      */
     MangoPermission getSetPermission();
 
@@ -61,7 +57,6 @@ public interface IDataPoint {
     /**
      * Return a nicely formatted representation of the Data Point for use in events and displays
      * name - device name [tag1=tag1value, tag2=tag2value]
-     * @return
      */
     default String getExtendedName() {
         StringBuilder b = new StringBuilder();

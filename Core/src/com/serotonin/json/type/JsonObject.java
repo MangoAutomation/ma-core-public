@@ -129,8 +129,6 @@ public class JsonObject extends JsonValue implements Map<String, JsonValue> {
 
     /**
      * Deprecated, use AbstractVO.getBoolean(json, key) instead
-     * @param key
-     * @return
      */
     @Deprecated 
     public boolean getBoolean(String key) {
@@ -160,8 +158,6 @@ public class JsonObject extends JsonValue implements Map<String, JsonValue> {
 
     /**
      * Deprecated, use AbstractVO.getInt(json, key) instead
-     * @param key
-     * @return
      */
     @Deprecated 
     public int getInt(String key) {
@@ -199,8 +195,6 @@ public class JsonObject extends JsonValue implements Map<String, JsonValue> {
 
     /**
      * Deprecated, use AbstractVO.getDouble(json, key) instead
-     * @param key
-     * @return
      */
     @Deprecated 
     public double getDouble(String key) {

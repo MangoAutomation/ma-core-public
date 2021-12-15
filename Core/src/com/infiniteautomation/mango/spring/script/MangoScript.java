@@ -31,7 +31,6 @@ public interface MangoScript extends PermissionHolder {
 
     /**
      * @return Reader for the script, can be from a file or from a string
-     * @throws IOException
      */
     Reader readScript() throws IOException;
 

@@ -53,7 +53,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
     /**
      * Get cached instance from Spring Context
-     * @return
      */
     public static DataSourceDao getInstance() {
         return springInstance.get();
@@ -61,8 +60,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
     /**
      * Get all data sources for a given type
-     * @param type
-     * @return
      */
     @SuppressWarnings("unchecked")
     public <T extends DataSourceVO> List<T> getDataSourcesForType(String type) {
@@ -115,7 +112,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
     /**
      * Delete all data source for a given type
      *  used during module uninstall
-     * @param dataSourceType
      */
     public void deleteDataSourceType(final String dataSourceType) {
         List<DataSourceVO> dss = getDataSourcesForType(dataSourceType);
@@ -126,8 +122,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
     /**
      * Get runtime data
-     * @param id
-     * @return
      */
     public Object getPersistentData(int id) {
         return create.select(table.rtdata)
@@ -141,8 +135,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
     /**
      * Save runtime data
-     * @param id
-     * @param data
      */
     public void savePersistentData(int id, Object data) {
         create.update(table)
@@ -153,7 +145,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
     /**
      * Get the count of data sources per type
-     * @return
      */
     public List<DataSourceUsageStatistics> getUsage() {
         List<DataSourceUsageStatistics> result = new ArrayList<>();
@@ -266,7 +257,6 @@ public class DataSourceDao extends AbstractVoDao<DataSourceVO, DataSourcesRecord
 
     /**
      * Get the read permission ID for in memory checks
-     * @param dataSourceId
      * @return permission id or null
      */
     public Integer getReadPermissionId(int dataSourceId) {

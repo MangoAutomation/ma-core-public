@@ -47,7 +47,6 @@ public class PermissionDao extends BaseDao {
 
     /**
      * Get a MangoPermission by id
-     * @param id
      * @return permission if found or null
      */
     public MangoPermission get(Integer id) {
@@ -83,8 +82,6 @@ public class PermissionDao extends BaseDao {
     /**
      * Find the Permission id of the combination of these minterms or create one that matches
      *
-     * @param minterms
-     * @return
      */
     public Integer permissionId(Set<Set<Role>> minterms) {
         // We need to always do this in a new transaction as this ends up in the cache. Otherwise if we are in a
@@ -199,7 +196,6 @@ public class PermissionDao extends BaseDao {
 
     /**
      * Attempt to delete a permission, will not succeed if another object references the permission (via foreign key).
-     * @param permissionId
      * @return true if the permission was deleted
      */
     public boolean deletePermission(Integer permissionId) {

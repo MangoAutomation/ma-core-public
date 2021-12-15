@@ -185,7 +185,6 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     /**
      * A data point that is being published was just initialized
-     * @param rt
      */
     protected void dataPointInitialized(PublishedPointRT<POINT> rt) {
         checkForDisabledPoints();
@@ -193,8 +192,6 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     /**
      * A data point that is being published was just terminated
-     * @param rt
-     * @param dp
      */
     protected void dataPointTerminated(PublishedPointRT<POINT> rt, DataPointVO dp) {
         checkForDisabledPoints();
@@ -202,8 +199,6 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     /**
      * An attribute for a published point was just changed
-     * @param vo
-     * @param attributes
      */
     protected void attributeChanged(POINT vo, Map<String, Object> attributes) {
         if(this.vo.isPublishAttributeChanges()) {
@@ -280,7 +275,6 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     /**
      * Create a new send thread
-     * @return
      */
     protected abstract SEND createSendThread();
 
@@ -498,7 +492,6 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     /**
      * Add a point during its initialization
-     * @param rt
      */
     public void addPublishedPoint(PublishedPointRT<POINT> rt) {
         ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
@@ -509,7 +502,6 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     /**
      * Remove a point during its termination
-     * @param rt
      */
     public void removePublishedPoint(PublishedPointRT<POINT> rt) {
         ensureState(ILifecycleState.RUNNING, ILifecycleState.INITIALIZING);
@@ -602,8 +594,6 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     /**
      * Get any points published for the provided data point id by this publisher
-     * @param dataPointId
-     * @return
      */
     public List<PublishedPointRT<POINT>> getPointsForDataPoint(int dataPointId) {
         try (Stream<PublishedPointRT<POINT>> stream = streamPoints()) {

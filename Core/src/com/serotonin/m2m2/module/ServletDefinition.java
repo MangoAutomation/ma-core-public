@@ -56,7 +56,6 @@ abstract public class ServletDefinition extends ModuleElementDefinition {
 
     /**
      * Does this servlet support Asynchronous behavior
-     * @return
      */
     public boolean isAsync() {
         return false;

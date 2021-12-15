@@ -8,7 +8,6 @@ public interface RequestHandler {
      *            the request to handle
      * @return the response object or null if no response is to be sent. null may also be returned if the request is
      *         handled asynchronously.
-     * @throws Exception
      */
     OutgoingResponseMessage handleRequest(IncomingRequestMessage request) throws Exception;
 }

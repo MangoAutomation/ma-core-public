@@ -15,7 +15,6 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 public class MockPollingDataSource extends PollingDataSource<MockDataSourceVO>{
 
     /**
-     * @param vo
      */
     public MockPollingDataSource(MockDataSourceVO vo) {
         super(vo);

@@ -97,9 +97,6 @@ public class PublisherService extends AbstractVOService<PublisherVO, PublisherDa
     }
 
     /**
-     * @param xid
-     * @param enabled
-     * @param restart
      */
     public void restart(String xid, boolean enabled, boolean restart) {
         PublisherVO vo = get(xid);

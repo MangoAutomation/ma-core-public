@@ -117,9 +117,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     /**
      * Get a definition for a data source
-     * @param dataSourceType
-     * @param user
-     * @return
      */
     public DataSourceDefinition<DataSourceVO> getDefinition(String dataSourceType, PermissionHolder user) throws NotFoundException, PermissionException {
         permissionService.ensurePermission(user, createPermission.getPermission());
@@ -131,7 +128,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     /**
      * Enable/disable/restart a data source
-     * @param xid
      * @param enabled - Enable or disable the data source
      * @param restart - Restart the data source, enabled must equal true
      */
@@ -150,15 +146,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     /**
      * Copy a data source and optionally its points
-     * @param xid
-     * @param copyXid
-     * @param copyName
-     * @param copyDeviceName
-     * @param enabled
-     * @param copyPoints
-     * @return
-     * @throws PermissionException
-     * @throws NotFoundException
      */
     public DataSourceVO copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints) throws PermissionException, NotFoundException {
         DataSourceVO existing = get(xid);
@@ -257,8 +244,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     /**
      * Force the poll of a data source
-     * @param id
-     * @throws NotFoundException
      * @throws PermissionException - if calling permission holder does not have edit permission
      * @throws RTException - if source is disabled
      * @throws TranslatableIllegalStateException - if source not of polling type
@@ -270,8 +255,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     /**
      * Force the poll of a data source
-     * @param xid
-     * @throws NotFoundException
      * @throws PermissionException - if calling permission holder does not have edit permission
      * @throws RTException - if source is disabled
      * @throws TranslatableIllegalStateException - if source not of polling type
@@ -293,10 +276,6 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     /**
      * Get the read permission for this data source
-     * @param dataPointId
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
      */
     public MangoPermission getReadPermission(int dataPointId) throws NotFoundException, PermissionException{
         PermissionHolder user = Common.getUser();

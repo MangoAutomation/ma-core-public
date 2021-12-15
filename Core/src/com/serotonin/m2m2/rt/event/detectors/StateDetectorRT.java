@@ -16,7 +16,6 @@ import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeDelayedEventDetectorRT<T> {
 
     /**
-     * @param vo
      */
     public StateDetectorRT(T vo) {
         super(vo);
