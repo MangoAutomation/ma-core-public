@@ -13,7 +13,6 @@ import javax.measure.unit.NonSI;
 /**
  * @deprecated
  * These codes are no longer used.
- * Use UnitUtil.convertToUnit() to convert to the Unit<?> type
  */
 @Deprecated
 public class EngineeringUnits {

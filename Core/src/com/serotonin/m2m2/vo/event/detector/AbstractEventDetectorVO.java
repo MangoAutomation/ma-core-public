@@ -58,7 +58,7 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
 
     /**
      * All event handlers that map to this detector.
-     * When non-null this will replace all mappings for this detector <--> handlers
+     * When non-null this will replace all mappings for this detector to handlers.
      */
     private LazyField<List<String>> eventHandlerXids = new LazyField<>();
 

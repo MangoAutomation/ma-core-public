@@ -51,12 +51,12 @@ public interface IDataPointValueSource {
     PointValueTime getPointValueAfter(long time);
 
     /**
-     * Get all values >= since returned in time order
+     * Get all values greater than or equal to since returned in time order
      */
     List<PointValueTime> getPointValues(long since);
 
     /**
-     * Get values >= from and < to returned in time order
+     * Get values greater than or equal to from and less than to returned in time order
      */
     List<PointValueTime> getPointValuesBetween(long from, long to);
 

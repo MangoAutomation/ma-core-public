@@ -9,7 +9,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Wrapper around the frequently used Map<String, Object>, which greatly simplifies access to elements and reduces the
+ * Wrapper around the frequently used {@code Map<String, Object>}, which greatly simplifies access to elements and reduces the
  * need to generics syntax.
  * 
  * @author Matthew Lohbihler

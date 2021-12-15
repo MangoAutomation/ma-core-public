@@ -88,7 +88,7 @@ public interface PointValueCache {
     void removeValuesBefore(DataPointVO vo, long before);
 
     /**
-     * Clear startTime <= values < endTime
+     * Clear startTime &lt;= values &lt; endTime
      *
      * @param vo data point
      * @param startTime epoch timestamp, values after this time will be removed

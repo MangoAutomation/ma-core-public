@@ -18,7 +18,7 @@ import com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO;
  * or more.
  *
  * This detector overrides the limit (for high end) and weight (for low end) range values thus the range is defined as:
- * weight <= value <= limit
+ * weight &lt;= value &lt;= limit
  *
  * This detector overrides the binaryState values to indicate within or outside of the range detection
  *

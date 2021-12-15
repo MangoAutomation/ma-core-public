@@ -14,14 +14,16 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 /**
  * Combine a statistics callback with a generator to pass into a point value query.
  *
- * The statistics are generated based on the bucket calculator's times bc.startTime <= stats < bc.endTime
+ * The statistics are generated based on the bucket calculator's times bc.startTime &lt;= stats &lt; bc.endTime
  *
  * The general use would be:
  *
- * 1. quantizer.firstValue() *optional
- * 2. quantizer.row()... *optional
- * 3. quantizer.lastValue() *optional
- * 4. quantizer.done() - must call to produce statistics
+ * <ol>
+ *     <li>{@code quantizer.firstValue()} *optional</li>
+ *     <li>{@code quantizer.row()...} *optional</li>
+ *     <li>{@code quantizer.lastValue()} *optional</li>
+ *     <li>{@code quantizer.done()} - must call to produce statistics</li>
+ * </ol>
  *
  * @author Terry Packer
  */

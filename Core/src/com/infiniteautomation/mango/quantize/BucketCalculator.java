@@ -7,9 +7,11 @@ import java.time.ZonedDateTime;
 
 /**
  * A bucket calculator divides a time period into buckets according to the needs of the subclass.
- * 
+ *
+ * <pre>{@code
  * startTime <= time < endTime
- * 
+ * }</pre>
+ *
  * @author Terry Packer
  */
 public interface BucketCalculator {
