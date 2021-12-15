@@ -28,8 +28,7 @@ abstract public class EmportDefinition extends ModuleElementDefinition {
     abstract public String getDescriptionKey();
 
     /**
-     * @return the data to be converted to JSON. Can be a Map<String, Object>, a {@link JsonSerializable}, or a
-     *         {@link JsonRemoteEntity}
+     * @return the data to be converted to JSON. Can be a Map<String, Object>, or a {@link JsonSerializable}
      */
     abstract public Object getExportData();
 

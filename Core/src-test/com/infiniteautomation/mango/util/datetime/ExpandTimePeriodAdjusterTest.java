@@ -103,7 +103,6 @@ public class ExpandTimePeriodAdjusterTest {
     }
     /**
      * Run the test over a given range of dates with a TimePeriodType increment
-     * @param type - time period type to increment after each test
      * @param t - test to run
      */
     protected void test(TruncationTest t, TimeIncrementor i) {

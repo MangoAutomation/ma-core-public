@@ -23,12 +23,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.DataPointGroupInitializer;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -38,7 +38,6 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
@@ -231,7 +230,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     /**
      * Raises a data source event.
      *
-     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(List)}
+     * @param dataSourceEventTypeId Must be registered via {@link DataSourceVO} addEventTypes()
      * @param time time at which the event will be raised
      * @param rtn true if the event can return to normal (become inactive) at some point in the future
      * @param message translatable event message
@@ -256,7 +255,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     /**
      * Returns a data source event to normal.
      *
-     * @param dataSourceEventTypeId Must be registered via {@link PollingDataSourceVO#addEventTypes(List)}
+     * @param dataSourceEventTypeId Must be registered via {@link DataSourceVO} addEventTypes()
      * @param time time at which the event will be returned to normal (made inactive)
      * @throws IllegalStateException if data source has been terminated
      */

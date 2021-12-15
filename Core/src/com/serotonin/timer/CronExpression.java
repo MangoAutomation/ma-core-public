@@ -17,7 +17,7 @@ import java.util.TreeSet;
 /**
  * Significant portions of this code (i.e. most of it) were lifted from the Quartz scheduling library for Java.
  *
- * @see http://www.quartz-scheduler.org/api/2.1.0/
+ * @see <a href="http://www.quartz-scheduler.org/api/2.1.0/">http://www.quartz-scheduler.org/api/2.1.0/</a>
  *
  * @author Matthew Lohbihler (edits to make compatible with this package)
  */

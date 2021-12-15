@@ -54,7 +54,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     /**
-     * Stores pending data points which are waiting to be added or removed from {@link #dataPointsMap}
+     * Stores pending data points which are waiting to be added or removed from the super class data point map
      * (usually on the next poll)
      */
     private final Queue<PendingPoint> pendingPoints = new ConcurrentLinkedQueue<>();

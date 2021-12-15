@@ -20,7 +20,7 @@ public interface SystemSettingsListener {
 
     /**
      * A setting is being removed
-     * @param the default value for the setting, which is now the value
+     * @param defaultValue the default value for the setting, which is now the value
      */
     public default void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
         if (defaultValue != null) {

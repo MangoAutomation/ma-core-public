@@ -3,11 +3,10 @@
  */
 package com.infiniteautomation.mango.quantize;
 
-import java.io.IOException;
 import java.time.Instant;
 
-import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -158,9 +157,6 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
 
     /**
      * Tells the quantizer that there is no more data for the period.
-     *
-     * @param done
-     *            indicates that there will never be any more data in this period
      */
     protected void closePeriod() throws QueryCancelledException {
         if (statistics != null) {

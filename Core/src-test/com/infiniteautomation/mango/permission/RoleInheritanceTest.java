@@ -4,13 +4,8 @@
 
 package com.infiniteautomation.mango.permission;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
-import org.junit.Test;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,8 +13,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  *
@@ -357,8 +358,7 @@ public class RoleInheritanceTest extends MangoTestBase {
     }
 
     /**
-     * Create a role with a parent (
-     * @param parent - can be null to signify no parent
+     * Create a role with a parent
      */
     protected RoleVOHierarchy createRoleVOHierarchy(String xid, String name, RoleVOHierarchy... inherited) {
         return new RoleVOHierarchy(Common.NEW_ID, xid, name, new HashSet<>(Arrays.asList(inherited)));

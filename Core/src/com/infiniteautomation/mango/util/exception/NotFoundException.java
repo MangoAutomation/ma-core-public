@@ -8,10 +8,9 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 /**
  * Thrown when a VO object can't be found.
  *
- * This exception is caught and converted to a {@link com.infiniteautomation.mango.rest.latest.exception.NotFoundRestException} for REST.
+ * This exception is caught and converted to a NotFoundRestException for REST. See the MangoSpringExceptionHandler.
  *
  * @author Jared Wiltshire
- * @see com.infiniteautomation.mango.rest.latest.MangoSpringExceptionHandler
  */
 public class NotFoundException extends TranslatableRuntimeException {
     private static final long serialVersionUID = 1L;

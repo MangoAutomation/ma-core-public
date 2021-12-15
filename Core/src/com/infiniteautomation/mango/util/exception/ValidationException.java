@@ -11,10 +11,9 @@ import com.serotonin.m2m2.i18n.Translations;
 /**
  * Thrown when validation fails. Typically from {@link com.serotonin.m2m2.vo.Validatable#ensureValid()}.
  *
- * This exception is caught and converted to a {@link com.infiniteautomation.mango.rest.latest.exception.ValidationFailedRestException} for REST.
+ * This exception is caught and converted to a ValidationFailedRestException for REST. See the MangoSpringExceptionHandler.
  *
  * @author Jared Wiltshire
- * @see com.infiniteautomation.mango.rest.latest.MangoSpringExceptionHandler
  */
 public class ValidationException extends TranslatableRuntimeException {
     private static final long serialVersionUID = 1L;

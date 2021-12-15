@@ -129,7 +129,7 @@ public class MangoJavaScript {
         return additionalUtilities;
     }
     /**
-     * @param additionalUtilites the additionalUtilities to set
+     * @param additionalUtilities the additionalUtilities to set
      */
     public void setAdditionalUtilities(List<ScriptUtility> additionalUtilities) {
         this.additionalUtilities = additionalUtilities;
