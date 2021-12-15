@@ -48,8 +48,8 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
 
     @Override
     public void onStartup(Set<Class<?>> c, ServletContext context) throws ServletException {
-        /**
-         * Root web application context configuration
+        /*
+          Root web application context configuration
          */
 
         // Create the Spring 'root' web application context

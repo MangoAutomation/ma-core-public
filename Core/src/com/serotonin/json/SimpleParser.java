@@ -50,8 +50,15 @@ public class SimpleParser {
     }
 
     /**
-     * Read the next object from the input source. The result will be one of null, Boolean, Number, String,
-     * List<Object>, Map<String, Object>.
+     * Read the next object from the input source. The result will be one of
+     * <ul>
+     * <li>{@code null}</li>
+     * <li>{@link Boolean}</li>
+     * <li>{@link Number}</li>
+     * <li>{@link String}</li>
+     * <li>{@link List} ({@code List<Object>})</li>
+     * <li>{@link Map} ({@code Map<String, Object>})</li>
+     * </ul>
      * 
      * @return the object that was read.
      */

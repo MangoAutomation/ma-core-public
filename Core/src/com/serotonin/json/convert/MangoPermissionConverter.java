@@ -22,7 +22,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
- * Uses either the legacy form of a String of CSV roles or the new Set<Set<String>> format
+ * Uses either the legacy form of a String of CSV roles or the new {@code Set<Set<String>>} format
  * @author Terry Packer
  */
 public class MangoPermissionConverter extends ImmutableClassConverter {

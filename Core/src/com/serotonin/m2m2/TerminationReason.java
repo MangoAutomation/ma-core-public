@@ -33,7 +33,7 @@ public enum TerminationReason {
     LICENSE_VIOLATION(202),
 
     /**
-     * A {@link OutOfMemoryError} was caught in a thread pool. Note that with the <code>-XX:+ExitOnOutOfMemoryError</code>
+     * A {@link OutOfMemoryError} was caught in a thread pool. Note that with the {@code -XX:+ExitOnOutOfMemoryError}
      * option configured, Java will exit with exit status 3.
      */
     OUT_OF_MEMORY_ERROR(203);

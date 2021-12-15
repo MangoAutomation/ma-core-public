@@ -3,11 +3,6 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-/**
- * @author Terry Packer
- *
- */
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;

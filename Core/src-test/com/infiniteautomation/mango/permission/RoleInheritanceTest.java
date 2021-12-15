@@ -24,9 +24,10 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  *
+ * <pre>{@code
  * A -> B (A inherits B)
+ * }</pre>
  *
- * Inheritance
  * @author Terry Packer
  */
 public class RoleInheritanceTest extends MangoTestBase {
@@ -34,7 +35,9 @@ public class RoleInheritanceTest extends MangoTestBase {
     /**
      * Test a straight hierarchy with only single inheritance
      *
+     * <pre>{@code
      * admin -> supervisor -> edit -> read
+     * }</pre>
      */
     @Test
     public void test1() {
@@ -85,11 +88,11 @@ public class RoleInheritanceTest extends MangoTestBase {
      * Test a tree hierarchy with multiple inheritance
      *
      *
-     *
-     *                -> gasTechnician -> gasEdit -> gasRead
-     * technician ->  -> solidTechnician -> solidEdit -> solidRead
-     *                -> fluidTechnician -> fluidEdit -> fluidRead
-     *
+     * <pre>{@code
+     *            -> gasTechnician   -> gasEdit   -> gasRead
+     * technician -> solidTechnician -> solidEdit -> solidRead
+     *            -> fluidTechnician -> fluidEdit -> fluidRead
+     * }</pre>
      *
      */
     @Test
@@ -211,11 +214,11 @@ public class RoleInheritanceTest extends MangoTestBase {
     /**
      * Test a slightly more complex tree hierarchy with multiple inheritance
      *
-     *
-     *                 gasTechnician  ->  gasRead  <-  gasEdit  <-  gasAdmin
-     * technician ->  solidTechnician -> solidRead <- solidEdit <- solidAdmin  <- admin
-     *                fluidTechnician -> fluidRead <- fluidEdit <- fluidAdmin
-     *
+     * <pre>{@code
+     *               gasTechnician   -> gasRead   <- gasEdit   <- gasAdmin
+     * technician -> solidTechnician -> solidRead <- solidEdit <- solidAdmin <- admin
+     *               fluidTechnician -> fluidRead <- fluidEdit <- fluidAdmin
+     * }</pre>
      *
      */
     @Test

@@ -116,7 +116,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
      * If its not null, its safe to use.
      *
      * Prefer getting the application context from the request/servlet context if possible:
-     * <p><code>WebApplicationContext webApplicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());</code></p>
+     * <p>{@code WebApplicationContext webApplicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());}</p>
      *
      * @return the Spring root web application context if it has been refreshed, otherwise null
      */

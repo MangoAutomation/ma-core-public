@@ -22,7 +22,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
- * Uses either the legacy form of ScriptPermissions or the new version that contains a Set<Set<String>> like a MangoPermission
+ * Uses either the legacy form of ScriptPermissions or the new version that contains a {@code Set<Set<String>>} like a MangoPermission
  * @author Terry Packer
  */
 public class ScriptPermissionConverter extends ImmutableClassConverter {

@@ -19,26 +19,24 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 
 /**
- * Base Class to restore VOs via thier audit trail.
+ * Base Class to restore VOs via their audit trail.
  *
  * Example Code:
- *     try {
+ * <pre>{@code
+ * try {
+ *     //First read from DB
+ *     List<AuditEventInstanceVO> auditData = AuditEventDao.getInstance().getAllForObject(AuditEventType.TYPE_TEMPLATE, 2);
+ *     TemplateRestorer restorer = new TemplateRestorer(auditData, new ProcessResult());
+ *     BaseTemplateVO<?> data1 = restorer.restore();
  *
- *        	//First read from DB
- *        	List<AuditEventInstanceVO> auditData = AuditEventDao.getInstance().getAllForObject(AuditEventType.TYPE_TEMPLATE, 2);
- *        	TemplateRestorer restorer = new TemplateRestorer(auditData, new ProcessResult());
- *			BaseTemplateVO<?> data1 = restorer.restore();
- *
- *			writer.writeObject(data1);
- *          return stringWriter.toString();
- *     }
- *     catch (JsonException e) {
- *          return e.getMessage();
- *     }
- *     catch (IOException e) {
- *     	  return e.getMessage();
- *     }
- *
+ *     writer.writeObject(data1);
+ *     return stringWriter.toString();
+ * } catch (JsonException e) {
+ *     return e.getMessage();
+ * } catch (IOException e) {
+ *     return e.getMessage();
+ * }
+ * }</pre>
  *
  * @author Terry Packer
  *

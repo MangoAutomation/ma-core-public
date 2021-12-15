@@ -46,8 +46,8 @@ public interface PermissionHolder {
      * where the code needs to use a service that requires a PermissionHolder but there is no user currently logged in. i.e. for
      * background processes or operations such as resetting a user's password.
      *
-     * Note: When working in a Spring service or controller prefer injecting
-     * @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder
+     * <p>Note: When working in a Spring service or controller prefer injecting
+     * {@code @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder}</p>
      */
     PermissionHolder SYSTEM_SUPERADMIN = new SystemSuperadmin();
 
@@ -56,8 +56,8 @@ public interface PermissionHolder {
      * where the code needs to use a service that requires a PermissionHolder but there is no user currently logged in. i.e. for public endpoints and
      * background processes or operations.
      *
-     * Note: When working in a Spring service or controller prefer injecting
-     * @Qualifier(ANONYMOUS_PERMISSION_HOLDER) PermissionHolder
+     * <p>Note: When working in a Spring service or controller prefer injecting using
+     * {@code @Qualifier(ANONYMOUS_PERMISSION_HOLDER) PermissionHolder}</p>
      */
     PermissionHolder ANONYMOUS = new Anonymous();
 

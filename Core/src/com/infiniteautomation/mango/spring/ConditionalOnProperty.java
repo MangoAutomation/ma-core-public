@@ -28,7 +28,7 @@ public @interface ConditionalOnProperty {
     /**
      * @return Values are resolved via the Spring {@link org.springframework.core.env.PropertyResolver#resolveRequiredPlaceholders(String) PropertyResolver}
      * and parsed as boolean values. If multiple values are specified they must all evaluate to true in order to enable the component.<br>
-     * e.g. <code>${testing.enabled:false}</code>
+     * e.g. {@code ${testing.enabled:false}}
      */
     String[] value();
 

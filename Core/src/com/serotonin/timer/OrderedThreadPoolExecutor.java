@@ -182,7 +182,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
     /**
      * We need to ensure we remove the keyed tasks if we get rejected
      *
-     * @see java.util.concurrent.RejectedExecutionHandler#rejectedExecution(java.lang.Runnable, java.util.concurrent.ThreadPoolExecutor)
      */
     @Override
     public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {

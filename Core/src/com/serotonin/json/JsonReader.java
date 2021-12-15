@@ -168,7 +168,7 @@ public class JsonReader {
 
     /**
      * Return an object of the given generic type that represents the next JSON value from the reader. This method can
-     * be used when the type to return is, say, List<MyObject>. To represent a specific type, use the TypeDefinition
+     * be used when the type to return is, say, {@code List<MyObject>}. To represent a specific type, use the TypeDefinition
      * object.
      * 
      * @param type
@@ -200,7 +200,7 @@ public class JsonReader {
 
     /**
      * Return an object of the given generic type that represents the given JSON value. This method can be used when the
-     * type to return is, say, List<MyObject>. To represent a specific type, use the TypeDefinition object.
+     * type to return is, say, {@code List<MyObject>}. To represent a specific type, use the TypeDefinition object.
      * 
      * @param type
      *            the generic type of object to return

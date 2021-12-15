@@ -78,12 +78,12 @@ public class CronExpression implements Cloneable {
     protected transient boolean expressionParsed = false;
 
     /**
-     * Constructs a new <CODE>CronExpression</CODE> based on the specified parameter.
+     * Constructs a new {@code CronExpression} based on the specified parameter.
      *
      * @param cronExpression
      *            String representation of the cron expression the new object should represent
      * @throws java.text.ParseException
-     *             if the string expression cannot be parsed into a valid <CODE>CronExpression</CODE>
+     *             if the string expression cannot be parsed into a valid {@code CronExpression}
      */
     public CronExpression(String cronExpression) throws ParseException {
         if (cronExpression == null) {
@@ -165,7 +165,7 @@ public class CronExpression implements Cloneable {
     }
 
     /**
-     * Returns the time zone for which this <code>CronExpression</code> will be resolved.
+     * Returns the time zone for which this {@code CronExpression} will be resolved.
      */
     public TimeZone getTimeZone() {
         if (timeZone == null) {
@@ -176,16 +176,16 @@ public class CronExpression implements Cloneable {
     }
 
     /**
-     * Sets the time zone for which this <code>CronExpression</code> will be resolved.
+     * Sets the time zone for which this {@code CronExpression} will be resolved.
      */
     public void setTimeZone(TimeZone timeZone) {
         this.timeZone = timeZone;
     }
 
     /**
-     * Returns the string representation of the <CODE>CronExpression</CODE>
+     * Returns the string representation of the {@code CronExpression}
      *
-     * @return a string representation of the <CODE>CronExpression</CODE>
+     * @return a string representation of the {@code CronExpression}
      */
     @Override
     public String toString() {
@@ -1370,7 +1370,7 @@ public class CronExpression implements Cloneable {
     }
 
     /**
-     * NOT YET IMPLEMENTED: Returns the time before the given time that the <code>CronExpression</code> matches.
+     * NOT YET IMPLEMENTED: Returns the time before the given time that the {@code CronExpression} matches.
      */
     protected Date getTimeBefore(Date endTime) {
         // TODO: implement QUARTZ-423
@@ -1378,7 +1378,7 @@ public class CronExpression implements Cloneable {
     }
 
     /**
-     * NOT YET IMPLEMENTED: Returns the final time that the <code>CronExpression</code> will match.
+     * NOT YET IMPLEMENTED: Returns the final time that the {@code CronExpression} will match.
      */
     public Date getFinalFireTime() {
         // TODO: implement QUARTZ-423
