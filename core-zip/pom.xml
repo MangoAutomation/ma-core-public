@@ -88,6 +88,12 @@
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
             <version>${project.version}</version>
+            <classifier>javadoc</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.infiniteautomation</groupId>
+            <artifactId>mango</artifactId>
+            <version>${project.version}</version>
             <classifier>resources</classifier>
             <type>zip</type>
         </dependency>

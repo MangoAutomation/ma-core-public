@@ -14,6 +14,9 @@
                 <include>com.infiniteautomation:mango:jar</include>
                 <include>com.infiniteautomation.mango:ma-priv</include>
             </includes>
+            <excludes>
+                <exclude>*:*:jar:javadoc</exclude>
+            </excludes>
             <outputDirectory>lib</outputDirectory>
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>true</useTransitiveFiltering>
@@ -45,6 +48,13 @@
             <outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
+        </dependencySet>
+        <dependencySet>
+            <includes>
+                <include>com.infiniteautomation:mango:jar:javadoc</include>
+            </includes>
+            <unpack>true</unpack>
+            <outputDirectory>web/apidocs</outputDirectory>
         </dependencySet>
     </dependencySets>
     <fileSets>

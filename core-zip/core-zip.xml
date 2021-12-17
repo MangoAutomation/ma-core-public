@@ -14,6 +14,9 @@
                 <include>com.infiniteautomation:mango:jar</include>
                 <include>com.infiniteautomation.mango:ma-priv</include>
             </includes>
+            <excludes>
+                <exclude>*:*:jar:javadoc</exclude>
+            </excludes>
             <outputDirectory>lib</outputDirectory>
             <useTransitiveDependencies>true</useTransitiveDependencies>
             <useTransitiveFiltering>true</useTransitiveFiltering>
@@ -35,6 +38,13 @@
             <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useProjectArtifact>false</useProjectArtifact>
+        </dependencySet>
+        <dependencySet>
+            <includes>
+                <include>com.infiniteautomation:mango:jar:javadoc</include>
+            </includes>
+            <unpack>true</unpack>
+            <outputDirectory>web/apidocs</outputDirectory>
         </dependencySet>
     </dependencySets>
     <fileSets>
