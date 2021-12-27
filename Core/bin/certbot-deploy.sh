@@ -13,7 +13,7 @@ mango_script_dir="$(cd "$(dirname "$0")" && pwd -P)"
 
 mango_keystore_properties
 
-if [ -x "$(command -v openssl)" ]; then
+if [ ! -x "$(command -v openssl)" ]; then
   err "openssl not found on path"
 fi
 
