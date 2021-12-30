@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -32,6 +33,10 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
     private static final String DATA_POINT_READ = "dataPointReadPermissions";
     private static final String CUSTOM = "customPermissions";
 
+    private static final LazyInitSupplier<PermissionService> permissionServiceInstance = new LazyInitSupplier<>(() -> {
+        return Common.getRuntimeContext().getBean(PermissionService.class);
+    });
+
     @Override
     public JsonValue jsonWrite(JsonTypeWriter writer, Object value) throws JsonException {
         ScriptPermissions permission = (ScriptPermissions)value;
@@ -52,15 +57,13 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
         writer.writeObject(roles);
     }
 
-    //TODO Mango 4.2 improve performance with lazy field as PermissionService is not available at construct time
     @Override
     public Object jsonRead(JsonReader reader, JsonValue jsonValue, Type type) throws JsonException {
         Set<Role> roles = new HashSet<>();
-        PermissionService service = Common.getBean(PermissionService.class);
         if(jsonValue instanceof JsonArray) {
             for(JsonValue val : (JsonArray)jsonValue) {
                 //Just a single string
-                Role r = service.getRole(val.toString());
+                Role r = permissionServiceInstance.get().getRole(val.toString());
                 if(r != null) {
                     roles.add(r);
                 }else {
@@ -77,7 +80,7 @@ public class ScriptPermissionConverter extends ImmutableClassConverter {
             permissions.addAll(PermissionService.explodeLegacyPermissionGroups(o.getString(DATA_POINT_READ)));
             permissions.addAll(PermissionService.explodeLegacyPermissionGroups(o.getString(CUSTOM)));
             for(String role : permissions) {
-                Role r = service.getRole(role);
+                Role r = permissionServiceInstance.get().getRole(role);
                 if(r != null) {
                     roles.add(r);
                 }else {
