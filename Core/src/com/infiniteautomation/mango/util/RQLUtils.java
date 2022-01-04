@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 
 import com.infiniteautomation.mango.util.exception.InvalidRQLException;
 
-import net.jazdw.rql.converter.Converter;
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 import net.jazdw.rql.parser.RQLParserException;
@@ -20,15 +19,12 @@ public class RQLUtils {
 
     private static final Pattern FORMAT_PARAMETER_PATTERN = Pattern.compile("(?:^|&)format=[\\w-]+?(?:$|&)");
 
-    public static ASTNode parseRQLtoAST(String queryString) throws InvalidRQLException {
-        return parseRQLtoAST(queryString, new Converter());
-    }
 
     /**
      * Create an AST Node from the RQL query in the request
      * @return ASTNode
      */
-    public static ASTNode parseRQLtoAST(String queryString, Converter converter) throws InvalidRQLException {
+    public static ASTNode parseRQLtoAST(String queryString) throws InvalidRQLException {
         if (queryString != null) {
             // remove format=x e.g. format=csv parameter
             queryString = FORMAT_PARAMETER_PATTERN.matcher(queryString).replaceFirst("");
@@ -37,7 +33,7 @@ public class RQLUtils {
             return new ASTNode("and");
         }
 
-        RQLParser parser = new RQLParser(converter);
+        RQLParser parser = new RQLParser();
         try {
             return parser.parse(queryString);
         } catch(IllegalArgumentException | RQLParserException e) {

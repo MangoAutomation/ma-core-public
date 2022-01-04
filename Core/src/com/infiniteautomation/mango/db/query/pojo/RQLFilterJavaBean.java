@@ -6,8 +6,9 @@ package com.infiniteautomation.mango.db.query.pojo;
 import java.lang.reflect.InvocationTargetException;
 import java.util.regex.Pattern;
 
-import com.serotonin.m2m2.i18n.Translations;
 import org.apache.commons.beanutils.PropertyUtils;
+
+import com.serotonin.m2m2.i18n.Translations;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -39,6 +40,10 @@ public class RQLFilterJavaBean<T> extends RQLFilter<T> {
     }
 
     protected Object getItemProperty(Object item, String property) {
+        if (property.isEmpty()) {
+            return item;
+        }
+
         try {
             return PropertyUtils.getProperty(item, property);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {

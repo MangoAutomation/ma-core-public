@@ -3,13 +3,15 @@
  */
 package com.infiniteautomation.mango.db.query.pojo;
 
-import com.infiniteautomation.mango.util.RQLUtils;
-import net.jazdw.rql.parser.ASTNode;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+
+import com.infiniteautomation.mango.util.RQLUtils;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Jared Wiltshire
@@ -17,7 +19,7 @@ import static org.junit.Assert.*;
 public class RQLFilterJavaBeanTest {
     @Test
     public void sortStrings() {
-        ASTNode node = RQLUtils.parseRQLtoAST("sort(null)");
+        ASTNode node = RQLUtils.parseRQLtoAST("sort(+)");
         RQLFilter<String> filter = new RQLFilterJavaBean<>(node, null);
 
         String[] filtered = filter.apply(Stream.of("zzz", "aaa")).toArray(String[]::new);
@@ -28,7 +30,7 @@ public class RQLFilterJavaBeanTest {
 
     @Test
     public void sortStringsReverse() {
-        ASTNode node = RQLUtils.parseRQLtoAST("sort((null,true))");
+        ASTNode node = RQLUtils.parseRQLtoAST("sort(-)");
         RQLFilter<String> filter = new RQLFilterJavaBean<>(node, null);
 
         String[] filtered = filter.apply(Stream.of("aaa", "zzz")).toArray(String[]::new);
@@ -39,7 +41,7 @@ public class RQLFilterJavaBeanTest {
 
     @Test
     public void compareNumbers() {
-        ASTNode node = RQLUtils.parseRQLtoAST("gt(null,1)");
+        ASTNode node = RQLUtils.parseRQLtoAST("gt(1)");
         RQLFilter<Integer> filter = new RQLFilterJavaBean<>(node, null);
 
         Integer[] filtered = filter.apply(Stream.of(1, 2, 3)).toArray(Integer[]::new);
