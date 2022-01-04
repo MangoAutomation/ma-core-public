@@ -20,29 +20,35 @@ import com.serotonin.m2m2.i18n.Translations;
 
 import net.jazdw.rql.parser.ASTNode;
 
-/**
- *  TODO This class could use a tune up as the visit method is
- *  called in the constructor so you can't override methods that use it
- *  which depend on fields in the superclass
- *
- */
 public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
-    private final Predicate<T> filter;
+    private final ASTNode node;
     private final ObjectComparator defaultComparator;
     private final Translations translations;
+
+    private boolean built = false;
+    private Predicate<T> filter;
     private Long limit;
     private Long offset;
     private Comparator<T> sort;
 
     public RQLFilter(ASTNode node, Translations translations) {
+        this.node = node;
         this.translations = translations;
         this.defaultComparator = new ObjectComparator(translations);
-        this.filter = node == null ? null : this.visit(node);
+    }
+
+    public void build() {
+        if (!built) {
+            this.filter = node == null ? null : this.visit(node);
+            this.built = true;
+        }
     }
 
     @Override
     public Stream<T> apply(Stream<T> stream) {
+        build();
+
         if (this.filter != null) {
             stream = stream.filter(filter);
         }
@@ -59,6 +65,8 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     }
 
     public long count(Stream<T> stream) {
+        build();
+
         if (this.filter != null) {
             stream = stream.filter(filter);
         }
