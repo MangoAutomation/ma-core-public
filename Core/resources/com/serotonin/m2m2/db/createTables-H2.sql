@@ -247,6 +247,7 @@ ALTER TABLE dataSources
     ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
 ALTER TABLE dataSources
     ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
+CREATE INDEX dataSourcesIdNameTypeXidIndex ON dataSources (id ASC, name ASC, dataSourceType ASC, xid ASC);
 
 -- Time series table
 CREATE TABLE timeSeries

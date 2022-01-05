@@ -711,7 +711,7 @@ public class DataPointDao extends AbstractVoDao<DataPointVO, DataPointsRecord, D
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        select = select.join(dataSources).on(dataSources.id.eq(table.dataSourceId));
+        select = select.leftJoin(dataSources).on(dataSources.id.eq(table.dataSourceId));
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Field<String>> tagFields = ((ConditionSortLimitWithTagKeys) conditions).getTagFields();
             select = dataPointTagsDao.joinTags(select, table.id, tagFields);

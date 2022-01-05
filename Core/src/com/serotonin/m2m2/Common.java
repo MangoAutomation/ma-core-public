@@ -3,10 +3,6 @@
  */
 package com.serotonin.m2m2;
 
-import freemarker.cache.FileTemplateLoader;
-import freemarker.cache.MultiTemplateLoader;
-import freemarker.cache.TemplateLoader;
-import freemarker.template.Configuration;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
 import javax.measure.converter.RationalConverter;
 import javax.measure.quantity.Quantity;
 import javax.measure.unit.Unit;
@@ -106,6 +103,11 @@ import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
 import com.serotonin.util.properties.MangoProperties;
+
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
+import freemarker.template.Configuration;
 
 public class Common {
     // Note the start time of the application.
@@ -234,7 +236,7 @@ public class Common {
      *
      */
     public static int getDatabaseSchemaVersion() {
-        return 44;
+        return 45;
     }
 
     public static File getLogsDir() {

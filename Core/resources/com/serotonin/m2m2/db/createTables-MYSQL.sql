@@ -207,6 +207,7 @@ alter table dataSources add constraint dataSourcesUn1 unique (xid);
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
 ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
+ALTER TABLE dataSources ADD INDEX dataSourcesIdNameTypeXidIndex (id ASC, name ASC, dataSourceType ASC, xid ASC);
 
 -- Time series table
 CREATE TABLE timeSeries (

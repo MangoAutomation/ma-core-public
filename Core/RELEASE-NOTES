@@ -19,6 +19,7 @@
 * Rename PointValueCacheDao to PointValueCache, methods have been substantially modified for ease of implementation
 * Move MailingListService.cleanRecipientList method to DAO as it shouldn't be used at that level
 * Fix bug in upgrading Script permissions for Email and Set Point event handlers from pre Mango 4.0 permissions
+* Add index to data sources table to improve data point queries which join on this table
 
 *Version 4.2.3*
 * Fix bug in runtime where Update data point events were not reliably fired
