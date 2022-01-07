@@ -265,6 +265,24 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     }
 
     /**
+     * Is this data point already being published on this publisher by another published point
+     *
+     * Used to validate some publishers that require a data point only be published once.
+     *
+     * @param publisherId
+     * @param dataPointId
+     * @param publishedPointId
+     */
+    public boolean isPointUnique(int publisherId, int dataPointId, int publishedPointId) {
+        int count = create.selectCount()
+                .from(table)
+                .where(table.dataPointId.eq(dataPointId),
+                        table.id.ne(publishedPointId),
+                        table.publisherId.eq(publisherId)).fetchSingle().value1();
+        return count == 0;
+    }
+
+    /**
      * Publish a notification of a runtime state change
      */
     public void notifyStateChanged(PublishedPointVO vo, ILifecycleState state) {
