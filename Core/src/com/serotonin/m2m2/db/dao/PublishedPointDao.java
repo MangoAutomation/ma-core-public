@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -264,21 +265,30 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     }
 
     /**
-     * Is this data point already being published on this publisher by another published point?
-     *
+     * @see #isPointPublished(int, int, Set)
+     */
+    public boolean isPointPublished(int publisherId, int dataPointId) {
+        return isPointPublished(publisherId, dataPointId, Set.of());
+    }
+
+    /**
+     * Check if data point is already being published on this publisher.
      * Used to validate some publishers that require a data point only be published once.
      *
      * @param publisherId The publisher on which this point is published
      * @param dataPointId The data point being published
-     * @param publishedPointId The published point this data point is linked to (or will be linked to)
+     * @param excludeIds published point ids to exclude
+     * @return true if point is already published on this publisher
      */
-    public boolean isPointUnique(int publisherId, int dataPointId, int publishedPointId) {
-        int count = create.selectCount()
+    public boolean isPointPublished(int publisherId, int dataPointId, Set<Integer> excludeIds) {
+        var select = create.select(DSL.field(DSL.count().greaterThan(0)))
                 .from(table)
                 .where(table.dataPointId.eq(dataPointId),
-                        table.id.ne(publishedPointId),
-                        table.publisherId.eq(publisherId)).fetchSingle().value1();
-        return count == 0;
+                        table.publisherId.eq(publisherId));
+        if (!excludeIds.isEmpty()) {
+            select = select.and(table.id.notIn(excludeIds));
+        }
+        return select.fetchSingle().value1();
     }
 
     /**

@@ -109,58 +109,80 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     @Override
     public ProcessResult validate(PublishedPointVO vo) {
-        ProcessResult result = commonValidation(vo);
+        ProcessResult result = super.validate(vo);
 
+        // Ensure the definition exists
         PublisherDefinition<? extends PublisherVO> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
-        //Ensure the definition exists
         if (definition == null) {
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
-            return result;
         }
 
-        //Check the publisher exists
+        // Check the publisher exists
         PublisherVO pub = publisherDao.get(vo.getPublisherId());
-        if(pub == null) {
-            result.addContextualMessage("publisherId", "validate.invalidValue");
-            return result;
+        if (pub == null) {
+            result.addContextualMessage("publisherId", "validate.publisher.missingPublisher", vo.getPublisherId());
+        } else {
+            vo.setPublisherXid(pub.getXid());
         }
-        definition.validate(result, vo, pub);
+
+        // Ensure data point exists
+        String dataPointXid = dataPointDao.getXidById(vo.getDataPointId());
+        if (dataPointXid == null) {
+            result.addContextualMessage("dataPointId", "validate.publisher.missingPoint", vo.getDataPointId());
+        } else {
+            vo.setDataPointXid(dataPointXid);
+        }
+
+        if (definition != null && pub != null) {
+            definition.validate(result, vo, pub);
+        }
         return result;
     }
 
     @Override
     public ProcessResult validate(PublishedPointVO existing, PublishedPointVO vo) {
-        ProcessResult result = commonValidation(vo);
+        ProcessResult result = super.validate(existing, vo);
+
+        // Ensure the definition exists
         PublisherDefinition<? extends PublisherVO> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
-        //Ensure the definition exists
         if (definition == null) {
             result.addContextualMessage("publisherTypeName", "validate.invalidValue");
-            return result;
         }
-        //Check the publisher exists
+
+        // ensure the publisher type is not being changed
+        if (!existing.getPublisherTypeName().equals(vo.getPublisherTypeName())) {
+            result.addContextualMessage("publisherId", "validate.publishedPoints.cantChangeType");
+        }
+
+        // Check the publisher exists
         PublisherVO pub = publisherDao.get(vo.getPublisherId());
-        if(pub == null) {
-            result.addContextualMessage("publisherId", "validate.invalidValue");
-            return result;
-        }
-
-        definition.validate(result, existing, vo, pub);
-        return result;
-    }
-
-    private ProcessResult commonValidation(PublishedPointVO vo) {
-        ProcessResult result = super.validate(vo);
-
-        //Ensure publisher exists
-        if (publisherDao.getXidById(vo.getPublisherId()) == null) {
+        if (pub == null) {
             result.addContextualMessage("publisherId", "validate.publisher.missingPublisher", vo.getPublisherId());
+        } else {
+            vo.setPublisherXid(pub.getXid());
+
+            // don't allow moving to a different publisher
+            if (existing.getPublisherId() != vo.getPublisherId()) {
+                result.addContextualMessage("publisherId", "validate.publishedPoints.cantChangePublisher");
+            }
         }
-        //Ensure data point exists
+
+        // Ensure data point exists
         String dataPointXid = dataPointDao.getXidById(vo.getDataPointId());
         if (dataPointXid == null) {
             result.addContextualMessage("dataPointId", "validate.publisher.missingPoint", vo.getDataPointId());
+        } else {
+            vo.setDataPointXid(dataPointXid);
+
+            // don't allow changing the point being published
+            if (existing.getDataPointId() != vo.getDataPointId()) {
+                result.addContextualMessage("dataPointId", "validate.publishedPoints.cantChangeDataPoint");
+            }
         }
 
+        if (definition != null && pub != null) {
+            definition.validate(result, existing, vo, pub);
+        }
         return result;
     }
 
