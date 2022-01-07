@@ -49,9 +49,8 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     private final DataPoints dataPoints;
     private final DataPointTagsDao dataPointTagsDao;
 
-    private static final LazyInitSupplier<PublishedPointDao> springInstance = new LazyInitSupplier<>(() -> {
-        return Common.getRuntimeContext().getBean(PublishedPointDao.class);
-    });
+    private static final LazyInitSupplier<PublishedPointDao> springInstance =
+            new LazyInitSupplier<>(() -> Common.getRuntimeContext().getBean(PublishedPointDao.class));
 
     private PublishedPointDao(DaoDependencies dependencies,
                               DataPointTagsDao dataPointTagsDao) {
@@ -163,7 +162,7 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     }
 
     @Override
-    protected void handleMappingException(Exception e, Record record) {
+    protected void handleMappingException(@NonNull Exception e, @NonNull Record record) {
         if (e.getCause() instanceof ModuleNotLoadedException) {
             LOG.error("Published point with xid '" + record.get(table.xid) +
                     "' could not be loaded. Is its module missing?", e.getCause());
@@ -265,13 +264,13 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     }
 
     /**
-     * Is this data point already being published on this publisher by another published point
+     * Is this data point already being published on this publisher by another published point?
      *
      * Used to validate some publishers that require a data point only be published once.
      *
-     * @param publisherId
-     * @param dataPointId
-     * @param publishedPointId
+     * @param publisherId The publisher on which this point is published
+     * @param dataPointId The data point being published
+     * @param publishedPointId The published point this data point is linked to (or will be linked to)
      */
     public boolean isPointUnique(int publisherId, int dataPointId, int publishedPointId) {
         int count = create.selectCount()
