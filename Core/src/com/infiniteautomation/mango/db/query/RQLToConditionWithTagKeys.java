@@ -25,19 +25,23 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public class RQLToConditionWithTagKeys extends RQLToCondition {
 
-    public static final String TAGS_PREFIX = "tags.";
-    public static final int TAGS_PREFIX_LENGTH = TAGS_PREFIX.length();
+    public static final String DEFAULT_TAGS_PREFIX = "tags.";
 
     int tagIndex = 0;
     final Map<String, Field<String>> tagFields = new HashMap<>();
-    final boolean allPropertiesAreTags;
+    final String tagsPrefix;
 
     /**
      * This constructor is only used when querying the data point tags table
      */
     public RQLToConditionWithTagKeys() {
         super(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
-        this.allPropertiesAreTags = true;
+        this.tagsPrefix = "";
+    }
+
+    public RQLToConditionWithTagKeys(@NonNull Map<String, Field<?>> fieldMapping,
+                                     @NonNull Map<String, Function<Object, Object>> valueConverterMap) {
+        this(fieldMapping, valueConverterMap, DEFAULT_TAGS_PREFIX);
     }
 
     /**
@@ -47,9 +51,10 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
      * @param valueConverterMap map of field name to a converter function, converter function converts RQL arguments to a value able to be compared to the SQL field
      */
     public RQLToConditionWithTagKeys(@NonNull Map<String, Field<?>> fieldMapping,
-                                     @NonNull Map<String, Function<Object, Object>> valueConverterMap) {
+                                     @NonNull Map<String, Function<Object, Object>> valueConverterMap,
+                                     String tagsPrefix) {
         super(Collections.emptyMap(), fieldMapping, valueConverterMap);
-        this.allPropertiesAreTags = false;
+        this.tagsPrefix = tagsPrefix;
     }
 
     @Override
@@ -65,17 +70,12 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
     @Override
     @SuppressWarnings("unchecked")
     protected <T> Field<T> getField(String property) {
-        String tagKey;
-
-        if (allPropertiesAreTags) {
-            tagKey = property;
-        } else if (property.startsWith(TAGS_PREFIX)) {
-            tagKey = property.substring(TAGS_PREFIX_LENGTH);
-        } else {
-            return super.getField(property);
+        if (property.startsWith(tagsPrefix)) {
+            String tagKey = property.substring(tagsPrefix.length());
+            return (Field<T>) getTagField(tagKey);
         }
 
-        return (Field<T>) getTagField(tagKey);
+        return super.getField(property);
     }
 
     public Field<String> getTagField(String tagKey) {
