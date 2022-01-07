@@ -152,6 +152,17 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     }
 
     @Override
+    protected Map<String, Field<?>> createFieldMap() {
+        var fieldMap = super.createFieldMap();
+        // allow querying on any data point column even if it's not included in the model
+        for (var field: DataPoints.DATA_POINTS.fields()) {
+            fieldMap.put("point." + field.getName(), field);
+        }
+        fieldMap.put("dataPointXid", DataPoints.DATA_POINTS.xid);
+        return fieldMap;
+    }
+
+    @Override
     public void loadRelationalData(PublishedPointVO vo) {
         vo.supplyDataPointTags(() -> dataPointTagsDao.getTagsForDataPointId(vo.getDataPointId()));
     }
@@ -159,7 +170,7 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     @Override
     protected RQLToCondition createRqlToCondition(Map<String, RQLSubSelectCondition> subSelectMap, Map<String, Field<?>> fieldMap,
                                                   Map<String, Function<Object, Object>> converterMap) {
-        return new RQLToConditionWithTagKeys(fieldMap, converterMap);
+        return new RQLToConditionWithTagKeys(fieldMap, converterMap, "dataPointTags.");
     }
 
     @Override

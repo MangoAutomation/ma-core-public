@@ -41,10 +41,7 @@ abstract public class PublishedPointVO extends AbstractActionVO {
      * These fields are only used for JSON export, and for outputting to the REST model
      */
     private transient String dataPointXid;
-
-
-    private String dataPointName;
-    private LazyField<Map<String, String>> dataPointTags = new LazyField<>(new HashMap<>());
+    private transient LazyField<Map<String, String>> dataPointTags = new LazyField<>(new HashMap<>());
 
     @JsonProperty
     private transient String publisherXid;
@@ -95,20 +92,12 @@ abstract public class PublishedPointVO extends AbstractActionVO {
         this.publisherXid = publisherXid;
     }
 
-    public String getDataPointName() {
-        return dataPointName;
-    }
-
-    public void setDataPointName(String dataPointName) {
-        this.dataPointName = dataPointName;
-    }
-
     public Map<String,String> getDataPointTags() {
         return dataPointTags.get();
     }
 
     public void supplyDataPointTags(Supplier<Map<String,String>> dataPointTags) {
-        this.dataPointTags = new LazyField<Map<String,String>>(dataPointTags);
+        this.dataPointTags = new LazyField<>(dataPointTags);
     }
 
     @Override
