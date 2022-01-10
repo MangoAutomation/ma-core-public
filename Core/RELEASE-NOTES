@@ -20,6 +20,7 @@
 * Move MailingListService.cleanRecipientList method to DAO as it shouldn't be used at that level
 * Fix bug in upgrading Script permissions for Email and Set Point event handlers from pre Mango 4.0 permissions
 * Add index to data sources table to improve data point queries which join on this table
+* Remove option to start H2 web console (db.web.start) in response to CVE-2021-42392
 
 *Version 4.2.3*
 * Fix bug in runtime where Update data point events were not reliably fired

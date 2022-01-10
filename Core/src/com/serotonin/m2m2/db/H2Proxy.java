@@ -102,21 +102,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
         }
         dataSource = JdbcConnectionPool.create(jds);
         dataSource.setMaxConnections(env.getProperty(propertyPrefix + "db.pool.maxActive", int.class, 100));
-
-        if (env.getProperty(propertyPrefix + "db.web.start", boolean.class, false)) {
-            LOG.info("Initializing H2 web server");
-            String[] webArgs = new String[4];
-            webArgs[0] = "-webPort";
-            webArgs[1] = env.getProperty(propertyPrefix + "db.web.port", "8091");
-            webArgs[2] = "-ifExists";
-            webArgs[3] = "-webAllowOthers";
-            try {
-                this.web = Server.createWebServer(webArgs);
-                this.web.start();
-            } catch (SQLException e) {
-                LOG.error("An error occurred", e);
-            }
-        }
     }
 
     public static Path getDbPathFromUrl(String url) {
