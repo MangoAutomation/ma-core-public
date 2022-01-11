@@ -22,6 +22,12 @@
 * Add index to data sources table to improve data point queries which join on this table
 * Remove option to start H2 web console (db.web.start) in response to CVE-2021-42392
 
+*Version 4.2.5*
+* Update log4j2 to version 2.16.0, fix for CVE-2021-45046
+
+*Version 4.2.4*
+* Update log4j2 to version 2.15.0, fix for CVE-2021-44228
+
 *Version 4.2.3*
 * Fix bug in runtime where Update data point events were not reliably fired
 * Fix bug in runtime where backdated values would be set as the current value of the point
