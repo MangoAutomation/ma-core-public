@@ -109,6 +109,7 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     @Override
     public ProcessResult validate(PublishedPointVO vo) {
+        // validate XID and name
         ProcessResult result = super.validate(vo);
 
         // Ensure the definition exists
@@ -141,7 +142,8 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
 
     @Override
     public ProcessResult validate(PublishedPointVO existing, PublishedPointVO vo) {
-        ProcessResult result = super.validate(existing, vo);
+        // validate XID and name
+        ProcessResult result = super.validate(vo);
 
         // Ensure the definition exists
         PublisherDefinition<? extends PublisherVO> definition = ModuleRegistry.getPublisherDefinition(vo.getPublisherTypeName());
