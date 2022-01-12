@@ -23,6 +23,7 @@
 * Fix bug in upgrading Script permissions for Email and Set Point event handlers from pre Mango 4.0 permissions
 * Add index to data sources table to improve data point queries which join on this table
 * Remove option to start H2 web console (db.web.start) in response to CVE-2021-42392
+* Update log4j2 to version 2.17.1, fix for CVE-2021-44832
 
 *Version 4.2.5*
 * Update log4j2 to version 2.16.0, fix for CVE-2021-45046
