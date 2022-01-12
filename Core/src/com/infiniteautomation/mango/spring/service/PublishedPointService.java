@@ -247,23 +247,6 @@ public class PublishedPointService extends AbstractVOService<PublishedPointVO, P
         return false;
     }
 
-    /**
-     * Replace all points on a publisher with these points, must have read and edit permission for this publisher
-     *
-     */
-    public void replacePoints(int publisherId, List<PublishedPointVO> pointVos) throws NotFoundException, PermissionException, ValidationException {
-        replacePoints(publisherService.get(publisherId), pointVos);
-    }
-
-    protected void replacePoints(PublisherVO vo, List<PublishedPointVO> pointVos) throws NotFoundException, PermissionException, ValidationException {
-        publisherService.ensureEditPermission(Common.getUser(), vo);
-        //Validate all points
-        for (PublishedPointVO point : pointVos) {
-            ensureValid(point);
-        }
-        dao.replacePoints(vo.getId(), pointVos);
-    }
-
     private RuntimeManager getRuntimeManager() {
         return Common.runtimeManager;
     }

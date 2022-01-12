@@ -1,8 +1,5 @@
 package com.infiniteautomation.mango.emport;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.DataPointService;
@@ -15,7 +12,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PublishedPointDao;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -86,7 +83,6 @@ public class PublisherImporter extends Importer {
                     // Handle embedded points (pre Mango 4.3 this was the case)
                     JsonArray arr = json.getJsonArray("points");
                     if (arr != null) {
-                        List<PublishedPointVO> points = new ArrayList<>();
                         for (JsonValue jv : arr) {
                             String dataPointXid = jv.getJsonValue("dataPointId").toString();
                             try {
@@ -94,14 +90,20 @@ public class PublisherImporter extends Importer {
                                 PublishedPointVO point = vo.getDefinition().createPublishedPointVO(vo, dataPointVO);
                                 point.setName(dataPointVO.getName());
                                 ctx.getReader().readInto(point, jv.toJsonObject());
-                                points.add(point);
+                                point.setXid(publishedPointService.generateUniqueXid());
+                                publishedPointService.insert(point);
+                                addSuccessMessage(isnew, "emport.publishedPoint.prefix", point.getXid());
                             }catch(NotFoundException e) {
                                 addFailureMessage("emport.publisher.prefix",
                                         xid,
                                         new TranslatableMessage("emport.error.missingPoint", dataPointXid));
+                            }catch(ValidationException e) {
+                                for(ProcessMessage m : e.getValidationResult().getMessages()) {
+                                    addFailureMessage(new ProcessMessage("emport.publisher.prefix",
+                                            new TranslatableMessage("literal", xid), m));
+                                }
                             }
                         }
-                        replacePublishedPoints(xid, points);
                     }
                 }else{
                     addFailureMessage("emport.publisher.runtimeManagerNotRunning", xid);
@@ -116,17 +118,4 @@ public class PublisherImporter extends Importer {
         }
     }
 
-    /**
-     *  Replace published points
-     */
-    private void replacePublishedPoints(String publisherXid, List<PublishedPointVO> points) {
-        try {
-            PublishedPointDao publishedPointDao = PublishedPointDao.getInstance();
-            points.forEach(p -> p.setXid(publishedPointDao.generateUniqueXid()));
-            PublisherVO publisher = service.get(publisherXid);
-            publishedPointService.replacePoints(publisher.getId(), points);
-        } catch (ValidationException e) {
-            setValidationMessages(e.getValidationResult(), "emport.publisher.prefix", publisherXid);
-        }
-    }
 }

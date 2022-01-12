@@ -1,4 +1,6 @@
 *Version 4.3.0*
+* Move Publisher points into separate table and add xid, name and enabled fields for better performance and control of publishers
+* Importing a publisher with points from a previous version will only add new points, not update the existing points in the system this means only import once or delete the existing publisher prior to importing again
 * Adding monitored values to the PointValueDaoSQL to track the number of point values saved (sync and async) per second.
 * Adding a monitored metric for the PublishQueue size.
 * Obscure original path/filename of image when inserting image into email
