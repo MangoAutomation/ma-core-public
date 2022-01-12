@@ -1,3 +1,6 @@
+*Version 4.4.0*
+* Upgraded for Mango 4.4.0
+
 *Version 4.3.0*
 * Move Publisher points into separate table and add xid, name and enabled fields for better performance and control of publishers
 * Importing a publisher with points from a previous version will only add new points, not update the existing points in the system this means only import once or delete the existing publisher prior to importing again
