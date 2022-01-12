@@ -145,26 +145,6 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
         assertNotNull(getRuntimeManager().getPublishedPoint(vo.getId()));
     }
 
-    @Test
-    public void testReplacePoints() {
-        MockPublisherVO publisher = createMockPublisher(false);
-        List<IDataPoint> dps = createMockDataPoints(5);
-        List<PublishedPointVO> pps = new ArrayList<>();
-        for (IDataPoint dp : dps) {
-            MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dp);
-            pp.setName(dp.getName());
-            pp.setEnabled(true);
-            pps.add(service.insert(pp));
-        }
-
-        service.replacePoints(publisher.getId(), pps);
-        List<PublishedPointVO> actualPoints = service.getPublishedPoints(publisher.getId());
-        assertEquals(pps.size(), actualPoints.size());
-        for (int i = 0; i < actualPoints.size(); i++) {
-            assertVoEqual(pps.get(i), actualPoints.get(i));
-        }
-    }
-
     @Test(expected = NotFoundException.class)
     public void testDeletePoint() {
         IDataPoint dp = createMockDataPoints(1).get(0);
