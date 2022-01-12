@@ -204,18 +204,6 @@ public class PublishedPointDao extends AbstractVoDao<PublishedPointVO, Published
     }
 
     /**
-     * Replace points for a given publisher
-     */
-    public void replacePoints(int id, List<PublishedPointVO> pointVos) {
-        doInTransaction(txStatus -> {
-            this.create.deleteFrom(table).where(table.publisherId.eq(id)).execute();
-            for(PublishedPointVO vo : pointVos) {
-                this.insert(vo);
-            }
-        });
-    }
-
-    /**
      * Count the points for a type of publisher (used for metrics reporting)
      */
     public  List<PublisherPointsUsageStatistics> getUsage() {
