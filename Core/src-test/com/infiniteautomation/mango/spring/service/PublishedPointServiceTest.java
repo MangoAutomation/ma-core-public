@@ -256,12 +256,14 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
         JsonObject publisherNode = publishers.getJsonObject(0);
         publisherNode.put("points", legacyPoints);
 
-        //Import publishedPoints for create(replace)
+        //Import publishedPoints for create (insert)
         loadConfiguration(json);
         assertEquals(5, service.count());
 
-        //Import publishedPoints for update(replace)
+        //Import publishedPoints for update (duplicate points).  This process
+        // always inserts new points and can't update them since there is no XID field
+        // on the import data's points array as it was not supported
         loadConfiguration(json);
-        assertEquals(5, service.count());
+        assertEquals(10, service.count());
     }
 }
