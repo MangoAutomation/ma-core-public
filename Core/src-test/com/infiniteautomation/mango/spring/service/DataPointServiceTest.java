@@ -3,10 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.db.tables.DataPoints;
@@ -14,8 +18,10 @@ import com.infiniteautomation.mango.db.tables.records.DataPointsRecord;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -26,8 +32,6 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Terry Packer
@@ -297,5 +301,17 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
         roles.add(createRole);
         ds.setEditPermission(new MangoPermission(roles));
         dataSourceService.update(ds.getXid(), ds);
+    }
+
+    @Test
+    public void testDataTypeValidation() {
+        DataPointVO vo = newVO(editUser);
+        vo.setPointLocator(new MockPointLocatorVO(DataType.fromName("UNKNOWN"), false));
+        try {
+            service.insert(vo);
+            fail("Should throw " + ValidationException.class.getSimpleName());
+        } catch (ValidationException e) {
+            Assert.assertTrue(e.getValidationResult().hasContextualMessage("dataType"));
+        }
     }
 }
