@@ -2,6 +2,8 @@
 * Drop support for IMAGE data points
 * Delete all data points with IMAGE dataType
 * Delete all data sources of type HTTP_IMAGE
+* Point values for IMAGE data points will be deleted by the nightly purge, however the images themselves should be manually deleted from your "filedata" directory
+* Update rql-parser to v1.0.x, stricter parsing of RQL
 
 *Version 4.3.0*
 * Move Publisher points into separate table and add xid, name and enabled fields for better performance and control of publishers
