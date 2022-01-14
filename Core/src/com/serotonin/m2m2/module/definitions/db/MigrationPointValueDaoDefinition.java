@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 
@@ -18,10 +19,12 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.PointValueDaoDefinition;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.migration.MigrationConfig;
 import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao;
 import com.serotonin.m2m2.db.dao.migration.MigrationProgressDao;
 import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.timer.AbstractTimer;
+import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
 @ConditionalDefinition("db.migration.enabled")
 public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
@@ -36,6 +39,7 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
     @Autowired AbstractTimer timer;
     @Autowired List<PointValueDaoDefinition> definitions;
     @Autowired MigrationProgressDao migrationProgressDao;
+    @Autowired MigrationConfig config;
 
     PointValueDaoDefinition primary;
     PointValueDaoDefinition secondary;
@@ -56,8 +60,14 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
         this.pointValueDao = new MigrationPointValueDao(
                 primary.getPointValueDao(),
                 secondary.getPointValueDao(),
-                dataPointDao, vo -> true,
-                env, executorService, scheduledExecutorService, context, timer, migrationProgressDao);
+                dataPointDao,
+                executorService,
+                scheduledExecutorService,
+                timer,
+                migrationProgressDao,
+                config);
+
+        context.addApplicationListener((ApplicationListener<MangoConfigurationReloadedEvent>) e -> pointValueDao.reloadConfig());
 
         if (log.isInfoEnabled()) {
             log.info("Time series migration enabled, from {} (secondary) to {} (primary)",

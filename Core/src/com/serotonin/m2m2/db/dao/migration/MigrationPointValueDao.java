@@ -35,9 +35,6 @@ import javax.annotation.PostConstruct;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.Environment;
 
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
@@ -49,7 +46,6 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.migration.MigrationProgressDao.MigrationProgress;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.timer.AbstractTimer;
-import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
@@ -76,18 +72,17 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Histogram valuesPerPeriod = new Histogram(new ExponentiallyDecayingReservoir());
 
     private final ArrayList<MigrationTask> tasks = new ArrayList<>();
-    private final Predicate<DataPointVO> migrationFilter;
+    private final Predicate<DataPointVO> dataPointFilter;
     private final DataPointDao dataPointDao;
-    private final Environment env;
     private final ExecutorService executorService;
     private final ScheduledExecutorService scheduledExecutorService;
-    private final ConfigurableApplicationContext context;
     private final Long migrateFrom;
     private final long period;
     private final AbstractTimer timer;
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
     private final AtomicLong currentTimestamp = new AtomicLong(Long.MIN_VALUE);
+    private final MigrationConfig config;
 
     private volatile boolean fullyMigrated = false;
     private volatile int readChunkSize;
@@ -101,35 +96,26 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     public MigrationPointValueDao(PointValueDao primary,
                                   PointValueDao secondary,
                                   DataPointDao dataPointDao,
-                                  Predicate<DataPointVO> migrationFilter,
-                                  Environment env,
                                   ExecutorService executorService,
                                   ScheduledExecutorService scheduledExecutorService,
-                                  ConfigurableApplicationContext context,
                                   AbstractTimer timer,
-                                  MigrationProgressDao migrationProgressDao) {
+                                  MigrationProgressDao migrationProgressDao,
+                                  MigrationConfig config) {
+
         super(primary, secondary);
         this.dataPointDao = dataPointDao;
-        this.migrationFilter = migrationFilter;
-        this.env = env;
         this.executorService = executorService;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.context = context;
         this.timer = timer;
         this.migrationProgressDao = migrationProgressDao;
+        this.config = config;
 
-        String fromStr = env.getProperty("db.migration.fromDate");
-        if (fromStr != null) {
-            this.migrateFrom = ZonedDateTime.parse(fromStr).toInstant().toEpochMilli();
-        } else {
-            this.migrateFrom = null;
-        }
+        this.dataPointFilter = config.getDataPointFilter();
+        Instant migrateFromTime = config.getMigrateFromTime();
+        this.migrateFrom = migrateFromTime == null ? null : migrateFromTime.toEpochMilli();
+        this.period = config.getMigrationPeriod().toMillis();
 
-        long period = env.getProperty("db.migration.period", Long.class, 1L);
-        TimeUnit periodUnit = env.getProperty("db.migration.periodUnit", TimeUnit.class, TimeUnit.DAYS);
-        this.period = periodUnit.toMillis(period);
-
-        int maxAttempts = env.getProperty("db.migration.maxAttempts", int.class, 5);
+        int maxAttempts = config.getMaxAttempts();
         RetryConfig retryConfig = RetryConfig.custom()
                 .maxAttempts(maxAttempts)
                 .failAfterMaxAttempts(true)
@@ -144,7 +130,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     @PostConstruct
     private void postConstruct() {
-        if (env.getProperty("db.migration.startNewMigration", boolean.class, false)) {
+        if (config.isStartNewMigration()) {
             migrationProgressDao.deleteAll();
         }
 
@@ -164,8 +150,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             }
         }
 
-        context.addApplicationListener((ApplicationListener<MangoConfigurationReloadedEvent>) e -> loadProperties());
-        loadProperties();
+        reloadConfig();
     }
 
     private void addMigration(MigrationSeries migration) {
@@ -175,17 +160,17 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         }
     }
 
-    private void loadProperties() {
-        adjustThreads(env.getProperty("db.migration.threadCount", int.class, Math.max(1, Runtime.getRuntime().availableProcessors() / 4)));
-        this.readChunkSize = env.getProperty("db.migration.readChunkSize", int.class, 10000);
-        this.writeChunkSize = env.getProperty("db.migration.writeChunkSize", int.class, 10000);
+    public void reloadConfig() {
+        adjustThreads(config.getThreadCount());
+        this.readChunkSize = config.getReadChunkSize();
+        this.writeChunkSize = config.getWriteChunkSize();
 
         synchronized (periodicLogFutureMutex) {
             if (periodicLogFuture != null) {
                 periodicLogFuture.cancel(false);
                 this.periodicLogFuture = null;
             }
-            int logPeriod = env.getProperty("db.migration.logPeriodSeconds", int.class, 60);
+            int logPeriod = config.getLogPeriodSeconds();
             if (logPeriod > 0) {
                 this.periodicLogFuture = scheduledExecutorService.scheduleAtFixedRate(() -> {
                     if (log.isInfoEnabled() && numTasks > 0) {
@@ -243,13 +228,12 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     @Override
     public void close() throws Exception {
-        long closeWait = env.getProperty("db.migration.closeWait", Long.class, 1L);
-        TimeUnit closeWaitUnit = env.getProperty("db.migration.closeWaitUnit", TimeUnit.class, TimeUnit.MINUTES);
+        long seconds = config.getCloseWait().toSeconds();
 
         // adjust threads back to 0 to cancel them
         for (MigrationTask task : terminate()) {
             // wait for the cancelled threads to complete
-            task.getFinished().get(closeWait, closeWaitUnit);
+            task.getFinished().get(seconds, TimeUnit.SECONDS);
             if (!task.getFinished().isDone()) {
                 log.error("Failed to stop migration task {}", task.getName());
             }
@@ -392,7 +376,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
         private void initialPass() {
             this.point = dataPointDao.getBySeriesId(seriesId);
-            if (point == null || !migrationFilter.test(point)) {
+            if (point == null || !dataPointFilter.test(point)) {
                 this.status = MigrationStatus.SKIPPED;
                 skippedSeries.incrementAndGet();
                 if (log.isInfoEnabled()) {
