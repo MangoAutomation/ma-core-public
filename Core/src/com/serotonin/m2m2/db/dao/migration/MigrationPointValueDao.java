@@ -276,6 +276,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean handleWithPrimary(DataPointVO vo, Operation operation) {
         // short-circuit, faster than looking up map
         if (fullyMigrated) return true;
