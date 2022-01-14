@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -214,15 +213,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             List<MigrationTask> stoppedTasks = new ArrayList<>();
 
             while (tasks.size() < threadCount) {
-                MigrationTask task = new MigrationTask(tasks.size() + 1);
+                MigrationTask task = new MigrationTask(seriesQueue, tasks.size() + 1);
                 tasks.add(task);
                 this.numTasks = tasks.size();
-                task.getFinished().whenComplete((v, e) -> {
-                    if (e != null) {
-                        log.error("Error in migration task, task terminated", e);
-                    }
-                    removeTask(task);
-                });
+                task.getFinished().whenComplete((stopped, e) -> removeTask(task));
                 executorService.execute(task);
             }
 
@@ -355,67 +349,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 numTasks);
     }
 
-    private class MigrationTask implements Runnable {
-        private final CompletableFuture<Void> finished = new CompletableFuture<>();
-        private final String name;
-
-        private volatile boolean stopFlag = false;
-
-        private MigrationTask(int threadId) {
-            super();
-            this.name = String.format("pv-migration-%03d", threadId);
-        }
-
-        @Override
-        public void run() {
-            try {
-                Thread.currentThread().setName(name);
-                if (log.isInfoEnabled()) {
-                    log.info("{} Migration task starting.", stats());
-                }
-
-                boolean stopped;
-                MigrationSeries series;
-                while (!(stopped = stopFlag) && (series = seriesQueue.poll()) != null) {
-                    MigrationStatus status = series.run();
-                    if (status == MigrationStatus.RUNNING) {
-                        seriesQueue.add(series);
-                    }
-                }
-
-                if (stopped) {
-                    if (log.isWarnEnabled()) {
-                        log.warn("{} Migration task was stopped.", stats());
-                    }
-                } else {
-                    if (log.isInfoEnabled()) {
-                        log.info("{} Migration complete, no more work.", stats());
-                    }
-                }
-            } catch (Exception e) {
-                finished.completeExceptionally(e);
-            } catch (Throwable t) {
-                finished.completeExceptionally(t);
-                throw t;
-            } finally {
-                finished.complete(null);
-            }
-        }
-
-        private void stopTask() {
-            this.stopFlag = true;
-        }
-
-        private CompletableFuture<Void> getFinished() {
-            return finished.copy();
-        }
-
-        private String getName() {
-            return name;
-        }
-    }
-
-    private class MigrationSeries {
+    class MigrationSeries {
         private final int seriesId;
         private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -438,7 +372,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             this.timestamp = timestamp;
         }
 
-        private synchronized MigrationStatus run() {
+        synchronized MigrationStatus run() {
             try {
                 if (!initialPassComplete) {
                     initialPassRetry.run();
