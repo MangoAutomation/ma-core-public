@@ -98,14 +98,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Object periodicLogFutureMutex = new Object();
     private Future<?> periodicLogFuture;
 
-    public enum MigrationStatus {
-        NOT_STARTED,
-        RUNNING,
-        MIGRATED,
-        SKIPPED,
-        ERROR
-    }
-
     public MigrationPointValueDao(PointValueDao primary,
                                   PointValueDao secondary,
                                   DataPointDao dataPointDao,

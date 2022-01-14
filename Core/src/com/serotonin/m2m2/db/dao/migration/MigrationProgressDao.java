@@ -16,7 +16,6 @@ import com.infiniteautomation.mango.db.iterators.ChunkingSpliterator;
 import com.infiniteautomation.mango.db.tables.TimeSeriesMigrationProgress;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.BaseDao;
-import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao.MigrationStatus;
 
 @Repository
 public class MigrationProgressDao extends BaseDao {
