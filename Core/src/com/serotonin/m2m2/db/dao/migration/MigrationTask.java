@@ -10,8 +10,6 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao.MigrationSeries;
-
 /**
  * @author Jared Wiltshire
  */

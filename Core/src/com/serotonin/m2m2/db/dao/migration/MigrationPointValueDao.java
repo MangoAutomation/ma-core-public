@@ -17,7 +17,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -25,8 +24,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -39,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
-import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DelegatingPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -122,7 +118,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(500, 2.0D, 0.2D, 60_000))
                 .build();
         this.retry = Retry.of("migratePeriod", retryConfig);
-
         this.retry.getEventPublisher()
                 .onRetry(event -> log.debug("Retry, waiting {} until attempt {}.", event.getWaitInterval(), event.getNumberOfRetryAttempts(), event.getLastThrowable()))
                 .onError(event -> log.debug("Recorded a failed retry attempt. Number of retry attempts: {}. Giving up.", event.getNumberOfRetryAttempts(), event.getLastThrowable()));
@@ -137,15 +132,15 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         if (migrationProgressDao.count() > 0) {
             // migration in progress, restore from DB
             try (var stream = migrationProgressDao.stream()) {
-                stream.map(progress -> new MigrationSeries(progress.getSeriesId(), progress.getStatus(), progress.getTimestamp()))
+                stream.map(progress -> new MigrationSeries(this, progress.getSeriesId(), progress.getStatus(), progress.getTimestamp()))
                         .forEach(this::addMigration);
             }
         } else {
             // start a new migration, get all points and insert progress items for them
             try (var stream = dataPointDao.streamSeriesIds()) {
-                Stream<MigrationProgress> progressStream = stream.mapToObj(MigrationSeries::new)
+                Stream<MigrationProgress> progressStream = stream.mapToObj(seriesId -> new MigrationSeries(this, seriesId))
                         .peek(this::addMigration)
-                        .map(migration -> new MigrationProgress(migration.seriesId, migration.status, migration.timestamp));
+                        .map(MigrationSeries::getMigrationProgress);
                 migrationProgressDao.bulkInsert(progressStream);
             }
         }
@@ -154,9 +149,13 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     }
 
     private void addMigration(MigrationSeries migration) {
-        seriesStatus.put(migration.seriesId, migration);
-        if (migration.status == MigrationStatus.NOT_STARTED || migration.status == MigrationStatus.RUNNING) {
-            seriesQueue.add(migration);
+        seriesStatus.put(migration.getSeriesId(), migration);
+
+        switch (migration.getStatus()) {
+            case NOT_STARTED:
+            case RUNNING:
+                seriesQueue.add(migration);
+                break;
         }
     }
 
@@ -251,7 +250,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         // short-circuit, faster than looking up map
         if (fullyMigrated) return true;
 
-        @Nullable MigrationPointValueDao.MigrationSeries series = seriesStatus.get(vo.getSeriesId());
+        @Nullable MigrationSeries series = seriesStatus.get(vo.getSeriesId());
         if (series == null || series.isMigrated()) {
             // series is a new series, or has been migrated
             return true;
@@ -323,157 +322,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 retryMetrics.getNumberOfSuccessfulCallsWithRetryAttempt(),
                 retryMetrics.getNumberOfSuccessfulCallsWithoutRetryAttempt(),
                 numTasks);
-    }
-
-    class MigrationSeries {
-        private final int seriesId;
-        private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
-        private MigrationStatus status;
-        private DataPointVO point;
-        private volatile long timestamp;
-        private long sampleCount;
-        private boolean initialPassComplete;
-
-        private final Runnable initialPassRetry = Retry.decorateRunnable(retry, this::initialPass);
-        private final Runnable migrateNextPeriodRetry = Retry.decorateRunnable(retry, this::migrateNextPeriod);
-
-        private MigrationSeries(int seriesId) {
-            this(seriesId, MigrationStatus.NOT_STARTED, 0L);
-        }
-
-        private MigrationSeries(int seriesId, MigrationStatus status, long timestamp) {
-            this.seriesId = seriesId;
-            this.status = status;
-            this.timestamp = timestamp;
-        }
-
-        synchronized MigrationStatus run() {
-            try {
-                if (!initialPassComplete) {
-                    initialPassRetry.run();
-                } else {
-                    migrateNextPeriodRetry.run();
-                }
-            } catch (Exception e) {
-                erroredSeries.incrementAndGet();
-                this.status = MigrationStatus.ERROR;
-                log.error("Error migrating period, migration aborted for point {} (seriesId={})", point != null ? point.getXid() : null, seriesId, e);
-            } catch (Throwable t) {
-                erroredSeries.incrementAndGet();
-                this.status = MigrationStatus.ERROR;
-                throw t;
-            }
-
-            try {
-                migrationProgressDao.update(new MigrationProgress(seriesId, status, timestamp));
-            } catch (Exception e) {
-                log.warn("Failed to save migration progress to database for point {} (seriesId={})", point != null ? point.getXid() : null, seriesId, e);
-            }
-
-            return status;
-        }
-
-        private void initialPass() {
-            this.point = dataPointDao.getBySeriesId(seriesId);
-            if (point == null || !dataPointFilter.test(point)) {
-                this.status = MigrationStatus.SKIPPED;
-                skippedSeries.incrementAndGet();
-                if (log.isInfoEnabled()) {
-                    log.info("{} Skipped point {} (seriesId={})", stats(), point != null ? point.getXid() : null, seriesId);
-                }
-            } else if (this.status == MigrationStatus.NOT_STARTED) {
-                // only get the initial timestamp if migration was not started yet, otherwise we already have retrieved it from the database
-                lock.writeLock().lock();
-                try {
-                    Optional<Long> inception = secondary.getInceptionDate(point);
-                    if (inception.isPresent()) {
-                        this.status = MigrationStatus.RUNNING;
-                        long timestamp = inception.get();
-                        if (migrateFrom != null) {
-                            timestamp = Math.max(timestamp, migrateFrom);
-                        }
-                        this.timestamp = timestamp;
-                    } else {
-                        // no data
-                        this.status = MigrationStatus.MIGRATED;
-                        migratedSeries.incrementAndGet();
-                    }
-                } finally {
-                    lock.writeLock().unlock();
-                }
-            }
-            this.initialPassComplete = true;
-        }
-
-        private void migrateNextPeriod() {
-            long startTime = System.currentTimeMillis();
-
-            long timestamp = this.timestamp;
-            long from = timestamp - timestamp % period;
-            long to = from + period;
-            if (migrateFrom != null) {
-                from = Math.max(from, migrateFrom);
-            }
-            long fromFinal = from;
-            currentTimestamp.updateAndGet(v -> Math.max(fromFinal, v));
-            this.sampleCount = 0;
-
-            long currentTime = timer.currentTimeMillis();
-            if (currentTime < to) {
-                // close out series, do the final copy while holding the write-lock so inserts are blocked
-                lock.writeLock().lock();
-                try {
-                    // copy an extra period in case the current time rolls over into the next period
-                    copyPointValues(from, to + period);
-                    this.status = MigrationStatus.MIGRATED;
-                    migratedSeries.incrementAndGet();
-                } finally {
-                    lock.writeLock().unlock();
-                }
-            } else {
-                copyPointValues(from, to);
-            }
-
-            long duration = System.currentTimeMillis() - startTime;
-            double valuesPerSecond = sampleCount / (duration / 1000d);
-
-            valuesPerPeriod.update(sampleCount);
-            writeMeter.mark(sampleCount);
-
-            if (log.isDebugEnabled()) {
-                log.debug("{} Completed period for {}, from {} to {} (seriesId={}, values={}, duration={}, speed={} values/s)",
-                        stats(), point.getXid(), Instant.ofEpochMilli(from), Instant.ofEpochMilli(to),
-                        seriesId, sampleCount, Duration.ofMillis(duration),
-                        String.format("%.1f", valuesPerSecond));
-            }
-        }
-
-        private void copyPointValues(long from, long to) {
-            this.sampleCount = 0;
-            // stream from secondary (old) db to the primary db (new) in chunks of matching size
-            try (var stream = secondary.streamPointValues(point, from, to, null, TimeOrder.ASCENDING, readChunkSize)) {
-                primary.savePointValues(stream.map(pv -> {
-                    this.sampleCount++;
-                    return new BatchPointValueImpl(point, pv);
-                }), writeChunkSize);
-            }
-            this.timestamp = to;
-            completedPeriods.incrementAndGet();
-        }
-
-        private Long getTimestamp() {
-            return timestamp;
-        }
-
-        private boolean isMigrated() {
-            lock.readLock().lock();
-            try {
-                return status == MigrationStatus.MIGRATED;
-            } finally {
-                lock.readLock().unlock();
-            }
-        }
     }
 
     @Override
