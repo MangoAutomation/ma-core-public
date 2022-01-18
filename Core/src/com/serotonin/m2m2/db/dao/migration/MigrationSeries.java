@@ -5,12 +5,12 @@
 package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
-import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +19,11 @@ import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.MigrationProgressDao.MigrationProgress;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-import io.github.resilience4j.retry.Retry;
-
 /**
  * @author Jared Wiltshire
  */
 class MigrationSeries {
+
     private final Logger log = LoggerFactory.getLogger(MigrationSeries.class);
 
     private final MigrationPointValueDao parent;
@@ -34,11 +33,9 @@ class MigrationSeries {
     private MigrationStatus status;
     private DataPointVO point;
     private volatile long timestamp;
-    private long sampleCount;
-    private boolean initialPassComplete;
 
     MigrationSeries(MigrationPointValueDao parent, int seriesId) {
-        this(parent, seriesId, MigrationStatus.NOT_STARTED, 0L);
+        this(parent, seriesId, MigrationStatus.NOT_STARTED, Long.MAX_VALUE);
     }
 
     MigrationSeries(MigrationPointValueDao parent, int seriesId, MigrationStatus status, long timestamp) {
@@ -48,119 +45,104 @@ class MigrationSeries {
         this.timestamp = timestamp;
     }
 
-    synchronized MigrationStatus run() {
+    synchronized void run() {
+        long sampleCount = 0;
+        long startTime = System.currentTimeMillis();
         try {
-            parent.retry.executeRunnable(this::migrateNextPeriod);
+            sampleCount = parent.getRetry().executeCallable(this::migrateNextPeriod);
         } catch (Exception e) {
-            parent.erroredSeries.incrementAndGet();
             this.status = MigrationStatus.ERROR;
-            log.error("Error migrating period, migration aborted for point {} (seriesId={})", point != null ? point.getXid() : null, seriesId, e);
-        } catch (Throwable t) {
-            parent.erroredSeries.incrementAndGet();
-            this.status = MigrationStatus.ERROR;
-            throw t;
+            if (log.isErrorEnabled()) {
+                log.error("Migration aborted for {}", this, e);
+            }
         }
-
-        try {
-            parent.migrationProgressDao.update(getMigrationProgress());
-        } catch (Exception e) {
-            log.warn("Failed to save migration progress to database for point {} (seriesId={})", point != null ? point.getXid() : null, seriesId, e);
-        }
-
-        return status;
+        Duration duration = Duration.ofMillis(System.currentTimeMillis() - startTime);
+        parent.updateProgress(this, sampleCount, duration);
     }
 
     private void initialPass() {
-        this.point = parent.dataPointDao.getBySeriesId(seriesId);
-        if (point == null || !parent.dataPointFilter.test(point)) {
+        if (!parent.getDataPointFilter().test(point)) {
             this.status = MigrationStatus.SKIPPED;
-            parent.skippedSeries.incrementAndGet();
-            if (log.isInfoEnabled()) {
-                log.info("{} Skipped point {} (seriesId={})", parent.stats(), point != null ? point.getXid() : null, seriesId);
+            if (log.isDebugEnabled()) {
+                log.debug("Skipped {}", this);
             }
-        } else if (this.status == MigrationStatus.NOT_STARTED) {
-            // only get the initial timestamp if migration was not started yet, otherwise we already have retrieved it from the database
-            lock.writeLock().lock();
-            try {
-                Optional<Long> inception = parent.secondary.getInceptionDate(point);
-                if (inception.isPresent()) {
-                    this.status = MigrationStatus.RUNNING;
-                    long timestamp = inception.get();
-                    if (parent.migrateFrom != null) {
-                        timestamp = Math.max(timestamp, parent.migrateFrom);
-                    }
-                    this.timestamp = timestamp;
-                } else {
-                    // no data
-                    this.status = MigrationStatus.MIGRATED;
-                    parent.migratedSeries.incrementAndGet();
-                }
-            } finally {
-                lock.writeLock().unlock();
-            }
-        }
-        this.initialPassComplete = true;
-    }
-
-    private void migrateNextPeriod() {
-        if (!initialPassComplete) {
-            initialPass();
             return;
         }
 
-        long startTime = System.currentTimeMillis();
+        // only get the initial timestamp if migration was not started yet, otherwise we already have retrieved it from the database
+        lock.writeLock().lock();
+        try {
+            Optional<Long> inception = parent.getSource().getInceptionDate(point);
+            if (inception.isPresent()) {
+                long timestamp = inception.get();
+                Long migrateFrom = parent.getMigrateFrom();
+                if (migrateFrom != null) {
+                    timestamp = Math.max(timestamp, migrateFrom);
+                }
+                this.timestamp = timestamp;
+                this.status = MigrationStatus.INITIAL_PASS;
+                if (log.isDebugEnabled()) {
+                    log.debug("Series contained no data {}", this);
+                }
+            } else {
+                // no data
+                this.status = MigrationStatus.NO_DATA;
+                if (log.isDebugEnabled()) {
+                    log.debug("Series contained no data {}", this);
+                }
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    private long migrateNextPeriod() {
+        if (point == null) {
+            this.point = Objects.requireNonNull(parent.getDataPointDao().getBySeriesId(seriesId));
+        }
+        if (status == MigrationStatus.NOT_STARTED) {
+            initialPass();
+            return 0;
+        }
 
         long timestamp = this.timestamp;
-        long from = timestamp - timestamp % parent.period;
-        long to = from + parent.period;
-        if (parent.migrateFrom != null) {
-            from = Math.max(from, parent.migrateFrom);
+        long from = timestamp - timestamp % parent.getPeriod();
+        long to = from + parent.getPeriod();
+        if (parent.getMigrateFrom() != null) {
+            from = Math.max(from, parent.getMigrateFrom());
         }
-        long fromFinal = from;
-        parent.currentTimestamp.updateAndGet(v -> Math.max(fromFinal, v));
-        this.sampleCount = 0;
 
-        long currentTime = parent.timer.currentTimeMillis();
+        long currentTime = parent.getTimer().currentTimeMillis();
         if (currentTime < to) {
             // close out series, do the final copy while holding the write-lock so inserts are blocked
             lock.writeLock().lock();
             try {
                 // copy an extra period in case the current time rolls over into the next period
-                copyPointValues(from, to + parent.period);
+                long sampleCount = copyPointValues(from, to + parent.getPeriod());
                 this.status = MigrationStatus.MIGRATED;
-                parent.migratedSeries.incrementAndGet();
+                if (log.isDebugEnabled()) {
+                    log.debug("Migration finished for {}", this);
+                }
+                return sampleCount;
             } finally {
                 lock.writeLock().unlock();
             }
         } else {
-            copyPointValues(from, to);
-        }
-
-        long duration = System.currentTimeMillis() - startTime;
-        double valuesPerSecond = sampleCount / (duration / 1000d);
-
-        parent.valuesPerPeriod.update(sampleCount);
-        parent.writeMeter.mark(sampleCount);
-
-        if (log.isDebugEnabled()) {
-            log.debug("{} Completed period for {}, from {} to {} (seriesId={}, values={}, duration={}, speed={} values/s)",
-                    parent.stats(), point.getXid(), Instant.ofEpochMilli(from), Instant.ofEpochMilli(to),
-                    seriesId, sampleCount, Duration.ofMillis(duration),
-                    String.format("%.1f", valuesPerSecond));
+            return copyPointValues(from, to);
         }
     }
 
-    private void copyPointValues(long from, long to) {
-        this.sampleCount = 0;
-        // stream from secondary (old) db to the primary db (new) in chunks of matching size
-        try (var stream = parent.secondary.streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.readChunkSize)) {
-            parent.primary.savePointValues(stream.map(pv -> {
-                this.sampleCount++;
+    private long copyPointValues(long from, long to) {
+        LongAdder sampleCount = new LongAdder();
+        // stream from source (old) db to the destination (new) db in chunks of matching size
+        try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())) {
+            parent.getDestination().savePointValues(stream.map(pv -> {
+                sampleCount.increment();
                 return new BatchPointValueImpl(point, pv);
-            }), parent.writeChunkSize);
+            }), parent.getWriteChunkSize());
         }
         this.timestamp = to;
-        parent.completedPeriods.incrementAndGet();
+        return sampleCount.longValue();
     }
 
     Long getTimestamp() {
@@ -186,5 +168,13 @@ class MigrationSeries {
 
     MigrationProgress getMigrationProgress() {
         return new MigrationProgress(seriesId, status, timestamp);
+    }
+
+    @Override
+    public String toString() {
+        return "MigrationSeries{" +
+                "seriesId=" + seriesId +
+                ", point=" + point +
+                '}';
     }
 }

@@ -77,7 +77,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final AbstractTimer timer;
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
-    private final AtomicLong currentTimestamp = new AtomicLong(Long.MIN_VALUE);
+    private final AtomicLong currentTimestamp = new AtomicLong(Long.MAX_VALUE);
     private final MigrationConfig config;
 
     private volatile boolean fullyMigrated = false;
@@ -302,7 +302,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
         String currentTimeFormatted = "—";
         long currentTimestamp = this.currentTimestamp.get();
-        if (currentTimestamp > Long.MIN_VALUE) {
+        if (currentTimestamp < Long.MAX_VALUE) {
             currentTimeFormatted = ZonedDateTime.ofInstant(Instant.ofEpochMilli(currentTimestamp), ZoneId.systemDefault())
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         }
@@ -327,5 +327,94 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     @Override
     public void setRetentionPolicy(Period period) {
         throw new UnsupportedOperationException();
+    }
+
+    Predicate<DataPointVO> getDataPointFilter() {
+        return dataPointFilter;
+    }
+
+    DataPointDao getDataPointDao() {
+        return dataPointDao;
+    }
+
+    Retry getRetry() {
+        return retry;
+    }
+
+    Long getMigrateFrom() {
+        return migrateFrom;
+    }
+
+    PointValueDao getSource() {
+        return secondary;
+    }
+
+    PointValueDao getDestination() {
+        return primary;
+    }
+
+    long getPeriod() {
+        return period;
+    }
+
+    AbstractTimer getTimer() {
+        return timer;
+    }
+
+    int getReadChunkSize() {
+        return readChunkSize;
+    }
+
+    int getWriteChunkSize() {
+        return writeChunkSize;
+    }
+
+    /**
+     * Called after each iteration of a series migration.
+     *
+     * @param series series which is being migrated
+     * @param sampleCount number of samples migrated
+     * @param duration time taken for this period
+     */
+    void updateProgress(MigrationSeries series, long sampleCount, Duration duration) {
+        switch (series.getStatus()) {
+            case INITIAL_PASS:
+            case NO_DATA:
+                break;
+            case RUNNING:
+                completedPeriods.incrementAndGet();
+                break;
+            case MIGRATED:
+                completedPeriods.incrementAndGet();
+                migratedSeries.incrementAndGet();
+                break;
+            case SKIPPED:
+                skippedSeries.incrementAndGet();
+                break;
+            case ERROR:
+                erroredSeries.incrementAndGet();
+                break;
+            default: throw new IllegalStateException("Incorrect status: " + series.getStatus());
+        }
+
+        currentTimestamp.updateAndGet(v -> Math.min(series.getTimestamp(), v));
+
+        double valuesPerSecond = sampleCount / (duration.toMillis() / 1000d);
+        valuesPerPeriod.update(sampleCount);
+        writeMeter.mark(sampleCount);
+
+        if (log.isTraceEnabled()) {
+            log.trace("{} Completed period for {} (status={}, values={}, duration={}, speed={} values/s)",
+                    stats(), series, series.getStatus(), sampleCount, duration,
+                    String.format("%.1f", valuesPerSecond));
+        }
+
+        try {
+            migrationProgressDao.update(series.getMigrationProgress());
+        } catch (Exception e) {
+            if (log.isWarnEnabled()) {
+                log.warn("Failed to save progress to database for {}", series, e);
+            }
+        }
     }
 }

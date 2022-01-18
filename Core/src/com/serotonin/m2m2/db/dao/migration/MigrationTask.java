@@ -39,8 +39,8 @@ public class MigrationTask implements Runnable {
             boolean stopped;
             MigrationSeries series;
             while (!(stopped = stopFlag) && (series = seriesQueue.poll()) != null) {
-                MigrationStatus status = series.run();
-                if (status == MigrationStatus.RUNNING) {
+                series.run();
+                if (!series.getStatus().isComplete()) {
                     seriesQueue.add(series);
                 }
             }
