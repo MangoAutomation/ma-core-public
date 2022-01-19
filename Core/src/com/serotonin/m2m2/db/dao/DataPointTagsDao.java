@@ -156,6 +156,13 @@ public class DataPointTagsDao extends BaseDao {
                         .values(dataPointId, tagKey, tagValue)
                         .onDuplicateKeyUpdate()
                         .set(table.tagValue, tagValue);
+            case POSTGRES:
+                return DSL.insertInto(table)
+                        .columns(table.dataPointId, table.tagKey, table.tagValue)
+                        .values(dataPointId, tagKey, tagValue)
+                        .onConflict(table.dataPointId, table.tagKey)
+                        .doUpdate()
+                        .set(table.tagValue, tagValue);
             default:
                 return DSL.mergeInto(table)
                         .using(DSL.selectOne())

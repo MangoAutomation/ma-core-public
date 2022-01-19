@@ -109,7 +109,7 @@ public class PermissionDao extends BaseDao {
             permissionId = create.select(permissionsMinterms.permissionId)
                     .from(permissionsMinterms)
                     .groupBy(permissionsMinterms.permissionId)
-                    .having(count(when(permissionsMinterms.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()),
+                    .having(count(when(permissionsMinterms.mintermId.in(mintermIds), 1).else_(DSL.inline((Integer) null))).equal(mintermIds.size()),
                             count(permissionsMinterms.permissionId).equal(mintermIds.size()))
                     .limit(1)
                     .fetchOne(0, Integer.class);
@@ -147,7 +147,7 @@ public class PermissionDao extends BaseDao {
         Integer mintermId = create.select(mintermsRoles.mintermId)
                 .from(mintermsRoles)
                 .groupBy(mintermsRoles.mintermId)
-                .having(count(when(mintermsRoles.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()),
+                .having(count(when(mintermsRoles.roleId.in(roleIds), 1).else_(DSL.inline((Integer) null))).equal(minterm.size()),
                         count(mintermsRoles.roleId).equal(roleIds.size()))
                 .limit(1)
                 .fetchOne(0, Integer.class);

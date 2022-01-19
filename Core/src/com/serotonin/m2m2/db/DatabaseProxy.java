@@ -176,6 +176,12 @@ public interface DatabaseProxy extends TransactionCapable {
                     .withRenderNameCase(RenderNameCase.AS_IS);
         }
 
+        if (type == DatabaseType.POSTGRES) {
+            configuration.settings()
+                    .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
+                    .withRenderNameCase(RenderNameCase.AS_IS);
+        }
+
         configuration.settings().setFetchSize(defaultFetchSize());
 
         return configuration;

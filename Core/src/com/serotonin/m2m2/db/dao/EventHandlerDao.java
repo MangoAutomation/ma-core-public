@@ -291,6 +291,24 @@ public class EventHandlerDao extends AbstractVoDao<AbstractEventHandlerVO, Event
                         .set(handlerMapping.eventTypeRef2, type.getReferenceId2())
                         .execute();
                 break;
+            case POSTGRES:
+                create.insertInto(handlerMapping)
+                        .columns(handlerMapping.eventHandlerId, handlerMapping.eventTypeName,
+                                handlerMapping.eventSubtypeName, handlerMapping.eventTypeRef1,
+                                handlerMapping.eventTypeRef2)
+                        .values(eventHandlerId, type.getEventType(), subType,
+                                type.getReferenceId1(), type.getReferenceId2())
+                        .onConflict(handlerMapping.eventHandlerId, handlerMapping.eventTypeName,
+                                handlerMapping.eventSubtypeName, handlerMapping.eventTypeRef1,
+                                handlerMapping.eventTypeRef2)
+                        .doUpdate()
+                        .set(handlerMapping.eventHandlerId, eventHandlerId)
+                        .set(handlerMapping.eventTypeName, type.getEventType())
+                        .set(handlerMapping.eventSubtypeName, subType)
+                        .set(handlerMapping.eventTypeRef1, type.getReferenceId1())
+                        .set(handlerMapping.eventTypeRef2, type.getReferenceId2())
+                        .execute();
+                break;
             default:
                 create.mergeInto(handlerMapping)
                         .using(DSL.selectOne())
