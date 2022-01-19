@@ -107,7 +107,7 @@ public class MangoTestBase {
     @Rule
     public RetryRule retryRule = new RetryRule(1, true, false, RetryRule.FailBehaviour.ANY);
 
-    protected final Logger LOG = LoggerFactory.getLogger(MangoTestBase.class);
+    protected final Logger LOG = LoggerFactory.getLogger(getClass());
 
     protected static MockMangoLifecycle lifecycle;
     protected static List<Module> modules = new ArrayList<>();

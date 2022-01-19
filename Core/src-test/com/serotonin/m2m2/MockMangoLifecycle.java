@@ -447,4 +447,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         return null;
     }
 
+    public ApplicationContext getRuntimeContext() {
+        return runtimeContext;
+    }
 }
