@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+ * Copyright (C) 2022 Radix IoT LLC. All rights reserved.
  */
 
-package com.serotonin.m2m2.db.dao.migration;
+package com.serotonin.m2m2.db.dao.migration.progress;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -16,16 +16,18 @@ import com.infiniteautomation.mango.db.iterators.ChunkingSpliterator;
 import com.infiniteautomation.mango.db.tables.TimeSeriesMigrationProgress;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.BaseDao;
+import com.serotonin.m2m2.db.dao.migration.MigrationStatus;
 
 @Repository
-public class MigrationProgressDao extends BaseDao {
+public class DefaultMigrationProgressDao extends BaseDao implements MigrationProgressDao {
 
     private final TimeSeriesMigrationProgress table = TimeSeriesMigrationProgress.TIME_SERIES_MIGRATION_PROGRESS;
 
-    public MigrationProgressDao(DatabaseProxy databaseProxy) {
+    public DefaultMigrationProgressDao(DatabaseProxy databaseProxy) {
         super(databaseProxy);
     }
 
+    @Override
     public void insert(MigrationProgress progress) {
         create.insertInto(table)
                 .set(table.seriesId, progress.seriesId)
@@ -34,6 +36,7 @@ public class MigrationProgressDao extends BaseDao {
                 .execute();
     }
 
+    @Override
     public void bulkInsert(Stream<MigrationProgress> stream) {
         ChunkingSpliterator.chunkStream(stream, databaseProxy.batchSize()).forEach(chunk -> {
             // TODO keep prepared statement open, see https://stackoverflow.com/questions/62959401/how-to-clear-a-batch-in-jooq
@@ -46,6 +49,7 @@ public class MigrationProgressDao extends BaseDao {
         });
     }
 
+    @Override
     public void update(MigrationProgress progress) {
         create.update(table)
                 .set(table.status, progress.status.name())
@@ -54,10 +58,12 @@ public class MigrationProgressDao extends BaseDao {
                 .execute();
     }
 
+    @Override
     public void deleteAll() {
         create.deleteFrom(table).execute();
     }
 
+    @Override
     public Optional<MigrationProgress> get(int seriesId) {
         return create.select(table.fields())
                 .where(table.seriesId.eq(seriesId))
@@ -65,6 +71,7 @@ public class MigrationProgressDao extends BaseDao {
                 .map(this::mapRecord);
     }
 
+    @Override
     public int count() {
         var count = DSL.count();
         return Objects.requireNonNull(create.select(count)
@@ -72,6 +79,7 @@ public class MigrationProgressDao extends BaseDao {
                 .fetchSingle(count));
     }
 
+    @Override
     public Stream<MigrationProgress> stream() {
         return create.select(table.fields())
                 .from(table)
@@ -86,27 +94,4 @@ public class MigrationProgressDao extends BaseDao {
                 r.get(table.timestamp));
     }
 
-    public static class MigrationProgress {
-        private final int seriesId;
-        private final MigrationStatus status;
-        private final long timestamp;
-
-        public MigrationProgress(int seriesId, MigrationStatus status, long timestamp) {
-            this.seriesId = seriesId;
-            this.status = status;
-            this.timestamp = timestamp;
-        }
-
-        public int getSeriesId() {
-            return seriesId;
-        }
-
-        public MigrationStatus getStatus() {
-            return status;
-        }
-
-        public long getTimestamp() {
-            return timestamp;
-        }
-    }
 }

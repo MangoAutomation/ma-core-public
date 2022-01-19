@@ -39,7 +39,8 @@ import com.codahale.metrics.Meter;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DelegatingPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.migration.MigrationProgressDao.MigrationProgress;
+import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
+import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.timer.AbstractTimer;
 

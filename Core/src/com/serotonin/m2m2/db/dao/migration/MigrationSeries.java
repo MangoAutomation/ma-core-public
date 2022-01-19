@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
-import com.serotonin.m2m2.db.dao.migration.MigrationProgressDao.MigrationProgress;
+import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**

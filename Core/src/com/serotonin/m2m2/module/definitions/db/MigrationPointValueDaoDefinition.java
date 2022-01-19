@@ -21,7 +21,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.migration.MigrationConfig;
 import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao;
-import com.serotonin.m2m2.db.dao.migration.MigrationProgressDao;
+import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
 import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
