@@ -27,8 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +88,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Object periodicLogFutureMutex = new Object();
     private Future<?> periodicLogFuture;
 
-    public MigrationPointValueDao(PointValueDao primary,
-                                  PointValueDao secondary,
+    public MigrationPointValueDao(PointValueDao destinationPointValueDao,
+                                  PointValueDao sourcePointValueDao,
                                   DataPointDao dataPointDao,
                                   ExecutorService executorService,
                                   ScheduledExecutorService scheduledExecutorService,
@@ -99,7 +97,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                                   MigrationProgressDao migrationProgressDao,
                                   MigrationConfig config) {
 
-        super(primary, secondary);
+        super(destinationPointValueDao, sourcePointValueDao);
         this.dataPointDao = dataPointDao;
         this.executorService = executorService;
         this.scheduledExecutorService = scheduledExecutorService;
@@ -122,10 +120,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.retry.getEventPublisher()
                 .onRetry(event -> log.debug("Retry, waiting {} until attempt {}.", event.getWaitInterval(), event.getNumberOfRetryAttempts(), event.getLastThrowable()))
                 .onError(event -> log.debug("Recorded a failed retry attempt. Number of retry attempts: {}. Giving up.", event.getNumberOfRetryAttempts(), event.getLastThrowable()));
+
+        initializeMigration();
     }
 
-    @PostConstruct
-    private void postConstruct() {
+    private void initializeMigration() {
         if (config.isStartNewMigration()) {
             migrationProgressDao.deleteAll();
         }
