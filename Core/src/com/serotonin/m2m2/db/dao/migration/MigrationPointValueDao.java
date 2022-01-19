@@ -400,12 +400,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         }
 
         currentTimestamp.updateAndGet(v -> Math.min(series.getTimestamp(), v));
-
-        double valuesPerSecond = sampleCount / (duration.toMillis() / 1000d);
         valuesPerPeriod.update(sampleCount);
         writeMeter.mark(sampleCount);
 
         if (log.isTraceEnabled()) {
+            double valuesPerSecond = sampleCount / (duration.toMillis() / 1000d);
             log.trace("{} Completed period for {} (status={}, values={}, duration={}, speed={} values/s)",
                     stats(), series, series.getStatus(), sampleCount, duration,
                     String.format("%.1f", valuesPerSecond));
