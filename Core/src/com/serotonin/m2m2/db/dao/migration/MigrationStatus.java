@@ -9,9 +9,9 @@ package com.serotonin.m2m2.db.dao.migration;
  */
 public enum MigrationStatus {
     NOT_STARTED(false),
-    NO_DATA(false),
-    INITIAL_PASS(false),
+    INITIAL_PASS_COMPLETE(false),
     RUNNING(false),
+    NO_DATA(true),
     MIGRATED(true),
     SKIPPED(true),
     ERROR(true);

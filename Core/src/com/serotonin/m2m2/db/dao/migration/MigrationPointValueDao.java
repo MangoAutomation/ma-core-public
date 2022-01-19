@@ -378,7 +378,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
      */
     void updateProgress(MigrationSeries series, long sampleCount, Duration duration) {
         switch (series.getStatus()) {
-            case INITIAL_PASS:
+            case INITIAL_PASS_COMPLETE:
                 break;
             case NO_DATA:
                 migratedSeries.incrementAndGet();

@@ -80,7 +80,7 @@ class MigrationSeries {
                     timestamp = Math.max(timestamp, migrateFrom);
                 }
                 this.timestamp = timestamp;
-                this.status = MigrationStatus.INITIAL_PASS;
+                this.status = MigrationStatus.INITIAL_PASS_COMPLETE;
                 if (log.isDebugEnabled()) {
                     log.debug("Series contained no data {}", this);
                 }
