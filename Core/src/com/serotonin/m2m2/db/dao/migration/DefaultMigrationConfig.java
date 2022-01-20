@@ -48,6 +48,11 @@ public class DefaultMigrationConfig implements MigrationConfig {
     }
 
     @Override
+    public boolean isAutoStart() {
+        return true;
+    }
+
+    @Override
     public boolean isStartNewMigration() {
         return env.getProperty("db.migration.startNewMigration", boolean.class, false);
     }

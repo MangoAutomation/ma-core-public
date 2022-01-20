@@ -17,11 +17,12 @@ public class TestMigrationConfig implements MigrationConfig {
     Instant migrateFromTime = null;
     Duration migrationPeriod = Duration.ofDays(1L);
     int maxAttempts = 3;
+    boolean autoStart = false;
     boolean startNewMigration = false;
     int logPeriodSeconds = 0;
     int readChunkSize = 10000;
     int writeChunkSize = 10000;
-    int threadCount = 0;
+    int threadCount = 1;
     Duration closeWait = Duration.ofSeconds(30L);
     Predicate<DataPointVO> dataPointFilter = p -> true;
 
@@ -50,6 +51,15 @@ public class TestMigrationConfig implements MigrationConfig {
 
     public void setMaxAttempts(int maxAttempts) {
         this.maxAttempts = maxAttempts;
+    }
+
+    @Override
+    public boolean isAutoStart() {
+        return autoStart;
+    }
+
+    public void setAutoStart(boolean autoStart) {
+        this.autoStart = autoStart;
     }
 
     @Override

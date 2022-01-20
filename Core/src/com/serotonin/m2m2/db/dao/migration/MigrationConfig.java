@@ -17,6 +17,7 @@ public interface MigrationConfig {
     Instant getMigrateFromTime();
     Duration getMigrationPeriod();
     int getMaxAttempts();
+    boolean isAutoStart();
     boolean isStartNewMigration();
     int getLogPeriodSeconds();
     int getReadChunkSize();

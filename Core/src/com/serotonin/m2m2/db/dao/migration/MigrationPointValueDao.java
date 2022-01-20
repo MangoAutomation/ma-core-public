@@ -12,17 +12,20 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -83,6 +86,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private volatile int readChunkSize;
     private volatile int writeChunkSize;
     private volatile int numTasks;
+    private boolean started;
     private boolean terminated;
 
     private final Object periodicLogFutureMutex = new Object();
@@ -121,31 +125,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 .onRetry(event -> log.debug("Retry, waiting {} until attempt {}.", event.getWaitInterval(), event.getNumberOfRetryAttempts(), event.getLastThrowable()))
                 .onError(event -> log.debug("Recorded a failed retry attempt. Number of retry attempts: {}. Giving up.", event.getNumberOfRetryAttempts(), event.getLastThrowable()));
 
-        initializeMigration();
-    }
-
-    private void initializeMigration() {
-        if (config.isStartNewMigration()) {
-            migrationProgressDao.deleteAll();
+        if (config.isAutoStart()) {
+            startMigration();
         }
-
-        if (migrationProgressDao.count() > 0) {
-            // migration in progress, restore from DB
-            try (var stream = migrationProgressDao.stream()) {
-                stream.map(progress -> new MigrationSeries(this, progress.getSeriesId(), progress.getStatus(), progress.getTimestamp()))
-                        .forEach(this::addMigration);
-            }
-        } else {
-            // start a new migration, get all points and insert progress items for them
-            try (var stream = dataPointDao.streamSeriesIds()) {
-                Stream<MigrationProgress> progressStream = stream.mapToObj(seriesId -> new MigrationSeries(this, seriesId))
-                        .peek(this::addMigration)
-                        .map(MigrationSeries::getMigrationProgress);
-                migrationProgressDao.bulkInsert(progressStream);
-            }
-        }
-
-        reloadConfig();
     }
 
     private void addMigration(MigrationSeries migration) {
@@ -182,8 +164,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     private List<MigrationTask> adjustThreads(int threadCount) {
         synchronized (tasks) {
-            if (terminated) throw new IllegalStateException();
-            if (fullyMigrated || threadCount == tasks.size()) return Collections.emptyList();
+            if (terminated) throw new IllegalStateException("Terminated");
+            if (!started || fullyMigrated || threadCount == tasks.size()) return List.of();
 
             log.info("Adjusting migration threads from {} to {}", tasks.size(), threadCount);
             List<MigrationTask> stoppedTasks = new ArrayList<>();
@@ -207,11 +189,54 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         }
     }
 
-    private List<MigrationTask> terminate() {
+    /**
+     * Warning: {@link #seriesStatus} is not thread-safe! Do not attempt to start/stop/restart migration while Mango is running.
+     */
+    void startMigration() {
         synchronized (tasks) {
-            var stopped = this.adjustThreads(0);
+            if (terminated) throw new IllegalStateException("Terminated");
+            if (started) return;
+
+            if (config.isStartNewMigration()) {
+                migrationProgressDao.deleteAll();
+            }
+
+            if (migrationProgressDao.count() > 0) {
+                // migration in progress, restore from DB
+                try (var stream = migrationProgressDao.stream()) {
+                    stream.map(progress -> new MigrationSeries(this, progress.getSeriesId(), progress.getStatus(), progress.getTimestamp()))
+                            .forEach(this::addMigration);
+                }
+            } else {
+                // start a new migration, get all points and insert progress items for them
+                try (var stream = dataPointDao.streamSeriesIds()) {
+                    Stream<MigrationProgress> progressStream = stream.mapToObj(seriesId -> new MigrationSeries(this, seriesId))
+                            .peek(this::addMigration)
+                            .map(MigrationSeries::getMigrationProgress);
+                    migrationProgressDao.bulkInsert(progressStream);
+                }
+            }
+
+            this.started = true;
+            reloadConfig();
+        }
+    }
+
+    CompletableFuture<Void> migrationFinished() {
+        synchronized (tasks) {
+            return CompletableFuture.allOf(tasks.stream()
+                    .map(MigrationTask::getFinished)
+                    .toArray(CompletableFuture[]::new));
+        }
+    }
+
+    List<MigrationTask> terminateMigration() {
+        synchronized (tasks) {
+            if (terminated) return List.of();
+
+            var result = this.adjustThreads(0);
             this.terminated = true;
-            return stopped;
+            return result;
         }
     }
 
@@ -226,15 +251,17 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     }
 
     @Override
-    public void close() throws Exception {
-        long seconds = config.getCloseWait().toSeconds();
+    public void close() throws InterruptedException {
+        long closeWaitSeconds = config.getCloseWait().toSeconds();
 
         // adjust threads back to 0 to cancel them
-        for (MigrationTask task : terminate()) {
+        for (MigrationTask task : terminateMigration()) {
             // wait for the cancelled threads to complete
-            task.getFinished().get(seconds, TimeUnit.SECONDS);
-            if (!task.getFinished().isDone()) {
-                log.error("Failed to stop migration task {}", task.getName());
+            CompletableFuture<Boolean> future = task.getFinished();
+            try {
+                future.get(closeWaitSeconds, TimeUnit.SECONDS);
+            } catch (TimeoutException | CancellationException | ExecutionException e) {
+                log.error("Migration task {} failed to stop", task.getName(), e);
             }
         }
     }
@@ -262,7 +289,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return false;
     }
 
-    private String stats() {
+    String stats() {
         long migrated = migratedSeries.get();
         long skipped = skippedSeries.get();
         long errored = erroredSeries.get();
@@ -387,7 +414,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 completedPeriods.incrementAndGet();
                 break;
             case MIGRATED:
-                completedPeriods.incrementAndGet();
+                // does 2 periods on last iteration
+                completedPeriods.addAndGet(2L);
                 migratedSeries.incrementAndGet();
                 break;
             case SKIPPED:
