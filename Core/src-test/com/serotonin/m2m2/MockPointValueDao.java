@@ -5,13 +5,16 @@ package com.serotonin.m2m2;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NavigableMap;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -26,10 +29,29 @@ import com.serotonin.m2m2.vo.DataPointVO;
  */
 public class MockPointValueDao implements PointValueDao {
 
-    protected Map<Integer, NavigableMap<Long, PointValueTime>> data = new ConcurrentHashMap<>();
+    protected final ConcurrentMap<Integer, NavigableMap<Long, PointValueTime>> data;
 
-    private NavigableMap<Long, PointValueTime> newSeries(int seriesId) {
-        return Collections.synchronizedNavigableMap(new TreeMap<>());
+    public MockPointValueDao() {
+        this(Map.of());
+    }
+
+    public MockPointValueDao(Map<Integer, ? extends Collection<? extends PointValueTime>> data) {
+        this.data = new ConcurrentHashMap<>();
+        for (var entry : data.entrySet()) {
+            this.data.put(entry.getKey(), newSeries(entry.getValue()));
+        }
+    }
+
+    protected NavigableMap<Long, PointValueTime> newSeries(Collection<? extends PointValueTime> data) {
+        TreeMap<Long, PointValueTime> map = new TreeMap<>();
+        for (var pvt : data) {
+            map.put(pvt.getTime(), pvt);
+        }
+        return Collections.synchronizedNavigableMap(map);
+    }
+
+    protected NavigableMap<Long, PointValueTime> newSeries(int seriesId) {
+        return newSeries(List.of());
     }
 
     @Override
@@ -59,22 +81,38 @@ public class MockPointValueDao implements PointValueDao {
         PointValueDao.validateLimit(limit);
 
         for (var vo : vos) {
-            var values = data.getOrDefault(vo.getSeriesId(), Collections.emptyNavigableMap());
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (values) {
-                var filteredValues = filterValues(values, from, to);
+            streamPointValues(vo, from, to, limit, sortOrder).forEachOrdered(callback);
+        }
+    }
 
-                if (sortOrder == TimeOrder.DESCENDING) {
-                    filteredValues = filteredValues.descendingMap();
-                }
+    @Override
+    public Stream<IdPointValueTime> streamPointValues(DataPointVO vo,
+                                                      @Nullable Long from,
+                                                      @Nullable Long to,
+                                                      @Nullable Integer limit,
+                                                      TimeOrder sortOrder,
+                                                      int chunkSize) {
 
-                var stream = filteredValues.values().stream();
-                if (limit != null) {
-                    stream = stream.limit(limit);
-                }
-                stream.map(v -> new IdPointValueTime(vo.getSeriesId(), v.getValue(), v.getTime()))
-                        .forEach(callback);
+        PointValueDao.validateNotNull(vo);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+        PointValueDao.validateNotNull(sortOrder);
+        PointValueDao.validateChunkSize(chunkSize);
+
+        var values = data.getOrDefault(vo.getSeriesId(), Collections.emptyNavigableMap());
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
+        synchronized (values) {
+            var filteredValues = filterValues(values, from, to);
+
+            if (sortOrder == TimeOrder.DESCENDING) {
+                filteredValues = filteredValues.descendingMap();
             }
+
+            var stream = filteredValues.values().stream();
+            if (limit != null) {
+                stream = stream.limit(limit);
+            }
+            return stream.map(v -> new IdPointValueTime(vo.getSeriesId(), v.getValue(), v.getTime()));
         }
     }
 
@@ -102,13 +140,20 @@ public class MockPointValueDao implements PointValueDao {
         return filteredValues.size();
     }
 
+    private @Nullable Long firstKey(NavigableMap<Long, PointValueTime> map) {
+        try {
+            return map.firstKey();
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+    }
+
     @Override
     public Optional<Long> getInceptionDate(DataPointVO vo) {
         PointValueDao.validateNotNull(vo);
 
         var values = data.getOrDefault(vo.getSeriesId(), Collections.emptyNavigableMap());
-        var entry = values.pollFirstEntry();
-        return Optional.ofNullable(entry).map(Entry::getKey);
+        return Optional.ofNullable(firstKey(values));
     }
 
     @Override
@@ -119,9 +164,9 @@ public class MockPointValueDao implements PointValueDao {
 
         for (var vo : vos) {
             var values = data.getOrDefault(vo.getSeriesId(), Collections.emptyNavigableMap());
-            var value = values.pollFirstEntry();
+            var value = firstKey(values);
             if (value != null) {
-                startTime = startTime == null ? value.getKey() : Math.min(startTime, value.getKey());
+                startTime = startTime == null ? value : Math.min(startTime, value);
             }
         }
 
@@ -136,9 +181,9 @@ public class MockPointValueDao implements PointValueDao {
 
         for (var vo : vos) {
             var values = data.getOrDefault(vo.getSeriesId(), Collections.emptyNavigableMap());
-            var value = values.pollLastEntry();
+            var value = firstKey(values);
             if (value != null) {
-                endTime = endTime == null ? value.getKey() : Math.max(endTime, value.getKey());
+                endTime = endTime == null ? value : Math.max(endTime, value);
             }
         }
 
