@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -142,9 +143,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     }
 
     public void reloadConfig() {
-        adjustThreads(config.getThreadCount());
         this.readChunkSize = config.getReadChunkSize();
         this.writeChunkSize = config.getWriteChunkSize();
+        adjustThreads(config.getThreadCount());
 
         synchronized (periodicLogFutureMutex) {
             if (periodicLogFuture != null) {
@@ -224,9 +225,37 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     CompletableFuture<Void> migrationFinished() {
         synchronized (tasks) {
-            return CompletableFuture.allOf(tasks.stream()
-                    .map(MigrationTask::getFinished)
-                    .toArray(CompletableFuture[]::new));
+            return migrationFinished(tasks);
+        }
+    }
+
+    CompletableFuture<Void> migrationFinished(Collection<? extends MigrationTask> tasks) {
+        return CompletableFuture.allOf(tasks.stream()
+                .map(MigrationTask::getFinished)
+                .toArray(CompletableFuture[]::new));
+    }
+
+    /**
+     * Warning: {@link #seriesStatus} is not thread-safe! Do not attempt to start/stop/restart migration while Mango is running.
+     * This method is for testing purposes only.
+     */
+    void reset() {
+        synchronized (tasks) {
+            // ensure the threads are stopped
+            try {
+                migrationFinished(adjustThreads(0)).get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+
+            seriesStatus.clear();
+            seriesQueue.clear();
+            completedPeriods.set(0L);
+            migratedSeries.set(0L);
+            skippedSeries.set(0L);
+            erroredSeries.set(0L);
+            this.fullyMigrated = false;
+            this.started = false;
         }
     }
 
@@ -234,7 +263,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         synchronized (tasks) {
             if (terminated) return List.of();
 
-            var result = this.adjustThreads(0);
+            var result = adjustThreads(0);
             this.terminated = true;
             return result;
         }
