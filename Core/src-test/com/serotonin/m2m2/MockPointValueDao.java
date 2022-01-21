@@ -131,6 +131,12 @@ public class MockPointValueDao implements PointValueDao {
     }
 
     @Override
+    public Optional<Long> deleteAllPointData() {
+        data.clear();
+        return Optional.empty();
+    }
+
+    @Override
     public long dateRangeCount(DataPointVO vo, @Nullable Long from, @Nullable Long to) {
         PointValueDao.validateNotNull(vo);
         PointValueDao.validateTimePeriod(from, to);
