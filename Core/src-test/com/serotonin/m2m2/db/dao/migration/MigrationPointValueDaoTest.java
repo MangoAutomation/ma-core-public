@@ -8,6 +8,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -126,6 +130,43 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
             var destinationValue = destinationValues.get(i);
             assertEquals(point.getSeriesId(), destinationValue.getSeriesId());
             assertEquals(from.plus(period.multipliedBy(i)).toEpochMilli(), destinationValue.getTime());
+        }
+    }
+
+    @Test
+    public void multipleDataPoints() throws ExecutionException, InterruptedException, TimeoutException {
+        var dataSource = createMockDataSource();
+        var points = createMockDataPoints(dataSource, 100);
+
+        Period testDuration = Period.ofMonths(6);
+        ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
+        ZonedDateTime to = from.plus(testDuration);
+        Duration period = Duration.ofHours(1L);
+        long expectedSamples = Duration.between(from, to).dividedBy(period);
+
+        // migration stops at the current time
+        timer.setStartTime(to.toInstant().toEpochMilli());
+
+        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), period.toMillis());
+        for (var point : points) {
+            source.savePointValues(generator.apply(point));
+            // sanity check
+            assertEquals(expectedSamples, source.dateRangeCount(point, null, null));
+        }
+
+        migrationPointValueDao.startMigration();
+        migrationPointValueDao.migrationFinished().get(30, TimeUnit.SECONDS);
+
+        for (var point : points) {
+            var destinationValues = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)
+                    .collect(Collectors.toList());
+
+            assertEquals(expectedSamples, destinationValues.size());
+            for (int i = 0; i < expectedSamples; i++) {
+                var destinationValue = destinationValues.get(i);
+                assertEquals(point.getSeriesId(), destinationValue.getSeriesId());
+                assertEquals(from.plus(period.multipliedBy(i)).toInstant().toEpochMilli(), destinationValue.getTime());
+            }
         }
     }
 
