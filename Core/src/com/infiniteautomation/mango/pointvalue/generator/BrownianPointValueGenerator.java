@@ -26,6 +26,10 @@ public class BrownianPointValueGenerator implements PointValueGenerator {
         this(startTime, null, period, 0D, 100D, 0.1D);
     }
 
+    public BrownianPointValueGenerator(long startTime, long endTime, long period) {
+        this(startTime, endTime, period, 0D, 100D, 0.1D);
+    }
+
     public BrownianPointValueGenerator(long startTime, Long endTime, long period, double minimum, double maximum, double maxChange) {
         this.startTime = startTime;
         this.endTime = endTime;
