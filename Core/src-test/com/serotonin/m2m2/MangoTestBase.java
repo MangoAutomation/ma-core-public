@@ -488,6 +488,14 @@ public class MangoTestBase {
         }
     }
 
+    protected List<DataPointVO> createMockDataPoints(MockDataSourceVO dataSource, int count) {
+        List<DataPointVO> points = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            points.add(createMockDataPoint(dataSource, new MockPointLocatorVO()));
+        }
+        return points;
+    }
+
     protected List<IDataPoint> createMockDataPoints(int count) {
         List<IDataPoint> points = new ArrayList<>(count);
         MockDataSourceVO ds = createMockDataSource();
