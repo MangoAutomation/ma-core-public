@@ -211,10 +211,10 @@ public interface DatabaseProxy extends TransactionCapable {
 
         Translations translations = Common.getTranslations();
 
-        context.insertInto(r, r.id, r.xid, r.name)
-                .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), translations.translate("roles.superadmin"))
-                .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), translations.translate("roles.user"))
-                .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), translations.translate("roles.anonymous"))
+        context.insertInto(r, r.xid, r.name)
+                .values(PermissionHolder.SUPERADMIN_ROLE.getXid(), translations.translate("roles.superadmin"))
+                .values(PermissionHolder.USER_ROLE.getXid(), translations.translate("roles.user"))
+                .values(PermissionHolder.ANONYMOUS_ROLE.getXid(), translations.translate("roles.anonymous"))
                 .execute();
 
         context.insertInto(ri, ri.roleId, ri.inheritedRoleId)
