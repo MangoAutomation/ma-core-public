@@ -5,18 +5,28 @@
 package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.infiniteautomation.mango.db.iterators.WindowAggregator;
+import com.infiniteautomation.mango.db.iterators.WindowAggregate;
+import com.serotonin.m2m2.DataType;
+import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -133,13 +143,26 @@ class MigrationSeries {
     }
 
     private long copyPointValues(long from, long to) {
+        TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
+
         LongAdder sampleCount = new LongAdder();
         // stream from source (old) db to the destination (new) db in chunks of matching size
-        try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())) {
-            parent.getDestination().savePointValues(stream.map(pv -> {
-                sampleCount.increment();
-                return new BatchPointValueImpl(point, pv);
-            }), parent.getWriteChunkSize());
+        try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
+                .peek(pv -> sampleCount.increment())) {
+
+            Stream<BatchPointValue> output;
+            if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
+                // TODO configurable zone
+                ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
+                ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
+                Stream<WindowAggregate> aggregated = WindowAggregator.aggregate(stream, fromDate, toDate, aggregationPeriod)
+                        // sparse insert, drop all periods with no data
+                        .filter(w -> w.getStatistics().getCount() > 0);
+                output = aggregated.map(v -> new BatchPointValueImpl(point, new PointValueTime(v.getStatistics().getAverage(), v.getStartTimestamp())));
+            } else {
+                output = stream.map(pv -> new BatchPointValueImpl(point, pv));
+            }
+            parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
         }
         this.timestamp = to;
         return sampleCount.longValue();

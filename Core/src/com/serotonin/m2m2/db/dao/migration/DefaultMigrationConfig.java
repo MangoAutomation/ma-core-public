@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
 import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,5 +88,10 @@ public class DefaultMigrationConfig implements MigrationConfig {
     @Override
     public Predicate<DataPointVO> getDataPointFilter() {
         return vo -> true;
+    }
+
+    @Override
+    public TemporalAmount getAggregationPeriod() {
+        return null;
     }
 }

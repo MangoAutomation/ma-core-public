@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.TemporalAmount;
 import java.util.function.Predicate;
 
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -25,6 +26,7 @@ public class TestMigrationConfig implements MigrationConfig {
     int threadCount = 1;
     Duration closeWait = Duration.ofSeconds(30L);
     Predicate<DataPointVO> dataPointFilter = p -> true;
+    TemporalAmount aggregationPeriod;
 
     @Override
     public Instant getMigrateFromTime() {
@@ -121,7 +123,16 @@ public class TestMigrationConfig implements MigrationConfig {
         return dataPointFilter;
     }
 
+    @Override
+    public TemporalAmount getAggregationPeriod() {
+        return aggregationPeriod;
+    }
+
     public void setDataPointFilter(Predicate<DataPointVO> dataPointFilter) {
         this.dataPointFilter = dataPointFilter;
+    }
+
+    public void setAggregationPeriod(TemporalAmount aggregationPeriod) {
+        this.aggregationPeriod = aggregationPeriod;
     }
 }

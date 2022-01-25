@@ -11,6 +11,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -77,6 +78,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final ScheduledExecutorService scheduledExecutorService;
     private final Long migrateFrom;
     private final long period;
+    private final TemporalAmount aggregationPeriod;
     private final AbstractTimer timer;
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
@@ -114,6 +116,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         Instant migrateFromTime = config.getMigrateFromTime();
         this.migrateFrom = migrateFromTime == null ? null : migrateFromTime.toEpochMilli();
         this.period = config.getMigrationPeriod().toMillis();
+        this.aggregationPeriod = config.getAggregationPeriod();
 
         int maxAttempts = config.getMaxAttempts();
         RetryConfig retryConfig = RetryConfig.custom()
@@ -411,6 +414,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     long getPeriod() {
         return period;
+    }
+
+    TemporalAmount getAggregationPeriod() {
+        return aggregationPeriod;
     }
 
     AbstractTimer getTimer() {
