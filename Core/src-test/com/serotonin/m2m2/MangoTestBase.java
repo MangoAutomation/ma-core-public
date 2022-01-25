@@ -200,11 +200,17 @@ public class MangoTestBase {
             } catch (InterruptedException | ExecutionException e) {
                 fail(e.getMessage());
             }
-        }else {
+        } else {
+            // Re-initialize database
+            Common.getBean(DatabaseProxy.class).initialize();
+
             //Lifecycle hook for things that need to run to install into a new database
             for (Module module : ModuleRegistry.getModules()) {
                 module.postDatabase();
             }
+
+            // Fix cached users for new database
+            Common.getBean(UsersService.class).clearCaches(false);
         }
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
         this.timer = provider.getSimulationTimer();
@@ -243,19 +249,13 @@ public class MangoTestBase {
             }
         }
 
+        // Clear all caches in services
+        Common.getRuntimeContext().getBeansOfType(CachingService.class).values()
+                .forEach(s -> s.clearCaches(true));
+
+        // Clean database
         DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
         databaseProxy.clean();
-        databaseProxy.initialize();
-
-        //clear all caches in services
-        Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()
-                .filter(s -> !(s instanceof PermissionService))
-                .forEach(CachingService::clearCaches);
-
-        // We clear the permission service cache afterwards as every call to clearCaches() on another service will
-        // repopulate the role hierarchy cache
-        Common.getRuntimeContext().getBean(PermissionService.class).clearCaches();
-
     }
 
     @AfterClass
