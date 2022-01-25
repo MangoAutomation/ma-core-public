@@ -255,6 +255,9 @@ public class MangoTestBase {
 
         // Clean database
         DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
+        if (databaseProxy instanceof BasePooledProxy) {
+            ((BasePooledProxy) databaseProxy).softEvictConnections();
+        }
         databaseProxy.clean();
     }
 
