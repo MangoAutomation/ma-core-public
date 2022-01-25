@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,16 +39,9 @@ public class EmailHandlerRTTest extends MangoTestBase {
     //Scheduled Work Items for Emails
     private static final List<WorkItem> scheduledItems = new ArrayList<>();
 
-
     @Before
     public void beforeEmailHandlerTests() {
         scheduledItems.clear();
-    }
-
-    @After
-    @Override
-    public void after() {
-
     }
 
     @Test
