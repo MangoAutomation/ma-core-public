@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -105,16 +106,16 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         var dataSource = createMockDataSource();
         var point = createMockDataPoint(dataSource, new MockPointLocatorVO());
 
-        Duration testDuration = Duration.ofDays(30);
-        Instant from = Instant.ofEpochMilli(0L);
-        Instant to = from.plus(testDuration);
+        TemporalAmount testDuration = Duration.ofDays(30);
+        ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
+        ZonedDateTime to = from.plus(testDuration);
         Duration period = Duration.ofHours(1L);
-        long expectedSamples = testDuration.toMillis() / period.toMillis();
+        long expectedSamples = Duration.between(from, to).dividedBy(period);
 
         // migration stops at the current time
-        timer.setStartTime(to.toEpochMilli());
+        timer.setStartTime(to.toInstant().toEpochMilli());
 
-        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toEpochMilli(), to.toEpochMilli(), period.toMillis());
+        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), period.toMillis());
         source.savePointValues(generator.apply(point));
         // sanity check
         assertEquals(expectedSamples, source.dateRangeCount(point, null, null));
@@ -129,7 +130,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         for (int i = 0; i < expectedSamples; i++) {
             var destinationValue = destinationValues.get(i);
             assertEquals(point.getSeriesId(), destinationValue.getSeriesId());
-            assertEquals(from.plus(period.multipliedBy(i)).toEpochMilli(), destinationValue.getTime());
+            assertEquals(from.plus(period.multipliedBy(i)).toInstant().toEpochMilli(), destinationValue.getTime());
         }
     }
 
@@ -138,7 +139,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         var dataSource = createMockDataSource();
         var points = createMockDataPoints(dataSource, 100);
 
-        Period testDuration = Period.ofMonths(6);
+        TemporalAmount testDuration = Period.ofMonths(6);
         ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
         ZonedDateTime to = from.plus(testDuration);
         Duration period = Duration.ofHours(1L);
