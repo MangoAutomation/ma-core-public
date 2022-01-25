@@ -15,8 +15,6 @@ create table systemSettings (
   primary key (settingName)
 ) engine=InnoDB;
 
-INSERT INTO systemSettings (settingName, settingValue) VALUES ('databaseSchemaVersion', 1);
-
 --
 -- Users
 create table users (
@@ -96,7 +94,6 @@ create table dataSourceUsers (
 ) engine=InnoDB;
 alter table dataSourceUsers add constraint dataSourceUsersFk1 foreign key (dataSourceId) references dataSources(id);
 alter table dataSourceUsers add constraint dataSourceUsersFk2 foreign key (userId) references users(id) on delete cascade;
-
 
 
 --
