@@ -154,7 +154,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         // migration stops at the current time
         timer.setStartTime(to.toInstant().toEpochMilli());
 
-        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), period.toMillis());
+        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant(), to.toInstant(), period);
         for (var point : points) {
             source.savePointValues(generator.apply(point));
             // sanity check
@@ -196,7 +196,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         // migration stops at the current time
         timer.setStartTime(to.toInstant().toEpochMilli());
 
-        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), period.toMillis());
+        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant(), to.toInstant(), period);
         source.savePointValues(generator.apply(point));
         // sanity check
         assertEquals(inputExpectedSamples, source.dateRangeCount(point, null, null));
