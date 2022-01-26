@@ -7,19 +7,13 @@ package com.infiniteautomation.mango.pointvalue.generator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
-import java.util.stream.Stream;
 
-import com.serotonin.m2m2.db.dao.BatchPointValue;
-import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class RandomPointValueGenerator implements PointValueGenerator {
+public class RandomPointValueGenerator extends AbstractPointValueGenerator {
 
     private final Random random = new Random();
-    private final Instant startTime;
-    private final Instant endTime;
-    private final Duration period;
     private final double minimum;
     private final double maximum;
 
@@ -36,9 +30,7 @@ public class RandomPointValueGenerator implements PointValueGenerator {
     }
 
     public RandomPointValueGenerator(Instant startTime, Instant endTime, Duration period, double minimum, double maximum) {
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.period = period;
+        super(startTime, endTime, period);
         this.minimum = minimum;
         this.maximum = maximum;
     }
@@ -48,40 +40,16 @@ public class RandomPointValueGenerator implements PointValueGenerator {
         return new RandomPointValueSupplier(point);
     }
 
-    @Override
-    public Stream<BatchPointValue> apply(DataPointVO point) {
-        var stream = createSupplier(point).stream();
-        if (endTime != null) {
-            long endTimeMs = endTime.toEpochMilli();
-            stream = stream.takeWhile(v -> v.getPointValue().getTime() < endTimeMs);
-        }
-        return stream;
-    }
-
-    private class RandomPointValueSupplier implements BatchPointValueSupplier {
-        final DataPointVO point;
-        Instant timestamp = RandomPointValueGenerator.this.startTime;
+    private class RandomPointValueSupplier extends AbstractPointValueSupplier {
 
         public RandomPointValueSupplier(DataPointVO point) {
-            this.point = point;
+            super(point);
         }
 
         @Override
-        public BatchPointValue get() {
+        protected PointValueTime nextPointValue() {
             double value = random.nextDouble() * (maximum - minimum) + minimum;
-            var pointValueTime = new PointValueTime(value, timestamp.toEpochMilli());
-            this.timestamp = timestamp.plus(period);
-            return new BatchPointValueImpl(point, pointValueTime);
-        }
-
-        @Override
-        public Instant getTimestamp() {
-            return timestamp;
-        }
-
-        @Override
-        public void setTimestamp(Instant timestamp) {
-            this.timestamp = timestamp;
+            return new PointValueTime(value, timestamp.toEpochMilli());
         }
     }
 }

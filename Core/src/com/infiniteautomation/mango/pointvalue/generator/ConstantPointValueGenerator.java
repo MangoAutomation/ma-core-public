@@ -6,19 +6,13 @@ package com.infiniteautomation.mango.pointvalue.generator;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.stream.Stream;
 
-import com.serotonin.m2m2.db.dao.BatchPointValue;
-import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class ConstantPointValueGenerator implements PointValueGenerator {
+public class ConstantPointValueGenerator extends AbstractPointValueGenerator {
 
-    private final Instant startTime;
-    private final Instant endTime;
-    private final Duration period;
     private final DataValue value;
 
     public ConstantPointValueGenerator(long startTime, long period, DataValue value) {
@@ -30,20 +24,8 @@ public class ConstantPointValueGenerator implements PointValueGenerator {
     }
 
     public ConstantPointValueGenerator(Instant startTime, Instant endTime, Duration period, DataValue value) {
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.period = period;
+        super(startTime, endTime, period);
         this.value = value;
-    }
-
-    @Override
-    public Stream<BatchPointValue> apply(DataPointVO point) {
-        var stream = createSupplier(point).stream();
-        if (endTime != null) {
-            long endTimeMs = endTime.toEpochMilli();
-            stream = stream.takeWhile(v -> v.getPointValue().getTime() < endTimeMs);
-        }
-        return stream;
     }
 
     @Override
@@ -51,30 +33,16 @@ public class ConstantPointValueGenerator implements PointValueGenerator {
         return new ConstantPointValueSupplier(point);
     }
 
-    private class ConstantPointValueSupplier implements BatchPointValueSupplier {
-        final DataPointVO point;
-
-        Instant timestamp = ConstantPointValueGenerator.this.startTime;
+    private class ConstantPointValueSupplier extends AbstractPointValueSupplier {
 
         public ConstantPointValueSupplier(DataPointVO point) {
-            this.point = point;
+            super(point);
         }
 
         @Override
-        public BatchPointValue get() {
-            PointValueTime pointValueTime = new PointValueTime(value, timestamp.toEpochMilli());
-            this.timestamp = timestamp.plus(period);
-            return new BatchPointValueImpl(point, pointValueTime);
+        protected PointValueTime nextPointValue() {
+            return new PointValueTime(value, timestamp.toEpochMilli());
         }
 
-        @Override
-        public Instant getTimestamp() {
-            return timestamp;
-        }
-
-        @Override
-        public void setTimestamp(Instant timestamp) {
-            this.timestamp = timestamp;
-        }
     }
 }
