@@ -6,46 +6,34 @@ package com.infiniteautomation.mango.pointvalue.generator;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Random;
 import java.util.stream.Stream;
 
 import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class RandomPointValueGenerator implements PointValueGenerator {
+public class ConstantPointValueGenerator implements PointValueGenerator {
 
-    private final Random random = new Random();
     private final Instant startTime;
     private final Instant endTime;
     private final Duration period;
-    private final double minimum;
-    private final double maximum;
+    private final DataValue value;
 
-    public RandomPointValueGenerator(long startTime, long period) {
-        this(Instant.ofEpochMilli(startTime), null, Duration.ofMillis(period));
+    public ConstantPointValueGenerator(long startTime, long period, DataValue value) {
+        this(Instant.ofEpochMilli(startTime), null, Duration.ofMillis(period), value);
     }
 
-    public RandomPointValueGenerator(long startTime, long endTime, long period) {
-        this(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime), Duration.ofMillis(period));
+    public ConstantPointValueGenerator(long startTime, long endTime, long period, DataValue value) {
+        this(Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime), Duration.ofMillis(period), value);
     }
 
-    public RandomPointValueGenerator(Instant startTime, Instant endTime, Duration period) {
-        this(startTime, endTime, period, 0D, 100D);
-    }
-
-    public RandomPointValueGenerator(Instant startTime, Instant endTime, Duration period, double minimum, double maximum) {
+    public ConstantPointValueGenerator(Instant startTime, Instant endTime, Duration period, DataValue value) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.period = period;
-        this.minimum = minimum;
-        this.maximum = maximum;
-    }
-
-    @Override
-    public BatchPointValueSupplier createSupplier(DataPointVO point) {
-        return new RandomPointValueSupplier(point);
+        this.value = value;
     }
 
     @Override
@@ -58,18 +46,23 @@ public class RandomPointValueGenerator implements PointValueGenerator {
         return stream;
     }
 
-    private class RandomPointValueSupplier implements BatchPointValueSupplier {
-        final DataPointVO point;
-        Instant timestamp = RandomPointValueGenerator.this.startTime;
+    @Override
+    public BatchPointValueSupplier createSupplier(DataPointVO point) {
+        return new ConstantPointValueSupplier(point);
+    }
 
-        public RandomPointValueSupplier(DataPointVO point) {
+    private class ConstantPointValueSupplier implements BatchPointValueSupplier {
+        final DataPointVO point;
+
+        Instant timestamp = ConstantPointValueGenerator.this.startTime;
+
+        public ConstantPointValueSupplier(DataPointVO point) {
             this.point = point;
         }
 
         @Override
         public BatchPointValue get() {
-            double value = random.nextDouble() * (maximum - minimum) + minimum;
-            var pointValueTime = new PointValueTime(value, timestamp.toEpochMilli());
+            PointValueTime pointValueTime = new PointValueTime(value, timestamp.toEpochMilli());
             this.timestamp = timestamp.plus(period);
             return new BatchPointValueImpl(point, pointValueTime);
         }
