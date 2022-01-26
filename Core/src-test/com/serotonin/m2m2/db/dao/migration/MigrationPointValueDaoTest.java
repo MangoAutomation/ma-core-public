@@ -22,23 +22,17 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 
 import com.infiniteautomation.mango.pointvalue.generator.BrownianPointValueGenerator;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockPointValueDao;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
-import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.SimulationTimer;
 
 /**
@@ -57,11 +51,10 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         super.before();
 
         ApplicationContext context = MangoTestBase.lifecycle.getRuntimeContext();
-        this.migrationPointValueDao = context.getBean(MigrationPointValueDao.class);
-        this.migrationConfig = context.getBean(TestMigrationConfig.class);
-        this.source = context.getBean("source", MockPointValueDao.class);
-        this.destination = context.getBean("destination", MockPointValueDao.class);
+        this.source = new MockPointValueDao();
+        this.destination = new MockPointValueDao();
         this.timer = context.getBean(SimulationTimer.class);
+        useMigrationConfig(new TestMigrationConfig());
     }
 
     @Override
@@ -72,6 +65,19 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         // ensure point data is deleted, MangoTestBase calls this also, but it may not be called for both source and destination
         this.source.deleteAllPointData();
         this.destination.deleteAllPointData();
+    }
+
+    private void useMigrationConfig(TestMigrationConfig config) {
+        this.migrationConfig = config;
+
+        ApplicationContext context = MangoTestBase.lifecycle.getRuntimeContext();
+        this.migrationPointValueDao = new MigrationPointValueDao(destination, source,
+                context.getBean(DataPointDao.class),
+                context.getBean(ExecutorService.class),
+                context.getBean(ScheduledExecutorService.class),
+                timer,
+                context.getBean(MigrationProgressDao.class),
+                config);
     }
 
     @Test
@@ -171,44 +177,42 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         }
     }
 
-    @Override
-    protected MockMangoLifecycle getLifecycle() {
-        MockMangoLifecycle lifecycle = super.getLifecycle();
-        lifecycle.addRuntimeContextConfiguration(MigrationSpringConfig.class);
-        return lifecycle;
-    }
+    @Test
+    public void downsampledAggregate() throws ExecutionException, InterruptedException, TimeoutException {
+        Duration aggregationPeriod = Duration.ofMinutes(15);
+        TestMigrationConfig config = new TestMigrationConfig();
+        config.setAggregationPeriod(aggregationPeriod);
+        useMigrationConfig(config);
 
-    private static class MigrationSpringConfig {
+        var dataSource = createMockDataSource();
+        var point = createMockDataPoint(dataSource, new MockPointLocatorVO());
 
-        @Bean
-        @Primary
-        public MigrationConfig migrationConfig() {
-            return new TestMigrationConfig();
-        }
+        TemporalAmount testDuration = Duration.ofDays(1);
+        ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
+        ZonedDateTime to = from.plus(testDuration);
+        Duration period = Duration.ofSeconds(5L);
+        long inputExpectedSamples = Duration.between(from, to).dividedBy(period);
 
-        @Bean("source")
-        public PointValueDao source() {
-            return new MockPointValueDao();
-        }
+        // migration stops at the current time
+        timer.setStartTime(to.toInstant().toEpochMilli());
 
-        @Bean("destination")
-        public PointValueDao destination() {
-            return new MockPointValueDao();
-        }
+        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), period.toMillis());
+        source.savePointValues(generator.apply(point));
+        // sanity check
+        assertEquals(inputExpectedSamples, source.dateRangeCount(point, null, null));
 
-        @Bean
-        @Primary
-        public PointValueDao pointValueDao(@Qualifier("source") PointValueDao source,
-                                           @Qualifier("destination") PointValueDao destination,
-                                           DataPointDao dataPointDao,
-                                           AbstractTimer timer,
-                                           MigrationProgressDao migrationProgressDao,
-                                           MigrationConfig config,
-                                           ExecutorService executor,
-                                           ScheduledExecutorService scheduledExecutor) {
+        migrationPointValueDao.startMigration();
+        migrationPointValueDao.migrationFinished().get(30, TimeUnit.SECONDS);
 
-            return new MigrationPointValueDao(destination, source, dataPointDao,
-                    executor, scheduledExecutor, timer, migrationProgressDao, config);
+        var destinationValues = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)
+                .collect(Collectors.toList());
+
+        long outputExpectedSamples = Duration.between(from, to).dividedBy(aggregationPeriod);
+        assertEquals(outputExpectedSamples, destinationValues.size());
+        for (int i = 0; i < outputExpectedSamples; i++) {
+            var destinationValue = destinationValues.get(i);
+            assertEquals(point.getSeriesId(), destinationValue.getSeriesId());
+            assertEquals(from.plus(aggregationPeriod.multipliedBy(i)).toInstant().toEpochMilli(), destinationValue.getTime());
         }
     }
 }
