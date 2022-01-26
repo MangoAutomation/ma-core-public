@@ -25,6 +25,8 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
 import com.infiniteautomation.mango.pointvalue.generator.BrownianPointValueGenerator;
+import com.infiniteautomation.mango.pointvalue.generator.LinearPointValueGenerator;
+import com.infiniteautomation.mango.pointvalue.generator.PointValueGenerator;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockPointValueDao;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
@@ -196,7 +198,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         // migration stops at the current time
         timer.setStartTime(to.toInstant().toEpochMilli());
 
-        BrownianPointValueGenerator generator = new BrownianPointValueGenerator(from.toInstant(), to.toInstant(), period);
+        PointValueGenerator generator = new LinearPointValueGenerator(from.toInstant(), to.toInstant(), period, 0.0D, 1.0D);
         source.savePointValues(generator.apply(point));
         // sanity check
         assertEquals(inputExpectedSamples, source.dateRangeCount(point, null, null));
@@ -213,6 +215,9 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
             var destinationValue = destinationValues.get(i);
             assertEquals(point.getSeriesId(), destinationValue.getSeriesId());
             assertEquals(from.plus(aggregationPeriod.multipliedBy(i)).toInstant().toEpochMilli(), destinationValue.getTime());
+
+            double expected = 180.0 * i + 89.5;
+            assertEquals(expected, destinationValue.getDoubleValue(), 0.0D);
         }
     }
 }
