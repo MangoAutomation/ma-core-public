@@ -427,13 +427,19 @@ public interface PointValueDao {
         PointValueDao.validateNotNull(sortOrder);
         PointValueDao.validateChunkSize(chunkSize);
 
+        // prevent pre-fetching excessive numbers of values when limit is low
         if (limit != null) {
             chunkSize = Math.min(limit, chunkSize);
         }
+
         PointValueIterator it = new PointValueIterator(this, vo, from, to, chunkSize, sortOrder);
         Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it,
                 Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
-        return StreamSupport.stream(spliterator, false);
+        var stream = StreamSupport.stream(spliterator, false);
+        if (limit != null) {
+            stream = stream.limit(limit);
+        }
+        return stream;
     }
 
     /**
