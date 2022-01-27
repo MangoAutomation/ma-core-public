@@ -35,16 +35,15 @@ public class PointValueIterator implements Iterator<IdPointValueTime> {
     private boolean exhausted = false;
 
     /**
-     *
      * @param dao point value DAO
      * @param vo data point
      * @param startTime start time (epoch ms), inclusive
      * @param endTime end time (epoch ms), exclusive
-     * @param chunkSize number of samples to load from the DAO at once
      * @param sortOrder forward or reverse
+     * @param chunkSize number of samples to load from the DAO at once
      */
     public PointValueIterator(PointValueDao dao, DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime,
-                              int chunkSize, TimeOrder sortOrder) {
+                              TimeOrder sortOrder, int chunkSize) {
         this.dao = dao;
         this.vo = vo;
         this.startTime = startTime;
