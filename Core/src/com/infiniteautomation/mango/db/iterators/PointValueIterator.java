@@ -37,21 +37,27 @@ public class PointValueIterator implements Iterator<IdPointValueTime> {
      * Indicates that no more data is available for the time range
      */
     private boolean exhausted = false;
+    /**
+     * Number of values left before hitting limit
+     */
+    private Integer remaining;
 
     /**
      * @param dao point value DAO
      * @param vo data point
      * @param startTime start time (epoch ms), inclusive
      * @param endTime end time (epoch ms), exclusive
+     * @param limit limit number of values returned
      * @param sortOrder forward or reverse
      * @param chunkSize number of samples to load from the DAO at once
      */
     public PointValueIterator(PointValueDao dao, DataPointVO vo, @Nullable Long startTime, @Nullable Long endTime,
-                              TimeOrder sortOrder, int chunkSize) {
+                              @Nullable Integer limit, TimeOrder sortOrder, int chunkSize) {
         this.dao = dao;
         this.vo = vo;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.remaining = limit;
         this.chunkSize = chunkSize;
         this.sortOrder = sortOrder;
         this.buffer = new ArrayDeque<>(chunkSize);
@@ -73,7 +79,15 @@ public class PointValueIterator implements Iterator<IdPointValueTime> {
      */
     private void fillQueue() {
         if (!exhausted && buffer.isEmpty()) {
-            dao.getPointValuesPerPoint(Collections.singleton(vo), startTime, endTime, chunkSize, sortOrder, buffer::offer);
+            int limit = remaining == null ? chunkSize : Math.min(chunkSize, remaining);
+            if (limit == 0) {
+                this.exhausted = true;
+                return;
+            }
+            dao.getPointValuesPerPoint(Collections.singleton(vo), startTime, endTime, limit, sortOrder, buffer::offer);
+            if (remaining != null) {
+                remaining -= buffer.size();
+            }
 
             IdPointValueTime value = buffer.peekLast();
             if (value == null) {

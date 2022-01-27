@@ -374,7 +374,7 @@ public interface PointValueDao {
         int chunkSize = limit == null ? maxChunkSize : Math.max(Math.min(limit / vos.size() + 1, maxChunkSize), minChunkSize);
 
         List<PointValueIterator> iterators = vos.stream()
-                .map(p -> new PointValueIterator(this, p, from, to, sortOrder, chunkSize))
+                .map(p -> new PointValueIterator(this, p, from, to, null, sortOrder, chunkSize))
                 .collect(Collectors.toList());
         Comparator<IdPointValueTime> comparator = sortOrder.getComparator().thenComparingInt(IdPointValueTime::getSeriesId);
         MergingIterator<IdPointValueTime> mergingIterator = new MergingIterator<>(iterators, comparator);
@@ -424,16 +424,7 @@ public interface PointValueDao {
         PointValueDao.validateNotNull(sortOrder);
         PointValueDao.validateChunkSize(chunkSize);
 
-        // prevent pre-fetching excessive numbers of values when limit is low
-        if (limit != null) {
-            chunkSize = Math.min(limit, chunkSize);
-        }
-
-        var stream = new PointValueIterator(this, vo, from, to, sortOrder, chunkSize).toStream();
-        if (limit != null) {
-            stream = stream.limit(limit);
-        }
-        return stream;
+        return new PointValueIterator(this, vo, from, to, limit, sortOrder, chunkSize).toStream();
     }
 
     /**
