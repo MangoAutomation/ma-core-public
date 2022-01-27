@@ -28,12 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -432,10 +429,7 @@ public interface PointValueDao {
             chunkSize = Math.min(limit, chunkSize);
         }
 
-        PointValueIterator it = new PointValueIterator(this, vo, from, to, sortOrder, chunkSize);
-        Spliterator<IdPointValueTime> spliterator = Spliterators.spliteratorUnknownSize(it,
-                Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
-        var stream = StreamSupport.stream(spliterator, false);
+        var stream = new PointValueIterator(this, vo, from, to, sortOrder, chunkSize).toStream();
         if (limit != null) {
             stream = stream.limit(limit);
         }

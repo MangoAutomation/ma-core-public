@@ -8,6 +8,10 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -93,5 +97,14 @@ public class PointValueIterator implements Iterator<IdPointValueTime> {
     public @Nullable IdPointValueTime peek() {
         fillQueue();
         return buffer.peek();
+    }
+
+    public Spliterator<IdPointValueTime> toSpliterator() {
+        return Spliterators.spliteratorUnknownSize(this,
+                Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.SORTED);
+    }
+
+    public Stream<IdPointValueTime> toStream() {
+        return StreamSupport.stream(toSpliterator(), false);
     }
 }
