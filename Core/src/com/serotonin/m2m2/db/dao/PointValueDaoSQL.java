@@ -197,7 +197,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
                 .from(pv)
                 .innerJoin(points).on(points.id.eq(pv.dataPointId))
                 .leftJoin(dataSources).on(dataSources.id.eq(points.dataSourceId))
-                .groupBy(pv.dataPointId)
+                .groupBy(points.id, dataSources.name, dataSources.xid, dataSources.dataSourceType)
                 .orderBy(count.desc())
                 .limit(limit)
                 .fetch(record -> {
