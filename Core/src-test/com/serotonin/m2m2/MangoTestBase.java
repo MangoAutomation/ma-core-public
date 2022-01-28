@@ -146,7 +146,7 @@ public class MangoTestBase {
                 break;
             case "h2:tcp":
                 testDbType = "h2";
-                properties.setProperty("db.url", "jdbc:h2:tcp://0.0.0.0:1521/testDbs/" + dbName + ";MODE=MySQL;AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE");
+                properties.setProperty("db.url", "jdbc:h2:tcp://0.0.0.0/mem:" + dbName + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
                 break;
             case "h2:file":
                 testDbType = "h2";
