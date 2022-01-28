@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -138,7 +139,7 @@ public interface PointValueDao {
     default void savePointValues(Stream<? extends BatchPointValue> pointValues, int chunkSize) {
         PointValueDao.validateNotNull(pointValues);
         PointValueDao.validateChunkSize(chunkSize);
-        pointValues.forEach(v -> savePointValueSync(v.getVo(), v.getPointValue()));
+        pointValues.forEachOrdered(v -> savePointValueSync(v.getVo(), v.getPointValue()));
     }
 
     /**
@@ -500,6 +501,118 @@ public interface PointValueDao {
     }
 
     /**
+     * Stream the point values for a single point, for the time range {@code [from,to)} with a limit.
+     * The stream includes the point's value at the start and end of the time range ("bookend" values), for ease of charting.
+     *
+     * <p>The stream will always include bookend values, however the value contained within may be null.
+     * If no real value exists at the bookend timestamp, the synthetic value will be of type {@link BookendIdPointValueTime}.</p>
+     *
+     * @param point data point
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return (if null, no limit is applied). The limit does not apply to the bookend values.
+     * @throws IllegalArgumentException if point is null, if limit is negative, if to is less than from
+     * @return stream of point values in ascending time order, i.e. the oldest value first.
+     */
+    default Stream<IdPointValueTime> bookendStream(DataPointVO point, long from, long to, @Nullable Integer limit) {
+        PointValueDao.validateNotNull(point);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+
+        // holds the last value in order to set the last bookend value
+        LastValueConsumer<IdPointValueTime> lastValue = new LastValueConsumer<>();
+
+        // search backwards for the first bookend value (might be at from)
+        var firstBookend = Stream.generate(() -> initialValue(point, from))
+                .limit(1);
+
+        // search forwards for all values between from and to (value at exactly from will be the first bookend)
+        var values = streamPointValues(point, from, to, limit, TimeOrder.ASCENDING)
+                // exclude value at exactly "from" as it will be included as a bookend already
+                .filter(v -> v.getTime() > from);
+
+        // concat the first bookend and values,
+        var firstBookendAndValues = Stream.concat(firstBookend, values)
+                // hang onto the last seen value in the stream
+                .peek(lastValue);
+
+        // apply the last bookend
+        var lastBookend = lastValue.streamValue().map(v -> v.withNewTime(to));
+        return Stream.concat(firstBookendAndValues, lastBookend);
+    }
+
+    /**
+     * Stream the point values for a collection of points, for the time range {@code [from,to)} with a limit.
+     * The stream includes each point's value at the start and end of the time range ("bookend" values), for ease of charting.
+     * Values are grouped by point, and streamed in ascending time order, i.e. the oldest value first.
+     *
+     * <p>Note: The order in which points are grouped and values are returned may not match the order of the passed in
+     * collection</p>
+     *
+     * <p>The stream will always include bookend values, however the value contained within may be null.
+     * If no real value exists at the bookend timestamp, the synthetic value will be of type {@link BookendIdPointValueTime}.</p>
+     *
+     * @param points collection of data points
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return per point (if null, no limit is applied). The limit does not apply to the bookend values.
+     * @throws IllegalArgumentException if points is null, if limit is negative, if to is less than from
+     * @return stream of point values grouped by point then in ascending time order, i.e. the oldest value first.
+     */
+    default Stream<IdPointValueTime> bookendStreamPerPoint(Collection<? extends DataPointVO> points, long from, long to, @Nullable Integer limit) {
+        PointValueDao.validateNotNull(points);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+        if (points.isEmpty()) return Stream.empty();
+
+        return points.stream().flatMap(p -> bookendStream(p, from, to, limit));
+    }
+
+    /**
+     * Stream the point values for a collection of points, for the time range {@code [from,to)} with a limit.
+     * The stream includes each point's value at the start and end of the time range ("bookend" values), for ease of charting.
+     * Values are streamed in ascending time order, i.e. the oldest value first.
+     *
+     * <p>The stream will always include bookend values for each point, however the value contained within may be null.
+     * If no real value exists at the bookend timestamp, the synthetic value will be of type {@link BookendIdPointValueTime}.</p>
+     *
+     * @param points collection of data points
+     * @param from from time (epoch ms), inclusive
+     * @param to to time (epoch ms), exclusive
+     * @param limit maximum number of values to return (if null, no limit is applied). The limit does not apply to the bookend values.
+     * @throws IllegalArgumentException if points is null, if limit is negative, if to is less than from
+     * @return stream of point values in ascending time order, i.e. the oldest value first.
+     */
+    default Stream<IdPointValueTime> bookendStreamCombined(Collection<? extends DataPointVO> points, long from, long to, @Nullable Integer limit) {
+        PointValueDao.validateNotNull(points);
+        PointValueDao.validateTimePeriod(from, to);
+        PointValueDao.validateLimit(limit);
+        if (points.isEmpty()) return Stream.empty();
+
+        return Stream.generate(() -> {
+            // search backwards for the first bookend value (might be at from)
+            Map<Integer, IdPointValueTime> lastValue = initialValues(points, from);
+            var firstBookend = lastValue.values().stream();
+
+            // search forwards for all values between from and to (value at exactly from will be the first bookend)
+            var values = streamPointValuesCombined(points, from, to, limit, TimeOrder.ASCENDING)
+                    // exclude value at exactly "from" as it will be included as a bookend already
+                    .filter(v -> v.getTime() > from)
+                    // hang onto the last seen value in the stream
+                    .peek(v -> lastValue.put(v.getSeriesId(), v));
+
+            // concat the first bookend and values, hang onto the last seen value in the stream
+            var firstBookendAndValues = Stream.concat(firstBookend, values);
+
+            // apply the last bookend
+            var lastBookend = lastValue.values().stream()
+                    .map(v -> v.withNewTime(to));
+
+            return Stream.concat(firstBookendAndValues, lastBookend);
+        }).limit(1).flatMap(Function.identity());
+    }
+
+    /**
      * Get the point values for a collection of points, for the time range {@code [from,to)}, while also
      * returning the value immediately prior and after the given time range.
      *
@@ -526,7 +639,8 @@ public interface PointValueDao {
 
     /**
      * Retrieve the initial value for a set of points. That is, the value immediately prior to, or exactly at the given timestamp.
-     * The returned map is guaranteed to contain an entry for every point, however the value may be null.
+     * The returned map is guaranteed to contain an entry for every point, however the value contained inside
+     * the {@link IdPointValueTime} may be null.
      *
      * <p>The returned point values have their timestamp set to the passed in timestamp, and will be an instance
      * of {@link BookendIdPointValueTime} if they are a synthetic "bookend" value, i.e. an actual point value
@@ -546,6 +660,27 @@ public interface PointValueDao {
             values.computeIfAbsent(vo.getSeriesId(), seriesId -> new BookendIdPointValueTime(seriesId, null, time));
         }
         return values;
+    }
+
+    /**
+     * Retrieve the initial value for a point. That is, the value immediately prior to, or exactly at the given timestamp.
+     * The return value is guaranteed to be non-null, however the value contained inside the {@link IdPointValueTime} may be null.
+     *
+     * <p>The returned point values have their timestamp set to the passed in timestamp, and will be an instance
+     * of {@link BookendIdPointValueTime} if they are a synthetic "bookend" value, i.e. an actual point value
+     * does not exist at this timestamp.</p>
+     *
+     * @param point the data point
+     * @param time timestamp (epoch ms) to get the value at, inclusive
+     * @return point value with time set to provided timestamp
+     */
+    default IdPointValueTime initialValue(DataPointVO point, long time) {
+        SingleValueConsumer<IdPointValueTime> result = new SingleValueConsumer<>();
+        // use Stream.generate() to make the stream lazy
+        getPointValuesPerPoint(List.of(point), null, time + 1, 1, TimeOrder.DESCENDING, result);
+        return result.getValue()
+                .map(v -> v.withNewTime(time))
+                .orElseGet(() -> new BookendIdPointValueTime(point.getSeriesId(), null, time));
     }
 
     /**
