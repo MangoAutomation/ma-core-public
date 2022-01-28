@@ -5,10 +5,9 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
@@ -42,6 +41,7 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.BookendIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
@@ -304,7 +304,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     @Override
     public Map<Integer, IdPointValueTime> initialValues(Collection<? extends DataPointVO> vos, long time) {
         PointValueDao.validateNotNull(vos);
-        Map<Integer, IdPointValueTime> values = new HashMap<>(vos.size());
+        Map<Integer, IdPointValueTime> values = new LinkedHashMap<>(vos.size());
 
         try (var cursor = vos.stream()
                 .map(DataPointVO::getSeriesId)
@@ -314,7 +314,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
                 .fetchLazy()) {
             for (var record : cursor) {
                 var value = mapRecord(record);
-                values.put(value.getSeriesId(), value);
+                values.put(value.getSeriesId(), value.withNewTime(time));
             }
         }
         /* alternative implementation without union
@@ -327,7 +327,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
         */
         for (DataPointVO vo : vos) {
-            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new IdPointValueTime(seriesId, null, time));
+            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new BookendIdPointValueTime(seriesId, null, time));
         }
         return values;
     }
@@ -344,13 +344,12 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         try (var query = betweenQuery(from, to, limit, TimeOrder.ASCENDING, pv.dataPointId.eq(DSL.param("seriesId", Integer.class))).keepStatement(true)) {
             for (DataPointVO vo : vos) {
                 var value = values.get(vo.getSeriesId());
-                callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
+                callback.firstValue(value, value instanceof BookendIdPointValueTime);
                 try (var cursor = query.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
                     for (var record : cursor) {
                         value = mapRecord(record);
-                        var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
                         // so we don't call row() for same value that was passed to firstValue()
-                        if (value.getTime() > previousValue.getTime()) {
+                        if (value.getTime() > from) {
                             callback.accept(value);
                         }
                     }
@@ -370,15 +369,14 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
         for (IdPointValueTime value : values.values()) {
-            callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
+            callback.firstValue(value, value instanceof BookendIdPointValueTime);
         }
         var query = betweenQuery(from, to, limit, TimeOrder.ASCENDING, seriesIdCondition(vos));
         try (var cursor = query.fetchLazy()) {
             for (var record : cursor) {
                 var value = mapRecord(record);
-                var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
                 // so we don't call row() for same value that was passed to firstValue()
-                if (value.getTime() > previousValue.getTime()) {
+                if (value.getTime() > from) {
                     callback.accept(value);
                 }
             }

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,9 +38,11 @@ import com.codahale.metrics.Meter;
 import com.infiniteautomation.mango.db.iterators.MergingIterator;
 import com.infiniteautomation.mango.db.iterators.PointValueIterator;
 import com.infiniteautomation.mango.db.query.CountingConsumer;
+import com.infiniteautomation.mango.db.query.LastValueConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.BookendIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
@@ -526,6 +528,10 @@ public interface PointValueDao {
      * Retrieve the initial value for a set of points. That is, the value immediately prior to, or exactly at the given timestamp.
      * The returned map is guaranteed to contain an entry for every point, however the value may be null.
      *
+     * <p>The returned point values have their timestamp set to the passed in timestamp, and will be an instance
+     * of {@link BookendIdPointValueTime} if they are a synthetic "bookend" value, i.e. an actual point value
+     * does not exist at this timestamp.</p>
+     *
      * @param vos data points
      * @param time timestamp (epoch ms) to get the value at, inclusive
      * @return map of seriesId to point value
@@ -534,10 +540,10 @@ public interface PointValueDao {
         PointValueDao.validateNotNull(vos);
         if (vos.isEmpty()) return Collections.emptyMap();
 
-        Map<Integer, IdPointValueTime> values = new HashMap<>(vos.size());
-        getPointValuesPerPoint(vos, null, time + 1, 1, TimeOrder.DESCENDING, v -> values.put(v.getSeriesId(), v));
+        Map<Integer, IdPointValueTime> values = new LinkedHashMap<>(vos.size());
+        getPointValuesPerPoint(vos, null, time + 1, 1, TimeOrder.DESCENDING, v -> values.put(v.getSeriesId(), v.withNewTime(time)));
         for (DataPointVO vo : vos) {
-            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new IdPointValueTime(seriesId, null, time));
+            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new BookendIdPointValueTime(seriesId, null, time));
         }
         return values;
     }
@@ -569,17 +575,19 @@ public interface PointValueDao {
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
 
+        LastValueConsumer<IdPointValueTime> lastValue = new LastValueConsumer<>();
         for (DataPointVO vo : vos) {
-            var first = values.get(vo.getSeriesId());
-            callback.firstValue(first.withNewTime(from), first.getValue() == null || first.getTime() != from);
+            var value = Objects.requireNonNull(values.get(vo.getSeriesId()));
+            callback.firstValue(value, value instanceof BookendIdPointValueTime);
+            lastValue.accept(value);
             getPointValuesPerPoint(Collections.singleton(vo), from, to, limit, TimeOrder.ASCENDING, v -> {
-                var previousValue = Objects.requireNonNull(values.put(v.getSeriesId(), v));
+                lastValue.accept(v);
                 // so we don't call row() for same value that was passed to firstValue()
-                if (v.getTime() > previousValue.getTime()) {
+                if (v.getTime() > from) {
                     callback.accept(v);
                 }
             });
-            callback.lastValue(values.get(vo.getSeriesId()).withNewTime(to), true);
+            callback.lastValue(lastValue.getValue().orElseThrow().withNewTime(to), true);
         }
     }
 
@@ -606,14 +614,13 @@ public interface PointValueDao {
         if (vos.isEmpty()) return;
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
-
         for (IdPointValueTime value : values.values()) {
-            callback.firstValue(value.withNewTime(from), value.getValue() == null || value.getTime() != from);
+            callback.firstValue(value, value instanceof BookendIdPointValueTime);
         }
         getPointValuesCombined(vos, from, to, limit, TimeOrder.ASCENDING, value -> {
-            var previousValue = Objects.requireNonNull(values.put(value.getSeriesId(), value));
+            values.put(value.getSeriesId(), value);
             // so we don't call row() for same value that was passed to firstValue()
-            if (value.getTime() > previousValue.getTime()) {
+            if (value.getTime() > from) {
                 callback.accept(value);
             }
         });

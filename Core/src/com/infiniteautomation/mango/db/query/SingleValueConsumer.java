@@ -4,19 +4,12 @@
 
 package com.infiniteautomation.mango.db.query;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-
-public class SingleValueConsumer<T> implements Consumer<T> {
-    private T singleValue;
+public class SingleValueConsumer<T> extends LastValueConsumer<T> {
 
     @Override
     public void accept(T value) {
-        if (this.singleValue != null) throw new IllegalStateException("Already set");
-        this.singleValue = value;
+        if (this.value != null) throw new IllegalStateException("Already set");
+        super.accept(value);
     }
 
-    public Optional<T> getValue() {
-        return Optional.ofNullable(singleValue);
-    }
 }

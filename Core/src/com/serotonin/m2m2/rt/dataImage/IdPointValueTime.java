@@ -45,6 +45,12 @@ public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
         if (newTime == getTime()) {
             return this;
         }
-        return new IdPointValueTime(seriesId, getValue(), newTime);
+        return new BookendIdPointValueTime(seriesId, getValue(), newTime);
+    }
+
+    public static class BookendIdPointValueTime extends IdPointValueTime {
+        public BookendIdPointValueTime(int seriesId, DataValue value, long time) {
+            super(seriesId, value, time);
+        }
     }
 }
