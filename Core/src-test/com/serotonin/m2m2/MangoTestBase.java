@@ -150,7 +150,7 @@ public class MangoTestBase {
                 break;
             case "h2:file":
                 testDbType = "h2";
-                properties.setProperty("db.url", "jdbc:h2:databases/" + dbName + ";AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE");
+                properties.setProperty("db.url", "jdbc:h2:databases/" + dbName);
                 break;
             case "h2:mem":
             default:
