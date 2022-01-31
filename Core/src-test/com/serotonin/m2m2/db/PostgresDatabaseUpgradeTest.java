@@ -5,7 +5,6 @@ package com.serotonin.m2m2.db;
 
 import java.io.IOException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
 
@@ -19,9 +18,7 @@ import com.serotonin.m2m2.MockMangoLifecycle;
  * @author Terry Packer
  */
 public class PostgresDatabaseUpgradeTest extends MangoTestBase {
-    // TODO fill defaultData-POSTGRES.sql with required data
     @Test
-    @Ignore
     public void doUpgrade() {
         // do nothing, before hook will throw exception if upgrade fails
     }
