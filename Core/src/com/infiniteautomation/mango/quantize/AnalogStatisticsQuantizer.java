@@ -10,8 +10,12 @@ import com.serotonin.m2m2.view.stats.IValueTime;
 
 public class AnalogStatisticsQuantizer extends AbstractPointValueTimeQuantizer<AnalogStatistics> {
 
+    public AnalogStatisticsQuantizer(BucketCalculator bucketCalculator) {
+        super(bucketCalculator, null);
+    }
+
     public AnalogStatisticsQuantizer(BucketCalculator bucketCalculator,
-            StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback) {
+                                     StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback) {
         super(bucketCalculator, callback);
     }
 

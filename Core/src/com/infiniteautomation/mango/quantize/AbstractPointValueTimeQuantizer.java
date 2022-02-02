@@ -7,7 +7,7 @@ import java.time.Instant;
 
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.db.query.WideCallback;
-import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
@@ -27,10 +27,10 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  *
  * @author Terry Packer
  */
-abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenerator> implements WideCallback<IdPointValueTime> {
+abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenerator> implements WideCallback<PointValueTime> {
 
     private final BucketCalculator bucketCalculator;
-    private final StatisticsGeneratorQuantizerCallback<T> callback;
+    private StatisticsGeneratorQuantizerCallback<T> callback;
     private final long startTime;
     private final long endTime;
 
@@ -52,7 +52,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     }
 
     @Override
-    public void accept(IdPointValueTime vt) {
+    public void accept(PointValueTime vt) {
         long time = vt.getTime();
         if (time < startTime)
             throw new IllegalArgumentException("Data is before start time");
@@ -69,14 +69,14 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     }
 
     @Override
-    public void firstValue(IdPointValueTime value, boolean bookend) {
+    public void firstValue(PointValueTime value, boolean bookend) {
         openPeriod(periodFrom, periodTo, value);
         if(!bookend)
             accept(value);
     }
 
     @Override
-    public void lastValue(IdPointValueTime value, boolean bookend) {
+    public void lastValue(PointValueTime value, boolean bookend) {
         if(!bookend)
             accept(value);
     }
@@ -163,7 +163,17 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     protected void closePeriod() throws QueryCancelledException {
         if (statistics != null) {
             statistics.done();
-            callback.quantizedStatistics(statistics);
+            if (callback != null) {
+                callback.quantizedStatistics(statistics);
+            }
         }
+    }
+
+    public void setCallback(StatisticsGeneratorQuantizerCallback<T> callback) {
+        this.callback = callback;
+    }
+
+    public BucketCalculator getBucketCalculator() {
+        return bucketCalculator;
     }
 }
