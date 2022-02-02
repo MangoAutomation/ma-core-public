@@ -469,7 +469,7 @@ with Springfox 3.
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.24</version>
+            <version>42.2.25</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
