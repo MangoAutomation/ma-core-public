@@ -375,6 +375,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         try (var cursor = query.fetchLazy()) {
             for (var record : cursor) {
                 var value = mapRecord(record);
+                values.put(value.getSeriesId(), value);
                 // so we don't call row() for same value that was passed to firstValue()
                 if (value.getTime() > from) {
                     callback.accept(value);
