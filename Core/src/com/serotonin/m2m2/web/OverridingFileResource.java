@@ -7,10 +7,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.channels.ReadableByteChannel;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jetty.util.resource.Resource;
 
 /**
@@ -143,11 +143,9 @@ public class OverridingFileResource extends Resource {
         if (overrideList == null || overrideList.length == 0)
             return baseList;
 
-        Set<String> merge = new HashSet<String>();
-        CollectionUtils.addAll(merge, baseList);
-        CollectionUtils.addAll(merge, overrideList);
-
-        return merge.toArray(new String[merge.size()]);
+        Set<String> merge = new HashSet<>(Arrays.asList(baseList));
+        merge.addAll(Arrays.asList(overrideList));
+        return merge.toArray(new String[0]);
     }
 
     @Override
