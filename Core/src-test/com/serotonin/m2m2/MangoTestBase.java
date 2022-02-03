@@ -35,6 +35,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContext;
@@ -44,6 +45,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.emport.ImportTaskDependencies;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.rules.RetryRule;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
@@ -99,6 +101,11 @@ import com.serotonin.util.properties.MangoProperties;
  *
  */
 public class MangoTestBase {
+    // Retry failed tests 2 times by default
+    // To ensure we get same error
+    // Also confirms that there is no missing cleanup for both previous and current test
+    @Rule
+    public RetryRule retryRule = new RetryRule(2, true, false, RetryRule.FailBehaviour.ANY);
 
     protected final Logger LOG = LoggerFactory.getLogger(MangoTestBase.class);
 
