@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +59,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     public static final String H2_CREATE_VERSION_SELECT = "SELECT value FROM information_schema.settings WHERE name='CREATE_BUILD' LIMIT 1";
 
     public static final String IN_MEMORY_URL_PREFIX = "jdbc:h2:mem:";
+    public static final String TCP_URL_PREFIX = "jdbc:h2:tcp:";
 
     private JdbcConnectionPool dataSource;
     private Server web; //web UI
@@ -116,7 +116,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private void upgradeLegacyPageStore(String propertyPrefix) {
         //Parse out the useful sections of the url
         String dbUrl = env.getRequiredProperty(propertyPrefix + "db.url");
-        if (dbUrl.startsWith(IN_MEMORY_URL_PREFIX)) {
+        if (dbUrl.startsWith(IN_MEMORY_URL_PREFIX) || dbUrl.startsWith(TCP_URL_PREFIX)) {
             return;
         }
         Path dbPath = getDbPathFromUrl(dbUrl);
@@ -175,7 +175,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private void upgradePageStoreToMvStore(String propertyPrefix) throws Exception {
         String upgradeUrl = env.getRequiredProperty(propertyPrefix + "db.url");
-        if (upgradeUrl.startsWith(IN_MEMORY_URL_PREFIX)) {
+        if (upgradeUrl.startsWith(IN_MEMORY_URL_PREFIX) || upgradeUrl.startsWith(TCP_URL_PREFIX)) {
             return;
         }
 
@@ -324,7 +324,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private String getUrl(String propertyPrefix) {
         String url = env.getRequiredProperty(propertyPrefix + "db.url");
-        if (url.startsWith(IN_MEMORY_URL_PREFIX)) {
+        if (url.startsWith(IN_MEMORY_URL_PREFIX) || url.startsWith(TCP_URL_PREFIX)) {
             return url;
         }
 
@@ -396,7 +396,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     @Override
     public File getDataDirectory() {
         String url = getUrl("");
-        if (!url.startsWith(IN_MEMORY_URL_PREFIX)) {
+        if (!url.startsWith(IN_MEMORY_URL_PREFIX) && !url.startsWith(TCP_URL_PREFIX)) {
             Map<String, String> options = extractOptions(url);
             StoreType storeType = "FALSE".equals(options.get("MV_STORE")) ? StoreType.PAGE_STORE : StoreType.MV_STORE;
             Path dbPath = getDbPathFromUrl(url);

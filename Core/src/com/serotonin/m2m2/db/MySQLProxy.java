@@ -6,7 +6,10 @@ package com.serotonin.m2m2.db;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.springframework.dao.DataAccessException;
 
@@ -108,15 +111,15 @@ public class MySQLProxy extends BasePooledProxy {
 
     @Override
     public void clean() {
-        try (var connection = getDataSource().getConnection()) {
-            String databaseName = connection.getCatalog();
-            try (var statement = connection.createStatement()) {
-                statement.executeUpdate(String.format("DROP DATABASE `%s`", databaseName));
-            }
-            try (var statement = connection.createStatement()) {
-                statement.executeUpdate(String.format("CREATE DATABASE `%s`", databaseName));
-            }
-        } catch (SQLException e) {
+        String testUrl = env.getProperty("db.test.url");
+        String dbName = env.getProperty("db.test.name");
+        String username = env.getProperty("db.username");
+        String password = env.getProperty("db.password");
+        try (Connection conn = DriverManager.getConnection(testUrl, username, password)) {
+            Statement stmt = conn.createStatement();
+            stmt.executeUpdate(String.format("DROP DATABASE `%s`", dbName));
+        }
+        catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }

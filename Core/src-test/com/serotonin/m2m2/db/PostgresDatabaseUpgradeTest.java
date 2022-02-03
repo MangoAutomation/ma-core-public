@@ -3,7 +3,7 @@
  */
 package com.serotonin.m2m2.db;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
@@ -22,15 +22,15 @@ import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
- * Perform a full upgrade from version 1 of the schema on an MySQL database.
+ * Perform a full upgrade from version 1 of the schema on an POSTGRES database.
  *
  * @author Terry Packer
  */
-public class MySQLDatabaseUpgradeTest extends MangoTestBase {
+public class PostgresDatabaseUpgradeTest extends MangoTestBase {
 
-    public MySQLDatabaseUpgradeTest() {
+    public PostgresDatabaseUpgradeTest() {
         String currentDb = properties.getProperty("db.type");
-        assumeTrue(currentDb.equals("mysql"));
+        assumeTrue(currentDb.equals("postgres"));
     }
 
     @Test
@@ -45,21 +45,28 @@ public class MySQLDatabaseUpgradeTest extends MangoTestBase {
         context.insertInto(r, r.id, r.xid, r.name).values(10, "xid", "name").execute();
         context.insertInto(r, r.xid, r.name).values("test", "test").execute();
         RoleVO role = Common.getBean(RoleDao.class).getByXid("test");
-        assertEquals(11, role.getId());
+        assertNotEquals(11, role.getId());
+        assertEquals(4, role.getId());
+
+        String sequence = r.getName() + "_" + r.id.getName() + "_seq";
+        context.alterSequence(sequence).restartWith(20).execute();
+        context.insertInto(r, r.xid, r.name).values("test2", "test2").execute();
+        role = Common.getBean(RoleDao.class).getByXid("test2");
+        assertEquals(20, role.getId());
     }
 
     public static class UpgradeConfig {
         @Bean
         public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
-            return new MySQLProxy(null, configuration) {
+            return new PostgresProxy(null, configuration) {
                 @Override
                 protected boolean restoreTables() throws IOException {
                     try (var outputStream = createTablesOutputStream()) {
-                        try (var inputStream = getClass().getResourceAsStream("version1/createTables-MYSQL.sql")) {
+                        try (var inputStream = getClass().getResourceAsStream("version1/createTables-POSTGRES.sql")) {
                             runScript(inputStream, outputStream);
                         }
-                        try (var inputStream = getClass().getResourceAsStream("version1/defaultData-MYSQL.sql")) {
-                            runScript(inputStream, outputStream);
+                        try (var inputStream = getClass().getResourceAsStream("version1/defaultData-POSTGRES.sql")) {
+                                runScript(inputStream, outputStream);
                         }
                     }
                     return true;

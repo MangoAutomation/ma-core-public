@@ -3,7 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import freemarker.template.TemplateException;
+import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
@@ -21,6 +22,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
+
 import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +60,7 @@ import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
-import static com.infiniteautomation.mango.spring.events.DaoEventType.UPDATE;
+import freemarker.template.TemplateException;
 
 /**
  * Service to access Users
@@ -625,12 +627,14 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
     }
 
     @Override
-    public void clearCaches() {
+    public void clearCaches(boolean force) {
         permissionService.ensureAdminRole(Common.getUser());
         if(userByUsername != null) {
             //This cache must always retain all users in it
             userByUsername.invalidateAll();
-            populateUserByUsernameCache();
+            if (!force) {
+                populateUserByUsernameCache();
+            }
         }
     }
 

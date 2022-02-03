@@ -14,6 +14,10 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,10 +30,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContext;
@@ -39,6 +45,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.emport.ImportTaskDependencies;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.rules.RetryRule;
 import com.infiniteautomation.mango.spring.service.CachingService;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
@@ -46,7 +53,6 @@ import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublishedPointService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
@@ -58,6 +64,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.db.BasePooledProxy;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
@@ -94,6 +101,11 @@ import com.serotonin.util.properties.MangoProperties;
  *
  */
 public class MangoTestBase {
+    // Retry failed tests 2 times by default
+    // To ensure we get same error
+    // Also confirms that there is no missing cleanup for both previous and current test
+    @Rule
+    public RetryRule retryRule = new RetryRule(2, true, false, RetryRule.FailBehaviour.ANY);
 
     protected final Logger LOG = LoggerFactory.getLogger(MangoTestBase.class);
 
@@ -113,7 +125,8 @@ public class MangoTestBase {
 
         properties = new MockMangoProperties();
         properties.setProperty("paths.data", dataDirectory.toString());
-        properties.setProperty("db.url", "jdbc:h2:mem:" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
+
+        setupTestDB();
 
         Providers.add(MangoProperties.class, properties);
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
@@ -121,21 +134,90 @@ public class MangoTestBase {
         addModule("BaseTest", new MockDataSourceDefinition(), new MockPublisherDefinition());
     }
 
+    public static void setupTestDB() {
+        String dbName = "t_" + RandomStringUtils.random(19, true, false ).toLowerCase();
+        properties.setProperty("db.test.name", dbName);
+        properties.setProperty("db.username", "root");
+        properties.setProperty("db.password", "root");
+
+        String testDbType = properties.getProperty("db.test.type");
+        if (testDbType == null) testDbType = "h2:mem";
+        switch (testDbType) {
+            case "mysql":
+                properties.setProperty("db.test.url", "jdbc:mysql://0.0.0.0/mango");
+                properties.setProperty("db.url", "jdbc:mysql://0.0.0.0/" + dbName);
+                break;
+            case "postgres":
+                properties.setProperty("db.test.url", "jdbc:postgresql://0.0.0.0/mango");
+                properties.setProperty("db.url", "jdbc:postgresql://0.0.0.0/" + dbName);
+                break;
+            case "h2:tcp":
+                testDbType = "h2";
+                properties.setProperty("db.url", "jdbc:h2:tcp://0.0.0.0/mem:" + dbName + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
+                break;
+            case "h2:file":
+                testDbType = "h2";
+                properties.setProperty("db.url", "jdbc:h2:databases/" + dbName);
+                break;
+            case "h2:mem":
+            default:
+                testDbType = "h2";
+                properties.setProperty("db.url", "jdbc:h2:mem:" + dbName + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
+                break;
+        }
+        properties.setProperty("db.type", testDbType);
+    }
+
+    public static void createTestDB() {
+        String dbName = properties.getProperty("db.test.name");
+        try {
+            String dbType = properties.getProperty("db.type");
+            String createQuery;
+            switch (dbType) {
+                case "mysql":
+                    Class.forName("com.mysql.cj.jdbc.Driver");
+                    createQuery = "CREATE DATABASE `%s`";
+                    break;
+                case "postgres":
+                    Class.forName("org.postgresql.Driver");
+                    createQuery = "CREATE DATABASE %s";
+                    break;
+                case "h2":
+                default:
+                    return;
+            }
+            String testUrl = properties.getProperty("db.test.url");
+            try (Connection conn = DriverManager.getConnection(testUrl, "root", "root")){
+                Statement stmt = conn.createStatement();
+                stmt.executeUpdate(String.format(createQuery, dbName));
+            }
+        } catch (ClassNotFoundException | SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     @Before
     public void before() {
+        createTestDB();
         //So it only happens once per class for now (problems with restarting lifecycle during a running JVM)
-        if(lifecycle == null) {
+        if (lifecycle == null) {
             lifecycle = getLifecycle();
             try {
                 lifecycle.initialize();
             } catch (InterruptedException | ExecutionException e) {
                 fail(e.getMessage());
             }
-        }else {
+        } else {
+            // Re-initialize database
+            Common.getBean(DatabaseProxy.class).initialize();
+
             //Lifecycle hook for things that need to run to install into a new database
             for (Module module : ModuleRegistry.getModules()) {
                 module.postDatabase();
             }
+
+            // Fix cached users for new database
+            Common.getBean(UsersService.class).clearCaches(false);
         }
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
         this.timer = provider.getSimulationTimer();
@@ -174,24 +256,22 @@ public class MangoTestBase {
             }
         }
 
+        // Clear all caches in services
+        Common.getRuntimeContext().getBeansOfType(CachingService.class).values()
+                .forEach(s -> s.clearCaches(true));
+
         DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
+        // Try to release active connections if possible
+        if (databaseProxy instanceof BasePooledProxy) {
+            ((BasePooledProxy) databaseProxy).softEvictConnections();
+        }
+        // Clean database
         databaseProxy.clean();
-        databaseProxy.initialize();
-
-        //clear all caches in services
-        Common.getRuntimeContext().getBeansOfType(CachingService.class).values().stream()
-                .filter(s -> !(s instanceof PermissionService))
-                .forEach(CachingService::clearCaches);
-
-        // We clear the permission service cache afterwards as every call to clearCaches() on another service will
-        // repopulate the role hierarchy cache
-        Common.getRuntimeContext().getBean(PermissionService.class).clearCaches();
-
     }
 
     @AfterClass
     public static void staticTearDown() throws IOException {
-        if(lifecycle != null) {
+        if (lifecycle != null) {
             lifecycle.terminate(TerminationReason.SHUTDOWN);
         }
 

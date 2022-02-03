@@ -37,6 +37,7 @@ public class NumericPointValueDaoTest extends MangoTestBase {
     @After
     public void after() {
         this.helper.after();
+        super.after();
     }
 
 

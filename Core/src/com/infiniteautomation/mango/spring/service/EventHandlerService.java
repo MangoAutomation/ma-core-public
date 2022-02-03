@@ -160,7 +160,7 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     }
 
     @Override
-    public void clearCaches() {
+    public void clearCaches(boolean force) {
         cache.invalidateAll();
     }
 

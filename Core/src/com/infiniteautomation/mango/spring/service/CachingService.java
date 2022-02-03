@@ -15,5 +15,5 @@ public interface CachingService {
     /**
      * This will invalidate all caches on the service
      */
-    void clearCaches();
+    void clearCaches(boolean force);
 }
