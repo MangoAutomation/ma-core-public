@@ -253,11 +253,12 @@ public class MangoTestBase {
         Common.getRuntimeContext().getBeansOfType(CachingService.class).values()
                 .forEach(s -> s.clearCaches(true));
 
-        // Clean database
         DatabaseProxy databaseProxy = Common.getBean(DatabaseProxy.class);
+        // Try to release active connections if possible
         if (databaseProxy instanceof BasePooledProxy) {
             ((BasePooledProxy) databaseProxy).softEvictConnections();
         }
+        // Clean database
         databaseProxy.clean();
     }
 
