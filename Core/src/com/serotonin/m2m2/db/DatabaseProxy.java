@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameCase;
 import org.jooq.conf.RenderQuotedNames;
 import org.jooq.impl.DefaultConfiguration;
@@ -211,11 +212,17 @@ public interface DatabaseProxy extends TransactionCapable {
 
         Translations translations = Common.getTranslations();
 
-        context.insertInto(r, r.xid, r.name)
-                .values(PermissionHolder.SUPERADMIN_ROLE.getXid(), translations.translate("roles.superadmin"))
-                .values(PermissionHolder.USER_ROLE.getXid(), translations.translate("roles.user"))
-                .values(PermissionHolder.ANONYMOUS_ROLE.getXid(), translations.translate("roles.anonymous"))
+        context.insertInto(r, r.id, r.xid, r.name)
+                .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.SUPERADMIN_ROLE.getXid(), translations.translate("roles.superadmin"))
+                .values(PermissionHolder.USER_ROLE.getId(), PermissionHolder.USER_ROLE.getXid(), translations.translate("roles.user"))
+                .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), translations.translate("roles.anonymous"))
                 .execute();
+
+        // Fix next sequence value for postgres
+        if (getType().getDialect() == SQLDialect.POSTGRES) {
+            String sequence = r.getName() + "_" + r.id.getName() + "_seq";
+            context.alterSequence(sequence).restartWith(4).execute();
+        }
 
         context.insertInto(ri, ri.roleId, ri.inheritedRoleId)
                 .values(PermissionHolder.SUPERADMIN_ROLE.getId(), PermissionHolder.USER_ROLE.getId())
