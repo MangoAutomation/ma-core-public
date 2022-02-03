@@ -4,10 +4,16 @@
 package com.serotonin.m2m2.db;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
+import org.h2.jdbc.JdbcSQLNonTransientException;
+import org.h2.jdbc.JdbcSQLSyntaxErrorException;
 import org.jooq.DSLContext;
 import org.junit.Test;
 import org.springframework.context.annotation.Bean;
@@ -37,6 +43,47 @@ public class H2DatabaseUpgradeTest extends MangoTestBase {
         // do nothing, before hook will throw exception if upgrade fails
     }
 
+    // https://github.com/h2database/h2database/issues/1808
+    @Test
+    public void exploitLobStorageMap() throws SQLException {
+        Exception expected = null;
+        try {
+            Connection conn1 = Common.getBean(DatabaseProxy.class).getDataSource().getConnection();
+            String createTable = "CREATE TABLE t1 (id int AUTO_INCREMENT, ver bigint, data text, PRIMARY KEY (id))";
+            conn1.prepareStatement(createTable).executeUpdate();
+
+            String insert = "INSERT INTO t1 (id, ver, data) values (1, 0, ?)";
+            PreparedStatement insertStmt = conn1.prepareStatement(insert);
+            String largeData = org.h2.util.StringUtils.pad("", 512, "x", false);
+            insertStmt.setString(1, largeData);
+            insertStmt.executeUpdate();
+
+            new Thread(() -> {
+                try {
+                    Connection conn2 = Common.getBean(DatabaseProxy.class).getDataSource().getConnection();
+                    String update = "UPDATE t1 SET ver = ver + 1 WHERE id = 1";
+                    while (!Thread.currentThread().isInterrupted()) {
+                        conn2.prepareStatement(update).executeUpdate();
+                    }
+                } catch (JdbcSQLSyntaxErrorException ex) {
+                    assertEquals("42S02", ex.getSQLState());
+                    assertEquals("UPDATE t1 SET ver = ver + 1 WHERE id = 1", ex.getSQL());
+                    assertEquals("Table \"T1\" not found", ex.getOriginalMessage());
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }).start();
+
+            while (true) {
+                conn1.prepareStatement("SELECT * FROM t1").executeQuery();
+            }
+        } catch (JdbcSQLNonTransientException ex) {
+            expected = ex;
+            assertEquals("HY000", ex.getSQLState());
+            assertEquals("SELECT * FROM t1", ex.getSQL());
+            assertEquals("General error: \"java.lang.NullPointerException\"", ex.getOriginalMessage());
+        }
+        assertNotNull(expected);
     }
 
     @Test
