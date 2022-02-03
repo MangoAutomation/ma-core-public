@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -185,6 +186,10 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     @Override
     public List<PointValueTime> getLatestPointValues(int limit) {
         return valueCache.getLatestPointValues(limit);
+    }
+
+    public List<PointValueTime> getLatestPointValues() {
+        return valueCache.getCacheContents();
     }
 
     @Override
@@ -948,24 +953,22 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     /**
      * Get a copy of the current cache
      */
-    public List<PointValueTime> getCacheCopy(){
-        List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
-        for(PointValueTime pvt : this.valueCache.getCacheContents())
-            copy.add(pvt);
+    public List<PointValueTime> getCacheCopy() {
+        List<PointValueTime> cache = valueCache.getCacheContents();
+        List<PointValueTime> copy = new ArrayList<>(cache.size());
+        copy.addAll(cache);
         return copy;
     }
 
     /**
      * Get a copy of the current cache, size limited
      */
-    public List<PointValueTime> getCacheCopy(int limit){
-        List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
-        int size = 0;
-        for(PointValueTime pvt : this.valueCache.getCacheContents()) {
-            copy.add(pvt);
-            size++;
-            if(size == limit)
-                break;
+    public List<PointValueTime> getCacheCopy(int limit) {
+        List<PointValueTime> cache = valueCache.getCacheContents();
+        List<PointValueTime> copy = new ArrayList<>(limit);
+        Iterator<PointValueTime> it = cache.iterator();
+        for (int i = 0; i < limit && it.hasNext(); i++) {
+            copy.add(it.next());
         }
         return copy;
     }

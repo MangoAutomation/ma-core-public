@@ -34,11 +34,17 @@ public class AnnotatedPointValueTime extends PointValueTime implements IAnnotate
     public TranslatableMessage getSourceMessage() {
         return sourceMessage;
     }
+
     @Override
     public String getAnnotation(Translations translations) {
         if(sourceMessage != null)
          return sourceMessage.translate(translations);
         else
             return null;
+    }
+
+    @Override
+    public IdPointValueTime withSeriesId(int seriesId) {
+        return new AnnotatedIdPointValueTime(seriesId, getValue(), getTime(), sourceMessage);
     }
 }

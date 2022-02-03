@@ -10,4 +10,11 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  */
 public interface IValueTime extends ITime {
     DataValue getValue();
+
+    default boolean isBookend() {
+        return false;
+    }
+    default boolean isFromCache() {
+        return false;
+    }
 }

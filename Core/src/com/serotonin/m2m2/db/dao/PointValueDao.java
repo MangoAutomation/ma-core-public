@@ -43,7 +43,7 @@ import com.infiniteautomation.mango.db.query.LastValueConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
-import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.BookendIdPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.MetaIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
@@ -505,7 +505,7 @@ public interface PointValueDao {
      * The stream includes the point's value at the start and end of the time range ("bookend" values), for ease of charting.
      *
      * <p>The stream will always include bookend values, however the value contained within may be null.
-     * If no real value exists at the bookend timestamp, the synthetic value will be of type {@link BookendIdPointValueTime}.</p>
+     * If no real value exists at the bookend timestamp, then {@link PointValueTime#isBookend()} will return true.</p>
      *
      * @param point data point
      * @param from from time (epoch ms), inclusive
@@ -550,7 +550,7 @@ public interface PointValueDao {
      * collection</p>
      *
      * <p>The stream will always include bookend values, however the value contained within may be null.
-     * If no real value exists at the bookend timestamp, the synthetic value will be of type {@link BookendIdPointValueTime}.</p>
+     * If no real value exists at the bookend timestamp, then {@link PointValueTime#isBookend()} will return true.</p>
      *
      * @param points collection of data points
      * @param from from time (epoch ms), inclusive
@@ -574,7 +574,7 @@ public interface PointValueDao {
      * Values are streamed in ascending time order, i.e. the oldest value first.
      *
      * <p>The stream will always include bookend values for each point, however the value contained within may be null.
-     * If no real value exists at the bookend timestamp, the synthetic value will be of type {@link BookendIdPointValueTime}.</p>
+     * If no real value exists at the bookend timestamp, then {@link PointValueTime#isBookend()} will return true.</p>
      *
      * @param points collection of data points
      * @param from from time (epoch ms), inclusive
@@ -642,9 +642,9 @@ public interface PointValueDao {
      * The returned map is guaranteed to contain an entry for every point, however the value contained inside
      * the {@link IdPointValueTime} may be null.
      *
-     * <p>The returned point values have their timestamp set to the passed in timestamp, and will be an instance
-     * of {@link BookendIdPointValueTime} if they are a synthetic "bookend" value, i.e. an actual point value
-     * does not exist at this timestamp.</p>
+     * <p>The returned point values have their timestamp set to the passed in timestamp, and
+     * {@link PointValueTime#isBookend()} will return true if they are a synthetic "bookend" value,
+     * i.e. an actual point value does not exist at this timestamp.</p>
      *
      * @param vos data points
      * @param time timestamp (epoch ms) to get the value at, inclusive
@@ -657,7 +657,7 @@ public interface PointValueDao {
         Map<Integer, IdPointValueTime> values = new LinkedHashMap<>(vos.size());
         getPointValuesPerPoint(vos, null, time + 1, 1, TimeOrder.DESCENDING, v -> values.put(v.getSeriesId(), v.withNewTime(time)));
         for (DataPointVO vo : vos) {
-            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new BookendIdPointValueTime(seriesId, null, time));
+            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new MetaIdPointValueTime(seriesId, null, time, true, false));
         }
         return values;
     }
@@ -666,9 +666,9 @@ public interface PointValueDao {
      * Retrieve the initial value for a point. That is, the value immediately prior to, or exactly at the given timestamp.
      * The return value is guaranteed to be non-null, however the value contained inside the {@link IdPointValueTime} may be null.
      *
-     * <p>The returned point values have their timestamp set to the passed in timestamp, and will be an instance
-     * of {@link BookendIdPointValueTime} if they are a synthetic "bookend" value, i.e. an actual point value
-     * does not exist at this timestamp.</p>
+     * <p>The returned point values have their timestamp set to the passed in timestamp, and
+     * {@link PointValueTime#isBookend()} will return true if they are a synthetic "bookend" value,
+     * i.e. an actual point value does not exist at this timestamp.</p>
      *
      * @param point the data point
      * @param time timestamp (epoch ms) to get the value at, inclusive
@@ -680,7 +680,7 @@ public interface PointValueDao {
         getPointValuesPerPoint(List.of(point), null, time + 1, 1, TimeOrder.DESCENDING, result);
         return result.getValue()
                 .map(v -> v.withNewTime(time))
-                .orElseGet(() -> new BookendIdPointValueTime(point.getSeriesId(), null, time));
+                .orElseGet(() -> new MetaIdPointValueTime(point.getSeriesId(), null, time, true, false));
     }
 
     /**
@@ -713,7 +713,7 @@ public interface PointValueDao {
         LastValueConsumer<IdPointValueTime> lastValue = new LastValueConsumer<>();
         for (DataPointVO vo : vos) {
             var value = Objects.requireNonNull(values.get(vo.getSeriesId()));
-            callback.firstValue(value, value instanceof BookendIdPointValueTime);
+            callback.firstValue(value, value.isBookend());
             lastValue.accept(value);
             getPointValuesPerPoint(Collections.singleton(vo), from, to, limit, TimeOrder.ASCENDING, v -> {
                 lastValue.accept(v);
@@ -750,7 +750,7 @@ public interface PointValueDao {
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
         for (IdPointValueTime value : values.values()) {
-            callback.firstValue(value, value instanceof BookendIdPointValueTime);
+            callback.firstValue(value, value.isBookend());
         }
         getPointValuesCombined(vos, from, to, limit, TimeOrder.ASCENDING, value -> {
             values.put(value.getSeriesId(), value);

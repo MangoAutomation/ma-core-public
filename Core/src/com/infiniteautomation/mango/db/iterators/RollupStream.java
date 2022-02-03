@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
-import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.BookendIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
@@ -52,9 +51,9 @@ public class RollupStream<T extends StatisticsGenerator> implements Spliterator<
                 }
                 this.exhausted = true;
             } else if (next.getTime() == from) {
-                quantizer.firstValue(next, next instanceof BookendIdPointValueTime);
+                quantizer.firstValue(next, next.isBookend());
             } else if (next.getTime() == to) {
-                quantizer.lastValue(next, next instanceof BookendIdPointValueTime);
+                quantizer.lastValue(next, next.isBookend());
             } else {
                 quantizer.accept(next);
             }

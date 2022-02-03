@@ -41,7 +41,7 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
-import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.BookendIdPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.MetaIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
@@ -327,7 +327,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
         */
         for (DataPointVO vo : vos) {
-            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new BookendIdPointValueTime(seriesId, null, time));
+            values.computeIfAbsent(vo.getSeriesId(), seriesId -> new MetaIdPointValueTime(seriesId, null, time, true, false));
         }
         return values;
     }
@@ -344,7 +344,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         try (var query = betweenQuery(from, to, limit, TimeOrder.ASCENDING, pv.dataPointId.eq(DSL.param("seriesId", Integer.class))).keepStatement(true)) {
             for (DataPointVO vo : vos) {
                 var value = values.get(vo.getSeriesId());
-                callback.firstValue(value, value instanceof BookendIdPointValueTime);
+                callback.firstValue(value, value.isBookend());
                 try (var cursor = query.bind("seriesId", vo.getSeriesId()).fetchLazy()) {
                     for (var record : cursor) {
                         value = mapRecord(record);
@@ -369,7 +369,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
 
         Map<Integer, IdPointValueTime> values = initialValues(vos, from);
         for (IdPointValueTime value : values.values()) {
-            callback.firstValue(value, value instanceof BookendIdPointValueTime);
+            callback.firstValue(value, value.isBookend());
         }
         var query = betweenQuery(from, to, limit, TimeOrder.ASCENDING, seriesIdCondition(vos));
         try (var cursor = query.fetchLazy()) {

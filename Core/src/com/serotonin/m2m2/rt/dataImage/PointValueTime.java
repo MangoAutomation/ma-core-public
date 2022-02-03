@@ -122,4 +122,8 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
     public PointValueTime withAnnotation(TranslatableMessage message) {
         return new AnnotatedPointValueTime(this, message);
     }
+
+    public IdPointValueTime withSeriesId(int seriesId) {
+        return new IdPointValueTime(seriesId, value, time);
+    }
 }

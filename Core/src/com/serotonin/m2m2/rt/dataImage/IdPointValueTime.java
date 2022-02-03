@@ -19,7 +19,10 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 import com.infiniteautomation.mango.util.Functions;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime.AnnotatedMetaIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.view.stats.IValueTime;
 
 public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
     private static final long serialVersionUID = 1L;
@@ -45,12 +48,49 @@ public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
         if (newTime == getTime()) {
             return this;
         }
-        return new BookendIdPointValueTime(seriesId, getValue(), newTime);
+        return new MetaIdPointValueTime(this, true, isFromCache());
     }
 
-    public static class BookendIdPointValueTime extends IdPointValueTime {
-        public BookendIdPointValueTime(int seriesId, DataValue value, long time) {
+    public IdPointValueTime withFromCache() {
+        if (isFromCache()) {
+            return this;
+        }
+        return new MetaIdPointValueTime(this, isBookend(), true);
+    }
+
+    @Override
+    public PointValueTime withAnnotation(TranslatableMessage message) {
+        return new AnnotatedIdPointValueTime(this, message);
+    }
+
+    public static class MetaIdPointValueTime extends IdPointValueTime {
+
+        final boolean bookend;
+        final boolean fromCache;
+
+        public <T extends SeriesIdTime & IValueTime> MetaIdPointValueTime(T source, boolean bookend, boolean fromCache) {
+            this(source.getSeriesId(), source.getValue(), source.getTime(), bookend, fromCache);
+        }
+
+        public MetaIdPointValueTime(int seriesId, DataValue value, long time, boolean bookend, boolean fromCache) {
             super(seriesId, value, time);
+            this.bookend = bookend;
+            this.fromCache = fromCache;
+        }
+
+        @Override
+        public boolean isBookend() {
+            return bookend;
+        }
+
+        @Override
+        public boolean isFromCache() {
+            return fromCache;
+        }
+
+        @Override
+        public PointValueTime withAnnotation(TranslatableMessage message) {
+            return new AnnotatedMetaIdPointValueTime(this, message, bookend, fromCache);
         }
     }
 }

@@ -8,6 +8,7 @@ import java.util.Objects;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.view.stats.IValueTime;
 
 /**
  *
@@ -41,6 +42,45 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnno
         if (newTime == getTime()) {
             return this;
         }
-        return new AnnotatedIdPointValueTime(getSeriesId(), getValue(), newTime, sourceMessage);
+        return new AnnotatedMetaIdPointValueTime(this, true, isFromCache());
+    }
+
+    @Override
+    public IdPointValueTime withFromCache() {
+        if (isFromCache()) {
+            return this;
+        }
+        return new AnnotatedMetaIdPointValueTime(this, isBookend(), true);
+    }
+
+    public static class AnnotatedMetaIdPointValueTime extends AnnotatedIdPointValueTime {
+
+        final boolean bookend;
+        final boolean fromCache;
+
+        public <T extends SeriesIdTime & IValueTime & IAnnotated> AnnotatedMetaIdPointValueTime(T source, boolean bookend, boolean fromCache) {
+            this(source, source.getSourceMessage(), bookend, fromCache);
+        }
+
+        public <T extends SeriesIdTime & IValueTime> AnnotatedMetaIdPointValueTime(T source, TranslatableMessage annotation, boolean bookend, boolean fromCache) {
+            super(source.getSeriesId(), source.getValue(), source.getTime(), annotation);
+            this.bookend = bookend;
+            this.fromCache = fromCache;
+        }
+
+        @Override
+        public boolean isBookend() {
+            return bookend;
+        }
+
+        @Override
+        public boolean isFromCache() {
+            return fromCache;
+        }
+
+        @Override
+        public PointValueTime withAnnotation(TranslatableMessage message) {
+            return new AnnotatedMetaIdPointValueTime(this, message, bookend, fromCache);
+        }
     }
 }
