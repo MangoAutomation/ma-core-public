@@ -10,6 +10,9 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * Groups and combines values from another spliterator. The values to be grouped must be adjacent so the source
  * spliterator should be ordered appropriately for grouping.
@@ -22,10 +25,7 @@ public class GroupingSpliterator<T, R> implements Spliterator<R> {
     private final Spliterator<T> source;
     private final Combiner<T, R> combiner;
 
-    /**
-     * Lookahead slot
-     */
-    private T slot;
+    private R group;
 
     public GroupingSpliterator(Spliterator<T> source, Combiner<T, R> combiner) {
         this.source = Objects.requireNonNull(source);
@@ -34,20 +34,26 @@ public class GroupingSpliterator<T, R> implements Spliterator<R> {
 
     @Override
     public boolean tryAdvance(Consumer<? super R> action) {
-        R partition = null;
-        do {
-            if (slot != null) {
-                R result = combiner.combineValue(partition, slot);
-                if (result == null) {
-                    action.accept(partition);
-                    return true;
-                }
-                partition = result;
-                this.slot = null;
+        R prevGroup = group;
+        while (source.tryAdvance(this::combineValue)) {
+            if (group != prevGroup && prevGroup != null) {
+                action.accept(prevGroup);
+                return true;
             }
-        } while (source.tryAdvance(value -> this.slot = value));
+            prevGroup = group;
+        }
+
+        this.group = null;
+        if (prevGroup != null) {
+            action.accept(prevGroup);
+            return true;
+        }
 
         return false;
+    }
+
+    private void combineValue(T value) {
+        this.group = Objects.requireNonNull(combiner.combineValue(group, value));
     }
 
     @Override
@@ -68,14 +74,13 @@ public class GroupingSpliterator<T, R> implements Spliterator<R> {
     @FunctionalInterface
     public interface Combiner<T, R> {
         /**
-         * Combine a new value into the group.
+         * Combine a new value into the group, or start a new group.
          *
-         * @param group the current group
+         * @param group the current group (null if opening first group)
          * @param value value to combine into the group
-         * @return the group value. Return null if the current partition is complete and a new group should
-         * be started (i.e. the value cannot be combined into the current group).
+         * @return the current group or a new group. If a new group is returned, the previous group will be closed out.
          */
-        R combineValue(R group, T value);
+        @NonNull R combineValue(@Nullable R group, @Nullable T value);
     }
 
     public static <T, R> Stream<R> group(Stream<T> source, Combiner<T, R> combiner) {
