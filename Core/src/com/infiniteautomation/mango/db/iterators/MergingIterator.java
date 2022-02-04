@@ -18,6 +18,12 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.collections4.iterators.PeekingIterator;
 
+/**
+ * Merges a collection of iterators into a single iterator so that the values are returned in order of the provided
+ * comparator.
+ *
+ * @param <T>
+ */
 public class MergingIterator<T> implements Iterator<T> {
     private final Queue<PeekingIterator<T>> queue;
     private final Collection<? extends Iterator<? extends T>> inputs;

@@ -12,6 +12,10 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * Groups items from the input into lists of a fixed chunk size.
+ * @param <T>
+ */
 public class ChunkingSpliterator<T> implements Spliterator<List<T>> {
 
     private static final int INHERITED_CHARACTERISTICS = ORDERED | DISTINCT | SIZED | SUBSIZED | IMMUTABLE | CONCURRENT;
