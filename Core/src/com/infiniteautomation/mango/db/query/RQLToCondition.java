@@ -46,9 +46,6 @@ public class RQLToCondition {
 
     public ConditionSortLimit visit(ASTNode node) {
         try {
-            sortFields = null;
-            limit = null;
-            offset = null;
             Condition condition = visitNode(node);
             return new ConditionSortLimit(condition, sortFields, limit, offset);
         } catch (Exception e) {

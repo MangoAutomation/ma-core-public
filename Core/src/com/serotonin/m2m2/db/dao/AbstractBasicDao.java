@@ -1101,7 +1101,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     public ConditionSortLimit rqlToCondition(ASTNode rql) {
-        return this.rqlToCondition.visit(rql);
+        // RQLToCondition is stateful, we need to create a new one every time
+        RQLToCondition rqlToCondition = this.createRqlToCondition();
+        return rqlToCondition.visit(rql);
     }
 
     public void rqlQuery(ASTNode rql, MappedRowCallback<T> callback) {
