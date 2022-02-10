@@ -460,6 +460,10 @@ public interface PointValueDao {
     default Stream<IdPointValueTime> streamPointValuesPerPoint(Collection<? extends DataPointVO> vos,
                                                                @Nullable Long from, @Nullable Long to,
                                                                @Nullable Integer limit, TimeOrder sortOrder) {
+
+        if (vos.isEmpty()) return Stream.empty();
+        if (vos.size() == 1) return streamPointValues(vos.iterator().next(), from, to, limit, sortOrder);
+
         return vos.stream().flatMap(vo -> streamPointValues(vo, from, to, limit, sortOrder));
     }
 
@@ -490,6 +494,10 @@ public interface PointValueDao {
     default Stream<IdPointValueTime> streamPointValuesCombined(Collection<? extends DataPointVO> vos,
                                                                @Nullable Long from, @Nullable Long to,
                                                                @Nullable Integer limit, TimeOrder sortOrder) {
+
+        if (vos.isEmpty()) return Stream.empty();
+        if (vos.size() == 1) return streamPointValues(vos.iterator().next(), from, to, limit, sortOrder);
+
         Comparator<IdPointValueTime> comparator = sortOrder.getComparator().thenComparingInt(IdPointValueTime::getSeriesId);
         var streams = vos.stream()
                 // limit is a total limit, but may as well limit per point
@@ -563,7 +571,9 @@ public interface PointValueDao {
         PointValueDao.validateNotNull(points);
         PointValueDao.validateTimePeriod(from, to);
         PointValueDao.validateLimit(limit);
+
         if (points.isEmpty()) return Stream.empty();
+        if (points.size() == 1) return bookendStream(points.iterator().next(), from, to, limit);
 
         return points.stream().flatMap(p -> bookendStream(p, from, to, limit));
     }
@@ -587,7 +597,9 @@ public interface PointValueDao {
         PointValueDao.validateNotNull(points);
         PointValueDao.validateTimePeriod(from, to);
         PointValueDao.validateLimit(limit);
+
         if (points.isEmpty()) return Stream.empty();
+        if (points.size() == 1) return bookendStream(points.iterator().next(), from, to, limit);
 
         return Stream.generate(() -> {
             // search backwards for the first bookend value (might be at from)
