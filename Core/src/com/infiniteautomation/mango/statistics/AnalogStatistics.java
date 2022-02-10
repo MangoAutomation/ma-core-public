@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.statistics;
 
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -42,6 +43,8 @@ public class AnalogStatistics implements StatisticsGenerator {
     private Double latestValue;
     private long latestTime;
     private long totalDuration;
+
+    private final DoubleSummaryStatistics statistics = new DoubleSummaryStatistics();
 
     public AnalogStatistics(long periodStart, long periodEnd, IValueTime startVT,
             List<? extends IValueTime> values) {
@@ -97,6 +100,8 @@ public class AnalogStatistics implements StatisticsGenerator {
 
         lastValue = value.getDoubleValue();
         lastTime = time;
+
+        statistics.accept(doubleValue);
     }
 
     @Override
@@ -221,6 +226,10 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     public String getHelp() {
         return toString();
+    }
+
+    public DoubleSummaryStatistics getStatistics() {
+        return statistics;
     }
 
     @Override
