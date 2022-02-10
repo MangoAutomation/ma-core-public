@@ -48,7 +48,7 @@ public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
         if (newTime == getTime()) {
             return this;
         }
-        return new MetaIdPointValueTime(this, true, isFromCache());
+        return new MetaIdPointValueTime(seriesId, getValue(), newTime, true, isFromCache());
     }
 
     public IdPointValueTime withFromCache() {

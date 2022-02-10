@@ -42,7 +42,7 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnno
         if (newTime == getTime()) {
             return this;
         }
-        return new AnnotatedMetaIdPointValueTime(this, true, isFromCache());
+        return new AnnotatedMetaIdPointValueTime(getSeriesId(), getValue(), newTime, sourceMessage, true, isFromCache());
     }
 
     @Override
@@ -63,7 +63,11 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnno
         }
 
         public <T extends SeriesIdTime & IValueTime> AnnotatedMetaIdPointValueTime(T source, TranslatableMessage annotation, boolean bookend, boolean fromCache) {
-            super(source.getSeriesId(), source.getValue(), source.getTime(), annotation);
+            this(source.getSeriesId(), source.getValue(), source.getTime(), annotation, bookend, fromCache);
+        }
+
+        public AnnotatedMetaIdPointValueTime(int seriesId, DataValue value, long time, TranslatableMessage annotation, boolean bookend, boolean fromCache) {
+            super(seriesId, value, time, annotation);
             this.bookend = bookend;
             this.fromCache = fromCache;
         }
