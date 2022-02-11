@@ -39,16 +39,9 @@ public class RollupStream<T extends StatisticsGenerator> implements Spliterator<
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
-        if (this.exhausted) {
-            return false;
-        }
-
-        while (stats.isEmpty()) {
+        while (!exhausted && stats.isEmpty()) {
             if (!source.tryAdvance(value -> this.next = value)) {
                 quantizer.done();
-                if (stats.isEmpty()) {
-                    throw new IllegalStateException("Called done() but no stats returned");
-                }
                 this.exhausted = true;
             } else if (next.getTime() == from) {
                 quantizer.firstValue(next, next.isBookend());
@@ -59,8 +52,12 @@ public class RollupStream<T extends StatisticsGenerator> implements Spliterator<
             }
         }
 
-        action.accept(stats.remove());
-        return true;
+        T nextValue = stats.poll();
+        if (nextValue != null) {
+            action.accept(nextValue);
+            return true;
+        }
+        return false;
     }
 
     @Override
