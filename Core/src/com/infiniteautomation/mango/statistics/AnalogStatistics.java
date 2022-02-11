@@ -5,7 +5,8 @@ package com.infiniteautomation.mango.statistics;
 
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
-import java.util.Objects;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
@@ -57,14 +58,21 @@ public class AnalogStatistics implements StatisticsGenerator {
         done();
     }
 
-
-    public AnalogStatistics(long periodStart, long periodEnd, IValueTime startValue) {
+    /**
+     * @param periodStart start of period (epoch ms)
+     * @param periodEnd end of period (epoch ms)
+     * @param startValue may be null when used for interval logging, see {@link com.serotonin.m2m2.rt.dataImage.DataPointRT}
+     */
+    public AnalogStatistics(long periodStart, long periodEnd, @Nullable IValueTime startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
-        this.seriesId = ((IdPointValueTime) Objects.requireNonNull(startValue)).getSeriesId();
+
+        this.seriesId = startValue instanceof IdPointValueTime ?
+                ((IdPointValueTime) startValue).getSeriesId() :
+                -1;
 
         //Check for null and also bookend values
-        if (startValue.getValue() != null) {
+        if (startValue != null && startValue.getValue() != null) {
             minimumValue = maximumValue = latestValue = this.startValue = startValue.getValue().getDoubleValue();
             minimumTime = maximumTime = latestTime = periodStart;
         }

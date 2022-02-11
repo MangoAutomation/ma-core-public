@@ -38,7 +38,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testMilliseconds() {
         for(int i=0; i<=1000; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.MILLISECONDS, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.MILLIS, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int milli = result.get(ChronoField.MILLI_OF_SECOND);
@@ -57,7 +57,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testSeconds() {
         for(int i=0; i<=1000; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.SECONDS, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.SECONDS, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int second = result.get(ChronoField.SECOND_OF_MINUTE);
@@ -76,7 +76,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testMinutes() {
         for(int i=0; i<=1000; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.MINUTES, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.MINUTES, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int minute = result.get(ChronoField.MINUTE_OF_HOUR);
@@ -95,7 +95,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testHours() {
         for(int i=5; i<=1000; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.HOURS, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.HOURS, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int hour = result.get(ChronoField.HOUR_OF_DAY);
@@ -114,7 +114,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testDays() {
         for(int i=0; i<=365; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.DAYS, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.DAYS, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int doy = result.get(ChronoField.DAY_OF_YEAR);
@@ -132,7 +132,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testWeeks() {
         for(int i=0; i<=100; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.WEEKS, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.WEEKS, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int woy = result.get(ChronoField.ALIGNED_WEEK_OF_YEAR);
@@ -153,7 +153,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testMonths() {
         for(int i=0; i<=100; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.MONTHS, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.MONTHS, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int month = result.get(ChronoField.MONTH_OF_YEAR);
@@ -171,7 +171,7 @@ public class TruncateTimePeriodAdjusterTest {
     public void testYears() {
         for(int i=0; i<=20; i++) {
             final int j = i == 0 ? 1 : i; //avoid div 0 with %0
-            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(TimePeriods.YEARS, i);
+            TruncateTimePeriodAdjuster adjuster = new TruncateTimePeriodAdjuster(ChronoUnit.YEARS, i);
             test((time) ->{
                 ZonedDateTime result = (ZonedDateTime)adjuster.adjustInto(time);
                 int year = result.get(ChronoField.YEAR);

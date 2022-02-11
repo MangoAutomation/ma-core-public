@@ -3,7 +3,9 @@
  */
 package com.infiniteautomation.mango.quantize;
 
+import java.time.Period;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,6 @@ import org.junit.Test;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.statistics.ValueChangeCounter;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
-import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 
@@ -25,11 +26,11 @@ import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testNoData() throws QueryCancelledException {
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
 
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override
@@ -63,7 +64,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testNoStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         int value = 1;
@@ -75,7 +76,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override
@@ -124,12 +125,12 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
 
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override
@@ -168,12 +169,12 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueAtPeriodStartNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
 
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override
@@ -206,7 +207,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         int value = 1;
@@ -218,7 +219,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override
@@ -261,8 +262,8 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testNoStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
+        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(ChronoUnit.HOURS, 1);
 
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
@@ -281,7 +282,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override
@@ -326,8 +327,8 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
+        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(ChronoUnit.HOURS, 1);
 
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
@@ -346,7 +347,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override
@@ -396,8 +397,8 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueAtStartManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
+        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(ChronoUnit.HOURS, 1);
 
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
@@ -416,7 +417,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
 
             @Override

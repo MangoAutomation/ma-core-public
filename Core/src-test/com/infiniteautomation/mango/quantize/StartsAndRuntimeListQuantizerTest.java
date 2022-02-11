@@ -3,7 +3,9 @@
  */
 package com.infiniteautomation.mango.quantize;
 
+import java.time.Period;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +18,6 @@ import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.statistics.StartsAndRuntime;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
-import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 
@@ -29,11 +30,11 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
 
     @Test
     public void testNoData() throws QueryCancelledException {
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
 
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
@@ -67,7 +68,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testNoStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         int value = 1;
@@ -79,7 +80,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
@@ -134,12 +135,12 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
 
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
@@ -182,12 +183,12 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueAtPeriodStartNoPeriodValues() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
 
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
@@ -251,7 +252,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueOneValuePerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         int value = 1;
@@ -263,7 +264,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
@@ -311,8 +312,8 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testNoStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
+        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(ChronoUnit.HOURS, 1);
 
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
@@ -331,7 +332,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
@@ -430,8 +431,8 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
+        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(ChronoUnit.HOURS, 1);
 
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
@@ -450,7 +451,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override
@@ -554,8 +555,8 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
     @Test
     public void testStartValueAtStartManyValuesPerPeriod() throws QueryCancelledException {
         //Generate data at 12 noon for every day in the period
-        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
+        NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(ChronoUnit.DAYS, 1);
+        NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(ChronoUnit.HOURS, 1);
 
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
@@ -574,7 +575,7 @@ public class StartsAndRuntimeListQuantizerTest extends BaseQuantizerTest{
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
-        BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
+        BucketCalculator bc = new TemporalAmountBucketCalculator(from, to, Period.ofDays(1));
         StartsAndRuntimeListQuantizer quantizer = new StartsAndRuntimeListQuantizer(bc, new StatisticsGeneratorQuantizerCallback<StartsAndRuntimeList>() {
 
             @Override

@@ -3,10 +3,10 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,14 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
 import com.infiniteautomation.mango.quantize.AnalogStatisticsQuantizer;
 import com.infiniteautomation.mango.quantize.BucketCalculator;
 import com.infiniteautomation.mango.quantize.StartsAndRuntimeListQuantizer;
 import com.infiniteautomation.mango.quantize.StatisticsGeneratorQuantizerCallback;
-import com.infiniteautomation.mango.quantize.TimePeriodBucketCalculator;
+import com.infiniteautomation.mango.quantize.TemporalAmountBucketCalculator;
 import com.infiniteautomation.mango.quantize.ValueChangeCounterQuantizer;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
@@ -35,6 +35,7 @@ import com.infiniteautomation.mango.statistics.ValueChangeCounter;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
+import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
@@ -105,8 +106,13 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
     /**
      * Use data points for rollups
      */
-    public void rollupQueryUsingPoints(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws QueryCancelledException, ScriptPermissionsException {
-        RollupsStream rs = new RollupsStream(vos, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
+    public void rollupQueryUsingPoints(List<DataPointVO> vos, long from, long to,
+                                       ScriptPointValueRollupCallback callback, int rollupType,
+                                       int rollupPeriods, int rollupPeriodType)
+            throws QueryCancelledException, ScriptPermissionsException {
+
+        TemporalAmount rollupPeriod = TimePeriods.toTemporalAmount(rollupPeriodType, rollupPeriods);
+        RollupsStream rs = new RollupsStream(vos, from, to, callback, rollupType, rollupPeriod);
         rs.execute();
     }
 
@@ -143,12 +149,11 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         final ZonedDateTime from;
         final ZonedDateTime to;
         final int rollup;
-        final int rollupPeriod;
-        final int rollupPeriodType;
+        final TemporalAmount rollupPeriod;
         final Map<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>> quantizerMap;
         boolean warned = false;
 
-        public RollupsStream(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollup, int rollupPeriod, int rollupPeriodType) {
+        public RollupsStream(List<DataPointVO> vos, long from, long to, ScriptPointValueRollupCallback callback, int rollup, TemporalAmount rollupPeriod) {
             this.vos = vos;
             Instant instantFrom = Instant.ofEpochMilli(from);
             Instant instantTo = Instant.ofEpochMilli(to);
@@ -158,7 +163,6 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
             this.callback = callback;
             this.rollup = rollup;
             this.rollupPeriod = rollupPeriod;
-            this.rollupPeriodType = rollupPeriodType;
             quantizerMap = new HashMap<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>>();
         }
 
@@ -326,7 +330,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         }
 
         BucketCalculator getBucketCalculator(){
-            return new TimePeriodBucketCalculator(from, to, rollupPeriodType, rollupPeriod);
+            return new TemporalAmountBucketCalculator(from, to, rollupPeriod);
         }
     }
 

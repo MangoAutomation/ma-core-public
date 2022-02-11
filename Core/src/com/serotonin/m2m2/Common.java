@@ -18,8 +18,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -256,7 +258,7 @@ public class Common {
         int MONTHS = 6;
         int YEARS = 7;
 
-        public static int fromTimeUnit(TimeUnit unit) {
+        static int fromTimeUnit(TimeUnit unit) {
             switch (unit) {
                 case MILLISECONDS: return TimePeriods.MILLISECONDS;
                 case SECONDS: return TimePeriods.SECONDS;
@@ -275,6 +277,20 @@ public class Common {
                 case TimePeriods.YEARS: return java.time.Period.ofYears(periods);
                 default:
                     throw new IllegalArgumentException("Unsupported period type, should be days, weeks, months or years.");
+            }
+        }
+
+        static TemporalAmount toTemporalAmount(int type, int periods) {
+            switch (type) {
+                case TimePeriods.MILLISECONDS: return Duration.ofMillis(periods);
+                case TimePeriods.SECONDS: return Duration.ofSeconds(periods);
+                case TimePeriods.MINUTES: return Duration.ofMinutes(periods);
+                case TimePeriods.HOURS: return Duration.ofHours(periods);
+                case TimePeriods.DAYS: return java.time.Period.ofDays(periods);
+                case TimePeriods.WEEKS: return java.time.Period.ofWeeks(periods);
+                case TimePeriods.MONTHS: return java.time.Period.ofMonths(periods);
+                case TimePeriods.YEARS: return java.time.Period.ofYears(periods);
+                default: throw new IllegalArgumentException("Unsupported time period type: " + type);
             }
         }
     }

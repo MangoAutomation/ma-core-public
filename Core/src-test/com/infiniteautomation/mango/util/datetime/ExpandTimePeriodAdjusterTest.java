@@ -35,7 +35,7 @@ public class ExpandTimePeriodAdjusterTest {
     @Test
     public void testMilliseconds() {
         ZonedDateTime start = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 0).atZone(ZoneId.systemDefault());
-        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, TimePeriods.MILLISECONDS, 100);
+        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, ChronoUnit.MILLIS, 100);
         
         ZonedDateTime now = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 1).atZone(ZoneId.systemDefault());
         now = now.with(adjuster);
@@ -45,7 +45,7 @@ public class ExpandTimePeriodAdjusterTest {
     @Test
     public void testSeconds() {
         ZonedDateTime start = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 0).atZone(ZoneId.systemDefault());
-        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, TimePeriods.SECONDS, 10);
+        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, ChronoUnit.SECONDS, 10);
         
         ZonedDateTime now = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 1).atZone(ZoneId.systemDefault());
         now = now.with(adjuster);
@@ -55,7 +55,7 @@ public class ExpandTimePeriodAdjusterTest {
     @Test
     public void testMinutes() {
         ZonedDateTime start = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 0).atZone(ZoneId.systemDefault());
-        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, TimePeriods.MINUTES, 10);
+        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, ChronoUnit.MINUTES, 10);
         
         ZonedDateTime now = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 1).atZone(ZoneId.systemDefault());
         now = now.with(adjuster);
@@ -65,7 +65,7 @@ public class ExpandTimePeriodAdjusterTest {
     @Test
     public void testHours() {
         ZonedDateTime start = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 0).atZone(ZoneId.systemDefault());
-        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, TimePeriods.HOURS, 10);
+        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, ChronoUnit.HOURS, 10);
         
         ZonedDateTime now = LocalDateTime.of(START_YEAR, 1, 1, 10, 0, 0, 1).atZone(ZoneId.systemDefault());
         now = now.with(adjuster);
@@ -75,7 +75,7 @@ public class ExpandTimePeriodAdjusterTest {
     @Test
     public void testDays() {
         ZonedDateTime start = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 0).atZone(ZoneId.systemDefault());
-        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, TimePeriods.DAYS, 10);
+        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, ChronoUnit.DAYS, 10);
         
         ZonedDateTime now = LocalDateTime.of(START_YEAR, 1, 11, 0, 0, 0, 1).atZone(ZoneId.systemDefault());
         now = now.with(adjuster);
@@ -85,7 +85,7 @@ public class ExpandTimePeriodAdjusterTest {
     @Test
     public void testMonths() {
         ZonedDateTime start = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 0).atZone(ZoneId.systemDefault());
-        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, TimePeriods.MONTHS, 6);
+        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, ChronoUnit.MONTHS, 6);
         
         ZonedDateTime now = LocalDateTime.of(START_YEAR, 7, 1, 0, 0, 0, 1).atZone(ZoneId.systemDefault());
         now = now.with(adjuster);
@@ -95,7 +95,7 @@ public class ExpandTimePeriodAdjusterTest {
     @Test
     public void testYears() {
         ZonedDateTime start = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 0).atZone(ZoneId.systemDefault());
-        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, TimePeriods.YEARS, 10);
+        ExpandTimePeriodAdjuster adjuster = new ExpandTimePeriodAdjuster(start, ChronoUnit.YEARS, 10);
         
         ZonedDateTime now = LocalDateTime.of(START_YEAR, 1, 1, 0, 0, 0, 1).atZone(ZoneId.systemDefault());
         now = now.with(adjuster);
