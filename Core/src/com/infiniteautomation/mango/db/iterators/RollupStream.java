@@ -16,6 +16,12 @@ import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
+/**
+ * Uses a {@link AbstractPointValueTimeQuantizer} to convert a stream of {@link PointValueTime} to a stream of
+ * {@link StatisticsGenerator}.
+ *
+ * @param <T>
+ */
 public class RollupStream<T extends StatisticsGenerator> implements Spliterator<T> {
 
     private final Spliterator<? extends PointValueTime> source;

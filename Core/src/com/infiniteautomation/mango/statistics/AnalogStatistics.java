@@ -5,8 +5,10 @@ package com.infiniteautomation.mango.statistics;
 
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
+import java.util.Objects;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -45,6 +47,7 @@ public class AnalogStatistics implements StatisticsGenerator {
     private long totalDuration;
 
     private final DoubleSummaryStatistics statistics = new DoubleSummaryStatistics();
+    private final int seriesId;
 
     public AnalogStatistics(long periodStart, long periodEnd, IValueTime startVT,
             List<? extends IValueTime> values) {
@@ -58,8 +61,10 @@ public class AnalogStatistics implements StatisticsGenerator {
     public AnalogStatistics(long periodStart, long periodEnd, IValueTime startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
+        this.seriesId = ((IdPointValueTime) Objects.requireNonNull(startValue)).getSeriesId();
+
         //Check for null and also bookend values
-        if (startValue != null && startValue.getValue() != null) {
+        if (startValue.getValue() != null) {
             minimumValue = maximumValue = latestValue = this.startValue = startValue.getValue().getDoubleValue();
             minimumTime = maximumTime = latestTime = periodStart;
         }
@@ -238,6 +243,10 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     public double getMaximumInPeriod() {
         return statistics.getMax();
+    }
+
+    public int getSeriesId() {
+        return seriesId;
     }
 
     @Override
