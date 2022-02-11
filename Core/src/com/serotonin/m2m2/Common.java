@@ -307,6 +307,9 @@ public class Common {
         int INTEGRAL = 10;
         int ALL = 11;
         int START = 12;
+        int ARITHMETIC_MEAN = 13;
+        int MINIMUM_IN_PERIOD = 14;
+        int MAXIMUM_IN_PERIOD = 15;
     }
     public static ExportCodes ROLLUP_CODES = new ExportCodes();
     static{
@@ -323,6 +326,9 @@ public class Common {
         ROLLUP_CODES.addElement(Rollups.INTEGRAL, "INTEGRAL", "common.rollup.integral");
         ROLLUP_CODES.addElement(Rollups.ALL, "ALL", "common.rollup.all");
         ROLLUP_CODES.addElement(Rollups.START, "START", "common.rollup.start");
+        ROLLUP_CODES.addElement(Rollups.ARITHMETIC_MEAN, "ARITHMETIC_MEAN", "common.rollup.arithmeticMean");
+        ROLLUP_CODES.addElement(Rollups.MINIMUM_IN_PERIOD, "MINIMUM_IN_PERIOD", "common.rollup.minimumInPeriod");
+        ROLLUP_CODES.addElement(Rollups.MAXIMUM_IN_PERIOD, "MAXIMUM_IN_PERIOD", "common.rollup.maximumInPeriod");
     }
 
     public static ExportCodes WORK_ITEM_CODES = new ExportCodes();

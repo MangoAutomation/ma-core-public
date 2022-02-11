@@ -228,8 +228,16 @@ public class AnalogStatistics implements StatisticsGenerator {
         return toString();
     }
 
-    public DoubleSummaryStatistics getStatistics() {
-        return statistics;
+    public double getArithmeticMean() {
+        return statistics.getAverage();
+    }
+
+    public double getMinimumInPeriod() {
+        return statistics.getMin();
+    }
+
+    public double getMaximumInPeriod() {
+        return statistics.getMax();
     }
 
     @Override
