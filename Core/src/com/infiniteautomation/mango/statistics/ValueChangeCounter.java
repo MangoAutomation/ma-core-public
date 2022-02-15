@@ -32,15 +32,15 @@ public class ValueChangeCounter implements StatisticsGenerator {
     // State values
     private DataValue latestValue;
 
-    public ValueChangeCounter(long periodStart, long periodEnd, IValueTime startVT,
-            List<? extends IValueTime> values) {
+    public ValueChangeCounter(long periodStart, long periodEnd, IValueTime<DataValue> startVT,
+            List<? extends IValueTime<DataValue>> values) {
         this(periodStart, periodEnd, startVT);
-        for (IValueTime p : values)
+        for (IValueTime<DataValue> p : values)
             addValueTime(p);
         done();
     }
 
-    public ValueChangeCounter(long periodStart, long periodEnd, IValueTime startValue) {
+    public ValueChangeCounter(long periodStart, long periodEnd, IValueTime<DataValue> startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
       //Check for null and also bookend values
@@ -50,7 +50,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
     }
 
     @Override
-    public void addValueTime(IValueTime vt) {
+    public void addValueTime(IValueTime<DataValue> vt) {
         addValue(vt.getValue(), vt.getTime());
     }
 

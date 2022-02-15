@@ -8,6 +8,7 @@ import java.time.Instant;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
 import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
@@ -38,7 +39,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
     private Instant periodFrom;
     private Instant periodTo;
     private long periodToMillis; //For performance
-    private IValueTime lastValue;
+    private IValueTime<DataValue> lastValue;
 
     public AbstractPointValueTimeQuantizer(BucketCalculator bucketCalculator, StatisticsGeneratorQuantizerCallback<T> callback) {
         this.bucketCalculator = bucketCalculator;
@@ -101,7 +102,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      * @param time
      * 			  the time that the endValue occurred
      */
-    private void nextPeriod(IValueTime endValue, long time) throws QueryCancelledException {
+    private void nextPeriod(IValueTime<DataValue> endValue, long time) throws QueryCancelledException {
         closePeriod();
         periodFrom = periodTo;
         periodTo = bucketCalculator.getNextPeriodTo().toInstant();
@@ -130,7 +131,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      *
      * @return new statistics object for a period
      */
-    abstract protected T createStatistics(Instant start, Instant end, IValueTime startValue);
+    abstract protected T createStatistics(Instant start, Instant end, IValueTime<DataValue> startValue);
 
     /**
      * Tells the quantizer to open the period.
@@ -144,7 +145,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      * @param end
      *            the end time (exclusive) of the period
      */
-    protected void openPeriod(Instant start, Instant end, IValueTime startValue) {
+    protected void openPeriod(Instant start, Instant end, IValueTime<DataValue> startValue) {
         this.lastValue = startValue;
         this.statistics = createStatistics(start, end, startValue);
     }
@@ -153,7 +154,7 @@ abstract public class AbstractPointValueTimeQuantizer<T extends StatisticsGenera
      * A value that occurred in the period. Data will be provided to this method in chronological order.
      *
      */
-    protected void dataInPeriod(IValueTime vt) {
+    protected void dataInPeriod(IValueTime<DataValue> vt) {
         statistics.addValueTime(vt);
     }
 

@@ -58,11 +58,11 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnno
         final boolean bookend;
         final boolean fromCache;
 
-        public <T extends SeriesIdTime & IValueTime & IAnnotated> AnnotatedMetaIdPointValueTime(T source, boolean bookend, boolean fromCache) {
+        public <T extends SeriesIdTime & IValueTime<DataValue> & IAnnotated> AnnotatedMetaIdPointValueTime(T source, boolean bookend, boolean fromCache) {
             this(source, source.getSourceMessage(), bookend, fromCache);
         }
 
-        public <T extends SeriesIdTime & IValueTime> AnnotatedMetaIdPointValueTime(T source, TranslatableMessage annotation, boolean bookend, boolean fromCache) {
+        public <T extends SeriesIdTime & IValueTime<DataValue>> AnnotatedMetaIdPointValueTime(T source, TranslatableMessage annotation, boolean bookend, boolean fromCache) {
             this(source.getSeriesId(), source.getValue(), source.getTime(), annotation, bookend, fromCache);
         }
 

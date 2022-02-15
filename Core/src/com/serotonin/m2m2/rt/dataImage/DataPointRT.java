@@ -72,7 +72,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     // Interval logging data.
     private PointValueTime intervalValue;
     private long intervalStartTime = -1;
-    private List<IValueTime> averagingValues;
+    private List<IValueTime<DataValue>> averagingValues;
     private final Object intervalLoggingLock = new Object();
     private volatile TimerTask intervalLoggingTask;
 
@@ -104,7 +104,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         this.valueCache = new DataPointRTPointValueCache(vo, vo.getDefaultCacheSize(), initialCache, dao, pointValueCache);
 
         if(vo.getIntervalLoggingType() == IntervalLoggingTypes.AVERAGE) {
-            averagingValues = new ArrayList<IValueTime>();
+            averagingValues = new ArrayList<IValueTime<DataValue>>();
         }
         this.pointValue = new LazyField<>(() -> {
             PointValueTime pvt = valueCache.getLatestPointValue();

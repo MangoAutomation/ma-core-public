@@ -23,7 +23,7 @@ import com.serotonin.m2m2.view.stats.IValueTime;
  * @see AnnotatedPointValueTime
  * @author Matthew Lohbihler
  */
-public class PointValueTime implements Serializable, IValueTime, Comparable<PointValueTime> {
+public class PointValueTime implements Serializable, IValueTime<DataValue>, Comparable<PointValueTime> {
     private static final long serialVersionUID = -1;
 
     public static boolean equalValues(PointValueTime pvt1, PointValueTime pvt2) {

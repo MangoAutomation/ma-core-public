@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 
 public class AnalogStatisticsTest {
@@ -55,16 +56,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getDelta(), 0.001D);
 
         // Test only start value
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(0D, s.getDelta(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getDelta(), 0.001D);
 
         // Test no end
@@ -85,16 +86,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getDelta(), 0.001D);
 
         // Test only start value
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(0D, s.getDelta(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getDelta(), 0.001D);
 
         // Test no start/end
@@ -129,16 +130,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getAverage(), 0.001);
 
         // Test only start value
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(0D, s.getAverage(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getAverage(), 0.001);
 
         // Test no start/end
@@ -162,16 +163,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getAverage(), 0.001);
 
         // Test only start value
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(50D, s.getAverage(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getAverage(), 0.001);
 
         // Test no start/end
@@ -206,16 +207,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getAverage(), 0.001);
 
         // Test only start value
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(100D, s.getAverage(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getAverage(), 0.001);
 
         // Test no start/end
@@ -254,16 +255,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getIntegral(), 0.001D);
 
         // Test only start value
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(100D, s.getIntegral(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getIntegral(), 0.001D);
 
         // Test no start/end nothing for 500 counts, 200 for 500 counts
@@ -289,16 +290,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getIntegral(), 0.001D);
 
         // Test only start value (50 for 1000 counts)
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(50D, s.getIntegral(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getIntegral(), 0.001D);
 
         // Test no start/end nothing for 500 counts, 200 for 500 counts
@@ -336,16 +337,16 @@ public class AnalogStatisticsTest {
 
         // Test no values at all
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getIntegral(), 0.001D);
 
         // Test only start value
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(100D, s.getIntegral(), 0.001D);
 
         // Test only end value
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getIntegral(), 0.001D);
 
         // Test no start/end nothing for 100 counts then 100 for 900 counts
@@ -423,12 +424,12 @@ public class AnalogStatisticsTest {
 
         // No values no start and end values either
         s = new AnalogStatistics(periodStart, periodEnd, null,
-                new ArrayList<IValueTime>());
+                new ArrayList<IValueTime<DataValue>>());
         assertEquals(Double.NaN, s.getIntegral(), 0.001D);
 
         PointValueTime startValue = new PointValueTime(0d, periodStart);
         // Start with 0 but no other values
-        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime>());
+        s = new AnalogStatistics(periodStart, periodEnd, startValue, new ArrayList<IValueTime<DataValue>>());
         assertEquals(0D, s.getIntegral(), 0.001D);
 
         // Start with 0, one change on day 25 at midnight and no end value

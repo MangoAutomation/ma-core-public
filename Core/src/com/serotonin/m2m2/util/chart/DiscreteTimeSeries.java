@@ -21,7 +21,7 @@ public class DiscreteTimeSeries {
     private final TextRenderer textRenderer;
     private final Paint paint;
     private final Stroke stroke;
-    private List<IValueTime> valueTimes = new ArrayList<IValueTime>();
+    private List<IValueTime<DataValue>> valueTimes = new ArrayList<IValueTime<DataValue>>();
     private List<ValueDescription> valueDescriptions = new ArrayList<ValueDescription>();
 
     public DiscreteTimeSeries(String name, TextRenderer textRenderer) {
@@ -43,7 +43,7 @@ public class DiscreteTimeSeries {
     }
 
     @SuppressWarnings("unchecked")
-    public void addValueTime(IValueTime pvt) {
+    public void addValueTime(IValueTime<DataValue> pvt) {
         DataValue value = pvt.getValue();
         if (value == null)
             return;
@@ -76,7 +76,7 @@ public class DiscreteTimeSeries {
         return stroke;
     }
 
-    public List<IValueTime> getValueTimes() {
+    public List<IValueTime<DataValue>> getValueTimes() {
         return valueTimes;
     }
 

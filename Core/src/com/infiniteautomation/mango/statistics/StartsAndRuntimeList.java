@@ -40,15 +40,15 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     private long latestTime;
     private StartsAndRuntime sar;
 
-    public StartsAndRuntimeList(long periodStart, long periodEnd, IValueTime startVT,
-            List<? extends IValueTime> values) {
+    public StartsAndRuntimeList(long periodStart, long periodEnd, IValueTime<DataValue> startVT,
+            List<? extends IValueTime<DataValue>> values) {
       this(periodStart, periodEnd, startVT);
-      for (IValueTime vt : values)
+      for (IValueTime<DataValue> vt : values)
           addValueTime(vt);
       done();
     }
 
-    public StartsAndRuntimeList(long periodStart, long periodEnd, IValueTime startValue) {
+    public StartsAndRuntimeList(long periodStart, long periodEnd, IValueTime<DataValue> startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
 
@@ -61,7 +61,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     }
 
     @Override
-    public void addValueTime(IValueTime vt) {
+    public void addValueTime(IValueTime<DataValue> vt) {
         addValueTime(vt.getValue(), vt.getTime());
     }
 

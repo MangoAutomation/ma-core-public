@@ -50,10 +50,10 @@ public class AnalogStatistics implements StatisticsGenerator {
     private final DoubleSummaryStatistics statistics = new DoubleSummaryStatistics();
     private final int seriesId;
 
-    public AnalogStatistics(long periodStart, long periodEnd, IValueTime startVT,
-            List<? extends IValueTime> values) {
+    public AnalogStatistics(long periodStart, long periodEnd, IValueTime<DataValue> startVT,
+            List<? extends IValueTime<DataValue>> values) {
         this(periodStart, periodEnd, startVT);
-        for (IValueTime p : values)
+        for (IValueTime<DataValue> p : values)
             addValueTime(p);
         done();
     }
@@ -63,7 +63,7 @@ public class AnalogStatistics implements StatisticsGenerator {
      * @param periodEnd end of period (epoch ms)
      * @param startValue may be null when used for interval logging, see {@link com.serotonin.m2m2.rt.dataImage.DataPointRT}
      */
-    public AnalogStatistics(long periodStart, long periodEnd, @Nullable IValueTime startValue) {
+    public AnalogStatistics(long periodStart, long periodEnd, @Nullable IValueTime<DataValue> startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
 
@@ -80,7 +80,7 @@ public class AnalogStatistics implements StatisticsGenerator {
 
 
     @Override
-    public void addValueTime(IValueTime vt) {
+    public void addValueTime(IValueTime<DataValue> vt) {
         addValueTime(vt.getValue(), vt.getTime());
     }
 

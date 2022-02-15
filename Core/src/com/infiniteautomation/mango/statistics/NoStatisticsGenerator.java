@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
@@ -21,7 +22,7 @@ public class NoStatisticsGenerator implements StatisticsGenerator {
     
     private long periodStart;
     private long periodEnd;
-    private List<IValueTime> values;
+    private List<IValueTime<DataValue>> values;
     
     public NoStatisticsGenerator(long periodStart, long periodEnd) {
         this.periodStart = periodStart;
@@ -30,7 +31,7 @@ public class NoStatisticsGenerator implements StatisticsGenerator {
     }
     
     @Override
-    public void addValueTime(IValueTime vt) {
+    public void addValueTime(IValueTime<DataValue> vt) {
         this.values.add(vt);
     }
 
@@ -51,7 +52,7 @@ public class NoStatisticsGenerator implements StatisticsGenerator {
         return periodEnd;
     }
     
-    public List<IValueTime> getValues(){
+    public List<IValueTime<DataValue>> getValues(){
         return this.values;
     }
 

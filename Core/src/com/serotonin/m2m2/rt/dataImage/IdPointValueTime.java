@@ -68,7 +68,7 @@ public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
         final boolean bookend;
         final boolean fromCache;
 
-        public <T extends SeriesIdTime & IValueTime> MetaIdPointValueTime(T source, boolean bookend, boolean fromCache) {
+        public <T extends SeriesIdTime & IValueTime<DataValue>> MetaIdPointValueTime(T source, boolean bookend, boolean fromCache) {
             this(source.getSeriesId(), source.getValue(), source.getTime(), bookend, fromCache);
         }
 

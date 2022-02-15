@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.view.stats;
 
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+
 /**
  * Statistics generators calculate rollup values for a time period. Values for the period are added using the
  * addValueTime method. When there is no more data, the done method is called. Things to consider:
@@ -23,7 +25,7 @@ public interface StatisticsGenerator {
      * @param vt
      *            the value to add
      */
-    void addValueTime(IValueTime vt);
+    void addValueTime(IValueTime<DataValue> vt);
 
     /**
      * Used to end a period
