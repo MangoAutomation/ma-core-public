@@ -143,6 +143,18 @@ public interface PointValueDao {
     }
 
     /**
+     * Save a stream of aggregated point values synchronously i.e. immediately.
+     * This method blocks until all elements in the stream are consumed.
+     *
+     * @param pointValues stream of aggregated values to save
+     * @param chunkSize chunk or batch size to save at once, this may be ignored by databases which support streams natively
+     * @throws IllegalArgumentException if pointValues is null
+     */
+    default void saveAggregatedPointValues(Stream<? extends BatchPointValue> pointValues, int chunkSize) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Save a point value synchronously i.e. immediately.
      *
      * <p>If the point value implements {@link com.serotonin.m2m2.rt.dataImage.IAnnotated IAnnotated}
