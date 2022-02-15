@@ -8,6 +8,6 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 public interface BatchPointValue {
-    DataPointVO getVo();
-    PointValueTime getPointValue();
+    DataPointVO getPoint();
+    PointValueTime getValue();
 }

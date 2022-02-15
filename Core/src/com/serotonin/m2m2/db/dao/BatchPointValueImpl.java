@@ -17,12 +17,12 @@ public class BatchPointValueImpl implements BatchPointValue {
     }
 
     @Override
-    public DataPointVO getVo() {
+    public DataPointVO getPoint() {
         return vo;
     }
 
     @Override
-    public PointValueTime getPointValue() {
+    public PointValueTime getValue() {
         return pointValue;
     }
 }

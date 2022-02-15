@@ -99,8 +99,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     public void savePointValues(Stream<? extends BatchPointValue> pointValues) {
         PointValueDao.validateNotNull(pointValues);
         var stream = pointValues.map(v -> {
-            var point = v.getVo();
-            var pointValue = v.getPointValue();
+            var point = v.getPoint();
+            var pointValue = v.getValue();
             var dataType = pointValue.getValue().getDataType();
 
             // can't batch save annotations or ALPHANUMERIC point values
@@ -113,8 +113,8 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
 
             return v;
         }).filter(Objects::nonNull).map(v -> {
-            var point = v.getVo();
-            var pointValue = v.getPointValue();
+            var point = v.getPoint();
+            var pointValue = v.getValue();
             var dataType = pointValue.getValue().getDataType();
             double boundedValue = databaseProxy.applyBounds(pointValue.getDoubleValue());
             return new BatchWriteEntry(point.getSeriesId(), dataType, boundedValue, pointValue.getTime());

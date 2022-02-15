@@ -139,7 +139,7 @@ public interface PointValueDao {
     default void savePointValues(Stream<? extends BatchPointValue> pointValues, int chunkSize) {
         PointValueDao.validateNotNull(pointValues);
         PointValueDao.validateChunkSize(chunkSize);
-        pointValues.forEachOrdered(v -> savePointValueSync(v.getVo(), v.getPointValue()));
+        pointValues.forEachOrdered(v -> savePointValueSync(v.getPoint(), v.getValue()));
     }
 
     /**

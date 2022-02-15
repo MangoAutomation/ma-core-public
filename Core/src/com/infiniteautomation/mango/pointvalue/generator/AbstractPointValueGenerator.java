@@ -30,7 +30,7 @@ public abstract class AbstractPointValueGenerator implements PointValueGenerator
         var stream = createSupplier(point).stream();
         if (endTime != null) {
             long endTimeMs = endTime.toEpochMilli();
-            stream = stream.takeWhile(v -> v.getPointValue().getTime() < endTimeMs);
+            stream = stream.takeWhile(v -> v.getValue().getTime() < endTimeMs);
         }
         return stream;
     }
