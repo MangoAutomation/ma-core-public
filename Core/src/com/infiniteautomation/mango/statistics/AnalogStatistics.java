@@ -10,7 +10,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.dao.pointvalue.NumericAggregate;
-import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -47,7 +46,6 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     private long totalDuration;
 
     private final DoubleSummaryStatistics statistics = new DoubleSummaryStatistics();
-    private final int seriesId;
 
     public AnalogStatistics(long periodStart, long periodEnd, IValueTime<DataValue> startVT,
             List<? extends IValueTime<DataValue>> values) {
@@ -65,10 +63,6 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     public AnalogStatistics(long periodStart, long periodEnd, @Nullable IValueTime<DataValue> startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
-
-        this.seriesId = startValue instanceof IdPointValueTime ?
-                ((IdPointValueTime) startValue).getSeriesId() :
-                -1;
 
         //Check for null and also bookend values
         if (startValue != null && startValue.getValue() != null) {
@@ -263,10 +257,6 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     @Override
     public double getMaximumInPeriod() {
         return statistics.getMax();
-    }
-
-    public int getSeriesId() {
-        return seriesId;
     }
 
     @Override
