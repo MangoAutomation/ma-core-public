@@ -241,6 +241,10 @@ public class AnalogStatistics implements StatisticsGenerator {
         return toString();
     }
 
+    public DoubleSummaryStatistics getStatistics() {
+        return statistics;
+    }
+
     public double getArithmeticMean() {
         return statistics.getAverage();
     }

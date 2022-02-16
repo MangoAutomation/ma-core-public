@@ -19,8 +19,11 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infiniteautomation.mango.db.iterators.WindowAggregator;
-import com.infiniteautomation.mango.db.iterators.WindowAggregate;
+import com.infiniteautomation.mango.db.iterators.RollupStream;
+import com.infiniteautomation.mango.quantize.AnalogStatisticsQuantizer;
+import com.infiniteautomation.mango.quantize.BucketCalculator;
+import com.infiniteautomation.mango.quantize.TemporalAmountBucketCalculator;
+import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
@@ -150,19 +153,24 @@ class MigrationSeries {
         try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
                 .peek(pv -> sampleCount.increment())) {
 
-            Stream<BatchPointValue> output;
             if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
-                // TODO configurable zone
+                // TODO configurable time zone
                 ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
                 ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
-                Stream<WindowAggregate> aggregated = WindowAggregator.aggregate(stream, fromDate, toDate, aggregationPeriod)
+
+                // TODO truncate from
+                BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(fromDate, toDate, aggregationPeriod);
+                // TODO support non-analog statistic types
+                Stream<AnalogStatistics> aggregated = RollupStream.rollup(stream, new AnalogStatisticsQuantizer(bucketCalc))
                         // sparse insert, drop all periods with no data
-                        .filter(w -> w.getStatistics().getCount() > 0);
-                output = aggregated.map(v -> new BatchPointValueImpl(point, new PointValueTime(v.getStatistics().getAverage(), v.getStartTimestamp())));
+                        .filter(w -> w.getCount() > 0);
+
+                Stream<BatchPointValue<AnalogStatistics>> output = aggregated.map(v -> new BatchPointValueImpl<>(point, v));
+                parent.getDestination().saveAggregatedPointValues(output, parent.getWriteChunkSize());
             } else {
-                output = stream.map(pv -> new BatchPointValueImpl(point, pv));
+                Stream<BatchPointValue<PointValueTime>> output = stream.map(pv -> new BatchPointValueImpl<>(point, pv));
+                parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
             }
-            parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
         }
         this.timestamp = to;
         return sampleCount.longValue();

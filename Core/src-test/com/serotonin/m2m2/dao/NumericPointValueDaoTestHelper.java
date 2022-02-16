@@ -78,7 +78,7 @@ public class NumericPointValueDaoTestHelper {
      * Call before every test.
      */
     public void before() {
-        List<BatchPointValue> values = new ArrayList<>();
+        List<BatchPointValue<PointValueTime>> values = new ArrayList<>();
 
         //Start back 30 days
         endTs = System.currentTimeMillis();
@@ -88,23 +88,23 @@ public class NumericPointValueDaoTestHelper {
         series2StartTs = startTs - (1000 * 60 * 15);
         long time = series2StartTs;
         PointValueTime p2vt = new PointValueTime(-3.0, time);
-        values.add(new BatchPointValueImpl(vo2, p2vt));
+        values.add(new BatchPointValueImpl<PointValueTime>(vo2, p2vt));
 
         time = startTs - (1000 * 60 * 10);
         p2vt = new PointValueTime(-2.0, time);
-        values.add(new BatchPointValueImpl(vo2, p2vt));
+        values.add(new BatchPointValueImpl<PointValueTime>(vo2, p2vt));
 
         time = startTs - (1000 * 60 * 5);
         p2vt = new PointValueTime(-1.0, time);
-        values.add(new BatchPointValueImpl(vo2, p2vt));
+        values.add(new BatchPointValueImpl<PointValueTime>(vo2, p2vt));
 
         time = startTs;
         //Insert a sample every 5 minutes
         double value = 0.0;
         while(time < endTs){
             PointValueTime pvt = new PointValueTime(value, time);
-            values.add(new BatchPointValueImpl(vo1, pvt));
-            values.add(new BatchPointValueImpl(vo2, pvt));
+            values.add(new BatchPointValueImpl<PointValueTime>(vo1, pvt));
+            values.add(new BatchPointValueImpl<PointValueTime>(vo2, pvt));
             time = time + 1000 * 60 * 5;
             totalSampleCount++;
             value++;
@@ -112,15 +112,15 @@ public class NumericPointValueDaoTestHelper {
 
         //Add a few more samples for series 2 after our time
         p2vt = new PointValueTime(value++, time);
-        values.add(new BatchPointValueImpl(vo2, p2vt));
+        values.add(new BatchPointValueImpl<PointValueTime>(vo2, p2vt));
 
         time = time + (1000 * 60 * 5);
         p2vt = new PointValueTime(value++, time);
-        values.add(new BatchPointValueImpl(vo2, p2vt));
+        values.add(new BatchPointValueImpl<PointValueTime>(vo2, p2vt));
 
         time = time + (1000 * 60 * 5);
         p2vt = new PointValueTime(value, time);
-        values.add(new BatchPointValueImpl(vo2, p2vt));
+        values.add(new BatchPointValueImpl<PointValueTime>(vo2, p2vt));
         this.series2EndTs = time;
 
         dao.savePointValues(values.stream().peek(v -> {

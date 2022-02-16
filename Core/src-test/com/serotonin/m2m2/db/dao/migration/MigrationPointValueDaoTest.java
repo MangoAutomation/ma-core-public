@@ -89,7 +89,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
 
         Instant from = Instant.ofEpochMilli(0L);
         var sourceValues = List.of(new PointValueTime(0.0D, from.toEpochMilli()));
-        var batchInsertValues = sourceValues.stream().map(v -> new BatchPointValueImpl(point, v))
+        var batchInsertValues = sourceValues.stream().map(v -> new BatchPointValueImpl<>(point, v))
                 .collect(Collectors.toList());
         source.savePointValues(batchInsertValues.stream());
 

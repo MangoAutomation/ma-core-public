@@ -45,6 +45,7 @@ import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.MetaIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 
@@ -124,7 +125,7 @@ public interface PointValueDao {
      * @param pointValues stream of values to save
      * @throws IllegalArgumentException if pointValues is null
      */
-    default void savePointValues(Stream<? extends BatchPointValue> pointValues) {
+    default void savePointValues(Stream<? extends BatchPointValue<PointValueTime>> pointValues) {
         savePointValues(pointValues, chunkSize());
     }
 
@@ -136,7 +137,7 @@ public interface PointValueDao {
      * @param chunkSize chunk or batch size to save at once, this may be ignored by databases which support streams natively
      * @throws IllegalArgumentException if pointValues is null
      */
-    default void savePointValues(Stream<? extends BatchPointValue> pointValues, int chunkSize) {
+    default void savePointValues(Stream<? extends BatchPointValue<PointValueTime>> pointValues, int chunkSize) {
         PointValueDao.validateNotNull(pointValues);
         PointValueDao.validateChunkSize(chunkSize);
         pointValues.forEachOrdered(v -> savePointValueSync(v.getPoint(), v.getValue()));
@@ -150,7 +151,7 @@ public interface PointValueDao {
      * @param chunkSize chunk or batch size to save at once, this may be ignored by databases which support streams natively
      * @throws IllegalArgumentException if pointValues is null
      */
-    default void saveAggregatedPointValues(Stream<? extends BatchPointValue> pointValues, int chunkSize) {
+    default void saveAggregatedPointValues(Stream<? extends BatchPointValue<? extends StatisticsGenerator>> pointValues, int chunkSize) {
         throw new UnsupportedOperationException();
     }
 

@@ -18,7 +18,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  * 
  * @author Matthew Lohbihler
  */
-public interface StatisticsGenerator {
+public interface StatisticsGenerator extends IValueTime<StatisticsGenerator> {
     /**
      * Used to add values to a period
      * 
@@ -42,4 +42,15 @@ public interface StatisticsGenerator {
      * @return the end time of the period
      */
     long getPeriodEndTime();
+
+
+    @Override
+    default long getTime() {
+        return getPeriodStartTime();
+    }
+
+    @Override
+    default StatisticsGenerator getValue() {
+        return this;
+    }
 }

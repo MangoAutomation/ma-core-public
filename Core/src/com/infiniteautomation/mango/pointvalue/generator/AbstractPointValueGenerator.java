@@ -26,7 +26,7 @@ public abstract class AbstractPointValueGenerator implements PointValueGenerator
     }
 
     @Override
-    public Stream<BatchPointValue> apply(DataPointVO point) {
+    public Stream<BatchPointValue<PointValueTime>> apply(DataPointVO point) {
         var stream = createSupplier(point).stream();
         if (endTime != null) {
             long endTimeMs = endTime.toEpochMilli();
@@ -46,10 +46,10 @@ public abstract class AbstractPointValueGenerator implements PointValueGenerator
         protected abstract PointValueTime nextPointValue();
 
         @Override
-        public BatchPointValue get() {
+        public BatchPointValue<PointValueTime> get() {
             PointValueTime pointValueTime = nextPointValue();
             this.timestamp = timestamp.plus(period);
-            return new BatchPointValueImpl(point, pointValueTime);
+            return new BatchPointValueImpl<>(point, pointValueTime);
         }
 
         @Override

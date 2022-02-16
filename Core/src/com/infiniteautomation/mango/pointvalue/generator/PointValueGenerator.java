@@ -9,9 +9,10 @@ import java.util.stream.Stream;
 
 import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public interface PointValueGenerator extends Function<DataPointVO, Stream<BatchPointValue>> {
+public interface PointValueGenerator extends Function<DataPointVO, Stream<BatchPointValue<PointValueTime>>> {
 
     BatchPointValueSupplier createSupplier(DataPointVO point);
 
@@ -20,7 +21,7 @@ public interface PointValueGenerator extends Function<DataPointVO, Stream<BatchP
     }
 
     @Override
-    default Stream<BatchPointValue> apply(DataPointVO point) {
+    default Stream<BatchPointValue<PointValueTime>> apply(DataPointVO point) {
         return createSupplier(point).stream();
     }
 }

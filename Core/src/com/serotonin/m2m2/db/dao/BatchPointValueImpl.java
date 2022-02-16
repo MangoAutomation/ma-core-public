@@ -4,14 +4,14 @@
 
 package com.serotonin.m2m2.db.dao;
 
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
-public class BatchPointValueImpl implements BatchPointValue {
+public class BatchPointValueImpl<T extends IValueTime<?>> implements BatchPointValue<T> {
     private final DataPointVO vo;
-    private final PointValueTime pointValue;
+    private final T pointValue;
 
-    public BatchPointValueImpl(DataPointVO vo, PointValueTime pointValue) {
+    public BatchPointValueImpl(DataPointVO vo, T pointValue) {
         this.vo = vo;
         this.pointValue = pointValue;
     }
@@ -22,7 +22,7 @@ public class BatchPointValueImpl implements BatchPointValue {
     }
 
     @Override
-    public PointValueTime getValue() {
+    public T getValue() {
         return pointValue;
     }
 }
