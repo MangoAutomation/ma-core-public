@@ -3,16 +3,15 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.infiniteautomation.mango.db.query.WideCallback;
 import com.infiniteautomation.mango.db.query.QueryCancelledException;
+import com.infiniteautomation.mango.db.query.WideCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.view.stats.ITime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -232,7 +231,7 @@ public class PointValueFacade {
                 }
             }
             if(!pointCache.isEmpty())
-                Collections.sort(pointCache);
+                pointCache.sort(ITime.COMPARATOR);
             return pointCache;
         }else
             return null;

@@ -4,7 +4,6 @@
 package com.serotonin.m2m2.rt.event.detectors;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,6 +13,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.view.stats.ITime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
@@ -172,7 +172,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         boolean recomputeMinimum = false, recomputeMaximum = false;
 
         if(dirty) {
-            Collections.sort(periodValues);
+            periodValues.sort(ITime.COMPARATOR);
             latestTime = periodValues.get(periodValues.size()-1).getTime();
             dirty = false;
         }

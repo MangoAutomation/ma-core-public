@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.view.stats;
 
+import java.util.Comparator;
+
 /**
  * Interface for NoSQL Time Series Objects
  * 
@@ -12,6 +14,8 @@ package com.serotonin.m2m2.view.stats;
  *
  */
 public interface ITime {
+
+	Comparator<ITime> COMPARATOR = Comparator.comparingLong(ITime::getTime);
 
 	/**
 	 * Get the time

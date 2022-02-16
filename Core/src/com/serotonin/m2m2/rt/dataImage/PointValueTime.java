@@ -3,9 +3,6 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
-import java.io.Serializable;
-import java.util.Objects;
-
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.util.Functions;
@@ -23,8 +20,7 @@ import com.serotonin.m2m2.view.stats.IValueTime;
  * @see AnnotatedPointValueTime
  * @author Matthew Lohbihler
  */
-public class PointValueTime implements Serializable, IValueTime<DataValue>, Comparable<PointValueTime> {
-    private static final long serialVersionUID = -1;
+public class PointValueTime implements IValueTime<DataValue> {
 
     public static boolean equalValues(PointValueTime pvt1, PointValueTime pvt2) {
         if (pvt1 == null && pvt2 == null)
@@ -91,25 +87,8 @@ public class PointValueTime implements Serializable, IValueTime<DataValue>, Comp
     }
 
     @Override
-    public boolean equals(Object o) {
-        PointValueTime that = (PointValueTime) o;
-        if (time != that.time)
-            return false;
-        return Objects.equals(value, that.value);
-    }
-
-    @Override
     public String toString() {
         return "PointValueTime(" + value + "@" + Functions.getFullMilliSecondTime(time) + ")";
-    }
-
-    @Override
-    public int compareTo(PointValueTime that) {
-        if (time < that.time)
-            return -1;
-        if (time > that.time)
-            return 1;
-        return 0;
     }
 
     public PointValueTime withAnnotationFromSource(@Nullable SetPointSource source) {
