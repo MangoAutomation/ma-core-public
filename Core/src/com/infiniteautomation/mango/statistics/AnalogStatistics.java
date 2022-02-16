@@ -9,6 +9,7 @@ import java.util.List;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.db.dao.pointvalue.NumericAggregate;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
@@ -19,7 +20,7 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  *
  * @author Matthew Lohbihler, Terry Packer
  */
-public class AnalogStatistics implements StatisticsGenerator {
+public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
 
     // Configuration values.
     private final long periodStart;
@@ -33,13 +34,11 @@ public class AnalogStatistics implements StatisticsGenerator {
     private Long maximumTime;
     private Double average = Double.NaN;
     private Double integral = Double.NaN;
-    private double sum;
     private Double firstValue;
     private Long firstTime;
     private Double lastValue;
     private Long lastTime;
     private Double startValue;
-    private int count;
     private Double delta = Double.NaN;
 
     // State values used for calculating weighted average.
@@ -90,8 +89,6 @@ public class AnalogStatistics implements StatisticsGenerator {
 
         double doubleValue = value.getDoubleValue();
 
-        count++;
-
         if (firstValue == null) {
             firstValue = doubleValue;
             firstTime = time;
@@ -108,8 +105,6 @@ public class AnalogStatistics implements StatisticsGenerator {
         }
 
         updateAverage(doubleValue, time);
-
-        sum += value.getDoubleValue();
 
         lastValue = value.getDoubleValue();
         lastTime = time;
@@ -181,58 +176,72 @@ public class AnalogStatistics implements StatisticsGenerator {
         return periodEnd;
     }
 
+    @Override
     public Double getMinimumValue() {
         return minimumValue;
     }
 
+    @Override
     public Long getMinimumTime() {
         return minimumTime;
     }
 
+    @Override
     public Double getMaximumValue() {
         return maximumValue;
     }
 
+    @Override
     public Long getMaximumTime() {
         return maximumTime;
     }
 
+    @Override
     public Double getAverage() {
         return average;
     }
 
+    @Override
     public Double getIntegral() {
         return integral;
     }
 
+    @Override
     public double getSum() {
-        return sum;
+        return statistics.getSum();
     }
 
+    @Override
     public Double getStartValue() {
         return startValue;
     }
 
+    @Override
     public Double getFirstValue() {
         return firstValue;
     }
 
+    @Override
     public Long getFirstTime() {
         return firstTime;
     }
 
+    @Override
     public Double getLastValue() {
         return lastValue;
     }
 
+    @Override
     public Long getLastTime() {
         return lastTime;
     }
 
-    public int getCount() {
-        return count;
+    @Override
+    public long getCount() {
+        return statistics.getCount();
     }
 
+    @Override
     public double getDelta() {
         return this.delta;
     }
@@ -241,18 +250,17 @@ public class AnalogStatistics implements StatisticsGenerator {
         return toString();
     }
 
-    public DoubleSummaryStatistics getStatistics() {
-        return statistics;
-    }
-
+    @Override
     public double getArithmeticMean() {
         return statistics.getAverage();
     }
 
+    @Override
     public double getMinimumInPeriod() {
         return statistics.getMin();
     }
 
+    @Override
     public double getMaximumInPeriod() {
         return statistics.getMax();
     }
@@ -268,8 +276,8 @@ public class AnalogStatistics implements StatisticsGenerator {
                 ", maximumValue: " + maximumValue +
                 ", maximumTime: " + maximumTime +
                 ", average: " + average +
-                ", sum: " + sum +
-                ", count: " + count +
+                ", sum: " + getSum() +
+                ", count: " + getCount() +
                 ", delta: " + delta +
                 ", integral: " + integral +
                 ", startValue: " + startValue +

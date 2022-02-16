@@ -19,6 +19,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.time.Period;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,12 +43,13 @@ import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.LastValueConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
+import com.serotonin.m2m2.db.dao.pointvalue.DefaultAggregateDao;
 import com.serotonin.m2m2.db.dao.pointvalue.StartAndEndTime;
 import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.MetaIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 
@@ -104,16 +106,8 @@ public interface PointValueDao {
         pointValues.forEachOrdered(v -> savePointValueSync(v.getPoint(), v.getValue()));
     }
 
-    /**
-     * Save a stream of aggregated point values synchronously i.e. immediately.
-     * This method blocks until all elements in the stream are consumed.
-     *
-     * @param pointValues stream of aggregated values to save
-     * @param chunkSize chunk or batch size to save at once, this may be ignored by databases which support streams natively
-     * @throws IllegalArgumentException if pointValues is null
-     */
-    default void saveAggregatedPointValues(Stream<? extends BatchPointValue<? extends StatisticsGenerator>> pointValues, int chunkSize) {
-        throw new UnsupportedOperationException();
+    default AggregateDao getAggregateDao(TemporalAmount aggregatePeriod) {
+        return new DefaultAggregateDao(this, aggregatePeriod);
     }
 
     /**

@@ -77,7 +77,7 @@ public class AnalogStatisticsWrapper {
     }
 
     public int getCount() {
-        return statistics.getCount();
+        return (int) statistics.getCount();
     }
 
     public double getDelta() {

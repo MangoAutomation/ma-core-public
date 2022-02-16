@@ -19,16 +19,12 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infiniteautomation.mango.db.iterators.RollupStream;
-import com.infiniteautomation.mango.quantize.AnalogStatisticsQuantizer;
-import com.infiniteautomation.mango.quantize.BucketCalculator;
-import com.infiniteautomation.mango.quantize.TemporalAmountBucketCalculator;
-import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
-import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -145,31 +141,30 @@ class MigrationSeries {
         }
     }
 
+    /**
+     * stream from source (old) db to the destination (new) db, aggregating if configured
+     */
     private long copyPointValues(long from, long to) {
         TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
-
         LongAdder sampleCount = new LongAdder();
-        // stream from source (old) db to the destination (new) db in chunks of matching size
-        try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
-                .peek(pv -> sampleCount.increment())) {
 
-            if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
-                // TODO configurable time zone
-                ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
-                ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
+        if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
+            AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
+            AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
 
-                // TODO truncate from
-                BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(fromDate, toDate, aggregationPeriod);
-                // TODO support non-analog statistic types
-                Stream<AnalogStatistics> aggregated = RollupStream.rollup(stream, new AnalogStatisticsQuantizer(bucketCalc))
-                        // sparse insert, drop all periods with no data
-                        .filter(w -> w.getCount() > 0);
+            // TODO truncate from
+            // TODO configurable time zone
+            ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
+            ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
 
-                Stream<BatchPointValue<AnalogStatistics>> output = aggregated.map(v -> new BatchPointValueImpl<>(point, v));
-                parent.getDestination().saveAggregatedPointValues(output, parent.getWriteChunkSize());
-            } else {
+            try (var stream = source.query(point, fromDate, toDate, null)) {
+                destination.save(point, stream.peek(pv -> sampleCount.increment()), parent.getWriteChunkSize());
+            }
+        } else {
+            try (var stream = parent.getSource().streamPointValues(point, from, to, null,
+                    TimeOrder.ASCENDING, parent.getReadChunkSize())) {
                 Stream<BatchPointValue<PointValueTime>> output = stream.map(pv -> new BatchPointValueImpl<>(point, pv));
-                parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
+                parent.getDestination().savePointValues(output.peek(pv -> sampleCount.increment()), parent.getWriteChunkSize());
             }
         }
         this.timestamp = to;
