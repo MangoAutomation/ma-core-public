@@ -31,7 +31,7 @@ import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockPointValueDao;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;

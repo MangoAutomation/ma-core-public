@@ -38,6 +38,8 @@ import com.infiniteautomation.mango.db.tables.records.PointValueAnnotationsRecor
 import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
 import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.dao.pointvalue.StartAndEndTime;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;

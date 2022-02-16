@@ -37,7 +37,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 import com.serotonin.m2m2.vo.DataPointVO;

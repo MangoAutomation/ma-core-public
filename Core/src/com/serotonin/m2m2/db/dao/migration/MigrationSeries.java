@@ -27,7 +27,7 @@ import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
-import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;

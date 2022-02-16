@@ -12,7 +12,7 @@ import org.junit.Test;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.PointValueDao.TimeOrder;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 

@@ -42,6 +42,8 @@ import com.infiniteautomation.mango.db.query.CountingConsumer;
 import com.infiniteautomation.mango.db.query.LastValueConsumer;
 import com.infiniteautomation.mango.db.query.SingleValueConsumer;
 import com.infiniteautomation.mango.db.query.WideCallback;
+import com.serotonin.m2m2.db.dao.pointvalue.StartAndEndTime;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime.MetaIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -74,47 +76,6 @@ public interface PointValueDao {
     static void validateNotNull(Object argument) {
         if (argument == null) {
             throw new IllegalArgumentException("Argument can't be null");
-        }
-    }
-
-    enum TimeOrder {
-        /**
-         * Ascending time order, i.e. oldest values first
-         */
-        ASCENDING(Comparator.comparingLong(IdPointValueTime::getTime)),
-
-        /**
-         * Descending time order, i.e. newest values first
-         */
-        DESCENDING(Comparator.comparingLong(IdPointValueTime::getTime).reversed());
-
-
-        private final Comparator<IdPointValueTime> comparator;
-
-        TimeOrder(Comparator<IdPointValueTime> comparator) {
-            this.comparator = comparator;
-        }
-
-        public Comparator<IdPointValueTime> getComparator() {
-            return comparator;
-        }
-    }
-
-    class StartAndEndTime {
-        private final long startTime;
-        private final long endTime;
-
-        public StartAndEndTime(long startTime, long endTime) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-        }
-
-        public long getStartTime() {
-            return startTime;
-        }
-
-        public long getEndTime() {
-            return endTime;
         }
     }
 
