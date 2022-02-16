@@ -9,8 +9,6 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -168,15 +166,6 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     @Override
     public int threadCount() {
         return threadCount;
-    }
-
-    @Override
-    public void flushPointValues() {
-        long value;
-        while ((value = queueSize) > 0) {
-            log.debug("Waiting for {} values to be written", value);
-            LockSupport.parkNanos(TimeUnit.SECONDS.toNanos(1L));
-        }
     }
 
     @Override

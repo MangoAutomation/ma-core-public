@@ -166,9 +166,4 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
         return primary.threadCount() + secondary.threadCount();
     }
 
-    @Override
-    public void flushPointValues() {
-        primary.flushPointValues();
-        secondary.flushPointValues();
-    }
 }

@@ -183,15 +183,6 @@ public interface PointValueDao {
     void savePointValueAsync(DataPointVO vo, PointValueTime pointValue);
 
     /**
-     * Flushes all queued/batched point values (saved via {@link #savePointValueAsync})
-     * out to the database. Blocks until complete.
-     * Should only be used for tests and benchmarking.
-     */
-    default void flushPointValues() {
-        // no-op
-    }
-
-    /**
      * Get the latest point values for a single point, with a limit.
      * Values are returned in descending time order, i.e. newest values first.
      *
