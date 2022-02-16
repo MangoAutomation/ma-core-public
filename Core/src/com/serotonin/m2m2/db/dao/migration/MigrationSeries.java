@@ -157,6 +157,7 @@ class MigrationSeries {
             ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
             ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
 
+            // TODO no chunk size for read
             try (var stream = source.query(point, fromDate, toDate, null)) {
                 destination.save(point, stream.peek(pv -> sampleCount.increment()), parent.getWriteChunkSize());
             }
