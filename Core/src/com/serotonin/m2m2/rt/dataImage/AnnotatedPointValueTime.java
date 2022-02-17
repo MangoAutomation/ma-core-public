@@ -18,7 +18,6 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  * @author Matthew Lohbihler
  */
 public class AnnotatedPointValueTime extends PointValueTime implements IAnnotated {
-    private static final long serialVersionUID = -1;
     private final TranslatableMessage sourceMessage;
 
     public AnnotatedPointValueTime(PointValueTime value, TranslatableMessage sourceMessage) {
@@ -46,5 +45,19 @@ public class AnnotatedPointValueTime extends PointValueTime implements IAnnotate
     @Override
     public IdPointValueTime withSeriesId(int seriesId) {
         return new AnnotatedIdPointValueTime(seriesId, getValue(), getTime(), sourceMessage);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AnnotatedPointValueTime)) return false;
+        if (!super.equals(o)) return false;
+        AnnotatedPointValueTime that = (AnnotatedPointValueTime) o;
+        return sourceMessage.equals(that.sourceMessage);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), sourceMessage);
     }
 }

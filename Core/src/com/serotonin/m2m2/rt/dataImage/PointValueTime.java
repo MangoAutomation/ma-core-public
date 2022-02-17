@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.util.Objects;
+
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.util.Functions;
@@ -104,5 +106,18 @@ public class PointValueTime implements IValueTime<DataValue> {
 
     public IdPointValueTime withSeriesId(int seriesId) {
         return new IdPointValueTime(seriesId, value, time);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PointValueTime)) return false;
+        PointValueTime that = (PointValueTime) o;
+        return time == that.time && Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(value, time);
     }
 }

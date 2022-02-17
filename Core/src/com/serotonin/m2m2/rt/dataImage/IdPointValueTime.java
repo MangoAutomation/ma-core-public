@@ -18,6 +18,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.util.Objects;
+
 import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime.AnnotatedMetaIdPointValueTime;
@@ -25,7 +27,6 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 
 public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
-    private static final long serialVersionUID = 1L;
 
     private final int seriesId;
 
@@ -61,6 +62,20 @@ public class IdPointValueTime extends PointValueTime implements SeriesIdTime {
     @Override
     public PointValueTime withAnnotation(TranslatableMessage message) {
         return new AnnotatedIdPointValueTime(this, message);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof IdPointValueTime)) return false;
+        if (!super.equals(o)) return false;
+        IdPointValueTime that = (IdPointValueTime) o;
+        return seriesId == that.seriesId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), seriesId);
     }
 
     public static class MetaIdPointValueTime extends IdPointValueTime {

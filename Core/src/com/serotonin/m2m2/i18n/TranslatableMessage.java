@@ -8,6 +8,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Matthew Lohbihler
@@ -211,31 +212,17 @@ public class TranslatableMessage implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + Arrays.hashCode(args);
-        result = prime * result + ((key == null) ? 0 : key.hashCode());
-        return result;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TranslatableMessage)) return false;
+        TranslatableMessage that = (TranslatableMessage) o;
+        return key.equals(that.key) && Arrays.equals(args, that.args);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        final TranslatableMessage other = (TranslatableMessage) obj;
-        if (!Arrays.equals(args, other.args))
-            return false;
-        if (key == null) {
-            if (other.key != null)
-                return false;
-        }
-        else if (!key.equals(other.key))
-            return false;
-        return true;
+    public int hashCode() {
+        int result = Objects.hash(key);
+        result = 31 * result + Arrays.hashCode(args);
+        return result;
     }
 }
