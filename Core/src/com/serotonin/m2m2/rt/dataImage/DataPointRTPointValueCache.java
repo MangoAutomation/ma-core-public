@@ -11,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.view.stats.ITime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -76,7 +77,7 @@ public class DataPointRTPointValueCache {
                 this.cache = new ArrayList<>(existing.size() + 1);
                 cache.add(pvt);
                 cache.addAll(existing);
-                cache.sort(Collections.reverseOrder());
+                cache.sort(ITime.COMPARATOR.reversed());
 
                 // remove items from end of list until list is under the size limit
                 while (cache.size() > defaultSize) {
