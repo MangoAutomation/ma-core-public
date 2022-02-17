@@ -333,7 +333,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         MigrationSeries next = seriesQueue.peek();
         if (next != null) {
             Long timestamp = next.getTimestamp();
-            if (timestamp != null) {
+            // ignore MIN_VALUE which comes from series which haven't completed their initial pass
+            if (timestamp != null && timestamp > Long.MIN_VALUE) {
                 long timeLeft = timer.currentTimeMillis() - timestamp;
                 long periodsLeft = timeLeft / period + 1;
                 remainingPeriods = periodsLeft * remaining;
@@ -463,7 +464,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             default: throw new IllegalStateException("Incorrect status: " + series.getStatus());
         }
 
-        currentTimestamp.updateAndGet(v -> Math.min(series.getTimestamp(), v));
+        // series timestamp start at MIN_VALUE, ignore this
+        currentTimestamp.updateAndGet(v -> series.getTimestamp() == Long.MIN_VALUE ? v : Math.min(series.getTimestamp(), v));
         valuesPerPeriod.update(sampleCount);
         writeMeter.mark(sampleCount);
 

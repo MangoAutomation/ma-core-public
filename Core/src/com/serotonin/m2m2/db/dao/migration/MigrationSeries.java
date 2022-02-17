@@ -44,7 +44,8 @@ class MigrationSeries {
     private volatile long timestamp;
 
     MigrationSeries(MigrationPointValueDao parent, int seriesId) {
-        this(parent, seriesId, MigrationStatus.NOT_STARTED, Long.MAX_VALUE);
+        // use MIN_VALUE so series that haven't completed their initial pass are at the start of the priority queue
+        this(parent, seriesId, MigrationStatus.NOT_STARTED, Long.MIN_VALUE);
     }
 
     MigrationSeries(MigrationPointValueDao parent, int seriesId, MigrationStatus status, long timestamp) {
