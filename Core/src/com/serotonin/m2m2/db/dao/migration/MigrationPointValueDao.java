@@ -68,8 +68,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final AtomicLong skippedSeries = new AtomicLong();
     private final AtomicLong erroredSeries = new AtomicLong();
 
+    private final Meter readMeter = new Meter();
     private final Meter writeMeter = new Meter();
-    private final Histogram valuesPerPeriod = new Histogram(new ExponentiallyDecayingReservoir());
+    private final Histogram readValuesPerPeriod = new Histogram(new ExponentiallyDecayingReservoir());
 
     private final ArrayList<MigrationTask> tasks = new ArrayList<>();
     private final Predicate<DataPointVO> dataPointFilter;
@@ -341,17 +342,18 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             }
         }
 
-        double avgPointValuesPerPeriod = valuesPerPeriod.getSnapshot().getMean();
+        double avgPointValuesReadPerPeriod = readValuesPerPeriod.getSnapshot().getMean();
+        double readRate = readMeter.getOneMinuteRate();
         double writeRate = writeMeter.getOneMinuteRate();
 
         long totalPeriods = remainingPeriods + completedPeriods;
         double progress = remainingPeriods == 0L ? 100D: completedPeriods * 100d / totalPeriods;
 
-        double pointValuesRemaining = remainingPeriods * avgPointValuesPerPeriod;
+        double pointValuesRemaining = remainingPeriods * avgPointValuesReadPerPeriod;
         String eta = "—";
         String timeLeft = "∞";
-        if (writeRate > 0D) {
-            long secondsLeft = (long) (pointValuesRemaining / writeRate);
+        if (readRate > 0D) {
+            long secondsLeft = (long) (pointValuesRemaining / readRate);
             Duration durationLeft = Duration.ofSeconds(secondsLeft);
             eta = ZonedDateTime.now()
                     .plus(durationLeft)
@@ -369,12 +371,13 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
         Metrics retryMetrics = retry.getMetrics();
 
-        return String.format("[%6.2f%% complete, %d/%d periods, %.1f values/s, %.1f values/period, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
+        return String.format("[%6.2f%% complete, %d/%d periods, %.1f reads/s, %.1f writes/s, %.1f reads/period, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
                 progress,
                 completedPeriods,
                 totalPeriods,
+                readRate,
                 writeRate,
-                avgPointValuesPerPeriod,
+                avgPointValuesReadPerPeriod,
                 currentTimeFormatted,
                 eta,
                 timeLeft,
@@ -437,10 +440,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
      * Called after each iteration of a series migration.
      *
      * @param series series which is being migrated
-     * @param sampleCount number of samples migrated
+     * @param writeCount number of point values read
+     * @param writeCount number of point values written
      * @param duration time taken for this period
      */
-    void updateProgress(MigrationSeries series, long sampleCount, Duration duration) {
+    void updateProgress(MigrationSeries series, long readCount, long writeCount, Duration duration) {
         switch (series.getStatus()) {
             case INITIAL_PASS_COMPLETE:
                 break;
@@ -466,13 +470,14 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
         // series timestamp start at MIN_VALUE, ignore this
         currentTimestamp.updateAndGet(v -> series.getTimestamp() == Long.MIN_VALUE ? v : Math.min(series.getTimestamp(), v));
-        valuesPerPeriod.update(sampleCount);
-        writeMeter.mark(sampleCount);
+        readValuesPerPeriod.update(readCount);
+        readMeter.mark(readCount);
+        writeMeter.mark(writeCount);
 
         if (log.isTraceEnabled()) {
-            double valuesPerSecond = sampleCount / (duration.toMillis() / 1000d);
+            double valuesPerSecond = writeCount / (duration.toMillis() / 1000d);
             log.trace("{} Completed period for {} (status={}, values={}, duration={}, speed={} values/s)",
-                    stats(), series, series.getStatus(), sampleCount, duration,
+                    stats(), series, series.getStatus(), writeCount, duration,
                     String.format("%.1f", valuesPerSecond));
         }
 

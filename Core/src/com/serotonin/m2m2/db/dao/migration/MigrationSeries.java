@@ -11,7 +11,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
@@ -56,10 +55,12 @@ class MigrationSeries {
     }
 
     synchronized void run() {
-        long sampleCount = 0;
+        long readCount = 0L, writeCount = 0L;
         long startTime = System.currentTimeMillis();
         try {
-            sampleCount = parent.getRetry().executeCallable(this::migrateNextPeriod);
+            ReadWriteCount counts = parent.getRetry().executeCallable(this::migrateNextPeriod);
+            readCount = counts.getReadCount();
+            writeCount = counts.getWriteCount();
         } catch (Exception e) {
             this.status = MigrationStatus.ERROR;
             if (log.isErrorEnabled()) {
@@ -67,7 +68,7 @@ class MigrationSeries {
             }
         }
         Duration duration = Duration.ofMillis(System.currentTimeMillis() - startTime);
-        parent.updateProgress(this, sampleCount, duration);
+        parent.updateProgress(this, readCount, writeCount, duration);
     }
 
     private void initialPass() {
@@ -106,14 +107,18 @@ class MigrationSeries {
         }
     }
 
-    private long migrateNextPeriod() {
+    private ReadWriteCount migrateNextPeriod() {
+        if (status.isComplete()) throw new IllegalStateException("Already complete");
+
         if (point == null) {
             this.point = Objects.requireNonNull(parent.getDataPointDao().getBySeriesId(seriesId));
         }
         if (status == MigrationStatus.NOT_STARTED) {
             initialPass();
-            return 0;
+            return new ReadWriteCount();
         }
+
+        this.status = MigrationStatus.RUNNING;
 
         long timestamp = this.timestamp;
         long from = timestamp - timestamp % parent.getPeriod();
@@ -128,7 +133,7 @@ class MigrationSeries {
             lock.writeLock().lock();
             try {
                 // copy an extra period in case the current time rolls over into the next period
-                long sampleCount = copyPointValues(from, to + parent.getPeriod());
+                ReadWriteCount sampleCount = copyPointValues(from, to + parent.getPeriod());
                 this.status = MigrationStatus.MIGRATED;
                 if (log.isDebugEnabled()) {
                     log.debug("Migration finished for {}", this);
@@ -145,9 +150,9 @@ class MigrationSeries {
     /**
      * stream from source (old) db to the destination (new) db, aggregating if configured
      */
-    private long copyPointValues(long from, long to) {
+    private ReadWriteCount copyPointValues(long from, long to) {
         TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
-        LongAdder sampleCount = new LongAdder();
+        ReadWriteCount sampleCount = new ReadWriteCount();
 
         if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
             AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
@@ -159,18 +164,20 @@ class MigrationSeries {
             ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
 
             // TODO no chunk size for read
-            try (var stream = source.query(point, fromDate, toDate, null)) {
-                destination.save(point, stream.peek(pv -> sampleCount.increment()), parent.getWriteChunkSize());
+            try (var rawStream = parent.getSource().bookendStream(point, from, to, null).peek(pv -> sampleCount.incrementRead());
+                 var aggregateStream = source.aggregate(point, fromDate, toDate, rawStream)) {
+
+                destination.save(point, aggregateStream.peek(pv -> sampleCount.incrementWrite()), parent.getWriteChunkSize());
             }
         } else {
             try (var stream = parent.getSource().streamPointValues(point, from, to, null,
                     TimeOrder.ASCENDING, parent.getReadChunkSize())) {
                 Stream<BatchPointValue<PointValueTime>> output = stream.map(pv -> new BatchPointValueImpl<>(point, pv));
-                parent.getDestination().savePointValues(output.peek(pv -> sampleCount.increment()), parent.getWriteChunkSize());
+                parent.getDestination().savePointValues(output.peek(pv -> sampleCount.incrementBoth()), parent.getWriteChunkSize());
             }
         }
         this.timestamp = to;
-        return sampleCount.longValue();
+        return sampleCount;
     }
 
     Long getTimestamp() {
@@ -204,5 +211,36 @@ class MigrationSeries {
                 "seriesId=" + seriesId +
                 ", point=" + point +
                 '}';
+    }
+
+    public static class ReadWriteCount {
+        private long readCount;
+        private long writeCount;
+
+        private ReadWriteCount() {
+
+        }
+
+        public long getReadCount() {
+            return readCount;
+        }
+
+        public long getWriteCount() {
+            return writeCount;
+        }
+
+        private void incrementBoth() {
+            readCount++;
+            writeCount++;
+        }
+
+        private void incrementRead() {
+            readCount++;
+        }
+
+        private void incrementWrite() {
+            writeCount++;
+        }
+
     }
 }
