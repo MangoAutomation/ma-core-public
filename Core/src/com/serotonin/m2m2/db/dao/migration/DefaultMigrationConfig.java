@@ -93,8 +93,12 @@ public class DefaultMigrationConfig implements MigrationConfig {
 
     @Override
     public TemporalAmount getAggregationPeriod() {
-        long amount = env.getProperty("db.migration.aggregationPeriod", Long.class, 15L);
+        long amount = env.getProperty("db.migration.aggregationPeriod", Long.class, 0L);
         ChronoUnit unit = env.getProperty("db.migration.aggregationPeriodUnit", ChronoUnit.class, ChronoUnit.MINUTES);
+
+        if (amount <= 0) {
+            return null;
+        }
 
         if (unit.isTimeBased()) {
             return Duration.of(amount, unit);
