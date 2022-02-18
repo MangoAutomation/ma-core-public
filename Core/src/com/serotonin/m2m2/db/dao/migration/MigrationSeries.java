@@ -39,6 +39,7 @@ class MigrationSeries {
 
     private MigrationStatus status;
     private DataPointVO point;
+    private boolean lastValueInitialized;
     private IdPointValueTime lastValue;
     private volatile long timestamp;
 
@@ -93,7 +94,7 @@ class MigrationSeries {
                 this.timestamp = timestamp;
                 this.status = MigrationStatus.INITIAL_PASS_COMPLETE;
                 if (log.isDebugEnabled()) {
-                    log.debug("Series contained no data {}", this);
+                    log.debug("Initial pass complete {}", this);
                 }
             } else {
                 // no data
@@ -119,6 +120,13 @@ class MigrationSeries {
         }
 
         this.status = MigrationStatus.RUNNING;
+
+        if (!lastValueInitialized) {
+            this.lastValue = parent.getSource().getPointValueBefore(point, timestamp)
+                    .map(v -> v.withSeriesId(point.getSeriesId()))
+                    .orElse(null);
+            this.lastValueInitialized = true;
+        }
 
         long timestamp = this.timestamp;
         long from = timestamp - timestamp % parent.getPeriod();
