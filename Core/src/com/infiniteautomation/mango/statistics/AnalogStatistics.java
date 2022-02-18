@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.statistics;
 
+import java.time.Instant;
 import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
@@ -262,9 +263,9 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     @Override
     public String toString() {
         return "{minimumValue: " + minimumValue +
-                ", minimumTime: " + minimumTime +
+                ", minimumTime: " + formatEpochMilli(minimumTime) +
                 ", maximumValue: " + maximumValue +
-                ", maximumTime: " + maximumTime +
+                ", maximumTime: " + formatEpochMilli(maximumTime) +
                 ", average: " + average +
                 ", sum: " + getSum() +
                 ", count: " + getCount() +
@@ -272,10 +273,14 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
                 ", integral: " + integral +
                 ", startValue: " + startValue +
                 ", firstValue: " + firstValue +
-                ", firstTime: " + firstTime +
+                ", firstTime: " + formatEpochMilli(firstTime) +
                 ", lastValue: " + lastValue +
-                ", lastTime: " + lastTime +
-                ", periodStartTime: " + periodStart
-                + ", periodEndTime: " + periodEnd + "}";
+                ", lastTime: " + formatEpochMilli(lastTime) +
+                ", periodStartTime: " + formatEpochMilli(periodStart)
+                + ", periodEndTime: " + formatEpochMilli(periodEnd) + "}";
+    }
+
+    private String formatEpochMilli(Long time) {
+        return time == null ? "null" : Instant.ofEpochMilli(time).toString();
     }
 }
