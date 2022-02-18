@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
@@ -180,6 +181,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
     }
 
     @Test
+    @Ignore
     public void downsampledAggregate() throws ExecutionException, InterruptedException, TimeoutException {
         Duration aggregationPeriod = Duration.ofMinutes(15);
         TestMigrationConfig config = new TestMigrationConfig();
