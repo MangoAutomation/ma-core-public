@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -22,25 +24,23 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  *
  * @param <T>
  */
-public class RollupStream<T extends StatisticsGenerator> implements Spliterator<T> {
+public class StatisticsAggregator<T extends StatisticsGenerator> implements Spliterator<T> {
 
     private final Spliterator<? extends PointValueTime> source;
 
-    private final long from;
-    private final long to;
     private final AbstractPointValueTimeQuantizer<T> quantizer;
     private final Queue<T> stats = new ArrayDeque<>();
 
     private PointValueTime next;
     private boolean exhausted;
 
-    public RollupStream(Spliterator<? extends PointValueTime> source,
-                        AbstractPointValueTimeQuantizer<T> quantizer) {
+    public StatisticsAggregator(Spliterator<? extends PointValueTime> source,
+                                AbstractPointValueTimeQuantizer<T> quantizer,
+                                @Nullable PointValueTime previousValue) {
         this.source = Objects.requireNonNull(source);
         this.quantizer = Objects.requireNonNull(quantizer);
-        this.from = quantizer.getBucketCalculator().getStartTime().toInstant().toEpochMilli();
-        this.to = quantizer.getBucketCalculator().getEndTime().toInstant().toEpochMilli();
         this.quantizer.setCallback(stats::add);
+        this.quantizer.firstValue(previousValue, true);
     }
 
     @Override
@@ -49,10 +49,6 @@ public class RollupStream<T extends StatisticsGenerator> implements Spliterator<
             if (!source.tryAdvance(value -> this.next = value)) {
                 quantizer.done();
                 this.exhausted = true;
-            } else if (next.getTime() == from) {
-                quantizer.firstValue(next, next.isBookend());
-            } else if (next.getTime() == to) {
-                quantizer.lastValue(next, next.isBookend());
             } else {
                 quantizer.accept(next);
             }
@@ -81,9 +77,10 @@ public class RollupStream<T extends StatisticsGenerator> implements Spliterator<
         return ORDERED;
     }
 
-    public static <T extends StatisticsGenerator> Stream<T> rollup(Stream<? extends PointValueTime> source,
-                                                    AbstractPointValueTimeQuantizer<T> quantizer) {
-        RollupStream<T> spliterator = new RollupStream<>(source.spliterator(), quantizer);
+    public static <T extends StatisticsGenerator> Stream<T> aggregate(Stream<? extends PointValueTime> source,
+                                                                      AbstractPointValueTimeQuantizer<T> quantizer,
+                                                                      @Nullable PointValueTime previousValue) {
+        StatisticsAggregator<T> spliterator = new StatisticsAggregator<>(source.spliterator(), quantizer, previousValue);
         return StreamSupport.stream(spliterator, false).onClose(source::close);
     }
 

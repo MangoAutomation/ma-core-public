@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import com.infiniteautomation.mango.db.iterators.RollupStream;
+import com.infiniteautomation.mango.db.iterators.StatisticsAggregator;
 import com.infiniteautomation.mango.quantize.AnalogStatisticsQuantizer;
 import com.infiniteautomation.mango.quantize.BucketCalculator;
 import com.infiniteautomation.mango.quantize.TemporalAmountBucketCalculator;
@@ -31,18 +31,25 @@ public interface AggregateDao {
     TemporalAmount getAggregationPeriod();
 
     default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit) {
-        Stream<IdPointValueTime> stream = getPointValueDao().bookendStream(point,
-                from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), limit);
+        IdPointValueTime initialValue = getPointValueDao().initialValue(point, from.toInstant().toEpochMilli());
 
-        return aggregate(point, from, to, stream);
+        Stream<IdPointValueTime> stream = getPointValueDao().streamPointValues(point,
+                from.toInstant().toEpochMilli(),
+                to.toInstant().toEpochMilli(),
+                limit, TimeOrder.ASCENDING);
+
+        return aggregate(point, from, to, stream, initialValue);
     }
 
-    default Stream<SeriesValueTime<AggregateValue>> aggregate(DataPointVO point, ZonedDateTime from, ZonedDateTime to, Stream<? extends PointValueTime> pointValues) {
+    default Stream<SeriesValueTime<AggregateValue>> aggregate(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
+                                                              Stream<? extends PointValueTime> pointValues,
+                                                              @Nullable PointValueTime previousValue) {
+
         BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(from, to, getAggregationPeriod());
 
         // TODO support non-analog statistic types
 
-        return RollupStream.rollup(pointValues, new AnalogStatisticsQuantizer(bucketCalc))
+        return StatisticsAggregator.aggregate(pointValues, new AnalogStatisticsQuantizer(bucketCalc), previousValue)
                 .map(v -> new DefaultSeriesValueTime<>(point.getSeriesId(), v.getPeriodStartTime(), v));
     }
 

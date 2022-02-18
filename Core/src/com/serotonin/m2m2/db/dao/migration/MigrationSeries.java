@@ -13,18 +13,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.DataType;
-import com.serotonin.m2m2.db.dao.BatchPointValue;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
 import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
 import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -40,6 +38,7 @@ class MigrationSeries {
 
     private MigrationStatus status;
     private DataPointVO point;
+    private IdPointValueTime lastValue;
     private volatile long timestamp;
 
     MigrationSeries(MigrationPointValueDao parent, int seriesId) {
@@ -154,26 +153,29 @@ class MigrationSeries {
         TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
         ReadWriteCount sampleCount = new ReadWriteCount();
 
-        if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
-            AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
-            AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
+        try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
+                .peek(pv -> sampleCount.incrementRead())
+                .peek(pv -> this.lastValue = pv)) {
 
-            // TODO truncate from
-            // TODO configurable time zone
-            ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
-            ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
+            if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
+                AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
+                AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
 
-            // TODO no chunk size for read
-            try (var rawStream = parent.getSource().bookendStream(point, from, to, null).peek(pv -> sampleCount.incrementRead());
-                 var aggregateStream = source.aggregate(point, fromDate, toDate, rawStream)) {
+                // TODO truncate from
+                // TODO configurable time zone
+                ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
+                ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
 
-                destination.save(point, aggregateStream.peek(pv -> sampleCount.incrementWrite()), parent.getWriteChunkSize());
-            }
-        } else {
-            try (var stream = parent.getSource().streamPointValues(point, from, to, null,
-                    TimeOrder.ASCENDING, parent.getReadChunkSize())) {
-                Stream<BatchPointValue<PointValueTime>> output = stream.map(pv -> new BatchPointValueImpl<>(point, pv));
-                parent.getDestination().savePointValues(output.peek(pv -> sampleCount.incrementBoth()), parent.getWriteChunkSize());
+                // TODO filter out empty entries?
+                var aggregateStream = source
+                        .aggregate(point, fromDate, toDate, stream, lastValue)
+                        .peek(pv -> sampleCount.incrementWrite());
+                destination.save(point, aggregateStream, parent.getWriteChunkSize());
+            } else {
+                var output = stream
+                        .map(pv -> new BatchPointValueImpl<>(point, pv))
+                        .peek(pv -> sampleCount.incrementWrite());
+                parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
             }
         }
         this.timestamp = to;
@@ -227,11 +229,6 @@ class MigrationSeries {
 
         public long getWriteCount() {
             return writeCount;
-        }
-
-        private void incrementBoth() {
-            readCount++;
-            writeCount++;
         }
 
         private void incrementRead() {
