@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,7 +169,7 @@ class MigrationSeries {
 
                 // TODO filter out empty entries?
                 var aggregateStream = source
-                        .aggregate(point, fromDate, toDate, stream, lastValue)
+                        .aggregate(point, fromDate, toDate, Stream.concat(Stream.ofNullable(lastValue), stream))
                         .peek(pv -> sampleCount.incrementWrite());
                 destination.save(point, aggregateStream, parent.getWriteChunkSize());
             } else {

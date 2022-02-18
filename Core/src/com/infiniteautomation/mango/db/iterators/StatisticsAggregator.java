@@ -12,10 +12,9 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
 /**
@@ -27,31 +26,39 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 public class StatisticsAggregator<T extends StatisticsGenerator> implements Spliterator<T> {
 
     private final Spliterator<? extends PointValueTime> source;
-
+    private final long from;
+    private final long to;
     private final AbstractPointValueTimeQuantizer<T> quantizer;
     private final Queue<T> stats = new ArrayDeque<>();
 
     private PointValueTime next;
     private boolean exhausted;
+    private boolean firstValueCalled;
 
     public StatisticsAggregator(Spliterator<? extends PointValueTime> source,
-                                AbstractPointValueTimeQuantizer<T> quantizer,
-                                @Nullable PointValueTime previousValue) {
+                                AbstractPointValueTimeQuantizer<T> quantizer) {
         this.source = Objects.requireNonNull(source);
         this.quantizer = Objects.requireNonNull(quantizer);
+        this.from = quantizer.getBucketCalculator().getStartTime().toInstant().toEpochMilli();
+        this.to = quantizer.getBucketCalculator().getEndTime().toInstant().toEpochMilli();
         this.quantizer.setCallback(stats::add);
-        this.quantizer.firstValue(previousValue, true);
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
         while (!exhausted && stats.isEmpty()) {
             if (!source.tryAdvance(value -> this.next = value)) {
+                ensureFirstValue();
                 quantizer.done();
                 this.exhausted = true;
-            } else {
+            } else if (next.getTime() < from) {
+                quantizer.firstValue(next, true);
+                this.firstValueCalled = true;
+            } else if (next.getTime() < to) {
+                ensureFirstValue();
                 quantizer.accept(next);
             }
+            // values >= to are consumed and ignored
         }
 
         T nextValue = stats.poll();
@@ -60,6 +67,13 @@ public class StatisticsAggregator<T extends StatisticsGenerator> implements Spli
             return true;
         }
         return false;
+    }
+
+    private void ensureFirstValue() {
+        if (!firstValueCalled) {
+            quantizer.firstValue(new PointValueTime((DataValue) null, from), true);
+            this.firstValueCalled = true;
+        }
     }
 
     @Override
@@ -78,9 +92,8 @@ public class StatisticsAggregator<T extends StatisticsGenerator> implements Spli
     }
 
     public static <T extends StatisticsGenerator> Stream<T> aggregate(Stream<? extends PointValueTime> source,
-                                                                      AbstractPointValueTimeQuantizer<T> quantizer,
-                                                                      @Nullable PointValueTime previousValue) {
-        StatisticsAggregator<T> spliterator = new StatisticsAggregator<>(source.spliterator(), quantizer, previousValue);
+                                                                      AbstractPointValueTimeQuantizer<T> quantizer) {
+        StatisticsAggregator<T> spliterator = new StatisticsAggregator<>(source.spliterator(), quantizer);
         return StreamSupport.stream(spliterator, false).onClose(source::close);
     }
 

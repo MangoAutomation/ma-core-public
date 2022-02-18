@@ -31,25 +31,25 @@ public interface AggregateDao {
     TemporalAmount getAggregationPeriod();
 
     default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit) {
-        IdPointValueTime initialValue = getPointValueDao().initialValue(point, from.toInstant().toEpochMilli());
+        var initialValue = Stream.generate(() -> getPointValueDao().initialValue(point, from.toInstant().toEpochMilli()))
+                .limit(1);
 
         Stream<IdPointValueTime> stream = getPointValueDao().streamPointValues(point,
                 from.toInstant().toEpochMilli(),
                 to.toInstant().toEpochMilli(),
                 limit, TimeOrder.ASCENDING);
 
-        return aggregate(point, from, to, stream, initialValue);
+        return aggregate(point, from, to, Stream.concat(initialValue, stream));
     }
 
     default Stream<SeriesValueTime<AggregateValue>> aggregate(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
-                                                              Stream<? extends PointValueTime> pointValues,
-                                                              @Nullable PointValueTime previousValue) {
+                                                              Stream<? extends PointValueTime> pointValues) {
 
         BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(from, to, getAggregationPeriod());
 
         // TODO support non-analog statistic types
 
-        return StatisticsAggregator.aggregate(pointValues, new AnalogStatisticsQuantizer(bucketCalc), previousValue)
+        return StatisticsAggregator.aggregate(pointValues, new AnalogStatisticsQuantizer(bucketCalc))
                 .map(v -> new DefaultSeriesValueTime<>(point.getSeriesId(), v.getPeriodStartTime(), v));
     }
 
