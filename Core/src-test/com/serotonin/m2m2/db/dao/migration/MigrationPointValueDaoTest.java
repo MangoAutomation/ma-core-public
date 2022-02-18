@@ -34,6 +34,7 @@ import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.timer.SimulationTimer;
@@ -97,8 +98,10 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         migrationPointValueDao.startMigration();
         migrationPointValueDao.migrationFinished().get(30, TimeUnit.SECONDS);
 
-        var destinationValues = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)
-                .collect(Collectors.toList());
+        List<IdPointValueTime> destinationValues;
+        try (var stream = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)) {
+            destinationValues = stream.collect(Collectors.toList());
+        }
 
         assertEquals(sourceValues.size(), destinationValues.size());
         for (int i = 0; i < sourceValues.size(); i++) {
@@ -132,8 +135,10 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         migrationPointValueDao.startMigration();
         migrationPointValueDao.migrationFinished().get(30, TimeUnit.SECONDS);
 
-        var destinationValues = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)
-                .collect(Collectors.toList());
+        List<IdPointValueTime> destinationValues;
+        try (var stream = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)) {
+            destinationValues = stream.collect(Collectors.toList());
+        }
 
         assertEquals(expectedSamples, destinationValues.size());
         for (int i = 0; i < expectedSamples; i++) {
@@ -168,9 +173,10 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         migrationPointValueDao.migrationFinished().get(30, TimeUnit.SECONDS);
 
         for (var point : points) {
-            var destinationValues = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)
-                    .collect(Collectors.toList());
-
+            List<IdPointValueTime> destinationValues;
+            try (var stream = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)) {
+                destinationValues = stream.collect(Collectors.toList());
+            }
             assertEquals(expectedSamples, destinationValues.size());
             for (int i = 0; i < expectedSamples; i++) {
                 var destinationValue = destinationValues.get(i);
@@ -208,9 +214,10 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         migrationPointValueDao.startMigration();
         migrationPointValueDao.migrationFinished().get(30, TimeUnit.SECONDS);
 
-        var destinationValues = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)
-                .collect(Collectors.toList());
-
+        List<IdPointValueTime> destinationValues;
+        try (var stream = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)) {
+            destinationValues = stream.collect(Collectors.toList());
+        }
         long outputExpectedSamples = Duration.between(from, to).dividedBy(aggregationPeriod);
         assertEquals(outputExpectedSamples, destinationValues.size());
         for (int i = 0; i < outputExpectedSamples; i++) {
