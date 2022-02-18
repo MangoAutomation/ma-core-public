@@ -88,7 +88,7 @@ public interface PointValueDao {
      * @param pointValues stream of values to save
      * @throws IllegalArgumentException if pointValues is null
      */
-    default void savePointValues(Stream<? extends BatchPointValue<PointValueTime>> pointValues) {
+    default void savePointValues(Stream<? extends BatchPointValue<? extends PointValueTime>> pointValues) {
         savePointValues(pointValues, chunkSize());
     }
 
@@ -100,7 +100,7 @@ public interface PointValueDao {
      * @param chunkSize chunk or batch size to save at once, this may be ignored by databases which support streams natively
      * @throws IllegalArgumentException if pointValues is null
      */
-    default void savePointValues(Stream<? extends BatchPointValue<PointValueTime>> pointValues, int chunkSize) {
+    default void savePointValues(Stream<? extends BatchPointValue<? extends PointValueTime>> pointValues, int chunkSize) {
         PointValueDao.validateNotNull(pointValues);
         PointValueDao.validateChunkSize(chunkSize);
         pointValues.forEachOrdered(v -> savePointValueSync(v.getPoint(), v.getValue()));

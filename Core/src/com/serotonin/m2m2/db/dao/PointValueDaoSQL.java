@@ -94,7 +94,7 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     }
 
     @Override
-    public void savePointValues(Stream<? extends BatchPointValue<PointValueTime>> pointValues) {
+    public void savePointValues(Stream<? extends BatchPointValue<? extends PointValueTime>> pointValues) {
         PointValueDao.validateNotNull(pointValues);
         var stream = pointValues.map(v -> {
             var point = v.getPoint();
