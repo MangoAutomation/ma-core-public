@@ -1,56 +1,230 @@
 END USER LICENSE AGREEMENT
-This is an important legal agreement ("Agreement") between you and Radix IoT, LLC, a Delaware limited liability company ("Radix"). YOU MUST READ AND AGREE TO THE TERMS AND CONDITIONS OF THIS AGREEMENT BEFORE THE LICENSED PRODUCT CAN BE DOWNLOADED OR INSTALLED OR USED. BY CLICKING ON THE "ACCEPT" BUTTON OF THIS AGREEMENT, OR BY DOWNLOADING, INSTALLING OR USING THE LICENSED PRODUCT, YOU ARE AGREEING TO BE BOUND BY THE TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE WITH THE TERMS AND CONDITIONS OF THIS AGREEMENT, THEN YOU SHOULD EXIT THIS PAGE AND NOT DOWNLOAD OR INSTALL OR USE THE LICENSED PRODUCT. BY DOING SO YOU FOREGO ANY IMPLIED OR STATED RIGHTS TO DOWNLOAD OR INSTALL OR USE THE LICENSED PRODUCT AND YOU MAY RETURN IT TO THE PLACE YOU OBTAINED IT FOR A FULL REFUND (IF APPLICABLE).
+This is an important legal agreement ("Agreement") between you and Radix IoT, 
+LLC, a Delaware limited liability company ("Radix"). YOU MUST READ AND AGREE 
+TO THE TERMS AND CONDITIONS OF THIS AGREEMENT BEFORE THE LICENSED PRODUCT CAN 
+BE DOWNLOADED OR INSTALLED OR USED. BY CLICKING ON THE "ACCEPT" BUTTON OF THIS 
+AGREEMENT, OR BY DOWNLOADING, INSTALLING OR USING THE LICENSED PRODUCT, YOU 
+ARE AGREEING TO BE BOUND BY THE TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU 
+DO NOT AGREE WITH THE TERMS AND CONDITIONS OF THIS AGREEMENT, THEN YOU SHOULD 
+EXIT THIS PAGE AND NOT DOWNLOAD OR INSTALL OR USE THE LICENSED PRODUCT. BY 
+DOING SO YOU FOREGO ANY IMPLIED OR STATED RIGHTS TO DOWNLOAD OR INSTALL OR USE 
+THE LICENSED PRODUCT AND YOU MAY RETURN IT TO THE PLACE YOU OBTAINED IT FOR A 
+FULL REFUND (IF APPLICABLE).
 1. Products and Services
-1.1. This Agreement applies to the Licensed Product, which means the Mango software product(s) that you have acquired from Radix.
-1.2. Additional terms and conditions (beyond those stated herein and in any attached supplements) may apply to the Licensed Product. When ordering or installing the Licensed Product, you will be given an opportunity to review any additional terms and conditions that must be accepted for you to receive and use the Licensed Product. If such additional terms and conditions conflict in any way with the terms and conditions stated herein, the additional terms and conditions will prevail.
+1.1. This Agreement applies to the Licensed Product, which means the Mango 
+software product(s) that you have acquired from Radix.
+1.2. Additional terms and conditions (beyond those stated herein and in any 
+attached supplements) may apply to the Licensed Product. When ordering or 
+installing the Licensed Product, you will be given an opportunity to review 
+any additional terms and conditions that must be accepted for you to receive 
+and use the Licensed Product. If such additional terms and conditions conflict 
+in any way with the terms and conditions stated herein, the additional terms 
+and conditions will prevail.
 2. Licenses
-2.1. Your License Rights. Subject to the terms and conditions of this Agreement, Radix hereby grants to you a non-exclusive, non-sublicensable and non-transferable license during the License Term to use the Licensed Product:
+2.1. Your License Rights. Subject to the terms and conditions of this 
+Agreement, Radix hereby grants to you a non-exclusive, non-sublicensable and 
+non-transferable license during the License Term to use the Licensed Product:
 a. solely in executable or object code form, on a single computer, and
 b. solely for your internal business purposes.
-You are responsible and liable for all uses of the Licensed Product and Documentation resulting from access provided by you, directly or indirectly, whether such access or use is permitted by or in violation of this Agreement.
-2.2. Limitations on your License Rights. You shall not, and shall not permit any third party to:
-a. duplicate or copy the Licensed Product, in whole or in part, for any purpose other than as reasonably necessary to use the same as expressly contemplated by this Agreement;
-b. except for temporary transfer in the event of computer malfunction, install the Licensed Product on a second computer;
-c. reverse engineer, disassemble, decompile, decode, adapt, translate, reconstruct, transform or extract, or otherwise attempt to derive or gain access to the source code of, the Licensed Product or any portion
-of the Licensed Product (including without limitation any related malware signatures and malware detection routines);
-d. change, modify or otherwise alter, or create derivative works of, the Licensed Product (including without limitation any related malware signatures and malware detection routines);
-e. transfer, pledge, rent, lease, lend, sell, convey, share, sublicense, assign, distribute, publish, or otherwise make available the Licensed Product;
-f. grant any third party access to or use of the Licensed Product on a service bureau, timesharing, subscription service, rental or application service provider basis or otherwise;
-g. use the Licensed Product in any manner or for any purpose that infringes, misappropriates, or otherwise violates any Intellectual Property Rights or other right of any person, or that violates any applicable law; or
-g. defeat or circumvent, attempt to defeat or circumvent, or authorize or assist any third party in defeating or circumventing controls on the installation or use of copies of the Licensed Product.
-2.3 Reservation of Rights. Radix reserves all rights not expressly granted to you in this Agreement. Except for the limited rights and licenses expressly granted under this Agreement, nothing in this Agreement grants, by implication, waiver, estoppel, or otherwise, to you or any third party any Intellectual Property Rights or other right, title, or interest in or to the Licensed Product.
-2.4. Open Source Software. The Licensed Product may be delivered with software that is subject to open source licensing terms ("Open Source Software") which are available at https://protect-us.mimecast.com/s/LsOeCW61R5fonkosKJnjP. You agree that all Open Source Software shall be and shall remain subject to the terms and conditions under which it is provided. The Open Source Software is provided "AS IS," WITHOUT ANY WARRANTY OF ANY KIND, AND RADIX FURTHER DISCLAIMS ALL OTHER WARRANTIES, EXPRESS, IMPLIED OR STATUTORY, WITH RESPECT TO OPEN SOURCE SOFTWARE, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF NONINFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. NEITHER RADIX NOR THE LICENSORS OF OPEN SOURCE SOFTWARE SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF THE LICENSED PRODUCT, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. Copyrights to the Open Source Software are held by the copyright holders indicated in the copyright notices in the corresponding source files.
-2.5. Conditions. Your right to use the Licensed Product is conditioned upon your compliance with the terms and conditions of this Agreement. When the License Term expires, your license rights also expire and you may no longer use the Licensed Product.
-2.6. Copies. If you make backup or archival copies of the Licensed Product or Documentation, you must reproduce all copyright, trademark, and other notices that appear on the original copy.
-2.7. Transfers and Assignments. You may not transfer or assign your license rights to any other person in any manner (by assignment, operation of law or otherwise) unless you have obtained written consent from Radix. If you attempt to transfer or assign any of your license rights without Radix's consent, the transfer or assignment will be ineffective, null, and void (and you will be in material breach of this Agreement).
-2.8 Support. This Agreement does not entitle you to any support for the Licensed Product.
+You are responsible and liable for all uses of the Licensed Product and 
+Documentation resulting from access provided by you, directly or indirectly, 
+whether such access or use is permitted by or in violation of this Agreement.
+2.2. Limitations on your License Rights. You shall not, and shall not permit 
+any third party to:
+a. duplicate or copy the Licensed Product, in whole or in part, for any 
+purpose other than as reasonably necessary to use the same as expressly 
+contemplated by this Agreement;
+b. except for temporary transfer in the event of computer malfunction, install 
+the Licensed Product on a second computer;
+c. reverse engineer, disassemble, decompile, decode, adapt, translate, 
+reconstruct, transform or extract, or otherwise attempt to derive or gain 
+access to the source code of, the Licensed Product or any portion
+of the Licensed Product (including without limitation any related malware 
+signatures and malware detection routines);
+d. change, modify or otherwise alter, or create derivative works of, the 
+Licensed Product (including without limitation any related malware signatures 
+and malware detection routines);
+e. transfer, pledge, rent, lease, lend, sell, convey, share, sublicense, 
+assign, distribute, publish, or otherwise make available the Licensed Product;
+f. grant any third party access to or use of the Licensed Product on a service 
+bureau, timesharing, subscription service, rental or application service 
+provider basis or otherwise;
+g. use the Licensed Product in any manner or for any purpose that infringes, 
+misappropriates, or otherwise violates any Intellectual Property Rights or 
+other right of any person, or that violates any applicable law; or
+g. defeat or circumvent, attempt to defeat or circumvent, or authorize or 
+assist any third party in defeating or circumventing controls on the 
+installation or use of copies of the Licensed Product.
+2.3 Reservation of Rights. Radix reserves all rights not expressly granted to 
+you in this Agreement. Except for the limited rights and licenses expressly 
+granted under this Agreement, nothing in this Agreement grants, by 
+implication, waiver, estoppel, or otherwise, to you or any third party any 
+Intellectual Property Rights or other right, title, or interest in or to the 
+Licensed Product.
+2.4. Open Source Software. The Licensed Product may be delivered with software 
+that is subject to open source licensing terms ("Open Source Software") which 
+are available at https://protect-us.mimecast.com/s/LsOeCW61R5fonkosKJnjP. You 
+agree that all Open Source Software shall be and shall remain subject to the 
+terms and conditions under which it is provided. The Open Source Software is 
+provided "AS IS," WITHOUT ANY WARRANTY OF ANY KIND, AND RADIX FURTHER 
+DISCLAIMS ALL OTHER WARRANTIES, EXPRESS, IMPLIED OR STATUTORY, WITH RESPECT TO 
+OPEN SOURCE SOFTWARE, INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF 
+NONINFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. NEITHER 
+RADIX NOR THE LICENSORS OF OPEN SOURCE SOFTWARE SHALL HAVE ANY LIABILITY FOR 
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+(INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED ON ANY THEORY OF 
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF 
+THE LICENSED PRODUCT, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
+Copyrights to the Open Source Software are held by the copyright holders 
+indicated in the copyright notices in the corresponding source files.
+2.5. Conditions. Your right to use the Licensed Product is conditioned upon 
+your compliance with the terms and conditions of this Agreement. When the 
+License Term expires, your license rights also expire and you may no longer 
+use the Licensed Product.
+2.6. Copies. If you make backup or archival copies of the Licensed Product or 
+Documentation, you must reproduce all copyright, trademark, and other notices 
+that appear on the original copy.
+2.7. Transfers and Assignments. You may not transfer or assign your license 
+rights to any other person in any manner (by assignment, operation of law or 
+otherwise) unless you have obtained written consent from Radix. If you attempt 
+to transfer or assign any of your license rights without Radix's consent, the 
+transfer or assignment will be ineffective, null, and void (and you will be in 
+material breach of this Agreement).
+2.8 Support. This Agreement does not entitle you to any support for the 
+Licensed Product.
 3. Term and Termination.
-This Agreement is effective until terminated. You may terminate this Agreement at any time by destroying all copies of the Licensed Product including any Documentation. This Agreement will terminate immediately without notice from Radix if you fail to comply with any provision of this Agreement. Upon termination, you must destroy all copies of the Licensed Product.
+This Agreement is effective until terminated. You may terminate this Agreement 
+at any time by destroying all copies of the Licensed Product including any 
+Documentation. This Agreement will terminate immediately without notice from 
+Radix if you fail to comply with any provision of this Agreement. Upon 
+termination, you must destroy all copies of the Licensed Product.
 4. No Warranty.
-The Licensed Product and Documentation are provided "AS IS". Radix disclaims all warranties (express, implied, or statutory), including any warranties of merchantability, fitness for a particular purpose, title, or non-infringement and any warranties arising from a course of dealing or usage of trade. Radix does not warrant that the operation of the Licensed Product will be uninterrupted or error free, or that the Licensed Product will provide 100% protection. Your reliance on the availability or accuracy of the Licensed Product shall be entirely at your own risk.
+The Licensed Product and Documentation are provided "AS IS". Radix disclaims 
+all warranties (express, implied, or statutory), including any warranties of 
+merchantability, fitness for a particular purpose, title, or non-infringement 
+and any warranties arising from a course of dealing or usage of trade. Radix 
+does not warrant that the operation of the Licensed Product will be 
+uninterrupted or error free, or that the Licensed Product will provide 100% 
+protection. Your reliance on the availability or accuracy of the Licensed 
+Product shall be entirely at your own risk.
 5. Other Terms.
-5.1. Ownership of IP Rights. Radix and its licensors own all Intellectual Property Rights in the Licensed Product and Documentation. Your only rights in the Licensed Product and Documentation are the rights expressly granted in this Agreement; all other rights are reserved by Radix. Radix's licensors are third-party beneficiaries of, and thus may enforce against you, the license restrictions and confidentiality obligations in this Agreement with respect to their intellectual property and proprietary information. Radix may freely use and disseminate any Feedback you provide. You agree not to claim that Radix owes you any compensation for its use or dissemination of such Feedback.
-5.2. Limitation of Liability. For each Licensed Product you license or purchase from Radix under this Agreement, Radix's maximum total, cumulative liability to you is limited to One Hundred and no/100 United States Dollars (US$100) (regardless of the nature of the liability or the nature or number of claims giving rise to the liability). Radix will not, under any circumstances or any theory of liability, be liable to you or any third party for any lost profits, loss of data, loss of privacy or consequential, incidental, or special damages arising from this Agreement or the products and services provided to you under this Agreement, even if Radix has been advised of the possibility off such damages. The limitations of liability in this section are a fundamental part of this Agreement and are intended to apply even if an exclusive remedy is found to have failed of its essential purpose.
-5.3 Indemnification. You will indemnify, hold harmless, and, at Radix’s option, defend Radix from and against any losses, damages, liabilities, and costs resulting from any third-party claim, suit, action, or proceeding based on your: (i) negligence or willful misconduct; (ii) use of the Licensed Product or Documentation in a manner not authorized or contemplated by this Agreement; or (iii) use of the Licensed Product in combination with data, software, hardware, equipment or technology not provided by Radix or authorized by Radix in writing; provided that you may not settle any such matter against Radix unless such settlement completely and forever releases Radix from all liability with respect to such matter or unless Radix consents to such settlement, and further provided that Radix will have the
-right, at its option, to defend itself against any such matter or to participate in the defense thereof by counsel of its own choice.
-5.4. Export Controls. You acknowledge that the Licensed Product, including technical data, is subject to U.S. export control laws, including the U.S. Export Administration Act and its associated regulations, and may be subject to export or import regulations in other countries. You agree to comply with all applicable U.S. and international laws governing export and re-export of the Licensed Product, including the U.S. Export Administration Regulations, as well as end-user, end-use and destination restrictions issued by the United States and other governments.
-5.5. Governing Law; Jurisdiction. This Agreement is governed by the laws of the United States and the State of Texas, without regard to conflicts of laws principles. The federal and state courts located in Dallas County, Texas have exclusive jurisdiction over any disputes arising from or relating to this Agreement, and each party consents to such jurisdiction and venue.
-5.6. Notices. Any notice, approval, consent, or other communication intended to have legal effect under this Agreement must be given to the other party in writing, must be sent by first-class, registered, or overnight mail or private overnight courier (to the address for the other party stated on the signature page, unless the other party has given notice of a new address), and will be deemed given upon receipt or when delivery is refused.
-5.7. Waivers. Either party's failure to enforce any provision of this Agreement will not be deemed a waiver of the future enforcement of that provision or enforcement of any other provision. In order to be binding, a waiver must be in writing and signed by the party giving the waiver.
-5.8. Independent Contractors. The parties to this Agreement are independent contractors. Neither party is the agent or partner of the other party, or has any power or authority to act on behalf of the other party.
-5.9. Severability. If any provision in this Agreement is found to be invalid or unenforceable as written, the remaining provisions will remain in full force and effect and the invalid or unenforceable provision is to be construed (and, if necessary, modified) so that it is valid and enforceable to the greatest extent possible.
-5.10. Attorneys' Fees. The prevailing party in any action to enforce this Agreement will be entitled to recover costs and expenses including reasonable attorneys' fees.
-5.11. Remedies. Except where this Agreement expressly provides exclusive remedies, all rights and remedies of either party (including termination rights) are cumulative. You agree that monetary damages alone would not be an adequate remedy, and therefore Radix will be entitled to injunctive relief if you materially breach the license restrictions or confidentiality provisions in this Agreement.
-5.12. Force Majeure. Each party will be excused from performance of its obligations under this Agreement, except payment obligations, to the extent that performance is rendered impossible by earthquake, fire, flood, governmental action, labor disruptions, supplier failures, or any other event or circumstance beyond that party's reasonable control.
-5.13. Construction. Section headings in this Agreement are for convenience only. The word "including" (and variations thereof) is not intended to be limiting. No rule of strict construction is to be used when interpreting this Agreement.
-5.14. Government Users. If you are a branch or agency of the United States Government, or are acquiring the Licensed Product on behalf of any branch or agency of the United States Government, then the following provision applies. The Licensed Product and Documentation are comprised of "commercial computer software" and "commercial computer software documentation", as such terms are used in 48 C.F.R. 12.212, and are provided to the Government (i) for acquisition by or on behalf of civilian agencies, consistent with the policy set forth in 48 C.F.R. 12.212; or (ii) for acquisition by or on behalf of units of the Department of Defense, consistent with the policies set forth in 48 C.F.R. 227.7202-1 and 227.7202-3.
-5.15. Entire Agreement. This Agreement constitutes the entire agreement between the parties concerning its subject matter, and supersedes any prior or contemporaneous agreements, communications, or understandings (whether written or oral).
-5.16. Amendments. This Agreement may be amended only by means of a written instrument signed by authorized representatives of both parties that specifically refers to this Agreement and states the parties' intention to amend it.
+5.1. Ownership of IP Rights. Radix and its licensors own all Intellectual 
+Property Rights in the Licensed Product and Documentation. Your only rights in 
+the Licensed Product and Documentation are the rights expressly granted in 
+this Agreement; all other rights are reserved by Radix. Radix's licensors are 
+third-party beneficiaries of, and thus may enforce against you, the license 
+restrictions and confidentiality obligations in this Agreement with respect to 
+their intellectual property and proprietary information. Radix may freely use 
+and disseminate any Feedback you provide. You agree not to claim that Radix 
+owes you any compensation for its use or dissemination of such Feedback.
+5.2. Limitation of Liability. For each Licensed Product you license or 
+purchase from Radix under this Agreement, Radix's maximum total, cumulative 
+liability to you is limited to One Hundred and no/100 United States Dollars 
+(US$100) (regardless of the nature of the liability or the nature or number of 
+claims giving rise to the liability). Radix will not, under any circumstances 
+or any theory of liability, be liable to you or any third party for any lost 
+profits, loss of data, loss of privacy or consequential, incidental, or 
+special damages arising from this Agreement or the products and services 
+provided to you under this Agreement, even if Radix has been advised of the 
+possibility off such damages. The limitations of liability in this section are 
+a fundamental part of this Agreement and are intended to apply even if an 
+exclusive remedy is found to have failed of its essential purpose.
+5.3 Indemnification. You will indemnify, hold harmless, and, at Radix’s 
+option, defend Radix from and against any losses, damages, liabilities, and 
+costs resulting from any third-party claim, suit, action, or proceeding based 
+on your: (i) negligence or willful misconduct; (ii) use of the Licensed 
+Product or Documentation in a manner not authorized or contemplated by this 
+Agreement; or (iii) use of the Licensed Product in combination with data, 
+software, hardware, equipment or technology not provided by Radix or 
+authorized by Radix in writing; provided that you may not settle any such 
+matter against Radix unless such settlement completely and forever releases 
+Radix from all liability with respect to such matter or unless Radix consents 
+to such settlement, and further provided that Radix will have the
+right, at its option, to defend itself against any such matter or to 
+participate in the defense thereof by counsel of its own choice.
+5.4. Export Controls. You acknowledge that the Licensed Product, including 
+technical data, is subject to U.S. export control laws, including the U.S. 
+Export Administration Act and its associated regulations, and may be subject 
+to export or import regulations in other countries. You agree to comply with 
+all applicable U.S. and international laws governing export and re-export of 
+the Licensed Product, including the U.S. Export Administration Regulations, as 
+well as end-user, end-use and destination restrictions issued by the United 
+States and other governments.
+5.5. Governing Law; Jurisdiction. This Agreement is governed by the laws of 
+the United States and the State of Texas, without regard to conflicts of laws 
+principles. The federal and state courts located in Dallas County, Texas have 
+exclusive jurisdiction over any disputes arising from or relating to this 
+Agreement, and each party consents to such jurisdiction and venue.
+5.6. Notices. Any notice, approval, consent, or other communication intended 
+to have legal effect under this Agreement must be given to the other party in 
+writing, must be sent by first-class, registered, or overnight mail or private 
+overnight courier (to the address for the other party stated on the signature 
+page, unless the other party has given notice of a new address), and will be 
+deemed given upon receipt or when delivery is refused.
+5.7. Waivers. Either party's failure to enforce any provision of this 
+Agreement will not be deemed a waiver of the future enforcement of that 
+provision or enforcement of any other provision. In order to be binding, a 
+waiver must be in writing and signed by the party giving the waiver.
+5.8. Independent Contractors. The parties to this Agreement are independent 
+contractors. Neither party is the agent or partner of the other party, or has 
+any power or authority to act on behalf of the other party.
+5.9. Severability. If any provision in this Agreement is found to be invalid 
+or unenforceable as written, the remaining provisions will remain in full 
+force and effect and the invalid or unenforceable provision is to be construed 
+(and, if necessary, modified) so that it is valid and enforceable to the 
+greatest extent possible.
+5.10. Attorneys' Fees. The prevailing party in any action to enforce this 
+Agreement will be entitled to recover costs and expenses including reasonable 
+attorneys' fees.
+5.11. Remedies. Except where this Agreement expressly provides exclusive 
+remedies, all rights and remedies of either party (including termination 
+rights) are cumulative. You agree that monetary damages alone would not be an 
+adequate remedy, and therefore Radix will be entitled to injunctive relief if 
+you materially breach the license restrictions or confidentiality provisions 
+in this Agreement.
+5.12. Force Majeure. Each party will be excused from performance of its 
+obligations under this Agreement, except payment obligations, to the extent 
+that performance is rendered impossible by earthquake, fire, flood, 
+governmental action, labor disruptions, supplier failures, or any other event 
+or circumstance beyond that party's reasonable control.
+5.13. Construction. Section headings in this Agreement are for convenience 
+only. The word "including" (and variations thereof) is not intended to be 
+limiting. No rule of strict construction is to be used when interpreting this 
+Agreement.
+5.14. Government Users. If you are a branch or agency of the United States 
+Government, or are acquiring the Licensed Product on behalf of any branch or 
+agency of the United States Government, then the following provision applies. 
+The Licensed Product and Documentation are comprised of "commercial computer 
+software" and "commercial computer software documentation", as such terms are 
+used in 48 C.F.R. 12.212, and are provided to the Government (i) for 
+acquisition by or on behalf of civilian agencies, consistent with the policy 
+set forth in 48 C.F.R. 12.212; or (ii) for acquisition by or on behalf of 
+units of the Department of Defense, consistent with the policies set forth in 
+48 C.F.R. 227.7202-1 and 227.7202-3.
+5.15. Entire Agreement. This Agreement constitutes the entire agreement 
+between the parties concerning its subject matter, and supersedes any prior or 
+contemporaneous agreements, communications, or understandings (whether written 
+or oral).
+5.16. Amendments. This Agreement may be amended only by means of a written 
+instrument signed by authorized representatives of both parties that 
+specifically refers to this Agreement and states the parties' intention to 
+amend it.
 6. Glossary of Definitions
-6.1. “Documentation” means any user manuals, reference manuals, release, application and methodology notes, written utility programs, and other materials in any form provided by Radix for use with the Licensed Product.
-6.2. “Feedback” means any ideas or suggestions you voluntarily provide to Radix (in any manner, whether in writing or orally or otherwise) regarding the Licensed Product or Documentation, including possible enhancements or improvements.
-6.3. “Intellectual Property Rights” means all patent rights, copyrights, trade secret rights, mask works, and trademark rights (including service marks and trade names), and any applications for these rights, in all countries.
-6.4. “License Term” means the period of time during which you may use the Licensed Product pursuant to this Agreement.
+6.1. “Documentation” means any user manuals, reference manuals, release, 
+application and methodology notes, written utility programs, and other 
+materials in any form provided by Radix for use with the Licensed Product.
+6.2. “Feedback” means any ideas or suggestions you voluntarily provide to 
+Radix (in any manner, whether in writing or orally or otherwise) regarding the 
+Licensed Product or Documentation, including possible enhancements or 
+improvements.
+6.3. “Intellectual Property Rights” means all patent rights, copyrights, trade 
+secret rights, mask works, and trademark rights (including service marks and 
+trade names), and any applications for these rights, in all countries.
+6.4. “License Term” means the period of time during which you may use the 
+Licensed Product pursuant to this Agreement.
 6.5. “Licensed Product” has the meaning given in section 1 of this Agreement.
-6.6. “Open Source Software” has the meaning given in section 2.4 of this Agreement.
-6.7. “You” (and variations thereof) means the entity that agrees to the terms and conditions of this Agreement as the licensee.
+6.6. “Open Source Software” has the meaning given in section 2.4 of this 
+Agreement.
+6.7. “You” (and variations thereof) means the entity that agrees to the terms 
+and conditions of this Agreement as the licensee.
