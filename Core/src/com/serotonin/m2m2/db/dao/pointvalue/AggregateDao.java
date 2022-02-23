@@ -50,8 +50,8 @@ public interface AggregateDao {
                                                               Stream<? extends PointValueTime> pointValues) {
 
         BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(from, to, getAggregationPeriod());
-        AbstractPointValueTimeQuantizer<?> quantizer = new AnalogStatisticsQuantizer(bucketCalc);
 
+        AbstractPointValueTimeQuantizer<?> quantizer;
         switch (point.getPointLocator().getDataType()) {
             case BINARY:
             case MULTISTATE:
@@ -63,10 +63,11 @@ public interface AggregateDao {
             case ALPHANUMERIC:
                 quantizer = new ValueChangeCounterQuantizer(bucketCalc);
                 break;
+            default:
+                throw new IllegalStateException("Unknown data type: " + point.getPointLocator().getDataType());
         }
 
         Stream<AggregateValue> aggregateStream = StatisticsAggregator.aggregate(pointValues, quantizer)
-                // TODO modify StatisticsAggregator so it produces AggregateValue
                 .filter(v -> v instanceof AggregateValue)
                 .map(v -> (AggregateValue) v);
 
