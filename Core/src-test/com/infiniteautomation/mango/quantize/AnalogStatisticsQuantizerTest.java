@@ -47,10 +47,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
                 //Test Minimum
                 Assert.assertEquals(Double.NaN, stats.getMinimumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMinimumTime());
+                Assert.assertNull(stats.getMinimumTime());
                 //Test Maximum
                 Assert.assertEquals(Double.NaN, stats.getMaximumValue(), 0.0001);
-                Assert.assertEquals(null, stats.getMaximumTime());
+                Assert.assertNull(stats.getMaximumTime());
                 //Test Average
                 Assert.assertEquals(Double.NaN, stats.getAverage(), 0.0001);
                 //Test Integral
@@ -58,13 +58,13 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test sum
                 Assert.assertEquals(0.0d, stats.getSum(), 0.0001);
                 //Test first
-                Assert.assertEquals(null, stats.getFirstValue());
-                Assert.assertEquals(null, stats.getFirstTime());
+                Assert.assertNull(stats.getFirstValue());
+                Assert.assertNull(stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(null, stats.getLastValue());
-                Assert.assertEquals(null, stats.getLastTime());
+                Assert.assertNull(stats.getLastValue());
+                Assert.assertNull(stats.getLastTime());
                 //Test start
-                Assert.assertEquals(null, stats.getStartValue());
+                Assert.assertNull(stats.getStartValue());
                 //Test count
                 Assert.assertEquals(0, stats.getCount());
                 //Test delta
@@ -135,16 +135,16 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test sum
                 Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1.0d, stats.getFirstValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(1.0d, stats.getLastValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
-                    Assert.assertEquals(null, stats.getStartValue());
+                    Assert.assertNull(stats.getStartValue());
                 else
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1.0, stats.getStartValue().getDoubleValue(), 0.0001);
                 //Test count
                 Assert.assertEquals(1, stats.getCount());
                 //Test delta
@@ -197,13 +197,13 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test sum
                 Assert.assertEquals(0.0d, stats.getSum(), 0.0001);
                 //Test first
-                Assert.assertEquals(null, stats.getFirstValue());
-                Assert.assertEquals(null, stats.getFirstTime());
+                Assert.assertNull(stats.getFirstValue());
+                Assert.assertNull(stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(null, stats.getLastValue());
-                Assert.assertEquals(null, stats.getLastTime());
+                Assert.assertNull(stats.getLastValue());
+                Assert.assertNull(stats.getLastTime());
                 //Test start
-                Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                Assert.assertEquals(1.0, stats.getStartValue().getDoubleValue(), 0.0001);
                 //Test count
                 Assert.assertEquals(0, stats.getCount());
                 //Test delta
@@ -255,13 +255,13 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     //Test sum
                     Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
                     //Test first
-                    Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                    Assert.assertEquals(1.0d, stats.getFirstValue().getDoubleValue(), 0.0001);
                     Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                     //Test last
-                    Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
+                    Assert.assertEquals(1.0d, stats.getLastValue().getDoubleValue(), 0.0001);
                     Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                     //Test start
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1.0, stats.getStartValue().getDoubleValue(), 0.0001);
                     //Test count
                     Assert.assertEquals(1, stats.getCount());
                     //Test delta
@@ -282,13 +282,13 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     //Test sum
                     Assert.assertEquals(0.0d, stats.getSum(), 0.0001);
                     //Test first
-                    Assert.assertEquals(null, stats.getFirstValue());
-                    Assert.assertEquals(null, stats.getFirstTime());
+                    Assert.assertNull(stats.getFirstValue());
+                    Assert.assertNull(stats.getFirstTime());
                     //Test last
-                    Assert.assertEquals(null, stats.getLastValue());
-                    Assert.assertEquals(null, stats.getLastTime());
+                    Assert.assertNull(stats.getLastValue());
+                    Assert.assertNull(stats.getLastTime());
                     //Test start
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1.0, stats.getStartValue().getDoubleValue(), 0.0001);
                     //Test count
                     Assert.assertEquals(0, stats.getCount());
                     //Test delta
@@ -351,13 +351,13 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test sum
                 Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1.0d, stats.getFirstValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(1.0d, stats.getLastValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
-                Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                Assert.assertEquals(1.0, stats.getStartValue().getDoubleValue(), 0.0001);
                 //Test count
                 Assert.assertEquals(1, stats.getCount());
                 //Test delta
@@ -454,16 +454,16 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test sum
                 Assert.assertEquals(55d, stats.getSum(), 0.0001);
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1.0d, stats.getFirstValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(10.0d, stats.getLastValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
-                    Assert.assertEquals(null, stats.getStartValue());
+                    Assert.assertNull(stats.getStartValue());
                 else
-                    Assert.assertEquals(10.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(10.0, stats.getStartValue().getDoubleValue(), 0.0001);
                 //Test count
                 Assert.assertEquals(10, stats.getCount());
                 //Test delta
@@ -559,16 +559,16 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 //Test sum
                 Assert.assertEquals(55d, stats.getSum(), 0.0001);
                 //Test first
-                Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                Assert.assertEquals(1.0d, stats.getFirstValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
-                Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(10.0d, stats.getLastValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1.0, stats.getStartValue().getDoubleValue(), 0.0001);
                 else
-                    Assert.assertEquals(10.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(10.0, stats.getStartValue().getDoubleValue(), 0.0001);
                 //Test count
                 Assert.assertEquals(10, stats.getCount());
                 //Test delta
@@ -665,26 +665,26 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 if(counter.getValue() == 1) {
                     Assert.assertEquals(56d, stats.getSum(), 0.0001);
                     //Test first
-                    Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                    Assert.assertEquals(1.0d, stats.getFirstValue().getDoubleValue(), 0.0001);
                     Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }else {
                     Assert.assertEquals(55d, stats.getSum(), 0.0001);
                     //Test first
-                    Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
+                    Assert.assertEquals(1.0d, stats.getFirstValue().getDoubleValue(), 0.0001);
                     Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }
                 //Test last
-                Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
+                Assert.assertEquals(10.0d, stats.getLastValue().getDoubleValue(), 0.0001);
                 Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
 
                 if(counter.getValue() == 1) {
                     //Test start (the first start value will be null
-                    Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(1.0, stats.getStartValue().getDoubleValue(), 0.0001);
                     //Test count
                     Assert.assertEquals(11, stats.getCount());
                 }else {
                     //Test start (the first start value will be null
-                    Assert.assertEquals(10.0, stats.getStartValue(), 0.0001);
+                    Assert.assertEquals(10.0, stats.getStartValue().getDoubleValue(), 0.0001);
                     //Test count
                     Assert.assertEquals(10, stats.getCount());
                 }

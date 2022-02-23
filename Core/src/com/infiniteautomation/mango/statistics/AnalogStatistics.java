@@ -34,11 +34,11 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     private Long maximumTime;
     private Double average = Double.NaN;
     private Double integral = Double.NaN;
-    private Double firstValue;
+    private DataValue firstValue;
     private Long firstTime;
-    private Double lastValue;
+    private DataValue lastValue;
     private Long lastTime;
-    private Double startValue;
+    private DataValue startValue;
     private Double delta = Double.NaN;
 
     // State values used for calculating weighted average.
@@ -67,7 +67,8 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
 
         //Check for null and also bookend values
         if (startValue != null && startValue.getValue() != null) {
-            minimumValue = maximumValue = latestValue = this.startValue = startValue.getValue().getDoubleValue();
+            this.startValue = startValue.getValue();
+            minimumValue = maximumValue = latestValue = this.startValue.getDoubleValue();
             minimumTime = maximumTime = latestTime = periodStart;
         }
     }
@@ -85,7 +86,7 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
         double doubleValue = value.getDoubleValue();
 
         if (firstValue == null) {
-            firstValue = doubleValue;
+            firstValue = value;
             firstTime = time;
         }
 
@@ -101,7 +102,7 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
 
         updateAverage(doubleValue, time);
 
-        lastValue = value.getDoubleValue();
+        lastValue = value;
         lastTime = time;
 
         statistics.accept(doubleValue);
@@ -125,7 +126,7 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
             // have a latest value, and a duration of zero. For this value we set the average equal
             // to that value.
             if(lastValue != null) {
-                average = lastValue;
+                average = lastValue.getDoubleValue();
                 // Nothing to integrate
                 integral = 0D;
             }
@@ -133,9 +134,9 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
 
         if (firstValue != null) {
             if(startValue != null)
-                delta = lastValue - startValue;
+                delta = lastValue.getDoubleValue() - startValue.getDoubleValue();
             else
-                delta = lastValue - firstValue;
+                delta = lastValue.getDoubleValue() - firstValue.getDoubleValue();
         }else if(startValue != null)
             delta = 0.0D; //No data but a start value
     }
@@ -207,12 +208,12 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     }
 
     @Override
-    public Double getStartValue() {
+    public DataValue getStartValue() {
         return startValue;
     }
 
     @Override
-    public Double getFirstValue() {
+    public DataValue getFirstValue() {
         return firstValue;
     }
 
@@ -222,7 +223,7 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     }
 
     @Override
-    public Double getLastValue() {
+    public DataValue getLastValue() {
         return lastValue;
     }
 

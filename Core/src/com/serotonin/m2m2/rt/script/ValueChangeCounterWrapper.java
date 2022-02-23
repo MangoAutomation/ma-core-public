@@ -60,7 +60,7 @@ public class ValueChangeCounterWrapper {
     	return statistics.getLastTime();
     }
 
-    public int getCount() {
+    public long getCount() {
         return statistics.getCount();
     }
 

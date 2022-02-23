@@ -57,11 +57,11 @@ public class AnalogStatisticsWrapper {
     }
 
     public Double getStartValue() {
-        return statistics.getStartValue();
+        return statistics.getStartValue() == null ? null : statistics.getStartValue().getDoubleValue();
     }
 
     public Double getFirstValue() {
-        return statistics.getFirstValue();
+        return statistics.getFirstValue() == null ? null : statistics.getFirstValue().getDoubleValue();
     }
 
     public Long getFirstTime() {
@@ -69,7 +69,7 @@ public class AnalogStatisticsWrapper {
     }
 
     public Double getLastValue() {
-        return statistics.getLastValue();
+        return statistics.getLastValue() == null ? null : statistics.getLastValue().getDoubleValue();
     }
 
     public Long getLastTime() {

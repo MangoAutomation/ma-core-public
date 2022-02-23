@@ -23,18 +23,6 @@ public interface NumericAggregate extends AggregateValue {
 
     double getSum();
 
-    Double getStartValue();
-
-    Double getFirstValue();
-
-    Long getFirstTime();
-
-    Double getLastValue();
-
-    Long getLastTime();
-
-    long getCount();
-
     double getDelta();
 
     double getArithmeticMean();

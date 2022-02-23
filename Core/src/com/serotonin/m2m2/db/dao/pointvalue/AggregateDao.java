@@ -12,9 +12,12 @@ import java.util.stream.Stream;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.db.iterators.StatisticsAggregator;
+import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
 import com.infiniteautomation.mango.quantize.AnalogStatisticsQuantizer;
 import com.infiniteautomation.mango.quantize.BucketCalculator;
+import com.infiniteautomation.mango.quantize.StartsAndRuntimeListQuantizer;
 import com.infiniteautomation.mango.quantize.TemporalAmountBucketCalculator;
+import com.infiniteautomation.mango.quantize.ValueChangeCounterQuantizer;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.stats.DefaultSeriesValueTime;
@@ -47,10 +50,27 @@ public interface AggregateDao {
                                                               Stream<? extends PointValueTime> pointValues) {
 
         BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(from, to, getAggregationPeriod());
+        AbstractPointValueTimeQuantizer<?> quantizer = new AnalogStatisticsQuantizer(bucketCalc);
 
-        // TODO support non-analog statistic types
+        switch (point.getPointLocator().getDataType()) {
+            case BINARY:
+            case MULTISTATE:
+                quantizer = new StartsAndRuntimeListQuantizer(bucketCalc);
+                break;
+            case NUMERIC:
+                quantizer = new AnalogStatisticsQuantizer(bucketCalc);
+                break;
+            case ALPHANUMERIC:
+                quantizer = new ValueChangeCounterQuantizer(bucketCalc);
+                break;
+        }
 
-        return StatisticsAggregator.aggregate(pointValues, new AnalogStatisticsQuantizer(bucketCalc))
+        Stream<AggregateValue> aggregateStream = StatisticsAggregator.aggregate(pointValues, quantizer)
+                // TODO modify StatisticsAggregator so it produces AggregateValue
+                .filter(v -> v instanceof AggregateValue)
+                .map(v -> (AggregateValue) v);
+
+        return aggregateStream
                 .map(v -> new DefaultSeriesValueTime<>(point.getSeriesId(), v.getPeriodStartTime(), v));
     }
 

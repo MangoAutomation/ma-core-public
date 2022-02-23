@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.db.dao.pointvalue.ChangeCountAggregate;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -14,7 +15,7 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 /**
  * @author Matthew Lohbihler
  */
-public class ValueChangeCounter implements StatisticsGenerator {
+public class ValueChangeCounter implements StatisticsGenerator, ChangeCountAggregate {
     // Configuration values.
     private final long periodStart;
     private final long periodEnd;
@@ -26,7 +27,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
     private Long firstTime;
     private DataValue lastValue;
     private Long lastTime;
-    private int count;
+    private long count;
     private int changes;
 
     // State values
@@ -90,31 +91,38 @@ public class ValueChangeCounter implements StatisticsGenerator {
     public long getPeriodEndTime() {
         return periodEnd;
     }
-    
+
+    @Override
     public DataValue getStartValue() {
         return startValue;
     }
-    
+
+    @Override
     public DataValue getFirstValue() {
         return firstValue;
     }
 
+    @Override
     public Long getFirstTime() {
         return firstTime;
     }
 
+    @Override
     public DataValue getLastValue() {
         return lastValue;
     }
 
+    @Override
     public Long getLastTime() {
         return lastTime;
     }
 
-    public int getCount() {
+    @Override
+    public long getCount() {
         return count;
     }
 
+    @Override
     public int getChanges() {
         return changes;
     }

@@ -5,13 +5,11 @@ package com.infiniteautomation.mango.statistics;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.db.dao.pointvalue.StartsAndRuntimeAggregate;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -21,7 +19,7 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  * 
  * @author Matthew Lohbihler, Terry Packer
  */
-public class StartsAndRuntimeList implements StatisticsGenerator {
+public class StartsAndRuntimeList implements StatisticsGenerator, StartsAndRuntimeAggregate {
     // Configuration values.
     private final long periodStart;
     private final long periodEnd;
@@ -33,8 +31,8 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     private Long firstTime;
     private DataValue lastValue;
     private Long lastTime;
-    private final List<StartsAndRuntime> data = new ArrayList<StartsAndRuntime>();
-    private int count;
+    private final List<StartsAndRuntime> data = new ArrayList<>();
+    private long count;
 
     // State values.
     private long latestTime;
@@ -107,12 +105,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
             s.calculateRuntimePercentage(totalRuntime);
 
         // Sort by value.
-        Collections.sort(data, new Comparator<StartsAndRuntime>() {
-            @Override
-            public int compare(StartsAndRuntime o1, StartsAndRuntime o2) {
-                return o1.value.compareTo(o2.value);
-            }
-        });
+        data.sort((o1, o2) -> o1.value.compareTo(o2.value));
     }
 
     @Override
@@ -124,40 +117,40 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     public long getPeriodEndTime() {
         return periodEnd;
     }
-    
+
+    @Override
     public DataValue getStartValue() {
         return startValue;
     }
-    
+
+    @Override
     public DataValue getFirstValue() {
         return firstValue;
     }
 
+    @Override
     public Long getFirstTime() {
         return firstTime;
     }
 
+    @Override
     public DataValue getLastValue() {
         return lastValue;
     }
 
+    @Override
     public Long getLastTime() {
         return lastTime;
     }
 
-    public int getCount(){
+    @Override
+    public long getCount(){
         return count;
     }
-    
-    public Map<Object, StartsAndRuntime> getStartsAndRuntime() {
-        Map<Object, StartsAndRuntime> result = new HashMap<Object, StartsAndRuntime>();
-        for (StartsAndRuntime sar : data)
-            result.put(sar.getValue(), sar);
-        return result;
-    }
 
+    @Override
     public List<StartsAndRuntime> getData() {
-        return data;
+        return Collections.unmodifiableList(data);
     }
 
     private StartsAndRuntime get(DataValue value) {
