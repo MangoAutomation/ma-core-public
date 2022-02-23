@@ -7,6 +7,6 @@ package com.serotonin.m2m2.db.dao.pointvalue;
 /**
  * @author Jared Wiltshire
  */
-public interface ChangeCountAggregate extends AggregateValue {
+public interface ChangesAggregate extends AggregateValue {
     int getChanges();
 }
