@@ -735,6 +735,10 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         return defaultIntegralUnit().getConverterTo(integralUnit);
     }
 
+    public UnitConverter getRenderedUnitConverter() {
+        return unit.getConverterTo(renderedUnit);
+    }
+
     @Override
     public String toString() {
         return "DataPointVO [id=" + id + ", xid=" + xid + ", name=" + name + ", dataSourceId=" + dataSourceId

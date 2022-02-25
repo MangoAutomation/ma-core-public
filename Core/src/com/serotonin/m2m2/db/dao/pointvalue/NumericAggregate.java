@@ -25,6 +25,11 @@ public interface NumericAggregate extends AggregateValue {
 
     double getDelta();
 
+    default Double getAccumulator () {
+        var lastValue = getLastValue();
+        return lastValue == null ? getMaximumValue() : lastValue.getDoubleValue();
+    }
+
     double getArithmeticMean();
 
     double getMinimumInPeriod();
