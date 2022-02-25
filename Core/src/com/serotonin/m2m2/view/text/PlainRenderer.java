@@ -33,11 +33,6 @@ public class PlainRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public String getTypeName() {
-        return definition.getName();
-    }
-
-    @Override
     public ImplDefinition getDef() {
         return definition;
     }
@@ -68,13 +63,6 @@ public class PlainRenderer extends ConvertingRenderer {
     protected void setDefaults() {
     	super.setDefaults();
         suffix = "";
-    }
-
-    @Override
-    public String getMetaText() {
-        if (useUnitAsSuffix)
-            return JUnitUtil.formatLocal(renderedUnit);
-        return suffix;
     }
 
     @Override
@@ -135,16 +123,6 @@ public class PlainRenderer extends ConvertingRenderer {
     @Override
     protected String getColourImpl(DataValue value) {
         return null;
-    }
-
-    @Override
-    public String getChangeSnippetFilename() {
-        return "changeContentText.jsp";
-    }
-
-    @Override
-    public String getSetPointSnippetFilename() {
-        return "setPointContentText.jsp";
     }
 
     //

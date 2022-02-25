@@ -37,11 +37,6 @@ public class BinaryTextRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public String getTypeName() {
-        return definition.getName();
-    }
-
-    @Override
     public ImplDefinition getDef() {
         return definition;
     }
@@ -126,16 +121,6 @@ public class BinaryTextRenderer extends BaseTextRenderer {
         if (value)
             return oneLabel;
         return zeroLabel;
-    }
-
-    @Override
-    public String getChangeSnippetFilename() {
-        return "changeContentRadio.jsp";
-    }
-
-    @Override
-    public String getSetPointSnippetFilename() {
-        return "setPointContentRadio.jsp";
     }
 
     @Override

@@ -102,11 +102,6 @@ abstract public class BaseTextRenderer implements TextRenderer, JsonSerializable
         return value;
     }
 
-    @Override
-    public String getMetaText() {
-        return null;
-    }
-
     //
     // Colours
     @Override
@@ -142,11 +137,6 @@ abstract public class BaseTextRenderer implements TextRenderer, JsonSerializable
 
     @Override
     public String getColour(boolean value) {
-        return null;
-    }
-
-    @Override
-    public String getColour(String value) {
         return null;
     }
 

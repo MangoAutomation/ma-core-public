@@ -28,11 +28,6 @@ public class NoneRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public String getTypeName() {
-        return definition.getName();
-    }
-
-    @Override
     public ImplDefinition getDef() {
         return definition;
     }
@@ -48,16 +43,6 @@ public class NoneRenderer extends BaseTextRenderer {
 
     @Override
     protected String getColourImpl(DataValue value) {
-        return null;
-    }
-
-    @Override
-    public String getChangeSnippetFilename() {
-        return null;
-    }
-
-    @Override
-    public String getSetPointSnippetFilename() {
         return null;
     }
 

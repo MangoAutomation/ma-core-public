@@ -38,11 +38,6 @@ public class AnalogRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public String getTypeName() {
-        return definition.getName();
-    }
-
-    @Override
     public ImplDefinition getDef() {
         return definition;
     }
@@ -79,13 +74,6 @@ public class AnalogRenderer extends ConvertingRenderer {
         useUnitAsSuffix = false;
         format = "0.00";
         suffix = "";
-    }
-
-    @Override
-    public String getMetaText() {
-        if (useUnitAsSuffix)
-            return JUnitUtil.formatLocal(renderedUnit);
-        return suffix;
     }
 
     @Override
@@ -152,16 +140,6 @@ public class AnalogRenderer extends ConvertingRenderer {
 
     public void setSuffix(String suffix) {
         this.suffix = suffix;
-    }
-
-    @Override
-    public String getChangeSnippetFilename() {
-        return "changeContentText.jsp";
-    }
-
-    @Override
-    public String getSetPointSnippetFilename() {
-        return "setPointContentText.jsp";
     }
 
     //
