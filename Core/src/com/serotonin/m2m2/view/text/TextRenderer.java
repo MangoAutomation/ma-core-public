@@ -40,37 +40,37 @@ public interface TextRenderer extends Serializable {
     String getText(PointValueTime valueTime, int hint, Locale locale);
     
     default String getText(PointValueTime valueTime, int hint) {
-        return getText(valueTime, hint, Common.getLocale());
+        return getText(valueTime, hint, getLocale());
     }
 
     String getText(DataValue value, int hint, Locale locale);
     
     default String getText(DataValue value, int hint) {
-        return getText(value, hint, Common.getLocale());
+        return getText(value, hint, getLocale());
     }
 
     String getText(double value, int hint, Locale locale);
     
     default String getText(double value, int hint) {
-        return getText(value, hint, Common.getLocale());
+        return getText(value, hint, getLocale());
     }
 
     String getText(int value, int hint, Locale locale);
     
     default String getText(int value, int hint) {
-        return getText(value, hint, Common.getLocale());
+        return getText(value, hint, getLocale());
     }
 
     String getText(boolean value, int hint, Locale locale);
 
     default String getText(boolean value, int hint) {
-        return getText(value, hint, Common.getLocale());
+        return getText(value, hint, getLocale());
     }
 
     String getText(String value, int hint, Locale locale);
     
     default String getText(String value, int hint) {
-        return getText(value, hint, Common.getLocale());
+        return getText(value, hint, getLocale());
     }
 
     String getColour();
@@ -95,6 +95,10 @@ public interface TextRenderer extends Serializable {
     default void validate(ProcessResult result, DataType sourcePointDataType) {
         if(!getDef().supports(sourcePointDataType))
             result.addContextualMessage("dataType", "validate.text.incompatible");
+    }
+
+    default Locale getLocale() {
+        return Common.getUser().getLocaleObject();
     }
     
 }
