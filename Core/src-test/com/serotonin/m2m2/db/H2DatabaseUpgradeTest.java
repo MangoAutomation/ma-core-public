@@ -98,8 +98,8 @@ public class H2DatabaseUpgradeTest extends MangoTestBase {
 
     public static class UpgradeConfig {
         @Bean
-        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration, String propertyPrefix) {
-            return new H2Proxy(null, configuration, propertyPrefix) {
+        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
+            return new H2Proxy(null, configuration, "") {
                 @Override
                 protected boolean restoreTables() throws IOException {
                     try (var outputStream = createTablesOutputStream()) {
