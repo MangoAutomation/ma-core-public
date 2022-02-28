@@ -57,7 +57,7 @@ public class DataPointEventsBenchmarks extends BenchmarkRunner {
     public static class DataPointEventsBenchmarksConfig {
         @Bean
         public DatabaseProxy databaseProxy(DatabaseProxyFactory databaseProxyFactory) {
-            return databaseProxyFactory.createDatabaseProxy(DatabaseType.MYSQL);
+            return databaseProxyFactory.createDatabaseProxy(DatabaseType.MYSQL, "");
         }
     }
 

@@ -57,8 +57,8 @@ public class PostgresDatabaseUpgradeTest extends MangoTestBase {
 
     public static class UpgradeConfig {
         @Bean
-        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
-            return new PostgresProxy(null, configuration) {
+        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration, String propertyPrefix) {
+            return new PostgresProxy(null, configuration, propertyPrefix) {
                 @Override
                 protected boolean restoreTables() throws IOException {
                     try (var outputStream = createTablesOutputStream()) {

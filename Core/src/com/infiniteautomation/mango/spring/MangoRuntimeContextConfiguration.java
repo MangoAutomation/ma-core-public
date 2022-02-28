@@ -320,7 +320,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     @Bean
     public DatabaseProxy databaseProxy(DatabaseProxyFactory factory, DatabaseType type) {
-        return factory.createDatabaseProxy(type);
+        return factory.createDatabaseProxy(type, "");
     }
 
     @Bean(destroyMethod = "") // Prevent Spring from prematurely calling close()

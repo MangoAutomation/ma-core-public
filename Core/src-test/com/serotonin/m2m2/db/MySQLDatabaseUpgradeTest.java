@@ -50,8 +50,8 @@ public class MySQLDatabaseUpgradeTest extends MangoTestBase {
 
     public static class UpgradeConfig {
         @Bean
-        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration) {
-            return new MySQLProxy(null, configuration) {
+        public DatabaseProxy databaseProxy(DatabaseProxyConfiguration configuration, String propertyPrefix) {
+            return new MySQLProxy(null, configuration, propertyPrefix) {
                 @Override
                 protected boolean restoreTables() throws IOException {
                     try (var outputStream = createTablesOutputStream()) {

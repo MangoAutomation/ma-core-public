@@ -165,7 +165,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                         else
                             port = "3306";
                         String user = Common.envProps.getString("db.username");
-                        String password = Common.getBean(DatabaseProxy.class).getDatabasePassword("");
+                        String password = Common.getBean(DatabaseProxy.class).getDatabasePassword();
                         // Split off any extra stuff on the db
                         String[] dbParts = parts[3].split("\\?");
                         String database = dbParts[0];
@@ -338,7 +338,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
                         else
                             port = "3306";
                         String user = Common.envProps.getString("db.username");
-                        String password = Common.getBean(DatabaseProxy.class).getDatabasePassword("");
+                        String password = Common.getBean(DatabaseProxy.class).getDatabasePassword();
                         // Split off any extra stuff on the db
                         String[] dbParts = parts[3].split("\\?");
                         String database = dbParts[0];

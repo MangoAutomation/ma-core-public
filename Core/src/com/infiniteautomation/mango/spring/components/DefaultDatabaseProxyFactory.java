@@ -28,16 +28,16 @@ public class DefaultDatabaseProxyFactory implements DatabaseProxyFactory {
     }
 
     @Override
-    public AbstractDatabaseProxy createDatabaseProxy(DatabaseType type) {
+    public AbstractDatabaseProxy createDatabaseProxy(DatabaseType type, String propertyPrefix) {
         switch(type) {
             case H2:
-                return new H2Proxy(this, configuration);
+                return new H2Proxy(this, configuration, propertyPrefix);
             case MSSQL:
-                return new MSSQLProxy(this, configuration);
+                return new MSSQLProxy(this, configuration, propertyPrefix);
             case MYSQL:
-                return new MySQLProxy(this, configuration);
+                return new MySQLProxy(this, configuration, propertyPrefix);
             case POSTGRES:
-                return new PostgresProxy(this, configuration);
+                return new PostgresProxy(this, configuration, propertyPrefix);
             default:
                 throw new ShouldNeverHappenException("Unknown/unsupported database type " + type);
         }

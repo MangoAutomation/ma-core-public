@@ -73,23 +73,23 @@ public class H2Proxy extends AbstractDatabaseProxy {
         DEFAULT_OPTIONS = Collections.unmodifiableMap(options);
     }
 
-    public H2Proxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
-        super(factory, configuration);
+    public H2Proxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration, String propertyPrefix) {
+        super(factory, configuration, propertyPrefix);
     }
 
     @Override
-    protected void initializeImpl(String propertyPrefix) {
+    protected void initializeImpl() {
         LOG.info("Initializing H2 connection manager");
 
-        upgradeLegacyPageStore(propertyPrefix);
+        upgradeLegacyPageStore();
         try {
-            upgradePageStoreToMvStore(propertyPrefix);
+            upgradePageStoreToMvStore();
         } catch (Exception e) {
             throw new RuntimeException("Error upgrading H2 page store to MV store", e);
         }
 
         JdbcDataSource jds = new JdbcDataSource();
-        jds.setURL(getUrl(propertyPrefix));
+        jds.setURL(getUrl());
         jds.setDescription("maDataSource");
 
         String user = env.getProperty(propertyPrefix + "db.username");
@@ -113,7 +113,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     /**
      * Potentially upgrade the h2 pagestore database from v196
      */
-    private void upgradeLegacyPageStore(String propertyPrefix) {
+    private void upgradeLegacyPageStore() {
         //Parse out the useful sections of the url
         String dbUrl = env.getRequiredProperty(propertyPrefix + "db.url");
         if (dbUrl.startsWith(IN_MEMORY_URL_PREFIX) || dbUrl.startsWith(TCP_URL_PREFIX)) {
@@ -136,12 +136,12 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
             try {
                 LOG.info("Dumping legacy database to file " + dumpPath.toString());
-                dumpLegacy(propertyPrefix, dumpPath);
+                dumpLegacy(dumpPath);
 
-                String url = getUrl(propertyPrefix);
+                String url = getUrl();
                 //Open a connection and import the dump script
                 LOG.info("Importing H2 database from " + dumpPath);
-                Properties connectionProperties = getConnectionProperties(propertyPrefix);
+                Properties connectionProperties = getConnectionProperties();
                 try (Connection connection = Driver.load().connect(url, connectionProperties)) {
                     restoreFromFile(dumpPath, connection);
                 }
@@ -173,7 +173,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         }
     }
 
-    private void upgradePageStoreToMvStore(String propertyPrefix) throws Exception {
+    private void upgradePageStoreToMvStore() throws Exception {
         String upgradeUrl = env.getRequiredProperty(propertyPrefix + "db.url");
         if (upgradeUrl.startsWith(IN_MEMORY_URL_PREFIX) || upgradeUrl.startsWith(TCP_URL_PREFIX)) {
             return;
@@ -210,7 +210,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         sourceOptions.put("MV_STORE", "FALSE");
         sourceOptions.put("IFEXISTS", "TRUE");
         String sourceUrlWithOptions = configureURL(sourceUrl, sourceOptions);
-        Properties connectionProperties = getConnectionProperties(propertyPrefix);
+        Properties connectionProperties = getConnectionProperties();
         try (Connection connection = Driver.load().connect(sourceUrlWithOptions, connectionProperties)) {
             dumpToFile(dumpPath, connection);
         }
@@ -251,7 +251,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         return combinedOptions;
     }
 
-    private Properties getConnectionProperties(String propertyPrefix) {
+    private Properties getConnectionProperties() {
         Properties connectionProperties = new Properties();
         connectionProperties.compute("user", (a, b) -> env.getProperty(propertyPrefix + "db.username"));
         connectionProperties.compute("password", (a, b) -> env.getProperty(propertyPrefix + "db.password"));
@@ -322,7 +322,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         }
     }
 
-    private String getUrl(String propertyPrefix) {
+    private String getUrl() {
         String url = env.getRequiredProperty(propertyPrefix + "db.url");
         if (url.startsWith(IN_MEMORY_URL_PREFIX) || url.startsWith(TCP_URL_PREFIX)) {
             return url;
@@ -395,7 +395,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     @Override
     public File getDataDirectory() {
-        String url = getUrl("");
+        String url = getUrl();
         if (!url.startsWith(IN_MEMORY_URL_PREFIX) && !url.startsWith(TCP_URL_PREFIX)) {
             Map<String, String> options = extractOptions(url);
             StoreType storeType = "FALSE".equals(options.get("MV_STORE")) ? StoreType.PAGE_STORE : StoreType.MV_STORE;
@@ -464,13 +464,13 @@ public class H2Proxy extends AbstractDatabaseProxy {
     /**
      * Dump legacy database to SQL using legacy driver from separate classloader
      */
-    private void dumpLegacy(String propertyPrefix, Path dumpPath) throws Exception {
+    private void dumpLegacy(Path dumpPath) throws Exception {
         String url = env.getRequiredProperty(propertyPrefix + "db.url");
         Map<String, String> options = extractOptions(url);
         options.put("MV_STORE", "FALSE");
         options.put("IFEXISTS", "TRUE");
 
-        Properties connectionProperties = getConnectionProperties(propertyPrefix);
+        Properties connectionProperties = getConnectionProperties();
         Path dbPath = getDbPathFromUrl(url);
 
         try (URLClassLoader jarLoader = loadLegacyJar()) {

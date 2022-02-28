@@ -53,22 +53,24 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     protected final Environment env;
     protected final ClassLoader classLoader;
     protected final List<DatabaseProxyListener> listeners;
+    protected final String propertyPrefix;
 
     private PlatformTransactionManager transactionManager;
     private DSLContext context;
     private ExtendedJdbcTemplate jdbcTemplate;
 
-    public AbstractDatabaseProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
+    public AbstractDatabaseProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration, String propertyPrefix) {
         this.factory = factory;
         this.env = configuration.getEnv();
         this.classLoader = configuration.getClassLoader();
         this.listeners = configuration.getListeners();
+        this.propertyPrefix = propertyPrefix;
     }
 
     @PostConstruct
     @Override
     public void initialize() {
-        initializeImpl("");
+        initializeImpl();
 
         DataSource dataSource = getDataSource();
 
@@ -107,7 +109,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         try {
             boolean newDatabase = false;
-            String convertTypeStr = env.getProperty("convert.db.type");
+            String convertTypeStr = env.getProperty(propertyPrefix + "convert.db.type");
             boolean willConvert = false;
 
             if (!databaseExists()) {
@@ -155,8 +157,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
                 // TODO check that the convert source has the current DB version, or upgrade it if not.
 
-                AbstractDatabaseProxy sourceProxy = (AbstractDatabaseProxy) factory.createDatabaseProxy(convertType);
+                AbstractDatabaseProxy sourceProxy = (AbstractDatabaseProxy) factory.createDatabaseProxy(convertType, propertyPrefix + "convert.");
                 try {
+                    sourceProxy.initialize();
+
                     DBConvert convert = new DBConvert();
                     convert.setSource(sourceProxy);
                     convert.setTarget(this);
@@ -258,12 +262,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     /**
      * Should create the DataSource, does not do conversion etc
-     * @param propertyPrefix string to prefix in front of property name when getting connection URL etc
      */
-    abstract protected void initializeImpl(String propertyPrefix);
+    abstract protected void initializeImpl();
 
     @Override
-    public String getDatabasePassword(String propertyPrefix) {
+    public String getDatabasePassword() {
         return env.getProperty(propertyPrefix + "db.password");
     }
 

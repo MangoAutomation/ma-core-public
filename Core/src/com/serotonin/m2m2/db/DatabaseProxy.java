@@ -149,7 +149,7 @@ public interface DatabaseProxy extends TransactionCapable {
 
     String getTableListQuery();
 
-    String getDatabasePassword(String propertyPrefix);
+    String getDatabasePassword();
 
     default boolean isUseMetrics() {
         return false;

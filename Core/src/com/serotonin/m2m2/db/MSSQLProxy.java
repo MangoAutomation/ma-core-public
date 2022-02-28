@@ -10,8 +10,8 @@ import org.springframework.dao.DataAccessException;
 import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 
 public class MSSQLProxy extends BasePooledProxy {
-    public MSSQLProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
-        super(factory, configuration);
+    public MSSQLProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration, String propertyPrefix) {
+        super(factory, configuration, propertyPrefix);
     }
 
     @Override

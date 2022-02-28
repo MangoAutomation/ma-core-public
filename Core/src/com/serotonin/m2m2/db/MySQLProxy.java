@@ -19,13 +19,13 @@ import com.serotonin.util.DirectoryUtils;
 
 public class MySQLProxy extends BasePooledProxy {
 
-    public MySQLProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
-        super(factory, configuration);
+    public MySQLProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration, String propertyPrefix) {
+        super(factory, configuration, propertyPrefix);
     }
 
     @Override
-    protected String getUrl(String propertyPrefix) {
-        String url = super.getUrl(propertyPrefix);
+    protected String getUrl() {
+        String url = super.getUrl();
         if (url.indexOf('?') > 0)
             url += "&";
         else
@@ -79,7 +79,7 @@ public class MySQLProxy extends BasePooledProxy {
 
     @Override
     public File getDataDirectory() {
-        String url = getUrl("");
+        String url = getUrl();
         if (!url.startsWith("jdbc:")) {
             throw new IllegalStateException("Invalid JDBC URL");
         }

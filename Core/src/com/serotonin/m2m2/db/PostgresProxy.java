@@ -11,8 +11,8 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import com.infiniteautomation.mango.spring.DatabaseProxyConfiguration;
 
 public class PostgresProxy extends BasePooledProxy {
-    public PostgresProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration) {
-        super(factory, configuration);
+    public PostgresProxy(DatabaseProxyFactory factory, DatabaseProxyConfiguration configuration, String propertyPrefix) {
+        super(factory, configuration, propertyPrefix);
     }
 
     @Override
@@ -26,8 +26,8 @@ public class PostgresProxy extends BasePooledProxy {
     }
 
     @Override
-    protected String getUrl(String propertyPrefix) {
-        String url = super.getUrl(propertyPrefix);
+    protected String getUrl() {
+        String url = super.getUrl();
         if (url.indexOf('?') > 0)
             url += "&";
         else
