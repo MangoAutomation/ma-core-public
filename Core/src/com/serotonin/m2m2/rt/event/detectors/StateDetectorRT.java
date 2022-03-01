@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +16,8 @@ import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
  * @author Matthew Lohbihler
  */
 abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeDelayedEventDetectorRT<T> {
+
+    private int riseEventCounter=0;
 
     /**
      */
@@ -31,6 +35,10 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
 
     private long stateActiveTime;
     private long stateInactiveTime;
+
+    private ConcurrentLinkedQueue<Long> raisingEventsQueue = new ConcurrentLinkedQueue<Long>();
+
+    private final Object LOCK = new Object();
 
     /**
      * State field. Whether the event is currently active or not. This field is used to prevent multiple events being
@@ -60,13 +68,16 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
     }
 
     private void changeStateActive(long time) {
-        stateActive = !stateActive;
 
-        if (stateActive)
-            // Schedule a job that will call the event active if it runs.
-            scheduleJob(time);
-        else
-            unscheduleJob(stateInactiveTime);
+        synchronized (LOCK) {
+            stateActive = !stateActive;
+            if (stateActive)
+                // Schedule a job that will call the event active if it runs.
+                scheduleJob(time);
+            else
+                unscheduleJob(stateInactiveTime);
+        }
+
     }
 
     abstract protected boolean stateDetected(PointValueTime newValue);
@@ -75,6 +86,7 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         long time = Common.timer.currentTimeMillis();
         if (stateDetected(newValue)) {
+            raisingEventsQueue.add(time);
             if (!stateActive) {
                 stateActiveTime = newValue.getTime();
                 changeStateActive(time);
@@ -95,20 +107,45 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
 
     @Override
     protected void setEventInactive(long timestamp) {
-        this.eventActive = false;
-        returnToNormal(stateInactiveTime);
+        synchronized (LOCK){
+            raisingEventsQueue.remove(timestamp);
+            this.eventActive = false;
+            returnToNormal(stateInactiveTime);
+        }
+
     }
 
     @Override
     protected void setEventActive(long timestamp) {
-        this.eventActive = true;
-        // Just for the fun of it, make sure that the high limit is active.
-        if (stateActive)
-            raiseEvent(stateActiveTime + getDurationMS(), createEventContext());
-        else {
-            // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
-            log.warn("Call to set event active when state detector is not active. Ignoring.");
-            eventActive = false;
+        synchronized (LOCK){
+
+            //TODO: @BPM The event should be raised here regardless of the stateActive?
+            //raiseEvent(stateActiveTime + getDurationMS(), createEventContext());
+            //this.eventActive = true;
+
+            // Just for the fun of it, make sure that the high limit is active.
+            if (stateActive){
+                //do we really want to re-raise the event?
+                this.eventActive = true;
+                //raiseEvent(stateActiveTime + getDurationMS(), createEventContext());
+                raiseEvent(timestamp, createEventContext());
+                raisingEventsQueue.remove(timestamp);
+            }
+            else {
+                if(!raisingEventsQueue.isEmpty()){
+                    Long time = raisingEventsQueue.remove();
+                    if(time != null){ //there was an event in the queue
+                        raiseEvent(timestamp, createEventContext());
+                        //setEventInactive(timer.currentTimeMillis());
+                    }
+                }
+                // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
+                if(eventActive){
+                    setEventInactive(timestamp);
+                }else
+                    log.warn("Call to set event active when state detector is not active. Ignoring.");
+
+            }
         }
     }
 }

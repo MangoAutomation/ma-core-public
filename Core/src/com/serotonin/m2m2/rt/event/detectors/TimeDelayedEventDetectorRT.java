@@ -3,6 +3,9 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.DataPointEventNotifyWorkItem;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -15,6 +18,10 @@ import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
  */
 abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeoutDetectorRT<T> {
 
+    private final Logger log = LoggerFactory.getLogger(TimeDelayedEventDetectorRT.class);
+
+    private final Object LOCK = new Object();
+
     /**
      */
     public TimeDelayedEventDetectorRT(T vo) {
@@ -25,37 +32,54 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
      * Schedule a job passing in the time of now for reference
      */
     @Override
-    synchronized protected void scheduleJob(long now) {
-        if (getDurationMS() > 0)
-            super.scheduleJob(now + getDurationMS());
-        else if(!isEventActive())
-            setEventActive(now);
+    protected void scheduleJob(long now) {
+        synchronized (LOCK) {
+            if (getDurationMS() > 0){
+
+                    super.scheduleJob(now + getDurationMS());
+            } else if(!isEventActive()){
+                setEventActive(now);
+            }
+        }
     }
 
     /**
      * Unschedule a job,
      *  - set event inactive if its active
      *  - raise and RTN an event in the past if it is inactive now
+     * @return
      */
-    synchronized protected void unscheduleJob(long conditionInactiveTime) {
+    protected void unscheduleJob(long conditionInactiveTime) {
         // Reset the eventActive if it is on
-        if (isEventActive())
+        if (isEventActive()){
             setEventInactive(conditionInactiveTime);
-
+        }
         // Check whether there is a tolerance duration.
         else if (getDurationMS() > 0) {
+
             if (isJobScheduled()) {
-                unscheduleJob();
+                synchronized (LOCK) {
+                    if(isJobScheduled()) {
+                        if (!isEventActive())
+                            unscheduleJob();
+                        // There is an existing job scheduled. It's fire time is likely past when the event is to actually fire,
+                        // so check if the event activation time
+                        long eventActiveTime = getConditionActiveTime() + getDurationMS();
 
-                // There is an existing job scheduled. It's fire time is likely past when the event is to actually fire,
-                // so check if the event activation time
-                long eventActiveTime = getConditionActiveTime() + getDurationMS();
+                        if (eventActiveTime < conditionInactiveTime) {
+                            // The event should go active.
+                            if (log.isWarnEnabled())
+                                log.warn("Calling raiseEvent and returnToNormal immediately after");
 
-                if (eventActiveTime < conditionInactiveTime) {
-                    // The event should go active.
-                    raiseEvent(eventActiveTime, createEventContext());
-                    // And then go inactive
-                    returnToNormal(conditionInactiveTime);
+                            //raiseEvent(eventActiveTime, createEventContext());
+                            setEventActive(eventActiveTime);
+
+                            // And then go inactive
+                            //returnToNormal(conditionInactiveTime);
+                            setEventInactive(conditionInactiveTime);
+
+                        }
+                    }
                 }
             }
         }
