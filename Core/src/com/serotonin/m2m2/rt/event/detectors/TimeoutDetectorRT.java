@@ -36,9 +36,6 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
 		        task = null;
 			}
 
-			/* (non-Javadoc)
-			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-			 */
 			@Override
 			public String getTaskId() {
 				//XIDs unique as of 3.3
@@ -71,7 +68,7 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
     /**
      * Internal configuration field. The unique name for this event producer to be used in the scheduler (if required).
      */
-    private TimerTask task;
+    protected volatile TimerTask task;
 
     @Override
     public void initialize() {

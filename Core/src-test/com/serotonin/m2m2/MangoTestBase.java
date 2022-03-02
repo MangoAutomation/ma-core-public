@@ -456,13 +456,13 @@ public class MangoTestBase {
     }
 
     protected DataPointVO createMockDataPoint(int id, String xid, String name,
-            String deviceName, boolean enabled, int dataSourceId, String dataSourceXid, MockPointLocatorVO vo) {
+                                              String deviceName, boolean enabled, int dataSourceId, String dataSourceXid, MockPointLocatorVO vo) {
         return createMockDataPoint(id, xid,
                 name, deviceName, enabled, dataSourceId, dataSourceXid, new MangoPermission(), new MangoPermission(), vo);
     }
 
     protected DataPointVO createMockDataPoint(int id, String xid, String name, String deviceName, boolean enabled, int dataSourceId,
-            String dataSourceXid, MangoPermission readPermission, MangoPermission setPermission, MockPointLocatorVO vo) {
+                                              String dataSourceXid, MangoPermission readPermission, MangoPermission setPermission, MockPointLocatorVO vo) {
 
         DataPointService service = Common.getBean(DataPointService.class);
         DataPointVO dp = new DataPointVO();

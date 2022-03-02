@@ -17,8 +17,6 @@ import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
  */
 abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeoutDetectorRT<T> {
 
-    protected volatile boolean jobCancelled;
-
     /**
      */
     public TimeDelayedEventDetectorRT(T vo) {
@@ -55,14 +53,13 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
         }else if (getDurationMS() > 0) { // Check whether there is a tolerance duration.
 
             if (isJobScheduled()) {
-                jobCancelled = true;
                 unscheduleJob();
 
                 // There is an existing job scheduled. It's fire time is likely past when the event is to actually fire,
                 // so check if the event activation time
                 long eventActiveTime = getConditionActiveTime() + getDurationMS();
 
-                if (eventActiveTime < conditionInactiveTime) {
+                if (eventActiveTime <= conditionInactiveTime) {
                     // The event should go active.
                     raiseEvent(eventActiveTime, createEventContext());
                     // And then go inactive
@@ -110,17 +107,17 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
     }
 
     @Override
-    public void scheduleTimeoutImpl(long fireTime) {
-        if(log.isTraceEnabled()) {
-            log.trace("scheduleTimeoutImpl({})", new Date(fireTime));
+    public synchronized void scheduleTimeoutImpl(long fireTime) {
+        //We were cancelled but already submitted to run
+        if(task == null) {
+            if(log.isTraceEnabled()) {
+                log.trace("scheduleTimeout({}) - job already cancelled, aborting", new Date(fireTime));
+            }
+            return;
         }
 
-        if(jobCancelled) {
-            if(log.isTraceEnabled()) {
-                log.trace("scheduleTimeoutImpl({}) - job already cancelled, aborting", new Date(fireTime));
-            }
-            jobCancelled = false;
-            return;
+        if(log.isTraceEnabled()) {
+            log.trace("scheduleTimeoutImpl({})", new Date(fireTime));
         }
         setEventActive(fireTime);
     }
