@@ -13,8 +13,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -112,17 +112,18 @@ public class EventDetectorAlarmTest extends MangoTestBase {
         Common.eventManager.removeUserEventListener(this.listener);
         dataSourceService.delete(dsVo.getId());
     }
+
     //@Test
     public void testEventDetectorAfterXS() {
         testEventDetectorAssertAfter(10  , 10, SECONDS);
     }
 
-    //@Test
+    @Test
     public void testEventDetectorAfterS() {
         testEventDetectorAssertAfter(100  , 10, SECONDS);
     }
 
-    @Test
+    //@Test
     public void testEventDetectorAfterM() {
         testEventDetectorAssertAfter(1000, 10, SECONDS);
     }
@@ -246,8 +247,6 @@ public class EventDetectorAlarmTest extends MangoTestBase {
     }*/
 
     private void testEventDetectorAssertAfter(int events  , int eventDetectorDuration, int eventDetectorDurationType) {
-        Random random = new Random();
-
         //Create data point
         DataPointVO dp = createDataPoint(true);
 
@@ -259,43 +258,40 @@ public class EventDetectorAlarmTest extends MangoTestBase {
         //Add a detector
         MultistateStateDetectorVO ed = createEventDetector(dp, eventDetectorDuration, eventDetectorDurationType);
 
-        //set initial value
-        //rt.setPointValue(new PointValueTime(0, timer.currentTimeMillis()), null);
+        //Get it again with the new detector added
+        rt = getRuntimeManager().getDataPoint(dp.getId());
 
-
+        long duration = Common.getMillis(eventDetectorDurationType, eventDetectorDuration);
         for (int eventId = 1; eventId <= events ; eventId++) {
-            timer.fastForwardTo(timer.currentTimeMillis() + Common.getMillis(eventDetectorDurationType, eventDetectorDuration));
+            timer.fastForwardTo(timer.currentTimeMillis() + duration);
 
             //change the value to rise the alarm.
             ensureSetPointValue(rt, new PointValueTime(1, timer.currentTimeMillis()));
 
-
-            timer.fastForwardTo( timer.currentTimeMillis() + Common.getMillis(eventDetectorDurationType, eventDetectorDuration));
+            timer.fastForwardTo( timer.currentTimeMillis() + duration);
 
             //Set value back to normal
             ensureSetPointValue(rt, new PointValueTime(0, timer.currentTimeMillis()));
-
         }
 
+        assertFalse("There are " + listener.events.size() + " events in the map", listener.events.isEmpty());
 
-        assertFalse("There are " +listener.events.size() + " events in the map", listener.events.isEmpty());
-
-
-        // for (Map.Entry<String,String> entry : gfg.entrySet())
         for (Map.Entry<Integer, EventTracker> entry: listener.events.entrySet()) {
             if(!entry.getValue().isActive()) {
-                log.info("Event = " + entry.getKey() +
-                        " " + entry.getValue().getRoseEvt().getAlarmLevel() +
-                        ", isActive = " + entry.getValue().getRtnEvt().isActive() +
-                        ", roseTime = " + entry.getValue().getRoseEvt().getActiveTimestamp() +
-                        ", return to normal time = " + entry.getValue().getRtnEvt().getRtnTimestamp() +
-                        ", up time = " + (entry.getValue().getRtnEvt().getRtnTimestamp() - entry.getValue().getRoseEvt().getActiveTimestamp()));
+                log.info("Event = {} {}, isActive={}, raiseTime={}, rtnTime={}, upTime={}ms",
+                        entry.getKey(),
+                        entry.getValue().getRoseEvt().getAlarmLevel(),
+                        entry.getValue().getRtnEvt().isActive(),
+                        new Date(entry.getValue().getRoseEvt().getActiveTimestamp()),
+                        new Date(entry.getValue().getRtnEvt().getRtnTimestamp()),
+                        (entry.getValue().getRtnEvt().getRtnTimestamp() - entry.getValue().getRoseEvt().getActiveTimestamp()));
             }else{
-                log.info("Event = " + entry.getKey() +
-                        " " + entry.getValue().getRoseEvt().getAlarmLevel() +
-                        ", isActive = " + entry.getValue().isActive() +
-                        ", roseTime = " + entry.getValue().getRoseEvt().getActiveTimestamp() +
-                        ", return to normal time = nope, up time = " + (timer.currentTimeMillis() - entry.getValue().getRoseEvt().getActiveTimestamp() ));
+                log.info("Event = {} {}, isActive={}, raiseTime={}, rtnTime=N/A, upTime={}ms",
+                        entry.getKey(),
+                        entry.getValue().getRoseEvt().getAlarmLevel(),
+                        entry.getValue().isActive(),
+                        new Date(entry.getValue().getRoseEvt().getActiveTimestamp()),
+                        (timer.currentTimeMillis() - entry.getValue().getRoseEvt().getActiveTimestamp() ));
             }
         }
         for (Map.Entry<Integer, EventTracker> entry: listener.events.entrySet()) {
@@ -303,9 +299,7 @@ public class EventDetectorAlarmTest extends MangoTestBase {
             assertFalse("At least one event never returned to normal", entry.getValue().isActive());
         }
 
-
-        assertEquals("Failed to rise the expected events.",events - listener.notRtnApplicableEvents, listener.events.size());
-
+        assertEquals("Failed to raise the expected events.",events, listener.events.size());
     }
 
 
@@ -464,24 +458,12 @@ public class EventDetectorAlarmTest extends MangoTestBase {
         @Override
         public void raised(EventInstance evt) {
             if(evt.getEventType() instanceof DataPointEventType) {
-                if (evt.getAlarmLevel() != AlarmLevels.INFORMATION) {
-                    if (log.isTraceEnabled()) {
-                        log.trace("Listener: Event " + evt.getId() + " is a " + evt.getAlarmLevel() + " time is: " + evt.getActiveTimestamp());
-                    }
-                    if (evt.isRtnApplicable()) {
-                        assertNull("The event " + evt.getId() + " has already risen",
-                                events.put(evt.getId(), new EventTracker(timer.currentTimeMillis(), evt)));
-                    } else {
-                        log.warn("Event " + evt.getId() +
-                                ", Level: " + evt.getAlarmLevel() +
-                                ", Message: " + evt.getMessageString());
-                        notRtnApplicableEvents++;
-                    }
-                } else {
-                    log.warn("Event " + evt.getId() +
-                            ", Level: " + evt.getAlarmLevel() +
-                            ", Message: " + evt.getMessageString());
-                    notRtnApplicableEvents++;
+                if (log.isTraceEnabled()) {
+                    log.trace("Listener: Event {} is a {} time is {}", evt.getId(), evt.getAlarmLevel(), new Date(evt.getActiveTimestamp()));
+                }
+                if (evt.isRtnApplicable()) {
+                    assertNull("The event " + evt.getId() + " has already risen",
+                            events.put(evt.getId(), new EventTracker(timer.currentTimeMillis(), evt)));
                 }
             }
 
@@ -491,7 +473,7 @@ public class EventDetectorAlarmTest extends MangoTestBase {
         public void returnToNormal(EventInstance evt) {
             if(evt.getEventType() instanceof DataPointEventType) {
                 if (log.isTraceEnabled())
-                    log.trace("Listener: Return to normal " + evt.getId() + " time is: " + evt.getRtnTimestamp());
+                    log.trace("Listener: Return to normal {} time is {}", evt.getId(), new Date(evt.getRtnTimestamp()));
 
                 EventTracker tempTracker = events.remove(evt.getId());
                 if (tempTracker != null) {

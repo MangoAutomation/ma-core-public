@@ -73,7 +73,7 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
     abstract protected boolean stateDetected(PointValueTime newValue);
 
     @Override
-    public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+    public synchronized void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         //TODO what time to use here?  timer or newValue.getTime()?
         //long time = Common.timer.currentTimeMillis();
         long time = newValue.getTime();
@@ -103,12 +103,15 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
 
     @Override
     protected void setEventInactive(long timestamp) {
+        if(log.isTraceEnabled()) {
+            log.trace("setEventInactive({})", new Date(timestamp));
+        }
         this.eventActive = false;
         returnToNormal(stateInactiveTime);
     }
 
     @Override
-    protected synchronized void setEventActive(long timestamp) {
+    protected void setEventActive(long timestamp) {
         if(log.isTraceEnabled()) {
             log.trace("setEventActive({})", new Date(timestamp));
         }
