@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.DefaultConfiguration;
 import org.junit.After;
@@ -76,16 +75,10 @@ public class EventDetectorAlarmTest extends MangoTestBase {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     static {
         Configurator.initialize(new DefaultConfiguration());
-        //Configurator.setRootLevel(Level.DEBUG);
-        //Configurator.setLevel("com.serotonin.m2m2.rt", Level.TRACE);
-        //Configurator.setLevel("com.serotonin.m2m2.rt", Level.WARN);
-        Configurator.setLevel("com.serotonin.m2m2.rt.event.detectors.EventDetectorAlarmTest", Level.TRACE);
-        Configurator.setLevel("com.serotonin.m2m2.rt.event.detectors", Level.TRACE);
+        //Configurator.setLevel("com.serotonin.m2m2.rt.event.detectors.EventDetectorAlarmTest", Level.TRACE);
+        //Configurator.setLevel("com.serotonin.m2m2.rt.event.detectors", Level.TRACE);
     }
 
-
-//    @Rule
-//    public RetryRule retryRule = new RetryRule(5, true, false, RetryRule.FailBehaviour.ANY);
 
     @Before
     public void configure() {
@@ -113,7 +106,7 @@ public class EventDetectorAlarmTest extends MangoTestBase {
         dataSourceService.delete(dsVo.getId());
     }
 
-    //@Test
+    @Test
     public void testEventDetectorAfterXS() {
         testEventDetectorAssertAfter(10  , 10, SECONDS);
     }
@@ -123,12 +116,12 @@ public class EventDetectorAlarmTest extends MangoTestBase {
         testEventDetectorAssertAfter(100  , 10, SECONDS);
     }
 
-    //@Test
+    @Test
     public void testEventDetectorAfterM() {
         testEventDetectorAssertAfter(1000, 10, SECONDS);
     }
 
-    //@Test
+    @Test
     public void testEventDetectorAfterL() {
         testEventDetectorAssertAfter(10000, 10, SECONDS);
     }
@@ -240,11 +233,6 @@ public class EventDetectorAlarmTest extends MangoTestBase {
 
 
     }
-
-    /*@Test
-    public void testEventDetectorAfterXL() {
-        testEventDetectorAssertAfter(50000, 10, SECONDS);
-    }*/
 
     private void testEventDetectorAssertAfter(int events  , int eventDetectorDuration, int eventDetectorDurationType) {
         //Create data point
