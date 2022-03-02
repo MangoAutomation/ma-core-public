@@ -45,6 +45,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
@@ -194,8 +195,9 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         objectMapper.setDateFormat(dateFormat);
 
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
+        objectMapper.registerModule(new Jdk8Module());
+        objectMapper.registerModule(new JavaTimeModule())
+            .setTimeZone(TimeZone.getDefault()); //Set to system tz
 
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
