@@ -7,6 +7,9 @@
 * Add support for PostgreSQL
 * Update postgresql driver to v42.3.2
 
+*Version 4.3.1*
+* Refactor synchronization and task order for event detectors and data point listeners.
+
 *Version 4.3.0*
 * Move Publisher points into separate table and add xid, name and enabled fields for better performance and control of publishers
 * Importing a publisher with points from a previous version will only add new points, not update the existing points in the system this means only import once or delete the existing publisher prior to importing again
