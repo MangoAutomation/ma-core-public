@@ -33,8 +33,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
@@ -48,9 +48,14 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
+import com.infiniteautomation.mango.spring.annotations.CommonMapper;
+import com.infiniteautomation.mango.spring.annotations.DatabaseMapper;
+import com.infiniteautomation.mango.spring.annotations.RestMapper;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
+import com.infiniteautomation.mango.spring.converters.DurationConverter;
+import com.infiniteautomation.mango.spring.converters.TemporalAmountConverter;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -64,9 +69,6 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
-import com.infiniteautomation.mango.spring.annotations.CommonMapper;
-import com.infiniteautomation.mango.spring.annotations.DatabaseMapper;
-import com.infiniteautomation.mango.spring.annotations.RestMapper;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.RuntimeManagerImpl;
@@ -263,8 +265,11 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
      * J.W. This is used to convert properties from strings into lists of integers etc when they are injected by Spring
      */
     @Bean
-    public static ConfigurableConversionService conversionService() {
-        return new DefaultConversionService();
+    public static GenericConversionService conversionService() {
+        var conversionService = new DefaultConversionService();
+        conversionService.addConverter(new TemporalAmountConverter());
+        conversionService.addConverter(new DurationConverter());
+        return conversionService;
     }
 
     @Bean
