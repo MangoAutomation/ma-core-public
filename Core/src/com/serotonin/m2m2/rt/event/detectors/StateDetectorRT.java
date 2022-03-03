@@ -3,10 +3,8 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Date;
 
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 
@@ -20,8 +18,6 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
     public StateDetectorRT(T vo) {
         super(vo);
     }
-
-    private final Logger log = LoggerFactory.getLogger(StateDetectorRT.class);
 
     /**
      * State field. Whether the state has been detected or not. This field is used to prevent multiple events being
@@ -62,27 +58,39 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
     private void changeStateActive(long time) {
         stateActive = !stateActive;
 
-        if (stateActive)
+        if(log.isTraceEnabled()) {
+            log.trace("changeStateActive({}) {}", new Date(time), stateActive);
+        }
+
+        if (stateActive) {
             // Schedule a job that will call the event active if it runs.
             scheduleJob(time);
-        else
+        }else {
             unscheduleJob(stateInactiveTime);
+        }
     }
 
     abstract protected boolean stateDetected(PointValueTime newValue);
 
     @Override
-    public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        long time = Common.timer.currentTimeMillis();
+    public synchronized void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+        //TODO what time to use here?  timer or newValue.getTime()?
+        //long time = Common.timer.currentTimeMillis();
+        long time = newValue.getTime();
+
+        if(log.isTraceEnabled()) {
+            log.trace("pointChanged({}) at {}", newValue.getIntegerValue(), new Date(time));
+        }
+
         if (stateDetected(newValue)) {
             if (!stateActive) {
-                stateActiveTime = newValue.getTime();
+                stateActiveTime = time;
                 changeStateActive(time);
             }
         }
         else {
             if (stateActive) {
-                stateInactiveTime = newValue.getTime();
+                stateInactiveTime = time;
                 changeStateActive(time);
             }
         }
@@ -95,20 +103,26 @@ abstract public class StateDetectorRT<T extends TimeoutDetectorVO<T>> extends Ti
 
     @Override
     protected void setEventInactive(long timestamp) {
+        if(log.isTraceEnabled()) {
+            log.trace("setEventInactive({})", new Date(timestamp));
+        }
         this.eventActive = false;
         returnToNormal(stateInactiveTime);
     }
 
     @Override
     protected void setEventActive(long timestamp) {
-        this.eventActive = true;
+        if(log.isTraceEnabled()) {
+            log.trace("setEventActive({})", new Date(timestamp));
+        }
+
         // Just for the fun of it, make sure that the high limit is active.
-        if (stateActive)
+        if (stateActive) {
             raiseEvent(stateActiveTime + getDurationMS(), createEventContext());
-        else {
+            this.eventActive = true;
+        }else {
             // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
             log.warn("Call to set event active when state detector is not active. Ignoring.");
-            eventActive = false;
         }
     }
 }

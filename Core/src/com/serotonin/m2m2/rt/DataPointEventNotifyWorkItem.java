@@ -48,7 +48,7 @@ public class DataPointEventNotifyWorkItem implements WorkItem {
         this.logged = logged;
         this.updated = updated;
         this.attributesChanged = attributesChanged;
-        this.taskId = prefix + sourceXid + "-" + listener.hashCode();
+        this.taskId = prefix + sourceXid;
     }
 
     @Override

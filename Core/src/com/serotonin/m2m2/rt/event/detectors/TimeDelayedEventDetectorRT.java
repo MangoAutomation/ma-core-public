@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import java.util.Date;
+
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.DataPointEventNotifyWorkItem;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -26,6 +28,9 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
      */
     @Override
     synchronized protected void scheduleJob(long now) {
+        if(log.isTraceEnabled()) {
+            log.trace("scheduleJob({})", new Date(now));
+        }
         if (getDurationMS() > 0)
             super.scheduleJob(now + getDurationMS());
         else if(!isEventActive())
@@ -38,12 +43,15 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
      *  - raise and RTN an event in the past if it is inactive now
      */
     synchronized protected void unscheduleJob(long conditionInactiveTime) {
-        // Reset the eventActive if it is on
-        if (isEventActive())
-            setEventInactive(conditionInactiveTime);
+        if(log.isTraceEnabled()) {
+            log.trace("unscheduleJob({})", new Date(conditionInactiveTime));
+        }
 
-        // Check whether there is a tolerance duration.
-        else if (getDurationMS() > 0) {
+        // Reset the eventActive if it is on
+        if (isEventActive()) {
+            setEventInactive(conditionInactiveTime);
+        }else if (getDurationMS() > 0) { // Check whether there is a tolerance duration.
+
             if (isJobScheduled()) {
                 unscheduleJob();
 
@@ -51,7 +59,7 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
                 // so check if the event activation time
                 long eventActiveTime = getConditionActiveTime() + getDurationMS();
 
-                if (eventActiveTime < conditionInactiveTime) {
+                if (eventActiveTime <= conditionInactiveTime) {
                     // The event should go active.
                     raiseEvent(eventActiveTime, createEventContext());
                     // And then go inactive
@@ -99,7 +107,18 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
     }
 
     @Override
-    public void scheduleTimeoutImpl(long fireTime) {
+    public synchronized void scheduleTimeoutImpl(long fireTime) {
+        //We were cancelled but already submitted to run
+        if(task == null) {
+            if(log.isTraceEnabled()) {
+                log.trace("scheduleTimeout({}) - job already cancelled, aborting", new Date(fireTime));
+            }
+            return;
+        }
+
+        if(log.isTraceEnabled()) {
+            log.trace("scheduleTimeoutImpl({})", new Date(fireTime));
+        }
         setEventActive(fireTime);
     }
 }

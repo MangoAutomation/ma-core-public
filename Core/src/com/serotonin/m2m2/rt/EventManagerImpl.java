@@ -243,9 +243,12 @@ public class EventManagerImpl implements EventManager {
             // Call raiseEvent handlers.
             handleRaiseEvent(evt, emailUsers);
 
-            if (log.isTraceEnabled())
-                log.trace("Event raised: type=" + type + ", message="
-                        + message.translate(Common.getTranslations()));
+            if (log.isTraceEnabled()) {
+                log.trace("Event raised: type={}, message={}, time={}",
+                        type,
+                        message.translate(Common.getTranslations()),
+                        new Date(time));
+            }
         }
     }
 
@@ -309,15 +312,16 @@ public class EventManagerImpl implements EventManager {
         EventInstance evt = remove(type);
         if(evt == null) {
             if(log.isDebugEnabled()) {
-                log.debug("Attempted to return non-existent event to normal! type={}, message={}, now={}, eventTime={}, typeRef1={}, typeRef2={}",
-                        type, evt.getMessage().translate(Common.getTranslations()),
+                log.debug("Attempted to return non-existent event to normal! type={}, now={}, eventTime={}, typeRef1={}, typeRef2={}",
+                        type.getEventType(),
                         new Date(Common.timer.currentTimeMillis()), new Date(time),
-                        evt.getEventType().getReferenceId1(),
-                        evt.getEventType().getReferenceId2());
+                        type.getReferenceId1(),
+                        type.getReferenceId2());
             }
             return;
         }
 
+        int eventCount = 0;
         long nowTimestamp = Common.timer.currentTimeMillis();
         if(time > nowTimestamp) {
             log.warn("Returning event to normal in future! type=" + type +
@@ -333,6 +337,7 @@ public class EventManagerImpl implements EventManager {
 
         // Loop in case of multiples
         while (evt != null) {
+            eventCount++;
             evt.returnToNormal(time, cause);
 
             List<Integer> userIdsToNotify = new ArrayList<>();
@@ -363,8 +368,9 @@ public class EventManagerImpl implements EventManager {
             evt = remove(type);
         }
 
-        if (log.isTraceEnabled())
-            log.trace("Event returned to normal: type=" + type);
+        if (log.isTraceEnabled()) {
+            log.trace("{} Events returned to normal: type={}, time={}", eventCount, type, new Date(time));
+        }
     }
 
     /**
