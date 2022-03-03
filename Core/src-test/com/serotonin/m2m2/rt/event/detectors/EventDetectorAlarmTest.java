@@ -7,11 +7,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 import static com.serotonin.m2m2.Common.TimePeriods.MINUTES;
 import static com.serotonin.m2m2.Common.TimePeriods.SECONDS;
 import static com.serotonin.m2m2.vo.DataPointVO.IntervalLoggingTypes.INSTANT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.Date;
 import java.util.Map;
@@ -32,7 +28,7 @@ import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataType;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -293,7 +289,7 @@ public class EventDetectorAlarmTest extends MangoTestBase {
 
     protected DataPointVO createDataPoint(boolean enabled) {
         //Create point locator
-        MockPointLocatorVO plVo = new MockPointLocatorVO(DataType.MULTISTATE, true);
+        MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.MULTISTATE, true);
 
         //Setup Data Point VO
         DataPointVO dpVo = new DataPointVO();
