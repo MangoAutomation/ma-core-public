@@ -6,7 +6,6 @@ package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
@@ -39,9 +38,7 @@ public class DefaultMigrationConfig implements MigrationConfig {
 
     @Override
     public Duration getMigrationPeriod() {
-        long period = env.getProperty("db.migration.period", Long.class, 1L);
-        ChronoUnit periodUnit = env.getProperty("db.migration.periodUnit", ChronoUnit.class, ChronoUnit.DAYS);
-        return Duration.of(period, periodUnit);
+        return env.getProperty("db.migration.period", Duration.class, Duration.ofDays(1L));
     }
 
     @Override
@@ -93,24 +90,6 @@ public class DefaultMigrationConfig implements MigrationConfig {
 
     @Override
     public TemporalAmount getAggregationPeriod() {
-        long amount = env.getProperty("db.migration.aggregationPeriod", Long.class, 0L);
-        ChronoUnit unit = env.getProperty("db.migration.aggregationPeriodUnit", ChronoUnit.class, ChronoUnit.MINUTES);
-
-        if (amount <= 0) {
-            return null;
-        }
-
-        if (unit.isTimeBased()) {
-            return Duration.of(amount, unit);
-        }
-
-        switch (unit) {
-            case DAYS: return Period.ofDays(Math.toIntExact(amount));
-            case WEEKS: return Period.ofWeeks(Math.toIntExact(amount));
-            case MONTHS: return Period.ofMonths(Math.toIntExact(amount));
-            case YEARS: return Period.ofYears(Math.toIntExact(amount));
-        }
-
-        throw new IllegalStateException("Unsupported unit: " + unit);
+        return env.getProperty("db.migration.aggregationPeriod", TemporalAmount.class);
     }
 }
