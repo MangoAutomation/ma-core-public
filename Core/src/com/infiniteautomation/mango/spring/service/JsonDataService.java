@@ -6,7 +6,6 @@ package com.infiniteautomation.mango.spring.service;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonPointer;
@@ -16,12 +15,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.infiniteautomation.mango.spring.annotations.DatabaseMapper;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
@@ -42,7 +41,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     public JsonDataService(JsonDataDao dao,
                            ServiceDependencies dependencies,
                            @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") JsonDataCreatePermissionDefinition createPermission,
-                           @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper) {
+                           @DatabaseMapper ObjectMapper mapper) {
         super(dao, dependencies);
         this.createPermission = createPermission;
         this.mapper = mapper;

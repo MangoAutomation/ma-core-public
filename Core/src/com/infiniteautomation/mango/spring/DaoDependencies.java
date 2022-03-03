@@ -5,7 +5,6 @@
 package com.infiniteautomation.mango.spring;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
@@ -16,6 +15,7 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.db.dao.AbstractVoDao;
+import com.infiniteautomation.mango.spring.annotations.DatabaseMapper;
 
 /**
  * Hold dependencies passed through to {@link AbstractBasicDao} and {@link AbstractVoDao} constructors.
@@ -32,7 +32,7 @@ public class DaoDependencies {
 
     @Autowired
     public DaoDependencies(DatabaseProxy databaseProxy,
-                           @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper objectMapper,
+                           @DatabaseMapper ObjectMapper objectMapper,
                            ApplicationEventPublisher eventPublisher,
                            PermissionService permissionService) {
         this.databaseProxy = databaseProxy;

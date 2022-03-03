@@ -5,16 +5,15 @@ package com.serotonin.m2m2.module;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.infiniteautomation.mango.db.tables.PublishedPoints;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.infiniteautomation.mango.spring.annotations.DatabaseMapper;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -44,7 +43,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 abstract public class PublisherDefinition<PUB extends PublisherVO> extends ModuleElementDefinition {
 
     @Autowired
-    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
+    @DatabaseMapper
     private ObjectMapper dbMapper;
 
     protected final PublishedPoints table = PublishedPoints.PUBLISHED_POINTS;

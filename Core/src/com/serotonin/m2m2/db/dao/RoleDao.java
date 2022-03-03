@@ -22,7 +22,6 @@ import org.jooq.SelectOnConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Repository;
 
@@ -34,11 +33,11 @@ import com.infiniteautomation.mango.db.tables.RoleInheritance;
 import com.infiniteautomation.mango.db.tables.Roles;
 import com.infiniteautomation.mango.db.tables.records.RolesRecord;
 import com.infiniteautomation.mango.spring.DaoDependencies;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.infiniteautomation.mango.spring.annotations.DatabaseMapper;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -58,7 +57,7 @@ public class RoleDao extends AbstractVoDao<RoleVO, RolesRecord, Roles> {
     @Autowired
     private RoleDao(
             DatabaseProxy databaseProxy,
-            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME) ObjectMapper mapper,
+            @DatabaseMapper ObjectMapper mapper,
                     ApplicationEventPublisher publisher,
                     PermissionDao permissionDao, BeanFactory beanFactory) {
         super(new DaoDependencies(databaseProxy, mapper, publisher, null), AuditEventType.TYPE_ROLE,

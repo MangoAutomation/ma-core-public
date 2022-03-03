@@ -45,8 +45,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
@@ -66,6 +64,9 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
+import com.infiniteautomation.mango.spring.annotations.CommonMapper;
+import com.infiniteautomation.mango.spring.annotations.DatabaseMapper;
+import com.infiniteautomation.mango.spring.annotations.RestMapper;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.RuntimeManagerImpl;
@@ -173,18 +174,18 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean(REST_OBJECT_MAPPER_NAME)
-    public static ObjectMapper getObjectMapper(List<JacksonModuleDefinition> defs,
+    @RestMapper
+    public static ObjectMapper getObjectMapper(@RestMapper List<JacksonModuleDefinition> defs,
                                                @Value("${rest.indentJSON:false}") boolean indentJson) {
         // For raw Jackson
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, indentJson);
+        objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
 
         //Setup Module Defined JSON Modules
         for (JacksonModuleDefinition def : defs) {
-            if (def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.REST)) {
-                for (Module module : def.getJacksonModules()) {
-                    objectMapper.registerModule(module);
-                }
+            for (Module module : def.getJacksonModules()) {
+                objectMapper.registerModule(module);
             }
         }
 
@@ -193,9 +194,6 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         objectMapper.setDateFormat(dateFormat);
 
-        objectMapper.registerModule(new Jdk8Module());
-        objectMapper.registerModule(new JavaTimeModule())
-            .setTimeZone(TimeZone.getDefault()); //Set to system tz
 
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -203,17 +201,15 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean(COMMON_OBJECT_MAPPER_NAME)
-    public ObjectMapper getCommonObjectMapper(List<JacksonModuleDefinition> defs) {
+    @CommonMapper
+    public ObjectMapper getCommonObjectMapper(@CommonMapper List<JacksonModuleDefinition> defs) {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
         mapper.setTimeZone(TimeZone.getDefault());
 
         //Setup Module Defined JSON Modules
         for (JacksonModuleDefinition def : defs) {
-            if (def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.COMMON)) {
-                for (Module module : def.getJacksonModules()) {
-                    mapper.registerModule(module);
-                }
+            for (Module module : def.getJacksonModules()) {
+                mapper.registerModule(module);
             }
         }
 
@@ -224,17 +220,15 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean(DAO_OBJECT_MAPPER_NAME)
-    public ObjectMapper getDaoObjectMapper(List<JacksonModuleDefinition> defs) {
+    @DatabaseMapper
+    public ObjectMapper getDaoObjectMapper(@DatabaseMapper List<JacksonModuleDefinition> defs) {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
         mapper.setTimeZone(TimeZone.getTimeZone("UTC")); //Set to UTC in case timezone change while data is in database
 
         //Setup Module Defined JSON Modules
         for (JacksonModuleDefinition def : defs) {
-            if (def.getSourceMapperTypes().contains(JacksonModuleDefinition.ObjectMapperSource.DATABASE)) {
-                for (Module module : def.getJacksonModules()) {
-                    mapper.registerModule(module);
-                }
+            for (Module module : def.getJacksonModules()) {
+                mapper.registerModule(module);
             }
         }
 
