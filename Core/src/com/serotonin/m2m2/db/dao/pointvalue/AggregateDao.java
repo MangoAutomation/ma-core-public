@@ -42,12 +42,13 @@ public interface AggregateDao {
                 .limit(1)
                 .flatMap(Optional::stream);
 
-        var stream = getPointValueDao().streamPointValues(point,
+        var rawValues = getPointValueDao().streamPointValues(point,
                 from.toInstant().toEpochMilli(),
                 to.toInstant().toEpochMilli(),
-                limit, TimeOrder.ASCENDING);
+                null, TimeOrder.ASCENDING);
 
-        return aggregate(point, from, to, Stream.concat(previousValue, stream));
+        var aggregates = aggregate(point, from, to, Stream.concat(previousValue, rawValues));
+        return limit == null ? aggregates : aggregates.limit(limit);
     }
 
     default Stream<SeriesValueTime<AggregateValue>> aggregate(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
