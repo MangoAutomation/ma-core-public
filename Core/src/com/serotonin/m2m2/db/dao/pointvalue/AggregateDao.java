@@ -34,6 +34,10 @@ public interface AggregateDao {
     TemporalAmount getAggregationPeriod();
 
     default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit) {
+        if (from.isEqual(to)) {
+            return Stream.empty();
+        }
+
         var previousValue = Stream.generate(() -> getPointValueDao().getPointValueBefore(point, from.toInstant().toEpochMilli()))
                 .limit(1)
                 .flatMap(Optional::stream);
