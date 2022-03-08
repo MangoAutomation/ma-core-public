@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db.dao.pointvalue;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
@@ -15,7 +16,7 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
 
     private final long periodStartTime;
     private final long periodEndTime;
-    private final ArrayList<NumericAggregate> children = new ArrayList<>();
+    private final List<NumericAggregate> children = new ArrayList<>(0);
 
     public NumericMultiAggregate(long periodStartTime, long periodEndTime) {
         this.periodStartTime = periodStartTime;
