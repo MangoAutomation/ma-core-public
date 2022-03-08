@@ -5,18 +5,25 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.time.Period;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAmount;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateValue;
 import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.view.stats.IValueTime;
+import com.serotonin.m2m2.view.stats.SeriesValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 public abstract class DelegatingPointValueDao implements PointValueDao {
@@ -167,4 +174,45 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
         return primary.threadCount() + secondary.threadCount();
     }
 
+    @Override
+    public AggregateDao getAggregateDao(TemporalAmount aggregatePeriod) {
+        return new DelegatingAggregateDao(aggregatePeriod,
+                primary.getAggregateDao(aggregatePeriod),
+                secondary.getAggregateDao(aggregatePeriod));
+    }
+
+    public class DelegatingAggregateDao implements AggregateDao {
+
+        private final TemporalAmount aggregatePeriod;
+        private final AggregateDao primary;
+        private final AggregateDao secondary;
+
+        public DelegatingAggregateDao(TemporalAmount aggregatePeriod, AggregateDao primary, AggregateDao secondary) {
+            this.aggregatePeriod = aggregatePeriod;
+            this.primary = primary;
+            this.secondary = secondary;
+        }
+
+        @Override
+        public PointValueDao getPointValueDao() {
+            return DelegatingPointValueDao.this;
+        }
+
+        @Override
+        public TemporalAmount getAggregationPeriod() {
+            return aggregatePeriod;
+        }
+
+        @Override
+        public Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit) {
+            AggregateDao delegate = handleWithPrimary(point, Operation.READ) ? primary : secondary;
+            return delegate.query(point, from, to, limit);
+        }
+
+        @Override
+        public void save(DataPointVO point, Stream<? extends IValueTime<? extends AggregateValue>> aggregates, int chunkSize) {
+            AggregateDao delegate = handleWithPrimary(point, Operation.WRITE) ? primary : secondary;
+            delegate.save(point, aggregates, chunkSize);
+        }
+    }
 }
