@@ -4,6 +4,7 @@
 
 package com.serotonin.m2m2.module.definitions.db;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -23,7 +24,6 @@ import com.serotonin.m2m2.db.dao.migration.MigrationConfig;
 import com.serotonin.m2m2.db.dao.migration.MigrationPointValueDao;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
 import com.serotonin.m2m2.module.ConditionalDefinition;
-import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoConfigurationWatcher.MangoConfigurationReloadedEvent;
 
 @ConditionalDefinition("db.migration.enabled")
@@ -36,7 +36,7 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
     @Autowired ExecutorService executorService;
     @Autowired ScheduledExecutorService scheduledExecutorService;
     @Autowired ConfigurableApplicationContext context;
-    @Autowired AbstractTimer timer;
+    @Autowired Clock clock;
     @Autowired List<PointValueDaoDefinition> definitions;
     @Autowired MigrationProgressDao migrationProgressDao;
     @Autowired MigrationConfig config;
@@ -63,7 +63,7 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
                 dataPointDao,
                 executorService,
                 scheduledExecutorService,
-                timer,
+                clock,
                 migrationProgressDao,
                 config);
 

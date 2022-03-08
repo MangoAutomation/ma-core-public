@@ -4,6 +4,7 @@
 
 package com.serotonin.m2m2.db.dao.migration;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
@@ -45,7 +46,6 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.timer.AbstractTimer;
 
 import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
@@ -80,7 +80,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Long migrateFrom;
     private final long period;
     private final TemporalAmount aggregationPeriod;
-    private final AbstractTimer timer;
+    private final Clock clock;
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
     private final AtomicLong currentTimestamp = new AtomicLong(Long.MAX_VALUE);
@@ -101,7 +101,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                                   DataPointDao dataPointDao,
                                   ExecutorService executorService,
                                   ScheduledExecutorService scheduledExecutorService,
-                                  AbstractTimer timer,
+                                  Clock clock,
                                   MigrationProgressDao migrationProgressDao,
                                   MigrationConfig config) {
 
@@ -109,7 +109,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.dataPointDao = dataPointDao;
         this.executorService = executorService;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.timer = timer;
+        this.clock = clock;
         this.migrationProgressDao = migrationProgressDao;
         this.config = config;
 
@@ -336,7 +336,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             Long timestamp = next.getTimestamp();
             // ignore MIN_VALUE which comes from series which haven't completed their initial pass
             if (timestamp != null && timestamp > Long.MIN_VALUE) {
-                long timeLeft = timer.currentTimeMillis() - timestamp;
+                long timeLeft = clock.millis() - timestamp;
                 long periodsLeft = timeLeft / period + 1;
                 remainingPeriods = periodsLeft * remaining;
             }
@@ -424,8 +424,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return aggregationPeriod;
     }
 
-    AbstractTimer getTimer() {
-        return timer;
+    Clock getClock() {
+        return clock;
     }
 
     int getReadChunkSize() {

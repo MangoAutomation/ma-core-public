@@ -135,7 +135,7 @@ class MigrationSeries {
             from = Math.max(from, parent.getMigrateFrom());
         }
 
-        long currentTime = parent.getTimer().currentTimeMillis();
+        long currentTime = parent.getClock().millis();
         if (currentTime < to) {
             // close out series, do the final copy while holding the write-lock so inserts are blocked
             lock.writeLock().lock();
