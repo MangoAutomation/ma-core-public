@@ -1,5 +1,6 @@
 package com.serotonin.timer;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,21 +24,32 @@ public class SimulationTimer extends AbstractTimer {
     private boolean cancelled;
     private OrderedThreadPoolExecutor executorService;
     private SimulationTimeSource timeSource = new SimulationTimeSource();
-    private boolean async;
+    private final boolean async;
     private boolean ownsExecutor;
     
     /**
      * Create 
      */
     public SimulationTimer() {
-        this.async = false;
+        this(false);
     }
-    
+
     /**
      * Optionally submit tasks to the ordered thread pool executor
      */
     public SimulationTimer(boolean async) {
+        super();
         this.async = async;
+    }
+
+    public SimulationTimer(ZoneId zone, boolean async) {
+        super(zone);
+        this.async = async;
+    }
+
+    @Override
+    public SimulationTimer withZone(ZoneId zone) {
+        return new SimulationTimer(zone, async);
     }
     
     @Override

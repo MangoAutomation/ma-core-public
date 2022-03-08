@@ -3,6 +3,7 @@
  */
 package com.serotonin.timer;
 
+import java.time.ZoneId;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,14 @@ import java.util.concurrent.TimeUnit;
  *
  */
 public class OrderedRealTimeTimer extends RealTimeTimer {
+
+    public OrderedRealTimeTimer() {
+        super();
+    }
+
+    public OrderedRealTimeTimer(ZoneId zone) {
+        super(zone);
+    }
 
     public void init(OrderedThreadPoolExecutor executorService, int threadPriority){
         OrderedTimerThread timer = new OrderedTimerThread(queue, executorService, timeSource);
@@ -41,5 +50,10 @@ public class OrderedRealTimeTimer extends RealTimeTimer {
     public void init(TimerThread timer){
         //Check on cast
         super.init(timer);
+    }
+
+    @Override
+    public OrderedRealTimeTimer withZone(ZoneId zone) {
+        return new OrderedRealTimeTimer(zone);
     }
 }

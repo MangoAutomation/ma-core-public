@@ -1,5 +1,6 @@
 package com.serotonin.timer;
 
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -30,6 +31,14 @@ public class RealTimeTimer extends AbstractTimer {
     private Exception cancelStack;
 
     protected TimeSource timeSource = new SystemTimeSource();
+
+    public RealTimeTimer() {
+        super();
+    }
+
+    public RealTimeTimer(ZoneId zone) {
+        super(zone);
+    }
 
     public void setTimeSource(TimeSource timeSource) {
         this.timeSource = timeSource;
@@ -225,5 +234,9 @@ public class RealTimeTimer extends AbstractTimer {
     public TimeSource getTimeSource() {
         return timeSource;
     }
-    
+
+    @Override
+    public RealTimeTimer withZone(ZoneId zone) {
+        return new RealTimeTimer(zone);
+    }
 }

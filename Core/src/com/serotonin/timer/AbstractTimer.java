@@ -1,9 +1,23 @@
 package com.serotonin.timer;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-abstract public class AbstractTimer {
+abstract public class AbstractTimer extends Clock {
+
+    protected final ZoneId zone;
+
+    protected AbstractTimer() {
+        this(ZoneId.systemDefault());
+    }
+
+    protected AbstractTimer(ZoneId zone) {
+        this.zone = zone;
+    }
+
     abstract public boolean isInitialized();
 
     abstract public long currentTimeMillis();
@@ -50,4 +64,19 @@ abstract public class AbstractTimer {
     abstract public ExecutorService getExecutorService();
     
     abstract public TimeSource getTimeSource();
+
+    @Override
+    public ZoneId getZone() {
+        return zone;
+    }
+
+    @Override
+    public long millis() {
+        return getTimeSource().currentTimeMillis();
+    }
+
+    @Override
+    public Instant instant() {
+        return Instant.ofEpochMilli(getTimeSource().currentTimeMillis());
+    }
 }
