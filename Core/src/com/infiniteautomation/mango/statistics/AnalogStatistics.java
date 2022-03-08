@@ -247,18 +247,13 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     }
 
     @Override
-    public double getArithmeticMean() {
-        return statistics.getAverage();
-    }
-
-    @Override
     public double getMinimumInPeriod() {
-        return statistics.getMin();
+        return getCount() > 0 ? statistics.getMin() : Double.NaN;
     }
 
     @Override
     public double getMaximumInPeriod() {
-        return statistics.getMax();
+        return getCount() > 0 ? statistics.getMax() : Double.NaN;
     }
 
     @Override

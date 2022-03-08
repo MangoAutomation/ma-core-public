@@ -4,11 +4,14 @@
 
 package com.serotonin.m2m2.db.dao.pointvalue;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.infiniteautomation.mango.db.iterators.StatisticsAggregator;
@@ -78,6 +81,38 @@ public interface AggregateDao {
 
         return aggregateStream
                 .map(v -> new DefaultSeriesValueTime<>(point.getSeriesId(), v.getPeriodStartTime(), v));
+    }
+
+    /**
+     * @param aggregates input aggregates
+     * @return resampled aggregates, with period of {@link #getAggregationPeriod()}
+     * @throws IllegalArgumentException if point is not a numeric data point
+     */
+    default Stream<SeriesValueTime<AggregateValue>> resample(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
+                                                             Stream<? extends SeriesValueTime<? extends AggregateValue>> aggregates) {
+
+        var iterator = new PeekingIterator<>(aggregates.iterator());
+        var timestamp = new AtomicReference<>(from.toInstant());
+
+        var resampled = Stream.generate(() -> {
+            var periodStart = timestamp.getAndUpdate(v -> v.plus(getAggregationPeriod()));
+            var periodEnd = periodStart.plus(getAggregationPeriod());
+
+            // TODO support other data types
+            var multiAggregate = new NumericMultiAggregate(periodStart.toEpochMilli(), periodEnd.toEpochMilli());
+
+            while (iterator.hasNext()) {
+                var next = iterator.peek();
+                if (!multiAggregate.isInPeriod(next.getValue())) {
+                    break;
+                }
+                multiAggregate.addChild(iterator.next().getValue());
+            }
+            return multiAggregate;
+        });
+
+        return resampled.takeWhile(agg -> Instant.ofEpochMilli(agg.getPeriodStartTime()).isBefore(to.toInstant()))
+                .map(agg -> new DefaultSeriesValueTime<>(point.getSeriesId(), agg.getPeriodStartTime(), agg));
     }
 
     default void save(DataPointVO point, Stream<? extends IValueTime<? extends AggregateValue>> aggregates, int chunkSize) {

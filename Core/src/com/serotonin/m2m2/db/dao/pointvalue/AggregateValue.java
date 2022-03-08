@@ -15,6 +15,9 @@ public interface AggregateValue {
 
     long getPeriodEndTime();
 
+    /**
+     * @return the value of the point immediately prior to, or at the {@link #getPeriodStartTime start time}.
+     */
     DataValue getStartValue();
 
     DataValue getFirstValue();
