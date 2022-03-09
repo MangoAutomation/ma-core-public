@@ -91,28 +91,34 @@ public interface AggregateDao {
     default Stream<SeriesValueTime<AggregateValue>> resample(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
                                                              Stream<? extends SeriesValueTime<? extends AggregateValue>> aggregates) {
 
-        var iterator = new PeekingIterator<>(aggregates.iterator());
-        var timestamp = new AtomicReference<>(from.toInstant());
+        try {
+            var iterator = new PeekingIterator<>(aggregates.iterator());
+            var timestamp = new AtomicReference<>(from.toInstant());
 
-        var resampled = Stream.generate(() -> {
-            var periodStart = timestamp.getAndUpdate(v -> v.plus(getAggregationPeriod()));
-            var periodEnd = periodStart.plus(getAggregationPeriod());
+            var resampled = Stream.generate(() -> {
+                var periodStart = timestamp.getAndUpdate(v -> v.plus(getAggregationPeriod()));
+                var periodEnd = periodStart.plus(getAggregationPeriod());
 
-            // TODO support other data types
-            var multiAggregate = new NumericMultiAggregate(periodStart.toEpochMilli(), periodEnd.toEpochMilli());
+                // TODO support other data types
+                var multiAggregate = new NumericMultiAggregate(periodStart.toEpochMilli(), periodEnd.toEpochMilli());
 
-            while (iterator.hasNext()) {
-                var next = iterator.peek();
-                if (!multiAggregate.isInPeriod(next.getValue())) {
-                    break;
+                while (iterator.hasNext()) {
+                    var next = iterator.peek();
+                    if (!multiAggregate.isInPeriod(next.getValue())) {
+                        break;
+                    }
+                    multiAggregate.addChild(iterator.next().getValue());
                 }
-                multiAggregate.addChild(iterator.next().getValue());
-            }
-            return multiAggregate;
-        });
+                return multiAggregate;
+            }).onClose(aggregates::close);
 
-        return resampled.takeWhile(agg -> Instant.ofEpochMilli(agg.getPeriodStartTime()).isBefore(to.toInstant()))
-                .map(agg -> new DefaultSeriesValueTime<>(point.getSeriesId(), agg.getPeriodStartTime(), agg));
+            return resampled.takeWhile(agg -> Instant.ofEpochMilli(agg.getPeriodStartTime()).isBefore(to.toInstant()))
+                    .map(agg -> new DefaultSeriesValueTime<>(point.getSeriesId(), agg.getPeriodStartTime(), agg));
+
+        } catch (Exception e) {
+            aggregates.close();
+            throw e;
+        }
     }
 
     default void save(DataPointVO point, Stream<? extends IValueTime<? extends AggregateValue>> aggregates, int chunkSize) {
