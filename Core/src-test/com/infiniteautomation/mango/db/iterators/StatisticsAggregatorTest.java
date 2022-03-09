@@ -48,7 +48,7 @@ public class StatisticsAggregatorTest {
         Assert.assertEquals(expectedAggregateValues, aggregates.size());
         for (var aggregate : aggregates) {
             assertEquals(0L, aggregate.getCount());
-            assertEquals(0.0D, aggregate.getArithmeticMean(), 0.0D);
+            assertEquals(Double.NaN, aggregate.getArithmeticMean(), 0.0D);
             assertEquals(Double.NaN, aggregate.getAverage(), 0.0D);
         }
     }
@@ -64,7 +64,7 @@ public class StatisticsAggregatorTest {
         Assert.assertEquals(expectedAggregateValues, aggregates.size());
         for (var aggregate : aggregates) {
             assertEquals(0L, aggregate.getCount());
-            assertEquals(0.0D, aggregate.getArithmeticMean(), 0.0D);
+            assertEquals(Double.NaN, aggregate.getArithmeticMean(), 0.0D);
             assertEquals(1.0D, aggregate.getAverage(), 0.0D);
         }
     }
