@@ -8,7 +8,6 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.iterators.PeekingIterator;
@@ -84,35 +83,43 @@ public interface AggregateDao {
     }
 
     /**
+     * Resamples aggregates to this DAO's {@link #getAggregationPeriod() aggregation period}, fills in any missing
+     * periods with empty aggregates.
+     *
+     * <p>Currently only supports {@link com.serotonin.m2m2.DataType#NUMERIC NUMERIC} data points.</p>
+     *
      * @param aggregates input aggregates
-     * @return resampled aggregates, with period of {@link #getAggregationPeriod()}
+     * @return resampled aggregates
      * @throws IllegalArgumentException if point is not a numeric data point
      */
     default Stream<SeriesValueTime<AggregateValue>> resample(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
                                                              Stream<? extends SeriesValueTime<? extends AggregateValue>> aggregates) {
 
         try {
+            // get iterator where we can peek at the next value
             var iterator = new PeekingIterator<>(aggregates.iterator());
-            var timestamp = new AtomicReference<>(from.toInstant());
 
-            var resampled = Stream.generate(() -> {
-                var periodStart = timestamp.getAndUpdate(v -> v.plus(getAggregationPeriod()));
-                var periodEnd = periodStart.plus(getAggregationPeriod());
-
-                // TODO support other data types
-                var multiAggregate = new NumericMultiAggregate(periodStart.toEpochMilli(), periodEnd.toEpochMilli());
-
+            // generate a stream of empty aggregates
+            var initial = new NumericMultiAggregate(from.toInstant(), from.plus(getAggregationPeriod()).toInstant());
+            var resampled = Stream.iterate(initial,
+                    agg -> agg.getPeriodStartInstant().isBefore(to.toInstant()),
+                    agg -> {
+                        var start = agg.getPeriodEndInstant();
+                        return new NumericMultiAggregate(start, start.plus(getAggregationPeriod()));
+                    }
+            ).peek(agg -> {
+                // populate the aggregates with children from the original stream
                 while (iterator.hasNext()) {
                     var next = iterator.peek();
-                    if (!multiAggregate.isInPeriod(next.getValue())) {
+                    if (agg.isInPeriod(next.getValue())) {
+                        agg.addChild(iterator.next().getValue());
+                    } else {
                         break;
                     }
-                    multiAggregate.addChild(iterator.next().getValue());
                 }
-                return multiAggregate;
             }).onClose(aggregates::close);
 
-            return resampled.takeWhile(agg -> Instant.ofEpochMilli(agg.getPeriodStartTime()).isBefore(to.toInstant()))
+            return resampled
                     .map(agg -> new DefaultSeriesValueTime<>(point.getSeriesId(), agg.getPeriodStartTime(), agg));
 
         } catch (Exception e) {

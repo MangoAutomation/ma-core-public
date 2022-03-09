@@ -4,6 +4,7 @@
 
 package com.serotonin.m2m2.db.dao.pointvalue;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,10 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
     private final long periodStartTime;
     private final long periodEndTime;
     private final List<NumericAggregate> children = new ArrayList<>(0);
+
+    public NumericMultiAggregate(Instant periodStartTime, Instant periodEndTime) {
+        this(periodStartTime.toEpochMilli(), periodEndTime.toEpochMilli());
+    }
 
     public NumericMultiAggregate(long periodStartTime, long periodEndTime) {
         this.periodStartTime = periodStartTime;
@@ -40,6 +45,14 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
 
     private NumericAggregate lastChild() {
         return children.get(children.size() - 1);
+    }
+
+    public Instant getPeriodStartInstant() {
+        return Instant.ofEpochMilli(periodStartTime);
+    }
+
+    public Instant getPeriodEndInstant() {
+        return Instant.ofEpochMilli(periodEndTime);
     }
 
     @Override
@@ -157,5 +170,14 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
                 .mapToDouble(NumericAggregate::getMaximumInPeriod)
                 .max()
                 .orElse(Double.NaN);
+    }
+
+    @Override
+    public String toString() {
+        return "NumericMultiAggregate{" +
+                "periodStartTime=" + getPeriodStartInstant() +
+                ", periodEndTime=" + getPeriodEndInstant() +
+                ", children=" + children.size() +
+                '}';
     }
 }
