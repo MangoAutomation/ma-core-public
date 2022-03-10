@@ -4,9 +4,9 @@
 
 package com.serotonin.m2m2.db.dao.migration;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
 import java.util.Objects;
@@ -160,7 +160,13 @@ class MigrationSeries {
      */
     private ReadWriteCount copyPointValues(long from, long to) {
         TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
+        TemporalAmount aggregationDelay = parent.getAggregationDelay();
         ReadWriteCount sampleCount = new ReadWriteCount();
+
+        Clock clock = parent.getClock();
+        ZonedDateTime now = ZonedDateTime.now(clock);
+        ZonedDateTime transition = now.minus(aggregationDelay);
+        long transitionMs = transition.toInstant().toEpochMilli();
 
         try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
                 .peek(pv -> sampleCount.incrementRead())
@@ -172,8 +178,8 @@ class MigrationSeries {
 
                 // TODO truncate from
                 // TODO configurable time zone
-                ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(ZoneOffset.UTC);
-                ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(ZoneOffset.UTC);
+                ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(clock.getZone());
+                ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(clock.getZone());
 
                 // TODO filter out empty entries?
                 var aggregateStream = source

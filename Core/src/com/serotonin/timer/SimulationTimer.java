@@ -2,8 +2,6 @@ package com.serotonin.timer;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -20,10 +18,10 @@ import java.util.concurrent.TimeUnit;
  * @author Matthew Lohbihler
  */
 public class SimulationTimer extends AbstractTimer {
-    private final List<TimerTask> queue = new ArrayList<TimerTask>();
+    private final List<TimerTask> queue = new ArrayList<>();
     private boolean cancelled;
     private OrderedThreadPoolExecutor executorService;
-    private SimulationTimeSource timeSource = new SimulationTimeSource();
+    private final SimulationTimeSource timeSource = new SimulationTimeSource();
     private final boolean async;
     private boolean ownsExecutor;
     
@@ -40,6 +38,10 @@ public class SimulationTimer extends AbstractTimer {
     public SimulationTimer(boolean async) {
         super();
         this.async = async;
+    }
+
+    public SimulationTimer(ZoneId zone) {
+        this(zone, false);
     }
 
     public SimulationTimer(ZoneId zone, boolean async) {
@@ -130,16 +132,13 @@ public class SimulationTimer extends AbstractTimer {
     }
 
     private void updateQueue() {
-        Collections.sort(queue, new Comparator<TimerTask>() {
-            @Override
-            public int compare(TimerTask t1, TimerTask t2) {
-                long diff = t1.trigger.nextExecutionTime - t2.trigger.nextExecutionTime;
-                if (diff < 0)
-                    return -1;
-                if (diff == 0)
-                    return 0;
-                return 1;
-            }
+        queue.sort((t1, t2) -> {
+            long diff = t1.trigger.nextExecutionTime - t2.trigger.nextExecutionTime;
+            if (diff < 0)
+                return -1;
+            if (diff == 0)
+                return 0;
+            return 1;
         });
     }
 
@@ -153,7 +152,7 @@ public class SimulationTimer extends AbstractTimer {
         }
         List<TimerTask> tasks = getTasks();
         queue.clear();
-        timeSource.setTime(0l);
+        timeSource.setTime(0L);
         cancelled = false;
         return tasks;
     }    
@@ -187,7 +186,7 @@ public class SimulationTimer extends AbstractTimer {
 
     @Override
     public List<TimerTask> getTasks() {
-        return new ArrayList<TimerTask>(queue);
+        return new ArrayList<>(queue);
     }
 
     @Override
@@ -201,22 +200,14 @@ public class SimulationTimer extends AbstractTimer {
 	        this.executorService.execute(new TaskWrapper(command, this.timeSource.currentTimeMillis()));
 	    }else {
 	        //TODO should we run this here or a new thread?
-        	    new Thread() {
-        	        /* (non-Javadoc)
-        	         * @see java.lang.Thread#run()
-        	         */
-        	        @Override
-        	        public void run() {
-        	            command.runTask(timeSource.currentTimeMillis());
-        	        }
-        	    }.start();
+            new Thread(() -> command.runTask(timeSource.currentTimeMillis())).start();
 	    }
 	}
 
     @Override
     public void init() {
         this.ownsExecutor = true;
-        this.executorService = new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false, timeSource);
+        this.executorService = new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<>(), false, timeSource);
     }
 
     @Override

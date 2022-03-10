@@ -27,6 +27,7 @@ public class TestMigrationConfig implements MigrationConfig {
     Duration closeWait = Duration.ofSeconds(30L);
     Predicate<DataPointVO> dataPointFilter = p -> true;
     TemporalAmount aggregationPeriod;
+    TemporalAmount aggregationDelay = Duration.ZERO;
 
     @Override
     public Instant getMigrateFromTime() {
@@ -128,11 +129,20 @@ public class TestMigrationConfig implements MigrationConfig {
         return aggregationPeriod;
     }
 
+    @Override
+    public TemporalAmount getAggregationDelay() {
+        return aggregationDelay;
+    }
+
     public void setDataPointFilter(Predicate<DataPointVO> dataPointFilter) {
         this.dataPointFilter = dataPointFilter;
     }
 
     public void setAggregationPeriod(TemporalAmount aggregationPeriod) {
         this.aggregationPeriod = aggregationPeriod;
+    }
+
+    public void setAggregationDelay(TemporalAmount aggregationDelay) {
+        this.aggregationDelay = aggregationDelay;
     }
 }

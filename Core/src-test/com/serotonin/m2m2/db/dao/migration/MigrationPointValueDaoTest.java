@@ -29,11 +29,13 @@ import com.infiniteautomation.mango.pointvalue.generator.BrownianPointValueGener
 import com.infiniteautomation.mango.pointvalue.generator.LinearPointValueGenerator;
 import com.infiniteautomation.mango.pointvalue.generator.PointValueGenerator;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockPointValueDao;
+import com.serotonin.m2m2.SimulationTimerProvider;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
+import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -49,6 +51,13 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
     MockPointValueDao source;
     MockPointValueDao destination;
     SimulationTimer timer;
+
+    @Override
+    protected MockMangoLifecycle getLifecycle() {
+        MockMangoLifecycle lifecycle = super.getLifecycle();
+        lifecycle.setTimer(new SimulationTimerProvider(new SimulationTimer(ZoneOffset.UTC)));
+        return lifecycle;
+    }
 
     @Override
     public void before() {

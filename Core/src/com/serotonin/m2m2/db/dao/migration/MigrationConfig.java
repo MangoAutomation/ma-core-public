@@ -27,4 +27,5 @@ public interface MigrationConfig {
     Duration getCloseWait();
     Predicate<DataPointVO> getDataPointFilter();
     TemporalAmount getAggregationPeriod();
+    TemporalAmount getAggregationDelay();
 }

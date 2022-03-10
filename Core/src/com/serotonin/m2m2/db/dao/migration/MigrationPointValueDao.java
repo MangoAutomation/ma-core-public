@@ -80,6 +80,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Long migrateFrom;
     private final long period;
     private final TemporalAmount aggregationPeriod;
+    private final TemporalAmount aggregationDelay;
     private final Clock clock;
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
@@ -118,6 +119,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.migrateFrom = migrateFromTime == null ? null : migrateFromTime.toEpochMilli();
         this.period = config.getMigrationPeriod().toMillis();
         this.aggregationPeriod = config.getAggregationPeriod();
+        this.aggregationDelay = config.getAggregationDelay();
 
         int maxAttempts = config.getMaxAttempts();
         RetryConfig retryConfig = RetryConfig.custom()
@@ -424,6 +426,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return aggregationPeriod;
     }
 
+    TemporalAmount getAggregationDelay() {
+        return aggregationDelay;
+    }
+
     Clock getClock() {
         return clock;
     }
@@ -440,7 +446,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
      * Called after each iteration of a series migration.
      *
      * @param series series which is being migrated
-     * @param writeCount number of point values read
+     * @param readCount number of point values read
      * @param writeCount number of point values written
      * @param duration time taken for this period
      */

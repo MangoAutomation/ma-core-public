@@ -90,6 +90,11 @@ public class DefaultMigrationConfig implements MigrationConfig {
 
     @Override
     public TemporalAmount getAggregationPeriod() {
-        return env.getProperty("db.migration.aggregationPeriod", TemporalAmount.class);
+        return env.getProperty("db.migration.aggregation.period", TemporalAmount.class);
+    }
+
+    @Override
+    public TemporalAmount getAggregationDelay() {
+        return env.getProperty("db.migration.aggregation.delay", TemporalAmount.class, Duration.ZERO);
     }
 }
