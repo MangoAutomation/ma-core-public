@@ -20,13 +20,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
@@ -204,8 +202,8 @@ public class MangoTestBase {
             lifecycle = getLifecycle();
             try {
                 lifecycle.initialize();
-            } catch (InterruptedException | ExecutionException e) {
-                fail(e.getMessage());
+            } catch (Exception e) {
+                throw new RuntimeException("Lifecycle failed to initialize", e);
             }
         } else {
             // Re-initialize database
@@ -379,7 +377,7 @@ public class MangoTestBase {
     /**
      * Convert from json string to Object
      */
-    protected Object readSeroJson(Class<? extends Object> clazz, String json) throws IOException {
+    protected Object readSeroJson(Class<?> clazz, String json) throws IOException {
         JsonReader jr = new JsonReader(json);
         try {
             JsonValue jo = jr.read(JsonValue.class);
@@ -452,7 +450,7 @@ public class MangoTestBase {
         user.setPassword(Common.encrypt(password));
         user.setEmail(email);
         user.setPhone("");
-        user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(roles))));
+        user.setRoles(java.util.Set.of(roles));
         user.setDisabled(false);
         UsersService service = Common.getBean(UsersService.class);
 
@@ -568,12 +566,12 @@ public class MangoTestBase {
         try {
             return service.insert(dp);
         } catch (ValidationException e) {
-            String failureMessage = "";
+            StringBuilder failureMessage = new StringBuilder();
             for (ProcessMessage m : e.getValidationResult().getMessages()) {
                 String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
+                failureMessage.append(messagePart);
             }
-            fail(failureMessage);
+            fail(failureMessage.toString());
             return null;
         }
     }
@@ -639,7 +637,7 @@ public class MangoTestBase {
     public MockPublishedPointVO createMockPublishedPoint(MockPublisherVO publisher, IDataPoint dataPoint, boolean enabled) {
         MockPublishedPointVO pp = publisher.getDefinition().createPublishedPointVO(publisher, dataPoint);
         pp.setName(dataPoint.getName());
-        pp.setEnabled(true);
+        pp.setEnabled(enabled);
 
         PublishedPointService publishedPointService = Common.getBean(PublishedPointService.class);
         try {
@@ -674,19 +672,16 @@ public class MangoTestBase {
     protected void waitAndExecute(final long until, final long step) {
         //TODO Could wait until sync completed event is fired here by creating a mock event handler
         //TODO Could add fastForwardToInOtherThread method to timer...
-        new Thread() {
-            /* (non-Javadoc)
-             * @see java.lang.Thread#run()
-             */
-            @Override
-            public void run() {
-                long time = timer.currentTimeMillis();
-                while(timer.currentTimeMillis() < until) {
-                    time = time + step;
-                    timer.fastForwardTo(time);
-                }
+        /* (non-Javadoc)
+         * @see java.lang.Thread#run()
+         */
+        new Thread(() -> {
+            long time = timer.currentTimeMillis();
+            while(timer.currentTimeMillis() < until) {
+                time = time + step;
+                timer.fastForwardTo(time);
             }
-        }.start();
+        }).start();
 
 
         while(timer.currentTimeMillis() < until) {
