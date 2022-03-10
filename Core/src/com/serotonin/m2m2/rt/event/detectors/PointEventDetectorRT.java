@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -22,6 +24,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
 
     public static final String EVENT_DETECTOR_CONTEXT_KEY = "pointEventDetector";
     public static final String DATA_POINT_CONTEXT_KEY = "point";
+    protected final Logger log = LoggerFactory.getLogger(PointEventDetectorRT.class);
 
     public PointEventDetectorRT(T vo) {
         super(vo);

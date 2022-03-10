@@ -105,7 +105,7 @@ public class MangoTestBase {
     // To ensure we get same error
     // Also confirms that there is no missing cleanup for both previous and current test
     @Rule
-    public RetryRule retryRule = new RetryRule(2, true, false, RetryRule.FailBehaviour.ANY);
+    public RetryRule retryRule = new RetryRule(1, true, false, RetryRule.FailBehaviour.ANY);
 
     protected final Logger LOG = LoggerFactory.getLogger(MangoTestBase.class);
 
