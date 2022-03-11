@@ -232,17 +232,17 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      *
      * @param dataSourceEventTypeId Must be registered via {@link DataSourceVO} addEventTypes()
      * @param time time at which the event will be raised
-     * @param rtn true if the event can return to normal (become inactive) at some point in the future
+     * @param rtnApplicable true if the event can return to normal (become inactive) at some point in the future
      * @param message translatable event message
      * @throws IllegalStateException if data source has been terminated
      */
-    protected void raiseEvent(int dataSourceEventTypeId, long time, boolean rtn, TranslatableMessage message) {
+    protected void raiseEvent(int dataSourceEventTypeId, long time, boolean rtnApplicable, TranslatableMessage message) {
         message = new TranslatableMessage("event.ds", vo.getName(), message);
         EventStatus status = getEventStatus(dataSourceEventTypeId);
         Map<String, Object> context = Collections.singletonMap(DATA_SOURCE_EVENT_CONTEXT_KEY, vo);
         DataSourceEventType type = status.eventType;
 
-        if (rtn) {
+        if (rtnApplicable) {
             synchronized (status.lock) {
                 status.active = true;
                 Common.eventManager.raiseEvent(type, time, true, type.getAlarmLevel(), message, context);
