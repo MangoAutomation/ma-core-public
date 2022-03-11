@@ -8,7 +8,7 @@
 * Update postgresql driver to v42.3.2
 
 *Version 4.3.1*
-* Refactor synchronization and task order for event detectors and data point listeners.
+* Fix bug in Multistate state event detector synchronization
 
 *Version 4.3.0*
 * Move Publisher points into separate table and add xid, name and enabled fields for better performance and control of publishers
