@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
@@ -86,6 +87,11 @@ public class DefaultMigrationConfig implements MigrationConfig {
     @Override
     public Predicate<DataPointVO> getDataPointFilter() {
         return vo -> true;
+    }
+
+    @Override
+    public ZoneId getAggregationZone() {
+        return env.getProperty("db.migration.aggregation.zone", ZoneId.class, ZoneId.systemDefault());
     }
 
     @Override

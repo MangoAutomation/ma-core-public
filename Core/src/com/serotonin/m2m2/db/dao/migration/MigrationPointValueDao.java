@@ -110,7 +110,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.dataPointDao = dataPointDao;
         this.executorService = executorService;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.clock = clock;
+        this.clock = clock.withZone(config.getAggregationZone());
         this.migrationProgressDao = migrationProgressDao;
         this.config = config;
 

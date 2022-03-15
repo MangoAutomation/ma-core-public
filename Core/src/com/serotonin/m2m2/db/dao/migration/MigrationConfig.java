@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao.migration;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAmount;
 import java.util.function.Predicate;
 
@@ -26,6 +27,7 @@ public interface MigrationConfig {
     int getThreadCount();
     Duration getCloseWait();
     Predicate<DataPointVO> getDataPointFilter();
+    ZoneId getAggregationZone();
     TemporalAmount getAggregationPeriod();
     TemporalAmount getAggregationDelay();
 }
