@@ -51,6 +51,9 @@ public class SimulationTimer extends AbstractTimer {
 
     @Override
     public SimulationTimer withZone(ZoneId zone) {
+        if (zone.equals(this.zone)) {
+            return this;
+        }
         return new SimulationTimer(zone, async);
     }
     
