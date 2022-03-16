@@ -10,6 +10,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,8 +91,8 @@ public class DefaultMigrationConfig implements MigrationConfig {
     }
 
     @Override
-    public ZoneId getAggregationZone() {
-        return env.getProperty("db.migration.aggregation.zone", ZoneId.class, ZoneId.systemDefault());
+    public ZoneId getZone() {
+        return env.getProperty("db.migration.zone", ZoneId.class, ZoneId.systemDefault());
     }
 
     @Override
@@ -102,5 +103,10 @@ public class DefaultMigrationConfig implements MigrationConfig {
     @Override
     public TemporalAmount getAggregationDelay() {
         return env.getProperty("db.migration.aggregation.delay", TemporalAmount.class, Duration.ZERO);
+    }
+
+    @Override
+    public TemporalUnit getTruncateTo() {
+        return env.getProperty("db.migration.truncateTo", ChronoUnit.class, ChronoUnit.DAYS);
     }
 }

@@ -86,12 +86,19 @@ class MigrationSeries {
         try {
             Optional<Long> inception = parent.getSource().getInceptionDate(point);
             if (inception.isPresent()) {
-                long timestamp = inception.get();
-                Long migrateFrom = parent.getMigrateFrom();
-                if (migrateFrom != null) {
-                    timestamp = Math.max(timestamp, migrateFrom);
+                Instant timestamp = Instant.ofEpochMilli(inception.get());
+                Instant migrateFrom = parent.getMigrateFrom();
+                if (migrateFrom != null && migrateFrom.isAfter(timestamp)) {
+                    timestamp = migrateFrom;
                 }
-                this.timestamp = timestamp;
+
+                // truncate the timestamp, so we get aggregates starting at a consistent round time
+                // should not affect the migration of raw values
+                this.timestamp = timestamp.atZone(parent.getClock().getZone())
+                        .truncatedTo(parent.getTruncateTo())
+                        .toInstant()
+                        .toEpochMilli();
+
                 this.status = MigrationStatus.INITIAL_PASS_COMPLETE;
                 if (log.isDebugEnabled()) {
                     log.debug("Initial pass complete {}", this);
@@ -128,20 +135,16 @@ class MigrationSeries {
             this.lastValueInitialized = true;
         }
 
-        long timestamp = this.timestamp;
-        long from = timestamp - timestamp % parent.getPeriod();
-        long to = from + parent.getPeriod();
-        if (parent.getMigrateFrom() != null) {
-            from = Math.max(from, parent.getMigrateFrom());
-        }
+        Clock clock = parent.getClock();
+        ZonedDateTime from = Instant.ofEpochMilli(this.timestamp).atZone(clock.getZone());
+        ZonedDateTime to = from.plus(parent.getPeriod());
 
-        long currentTime = parent.getClock().millis();
-        if (currentTime < to) {
+        if (clock.instant().isBefore(to.toInstant())) {
             // close out series, do the final copy while holding the write-lock so inserts are blocked
             lock.writeLock().lock();
             try {
                 // copy an extra period in case the current time rolls over into the next period
-                ReadWriteCount sampleCount = copyPointValues(from, to + parent.getPeriod());
+                ReadWriteCount sampleCount = copyPointValues(from, to.plus(parent.getPeriod()));
                 this.status = MigrationStatus.MIGRATED;
                 if (log.isDebugEnabled()) {
                     log.debug("Migration finished for {}", this);
@@ -158,7 +161,7 @@ class MigrationSeries {
     /**
      * stream from source (old) db to the destination (new) db, aggregating if configured
      */
-    private ReadWriteCount copyPointValues(long from, long to) {
+    private ReadWriteCount copyPointValues(ZonedDateTime from, ZonedDateTime to) {
         TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
         TemporalAmount aggregationDelay = parent.getAggregationDelay();
         ReadWriteCount sampleCount = new ReadWriteCount();
@@ -168,7 +171,10 @@ class MigrationSeries {
         ZonedDateTime transition = now.minus(aggregationDelay);
         long transitionMs = transition.toInstant().toEpochMilli();
 
-        try (var stream = parent.getSource().streamPointValues(point, from, to, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
+        long fromMs = from.toInstant().toEpochMilli();
+        long toMs = to.toInstant().toEpochMilli();
+
+        try (var stream = parent.getSource().streamPointValues(point, fromMs, toMs, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
                 .peek(pv -> sampleCount.incrementRead())
                 .peek(pv -> this.lastValue = pv)) {
 
@@ -176,14 +182,9 @@ class MigrationSeries {
                 AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
                 AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
 
-                // TODO truncate from
-                // TODO configurable time zone
-                ZonedDateTime fromDate = Instant.ofEpochMilli(from).atZone(clock.getZone());
-                ZonedDateTime toDate = Instant.ofEpochMilli(to).atZone(clock.getZone());
-
                 // TODO filter out empty entries?
                 var aggregateStream = source
-                        .aggregate(point, fromDate, toDate, Stream.concat(Stream.ofNullable(lastValue), stream))
+                        .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream))
                         .peek(pv -> sampleCount.incrementWrite());
                 destination.save(point, aggregateStream, parent.getWriteChunkSize());
             } else {
@@ -193,7 +194,7 @@ class MigrationSeries {
                 parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
             }
         }
-        this.timestamp = to;
+        this.timestamp = toMs;
         return sampleCount;
     }
 

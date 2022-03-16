@@ -8,7 +8,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.function.Predicate;
 
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -19,6 +21,8 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public class TestMigrationConfig implements MigrationConfig {
     Instant migrateFromTime = null;
     Duration migrationPeriod = Duration.ofDays(1L);
+    TemporalUnit truncateTo = ChronoUnit.DAYS;
+    ZoneId zone = ZoneOffset.UTC;
     int maxAttempts = 3;
     boolean autoStart = false;
     boolean startNewMigration = false;
@@ -28,7 +32,6 @@ public class TestMigrationConfig implements MigrationConfig {
     int threadCount = 1;
     Duration closeWait = Duration.ofSeconds(30L);
     Predicate<DataPointVO> dataPointFilter = p -> true;
-    ZoneId aggregationZone = ZoneOffset.UTC;
     TemporalAmount aggregationPeriod;
     TemporalAmount aggregationDelay = Duration.ZERO;
 
@@ -137,6 +140,15 @@ public class TestMigrationConfig implements MigrationConfig {
         return aggregationDelay;
     }
 
+    @Override
+    public TemporalUnit getTruncateTo() {
+        return truncateTo;
+    }
+
+    public void setTruncateTo(TemporalUnit truncateTo) {
+        this.truncateTo = truncateTo;
+    }
+
     public void setDataPointFilter(Predicate<DataPointVO> dataPointFilter) {
         this.dataPointFilter = dataPointFilter;
     }
@@ -150,11 +162,11 @@ public class TestMigrationConfig implements MigrationConfig {
     }
 
     @Override
-    public ZoneId getAggregationZone() {
-        return aggregationZone;
+    public ZoneId getZone() {
+        return zone;
     }
 
-    public void setAggregationZone(ZoneId aggregationZone) {
-        this.aggregationZone = aggregationZone;
+    public void setZone(ZoneId zone) {
+        this.zone = zone;
     }
 }

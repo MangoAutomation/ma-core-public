@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.function.Predicate;
 
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -27,7 +28,8 @@ public interface MigrationConfig {
     int getThreadCount();
     Duration getCloseWait();
     Predicate<DataPointVO> getDataPointFilter();
-    ZoneId getAggregationZone();
+    ZoneId getZone();
     TemporalAmount getAggregationPeriod();
     TemporalAmount getAggregationDelay();
+    TemporalUnit getTruncateTo();
 }

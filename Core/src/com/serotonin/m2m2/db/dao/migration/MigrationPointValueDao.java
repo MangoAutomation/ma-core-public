@@ -13,6 +13,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -77,8 +78,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final DataPointDao dataPointDao;
     private final ExecutorService executorService;
     private final ScheduledExecutorService scheduledExecutorService;
-    private final Long migrateFrom;
-    private final long period;
+    private final Instant migrateFrom;
+    private final Duration period;
+    private final TemporalUnit truncateTo;
     private final TemporalAmount aggregationPeriod;
     private final TemporalAmount aggregationDelay;
     private final Clock clock;
@@ -110,14 +112,14 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.dataPointDao = dataPointDao;
         this.executorService = executorService;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.clock = clock.withZone(config.getAggregationZone());
+        this.clock = clock.withZone(config.getZone());
         this.migrationProgressDao = migrationProgressDao;
         this.config = config;
 
         this.dataPointFilter = config.getDataPointFilter();
-        Instant migrateFromTime = config.getMigrateFromTime();
-        this.migrateFrom = migrateFromTime == null ? null : migrateFromTime.toEpochMilli();
-        this.period = config.getMigrationPeriod().toMillis();
+        this.migrateFrom = config.getMigrateFromTime();
+        this.period = config.getMigrationPeriod();
+        this.truncateTo = config.getTruncateTo();
         this.aggregationPeriod = config.getAggregationPeriod();
         this.aggregationDelay = config.getAggregationDelay();
 
@@ -339,7 +341,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             // ignore MIN_VALUE which comes from series which haven't completed their initial pass
             if (timestamp != null && timestamp > Long.MIN_VALUE) {
                 long timeLeft = clock.millis() - timestamp;
-                long periodsLeft = timeLeft / period + 1;
+                long periodsLeft = timeLeft / period.toMillis() + 1;
                 remainingPeriods = periodsLeft * remaining;
             }
         }
@@ -406,7 +408,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return retry;
     }
 
-    Long getMigrateFrom() {
+    Instant getMigrateFrom() {
         return migrateFrom;
     }
 
@@ -418,8 +420,12 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return primary;
     }
 
-    long getPeriod() {
+    Duration getPeriod() {
         return period;
+    }
+
+    TemporalUnit getTruncateTo() {
+        return truncateTo;
     }
 
     TemporalAmount getAggregationPeriod() {
