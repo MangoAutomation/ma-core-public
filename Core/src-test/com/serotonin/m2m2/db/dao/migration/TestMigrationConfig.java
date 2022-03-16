@@ -11,8 +11,11 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -33,7 +36,9 @@ public class TestMigrationConfig implements MigrationConfig {
     Duration closeWait = Duration.ofSeconds(30L);
     Predicate<DataPointVO> dataPointFilter = p -> true;
     TemporalAmount aggregationPeriod;
-    TemporalAmount aggregationDelay = Duration.ZERO;
+    TemporalAmount aggregationEnd = Duration.ZERO;
+    TemporalAmount aggregationOverlap = Duration.ZERO;
+    Set<DataType> aggregationDataTypes = EnumSet.of(DataType.NUMERIC);
 
     @Override
     public Instant getMigrateFromTime() {
@@ -136,8 +141,8 @@ public class TestMigrationConfig implements MigrationConfig {
     }
 
     @Override
-    public TemporalAmount getAggregationDelay() {
-        return aggregationDelay;
+    public TemporalAmount getAggregationEnd() {
+        return aggregationEnd;
     }
 
     @Override
@@ -157,8 +162,8 @@ public class TestMigrationConfig implements MigrationConfig {
         this.aggregationPeriod = aggregationPeriod;
     }
 
-    public void setAggregationDelay(TemporalAmount aggregationDelay) {
-        this.aggregationDelay = aggregationDelay;
+    public void setAggregationEnd(TemporalAmount aggregationEnd) {
+        this.aggregationEnd = aggregationEnd;
     }
 
     @Override
@@ -168,5 +173,23 @@ public class TestMigrationConfig implements MigrationConfig {
 
     public void setZone(ZoneId zone) {
         this.zone = zone;
+    }
+
+    @Override
+    public Set<DataType> getAggregationDataTypes() {
+        return aggregationDataTypes;
+    }
+
+    public void setAggregationDataTypes(Set<DataType> aggregationDataTypes) {
+        this.aggregationDataTypes = aggregationDataTypes;
+    }
+
+    @Override
+    public TemporalAmount getAggregationOverlap() {
+        return aggregationOverlap;
+    }
+
+    public void setAggregationOverlap(TemporalAmount aggregationOverlap) {
+        this.aggregationOverlap = aggregationOverlap;
     }
 }

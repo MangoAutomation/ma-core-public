@@ -11,12 +11,16 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -96,13 +100,26 @@ public class DefaultMigrationConfig implements MigrationConfig {
     }
 
     @Override
+    public Set<DataType> getAggregationDataTypes() {
+        var dataTypes = env.getProperty("db.migration.aggregation.dataTypes", DataType[].class, new DataType[] {DataType.NUMERIC});
+        var set = EnumSet.noneOf(DataType.class);
+        set.addAll(Arrays.asList(dataTypes));
+        return set;
+    }
+
+    @Override
     public TemporalAmount getAggregationPeriod() {
         return env.getProperty("db.migration.aggregation.period", TemporalAmount.class);
     }
 
     @Override
-    public TemporalAmount getAggregationDelay() {
-        return env.getProperty("db.migration.aggregation.delay", TemporalAmount.class, Duration.ZERO);
+    public TemporalAmount getAggregationEnd() {
+        return env.getProperty("db.migration.aggregation.end", TemporalAmount.class, Duration.ZERO);
+    }
+
+    @Override
+    public TemporalAmount getAggregationOverlap() {
+        return env.getProperty("db.migration.aggregation.overlap", TemporalAmount.class, Duration.ZERO);
     }
 
     @Override

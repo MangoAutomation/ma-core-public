@@ -9,8 +9,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAmount;
 import java.time.temporal.TemporalUnit;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -29,7 +31,9 @@ public interface MigrationConfig {
     Duration getCloseWait();
     Predicate<DataPointVO> getDataPointFilter();
     ZoneId getZone();
-    TemporalAmount getAggregationPeriod();
-    TemporalAmount getAggregationDelay();
     TemporalUnit getTruncateTo();
+    Set<DataType> getAggregationDataTypes();
+    TemporalAmount getAggregationPeriod();
+    TemporalAmount getAggregationEnd();
+    TemporalAmount getAggregationOverlap();
 }

@@ -4,7 +4,6 @@
 
 package com.serotonin.m2m2.db.dao.pointvalue;
 
-import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
 import java.util.Optional;
@@ -35,6 +34,15 @@ public interface AggregateDao {
     PointValueDao getPointValueDao();
     TemporalAmount getAggregationPeriod();
 
+    /**
+     * Query for aggregates in a time range.
+     *
+     * @param point data point
+     * @param from from time (inclusive)
+     * @param to to time (exclusive)
+     * @param limit limit the number of returned aggregates (may be null)
+     * @return stream of aggregate values
+     */
     default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit) {
         if (from.isEqual(to)) {
             return Stream.empty();
@@ -53,6 +61,17 @@ public interface AggregateDao {
         return limit == null ? aggregates : aggregates.limit(limit);
     }
 
+    /**
+     * Aggregate a stream of raw point values into aggregate statistics. Mango statistics rely on knowing the initial
+     * value of the point before the "from" time, you must include an initial start value in the stream (if one exists).
+     * The timestamp of this start value should be less than the "from" time.
+     *
+     * @param point data point
+     * @param from from time (inclusive)
+     * @param to to time (exclusive)
+     * @param pointValues stream of point values, must include a start value (at time < from) for accurate statistics
+     * @return stream of aggregates
+     */
     default Stream<SeriesValueTime<AggregateValue>> aggregate(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
                                                               Stream<? extends PointValueTime> pointValues) {
 

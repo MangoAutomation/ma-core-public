@@ -13,12 +13,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
 import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
@@ -40,6 +40,10 @@ class MigrationSeries {
     private MigrationStatus status;
     private DataPointVO point;
     private boolean lastValueInitialized;
+    /**
+     * Holds the last raw value read from this series, this is required for calculating statistics for the next
+     * period (startValue of next period).
+     */
     private IdPointValueTime lastValue;
     private volatile long timestamp;
 
@@ -163,37 +167,43 @@ class MigrationSeries {
      */
     private ReadWriteCount copyPointValues(ZonedDateTime from, ZonedDateTime to) {
         TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
-        TemporalAmount aggregationDelay = parent.getAggregationDelay();
-        ReadWriteCount sampleCount = new ReadWriteCount();
+        boolean aggregationEnabled = aggregationPeriod != null &&
+                parent.getAggregationDataTypes().contains(point.getPointLocator().getDataType());
 
         Clock clock = parent.getClock();
         ZonedDateTime now = ZonedDateTime.now(clock);
-        ZonedDateTime transition = now.minus(aggregationDelay);
-        long transitionMs = transition.toInstant().toEpochMilli();
+        ZonedDateTime aggregationEndTime = now.minus(parent.getAggregationEnd());
+        ZonedDateTime rawStartTime = now.minus(parent.getAggregationEnd()).minus(parent.getAggregationOverlap());
 
+        ReadWriteCount sampleCount = new ReadWriteCount();
         long fromMs = from.toInstant().toEpochMilli();
         long toMs = to.toInstant().toEpochMilli();
 
-        try (var stream = parent.getSource().streamPointValues(point, fromMs, toMs, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
-                .peek(pv -> sampleCount.incrementRead())
-                .peek(pv -> this.lastValue = pv)) {
+        Supplier<Stream<IdPointValueTime>> readValues = () ->
+                parent.getSource().streamPointValues(point, fromMs, toMs, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
+                .peek(pv -> sampleCount.incrementRead());
 
-            if (aggregationPeriod != null && point.getPointLocator().getDataType() == DataType.NUMERIC) {
-                AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
-                AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
+        if (aggregationEnabled && from.isBefore(aggregationEndTime)) {
+            try (var stream = readValues.get().peek(pv -> this.lastValue = pv)) {
+                    AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
+                    AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
 
-                // TODO filter out empty entries?
-                var aggregateStream = source
-                        .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream))
-                        .peek(pv -> sampleCount.incrementWrite());
-                destination.save(point, aggregateStream, parent.getWriteChunkSize());
-            } else {
+                    var aggregateStream = source
+                            .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream))
+                            .peek(pv -> sampleCount.incrementWrite());
+                    destination.save(point, aggregateStream, parent.getWriteChunkSize());
+            }
+        }
+
+        if (!aggregationEnabled || from.isAfter(rawStartTime) || from.isEqual(rawStartTime)) {
+            try (var stream = readValues.get()) {
                 var output = stream
                         .map(pv -> new BatchPointValueImpl<>(point, pv))
                         .peek(pv -> sampleCount.incrementWrite());
                 parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
             }
         }
+
         this.timestamp = toMs;
         return sampleCount;
     }

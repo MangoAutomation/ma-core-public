@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -41,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
+import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DelegatingPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
@@ -82,11 +84,13 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Duration period;
     private final TemporalUnit truncateTo;
     private final TemporalAmount aggregationPeriod;
-    private final TemporalAmount aggregationDelay;
+    private final TemporalAmount aggregationEnd;
+    private final TemporalAmount aggregationOverlap;
+    private final Set<DataType> aggregationDataTypes;
     private final Clock clock;
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
-    private final AtomicLong currentTimestamp = new AtomicLong(Long.MAX_VALUE);
+    private final AtomicLong currentTimestamp = new AtomicLong(Long.MIN_VALUE);
     private final MigrationConfig config;
 
     private volatile boolean fullyMigrated = false;
@@ -121,7 +125,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.period = config.getMigrationPeriod();
         this.truncateTo = config.getTruncateTo();
         this.aggregationPeriod = config.getAggregationPeriod();
-        this.aggregationDelay = config.getAggregationDelay();
+        this.aggregationEnd = config.getAggregationEnd();
+        this.aggregationOverlap = config.getAggregationOverlap();
+        this.aggregationDataTypes = config.getAggregationDataTypes();
 
         int maxAttempts = config.getMaxAttempts();
         RetryConfig retryConfig = RetryConfig.custom()
@@ -432,8 +438,16 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return aggregationPeriod;
     }
 
-    TemporalAmount getAggregationDelay() {
-        return aggregationDelay;
+    TemporalAmount getAggregationEnd() {
+        return aggregationEnd;
+    }
+
+    public TemporalAmount getAggregationOverlap() {
+        return aggregationOverlap;
+    }
+
+    Set<DataType> getAggregationDataTypes() {
+        return aggregationDataTypes;
     }
 
     Clock getClock() {
@@ -480,8 +494,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             default: throw new IllegalStateException("Incorrect status: " + series.getStatus());
         }
 
-        // series timestamp start at MIN_VALUE, ignore this
-        currentTimestamp.updateAndGet(v -> series.getTimestamp() == Long.MIN_VALUE ? v : Math.min(series.getTimestamp(), v));
+        currentTimestamp.updateAndGet(v -> Math.max(series.getTimestamp(), v));
         readValuesPerPeriod.update(readCount);
         readMeter.mark(readCount);
         writeMeter.mark(writeCount);
