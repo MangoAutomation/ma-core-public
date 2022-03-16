@@ -456,7 +456,9 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
                 }else {
                     //Must be a ScriptPermission that might need to be upgraded
                     ScriptPermissions permission = vo.getScriptRoles();
-                    if(permission.getLegacyScriptRoles() != null) {
+                    if( permission == null ){
+                        vo.setScriptRoles(new ScriptPermissions());
+                    }else if( permission.getLegacyScriptRoles() != null) {
                         Set<Role> roles = new HashSet<>();
                         for(String r : permission.getLegacyScriptRoles()) {
                             roles.add(getOrCreateRole(new Role(Common.NEW_ID, r)));
@@ -486,7 +488,9 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
                 }else {
                     //Must be a ScriptPermission that might need to be upgraded
                     ScriptPermissions permission = vo.getScriptRoles();
-                    if(permission.getLegacyScriptRoles() != null) {
+                    if( permission == null ){
+                        vo.setScriptRoles(new ScriptPermissions());
+                    }else if( permission.getLegacyScriptRoles() != null) {
                         Set<Role> roles = new HashSet<>();
                         for(String r : permission.getLegacyScriptRoles()) {
                             roles.add(getOrCreateRole(new Role(Common.NEW_ID, r)));
