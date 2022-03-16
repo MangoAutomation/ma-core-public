@@ -9,6 +9,7 @@
 
 *Version 4.3.1*
 * Fix bug in Multistate state event detector synchronization
+* Fix bug (NPE) in the Upgrade29 when there are no ScriptPermission in the legacy (3.5.x) Email Event Handlers
 
 *Version 4.3.0*
 * Move Publisher points into separate table and add xid, name and enabled fields for better performance and control of publishers
