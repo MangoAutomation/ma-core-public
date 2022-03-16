@@ -184,6 +184,10 @@ class MigrationSeries {
                 .peek(pv -> sampleCount.incrementRead());
 
         if (aggregationEnabled && from.isBefore(aggregationEndTime)) {
+            // We could use the source AggregateDao's query method here in order to migrate pre-aggregated data from one
+            // DB to another. There are 2 caveats: we must provide a way to get the read speed from the query method,
+            // and we must provide a way to pass in the last value. If we do not retain the last value and instead
+            // let the query method call getPointValueBefore() we get far lower total read speeds.
             try (var stream = readValues.get().peek(pv -> this.lastValue = pv)) {
                     AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
                     AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
