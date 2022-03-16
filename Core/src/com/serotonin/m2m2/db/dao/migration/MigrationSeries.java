@@ -173,7 +173,7 @@ class MigrationSeries {
         Clock clock = parent.getClock();
         ZonedDateTime now = ZonedDateTime.now(clock);
         ZonedDateTime aggregationEndTime = now.minus(parent.getAggregationEnd());
-        ZonedDateTime rawStartTime = now.minus(parent.getAggregationEnd()).minus(parent.getAggregationOverlap());
+        ZonedDateTime rawStartTime = aggregationEndTime.minus(parent.getAggregationOverlap());
 
         ReadWriteCount sampleCount = new ReadWriteCount();
         long fromMs = from.toInstant().toEpochMilli();
@@ -195,7 +195,7 @@ class MigrationSeries {
             }
         }
 
-        if (!aggregationEnabled || from.isAfter(rawStartTime) || from.isEqual(rawStartTime)) {
+        if (!aggregationEnabled || to.isAfter(rawStartTime)) {
             try (var stream = readValues.get()) {
                 var output = stream
                         .map(pv -> new BatchPointValueImpl<>(point, pv))
