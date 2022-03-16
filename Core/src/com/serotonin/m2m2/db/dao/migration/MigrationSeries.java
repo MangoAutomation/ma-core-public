@@ -208,7 +208,7 @@ class MigrationSeries {
         return sampleCount;
     }
 
-    Long getTimestamp() {
+    long getTimestamp() {
         return timestamp;
     }
 

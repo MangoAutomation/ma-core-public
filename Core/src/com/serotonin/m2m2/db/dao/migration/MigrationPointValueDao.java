@@ -8,7 +8,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -64,7 +63,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
      */
     private final Map<Integer, MigrationSeries> seriesStatus = new HashMap<>();
     private final Queue<MigrationSeries> seriesQueue = new PriorityBlockingQueue<>(1024,
-            Comparator.nullsFirst(Comparator.comparingLong(MigrationSeries::getTimestamp)));
+            Comparator.comparingLong(MigrationSeries::getTimestamp));
 
     private final AtomicLong completedPeriods = new AtomicLong();
     private final AtomicLong migratedSeries = new AtomicLong();
@@ -90,7 +89,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Clock clock;
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
-    private final AtomicLong currentTimestamp = new AtomicLong(Long.MIN_VALUE);
     private final MigrationConfig config;
 
     private volatile boolean fullyMigrated = false;
@@ -340,15 +338,19 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         long remaining = seriesStatus.size() - finished;
         long completedPeriods = this.completedPeriods.get();
 
+        String currentTimeFormatted = "—";
         long remainingPeriods = 0;
         MigrationSeries next = seriesQueue.peek();
         if (next != null) {
-            Long timestamp = next.getTimestamp();
+            long timestamp = next.getTimestamp();
             // ignore MIN_VALUE which comes from series which haven't completed their initial pass
-            if (timestamp != null && timestamp > Long.MIN_VALUE) {
+            if (timestamp > Long.MIN_VALUE) {
                 long timeLeft = clock.millis() - timestamp;
                 long periodsLeft = timeLeft / period.toMillis() + 1;
                 remainingPeriods = periodsLeft * remaining;
+
+                currentTimeFormatted = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), clock.getZone())
+                        .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
             }
         }
 
@@ -357,7 +359,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         double writeRate = writeMeter.getOneMinuteRate();
 
         long totalPeriods = remainingPeriods + completedPeriods;
-        double progress = remainingPeriods == 0L ? 100D: completedPeriods * 100d / totalPeriods;
+        double progress = 0D;
+        if (totalPeriods > 0) {
+            progress = remainingPeriods == 0L ? 100D: completedPeriods * 100d / totalPeriods;
+        }
 
         double pointValuesRemaining = remainingPeriods * avgPointValuesReadPerPeriod;
         String eta = "—";
@@ -368,19 +373,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             eta = ZonedDateTime.now()
                     .plus(durationLeft)
                     .truncatedTo(ChronoUnit.MINUTES)
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
             timeLeft = durationLeft.truncatedTo(ChronoUnit.MINUTES).toString();
         }
 
-        String currentTimeFormatted = "—";
-        long currentTimestamp = this.currentTimestamp.get();
-        if (currentTimestamp < Long.MAX_VALUE) {
-            currentTimeFormatted = ZonedDateTime.ofInstant(Instant.ofEpochMilli(currentTimestamp), ZoneId.systemDefault())
-                    .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        }
-
         Metrics retryMetrics = retry.getMetrics();
-
         return String.format("[%6.2f%% complete, %d/%d periods, %.1f reads/s, %.1f writes/s, %.1f reads/period, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
                 progress,
                 completedPeriods,
@@ -494,7 +491,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             default: throw new IllegalStateException("Incorrect status: " + series.getStatus());
         }
 
-        currentTimestamp.updateAndGet(v -> Math.max(series.getTimestamp(), v));
         readValuesPerPeriod.update(readCount);
         readMeter.mark(readCount);
         writeMeter.mark(writeCount);
