@@ -7,6 +7,9 @@
 * Add support for PostgreSQL
 * Update postgresql driver to v42.3.2
 
+*Version 4.3.2*
+* Fix bug (NPE) in the Upgrade29 when there are no ScriptPermission in the legacy (3.5.x) Email Event Handlers
+
 *Version 4.3.1*
 * Fix bug in Multistate state event detector synchronization
 
