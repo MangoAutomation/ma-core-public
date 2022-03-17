@@ -30,7 +30,8 @@ public class DefaultPointValueDaoDefinition extends PointValueDaoDefinition {
 
     @Override
     public void initialize() {
-        this.pointValueDao = new PointValueDaoSQL(databaseProxy, monitoredValues, systemSettingsDao, dataPointDao);
+        int chunkSize = env.getProperty("db.default.chunkSize", int.class, 16_384);
+        this.pointValueDao = new PointValueDaoSQL(databaseProxy, monitoredValues, chunkSize, systemSettingsDao, dataPointDao);
     }
 
     @Override

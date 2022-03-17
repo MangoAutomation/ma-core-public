@@ -921,7 +921,7 @@ public interface PointValueDao {
      * @return number of point values to read/write at once when streaming data
      */
     default int chunkSize() {
-        return 1000;
+        return 16_384;
     }
 
     /**

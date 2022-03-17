@@ -71,13 +71,15 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     private volatile long queueSize = 0;
     private volatile int threadCount = 0;
     private final int batchInsertSize;
+    private final int chunkSize;
 
     private final SystemSettingsDao systemSettingsDao;
     private final DataPointDao dataPointDao;
 
     public PointValueDaoSQL(DatabaseProxy databaseProxy, MonitoredValues monitoredValues,
-                            SystemSettingsDao systemSettingsDao, DataPointDao dataPointDao) {
+                            int chunkSize, SystemSettingsDao systemSettingsDao, DataPointDao dataPointDao) {
         super(databaseProxy);
+        this.chunkSize = chunkSize;
         this.systemSettingsDao = systemSettingsDao;
 
         this.syncInsertsSpeedCounter = monitoredValues.<Integer>create(SYNC_INSERTS_SPEED_COUNTER_ID)
@@ -171,6 +173,11 @@ public class PointValueDaoSQL extends BasicSQLPointValueDao {
     @Override
     public boolean enablePerPointPurge() {
         return systemSettingsDao.getBooleanValue(SystemSettingsDao.ENABLE_POINT_DATA_PURGE_PER_POINT);
+    }
+
+    @Override
+    public int chunkSize() {
+        return chunkSize;
     }
 
     @Override
