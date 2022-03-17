@@ -7,8 +7,13 @@
 * Add support for PostgreSQL
 * Update postgresql driver to v42.3.2
 
+*Version 4.3.3*
+* Upgrade Jackson library version to 2.13.1
+* Upgrade Spring library version to 5.3.3
+* Upgrade MySQL java connector library version to 8.0.27
+
 *Version 4.3.2*
-* Fix bug (NPE) in the Upgrade29 when there are no ScriptPermission in the legacy (3.5.x) Email Event Handlers
+* Fixing a bug in the upgrading process coming from a legacy version (3.5.x) related to the permissions on the Email Event Handlers  
 
 *Version 4.3.1*
 * Fix bug in Multistate state event detector synchronization
