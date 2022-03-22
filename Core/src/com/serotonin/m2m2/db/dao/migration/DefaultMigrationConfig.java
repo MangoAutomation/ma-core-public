@@ -69,12 +69,12 @@ public class DefaultMigrationConfig implements MigrationConfig {
 
     @Override
     public int getReadChunkSize() {
-        return env.getProperty("db.migration.readChunkSize", int.class, 10000);
+        return env.getProperty("db.migration.readChunkSize", int.class, 16_384);
     }
 
     @Override
     public int getWriteChunkSize() {
-        return env.getProperty("db.migration.writeChunkSize", int.class, 10000);
+        return env.getProperty("db.migration.writeChunkSize", int.class, 16_384);
     }
 
     @Override
