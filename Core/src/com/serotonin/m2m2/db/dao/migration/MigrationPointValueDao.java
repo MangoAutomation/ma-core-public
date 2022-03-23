@@ -287,6 +287,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             this.numTasks = tasks.size();
             if (tasks.isEmpty() && seriesQueue.isEmpty()) {
                 this.fullyMigrated = true;
+                if (log.isInfoEnabled()) {
+                    log.info("Migration complete! {}", stats());
+                }
             }
         }
     }
@@ -367,7 +370,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         double pointValuesRemaining = remainingPeriods * avgPointValuesReadPerPeriod;
         String eta = "—";
         String timeLeft = "∞";
-        if (readRate > 0D) {
+        if (remainingPeriods > 0 && readRate > 0D) {
             long secondsLeft = (long) (pointValuesRemaining / readRate);
             Duration durationLeft = Duration.ofSeconds(secondsLeft);
             eta = ZonedDateTime.now()
