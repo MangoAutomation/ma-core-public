@@ -4,8 +4,6 @@
 
 package com.serotonin.m2m2.db.dao.pointvalue;
 
-import java.time.temporal.TemporalAmount;
-
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
 /**
@@ -14,11 +12,9 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 public class DefaultAggregateDao implements AggregateDao {
 
     private final PointValueDao pointValueDao;
-    private final TemporalAmount aggregationPeriod;
 
-    public DefaultAggregateDao(PointValueDao pointValueDao, TemporalAmount aggregationPeriod) {
+    public DefaultAggregateDao(PointValueDao pointValueDao) {
         this.pointValueDao = pointValueDao;
-        this.aggregationPeriod = aggregationPeriod;
     }
 
     @Override
@@ -26,8 +22,4 @@ public class DefaultAggregateDao implements AggregateDao {
         return pointValueDao;
     }
 
-    @Override
-    public TemporalAmount getAggregationPeriod() {
-        return aggregationPeriod;
-    }
 }

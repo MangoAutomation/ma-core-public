@@ -51,9 +51,9 @@ public class AggregateDaoTest extends MangoTestBase {
 
         Duration aggregatePeriod = Duration.ofMinutes(15L);
         long outputExpectedSamples = Duration.between(from, to).dividedBy(aggregatePeriod);
-        AggregateDao aggregateDao = pointValueDao.getAggregateDao(aggregatePeriod);
+        AggregateDao aggregateDao = pointValueDao.getAggregateDao();
 
-        try (var stream = aggregateDao.query(point, from, to, null)) {
+        try (var stream = aggregateDao.query(point, from, to, null, aggregatePeriod)) {
             var list = stream.collect(Collectors.toList());
             Assert.assertEquals(outputExpectedSamples, list.size());
 

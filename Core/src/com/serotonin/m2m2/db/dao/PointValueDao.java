@@ -19,7 +19,6 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.time.Period;
-import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -106,8 +105,13 @@ public interface PointValueDao {
         pointValues.forEachOrdered(v -> savePointValueSync(v.getPoint(), v.getValue()));
     }
 
-    default AggregateDao getAggregateDao(TemporalAmount aggregatePeriod) {
-        return new DefaultAggregateDao(this, aggregatePeriod);
+    /**
+     * Typically returns a {@link DefaultAggregateDao}, should be a thread safe singleton instance.
+     *
+     * @return a DAO for retrieving aggregates
+     */
+    default AggregateDao getAggregateDao() {
+        return new DefaultAggregateDao(this);
     }
 
     /**

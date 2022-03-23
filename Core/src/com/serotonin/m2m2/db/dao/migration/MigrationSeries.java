@@ -189,11 +189,11 @@ class MigrationSeries {
             // and we must provide a way to pass in the last value. If we do not retain the last value and instead
             // let the query method call getPointValueBefore() we get far lower total read speeds.
             try (var stream = readValues.get().peek(pv -> this.lastValue = pv)) {
-                    AggregateDao source = parent.getSource().getAggregateDao(aggregationPeriod);
-                    AggregateDao destination = parent.getDestination().getAggregateDao(aggregationPeriod);
+                    AggregateDao source = parent.getSource().getAggregateDao();
+                    AggregateDao destination = parent.getDestination().getAggregateDao();
 
                     var aggregateStream = source
-                            .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream))
+                            .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream), aggregationPeriod)
                             .peek(pv -> sampleCount.incrementWrite());
                     destination.save(point, aggregateStream, parent.getWriteChunkSize());
             }

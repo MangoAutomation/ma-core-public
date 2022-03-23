@@ -38,6 +38,8 @@ import com.infiniteautomation.mango.db.tables.records.PointValueAnnotationsRecor
 import com.infiniteautomation.mango.db.tables.records.PointValuesRecord;
 import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
+import com.serotonin.m2m2.db.dao.pointvalue.DefaultAggregateDao;
 import com.serotonin.m2m2.db.dao.pointvalue.StartAndEndTime;
 import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -62,9 +64,16 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     protected final PointValueAnnotations pva = PointValueAnnotations.POINT_VALUE_ANNOTATIONS;
     protected final PointValues pv = PointValues.POINT_VALUES;
     protected final DataPoints dp = DataPoints.DATA_POINTS;
+    protected final DefaultAggregateDao aggregateDao;
 
     public BasicSQLPointValueDao(DatabaseProxy databaseProxy) {
         super(databaseProxy);
+        this.aggregateDao = new DefaultAggregateDao(this);
+    }
+
+    @Override
+    public AggregateDao getAggregateDao() {
+        return aggregateDao;
     }
 
     @Override

@@ -175,20 +175,18 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
     }
 
     @Override
-    public AggregateDao getAggregateDao(TemporalAmount aggregatePeriod) {
-        return new DelegatingAggregateDao(aggregatePeriod,
-                primary.getAggregateDao(aggregatePeriod),
-                secondary.getAggregateDao(aggregatePeriod));
+    public AggregateDao getAggregateDao() {
+        return new DelegatingAggregateDao(
+                primary.getAggregateDao(),
+                secondary.getAggregateDao());
     }
 
     public class DelegatingAggregateDao implements AggregateDao {
 
-        private final TemporalAmount aggregatePeriod;
         private final AggregateDao primary;
         private final AggregateDao secondary;
 
-        public DelegatingAggregateDao(TemporalAmount aggregatePeriod, AggregateDao primary, AggregateDao secondary) {
-            this.aggregatePeriod = aggregatePeriod;
+        public DelegatingAggregateDao(AggregateDao primary, AggregateDao secondary) {
             this.primary = primary;
             this.secondary = secondary;
         }
@@ -199,14 +197,9 @@ public abstract class DelegatingPointValueDao implements PointValueDao {
         }
 
         @Override
-        public TemporalAmount getAggregationPeriod() {
-            return aggregatePeriod;
-        }
-
-        @Override
-        public Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit) {
+        public Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit, TemporalAmount aggregationPeriod) {
             AggregateDao delegate = handleWithPrimary(point, Operation.READ) ? primary : secondary;
-            return delegate.query(point, from, to, limit);
+            return delegate.query(point, from, to, limit, aggregationPeriod);
         }
 
         @Override

@@ -32,7 +32,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public interface AggregateDao {
 
     PointValueDao getPointValueDao();
-    TemporalAmount getAggregationPeriod();
 
     /**
      * Query for aggregates in a time range.
@@ -41,9 +40,10 @@ public interface AggregateDao {
      * @param from from time (inclusive)
      * @param to to time (exclusive)
      * @param limit limit the number of returned aggregates (may be null)
+     * @param aggregationPeriod aggregation period (bucket/window size)
      * @return stream of aggregate values
      */
-    default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit) {
+    default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit, TemporalAmount aggregationPeriod) {
         if (from.isEqual(to)) {
             return Stream.empty();
         }
@@ -57,7 +57,7 @@ public interface AggregateDao {
                 to.toInstant().toEpochMilli(),
                 null, TimeOrder.ASCENDING);
 
-        var aggregates = aggregate(point, from, to, Stream.concat(previousValue, rawValues));
+        var aggregates = aggregate(point, from, to, Stream.concat(previousValue, rawValues), aggregationPeriod);
         return limit == null ? aggregates : aggregates.limit(limit);
     }
 
@@ -70,12 +70,13 @@ public interface AggregateDao {
      * @param from from time (inclusive)
      * @param to to time (exclusive)
      * @param pointValues stream of point values, must include a start value (at time < from) for accurate statistics
+     * @param aggregationPeriod aggregation period (bucket/window size)
      * @return stream of aggregates
      */
     default Stream<SeriesValueTime<AggregateValue>> aggregate(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
-                                                              Stream<? extends PointValueTime> pointValues) {
+                                                              Stream<? extends PointValueTime> pointValues, TemporalAmount aggregationPeriod) {
 
-        BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(from, to, getAggregationPeriod());
+        BucketCalculator bucketCalc = new TemporalAmountBucketCalculator(from, to, aggregationPeriod);
 
         AbstractPointValueTimeQuantizer<?> quantizer;
         switch (point.getPointLocator().getDataType()) {
@@ -102,29 +103,29 @@ public interface AggregateDao {
     }
 
     /**
-     * Resamples aggregates to this DAO's {@link #getAggregationPeriod() aggregation period}, fills in any missing
-     * periods with empty aggregates.
+     * Resamples aggregates to the aggregation period, fills in any missing periods with empty aggregates.
      *
      * <p>Currently only supports {@link com.serotonin.m2m2.DataType#NUMERIC NUMERIC} data points.</p>
      *
      * @param aggregates input aggregates
+     * @param aggregationPeriod aggregation period (bucket/window size)
      * @return resampled aggregates
      * @throws IllegalArgumentException if point is not a numeric data point
      */
     default Stream<SeriesValueTime<AggregateValue>> resample(DataPointVO point, ZonedDateTime from, ZonedDateTime to,
-                                                             Stream<? extends SeriesValueTime<? extends AggregateValue>> aggregates) {
+                                                             Stream<? extends SeriesValueTime<? extends AggregateValue>> aggregates, TemporalAmount aggregationPeriod) {
 
         try {
             // get iterator where we can peek at the next value
             var iterator = new PeekingIterator<>(aggregates.iterator());
 
             // generate a stream of empty aggregates
-            var initial = new NumericMultiAggregate(from.toInstant(), from.plus(getAggregationPeriod()).toInstant());
+            var initial = new NumericMultiAggregate(from.toInstant(), from.plus(aggregationPeriod).toInstant());
             var resampled = Stream.iterate(initial,
                     agg -> agg.getPeriodStartInstant().isBefore(to.toInstant()),
                     agg -> {
                         var start = agg.getPeriodEndInstant();
-                        return new NumericMultiAggregate(start, start.plus(getAggregationPeriod()));
+                        return new NumericMultiAggregate(start, start.plus(aggregationPeriod));
                     }
             ).peek(agg -> {
                 // populate the aggregates with children from the original stream
