@@ -1,4 +1,5 @@
 *Version 4.3.3*
+* Upgrade library version to jssc 2.9.4
 * Upgrade Jackson library version to 2.13.1
 * Upgrade Spring library version to 5.3.7
 * Upgrade MySQL java connector library version to 8.0.27
