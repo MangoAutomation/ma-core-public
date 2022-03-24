@@ -96,12 +96,16 @@ class MigrationSeries {
                     timestamp = migrateFrom;
                 }
 
-                // truncate the timestamp, so we get aggregates starting at a consistent round time
-                // should not affect the migration of raw values
-                this.timestamp = timestamp.atZone(parent.getClock().getZone())
-                        .truncatedTo(parent.getTruncateTo())
-                        .toInstant()
-                        .toEpochMilli();
+                if (aggregationEnabled()) {
+                    // truncate the timestamp, so we get aggregates starting at a consistent round time
+                    var dateTime = timestamp.atZone(parent.getClock().getZone());
+                    var aggregateDao = parent.getDestination().getAggregateDao();
+                    this.timestamp = aggregateDao.truncateToPeriod(dateTime, parent.getAggregationPeriod())
+                            .toInstant()
+                            .toEpochMilli();
+                } else {
+                    this.timestamp = timestamp.toEpochMilli();
+                }
 
                 this.status = MigrationStatus.INITIAL_PASS_COMPLETE;
                 if (log.isDebugEnabled()) {
@@ -162,13 +166,17 @@ class MigrationSeries {
         }
     }
 
+    private boolean aggregationEnabled() {
+        TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
+        return aggregationPeriod != null &&
+                parent.getAggregationDataTypes().contains(point.getPointLocator().getDataType());
+    }
+
     /**
      * stream from source (old) db to the destination (new) db, aggregating if configured
      */
     private ReadWriteCount copyPointValues(ZonedDateTime from, ZonedDateTime to) {
-        TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
-        boolean aggregationEnabled = aggregationPeriod != null &&
-                parent.getAggregationDataTypes().contains(point.getPointLocator().getDataType());
+        boolean aggregationEnabled = aggregationEnabled();
 
         Clock clock = parent.getClock();
         ZonedDateTime now = ZonedDateTime.now(clock);
@@ -193,7 +201,7 @@ class MigrationSeries {
                     AggregateDao destination = parent.getDestination().getAggregateDao();
 
                     var aggregateStream = source
-                            .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream), aggregationPeriod)
+                            .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream), parent.getAggregationPeriod())
                             .peek(pv -> sampleCount.incrementWrite());
                     destination.save(point, aggregateStream, parent.getWriteChunkSize());
             }

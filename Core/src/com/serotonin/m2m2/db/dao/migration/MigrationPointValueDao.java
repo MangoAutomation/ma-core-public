@@ -8,11 +8,11 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -81,7 +81,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final ScheduledExecutorService scheduledExecutorService;
     private final Instant migrateFrom;
     private final Duration period;
-    private final TemporalUnit truncateTo;
     private final TemporalAmount aggregationPeriod;
     private final TemporalAmount aggregationBoundary;
     private final TemporalAmount aggregationOverlap;
@@ -114,14 +113,13 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.dataPointDao = dataPointDao;
         this.executorService = executorService;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.clock = clock.withZone(config.getZone());
+        this.clock = clock.withZone(config.getAggregationPeriod() != null ? config.getZone() : ZoneId.systemDefault());
         this.migrationProgressDao = migrationProgressDao;
         this.config = config;
 
         this.dataPointFilter = config.getDataPointFilter();
         this.migrateFrom = config.getMigrateFromTime();
         this.period = config.getMigrationPeriod();
-        this.truncateTo = config.getTruncateTo();
         this.aggregationPeriod = config.getAggregationPeriod();
         this.aggregationBoundary = config.getAggregationBoundary();
         this.aggregationOverlap = config.getAggregationOverlap();
@@ -428,10 +426,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     Duration getPeriod() {
         return period;
-    }
-
-    TemporalUnit getTruncateTo() {
-        return truncateTo;
     }
 
     TemporalAmount getAggregationPeriod() {

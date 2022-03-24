@@ -8,9 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -24,7 +22,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public class TestMigrationConfig implements MigrationConfig {
     Instant migrateFromTime = null;
     Duration migrationPeriod = Duration.ofDays(1L);
-    TemporalUnit truncateTo = ChronoUnit.DAYS;
     ZoneId zone = ZoneOffset.UTC;
     int maxAttempts = 3;
     boolean autoStart = false;
@@ -143,15 +140,6 @@ public class TestMigrationConfig implements MigrationConfig {
     @Override
     public TemporalAmount getAggregationBoundary() {
         return aggregationEnd;
-    }
-
-    @Override
-    public TemporalUnit getTruncateTo() {
-        return truncateTo;
-    }
-
-    public void setTruncateTo(TemporalUnit truncateTo) {
-        this.truncateTo = truncateTo;
     }
 
     public void setDataPointFilter(Predicate<DataPointVO> dataPointFilter) {

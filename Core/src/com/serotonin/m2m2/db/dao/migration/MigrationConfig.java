@@ -8,7 +8,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -31,7 +30,6 @@ public interface MigrationConfig {
     Duration getCloseWait();
     Predicate<DataPointVO> getDataPointFilter();
     ZoneId getZone();
-    TemporalUnit getTruncateTo();
     Set<DataType> getAggregationDataTypes();
     TemporalAmount getAggregationPeriod();
     TemporalAmount getAggregationBoundary();

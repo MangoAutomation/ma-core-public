@@ -4,8 +4,13 @@
 
 package com.serotonin.m2m2.db.dao.pointvalue;
 
+import static java.time.temporal.ChronoField.DAY_OF_MONTH;
+import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
+
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAmount;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -150,6 +155,35 @@ public interface AggregateDao {
 
     default void save(DataPointVO point, Stream<? extends IValueTime<? extends AggregateValue>> aggregates, int chunkSize) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Truncates a date-time to align with a given period.
+     *
+     * @param boundary raw date-time
+     * @param period period to truncate to
+     * @return truncated date-time
+     */
+    default ZonedDateTime truncateToPeriod(ZonedDateTime boundary, TemporalAmount period) {
+        var minusOnePeriod = boundary.minus(period);
+        var truncated = boundary;
+        for (var unit : List.of(ChronoUnit.SECONDS, ChronoUnit.MINUTES, ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) {
+            if (unit == ChronoUnit.MONTHS) {
+                truncated = truncated.with(DAY_OF_MONTH, 1);
+            } else if (unit == ChronoUnit.YEARS) {
+                truncated = truncated.with(MONTH_OF_YEAR, 1);
+            } else {
+                truncated = truncated.truncatedTo(unit);
+            }
+
+            if (truncated.isBefore(minusOnePeriod) || truncated.isEqual(minusOnePeriod)) {
+                break;
+            }
+        }
+        while (truncated.plus(period).isBefore(boundary)) {
+            truncated = truncated.plus(period);
+        }
+        return truncated;
     }
 
 }
