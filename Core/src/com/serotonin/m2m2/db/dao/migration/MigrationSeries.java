@@ -172,8 +172,8 @@ class MigrationSeries {
 
         Clock clock = parent.getClock();
         ZonedDateTime now = ZonedDateTime.now(clock);
-        ZonedDateTime aggregationEndTime = now.minus(parent.getAggregationEnd());
-        ZonedDateTime rawStartTime = aggregationEndTime.minus(parent.getAggregationOverlap());
+        ZonedDateTime aggregationBoundary = now.minus(parent.getAggregationBoundary());
+        ZonedDateTime rawStartTime = aggregationBoundary.minus(parent.getAggregationOverlap());
 
         ReadWriteCount sampleCount = new ReadWriteCount();
         long fromMs = from.toInstant().toEpochMilli();
@@ -183,7 +183,7 @@ class MigrationSeries {
                 parent.getSource().streamPointValues(point, fromMs, toMs, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
                 .peek(pv -> sampleCount.incrementRead());
 
-        if (aggregationEnabled && from.isBefore(aggregationEndTime)) {
+        if (aggregationEnabled && from.isBefore(aggregationBoundary)) {
             // We could use the source AggregateDao's query method here in order to migrate pre-aggregated data from one
             // DB to another. There are 2 caveats: we must provide a way to get the read speed from the query method,
             // and we must provide a way to pass in the last value. If we do not retain the last value and instead

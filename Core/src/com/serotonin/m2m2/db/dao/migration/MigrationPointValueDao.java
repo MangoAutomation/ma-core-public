@@ -83,7 +83,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Duration period;
     private final TemporalUnit truncateTo;
     private final TemporalAmount aggregationPeriod;
-    private final TemporalAmount aggregationEnd;
+    private final TemporalAmount aggregationBoundary;
     private final TemporalAmount aggregationOverlap;
     private final Set<DataType> aggregationDataTypes;
     private final Clock clock;
@@ -123,7 +123,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.period = config.getMigrationPeriod();
         this.truncateTo = config.getTruncateTo();
         this.aggregationPeriod = config.getAggregationPeriod();
-        this.aggregationEnd = config.getAggregationBoundary();
+        this.aggregationBoundary = config.getAggregationBoundary();
         this.aggregationOverlap = config.getAggregationOverlap();
         this.aggregationDataTypes = config.getAggregationDataTypes();
 
@@ -438,8 +438,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return aggregationPeriod;
     }
 
-    TemporalAmount getAggregationEnd() {
-        return aggregationEnd;
+    TemporalAmount getAggregationBoundary() {
+        return aggregationBoundary;
     }
 
     public TemporalAmount getAggregationOverlap() {
