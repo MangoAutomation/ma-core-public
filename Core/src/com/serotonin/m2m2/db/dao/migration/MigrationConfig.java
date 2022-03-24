@@ -34,6 +34,6 @@ public interface MigrationConfig {
     TemporalUnit getTruncateTo();
     Set<DataType> getAggregationDataTypes();
     TemporalAmount getAggregationPeriod();
-    TemporalAmount getAggregationEnd();
+    TemporalAmount getAggregationBoundary();
     TemporalAmount getAggregationOverlap();
 }

@@ -113,8 +113,8 @@ public class DefaultMigrationConfig implements MigrationConfig {
     }
 
     @Override
-    public TemporalAmount getAggregationEnd() {
-        return env.getProperty("db.migration.aggregation.end", TemporalAmount.class, Duration.ZERO);
+    public TemporalAmount getAggregationBoundary() {
+        return env.getProperty("db.migration.aggregation.boundary", TemporalAmount.class, Duration.ZERO);
     }
 
     @Override

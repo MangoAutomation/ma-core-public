@@ -123,7 +123,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.period = config.getMigrationPeriod();
         this.truncateTo = config.getTruncateTo();
         this.aggregationPeriod = config.getAggregationPeriod();
-        this.aggregationEnd = config.getAggregationEnd();
+        this.aggregationEnd = config.getAggregationBoundary();
         this.aggregationOverlap = config.getAggregationOverlap();
         this.aggregationDataTypes = config.getAggregationDataTypes();
 

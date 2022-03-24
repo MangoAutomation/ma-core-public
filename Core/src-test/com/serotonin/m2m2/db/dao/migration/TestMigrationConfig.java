@@ -141,7 +141,7 @@ public class TestMigrationConfig implements MigrationConfig {
     }
 
     @Override
-    public TemporalAmount getAggregationEnd() {
+    public TemporalAmount getAggregationBoundary() {
         return aggregationEnd;
     }
 
