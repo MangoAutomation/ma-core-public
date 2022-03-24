@@ -14,5 +14,5 @@ public interface MultiAggregate extends AggregateValue {
         return startTime >= getPeriodStartTime() && startTime < getPeriodEndTime();
     }
 
-    void addChild(AggregateValue child);
+    void accumulate(AggregateValue value);
 }

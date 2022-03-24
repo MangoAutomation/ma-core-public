@@ -132,7 +132,7 @@ public interface AggregateDao {
                 while (iterator.hasNext()) {
                     var next = iterator.peek();
                     if (agg.isInPeriod(next.getValue())) {
-                        agg.addChild(iterator.next().getValue());
+                        agg.accumulate(iterator.next().getValue());
                     } else {
                         break;
                     }

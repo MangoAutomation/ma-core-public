@@ -257,6 +257,11 @@ public class AnalogStatistics implements StatisticsGenerator, NumericAggregate {
     }
 
     @Override
+    public DoubleSummaryStatistics getStatistics() {
+        return statistics;
+    }
+
+    @Override
     public String toString() {
         return "{minimumValue: " + minimumValue +
                 ", minimumTime: " + formatEpochMilli(minimumTime) +

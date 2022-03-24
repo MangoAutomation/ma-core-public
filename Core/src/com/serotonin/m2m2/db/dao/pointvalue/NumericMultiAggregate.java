@@ -5,8 +5,7 @@
 package com.serotonin.m2m2.db.dao.pointvalue;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.DoubleSummaryStatistics;
 
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
@@ -17,7 +16,18 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
 
     private final long periodStartTime;
     private final long periodEndTime;
-    private final List<NumericAggregate> children = new ArrayList<>(0);
+
+    private NumericAggregate firstChild;
+    private NumericAggregate lastChild;
+
+    private final DoubleSummaryStatistics statistics = new DoubleSummaryStatistics();
+    private Double minimumValue = Double.NaN;
+    private Long minimumTime;
+    private Double maximumValue = Double.NaN;
+    private Long maximumTime;
+    private long accumulatedCount = 0;
+    private Double averageAccumulator = 0.0D;
+    private Double integral = 0.0D;
 
     public NumericMultiAggregate(Instant periodStartTime, Instant periodEndTime) {
         this(periodStartTime.toEpochMilli(), periodEndTime.toEpochMilli());
@@ -29,22 +39,31 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
     }
 
     @Override
-    public void addChild(AggregateValue child) {
-        if (!isInPeriod(child)) {
-            throw new IllegalArgumentException("Aggregate does not belong in this period");
+    public void accumulate(AggregateValue value) {
+        if (!isInPeriod(value)) {
+            throw new IllegalArgumentException("Aggregate value does not belong in this period");
         }
-        if (!(child instanceof NumericAggregate)) {
-            throw new IllegalArgumentException("Must be a NumericAggregate");
+        if (!(value instanceof NumericAggregate)) {
+            throw new IllegalArgumentException("Must be a instance of " + NumericAggregate.class.getSimpleName());
         }
-        children.add((NumericAggregate) child);
-    }
 
-    private NumericAggregate firstChild() {
-        return children.get(0);
-    }
-
-    private NumericAggregate lastChild() {
-        return children.get(children.size() - 1);
+        NumericAggregate numericValue = (NumericAggregate) value;
+        if (firstChild == null) {
+            this.firstChild = numericValue;
+        }
+        this.lastChild = numericValue;
+        if (Double.isNaN(minimumValue) || numericValue.getMinimumValue() < minimumValue) {
+            this.minimumValue = numericValue.getMinimumValue();
+            this.minimumTime = numericValue.getMinimumTime();
+        }
+        if (Double.isNaN(maximumValue) || numericValue.getMaximumValue() < maximumValue) {
+            this.maximumValue = numericValue.getMaximumValue();
+            this.maximumTime = numericValue.getMaximumTime();
+        }
+        this.accumulatedCount++;
+        this.averageAccumulator += numericValue.getAverage();
+        this.integral += numericValue.getIntegral();
+        statistics.combine(numericValue.getStatistics());
     }
 
     public Instant getPeriodStartInstant() {
@@ -67,109 +86,82 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
 
     @Override
     public DataValue getStartValue() {
-        return children.isEmpty() ? null : firstChild().getStartValue();
+        return firstChild == null ? null : firstChild.getStartValue();
     }
 
     @Override
     public DataValue getFirstValue() {
-        return children.isEmpty() ? null : firstChild().getFirstValue();
+        return firstChild == null ? null : firstChild.getFirstValue();
     }
 
     @Override
     public Long getFirstTime() {
-        return children.isEmpty() ? null : firstChild().getFirstTime();
+        return firstChild == null ? null : firstChild.getFirstTime();
     }
 
     @Override
     public DataValue getLastValue() {
-        return children.isEmpty() ? null : lastChild().getLastValue();
+        return lastChild == null ? null : firstChild.getLastValue();
     }
 
     @Override
     public Long getLastTime() {
-        return children.isEmpty() ? null : lastChild().getLastTime();
+        return lastChild == null ? null : firstChild.getLastTime();
     }
 
     @Override
     public long getCount() {
-        return children.stream()
-                .mapToLong(NumericAggregate::getCount)
-                .sum();
+        return statistics.getCount();
     }
 
     @Override
     public Double getMinimumValue() {
-        return children.stream()
-                .mapToDouble(NumericAggregate::getMinimumValue)
-                .min()
-                .orElse(Double.NaN);
+        return minimumValue;
     }
 
     @Override
     public Long getMinimumTime() {
-        double minimum = getMinimumValue();
-        return children.stream()
-                .filter(v -> v.getMinimumValue() == minimum)
-                .map(NumericAggregate::getMinimumTime)
-                .findAny()
-                .orElse(null);
+        return minimumTime;
     }
 
     @Override
     public Double getMaximumValue() {
-        return children.stream()
-                .mapToDouble(NumericAggregate::getMaximumValue)
-                .min()
-                .orElse(Double.NaN);
+        return maximumValue;
     }
 
     @Override
     public Long getMaximumTime() {
-        double maximum = getMaximumValue();
-        return children.stream()
-                .filter(v -> v.getMaximumValue() == maximum)
-                .map(NumericAggregate::getMinimumTime)
-                .findAny()
-                .orElse(null);
+        return maximumTime;
     }
 
     @Override
     public Double getAverage() {
-        // will not return a true time weighted average unless child periods are perfectly aligned
-        return children.stream()
-                .mapToDouble(NumericAggregate::getAverage)
-                .average()
-                .orElse(Double.NaN);
+        return accumulatedCount == 0L ? Double.NaN : averageAccumulator / accumulatedCount;
     }
 
     @Override
     public Double getIntegral() {
-        return children.stream()
-                .mapToDouble(NumericAggregate::getIntegral)
-                .sum();
+        return accumulatedCount == 0L ? Double.NaN : integral;
     }
 
     @Override
     public double getSum() {
-        return children.stream()
-                .mapToDouble(NumericAggregate::getSum)
-                .sum();
+        return statistics.getSum();
     }
 
     @Override
     public double getMinimumInPeriod() {
-        return children.stream()
-                .mapToDouble(NumericAggregate::getMinimumInPeriod)
-                .min()
-                .orElse(Double.NaN);
+        return statistics.getCount() > 0L ? statistics.getMin() : Double.NaN;
     }
 
     @Override
     public double getMaximumInPeriod() {
-        return children.stream()
-                .mapToDouble(NumericAggregate::getMaximumInPeriod)
-                .max()
-                .orElse(Double.NaN);
+        return statistics.getCount() > 0L ? statistics.getMax() : Double.NaN;
+    }
+
+    @Override
+    public DoubleSummaryStatistics getStatistics() {
+        return statistics;
     }
 
     @Override
@@ -177,7 +169,6 @@ public class NumericMultiAggregate implements MultiAggregate, NumericAggregate {
         return "NumericMultiAggregate{" +
                 "periodStartTime=" + getPeriodStartInstant() +
                 ", periodEndTime=" + getPeriodEndInstant() +
-                ", children=" + children.size() +
                 '}';
     }
 }

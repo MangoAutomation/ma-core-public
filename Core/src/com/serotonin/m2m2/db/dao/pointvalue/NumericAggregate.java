@@ -4,6 +4,7 @@
 
 package com.serotonin.m2m2.db.dao.pointvalue;
 
+import java.util.DoubleSummaryStatistics;
 import java.util.Objects;
 
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -82,4 +83,6 @@ public interface NumericAggregate extends AggregateValue {
      * @return the maximum of the values in the period, if {@link #getCount() count} is 0 will return {@link Double#NaN NaN}.
      */
     double getMaximumInPeriod();
+
+    DoubleSummaryStatistics getStatistics();
 }
