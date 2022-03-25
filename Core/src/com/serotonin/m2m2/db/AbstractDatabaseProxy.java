@@ -182,6 +182,13 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             log.error("Exception initializing database proxy: " + e.getMessage(), e);
             throw new UncheckedIOException(e);
         } catch (Exception e) {
+            // exception can occur during database schema upgrade, and we need to ensure the current schema version
+            // is committed. Attempt to close the database cleanly.
+            try {
+                terminate();
+            } catch (Exception e2) {
+                e.addSuppressed(e2);
+            }
             log.error("Exception initializing database proxy: " + e.getMessage(), e);
             throw e;
         }
