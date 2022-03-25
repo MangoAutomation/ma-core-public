@@ -292,7 +292,7 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
     }
 
     @Override
-    public Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder) {
+    public Stream<IdPointValueTime> streamPointValues(DataPointVO vo, @Nullable Long from, @Nullable Long to, @Nullable Integer limit, TimeOrder sortOrder, int chunkSize) {
         PointValueDao.validateNotNull(vo);
         PointValueDao.validateTimePeriod(from, to);
         PointValueDao.validateNotNull(sortOrder);
