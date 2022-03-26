@@ -6,11 +6,11 @@
 * Update rql-parser to v1.0.x, stricter parsing of RQL
 * Add support for PostgreSQL
 * Update postgresql driver to v42.3.2
+* Upgrade Spring library version to 5.3.7
 
 *Version 4.3.3*
 * Upgrade library version to jssc 2.9.4
 * Upgrade Jackson library version to 2.13.1
-* Upgrade Spring library version to 5.3.7
 * Upgrade MySQL java connector library version to 8.0.27
 * Fix bug that occurs when attempting to validate any script on a non-running Script data source, causing it will get into a state where it cannot be re-validated or started
 
