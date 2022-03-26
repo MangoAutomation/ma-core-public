@@ -6,9 +6,16 @@
 * Update rql-parser to v1.0.x, stricter parsing of RQL
 * Add support for PostgreSQL
 * Update postgresql driver to v42.3.2
+* Upgrade Spring library version to 5.3.7
+
+*Version 4.3.3*
+* Upgrade library version to jssc 2.9.4
+* Upgrade Jackson library version to 2.13.1
+* Upgrade MySQL java connector library version to 8.0.27
+* Fix bug that occurs when attempting to validate any script on a non-running Script data source, causing it will get into a state where it cannot be re-validated or started
 
 *Version 4.3.2*
-* Fix bug (NPE) in the Upgrade29 when there are no ScriptPermission in the legacy (3.5.x) Email Event Handlers
+* Fixing a bug in the upgrading process coming from a legacy version (3.5.x) related to the permissions on the Email Event Handlers  
 
 *Version 4.3.1*
 * Fix bug in Multistate state event detector synchronization
