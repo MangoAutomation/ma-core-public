@@ -55,6 +55,7 @@ import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefin
 import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.converters.DurationConverter;
+import com.infiniteautomation.mango.spring.converters.PeriodConverter;
 import com.infiniteautomation.mango.spring.converters.TemporalAmountConverter;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -269,6 +270,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         var conversionService = new DefaultConversionService();
         conversionService.addConverter(new TemporalAmountConverter());
         conversionService.addConverter(new DurationConverter());
+        conversionService.addConverter(new PeriodConverter());
         return conversionService;
     }
 
