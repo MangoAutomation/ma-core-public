@@ -63,7 +63,7 @@ public class MigrationPointValueDaoDefinition extends PointValueDaoDefinition {
                 dataPointDao,
                 executorService,
                 scheduledExecutorService,
-                clock,
+                clock.withZone(config.getZone()),
                 migrationProgressDao,
                 config);
 

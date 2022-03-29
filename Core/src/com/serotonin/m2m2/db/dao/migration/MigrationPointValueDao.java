@@ -8,7 +8,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -113,7 +112,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.dataPointDao = dataPointDao;
         this.executorService = executorService;
         this.scheduledExecutorService = scheduledExecutorService;
-        this.clock = clock.withZone(config.getAggregationPeriod() != null ? config.getZone() : ZoneId.systemDefault());
+        this.clock = clock;
         this.migrationProgressDao = migrationProgressDao;
         this.config = config;
 

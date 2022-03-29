@@ -84,6 +84,10 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         this.migrationConfig = config;
 
         ApplicationContext context = MangoTestBase.lifecycle.getRuntimeContext();
+
+        // keep a reference to the new timer, so we can set the time on the instance passed to migration dao
+        this.timer = timer.withZone(config.getZone());
+
         this.migrationPointValueDao = new MigrationPointValueDao(destination, source,
                 context.getBean(DataPointDao.class),
                 context.getBean(ExecutorService.class),

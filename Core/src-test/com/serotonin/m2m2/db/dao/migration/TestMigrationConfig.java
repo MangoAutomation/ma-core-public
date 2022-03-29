@@ -156,7 +156,7 @@ public class TestMigrationConfig implements MigrationConfig {
 
     @Override
     public ZoneId getZone() {
-        return zone;
+        return aggregationPeriod != null ? zone : ZoneId.systemDefault();
     }
 
     public void setZone(ZoneId zone) {
