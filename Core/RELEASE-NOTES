@@ -7,6 +7,9 @@
 * Add support for PostgreSQL
 * Update postgresql driver to v42.3.2
 * Upgrade Spring library version to 5.3.7
+* Add new streaming APIs to PointValueDao
+* Add new AggregateDao interface for calculating and querying statistics rollups (aggregates)
+* Replace entire code-path between REST API and time series database to leverage AggregateDao streaming methods and enable support for pre-aggregating time-series databases
 
 *Version 4.3.3*
 * Upgrade library version to jssc 2.9.4
