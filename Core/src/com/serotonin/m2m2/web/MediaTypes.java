@@ -21,9 +21,7 @@ public final class MediaTypes {
             super(type, subtype, Collections.singletonMap(VERSION_PARAMETER, version));
 
             this.compatibleVersions.add(version);
-            for (String v : compatibleVersions) {
-                this.compatibleVersions.add(v);
-            }
+            Collections.addAll(this.compatibleVersions, compatibleVersions);
         }
 
         @Override
@@ -43,8 +41,6 @@ public final class MediaTypes {
     public static final String CSV_VALUE = "text/csv";
     public static final String SEROTONIN_JSON_VALUE = "application/vnd.infinite-automation-systems.mango.serotonin-json";
 
-    // TODO Mango 4.0 remove null from compatible versions, only allow explicit version=1
-    public static final MediaType CSV_V1 = new VersionedMediaType("text", "csv", "1", (String) null);
     public static final MediaType CSV_V2 = new VersionedMediaType("text", "csv", "2", (String) null);
     public static final MediaType SEROTONIN_JSON = new MediaType("application", "vnd.infinite-automation-systems.mango.serotonin-json");
 }
