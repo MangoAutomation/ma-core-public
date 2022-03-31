@@ -6,7 +6,7 @@
 * Update rql-parser to v1.0.x, stricter parsing of RQL
 * Add support for PostgreSQL
 * Update postgresql driver to v42.3.2
-* Upgrade Spring library version to 5.3.7
+* Upgrade Spring library version to 5.3.18 (mitigates CVE-2022-22965)
 * Add new streaming APIs to PointValueDao
 * Add new AggregateDao interface for calculating and querying statistics rollups (aggregates)
 * Replace entire code-path between REST API and time series database to leverage AggregateDao streaming methods and enable support for pre-aggregating time-series databases
