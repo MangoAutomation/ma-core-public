@@ -309,6 +309,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
         this.state = ILifecycleState.INITIALIZING;
         notifyStateChanged();
         try {
+            initializing();
             initialize();
             initializePoints();
         } catch (Exception e) {
@@ -344,6 +345,13 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
     }
 
     /**
+     * Hook for data source is being initialized
+     */
+    protected void initializing() {
+
+    }
+
+    /**
      * Initialize this data source
      */
     protected void initialize() {
@@ -361,6 +369,13 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
      * Hook for just before points get removed from the data source
      */
     protected void terminating() {
+
+    }
+
+    /**
+     * Hook for last call after data source has been fully stopped
+     */
+    protected void terminated() {
 
     }
 
@@ -385,6 +400,12 @@ abstract public class DataSourceRT<VO extends DataSourceVO> implements ILifecycl
 
         try {
             terminateImpl();
+        } catch (Exception e) {
+            log.error("Failed to terminate " + readableIdentifier(), e);
+        }
+
+        try {
+            terminated();
         } catch (Exception e) {
             log.error("Failed to terminate " + readableIdentifier(), e);
         }

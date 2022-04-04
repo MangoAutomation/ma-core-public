@@ -123,9 +123,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     }
 
     @Override
-    protected void initialize(){
-
-
+    protected void initializing() {
         //Set it to -1 so that if it never aborts we can distinguish from always aborting
         this.currentSuccessfulPollsMonitor = Common.MONITORED_VALUES.<Long>create("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_SUCCESS")
                 .name(new TranslatableMessage("internal.monitor.pollingDataSource.SUCCESS", vo.getName()))
@@ -312,10 +310,14 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
     @Override
     protected final void terminateImpl() {
+        pollingTerminate();
+    }
+
+    @Override
+    protected void terminated() {
         Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
         Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
         Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
-        pollingTerminate();
     }
 
     protected void pollingTerminate() {
