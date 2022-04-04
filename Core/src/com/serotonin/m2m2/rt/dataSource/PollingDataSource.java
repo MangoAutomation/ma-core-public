@@ -75,9 +75,9 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
     private final AtomicLong successfulPolls = new AtomicLong();
     private final AtomicLong unsuccessfulPolls = new AtomicLong();
     private final AtomicLong currentSuccessfulPolls = new AtomicLong();
-    private ValueMonitor<Long> currentSuccessfulPollsMonitor;
-    private ValueMonitor<Long> lastPollDurationMonitor;
-    private ValueMonitor<Double> successfulPollsPercentageMonitor;
+    private final ValueMonitor<Long> currentSuccessfulPollsMonitor;
+    private final ValueMonitor<Long> lastPollDurationMonitor;
+    private final ValueMonitor<Double> successfulPollsPercentageMonitor;
     private final ConcurrentLinkedQueue<LongLongPair> latestPollTimes;
     private final ConcurrentLinkedQueue<Long> latestAbortedPollTimes;
     private long nextAbortedPollMessageTime = 0L;
@@ -85,7 +85,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
 
     public PollingDataSource(T vo) {
         super(vo);
-        if (vo.isUseCron())
+        if(vo.isUseCron())
             this.cronPattern = vo.getCronPattern();
         else
             pollingPeriodMillis = Common.getMillis(vo.getUpdatePeriodType(), vo.getUpdatePeriods());
@@ -95,7 +95,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
         this.latestPollTimes = new ConcurrentLinkedQueue<>();
         this.latestAbortedPollTimes = new ConcurrentLinkedQueue<>();
         this.abortedPollLogDelay = Common.envProps.getLong("runtime.datasource.pollAbortedLogFrequency", 3600000);
-        this.timeoutClient = new TimeoutClient() {
+        this.timeoutClient = new TimeoutClient(){
 
             @Override
             public void scheduleTimeout(long fireTime) {
@@ -120,11 +120,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO> extends D
             }
 
         };
-    }
-
-    @Override
-    protected void initialize(){
-
 
         //Set it to -1 so that if it never aborts we can distinguish from always aborting
         this.currentSuccessfulPollsMonitor = Common.MONITORED_VALUES.<Long>create("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_SUCCESS")

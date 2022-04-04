@@ -1,3 +1,6 @@
+*Version 4.3.4*
+* Revert bugfix from 4.3.3 for Script data source, to be included in 4.4.0
+
 *Version 4.3.3*
 * Upgrade library version to jssc 2.9.4
 * Upgrade Jackson library version to 2.13.1
