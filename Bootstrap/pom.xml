@@ -4,7 +4,7 @@
     <parent>
         <artifactId>mango-parent</artifactId>
         <groupId>com.infiniteautomation.mango</groupId>
-        <version>4.3.4-SNAPSHOT</version>
+        <version>4.3.4</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>ma-bootstrap</artifactId>
