@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.infiniteautomation.mango.io.serial.SerialPortInputStream;
-import com.serotonin.ShouldNeverHappenException;
 
 public class SerialServerSocketBridgeInputStream extends SerialPortInputStream {
     private static final Logger LOG = LoggerFactory.getLogger(SerialServerSocketBridgeInputStream.class);
@@ -96,11 +95,6 @@ public class SerialServerSocketBridgeInputStream extends SerialPortInputStream {
     		if(this.bufferStream != null)
     			this.bufferStream.close();
 		}
-	}
-
-	@Override
-	public int peek() {
-		throw new ShouldNeverHappenException("Unimplemented.");
 	}
 
 }

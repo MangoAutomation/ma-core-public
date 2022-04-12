@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import com.infiniteautomation.mango.io.serial.SerialPortInputStream;
-import com.serotonin.ShouldNeverHappenException;
 
 /**
  * Class for the input stream of a serial port to a Client Socket/Inet Address
@@ -37,10 +36,4 @@ public class SerialSocketBridgeInputStream extends SerialPortInputStream {
 	public void closeImpl() throws IOException {
 		this.stream.close();
 	}
-
-	@Override
-	public int peek() {
-		throw new ShouldNeverHappenException("Unimplemented.");
-	}
-
 }
