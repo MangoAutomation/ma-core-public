@@ -1,3 +1,6 @@
+*Version 4.3.5*
+* Use Epoll to read serial ports more efficiently
+
 *Version 4.3.4*
 * Revert bugfix from 4.3.3 for Script data source, to be included in 4.4.0
 
@@ -5,7 +8,6 @@
 * Upgrade library version to jssc 2.9.4
 * Upgrade Jackson library version to 2.13.1
 * Upgrade MySQL java connector library version to 8.0.27
-* Fix bug that occurs when attempting to validate any script on a non-running Script data source, causing it will get into a state where it cannot be re-validated or started
 
 *Version 4.3.2*
 * Fixing a bug in the upgrading process coming from a legacy version (3.5.x) related to the permissions on the Email Event Handlers  

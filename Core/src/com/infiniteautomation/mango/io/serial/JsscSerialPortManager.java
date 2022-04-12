@@ -38,14 +38,15 @@ public class JsscSerialPortManager {
         this.readExecutor = new ScheduledThreadPoolExecutor(1, new MangoThreadFactory("Mango Serial Port Reader", Thread.MAX_PRIORITY, Common.getModuleClassLoader()));
         this.eventQueue = new ArrayBlockingQueue<SerialPortProxyEventTask>(Common.envProps.getInt("serial.port.eventQueueSize", 10000));
     }
-    
+
+
     /**
      * Add a read task
      */
     public ScheduledFuture<?> addReader(Runnable reader, long period, TimeUnit unit) {
         return this.readExecutor.scheduleAtFixedRate(reader, 0, period, unit);
     }
-    
+
     /**
      * Add a task to be processed
      */
@@ -77,7 +78,7 @@ public class JsscSerialPortManager {
         this.eventProcessor.start();
         this.initialized = true;
     }
-    
+
     public void terminate() {
         this.readExecutor.shutdown();
         if(this.eventProcessor != null) {
@@ -85,7 +86,7 @@ public class JsscSerialPortManager {
             this.eventProcessor.interrupt();
         }
     }
-    
+
     public void joinTermination() {
         try {
             this.readExecutor.awaitTermination(5, TimeUnit.SECONDS);

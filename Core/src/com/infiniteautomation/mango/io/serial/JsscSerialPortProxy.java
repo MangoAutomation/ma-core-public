@@ -124,10 +124,10 @@ public class JsscSerialPortProxy extends SerialPortProxy {
             try{
                 this.port.purgePort(SerialPort.PURGE_RXCLEAR | SerialPort.PURGE_TXCLEAR);
             }catch(jssc.SerialPortException e){ }
-            
+
             long period = Common.envProps.getLong("serial.port.linux.readPeriods", 100);
             TimeUnit unit = TimeUnit.valueOf(Common.envProps.getString("serial.port.linux.readPeriodType", "NANOSECONDS"));
-            
+
             this.is = new JsscSerialPortInputStream(this.port, period, unit, this.listeners);
             this.os = new JsscSerialPortOutputStream(this.port);
 

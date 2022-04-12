@@ -5,20 +5,20 @@ package com.infiniteautomation.mango.io.serial;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.serotonin.io.StreamUtils;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 
 import jssc.SerialNativeInterface;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
+import jssc.SerialPortException;
 
 
 /**
@@ -37,7 +37,6 @@ import jssc.SerialPortEventListener;
 public class JsscSerialPortInputStream extends SerialPortInputStream implements SerialPortEventListener {
 
     private final Logger LOG = LoggerFactory.getLogger(JsscSerialPortInputStream.class);
-    protected final LinkedBlockingQueue<Byte> dataStream;
     protected final SerialPort port;
     protected final List<SerialPortProxyEventListener> listeners;
     protected final ScheduledFuture<?> reader;
@@ -47,40 +46,23 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
     public JsscSerialPortInputStream(SerialPort serialPort, long readPollPeriod, TimeUnit readPollPeriodType, List<SerialPortProxyEventListener> listeners)
             throws jssc.SerialPortException {
         this.listeners = listeners;
-        this.dataStream = new LinkedBlockingQueue<Byte>();
-
         this.port = serialPort;
 
         //This is ok on windows, linux we want to poll on our own
         if(SerialNativeInterface.getOsType() == SerialNativeInterface.OS_WINDOWS) {
-            this.reader = null;
             this.port.addEventListener(this, SerialPort.MASK_RXCHAR);
+            this.reader = null;
         }else {
-            this.reader = JsscSerialPortManager.instance.addReader(()->{
+            //Setup a listener task to fire events
+            this.reader = JsscSerialPortManager.instance.addReader(()-> {
                 try {
-                    //Read the bytes, store into queue
-                    byte[] buffer = port.readBytes();
-                    if(buffer != null) {
-                        synchronized (dataStream) {
-                            for (int i = 0; i < buffer.length; i++) {
-                                this.dataStream.put(buffer[i]);
-                            }
-                        }
-                        if (LOG.isDebugEnabled())
-                            LOG.debug(this.port.getPortName() + " recieved: " + StreamUtils.dumpHex(buffer, 0, buffer.length));
-
-                        if (listeners.size() > 0) {
-                            //Create a new RX Event
-                            final SerialPortProxyEvent upstreamEvent = new SerialPortProxyEvent(Common.timer.currentTimeMillis(), buffer.length);
-                            for (final SerialPortProxyEventListener listener : listeners){
-                                SerialPortProxyEventTask task = new SerialPortProxyEventTask(listener, upstreamEvent);
-                                if(!JsscSerialPortManager.instance.addEvent(task))
-                                    LOG.error("Serial Port Problem, Listener task queue full, data will be lost!  Increase serial.port.eventQueueSize to avoid this.");
-                            }
+                    if (this.listeners.size() > 0) {
+                        int cnt = this.port.getInputBufferBytesCount();
+                        if (cnt > 0) {
+                            this.serialEvent(new SerialPortEvent(this.port, SerialPort.MASK_RXCHAR, cnt));
                         }
                     }
-                }
-                catch (jssc.SerialPortException e) {
+                }catch (jssc.SerialPortException e) {
                     LOG.error("An error occurred", e);
                 }catch(Exception e) {
                     LOG.error("An error occurred", e);
@@ -90,28 +72,32 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
 
         if(LOG.isDebugEnabled())
             LOG.debug("Creating Jssc Serial Port Input Stream for: " + serialPort.getPortName());
-
     }
 
     @Override
     public int read() throws IOException {
-        synchronized (dataStream) {
-            try {
-                if (dataStream.size() > 0)
-                    return dataStream.take() & 0xFF; //Return unsigned byte value by masking off the high order bytes in the returned int
-                else
+        try {
+            if(this.port.getInputBufferBytesCount() > 0) {
+                byte[] bytes = this.port.readBytes(1);
+                if (bytes != null && bytes.length > 0) {
+                    return 0xFF & bytes[0];
+                } else {
                     return -1;
+                }
+            }else {
+                return -1;
             }
-            catch (InterruptedException e) {
-                throw new IOException(e);
-            }
+        } catch (SerialPortException e) {
+            throw new IOException(e);
         }
     }
 
     @Override
     public int available() throws IOException {
-        synchronized (dataStream) {
-            return this.dataStream.size();
+        try {
+            return this.port.getInputBufferBytesCount();
+        } catch (SerialPortException e) {
+            throw new IOException(e);
         }
     }
 
@@ -141,7 +127,7 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
      */
     @Override
     public int peek() {
-        return this.dataStream.peek();
+        throw new ShouldNeverHappenException("Un-implemented. Removed in Mango 4.4.x+");
     }
 
     /**
@@ -152,22 +138,8 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
         if (event.isRXCHAR()) {//If data is available
             if (LOG.isDebugEnabled())
                 LOG.debug("Serial Receive Event fired.");
-            //Read the bytes, store into queue
-            try {
-                byte[] buffer = this.port.readBytes(event.getEventValue());
-                synchronized (dataStream) {
-                    for (int i = 0; i < buffer.length; i++) {
-                        this.dataStream.put(buffer[i]);
-                    }
-                }
-                if (LOG.isDebugEnabled())
-                    LOG.debug("Recieved: " + StreamUtils.dumpHex(buffer, 0, buffer.length));
-
-            }
-            catch (Exception e) {
-                LOG.error("An error occurred", e);
-            }
-
+            //We used to Read the bytes, store into queue, the idea is that this event
+            // will cause the listener to read the port for at least the event number of bytes
             if (listeners.size() > 0) {
                 //Create a new RX Event
                 final SerialPortProxyEvent upstreamEvent = new SerialPortProxyEvent(Common.timer.currentTimeMillis(), event.getEventValue());
