@@ -349,6 +349,7 @@ ALTER TABLE events ADD CONSTRAINT eventsFk2 FOREIGN KEY (readPermissionId) REFER
 CREATE INDEX performance1 ON events (activeTs ASC);
 CREATE INDEX events_performance2 ON events (rtnApplicable ASC, rtnTs ASC);
 CREATE INDEX events_performance3 ON events (typeName ASC, subTypeName ASC, typeRef1 ASC);
+CREATE INDEX events_performance4 ON events (typeName ASC, typeRef1 ASC);
 
 --
 -- Event handlers
