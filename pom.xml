@@ -34,6 +34,7 @@
         <resilience4j.version>1.7.1</resilience4j.version>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
         <surefire.fork.count>1</surefire.fork.count>
+        <grpc.version>1.46.0</grpc.version>
     </properties>
     <organization>
         <name>Radix IoT, LLC</name>

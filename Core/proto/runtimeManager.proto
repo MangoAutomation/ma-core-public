@@ -1,0 +1,20 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.radixiot.pi.grpc;
+
+message PointValueTime {
+  int32 dataPointId = 1;
+  int64 timestamp = 2;
+}
+
+message DataPointVO {
+  int32 id = 1;
+}
+
+message DataPointRT {
+  int32 id = 1;
+}
+
+service RuntimeManager {
+  rpc GetDataPoint(DataPointVO) returns (DataPointRT);
+}

@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -58,6 +59,7 @@ import com.infiniteautomation.mango.spring.converters.DurationConverter;
 import com.infiniteautomation.mango.spring.converters.PeriodConverter;
 import com.infiniteautomation.mango.spring.converters.TemporalAmountConverter;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
+import com.infiniteautomation.mango.spring.service.RuntimeManagerService;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
@@ -79,6 +81,9 @@ import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.properties.MangoConfigurationWatcher;
 import com.serotonin.util.properties.MangoProperties;
+
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
 
 /**
  *
@@ -392,5 +397,15 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     @Bean
     public EventManager eventManager() {
         return Common.eventManager;
+    }
+
+    @Bean
+    public Server grpcServer(RuntimeManagerService runtimeManagerService) throws IOException {
+        Server server = ServerBuilder
+                .forPort(8002)
+                .addService(runtimeManagerService).build();
+
+        server.start();
+        return server;
     }
 }
