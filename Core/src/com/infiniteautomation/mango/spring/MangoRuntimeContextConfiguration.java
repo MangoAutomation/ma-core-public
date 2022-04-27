@@ -6,8 +6,10 @@ package com.infiniteautomation.mango.spring;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +19,11 @@ import java.util.function.Function;
 import javax.script.ScriptEngineManager;
 import javax.sql.DataSource;
 
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +43,21 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaAdmin;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.converter.MessagingMessageConverter;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.context.WebApplicationContext;
@@ -60,6 +80,7 @@ import com.infiniteautomation.mango.spring.converters.PeriodConverter;
 import com.infiniteautomation.mango.spring.converters.TemporalAmountConverter;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.service.RuntimeManagerService;
+import com.radixiot.pi.grpc.MangoEvent;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
@@ -90,6 +111,7 @@ import io.grpc.ServerBuilder;
  * @author Terry Packer
  */
 @Configuration
+@EnableKafka
 @Import({MangoCommonConfiguration.class, RegisterModuleElementDefinitions.class})
 @ComponentScan(basePackages = {
         "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
@@ -407,5 +429,76 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
         server.start();
         return server;
+    }
+
+    @Bean
+    public KafkaAdmin kafkaAdmin(Environment env) {
+        Map<String, Object> configs = new HashMap<>();
+        configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("kafka.address"));
+        return new KafkaAdmin(configs);
+    }
+
+    @Bean
+    public ProducerFactory<String, MangoEvent> producerFactory(Environment env) {
+        String bootstrapAddress = env.getProperty("kafka.address");
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                bootstrapAddress);
+        configProps.put(
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class);
+        configProps.put(
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                org.apache.kafka.common.serialization.ByteArraySerializer.class);
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean("eventsKafkaTemplate")
+    public KafkaTemplate<String, MangoEvent> kafkaEventTemplate(Environment env, SmartMessageConverter messageConverter) {
+        KafkaTemplate t = new KafkaTemplate<>(producerFactory(env));
+        t.setMessagingConverter(messageConverter);
+        return t;
+    }
+
+    @Bean
+    public ConsumerFactory<String, MangoEvent> consumerFactory(Environment env) {
+        String bootstrapAddress = env.getProperty("kafka.address");
+        Map<String, Object> props = new HashMap<>();
+
+        //TODO what is this?
+        String groupId = "mango";
+
+        props.put(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                bootstrapAddress);
+        props.put(
+                ConsumerConfig.GROUP_ID_CONFIG,
+                groupId);
+        props.put(
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class);
+        props.put(
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+                org.apache.kafka.common.serialization.ByteArrayDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, MangoEvent>
+    kafkaListenerContainerFactory(Environment env, SmartMessageConverter messageConverter) {
+
+        ConcurrentKafkaListenerContainerFactory<String, MangoEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory(env));
+        MessagingMessageConverter converter = new MessagingMessageConverter();
+        converter.setMessagingConverter(messageConverter);
+        factory.setMessageConverter(converter);
+        return factory;
+    }
+
+    @KafkaListener(topics = "mango-events", groupId = "mango")
+    public void eventListener(Message<MangoEvent> event) {
+        System.out.println("Received Message in topic mango-events: " + event.getPayload());
     }
 }

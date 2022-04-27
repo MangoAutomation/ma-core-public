@@ -3,9 +3,11 @@
  */
 package com.serotonin.m2m2.rt;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -20,11 +22,17 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.MimeType;
 
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
+import com.radixiot.pi.grpc.MangoEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -243,6 +251,29 @@ public class EventManagerImpl implements EventManager {
             // Call raiseEvent handlers.
             handleRaiseEvent(evt, emailUsers);
 
+            KafkaTemplate<String, MangoEvent> template = Common.getBean(KafkaTemplate.class, "eventsKafkaTemplate");
+            MangoEvent msg = MangoEvent.newBuilder()
+                    .setId(evt.getId())
+                    .setActiveTimestamp(evt.getActiveTimestamp())
+                    .setMessage(message.translate(Common.getTranslations()))
+                    .setAlarmLevel(evt.getAlarmLevel().name()).build();
+
+            //use send of type message to leverage spring messaging protobuf converter
+            template.send(new Message<MangoEvent>() {
+
+                @Override
+                public MangoEvent getPayload() {
+                    return msg;
+                }
+
+                @Override
+                public MessageHeaders getHeaders() {
+                    Map<String, Object> headers = new HashMap<>();
+                    headers.put(MessageHeaders.CONTENT_TYPE, new MimeType("application", "x-protobuf", StandardCharsets.UTF_8).toString());
+                    headers.put(KafkaHeaders.TOPIC, "mango-events");
+                    return new MessageHeaders(headers);
+                }
+            });
             if (log.isTraceEnabled()) {
                 log.trace("Event raised: type={}, message={}, time={}",
                         type,
