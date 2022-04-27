@@ -2,9 +2,10 @@ syntax = "proto3";
 option java_multiple_files = true;
 package com.radixiot.pi.grpc;
 
-message PointValueTime {
+message MangoPointValueTime {
   int32 dataPointId = 1;
   int64 timestamp = 2;
+  double value = 3;
 }
 
 message DataPointVO {

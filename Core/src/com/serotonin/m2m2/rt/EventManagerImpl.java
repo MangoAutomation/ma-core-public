@@ -28,11 +28,15 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.util.MimeType;
 
+import com.infiniteautomation.mango.spring.esb.EventKafkaListener;
+import com.infiniteautomation.mango.spring.esb.MangoEventsRaisedTopic;
+import com.infiniteautomation.mango.spring.esb.MangoEventsRtnTopic;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
-import com.radixiot.pi.grpc.MangoEvent;
+import com.radixiot.pi.grpc.MangoEventRaised;
+import com.radixiot.pi.grpc.MangoEventRtn;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -74,7 +78,6 @@ public class EventManagerImpl implements EventManager {
     private EventDao eventDao;
     private UsersService usersService;
     private int highestActiveAlarmLevel = 0;
-    private UserEventListener userEventMulticaster = null;
     private MailingListService mailingListService;
     private AuditEventDao auditEventDao;
     private EventHandlerService eventHandlerService;
@@ -188,7 +191,6 @@ public class EventManagerImpl implements EventManager {
         Set<String> emailUsers = new HashSet<>();
 
         List<Integer> userIdsToNotify = new ArrayList<>();
-        UserEventListener multicaster = userEventMulticaster;
 
         for (User user : usersService.getEnabledUsers()) {
             // Do not create an event for this user if the event type says the
@@ -207,9 +209,6 @@ public class EventManagerImpl implements EventManager {
                 }
             }
         }
-
-        if (multicaster != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
         // add email addresses for mailing lists which have been configured to receive events over a certain level
         emailUsers.addAll(mailingListService.getAlarmAddresses(alarmLevel, time,
@@ -251,18 +250,18 @@ public class EventManagerImpl implements EventManager {
             // Call raiseEvent handlers.
             handleRaiseEvent(evt, emailUsers);
 
-            KafkaTemplate<String, MangoEvent> template = Common.getBean(KafkaTemplate.class, "eventsKafkaTemplate");
-            MangoEvent msg = MangoEvent.newBuilder()
+            KafkaTemplate<String, MangoEventRaised> template = Common.getBean(KafkaTemplate.class, "protoKafkaTemplate");
+            MangoEventRaised msg = MangoEventRaised.newBuilder()
                     .setId(evt.getId())
                     .setActiveTimestamp(evt.getActiveTimestamp())
                     .setMessage(message.translate(Common.getTranslations()))
                     .setAlarmLevel(evt.getAlarmLevel().name()).build();
 
             //use send of type message to leverage spring messaging protobuf converter
-            template.send(new Message<MangoEvent>() {
+            template.send(new Message<MangoEventRaised>() {
 
                 @Override
-                public MangoEvent getPayload() {
+                public MangoEventRaised getPayload() {
                     return msg;
                 }
 
@@ -270,7 +269,7 @@ public class EventManagerImpl implements EventManager {
                 public MessageHeaders getHeaders() {
                     Map<String, Object> headers = new HashMap<>();
                     headers.put(MessageHeaders.CONTENT_TYPE, new MimeType("application", "x-protobuf", StandardCharsets.UTF_8).toString());
-                    headers.put(KafkaHeaders.TOPIC, "mango-events");
+                    headers.put(KafkaHeaders.TOPIC, MangoEventsRaisedTopic.TOPIC);
                     return new MessageHeaders(headers);
                 }
             });
@@ -341,6 +340,7 @@ public class EventManagerImpl implements EventManager {
     @Override
     public void returnToNormal(EventType type, long time, ReturnCause cause) {
         EventInstance evt = remove(type);
+
         if(evt == null) {
             if(log.isDebugEnabled()) {
                 log.debug("Attempted to return non-existent event to normal! type={}, now={}, eventTime={}, typeRef1={}, typeRef2={}",
@@ -364,7 +364,7 @@ public class EventManagerImpl implements EventManager {
         }
 
         List<User> activeUsers = usersService.getEnabledUsers();
-        UserEventListener multicaster = userEventMulticaster;
+
 
         // Loop in case of multiples
         while (evt != null) {
@@ -385,8 +385,30 @@ public class EventManagerImpl implements EventManager {
                 }
             }
 
-            if(multicaster != null && Common.backgroundProcessing != null)
-                Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, true, false, false));
+            KafkaTemplate<String, MangoEventRtn> template = Common.getBean(KafkaTemplate.class, "protoKafkaTemplate");
+            MangoEventRtn msg = MangoEventRtn.newBuilder()
+                    .setId(evt.getId())
+                    .setActiveTimestamp(evt.getActiveTimestamp())
+                    .setMessage(evt.getMessage().translate(Common.getTranslations()))
+                    .setAlarmLevel(evt.getAlarmLevel().name())
+                    .setRtnTimestamp(evt.getRtnTimestamp()).build();
+
+            //use send of type message to leverage spring messaging protobuf converter
+            template.send(new Message<MangoEventRtn>() {
+
+                @Override
+                public MangoEventRtn getPayload() {
+                    return msg;
+                }
+
+                @Override
+                public MessageHeaders getHeaders() {
+                    Map<String, Object> headers = new HashMap<>();
+                    headers.put(MessageHeaders.CONTENT_TYPE, new MimeType("application", "x-protobuf", StandardCharsets.UTF_8).toString());
+                    headers.put(KafkaHeaders.TOPIC, MangoEventsRtnTopic.TOPIC);
+                    return new MessageHeaders(headers);
+                }
+            });
 
             resetHighestAlarmLevel(time);
             if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
@@ -412,7 +434,6 @@ public class EventManagerImpl implements EventManager {
         List<User> activeUsers = usersService.getEnabledUsers();
 
         List<Integer> eventIds = new ArrayList<>();
-        UserEventListener multicaster = userEventMulticaster;
 
         for(EventInstance evt : evts){
             if(evt.isActive())
@@ -432,9 +453,10 @@ public class EventManagerImpl implements EventManager {
                 }
             }
 
+            /* TODO FIXME
             if(multicaster != null)
                 Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, true, false));
-
+            */
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
         }
@@ -474,7 +496,6 @@ public class EventManagerImpl implements EventManager {
         }
 
         List<Integer> userIdsToNotify = new ArrayList<>();
-        UserEventListener multicaster = userEventMulticaster;
 
         for (User user : usersService.getEnabledUsers()) {
             // Do not create an event for this user if the event type says the
@@ -487,9 +508,10 @@ public class EventManagerImpl implements EventManager {
                 userIdsToNotify.add(user.getId());
             }
         }
-
+        /* TODO FIXME
         if(multicaster != null)
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, false, true));
+        */
         return true;
     }
 
@@ -855,11 +877,11 @@ public class EventManagerImpl implements EventManager {
     }
     @Override
     public synchronized void addUserEventListener(UserEventListener l) {
-        userEventMulticaster = UserEventMulticaster.add(userEventMulticaster, l);
+        Common.getBean(EventKafkaListener.class).addUserEventListener(l);
     }
     @Override
     public synchronized void removeUserEventListener(UserEventListener l) {
-        userEventMulticaster = UserEventMulticaster.remove(userEventMulticaster, l);
+        Common.getBean(EventKafkaListener.class).removeUserEventListener(l);
     }
 
     //

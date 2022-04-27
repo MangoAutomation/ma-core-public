@@ -13,8 +13,9 @@ import org.springframework.stereotype.Component;
  * Handle for events topic
  */
 @Component
-public class EventsTopic extends NewTopic {
-    public EventsTopic() {
-        super("mango-events", 1, (short) 1);
+public class MangoEventsRtnTopic extends NewTopic {
+    public static final String TOPIC = "mango-events-rtn";
+    public MangoEventsRtnTopic() {
+        super(TOPIC, 1, (short) 1);
     }
 }

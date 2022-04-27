@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
+import com.infiniteautomation.mango.spring.esb.PointValueTimeKafkaListener;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -35,7 +36,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition.StartPriority;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
-import com.serotonin.m2m2.rt.dataImage.DataPointEventMulticaster;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -60,12 +60,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     private final ConcurrentMap<Integer, DataSourceRT<? extends DataSourceVO>> runningDataSources = new ConcurrentHashMap<>();
     private final ConcurrentMap<Integer, DataPointRT> dataPointCache  = new ConcurrentHashMap<>();
-
-    /**
-     * The list of point listeners, kept here such that listeners can be notified of point initializations (i.e. a
-     * listener can register itself before the point is enabled).
-     */
-    private final ConcurrentMap<Integer, DataPointListener> dataPointListeners = new ConcurrentHashMap<>();
 
     /**
      * Store of enabled publishers
@@ -427,17 +421,17 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void addDataPointListener(int dataPointId, DataPointListener l) {
-        dataPointListeners.compute(dataPointId, (k, v) -> DataPointEventMulticaster.add(v, l));
+        Common.getBean(PointValueTimeKafkaListener.class).addDataPointListener(dataPointId, l);
     }
 
     @Override
     public void removeDataPointListener(int dataPointId, DataPointListener l) {
-        dataPointListeners.compute(dataPointId, (k, v) -> DataPointEventMulticaster.remove(v, l));
+        Common.getBean(PointValueTimeKafkaListener.class).removeDataPointListener(dataPointId, l);
     }
 
     @Override
     public DataPointListener getDataPointListeners(int dataPointId) {
-        return dataPointListeners.get(dataPointId);
+        return Common.getBean(PointValueTimeKafkaListener.class).getDataPointListeners(dataPointId);
     }
 
     //

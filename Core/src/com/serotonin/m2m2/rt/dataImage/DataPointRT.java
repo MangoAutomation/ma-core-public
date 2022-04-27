@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -14,12 +15,19 @@ import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.util.MimeType;
 
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
+import com.infiniteautomation.mango.spring.esb.PointValueTimeTopic;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.infiniteautomation.mango.statistics.StartsAndRuntime;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.util.LazyField;
+import com.radixiot.pi.grpc.MangoPointValueTime;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataType;
@@ -352,7 +360,30 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         if(!backdated) {
             pointValue.set(newValue);
         }
-        fireEvents(oldValue, newValue, null, source != null, backdated, logValue, !backdated, false);
+
+        //fireEvents(oldValue, newValue, null, source != null, backdated, logValue, !backdated, false);
+        KafkaTemplate<String, MangoPointValueTime> template = Common.getBean(KafkaTemplate.class, "protoKafkaTemplate");
+        MangoPointValueTime msg = MangoPointValueTime.newBuilder()
+                .setDataPointId(getId())
+                .setTimestamp(newValue.getTime())
+                .setValue(newValue.getDoubleValue()).build();
+
+        //use send of type message to leverage spring messaging protobuf converter
+        template.send(new Message<MangoPointValueTime>() {
+
+            @Override
+            public MangoPointValueTime getPayload() {
+                return msg;
+            }
+
+            @Override
+            public MessageHeaders getHeaders() {
+                Map<String, Object> headers = new HashMap<>();
+                headers.put(MessageHeaders.CONTENT_TYPE, new MimeType("application", "x-protobuf", StandardCharsets.UTF_8).toString());
+                headers.put(KafkaHeaders.TOPIC, PointValueTimeTopic.TOPIC);
+                return new MessageHeaders(headers);
+            }
+        });
 
     }
 

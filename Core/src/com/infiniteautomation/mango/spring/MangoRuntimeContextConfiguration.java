@@ -47,7 +47,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -56,7 +55,6 @@ import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.converter.MessagingMessageConverter;
-import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.SmartMessageConverter;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -66,6 +64,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.protobuf.AbstractMessage;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.pointvaluecache.PointValueCacheDefinition;
@@ -80,7 +79,6 @@ import com.infiniteautomation.mango.spring.converters.PeriodConverter;
 import com.infiniteautomation.mango.spring.converters.TemporalAmountConverter;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.service.RuntimeManagerService;
-import com.radixiot.pi.grpc.MangoEvent;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
@@ -431,6 +429,11 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         return server;
     }
 
+    /**
+     * Provide credentials so Kafka client can create necessary topics
+     * @param env
+     * @return
+     */
     @Bean
     public KafkaAdmin kafkaAdmin(Environment env) {
         Map<String, Object> configs = new HashMap<>();
@@ -439,7 +442,7 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public ProducerFactory<String, MangoEvent> producerFactory(Environment env) {
+    public ProducerFactory<String, AbstractMessage> producerFactory(Environment env) {
         String bootstrapAddress = env.getProperty("kafka.address");
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(
@@ -454,15 +457,15 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-    @Bean("eventsKafkaTemplate")
-    public KafkaTemplate<String, MangoEvent> kafkaEventTemplate(Environment env, SmartMessageConverter messageConverter) {
+    @Bean("protoKafkaTemplate")
+    public KafkaTemplate<String, AbstractMessage> protoKafkaTemplate(Environment env, SmartMessageConverter messageConverter) {
         KafkaTemplate t = new KafkaTemplate<>(producerFactory(env));
         t.setMessagingConverter(messageConverter);
         return t;
     }
 
     @Bean
-    public ConsumerFactory<String, MangoEvent> consumerFactory(Environment env) {
+    public ConsumerFactory<String, AbstractMessage> consumerFactory(Environment env) {
         String bootstrapAddress = env.getProperty("kafka.address");
         Map<String, Object> props = new HashMap<>();
 
@@ -485,10 +488,10 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, MangoEvent>
+    public ConcurrentKafkaListenerContainerFactory<String, AbstractMessage>
     kafkaListenerContainerFactory(Environment env, SmartMessageConverter messageConverter) {
 
-        ConcurrentKafkaListenerContainerFactory<String, MangoEvent> factory =
+        ConcurrentKafkaListenerContainerFactory<String, AbstractMessage> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory(env));
         MessagingMessageConverter converter = new MessagingMessageConverter();
@@ -497,8 +500,4 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         return factory;
     }
 
-    @KafkaListener(topics = "mango-events", groupId = "mango")
-    public void eventListener(Message<MangoEvent> event) {
-        System.out.println("Received Message in topic mango-events: " + event.getPayload());
-    }
 }
