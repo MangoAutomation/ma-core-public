@@ -177,11 +177,11 @@
                 <version>0.6.1</version>
                 <configuration>
                     <protocArtifact>
-                        com.google.protobuf:protoc:3.19.0:exe:${os.detected.classifier}
+                        com.google.protobuf:protoc:3.20.1:exe:${os.detected.classifier}
                     </protocArtifact>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>
-                        io.grpc:protoc-gen-grpc-java:1.45.0:exe:${os.detected.classifier}
+                        io.grpc:protoc-gen-grpc-java:1.46.0:exe:${os.detected.classifier}
                     </pluginArtifact>
                     <protoSourceRoot>${basedir}/proto</protoSourceRoot>
                 </configuration>
@@ -755,6 +755,18 @@ with Springfox 3.
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
             <version>${grpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.20.1</version>
+        </dependency>
+
+        <!-- Kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+            <version>2.8.5</version>
         </dependency>
         <!-- Testing -->
         <dependency>
