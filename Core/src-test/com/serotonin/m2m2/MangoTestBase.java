@@ -56,6 +56,7 @@ import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.SystemPermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
+import com.infiniteautomation.mango.test.RetryFailedTest;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -99,11 +100,12 @@ import com.serotonin.util.properties.MangoProperties;
  *
  */
 public class MangoTestBase {
-    // Retry failed tests 2 times by default
-    // To ensure we get same error
-    // Also confirms that there is no missing cleanup for both previous and current test
+    /**
+    * Override this property in your test class if necessary
+    * Check {@link RetryFailedTest} for usage
+    */
     @Rule
-    public RetryRule retryRule = new RetryRule(1, true, false, RetryRule.FailBehaviour.ANY);
+    public RetryRule retryRule = new RetryRule();
 
     protected final Logger LOG = LoggerFactory.getLogger(getClass());
 

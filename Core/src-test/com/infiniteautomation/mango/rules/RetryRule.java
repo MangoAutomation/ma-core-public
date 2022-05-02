@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class RetryRule implements TestRule {
     protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    public static enum FailBehaviour {
+    public enum FailBehaviour {
         ANY, ALL
     }
 
@@ -25,6 +25,11 @@ public class RetryRule implements TestRule {
     public int currentRun;
 
     private Throwable lastError;
+
+
+    public RetryRule() {
+        this(1, true, true, FailBehaviour.ANY);
+    }
 
     public RetryRule(int retryCount, boolean stopOnSuccess, boolean stopOnFailure, FailBehaviour failBehaviour) {
         this.retryCount = retryCount;
@@ -41,6 +46,11 @@ public class RetryRule implements TestRule {
             @Override
             @SuppressWarnings("synthetic-access")
             public void evaluate() throws Throwable {
+                if (retryCount <= 1) {
+                    base.evaluate();
+                    return;
+                }
+
                 int failuresCount = 0;
 
                 for (int i = 0; i < retryCount; i++) {
