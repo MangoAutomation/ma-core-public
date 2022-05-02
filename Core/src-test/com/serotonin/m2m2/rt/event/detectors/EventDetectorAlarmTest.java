@@ -79,11 +79,9 @@ public class EventDetectorAlarmTest extends MangoTestBase {
         //Configurator.setLevel("com.serotonin.m2m2.rt.event.detectors", Level.TRACE);
     }
 
-
     @Before
     public void configure() {
         runAs = Common.getBean(RunAs.class);
-        //retryRule = new RetryRule(5, false, false, RetryRule.FailBehaviour.ANY);
 
         this.listener = new EventDetectorEventListener();
         Common.eventManager.addUserEventListener(this.listener);

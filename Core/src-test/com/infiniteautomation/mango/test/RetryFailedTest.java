@@ -18,6 +18,7 @@ import com.serotonin.m2m2.MangoTestBase;
 public class RetryFailedTest extends MangoTestBase {
     private static int counter = 0;
 
+    // For desired test behaviour override retryRule property in constructor
     public RetryFailedTest() {
         retryRule = new RetryRule(3, true, false, RetryRule.FailBehaviour.ALL);
     }
