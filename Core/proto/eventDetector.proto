@@ -1,0 +1,12 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package com.radixiot.pi.grpc;
+import "eventManager.proto";
+
+message PointChangeEventDetector {
+  int32 id = 1;
+  string xid = 2;
+  string name = 3;
+  int32 dataPointId = 4;
+  com.radixiot.pi.grpc.AlarmLevel alarmLevel = 5;
+}

@@ -2,17 +2,37 @@ syntax = "proto3";
 option java_multiple_files = true;
 package com.radixiot.pi.grpc;
 
+enum AlarmLevel {
+  NONE = 0;
+  INFORMATION = 1;
+  IMPORTANT = 2;
+  WARNING = 3;
+  URGENT = 4;
+  CRITICAL = 5;
+  LIFE_SAFETY = 6;
+  DO_NOT_LOG = 7;
+  IGNORE = 8;
+}
+
+message DataPointEventType {
+  string eventType = 1;
+  string eventSubtype = 2;
+  int32 dataPointId = 3;
+  int32 eventDetectorId = 4;
+  int32 dataSourceId = 5;
+}
+
 message MangoEventRaised {
   int32 id = 1;
   string message = 2;
-  string alarmLevel = 3;
+  AlarmLevel alarmLevel = 3;
   int64 activeTimestamp = 4;
 }
 
 message MangoEventRtn {
   int32 id = 1;
   string message = 2;
-  string alarmLevel = 3;
+  AlarmLevel alarmLevel = 3;
   int64 activeTimestamp = 4;
   int64 rtnTimestamp = 5;
 }
