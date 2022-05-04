@@ -47,7 +47,7 @@ public class EventKafkaListener {
 
         MangoEventRaised event = message.getPayload();
         EventInstance evt = new EventInstance(new SystemEventType(SystemEventType.TYPE_SYSTEM_STARTUP), event.getActiveTimestamp(), false,
-                AlarmLevels.fromName(event.getAlarmLevel()), new TranslatableMessage("literal", event.getMessage()), new HashMap<>());
+                AlarmLevels.fromValue(event.getAlarmLevel().getNumber()), new TranslatableMessage("literal", event.getMessage()), new HashMap<>());
 
         if(multicaster != null ) {
             multicaster.raised(evt);
@@ -59,7 +59,7 @@ public class EventKafkaListener {
         UserEventListener multicaster = userEventMulticaster;
         MangoEventRtn event = message.getPayload();
         EventInstance evt = new EventInstance(new SystemEventType(SystemEventType.TYPE_SYSTEM_STARTUP), event.getActiveTimestamp(), false,
-                AlarmLevels.fromName(event.getAlarmLevel()), new TranslatableMessage("literal", event.getMessage()), new HashMap<>());
+                AlarmLevels.fromValue(event.getAlarmLevel().getNumber()), new TranslatableMessage("literal", event.getMessage()), new HashMap<>());
         if(multicaster != null ) {
             multicaster.returnToNormal(evt);
         }

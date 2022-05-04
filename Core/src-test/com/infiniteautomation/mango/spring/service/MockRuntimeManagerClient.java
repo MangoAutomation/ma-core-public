@@ -6,8 +6,8 @@
 
 package com.infiniteautomation.mango.spring.service;
 
-import com.radixiot.pi.grpc.DataPointRT;
-import com.radixiot.pi.grpc.DataPointVO;
+import com.radixiot.pi.grpc.MangoDataPointRT;
+import com.radixiot.pi.grpc.MangoDataPointVO;
 import com.radixiot.pi.grpc.RuntimeManagerGrpc;
 
 import io.grpc.ManagedChannel;
@@ -23,8 +23,8 @@ public class MockRuntimeManagerClient {
         RuntimeManagerGrpc.RuntimeManagerBlockingStub stub
                 = RuntimeManagerGrpc.newBlockingStub(channel);
 
-        DataPointVO request = DataPointVO.newBuilder().setId(1).build();
-        DataPointRT dprt = stub.getDataPoint(request);
+        MangoDataPointVO request = MangoDataPointVO.newBuilder().setId(1).build();
+        MangoDataPointRT dprt = stub.getDataPoint(request);
 
         channel.shutdown();
     }

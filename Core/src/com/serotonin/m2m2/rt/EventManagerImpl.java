@@ -35,6 +35,7 @@ import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
+import com.radixiot.pi.grpc.MangoAlarmLevel;
 import com.radixiot.pi.grpc.MangoEventRaised;
 import com.radixiot.pi.grpc.MangoEventRtn;
 import com.serotonin.m2m2.Common;
@@ -255,7 +256,7 @@ public class EventManagerImpl implements EventManager {
                     .setId(evt.getId())
                     .setActiveTimestamp(evt.getActiveTimestamp())
                     .setMessage(message.translate(Common.getTranslations()))
-                    .setAlarmLevel(evt.getAlarmLevel().name()).build();
+                    .setAlarmLevel(MangoAlarmLevel.forNumber(evt.getAlarmLevel().value())).build();
 
             //use send of type message to leverage spring messaging protobuf converter
             template.send(new Message<MangoEventRaised>() {
@@ -390,7 +391,7 @@ public class EventManagerImpl implements EventManager {
                     .setId(evt.getId())
                     .setActiveTimestamp(evt.getActiveTimestamp())
                     .setMessage(evt.getMessage().translate(Common.getTranslations()))
-                    .setAlarmLevel(evt.getAlarmLevel().name())
+                    .setAlarmLevel(MangoAlarmLevel.forNumber(evt.getAlarmLevel().value()))
                     .setRtnTimestamp(evt.getRtnTimestamp()).build();
 
             //use send of type message to leverage spring messaging protobuf converter

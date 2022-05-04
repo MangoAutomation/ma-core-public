@@ -8,14 +8,21 @@ message MangoPointValueTime {
   double value = 3;
 }
 
-message DataPointVO {
+message MangoDataSourceVO {
   int32 id = 1;
+  string xid = 2;
+  string dataSourceType =3;
 }
 
-message DataPointRT {
+message MangoDataPointVO {
+  int32 id = 1;
+  string xid = 2;
+}
+
+message MangoDataPointRT {
   int32 id = 1;
 }
 
 service RuntimeManager {
-  rpc GetDataPoint(DataPointVO) returns (DataPointRT);
+  rpc GetDataPoint(MangoDataPointVO) returns (MangoDataPointRT);
 }
