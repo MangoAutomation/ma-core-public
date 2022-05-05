@@ -135,6 +135,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 .onRetry(event -> log.debug("Retry, waiting {} until attempt {}.", event.getWaitInterval(), event.getNumberOfRetryAttempts(), event.getLastThrowable()))
                 .onError(event -> log.debug("Recorded a failed retry attempt. Number of retry attempts: {}. Giving up.", event.getNumberOfRetryAttempts(), event.getLastThrowable()));
 
+        // disable pre-aggregation while migration is running
+        primary.getAggregateDao().setPreAggregationEnabled(false);
+
         if (config.isAutoStart()) {
             startMigration();
         }
@@ -264,6 +267,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             skippedSeries.set(0L);
             erroredSeries.set(0L);
             this.fullyMigrated = false;
+            primary.getAggregateDao().setPreAggregationEnabled(false);
             this.started = false;
         }
     }
@@ -284,6 +288,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             this.numTasks = tasks.size();
             if (tasks.isEmpty() && seriesQueue.isEmpty()) {
                 this.fullyMigrated = true;
+                primary.getAggregateDao().setPreAggregationEnabled(true);
                 if (log.isInfoEnabled()) {
                     log.info("Migration complete! {}", stats());
                 }

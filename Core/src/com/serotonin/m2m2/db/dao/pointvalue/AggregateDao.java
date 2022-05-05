@@ -186,4 +186,36 @@ public interface AggregateDao {
         return truncated;
     }
 
+    /**
+     * Check if pre-aggregation is supported.
+     * @return true if pre-aggregation is supported
+     */
+    default boolean supportsPreAggregation() {
+        return false;
+    }
+
+    /**
+     * Enable/disable pre-aggregation.
+     * @param enabled true to enable pre-aggregation
+     */
+    default void setPreAggregationEnabled(boolean enabled) {
+        // do nothing
+    }
+
+    /**
+     * Check if pre-aggregation is enabled.
+     * @return true if pre-aggregation is enabled
+     */
+    default boolean isPreAggregationEnabled() {
+        return false;
+    }
+
+    /**
+     * Update the aggregates, typically called in a periodic fashion.
+     * @throws UnsupportedOperationException if this AggregateDao doesn't support pre-aggregation.
+     */
+    default void updateAggregates() {
+        throw new UnsupportedOperationException();
+    }
+
 }
