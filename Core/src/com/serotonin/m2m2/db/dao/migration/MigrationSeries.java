@@ -70,8 +70,7 @@ class MigrationSeries {
                 log.error("Migration aborted: {}", this, e);
             }
         }
-        Duration duration = Duration.ofMillis(System.currentTimeMillis() - startTime);
-        parent.updateProgress(this, duration);
+        parent.updateProgress(this);
     }
 
     private void initialPass() {
@@ -198,7 +197,7 @@ class MigrationSeries {
 
         ZonedDateTime finalPosition = Instant.ofEpochMilli(timestamp)
                 .atZone(clock.getZone());
-        stats.setMigratedDuration(Duration.between(initialPosition, finalPosition));
+        stats.finished(Duration.between(initialPosition, finalPosition));
     }
 
     private ZonedDateTime minimum(ZonedDateTime a, ZonedDateTime b) {
@@ -304,12 +303,15 @@ class MigrationSeries {
 
     public static class ReadWriteStats {
 
+        private final Instant startTime;
         private long readCount;
         private long writeCount;
         private long aggregateWriteCount;
         private Duration migratedDuration = Duration.ZERO;
+        private Duration timeTaken = Duration.ZERO;
 
         private ReadWriteStats() {
+            this.startTime = Instant.now();
         }
 
         public long getReadCount() {
@@ -340,8 +342,17 @@ class MigrationSeries {
             return migratedDuration;
         }
 
-        public void setMigratedDuration(Duration migratedDuration) {
+        public void finished(Duration migratedDuration) {
             this.migratedDuration = migratedDuration;
+            this.timeTaken = Duration.between(startTime, Instant.now());
+        }
+
+        public Instant getStartTime() {
+            return startTime;
+        }
+
+        public Duration getTimeTaken() {
+            return timeTaken;
         }
     }
 }

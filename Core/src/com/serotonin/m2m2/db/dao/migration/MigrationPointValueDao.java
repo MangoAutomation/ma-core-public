@@ -347,9 +347,12 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         var now = clock.instant();
 
         String position = "—";
-        long remainingSeconds = Long.MAX_VALUE;
+        // if queue is empty, we are finished
+        long remainingSeconds = 0;
         MigrationSeries next = seriesQueue.peek();
         if (next != null) {
+            // until initial pass is complete we have no idea how long is left
+            remainingSeconds = Long.MAX_VALUE;
             long timestamp = next.getTimestamp();
             // ignore MIN_VALUE which comes from series which haven't completed their initial pass
             if (timestamp > Long.MIN_VALUE) {
@@ -362,12 +365,11 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
         long migratedSeconds = this.migratedSeconds.get();
         double progress = migratedSeconds * 100.0D / (migratedSeconds + remainingSeconds);
-
         double migratedSecondsRate = migratedSecondsMeter.getOneMinuteRate();
 
         String eta = "—";
         String timeLeft = "∞";
-        if (migratedSecondsRate > 0.0D) {
+        if (remainingSeconds > 0 && migratedSecondsRate > 0.0D) {
             long secondsLeft = (long) (remainingSeconds / migratedSecondsRate);
             Duration durationLeft = Duration.ofSeconds(secondsLeft);
             eta = ZonedDateTime.now()
@@ -385,7 +387,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         double aggregateWriteRate = aggregateWriteMeter.getOneMinuteRate();
         Metrics retryMetrics = retry.getMetrics();
 
-        return String.format("[%6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
+        return String.format("[secs %d, rate %.2f, %6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
+                remainingSeconds,
+                migratedSecondsRate,
+
                 progress,
                 readRate,
                 writeRate,
@@ -468,9 +473,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
      * Called after each iteration of a series migration.
      *
      * @param series series which is being migrated
-     * @param duration time taken for this period
      */
-    void updateProgress(MigrationSeries series, Duration duration) {
+    void updateProgress(MigrationSeries series) {
         switch (series.getStatus()) {
             case INITIAL_PASS_COMPLETE:
             case RUNNING:
