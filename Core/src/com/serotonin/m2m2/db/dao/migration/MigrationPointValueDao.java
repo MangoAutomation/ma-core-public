@@ -387,15 +387,18 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         double aggregateWriteRate = aggregateWriteMeter.getOneMinuteRate();
         Metrics retryMetrics = retry.getMetrics();
 
-        return String.format("[secs %d, rate %.2f, %6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
-                remainingSeconds,
-                migratedSecondsRate,
+        // hours of data migrated per second
+        double hoursOfDataPerSecond = remaining > 0 ?
+                (migratedSecondsRate / remaining) / 3600 :
+                0;
 
+        return String.format("[%6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, rate %.2f hrs/s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
                 progress,
                 readRate,
                 writeRate,
                 aggregateWriteRate,
                 position,
+                hoursOfDataPerSecond,
                 eta,
                 timeLeft,
                 retryMetrics.getNumberOfFailedCallsWithRetryAttempt() + retryMetrics.getNumberOfFailedCallsWithoutRetryAttempt(),
