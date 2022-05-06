@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.pointvaluecache.PointValueCache;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -23,11 +24,14 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DataSourceDefinition;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -36,6 +40,7 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
 abstract public class DataSourceVO extends AbstractActionVO {
@@ -46,6 +51,25 @@ abstract public class DataSourceVO extends AbstractActionVO {
     abstract public PointLocatorVO<?> createPointLocator();
 
     abstract public DataSourceRT<? extends DataSourceVO> createDataSourceRT();
+    /**
+     * Override when necessary
+     * @param vo
+     * @param ds
+     * @param initialCache
+     * @param pointValueDao
+     * @param pointValueCache
+     * @return
+     */
+    public DataPointRT createDataPointRT(DataPointWithEventDetectors vo, DataSourceRT<? extends DataSourceVO> ds, List<PointValueTime> initialCache, PointValueDao pointValueDao, PointValueCache pointValueCache) {
+        return new DataPointRT(
+                vo,
+                vo.getDataPoint().getPointLocator().createRuntime(),
+                ds,
+                initialCache,
+                pointValueDao,
+                pointValueCache
+        );
+    }
 
     abstract public ExportCodes getEventCodes();
 

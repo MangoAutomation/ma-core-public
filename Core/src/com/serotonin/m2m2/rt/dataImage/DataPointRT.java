@@ -54,39 +54,39 @@ import com.serotonin.util.ILifecycle;
 import com.serotonin.util.ILifecycleState;
 
 public class DataPointRT implements IDataPointValueSource, ILifecycle {
-    private final Logger log = LoggerFactory.getLogger(DataPointRT.class);
-    private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
-    private static final String prefix = "INTVL_LOG-";
+    protected final Logger log = LoggerFactory.getLogger(DataPointRT.class);
+    protected static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
+    protected static final String prefix = "INTVL_LOG-";
 
     // Configuration data.
-    private final DataPointVO vo;
-    private final DataSourceRT<? extends DataSourceVO> dataSource;
-    private final PointLocatorRT<?> pointLocator;
+    protected final DataPointVO vo;
+    protected final DataSourceRT<? extends DataSourceVO> dataSource;
+    protected final PointLocatorRT<?> pointLocator;
 
     // Runtime data.
-    private final LazyField<PointValueTime> pointValue;
-    private final DataPointRTPointValueCache valueCache;
-    private List<PointEventDetectorRT<?>> detectors;
-    private final Map<String, Object> attributes = new HashMap<String, Object>();
+    protected final LazyField<PointValueTime> pointValue;
+    protected final DataPointRTPointValueCache valueCache;
+    protected List<PointEventDetectorRT<?>> detectors;
+    protected final Map<String, Object> attributes = new HashMap<String, Object>();
 
     // Interval logging data.
-    private PointValueTime intervalValue;
-    private long intervalStartTime = -1;
-    private List<IValueTime<DataValue>> averagingValues;
-    private final Object intervalLoggingLock = new Object();
-    private volatile TimerTask intervalLoggingTask;
+    protected PointValueTime intervalValue;
+    protected long intervalStartTime = -1;
+    protected List<IValueTime<DataValue>> averagingValues;
+    protected final Object intervalLoggingLock = new Object();
+    protected volatile TimerTask intervalLoggingTask;
 
     //Simulation Timer, or any timer implementation
-    private AbstractTimer timer;
+    protected AbstractTimer timer;
 
-    private volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
+    protected volatile ILifecycleState state = ILifecycleState.PRE_INITIALIZE;
 
     /**
      * This is the value around which tolerance decisions will be made when determining whether to log numeric values.
      */
-    private double toleranceOrigin;
+    protected double toleranceOrigin;
 
-    private final DataPointDao dataPointDao;
+    protected final DataPointDao dataPointDao;
 
     public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceRT<? extends DataSourceVO> dataSource, List<PointValueTime> initialCache, PointValueDao dao, PointValueCache pointValueCache) {
         if (dataSource.getId() != dp.getDataPoint().getDataSourceId()) {
@@ -841,14 +841,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         notifyStateChanged();
     }
 
-    private void initializeDetectors() {
+    protected void initializeDetectors() {
         for (PointEventDetectorRT<?> pedRT : detectors) {
             pedRT.initialize();
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
         }
     }
 
-    private void initializeListeners() {
+    protected void initializeListeners() {
         DataPointListener l = Common.runtimeManager.getDataPointListeners(getId());
         if (l != null) {
             try {

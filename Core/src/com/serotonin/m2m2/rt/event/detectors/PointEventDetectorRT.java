@@ -37,6 +37,14 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
         return et;
     }
 
+    /**
+     * Exposed to allow
+     * @param time
+     */
+    public void raiseEvent(long time) {
+        raiseEvent(time, createEventContext());
+    }
+
     protected void raiseEvent(long time, Map<String, Object> context) {
         TranslatableMessage msg;
         if (!StringUtils.isBlank(vo.getName()))

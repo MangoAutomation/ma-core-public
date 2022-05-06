@@ -44,4 +44,5 @@ public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializa
      * @return the type of data source to look up its definition
      */
     String getDataSourceType();
+
 }

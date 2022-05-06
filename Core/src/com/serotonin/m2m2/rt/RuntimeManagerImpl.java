@@ -382,13 +382,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Only add the data point if its data source is enabled.
         DataSourceRT<? extends DataSourceVO> ds = runningDataSources.get(dataPointVO.getDataSourceId());
         if (ds != null) {
-            DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> new DataPointRT(
-                    vo,
-                    dataPointVO.getPointLocator().createRuntime(),
-                    ds,
-                    initialCache,
-                    pointValueDao,
-                    pointValueCache
+            DataPointRT dataPoint = dataPointCache.computeIfAbsent(dataPointVO.getId(), k -> ds.getVo().createDataPointRT(
+                 vo,  ds, initialCache , pointValueDao, pointValueCache
             ));
 
             // Initialize it, will fail if data point is already initializing or running
