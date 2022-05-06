@@ -47,6 +47,11 @@ public class DefaultMigrationConfig implements MigrationConfig {
     }
 
     @Override
+    public int getMigrationPeriodMultiplier() {
+        return env.getProperty("db.migration.periodMultiplier", int.class, 7);
+    }
+
+    @Override
     public int getMaxAttempts() {
         return env.getProperty("db.migration.maxAttempts", int.class, 5);
     }

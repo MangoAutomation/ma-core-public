@@ -37,13 +37,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.ExponentiallyDecayingReservoir;
-import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.serotonin.m2m2.DataType;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DelegatingPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.migration.MigrationSeries.ReadWriteStats;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -64,14 +63,15 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Queue<MigrationSeries> seriesQueue = new PriorityBlockingQueue<>(1024,
             Comparator.comparingLong(MigrationSeries::getTimestamp));
 
-    private final AtomicLong completedPeriods = new AtomicLong();
     private final AtomicLong migratedSeries = new AtomicLong();
     private final AtomicLong skippedSeries = new AtomicLong();
     private final AtomicLong erroredSeries = new AtomicLong();
+    private final AtomicLong migratedSeconds = new AtomicLong();
 
     private final Meter readMeter = new Meter();
     private final Meter writeMeter = new Meter();
-    private final Histogram readValuesPerPeriod = new Histogram(new ExponentiallyDecayingReservoir());
+    private final Meter aggregateWriteMeter = new Meter();
+    private final Meter migratedSecondsMeter = new Meter();
 
     private final ArrayList<MigrationTask> tasks = new ArrayList<>();
     private final Predicate<DataPointVO> dataPointFilter;
@@ -80,6 +80,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final ScheduledExecutorService scheduledExecutorService;
     private final Instant migrateFrom;
     private final Duration period;
+    private final int periodMultiplier;
     private final TemporalAmount aggregationPeriod;
     private final TemporalAmount aggregationBoundary;
     private final TemporalAmount aggregationOverlap;
@@ -119,6 +120,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.dataPointFilter = config.getDataPointFilter();
         this.migrateFrom = config.getMigrateFromTime();
         this.period = config.getMigrationPeriod();
+        this.periodMultiplier = config.getMigrationPeriodMultiplier();
         this.aggregationPeriod = config.getAggregationPeriod();
         this.aggregationBoundary = config.getAggregationBoundary();
         this.aggregationOverlap = config.getAggregationOverlap();
@@ -262,10 +264,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
             seriesStatus.clear();
             seriesQueue.clear();
-            completedPeriods.set(0L);
             migratedSeries.set(0L);
             skippedSeries.set(0L);
             erroredSeries.set(0L);
+            migratedSeconds.set(0L);
             this.fullyMigrated = false;
             primary.getAggregateDao().setPreAggregationEnabled(false);
             this.started = false;
@@ -341,39 +343,32 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         long errored = erroredSeries.get();
         long finished = migrated + skipped + errored;
         long remaining = seriesStatus.size() - finished;
-        long completedPeriods = this.completedPeriods.get();
 
-        String currentTimeFormatted = "—";
-        long remainingPeriods = 0;
+        var now = clock.instant();
+
+        String position = "—";
+        long remainingSeconds = Long.MAX_VALUE;
         MigrationSeries next = seriesQueue.peek();
         if (next != null) {
             long timestamp = next.getTimestamp();
             // ignore MIN_VALUE which comes from series which haven't completed their initial pass
             if (timestamp > Long.MIN_VALUE) {
-                long timeLeft = clock.millis() - timestamp;
-                long periodsLeft = timeLeft / period.toMillis() + 1;
-                remainingPeriods = periodsLeft * remaining;
-
-                currentTimeFormatted = ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), clock.getZone())
+                var instant = Instant.ofEpochMilli(timestamp);
+                remainingSeconds = Duration.between(instant, now).toSeconds() * remaining;
+                position = ZonedDateTime.ofInstant(instant, clock.getZone())
                         .format(DateTimeFormatter.ISO_ZONED_DATE_TIME);
             }
         }
 
-        double avgPointValuesReadPerPeriod = readValuesPerPeriod.getSnapshot().getMean();
-        double readRate = readMeter.getOneMinuteRate();
-        double writeRate = writeMeter.getOneMinuteRate();
+        long migratedSeconds = this.migratedSeconds.get();
+        double progress = migratedSeconds * 100.0D / (migratedSeconds + remainingSeconds);
 
-        long totalPeriods = remainingPeriods + completedPeriods;
-        double progress = 0D;
-        if (totalPeriods > 0) {
-            progress = remainingPeriods == 0L ? 100D: completedPeriods * 100d / totalPeriods;
-        }
+        double migratedSecondsRate = migratedSecondsMeter.getOneMinuteRate();
 
-        double pointValuesRemaining = remainingPeriods * avgPointValuesReadPerPeriod;
         String eta = "—";
         String timeLeft = "∞";
-        if (remainingPeriods > 0 && readRate > 0D) {
-            long secondsLeft = (long) (pointValuesRemaining / readRate);
+        if (migratedSecondsRate > 0.0D) {
+            long secondsLeft = (long) (remainingSeconds / migratedSecondsRate);
             Duration durationLeft = Duration.ofSeconds(secondsLeft);
             eta = ZonedDateTime.now()
                     .plus(durationLeft)
@@ -382,15 +377,20 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             timeLeft = durationLeft.truncatedTo(ChronoUnit.MINUTES).toString();
         }
 
+        // data density (avg point values / minute)
+        // values migrated per sec vs time taken ratio
+
+        double readRate = readMeter.getOneMinuteRate();
+        double writeRate = writeMeter.getOneMinuteRate();
+        double aggregateWriteRate = aggregateWriteMeter.getOneMinuteRate();
         Metrics retryMetrics = retry.getMetrics();
-        return String.format("[%6.2f%% complete, %d/%d periods, %.1f reads/s, %.1f writes/s, %.1f reads/period, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
+
+        return String.format("[%6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
                 progress,
-                completedPeriods,
-                totalPeriods,
                 readRate,
                 writeRate,
-                avgPointValuesReadPerPeriod,
-                currentTimeFormatted,
+                aggregateWriteRate,
+                position,
                 eta,
                 timeLeft,
                 retryMetrics.getNumberOfFailedCallsWithRetryAttempt() + retryMetrics.getNumberOfFailedCallsWithoutRetryAttempt(),
@@ -432,6 +432,10 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return period;
     }
 
+    public int getPeriodMultiplier() {
+        return periodMultiplier;
+    }
+
     TemporalAmount getAggregationPeriod() {
         return aggregationPeriod;
     }
@@ -464,23 +468,15 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
      * Called after each iteration of a series migration.
      *
      * @param series series which is being migrated
-     * @param readCount number of point values read
-     * @param writeCount number of point values written
      * @param duration time taken for this period
      */
-    void updateProgress(MigrationSeries series, long readCount, long writeCount, Duration duration) {
+    void updateProgress(MigrationSeries series, Duration duration) {
         switch (series.getStatus()) {
             case INITIAL_PASS_COMPLETE:
+            case RUNNING:
                 break;
             case NO_DATA:
-                migratedSeries.incrementAndGet();
-                break;
-            case RUNNING:
-                completedPeriods.incrementAndGet();
-                break;
             case MIGRATED:
-                // does 2 periods on last iteration
-                completedPeriods.addAndGet(2L);
                 migratedSeries.incrementAndGet();
                 break;
             case SKIPPED:
@@ -492,14 +488,19 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             default: throw new IllegalStateException("Incorrect status: " + series.getStatus());
         }
 
-        readValuesPerPeriod.update(readCount);
-        readMeter.mark(readCount);
-        writeMeter.mark(writeCount);
+        ReadWriteStats stats = series.getStats();
+        var migratedSeconds = stats.getMigratedDuration().toSeconds();
+
+        readMeter.mark(stats.getReadCount());
+        writeMeter.mark(stats.getWriteCount());
+        aggregateWriteMeter.mark(stats.getAggregateWriteCount());
+        migratedSecondsMeter.mark(migratedSeconds);
+        this.migratedSeconds.addAndGet(migratedSeconds);
 
         if (log.isTraceEnabled()) {
-            double valuesPerSecond = writeCount / (duration.toMillis() / 1000d);
-            log.trace("{} Completed period for {} (status={}, values={}, duration={}, speed={} values/s)",
-                    stats(), series, series.getStatus(), writeCount, duration,
+            double valuesPerSecond = stats.getReadCount() / (duration.toMillis() / 1000d);
+            log.trace("{} Completed period for {} (status={}, values={}, duration={}, speed={} read/s)",
+                    stats(), series, series.getStatus(), stats.getReadCount(), duration,
                     String.format("%.1f", valuesPerSecond));
         }
 

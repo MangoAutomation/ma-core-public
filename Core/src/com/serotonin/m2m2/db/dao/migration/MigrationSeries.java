@@ -13,7 +13,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -46,6 +45,7 @@ class MigrationSeries {
      */
     private IdPointValueTime lastValue;
     private volatile long timestamp;
+    private ReadWriteStats stats = null;
 
     MigrationSeries(MigrationPointValueDao parent, int seriesId) {
         // use MIN_VALUE so series that haven't completed their initial pass are at the start of the priority queue
@@ -60,12 +60,10 @@ class MigrationSeries {
     }
 
     synchronized void run() {
-        long readCount = 0L, writeCount = 0L;
         long startTime = System.currentTimeMillis();
         try {
-            ReadWriteCount counts = parent.getRetry().executeCallable(this::migrateNextPeriod);
-            readCount = counts.getReadCount();
-            writeCount = counts.getWriteCount();
+            this.stats = new ReadWriteStats();
+            parent.getRetry().executeRunnable(this::migrateNextPeriod);
         } catch (Exception e) {
             this.status = MigrationStatus.ERROR;
             if (log.isErrorEnabled()) {
@@ -73,7 +71,7 @@ class MigrationSeries {
             }
         }
         Duration duration = Duration.ofMillis(System.currentTimeMillis() - startTime);
-        parent.updateProgress(this, readCount, writeCount, duration);
+        parent.updateProgress(this, duration);
     }
 
     private void initialPass() {
@@ -96,11 +94,10 @@ class MigrationSeries {
                     timestamp = migrateFrom;
                 }
 
-                if (aggregationEnabled()) {
+                if (aggregationEnabledForPoint()) {
                     // truncate the timestamp, so we get aggregates starting at a consistent round time
                     var dateTime = timestamp.atZone(parent.getClock().getZone());
-                    var aggregateDao = parent.getDestination().getAggregateDao();
-                    this.timestamp = aggregateDao.truncateToPeriod(dateTime, parent.getAggregationPeriod())
+                    this.timestamp = truncateToAggregationPeriod(dateTime)
                             .toInstant()
                             .toEpochMilli();
                 } else {
@@ -123,15 +120,23 @@ class MigrationSeries {
         }
     }
 
-    private ReadWriteCount migrateNextPeriod() {
+    private ZonedDateTime truncateToAggregationPeriod(ZonedDateTime dateTime) {
+        var aggregateDao = parent.getDestination().getAggregateDao();
+        return aggregateDao.truncateToPeriod(dateTime, parent.getAggregationPeriod());
+    }
+
+    private void migrateNextPeriod() {
         if (status.isComplete()) throw new IllegalStateException("Already complete");
+
+        Clock clock = parent.getClock();
+        ZonedDateTime initialPosition = Instant.ofEpochMilli(timestamp)
+                .atZone(clock.getZone());
 
         if (point == null) {
             this.point = Objects.requireNonNull(parent.getDataPointDao().getBySeriesId(seriesId));
         }
         if (status == MigrationStatus.NOT_STARTED) {
             initialPass();
-            return new ReadWriteCount();
         }
 
         this.status = MigrationStatus.RUNNING;
@@ -143,81 +148,110 @@ class MigrationSeries {
             this.lastValueInitialized = true;
         }
 
-        Clock clock = parent.getClock();
-        ZonedDateTime from = Instant.ofEpochMilli(this.timestamp).atZone(clock.getZone());
-        ZonedDateTime to = from.plus(parent.getPeriod());
+        Duration period = parent.getPeriod();
+        ZonedDateTime now = ZonedDateTime.now(clock);
+        ZonedDateTime start = Instant.ofEpochMilli(timestamp).atZone(clock.getZone());
+        ZonedDateTime rawEnd = start.plus(period);
+        boolean copyRawValues = true;
 
-        if (clock.instant().isBefore(to.toInstant())) {
-            // close out series, do the final copy while holding the write-lock so inserts are blocked
-            lock.writeLock().lock();
-            try {
-                // copy an extra period in case the current time rolls over into the next period
-                ReadWriteCount sampleCount = copyPointValues(from, to.plus(parent.getPeriod()));
-                this.status = MigrationStatus.MIGRATED;
-                if (log.isDebugEnabled()) {
-                    log.debug("Migration finished for {}", this);
+        if (aggregationEnabledForPoint()) {
+            ZonedDateTime boundary = truncateToAggregationPeriod(now.minus(parent.getAggregationBoundary()));
+            ZonedDateTime rawBoundary = boundary.minus(parent.getAggregationOverlap());
+            copyRawValues = start.isAfter(rawBoundary) || start.isEqual(rawBoundary);
+
+            if (start.isBefore(boundary)) {
+                ZonedDateTime end = minimum(
+                        start.plus(period.multipliedBy(parent.getPeriodMultiplier())),
+                        boundary
+                );
+
+                if (copyRawValues) {
+                    // if we have started copying raw values, don't allow copying aggregates past the raw end time
+                    copyAggregateValues(start, minimum(end, rawEnd));
+                } else {
+                    copyAggregateValues(start, end);
+                    this.timestamp = rawEnd.toInstant().toEpochMilli();
                 }
-                return sampleCount;
-            } finally {
-                lock.writeLock().unlock();
             }
-        } else {
-            return copyPointValues(from, to);
         }
+
+        if (copyRawValues) {
+            if (rawEnd.isAfter(now)) {
+                // close out series, do the final copy while holding the write-lock so inserts are blocked
+                lock.writeLock().lock();
+                try {
+                    // copy an extra period in case the current time ticks over into the next period
+                    copyRawValues(start, rawEnd.plus(parent.getPeriod()));
+                    this.status = MigrationStatus.MIGRATED;
+                    if (log.isDebugEnabled()) {
+                        log.debug("Migration finished for {}", this);
+                    }
+                } finally {
+                    lock.writeLock().unlock();
+                }
+            } else {
+                copyRawValues(start, rawEnd);
+            }
+            this.timestamp = rawEnd.toInstant().toEpochMilli();
+        }
+
+        ZonedDateTime finalPosition = Instant.ofEpochMilli(timestamp)
+                .atZone(clock.getZone());
+        stats.setMigratedDuration(Duration.between(initialPosition, finalPosition));
     }
 
-    private boolean aggregationEnabled() {
+    private ZonedDateTime minimum(ZonedDateTime a, ZonedDateTime b) {
+        return a.isBefore(b) ? a : b;
+    }
+
+    private boolean aggregationEnabledForPoint() {
         TemporalAmount aggregationPeriod = parent.getAggregationPeriod();
         return aggregationPeriod != null &&
                 parent.getAggregationDataTypes().contains(point.getPointLocator().getDataType());
     }
 
     /**
-     * stream from source (old) db to the destination (new) db, aggregating if configured
+     * Copy raw values from source (old) db to the destination (new) db.
      */
-    private ReadWriteCount copyPointValues(ZonedDateTime from, ZonedDateTime to) {
-        boolean aggregationEnabled = aggregationEnabled();
-
-        Clock clock = parent.getClock();
-        ZonedDateTime now = ZonedDateTime.now(clock);
-        ZonedDateTime aggregationBoundary = now.minus(parent.getAggregationBoundary());
-        ZonedDateTime rawStartTime = aggregationBoundary.minus(parent.getAggregationOverlap());
-
-        ReadWriteCount sampleCount = new ReadWriteCount();
+    private void copyRawValues(ZonedDateTime from, ZonedDateTime to) {
         long fromMs = from.toInstant().toEpochMilli();
         long toMs = to.toInstant().toEpochMilli();
 
-        Supplier<Stream<IdPointValueTime>> readValues = () ->
-                parent.getSource().streamPointValues(point, fromMs, toMs, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
-                .peek(pv -> sampleCount.incrementRead());
-
-        if (aggregationEnabled && from.isBefore(aggregationBoundary)) {
-            // We could use the source AggregateDao's query method here in order to migrate pre-aggregated data from one
-            // DB to another. There are 2 caveats: we must provide a way to get the read speed from the query method,
-            // and we must provide a way to pass in the last value. If we do not retain the last value and instead
-            // let the query method call getPointValueBefore() we get far lower total read speeds.
-            try (var stream = readValues.get().peek(pv -> this.lastValue = pv)) {
-                    AggregateDao source = parent.getSource().getAggregateDao();
-                    AggregateDao destination = parent.getDestination().getAggregateDao();
-
-                    var aggregateStream = source
-                            .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream), parent.getAggregationPeriod())
-                            .peek(pv -> sampleCount.incrementWrite());
-                    destination.save(point, aggregateStream, parent.getWriteChunkSize());
-            }
+        try (var stream = parent.getSource()
+                .streamPointValues(point, fromMs, toMs, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
+                .peek(pv -> stats.incrementRead())) {
+            var output = stream
+                    .map(pv -> new BatchPointValueImpl<>(point, pv))
+                    .peek(pv -> stats.incrementWrite());
+            parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
         }
+    }
 
-        if (!aggregationEnabled || to.isAfter(rawStartTime)) {
-            try (var stream = readValues.get()) {
-                var output = stream
-                        .map(pv -> new BatchPointValueImpl<>(point, pv))
-                        .peek(pv -> sampleCount.incrementWrite());
-                parent.getDestination().savePointValues(output, parent.getWriteChunkSize());
-            }
+    /**
+     * Copy aggregate values from source (old) db to the destination (new) db.
+     */
+    private void copyAggregateValues(ZonedDateTime from, ZonedDateTime to) {
+        long fromMs = from.toInstant().toEpochMilli();
+        long toMs = to.toInstant().toEpochMilli();
+
+        // We could use the source AggregateDao's query method here in order to migrate pre-aggregated data from one
+        // DB to another. There are 2 caveats: we must provide a way to get the read speed from the query method,
+        // and we must provide a way to pass in the last value. If we do not retain the last value and instead
+        // let the query method call getPointValueBefore() we get far lower total read speeds.
+
+        try (var stream = parent.getSource()
+                .streamPointValues(point, fromMs, toMs, null, TimeOrder.ASCENDING, parent.getReadChunkSize())
+                .peek(pv -> stats.incrementRead())
+                .peek(pv -> this.lastValue = pv)) {
+
+            AggregateDao source = parent.getSource().getAggregateDao();
+            AggregateDao destination = parent.getDestination().getAggregateDao();
+
+            var aggregateStream = source
+                    .aggregate(point, from, to, Stream.concat(Stream.ofNullable(lastValue), stream), parent.getAggregationPeriod())
+                    .peek(pv -> stats.incrementAggregateWrite());
+            destination.save(point, aggregateStream, parent.getWriteChunkSize());
         }
-
-        this.timestamp = toMs;
-        return sampleCount;
     }
 
     long getTimestamp() {
@@ -241,6 +275,10 @@ class MigrationSeries {
         return status;
     }
 
+    ReadWriteStats getStats() {
+        return stats;
+    }
+
     MigrationProgress getMigrationProgress() {
         return new MigrationProgress(seriesId, status, timestamp);
     }
@@ -253,12 +291,14 @@ class MigrationSeries {
                 '}';
     }
 
-    public static class ReadWriteCount {
+    public static class ReadWriteStats {
+
         private long readCount;
         private long writeCount;
+        private long aggregateWriteCount;
+        private Duration migratedDuration = Duration.ZERO;
 
-        private ReadWriteCount() {
-
+        private ReadWriteStats() {
         }
 
         public long getReadCount() {
@@ -269,6 +309,10 @@ class MigrationSeries {
             return writeCount;
         }
 
+        public long getAggregateWriteCount() {
+            return aggregateWriteCount;
+        }
+
         private void incrementRead() {
             readCount++;
         }
@@ -277,5 +321,16 @@ class MigrationSeries {
             writeCount++;
         }
 
+        private void incrementAggregateWrite() {
+            aggregateWriteCount++;
+        }
+
+        public Duration getMigratedDuration() {
+            return migratedDuration;
+        }
+
+        public void setMigratedDuration(Duration migratedDuration) {
+            this.migratedDuration = migratedDuration;
+        }
     }
 }

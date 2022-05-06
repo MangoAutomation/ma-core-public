@@ -22,6 +22,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public class TestMigrationConfig implements MigrationConfig {
     Instant migrateFromTime = null;
     Duration migrationPeriod = Duration.ofDays(1L);
+    int migrationPeriodMultiplier = 7;
     ZoneId zone = ZoneOffset.UTC;
     int maxAttempts = 3;
     boolean autoStart = false;
@@ -33,7 +34,7 @@ public class TestMigrationConfig implements MigrationConfig {
     Duration closeWait = Duration.ofSeconds(30L);
     Predicate<DataPointVO> dataPointFilter = p -> true;
     TemporalAmount aggregationPeriod;
-    TemporalAmount aggregationEnd = Duration.ZERO;
+    TemporalAmount aggregationBoundary = Duration.ZERO;
     TemporalAmount aggregationOverlap = Duration.ZERO;
     Set<DataType> aggregationDataTypes = EnumSet.of(DataType.NUMERIC);
 
@@ -49,6 +50,11 @@ public class TestMigrationConfig implements MigrationConfig {
     @Override
     public Duration getMigrationPeriod() {
         return migrationPeriod;
+    }
+
+    @Override
+    public int getMigrationPeriodMultiplier() {
+        return migrationPeriodMultiplier;
     }
 
     public void setMigrationPeriod(Duration migrationPeriod) {
@@ -139,7 +145,7 @@ public class TestMigrationConfig implements MigrationConfig {
 
     @Override
     public TemporalAmount getAggregationBoundary() {
-        return aggregationEnd;
+        return aggregationBoundary;
     }
 
     public void setDataPointFilter(Predicate<DataPointVO> dataPointFilter) {
@@ -150,8 +156,8 @@ public class TestMigrationConfig implements MigrationConfig {
         this.aggregationPeriod = aggregationPeriod;
     }
 
-    public void setAggregationEnd(TemporalAmount aggregationEnd) {
-        this.aggregationEnd = aggregationEnd;
+    public void setAggregationBoundary(TemporalAmount aggregationBoundary) {
+        this.aggregationBoundary = aggregationBoundary;
     }
 
     @Override
@@ -179,5 +185,9 @@ public class TestMigrationConfig implements MigrationConfig {
 
     public void setAggregationOverlap(TemporalAmount aggregationOverlap) {
         this.aggregationOverlap = aggregationOverlap;
+    }
+
+    public void setMigrationPeriodMultiplier(int migrationPeriodMultiplier) {
+        this.migrationPeriodMultiplier = migrationPeriodMultiplier;
     }
 }
