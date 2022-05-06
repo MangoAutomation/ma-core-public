@@ -67,7 +67,7 @@ class MigrationSeries {
         } catch (Exception e) {
             this.status = MigrationStatus.ERROR;
             if (log.isErrorEnabled()) {
-                log.error("Migration aborted for {}", this, e);
+                log.error("Migration aborted: {}", this, e);
             }
         }
         Duration duration = Duration.ofMillis(System.currentTimeMillis() - startTime);
@@ -78,7 +78,7 @@ class MigrationSeries {
         if (!parent.getDataPointFilter().test(point)) {
             this.status = MigrationStatus.SKIPPED;
             if (log.isDebugEnabled()) {
-                log.debug("Skipped {}", this);
+                log.debug("Skipped: {}", this);
             }
             return;
         }
@@ -106,13 +106,13 @@ class MigrationSeries {
 
                 this.status = MigrationStatus.INITIAL_PASS_COMPLETE;
                 if (log.isDebugEnabled()) {
-                    log.debug("Initial pass complete {}", this);
+                    log.debug("Initial pass complete: {}", this);
                 }
             } else {
                 // no data
                 this.status = MigrationStatus.NO_DATA;
                 if (log.isDebugEnabled()) {
-                    log.debug("Series contained no data {}", this);
+                    log.debug("Series contained no data: {}", this);
                 }
             }
         } finally {
@@ -137,6 +137,7 @@ class MigrationSeries {
         }
         if (status == MigrationStatus.NOT_STARTED) {
             initialPass();
+            return;
         }
 
         this.status = MigrationStatus.RUNNING;
@@ -170,7 +171,7 @@ class MigrationSeries {
                     copyAggregateValues(start, minimum(end, rawEnd));
                 } else {
                     copyAggregateValues(start, end);
-                    this.timestamp = rawEnd.toInstant().toEpochMilli();
+                    this.timestamp = end.toInstant().toEpochMilli();
                 }
             }
         }
@@ -184,7 +185,7 @@ class MigrationSeries {
                     copyRawValues(start, rawEnd.plus(parent.getPeriod()));
                     this.status = MigrationStatus.MIGRATED;
                     if (log.isDebugEnabled()) {
-                        log.debug("Migration finished for {}", this);
+                        log.debug("Migration finished: {}", this);
                     }
                 } finally {
                     lock.writeLock().unlock();
@@ -214,6 +215,10 @@ class MigrationSeries {
      * Copy raw values from source (old) db to the destination (new) db.
      */
     private void copyRawValues(ZonedDateTime from, ZonedDateTime to) {
+        if (log.isTraceEnabled()) {
+            log.trace("Copying raw values for {} from {} to {}", this, from, to);
+        }
+
         long fromMs = from.toInstant().toEpochMilli();
         long toMs = to.toInstant().toEpochMilli();
 
@@ -231,6 +236,10 @@ class MigrationSeries {
      * Copy aggregate values from source (old) db to the destination (new) db.
      */
     private void copyAggregateValues(ZonedDateTime from, ZonedDateTime to) {
+        if (log.isTraceEnabled()) {
+            log.trace("Copying aggregate values for {} from {} to {}", this, from, to);
+        }
+
         long fromMs = from.toInstant().toEpochMilli();
         long toMs = to.toInstant().toEpochMilli();
 
@@ -287,7 +296,9 @@ class MigrationSeries {
     public String toString() {
         return "MigrationSeries{" +
                 "seriesId=" + seriesId +
-                ", point=" + point +
+                ", point=" + point.getXid() +
+                ", status=" + status +
+                ", position=" + Instant.ofEpochMilli(timestamp) +
                 '}';
     }
 

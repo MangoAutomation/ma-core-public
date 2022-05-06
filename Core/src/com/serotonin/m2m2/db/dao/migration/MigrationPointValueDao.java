@@ -497,13 +497,6 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         migratedSecondsMeter.mark(migratedSeconds);
         this.migratedSeconds.addAndGet(migratedSeconds);
 
-        if (log.isTraceEnabled()) {
-            double valuesPerSecond = stats.getReadCount() / (duration.toMillis() / 1000d);
-            log.trace("{} Completed period for {} (status={}, values={}, duration={}, speed={} read/s)",
-                    stats(), series, series.getStatus(), stats.getReadCount(), duration,
-                    String.format("%.1f", valuesPerSecond));
-        }
-
         try {
             migrationProgressDao.update(series.getMigrationProgress());
         } catch (Exception e) {
