@@ -16,8 +16,8 @@
         <mangoVersion>4.4.0-SNAPSHOT</mangoVersion>
         <coreApiVersion>${coreVersion.majorVersion}.${coreVersion.minorVersion}</coreApiVersion>
         <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
-        <compilerSourceVersion>11</compilerSourceVersion>
-        <compilerTargetVersion>11</compilerTargetVersion>
+        <compilerSourceVersion>17</compilerSourceVersion>
+        <compilerTargetVersion>17</compilerTargetVersion>
         <compilerReleaseVersion>11</compilerReleaseVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
@@ -34,6 +34,8 @@
         <resilience4j.version>1.7.1</resilience4j.version>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
         <surefire.fork.count>1</surefire.fork.count>
+        <grpc.version>1.46.0</grpc.version>
+        <google.protobuf.version>3.20.1</google.protobuf.version>
     </properties>
     <organization>
         <name>Radix IoT, LLC</name>
