@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -127,10 +128,6 @@ class MigrationSeries {
     private void migrateNextPeriod() {
         if (status.isComplete()) throw new IllegalStateException("Already complete");
 
-        Clock clock = parent.getClock();
-        ZonedDateTime initialPosition = Instant.ofEpochMilli(timestamp)
-                .atZone(clock.getZone());
-
         if (point == null) {
             this.point = Objects.requireNonNull(parent.getDataPointDao().getBySeriesId(seriesId));
         }
@@ -148,40 +145,39 @@ class MigrationSeries {
             this.lastValueInitialized = true;
         }
 
+        Clock clock = parent.getClock();
         Duration period = parent.getPeriod();
         ZonedDateTime now = ZonedDateTime.now(clock);
         ZonedDateTime start = Instant.ofEpochMilli(timestamp).atZone(clock.getZone());
-        ZonedDateTime rawEnd = start.plus(period);
-        boolean copyRawValues = true;
+        ZonedDateTime end = start.plus(period);
 
+        var copyModes = EnumSet.of(CopyMode.RAW);
         if (aggregationEnabledForPoint()) {
             ZonedDateTime boundary = truncateToAggregationPeriod(now.minus(parent.getAggregationBoundary()));
             ZonedDateTime rawBoundary = boundary.minus(parent.getAggregationOverlap());
-            copyRawValues = start.isAfter(rawBoundary) || start.isEqual(rawBoundary);
 
-            if (start.isBefore(boundary)) {
-                ZonedDateTime end = minimum(
+            if (start.isBefore(rawBoundary)) {
+                copyModes = EnumSet.of(CopyMode.AGGREGATES);
+                end = minimum(
                         start.plus(period.multipliedBy(parent.getPeriodMultiplier())),
-                        boundary
+                        rawBoundary
                 );
-
-                if (copyRawValues) {
-                    // if we have started copying raw values, don't allow copying aggregates past the raw end time
-                    copyAggregateValues(start, minimum(end, rawEnd));
-                } else {
-                    copyAggregateValues(start, end);
-                    this.timestamp = end.toInstant().toEpochMilli();
-                }
+            } else if (start.isBefore(boundary)) {
+                copyModes = EnumSet.of(CopyMode.RAW, CopyMode.AGGREGATES);
             }
         }
 
-        if (copyRawValues) {
-            if (rawEnd.isAfter(now)) {
+        if (copyModes.contains(CopyMode.AGGREGATES)) {
+            copyAggregateValues(start, end);
+        }
+
+        if (copyModes.contains(CopyMode.RAW)) {
+            if (end.isAfter(now)) {
                 // close out series, do the final copy while holding the write-lock so inserts are blocked
                 lock.writeLock().lock();
                 try {
                     // copy an extra period in case the current time ticks over into the next period
-                    copyRawValues(start, rawEnd.plus(parent.getPeriod()));
+                    copyRawValues(start, end.plus(parent.getPeriod()));
                     this.status = MigrationStatus.MIGRATED;
                     if (log.isDebugEnabled()) {
                         log.debug("Migration finished: {}", this);
@@ -190,14 +186,16 @@ class MigrationSeries {
                     lock.writeLock().unlock();
                 }
             } else {
-                copyRawValues(start, rawEnd);
+                copyRawValues(start, end);
             }
-            this.timestamp = rawEnd.toInstant().toEpochMilli();
         }
+        this.timestamp = end.toInstant().toEpochMilli();
+        stats.finished(Duration.between(start, end));
+    }
 
-        ZonedDateTime finalPosition = Instant.ofEpochMilli(timestamp)
-                .atZone(clock.getZone());
-        stats.finished(Duration.between(initialPosition, finalPosition));
+    public enum CopyMode {
+        RAW,
+        AGGREGATES
     }
 
     private ZonedDateTime minimum(ZonedDateTime a, ZonedDateTime b) {
