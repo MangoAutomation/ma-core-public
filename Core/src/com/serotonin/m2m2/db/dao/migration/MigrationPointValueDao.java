@@ -79,8 +79,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final ExecutorService executorService;
     private final ScheduledExecutorService scheduledExecutorService;
     private final Instant migrateFrom;
-    private final Duration period;
-    private final int periodMultiplier;
+    private final Duration blockSize;
+    private final Duration aggregationBlockSize;
     private final TemporalAmount aggregationPeriod;
     private final TemporalAmount aggregationBoundary;
     private final TemporalAmount aggregationOverlap;
@@ -119,8 +119,8 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
         this.dataPointFilter = config.getDataPointFilter();
         this.migrateFrom = config.getMigrateFromTime();
-        this.period = config.getMigrationPeriod();
-        this.periodMultiplier = config.getMigrationPeriodMultiplier();
+        this.blockSize = config.getBlockSize();
+        this.aggregationBlockSize = config.getAggregationBlockSize();
         this.aggregationPeriod = config.getAggregationPeriod();
         this.aggregationBoundary = config.getAggregationBoundary();
         this.aggregationOverlap = config.getAggregationOverlap();
@@ -132,7 +132,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 .failAfterMaxAttempts(true)
                 .intervalFunction(IntervalFunction.ofExponentialRandomBackoff(500, 2.0D, 0.2D, 60_000))
                 .build();
-        this.retry = Retry.of("migratePeriod", retryConfig);
+        this.retry = Retry.of("migrateBlock", retryConfig);
         this.retry.getEventPublisher()
                 .onRetry(event -> log.debug("Retry, waiting {} until attempt {}.", event.getWaitInterval(), event.getNumberOfRetryAttempts(), event.getLastThrowable()))
                 .onError(event -> log.debug("Recorded a failed retry attempt. Number of retry attempts: {}. Giving up.", event.getNumberOfRetryAttempts(), event.getLastThrowable()));
@@ -436,12 +436,12 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return primary;
     }
 
-    Duration getPeriod() {
-        return period;
+    Duration getBlockSize() {
+        return blockSize;
     }
 
-    public int getPeriodMultiplier() {
-        return periodMultiplier;
+    Duration getAggregationBlockSize() {
+        return aggregationBlockSize;
     }
 
     TemporalAmount getAggregationPeriod() {
@@ -452,7 +452,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         return aggregationBoundary;
     }
 
-    public TemporalAmount getAggregationOverlap() {
+    TemporalAmount getAggregationOverlap() {
         return aggregationOverlap;
     }
 

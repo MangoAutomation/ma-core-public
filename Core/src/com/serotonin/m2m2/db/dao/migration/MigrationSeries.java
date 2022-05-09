@@ -42,7 +42,7 @@ class MigrationSeries {
     private boolean lastValueInitialized;
     /**
      * Holds the last raw value read from this series, this is required for calculating statistics for the next
-     * period (startValue of next period).
+     * block (startValue of next block).
      */
     private IdPointValueTime lastValue;
     private volatile long timestamp;
@@ -64,7 +64,7 @@ class MigrationSeries {
         long startTime = System.currentTimeMillis();
         try {
             this.stats = new ReadWriteStats();
-            parent.getRetry().executeRunnable(this::migrateNextPeriod);
+            parent.getRetry().executeRunnable(this::migrateBlock);
         } catch (Exception e) {
             this.status = MigrationStatus.ERROR;
             if (log.isErrorEnabled()) {
@@ -125,7 +125,7 @@ class MigrationSeries {
         return aggregateDao.truncateToPeriod(dateTime, parent.getAggregationPeriod());
     }
 
-    private void migrateNextPeriod() {
+    private void migrateBlock() {
         if (status.isComplete()) throw new IllegalStateException("Already complete");
 
         if (point == null) {
@@ -146,10 +146,11 @@ class MigrationSeries {
         }
 
         Clock clock = parent.getClock();
-        Duration period = parent.getPeriod();
+        Duration blockSize = parent.getBlockSize();
+        Duration aggregationBlockSize = parent.getAggregationBlockSize();
         ZonedDateTime now = ZonedDateTime.now(clock);
         ZonedDateTime start = Instant.ofEpochMilli(timestamp).atZone(clock.getZone());
-        ZonedDateTime end = start.plus(period);
+        ZonedDateTime end = start.plus(blockSize);
 
         var copyModes = EnumSet.of(CopyMode.RAW);
         if (aggregationEnabledForPoint()) {
@@ -158,10 +159,7 @@ class MigrationSeries {
 
             if (start.isBefore(rawBoundary)) {
                 copyModes = EnumSet.of(CopyMode.AGGREGATES);
-                end = minimum(
-                        start.plus(period.multipliedBy(parent.getPeriodMultiplier())),
-                        rawBoundary
-                );
+                end = minimum(start.plus(aggregationBlockSize), rawBoundary);
             } else if (start.isBefore(boundary)) {
                 copyModes = EnumSet.of(CopyMode.RAW, CopyMode.AGGREGATES);
             }
@@ -176,8 +174,8 @@ class MigrationSeries {
                 // close out series, do the final copy while holding the write-lock so inserts are blocked
                 lock.writeLock().lock();
                 try {
-                    // copy an extra period in case the current time ticks over into the next period
-                    copyRawValues(start, end.plus(parent.getPeriod()));
+                    // copy an extra block in case the current time ticks over into the next period
+                    copyRawValues(start, end.plus(blockSize));
                     this.status = MigrationStatus.MIGRATED;
                     if (log.isDebugEnabled()) {
                         log.debug("Migration finished: {}", this);

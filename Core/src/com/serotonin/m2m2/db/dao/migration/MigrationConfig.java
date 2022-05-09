@@ -19,8 +19,8 @@ import com.serotonin.m2m2.vo.DataPointVO;
  */
 public interface MigrationConfig {
     Instant getMigrateFromTime();
-    Duration getMigrationPeriod();
-    int getMigrationPeriodMultiplier();
+    Duration getBlockSize();
+    Duration getAggregationBlockSize();
     int getMaxAttempts();
     boolean isAutoStart();
     boolean isStartNewMigration();

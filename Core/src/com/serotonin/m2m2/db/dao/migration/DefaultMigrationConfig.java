@@ -42,13 +42,13 @@ public class DefaultMigrationConfig implements MigrationConfig {
     }
 
     @Override
-    public Duration getMigrationPeriod() {
-        return env.getProperty("db.migration.period", Duration.class, Duration.ofDays(1L));
+    public Duration getBlockSize() {
+        return env.getProperty("db.migration.blockSize", Duration.class, Duration.ofDays(1L));
     }
 
     @Override
-    public int getMigrationPeriodMultiplier() {
-        return env.getProperty("db.migration.periodMultiplier", int.class, 7);
+    public Duration getAggregationBlockSize() {
+        return env.getProperty("db.migration.aggregation.blockSize", Duration.class, Duration.ofDays(14L));
     }
 
     @Override

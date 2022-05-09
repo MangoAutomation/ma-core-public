@@ -21,8 +21,8 @@ import com.serotonin.m2m2.vo.DataPointVO;
  */
 public class TestMigrationConfig implements MigrationConfig {
     Instant migrateFromTime = null;
-    Duration migrationPeriod = Duration.ofDays(1L);
-    int migrationPeriodMultiplier = 7;
+    Duration blockSize = Duration.ofDays(1L);
+    Duration aggregationBlockSize = Duration.ofDays(14L);
     ZoneId zone = ZoneOffset.UTC;
     int maxAttempts = 3;
     boolean autoStart = false;
@@ -48,17 +48,17 @@ public class TestMigrationConfig implements MigrationConfig {
     }
 
     @Override
-    public Duration getMigrationPeriod() {
-        return migrationPeriod;
+    public Duration getBlockSize() {
+        return blockSize;
     }
 
     @Override
-    public int getMigrationPeriodMultiplier() {
-        return migrationPeriodMultiplier;
+    public Duration getAggregationBlockSize() {
+        return aggregationBlockSize;
     }
 
-    public void setMigrationPeriod(Duration migrationPeriod) {
-        this.migrationPeriod = migrationPeriod;
+    public void setBlockSize(Duration blockSize) {
+        this.blockSize = blockSize;
     }
 
     @Override
@@ -187,7 +187,7 @@ public class TestMigrationConfig implements MigrationConfig {
         this.aggregationOverlap = aggregationOverlap;
     }
 
-    public void setMigrationPeriodMultiplier(int migrationPeriodMultiplier) {
-        this.migrationPeriodMultiplier = migrationPeriodMultiplier;
+    public void setAggregationBlockSize(Duration aggregationBlockSize) {
+        this.aggregationBlockSize = aggregationBlockSize;
     }
 }
