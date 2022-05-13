@@ -3,7 +3,6 @@
  */
 package com.infiniteautomation.mango.spring;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -80,9 +79,6 @@ import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.properties.MangoConfigurationWatcher;
 import com.serotonin.util.properties.MangoProperties;
-
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
 
 /**
  *
@@ -398,14 +394,4 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
         return Common.eventManager;
     }
 
-    @Bean
-    public Server grpcServer() throws IOException {
-        //TODO inject and add services here
-        Server server = ServerBuilder
-                .forPort(8002)
-                .build();
-
-        server.start();
-        return server;
-    }
 }
