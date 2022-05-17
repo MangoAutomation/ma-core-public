@@ -18,7 +18,7 @@
         <noSnapshotVer>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}</noSnapshotVer>
         <compilerSourceVersion>17</compilerSourceVersion>
         <compilerTargetVersion>17</compilerTargetVersion>
-        <compilerReleaseVersion>11</compilerReleaseVersion>
+        <compilerReleaseVersion>17</compilerReleaseVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss'Z'</maven.build.timestamp.format>
         <buildTimestamp>${maven.build.timestamp}</buildTimestamp>
