@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk:11
+FROM azul/zulu-openjdk:17
 
 ENV mango_paths_home=/opt/mango
 ENV mango_paths_data=/opt/mango-data
