@@ -95,7 +95,14 @@ public class DefaultMigrationConfig implements MigrationConfig {
 
     @Override
     public Predicate<DataPointVO> getDataPointFilter() {
-        return vo -> true;
+        var dataTypesArray = env.getProperty("db.migration.filter.dataTypes", DataType[].class);
+        if (dataTypesArray == null) {
+            return vo -> true;
+        }
+
+        var dataTypes = EnumSet.noneOf(DataType.class);
+        dataTypes.addAll(Arrays.asList(dataTypesArray));
+        return vo -> dataTypes.contains(vo.getPointLocator().getDataType());
     }
 
     @Override
