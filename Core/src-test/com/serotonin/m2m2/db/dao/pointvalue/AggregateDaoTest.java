@@ -8,9 +8,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAmount;
+import java.util.HashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -70,4 +75,48 @@ public class AggregateDaoTest extends MangoTestBase {
         }
     }
 
+    @Test
+    public void testPeriods() {
+        var ds = createMockDataSource();
+        var point = createMockDataPoint(ds, new MockPointLocatorVO(DataType.NUMERIC, false));
+
+        ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
+        ZonedDateTime to = from.plusYears(2L);
+
+        var periodsToTest = new HashMap<TemporalAmount, Long>();
+        periodsToTest.put(Period.ofYears(1), ChronoUnit.YEARS.between(from, to));
+        periodsToTest.put(Period.ofMonths(1), ChronoUnit.MONTHS.between(from, to));
+        periodsToTest.put(Period.ofWeeks(1), ChronoUnit.WEEKS.between(from, to) + 1); //truncated week
+        periodsToTest.put(Period.ofDays(1), ChronoUnit.DAYS.between(from, to));
+
+        AggregateDao aggregateDao = pointValueDao.getAggregateDao();
+        periodsToTest.keySet().forEach(aggregationPeriod -> {
+            var stream = aggregateDao.resample(point, from, to, Stream.empty(), aggregationPeriod);
+            long expectedSize = periodsToTest.get(aggregationPeriod);
+            assertEquals(expectedSize, stream.count());
+        });
+    }
+
+    @Test
+    public void testDurations() {
+        var ds = createMockDataSource();
+        var point = createMockDataPoint(ds, new MockPointLocatorVO(DataType.NUMERIC, false));
+
+        ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
+        ZonedDateTime to = from.plusHours(2L);
+
+        var durationToTest = new HashMap<TemporalAmount, Long>();
+        durationToTest.put(Duration.of(1, ChronoUnit.HOURS), ChronoUnit.HOURS.between(from, to));
+        durationToTest.put(Duration.of(1, ChronoUnit.MINUTES), ChronoUnit.MINUTES.between(from, to));
+        durationToTest.put(Duration.of(1, ChronoUnit.SECONDS), ChronoUnit.SECONDS.between(from, to));
+        durationToTest.put(Duration.of(1, ChronoUnit.MILLIS), ChronoUnit.MILLIS.between(from, to));
+        durationToTest.put(Duration.between(from, to), 1L);
+
+        AggregateDao aggregateDao = pointValueDao.getAggregateDao();
+        durationToTest.keySet().forEach(aggregationPeriod -> {
+            var stream = aggregateDao.resample(point, from, to, Stream.empty(), aggregationPeriod);
+            long expectedSize = durationToTest.get(aggregationPeriod);
+            assertEquals(expectedSize, stream.count());
+        });
+    }
 }

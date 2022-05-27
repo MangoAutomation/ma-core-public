@@ -126,11 +126,13 @@ public interface AggregateDao {
 
             // generate a stream of empty aggregates
             var initial = new NumericMultiAggregate(from.toInstant(), from.plus(aggregationPeriod).toInstant());
+
+            var initialZoneId = from.getZone();
             var resampled = Stream.iterate(initial,
                     agg -> agg.getPeriodStartInstant().isBefore(to.toInstant()),
                     agg -> {
-                        var start = agg.getPeriodEndInstant();
-                        return new NumericMultiAggregate(start, start.plus(aggregationPeriod));
+                        var zonedStart = agg.getPeriodEndInstant().atZone(initialZoneId);
+                        return new NumericMultiAggregate(zonedStart.toInstant(), zonedStart.plus(aggregationPeriod).toInstant());
                     }
             ).peek(agg -> {
                 // populate the aggregates with children from the original stream
