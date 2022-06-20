@@ -125,7 +125,7 @@ public class DataPurge {
                 pointValueDao.deletePointValuesBefore(before.toInstant().toEpochMilli())
                         .ifPresent(this::addDeletedSamples);
             } catch (UnsupportedOperationException e) {
-                log.debug("purgePointValuesBefore operation is not supported by {}.", pointValueDao.getClass().getSimpleName());
+                log.warn("purgePointValuesBefore operation is not supported by {}.", pointValueDao.getClass().getSimpleName());
             }
             log.info("Point value purge is complete");
         } else {
