@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
+import java.lang.management.ManagementFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -82,7 +83,16 @@ public class H2DatabaseTest extends MangoTestBase {
             expected = ex;
             assertEquals("HY000", ex.getSQLState());
             assertEquals("SELECT * FROM t1", ex.getSQL());
-            assertEquals("General error: \"java.lang.NullPointerException\"", ex.getOriginalMessage());
+
+            var jvm11Error = "General error: \"java.lang.NullPointerException\"";
+            var jvm17_18Error = "General error: \"java.lang.NullPointerException: Cannot invoke \"\"[Ljava.lang.Object;.clone()\"\" because \"\"<local10>\"\" is null\"";
+
+            var rt = ManagementFactory.getRuntimeMXBean();
+            if (rt.getVmVersion().startsWith("11")) {
+                assertEquals(jvm11Error, ex.getOriginalMessage());
+            } else {
+                assertEquals(jvm17_18Error, ex.getOriginalMessage());
+            }
         }
         assertNotNull(expected);
     }
