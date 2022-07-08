@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import org.junit.Ignore;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 
@@ -29,15 +29,19 @@ import com.infiniteautomation.mango.pointvalue.generator.BrownianPointValueGener
 import com.infiniteautomation.mango.pointvalue.generator.LinearPointValueGenerator;
 import com.infiniteautomation.mango.pointvalue.generator.PointValueGenerator;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.MockAggregateDao;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockPointValueDao;
 import com.serotonin.m2m2.SimulationTimerProvider;
 import com.serotonin.m2m2.db.dao.BatchPointValueImpl;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateValue;
+import com.serotonin.m2m2.db.dao.pointvalue.NumericAggregate;
 import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.view.stats.SeriesValueTime;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.timer.SimulationTimer;
 
@@ -62,31 +66,18 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
     @Override
     public void before() {
         super.before();
-
-        ApplicationContext context = MangoTestBase.lifecycle.getRuntimeContext();
-        this.source = new MockPointValueDao();
-        this.destination = new MockPointValueDao();
-        this.timer = context.getBean(SimulationTimer.class);
         useMigrationConfig(new TestMigrationConfig());
     }
 
-    @Override
-    public void after() {
-        super.after();
-        this.migrationPointValueDao.reset();
-
-        // ensure point data is deleted, MangoTestBase calls this also, but it may not be called for both source and destination
-        this.source.deleteAllPointData();
-        this.destination.deleteAllPointData();
-    }
-
     private void useMigrationConfig(TestMigrationConfig config) {
+        ApplicationContext context = MangoTestBase.lifecycle.getRuntimeContext();
         this.migrationConfig = config;
 
-        ApplicationContext context = MangoTestBase.lifecycle.getRuntimeContext();
-
         // keep a reference to the new timer, so we can set the time on the instance passed to migration dao
-        this.timer = timer.withZone(config.getZone());
+        this.timer = context.getBean(SimulationTimer.class).withZone(config.getZone());
+
+        this.source = new MockPointValueDao();
+        this.destination = new MockPointValueDao(dao -> new MockAggregateDao(dao, timer, Duration.ofDays(1L), Duration.ofMinutes(15L)));
 
         this.migrationPointValueDao = new MigrationPointValueDao(destination, source,
                 context.getBean(DataPointDao.class),
@@ -200,7 +191,6 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
     }
 
     @Test
-    @Ignore
     public void downsampledAggregate() throws ExecutionException, InterruptedException, TimeoutException {
         Duration aggregationPeriod = Duration.ofMinutes(15);
         TestMigrationConfig config = new TestMigrationConfig();
@@ -216,8 +206,8 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         Duration period = Duration.ofSeconds(5L);
         long inputExpectedSamples = Duration.between(from, to).dividedBy(period);
 
-        // migration stops at the current time
-        timer.setStartTime(to.toInstant().toEpochMilli());
+        // migration stops at the current time, fast forward-past end of migrated values, plus 1 day so all values are aggregated (values are all prior to boundary)
+        timer.setStartTime(to.plus(Duration.ofDays(1L)).toInstant().toEpochMilli());
 
         PointValueGenerator generator = new LinearPointValueGenerator(from.toInstant(), to.toInstant(), period, 0.0D, 1.0D);
         source.savePointValues(generator.apply(point));
@@ -227,19 +217,26 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         migrationPointValueDao.startMigration();
         migrationPointValueDao.migrationFinished().get(30, TimeUnit.SECONDS);
 
-        List<IdPointValueTime> destinationValues;
+        // raw values should be empty
         try (var stream = destination.streamPointValues(point, null, null, null, TimeOrder.ASCENDING)) {
-            destinationValues = stream.collect(Collectors.toList());
+            Assert.assertEquals(0L, stream.count());
         }
-        long outputExpectedSamples = Duration.between(from, to).dividedBy(aggregationPeriod);
-        assertEquals(outputExpectedSamples, destinationValues.size());
-        for (int i = 0; i < outputExpectedSamples; i++) {
-            var destinationValue = destinationValues.get(i);
-            assertEquals(point.getSeriesId(), destinationValue.getSeriesId());
-            assertEquals(from.plus(aggregationPeriod.multipliedBy(i)).toInstant().toEpochMilli(), destinationValue.getTime());
 
-            double expected = 180.0 * i + 89.5;
-            assertEquals(expected, destinationValue.getDoubleValue(), 0.0D);
+        List<SeriesValueTime<AggregateValue>> aggregates;
+        try (var stream = destination.getAggregateDao().query(point, from, to, null, Duration.ofMinutes(15L))) {
+            aggregates = stream.collect(Collectors.toList());
+        }
+
+        long outputExpectedSamples = Duration.between(from, to).dividedBy(aggregationPeriod);
+        assertEquals(outputExpectedSamples, aggregates.size());
+        for (int i = 0; i < outputExpectedSamples; i++) {
+            var aggregate = aggregates.get(i);
+            assertEquals(point.getSeriesId(), aggregate.getSeriesId());
+            assertEquals(from.plus(aggregationPeriod.multipliedBy(i)).toInstant().toEpochMilli(), aggregate.getTime());
+
+            NumericAggregate aggregateValue = ((NumericAggregate) aggregate.getValue());
+            assertEquals(180, aggregateValue.getCount());
+            assertEquals(180.0 * i + 89.5, aggregateValue.getArithmeticMean(), 0.0D);
         }
     }
 }

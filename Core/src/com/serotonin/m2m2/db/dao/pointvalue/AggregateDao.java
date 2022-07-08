@@ -39,7 +39,7 @@ public interface AggregateDao {
     PointValueDao getPointValueDao();
 
     /**
-     * Query for aggregates in a time range.
+     * Query for aggregates in a time range using real time aggregation from the raw values.
      *
      * @param point data point
      * @param from from time (inclusive)
@@ -48,7 +48,7 @@ public interface AggregateDao {
      * @param aggregationPeriod aggregation period (bucket/window size)
      * @return stream of aggregate values
      */
-    default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit, TemporalAmount aggregationPeriod) {
+    default Stream<SeriesValueTime<AggregateValue>> queryRealtime(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit, TemporalAmount aggregationPeriod) {
         if (from.isEqual(to)) {
             return Stream.empty();
         }
@@ -64,6 +64,21 @@ public interface AggregateDao {
 
         var aggregates = aggregate(point, from, to, Stream.concat(previousValue, rawValues), aggregationPeriod);
         return limit == null ? aggregates : aggregates.limit(limit);
+    }
+
+    /**
+     * Query for aggregates in a time range, may query raw values and aggregate in realtime, or query pre-aggregated values,
+     * or a combination of both. By default, this method aggregates in realtime from raw values i.e. on-the-fly aggregation.
+     *
+     * @param point data point
+     * @param from from time (inclusive)
+     * @param to to time (exclusive)
+     * @param limit limit the number of returned aggregates (may be null)
+     * @param aggregationPeriod aggregation period (bucket/window size)
+     * @return stream of aggregate values
+     */
+    default Stream<SeriesValueTime<AggregateValue>> query(DataPointVO point, ZonedDateTime from, ZonedDateTime to, @Nullable Integer limit, TemporalAmount aggregationPeriod) {
+        return queryRealtime(point, from, to, limit, aggregationPeriod);
     }
 
     /**

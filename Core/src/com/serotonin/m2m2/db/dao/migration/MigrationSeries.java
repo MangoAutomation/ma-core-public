@@ -152,6 +152,11 @@ class MigrationSeries {
         ZonedDateTime start = Instant.ofEpochMilli(timestamp).atZone(clock.getZone());
         ZonedDateTime end = start.plus(blockSize);
 
+        //       aggregates                       both (raw + agg)                       raw
+        //     agg-block size                        block size                      block size
+        // -------------------------------|------------------------------|------------------------------|
+        //                            raw-boundary                    boundary                         now
+
         var copyModes = EnumSet.of(CopyMode.RAW);
         if (aggregationEnabledForPoint()) {
             ZonedDateTime boundary = truncateToAggregationPeriod(now.minus(parent.getAggregationBoundary()));
