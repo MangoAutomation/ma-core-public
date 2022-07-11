@@ -295,7 +295,7 @@ class MigrationSeries {
     public String toString() {
         return "MigrationSeries{" +
                 "seriesId=" + seriesId +
-                ", point=" + point.getXid() +
+                ", point=" + (point == null ? "null" : point.getXid()) +
                 ", status=" + status +
                 ", position=" + Instant.ofEpochMilli(timestamp) +
                 '}';
