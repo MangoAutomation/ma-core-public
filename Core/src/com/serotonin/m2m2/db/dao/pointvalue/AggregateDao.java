@@ -177,13 +177,13 @@ public interface AggregateDao {
     /**
      * Truncates a date-time to align with a given period.
      *
-     * @param boundary raw date-time
+     * @param input input date-time
      * @param period period to truncate to
      * @return truncated date-time
      */
-    default ZonedDateTime truncateToPeriod(ZonedDateTime boundary, TemporalAmount period) {
-        var minusOnePeriod = boundary.minus(period);
-        var truncated = boundary;
+    default ZonedDateTime truncateToPeriod(ZonedDateTime input, TemporalAmount period) {
+        var minusOnePeriod = input.minus(period);
+        var truncated = input;
         for (var unit : List.of(ChronoUnit.SECONDS, ChronoUnit.MINUTES, ChronoUnit.HOURS, ChronoUnit.DAYS, ChronoUnit.MONTHS, ChronoUnit.YEARS)) {
             if (unit == ChronoUnit.MONTHS) {
                 truncated = truncated.with(DAY_OF_MONTH, 1);
@@ -197,8 +197,9 @@ public interface AggregateDao {
                 break;
             }
         }
-        while (truncated.plus(period).isBefore(boundary)) {
-            truncated = truncated.plus(period);
+        // use !isAfter() (i.e. less than or equal) instead of isBefore(), as input may be perfectly truncated already
+        for (var next = truncated; !next.isAfter(input); next = next.plus(period)) {
+            truncated = next;
         }
         return truncated;
     }
