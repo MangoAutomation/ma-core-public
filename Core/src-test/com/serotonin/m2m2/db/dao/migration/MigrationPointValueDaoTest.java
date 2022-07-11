@@ -42,6 +42,7 @@ import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.stats.SeriesValueTime;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.timer.SimulationTimer;
 
@@ -77,7 +78,7 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         this.timer = context.getBean(SimulationTimer.class).withZone(config.getZone());
 
         this.source = new MockPointValueDao();
-        this.destination = new MockPointValueDao(dao -> new MockAggregateDao(dao, timer, Duration.ofDays(1L), Duration.ofMinutes(15L)));
+        this.destination = new MockPointValueDao(dao -> new MockAggregateDao(dao, timer, Duration.ofMinutes(15L), Duration.ofDays(1L)));
 
         this.migrationPointValueDao = new MigrationPointValueDao(destination, source,
                 context.getBean(DataPointDao.class),
@@ -190,6 +191,10 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
         }
     }
 
+    /**
+     * Tests migration of raw numeric values to 15-minute aggregates, for 1 day, from 2020-01-01 to 2020-01-02.
+     * Verifies the number of aggregate samples in the destination database and the average value for each 15-minute period.
+     */
     @Test
     public void downsampledAggregate() throws ExecutionException, InterruptedException, TimeoutException {
         Duration aggregationPeriod = Duration.ofMinutes(15);
@@ -239,4 +244,73 @@ public class MigrationPointValueDaoTest extends MangoTestBase {
             assertEquals(180.0 * i + 89.5, aggregateValue.getArithmeticMean(), 0.0D);
         }
     }
+
+    /**
+     * Tests migration of raw numeric values to 15-minute aggregates, for 3 days, from 2020-01-01 to 2020-01-04, with
+     * the boundary set to 1 day and overlap of 1 day.
+     * Verifies the number of aggregate samples in the destination database and the average value for each 15-minute period,
+     * and verifies the number of raw samples in the destination database.
+     */
+    @Test
+    public void testMigrationBoundary() throws ExecutionException, InterruptedException, TimeoutException {
+        Duration aggregationPeriod = Duration.ofMinutes(15);
+        TestMigrationConfig config = new TestMigrationConfig();
+        // use 1-hour block size for raw values
+        config.setBlockSize(Duration.ofHours(1L));
+        config.setAggregationPeriod(aggregationPeriod);
+        config.setAggregationBoundary(Duration.ofDays(1L));
+        config.setAggregationOverlap(Duration.ofDays(1L));
+        // use 1-hour block size for aggregation
+        config.setAggregationBlockSize(Duration.ofHours(1L));
+        useMigrationConfig(config);
+
+        var dataSource = createMockDataSource();
+        var point = createMockDataPoint(dataSource, new MockPointLocatorVO());
+
+        ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
+        ZonedDateTime to = from.plus(Duration.ofDays(3L));
+        Duration period = Duration.ofSeconds(5L);
+        long inputExpectedSamples = Duration.between(from, to).dividedBy(period);
+
+        // migration stops at the current time, fast forward-past end of migrated values
+        timer.setStartTime(to.toInstant().toEpochMilli());
+
+        PointValueGenerator generator = new LinearPointValueGenerator(from.toInstant(), to.toInstant(), period, 0.0D, 1.0D);
+        source.savePointValues(generator.apply(point));
+        // sanity check
+        assertEquals(inputExpectedSamples, source.dateRangeCount(point, null, null));
+
+        migrationPointValueDao.startMigration();
+        migrationPointValueDao.migrationFinished().get(9999, TimeUnit.SECONDS);
+
+        // raw values should be empty for first day
+        Assert.assertEquals(0L, countDestinationRaw(point, from, from.plus(Duration.ofDays(1L))));
+        // raw values should contain 17280 samples for second day (12 samples per minute, 720 samples per hour)
+        Assert.assertEquals(17280L, countDestinationRaw(point, from.plus(Duration.ofDays(1L)), from.plus(Duration.ofDays(2L))));
+        // raw values should contain 17280 samples for third day (12 samples per minute, 720 samples per hour)
+        Assert.assertEquals(17280L, countDestinationRaw(point, from.plus(Duration.ofDays(2L)), to));
+
+        // aggregate values should contain 96 samples for first day (4 samples per hour)
+        Assert.assertEquals(96L, countDestinationAggregates(point, from, from.plus(Duration.ofDays(1L))));
+        // aggregate values should contain 96 samples for second day (4 samples per hour)
+        Assert.assertEquals(96L, countDestinationAggregates(point, from.plus(Duration.ofDays(1L)), from.plus(Duration.ofDays(2L))));
+        // aggregate values should be empty for third day
+        Assert.assertEquals(0L, countDestinationAggregates(point, from.plus(Duration.ofDays(2L)), to));
+    }
+
+    private long countDestinationAggregates(DataPointVO point, ZonedDateTime from, ZonedDateTime to) {
+        MockAggregateDao destinationAggregateDao = (MockAggregateDao) destination.getAggregateDao();
+        try (var stream = destinationAggregateDao.queryPreAggregated(point, from, to)) {
+            return stream.count();
+        }
+    }
+
+    private long countDestinationRaw(DataPointVO point, ZonedDateTime from, ZonedDateTime to) {
+        try (var stream = destination.streamPointValues(point,
+                from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(),
+                null, TimeOrder.ASCENDING)) {
+            return stream.count();
+        }
+    }
+
 }
