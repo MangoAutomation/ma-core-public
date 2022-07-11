@@ -61,7 +61,6 @@ class MigrationSeries {
     }
 
     synchronized void run() {
-        long startTime = System.currentTimeMillis();
         try {
             this.stats = new ReadWriteStats();
             parent.getRetry().executeRunnable(this::migrateBlock);

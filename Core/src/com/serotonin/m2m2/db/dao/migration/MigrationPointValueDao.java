@@ -392,7 +392,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 (migratedSecondsRate / remaining) / 3600 :
                 0;
 
-        return String.format("[%6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, rate %.2f hrs/s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
+        return String.format("[%6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, rate %.2f hrs/s, ETA %s (%s), %d/%d/%d failed/retried/succeeded blocks, %d threads]",
                 progress,
                 readRate,
                 writeRate,
