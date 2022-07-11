@@ -96,7 +96,7 @@ class MigrationSeries {
                 if (aggregationEnabledForPoint()) {
                     // truncate the timestamp, so we get aggregates starting at a consistent round time
                     var dateTime = timestamp.atZone(parent.getClock().getZone());
-                    this.timestamp = truncateToAggregationPeriod(dateTime)
+                    this.timestamp = parent.truncateToAggregationPeriod(dateTime)
                             .toInstant()
                             .toEpochMilli();
                 } else {
@@ -117,11 +117,6 @@ class MigrationSeries {
         } finally {
             lock.writeLock().unlock();
         }
-    }
-
-    private ZonedDateTime truncateToAggregationPeriod(ZonedDateTime dateTime) {
-        var aggregateDao = parent.getDestination().getAggregateDao();
-        return aggregateDao.truncateToPeriod(dateTime, parent.getAggregationPeriod());
     }
 
     private void migrateBlock() {
@@ -152,18 +147,18 @@ class MigrationSeries {
         ZonedDateTime end = start.plus(blockSize);
 
         //       aggregates                       both (raw + agg)                       raw
-        //     agg-block size                        block size                      block size
+        //     agg-block size                      std-block size                   std-block size
         // -------------------------------|------------------------------|------------------------------|
-        //                            raw-boundary                    boundary                         now
+        //                         overlap-boundary                   boundary                         now
 
         var copyModes = EnumSet.of(CopyMode.RAW);
         if (aggregationEnabledForPoint()) {
-            ZonedDateTime boundary = truncateToAggregationPeriod(now.minus(parent.getAggregationBoundary()));
-            ZonedDateTime rawBoundary = boundary.minus(parent.getAggregationOverlap());
+            ZonedDateTime boundary = parent.getBoundary(start);
+            ZonedDateTime overlapBoundary = boundary.minus(parent.getAggregationOverlap());
 
-            if (start.isBefore(rawBoundary)) {
+            if (start.isBefore(overlapBoundary)) {
                 copyModes = EnumSet.of(CopyMode.AGGREGATES);
-                end = minimum(start.plus(aggregationBlockSize), rawBoundary);
+                end = minimum(start.plus(aggregationBlockSize), overlapBoundary);
             } else if (start.isBefore(boundary)) {
                 copyModes = EnumSet.of(CopyMode.RAW, CopyMode.AGGREGATES);
             }
@@ -308,7 +303,6 @@ class MigrationSeries {
         private long writeCount;
         private long aggregateWriteCount;
         private Duration migratedDuration = Duration.ZERO;
-        private Duration timeTaken = Duration.ZERO;
 
         private ReadWriteStats() {
             this.startTime = Instant.now();
@@ -344,15 +338,10 @@ class MigrationSeries {
 
         public void finished(Duration migratedDuration) {
             this.migratedDuration = migratedDuration;
-            this.timeTaken = Duration.between(startTime, Instant.now());
         }
 
         public Instant getStartTime() {
             return startTime;
-        }
-
-        public Duration getTimeTaken() {
-            return timeTaken;
         }
     }
 }
