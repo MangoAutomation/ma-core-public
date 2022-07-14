@@ -12,8 +12,7 @@ import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAmount;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -83,17 +82,18 @@ public class AggregateDaoTest extends MangoTestBase {
         ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
         ZonedDateTime to = from.plusYears(2L);
 
-        var periodsToTest = new HashMap<TemporalAmount, Long>();
-        periodsToTest.put(Period.ofYears(1), ChronoUnit.YEARS.between(from, to));
-        periodsToTest.put(Period.ofMonths(1), ChronoUnit.MONTHS.between(from, to));
-        periodsToTest.put(Period.ofWeeks(1), ChronoUnit.WEEKS.between(from, to) + 1); //truncated week
-        periodsToTest.put(Period.ofDays(1), ChronoUnit.DAYS.between(from, to));
+        var periodsToTest = Map.of(
+                Period.ofYears(1), ChronoUnit.YEARS.between(from, to),
+                Period.ofMonths(1), ChronoUnit.MONTHS.between(from, to),
+                Period.ofWeeks(1), ChronoUnit.WEEKS.between(from, to) + 1, //truncated week
+                Period.ofDays(1), ChronoUnit.DAYS.between(from, to)
+        );
 
         AggregateDao aggregateDao = pointValueDao.getAggregateDao();
-        periodsToTest.keySet().forEach(aggregationPeriod -> {
-            var stream = aggregateDao.resample(point, from, to, Stream.empty(), aggregationPeriod);
-            long expectedSize = periodsToTest.get(aggregationPeriod);
-            assertEquals(expectedSize, stream.count());
+        periodsToTest.forEach((aggregationPeriod, expectedSize) -> {
+            try (var stream = aggregateDao.resample(point, from, to, Stream.empty(), aggregationPeriod)) {
+                assertEquals((long) expectedSize, stream.count());
+            }
         });
     }
 
@@ -105,18 +105,19 @@ public class AggregateDaoTest extends MangoTestBase {
         ZonedDateTime from = ZonedDateTime.of(LocalDateTime.of(2020, 1, 1, 0, 0), ZoneOffset.UTC);
         ZonedDateTime to = from.plusHours(2L);
 
-        var durationToTest = new HashMap<TemporalAmount, Long>();
-        durationToTest.put(Duration.of(1, ChronoUnit.HOURS), ChronoUnit.HOURS.between(from, to));
-        durationToTest.put(Duration.of(1, ChronoUnit.MINUTES), ChronoUnit.MINUTES.between(from, to));
-        durationToTest.put(Duration.of(1, ChronoUnit.SECONDS), ChronoUnit.SECONDS.between(from, to));
-        durationToTest.put(Duration.of(1, ChronoUnit.MILLIS), ChronoUnit.MILLIS.between(from, to));
-        durationToTest.put(Duration.between(from, to), 1L);
+        var durationToTest = Map.of(
+                Duration.of(1, ChronoUnit.HOURS), ChronoUnit.HOURS.between(from, to),
+                Duration.of(1, ChronoUnit.MINUTES), ChronoUnit.MINUTES.between(from, to),
+                Duration.of(1, ChronoUnit.SECONDS), ChronoUnit.SECONDS.between(from, to),
+                Duration.of(1, ChronoUnit.MILLIS), ChronoUnit.MILLIS.between(from, to),
+                Duration.between(from, to), 1L
+        );
 
         AggregateDao aggregateDao = pointValueDao.getAggregateDao();
-        durationToTest.keySet().forEach(aggregationPeriod -> {
-            var stream = aggregateDao.resample(point, from, to, Stream.empty(), aggregationPeriod);
-            long expectedSize = durationToTest.get(aggregationPeriod);
-            assertEquals(expectedSize, stream.count());
+        durationToTest.forEach((aggregationPeriod, expectedValue) -> {
+            try (var stream = aggregateDao.resample(point, from, to, Stream.empty(), aggregationPeriod)) {
+                assertEquals((long) expectedValue, stream.count());
+            }
         });
     }
 }

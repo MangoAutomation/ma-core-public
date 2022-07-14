@@ -14,11 +14,14 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
+import com.serotonin.m2m2.db.dao.pointvalue.DefaultAggregateDao;
 import com.serotonin.m2m2.db.dao.pointvalue.TimeOrder;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -31,16 +34,22 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public class MockPointValueDao implements PointValueDao {
 
     protected final ConcurrentMap<Integer, NavigableMap<Long, PointValueTime>> data;
+    protected final AggregateDao aggregateDao;
 
     public MockPointValueDao() {
-        this(Map.of());
+        this(DefaultAggregateDao::new);
     }
 
-    public MockPointValueDao(Map<Integer, ? extends Collection<? extends PointValueTime>> data) {
+    public MockPointValueDao(Function<PointValueDao, AggregateDao> aggregateDaoFactory) {
+        this(aggregateDaoFactory, Map.of());
+    }
+
+    public MockPointValueDao(Function<PointValueDao, AggregateDao> aggregateDaoFactory, Map<Integer, ? extends Collection<? extends PointValueTime>> data) {
         this.data = new ConcurrentHashMap<>();
         for (var entry : data.entrySet()) {
             this.data.put(entry.getKey(), newSeries(entry.getValue()));
         }
+        this.aggregateDao = aggregateDaoFactory.apply(this);
     }
 
     protected NavigableMap<Long, PointValueTime> newSeries(Collection<? extends PointValueTime> data) {
@@ -53,6 +62,11 @@ public class MockPointValueDao implements PointValueDao {
 
     protected NavigableMap<Long, PointValueTime> newSeries(int seriesId) {
         return newSeries(List.of());
+    }
+
+    @Override
+    public AggregateDao getAggregateDao() {
+        return aggregateDao;
     }
 
     @Override

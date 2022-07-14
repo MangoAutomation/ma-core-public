@@ -45,6 +45,7 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.migration.MigrationSeries.ReadWriteStats;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgress;
 import com.serotonin.m2m2.db.dao.migration.progress.MigrationProgressDao;
+import com.serotonin.m2m2.db.dao.pointvalue.AggregateDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 import io.github.resilience4j.core.IntervalFunction;
@@ -89,6 +90,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
     private final Retry retry;
     private final MigrationProgressDao migrationProgressDao;
     private final MigrationConfig config;
+    private final AggregateDao destinationAggregateDao;
 
     private volatile boolean fullyMigrated = false;
     private volatile int readChunkSize;
@@ -99,6 +101,9 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
 
     private final Object periodicLogFutureMutex = new Object();
     private Future<?> periodicLogFuture;
+
+    private final Object boundaryMutex = new Object();
+    private ZonedDateTime boundary = null;
 
     public MigrationPointValueDao(PointValueDao destinationPointValueDao,
                                   PointValueDao sourcePointValueDao,
@@ -116,6 +121,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
         this.clock = clock;
         this.migrationProgressDao = migrationProgressDao;
         this.config = config;
+        this.destinationAggregateDao = destinationPointValueDao.getAggregateDao();
 
         this.dataPointFilter = config.getDataPointFilter();
         this.migrateFrom = config.getMigrateFromTime();
@@ -138,7 +144,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 .onError(event -> log.debug("Recorded a failed retry attempt. Number of retry attempts: {}. Giving up.", event.getNumberOfRetryAttempts(), event.getLastThrowable()));
 
         // disable pre-aggregation while migration is running
-        primary.getAggregateDao().setPreAggregationEnabled(false);
+        destinationAggregateDao.setPreAggregationEnabled(false);
 
         if (config.isAutoStart()) {
             startMigration();
@@ -269,7 +275,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             erroredSeries.set(0L);
             migratedSeconds.set(0L);
             this.fullyMigrated = false;
-            primary.getAggregateDao().setPreAggregationEnabled(false);
+            destinationAggregateDao.setPreAggregationEnabled(false);
             this.started = false;
         }
     }
@@ -290,7 +296,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             this.numTasks = tasks.size();
             if (tasks.isEmpty() && seriesQueue.isEmpty()) {
                 this.fullyMigrated = true;
-                primary.getAggregateDao().setPreAggregationEnabled(true);
+                destinationAggregateDao.setPreAggregationEnabled(true);
                 if (log.isInfoEnabled()) {
                     log.info("Migration complete! {}", stats());
                 }
@@ -392,7 +398,7 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
                 (migratedSecondsRate / remaining) / 3600 :
                 0;
 
-        return String.format("[%6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, rate %.2f hrs/s, ETA %s (%s), %d/%d/%d failed/retried/success, %d threads]",
+        return String.format("[%6.2f%% complete, %.1f reads/s, %.1f writes/s, %.1f agg writes/s, position %s, rate %.2f hrs/s, ETA %s (%s), %d/%d/%d failed/retried/succeeded blocks, %d threads]",
                 progress,
                 readRate,
                 writeRate,
@@ -510,6 +516,36 @@ public class MigrationPointValueDao extends DelegatingPointValueDao implements A
             if (log.isWarnEnabled()) {
                 log.warn("Failed to save progress to database for {}", series, e);
             }
+        }
+    }
+
+    ZonedDateTime truncateToAggregationPeriod(ZonedDateTime dateTime) {
+        return destinationAggregateDao.truncateToPeriod(dateTime, aggregationPeriod);
+    }
+
+    /**
+     * Get the boundary between aggregate and raw values, once any series has started migrating raw values
+     * past the overlap boundary, the boundary (and overlap boundary) becomes fixed/static for all series.
+     */
+    ZonedDateTime getBoundary(ZonedDateTime blockStartTime) {
+        synchronized (boundaryMutex) {
+            if (this.boundary != null) {
+                return this.boundary;
+            }
+
+            // work out what the boundary should be right now
+            var now = ZonedDateTime.now(clock);
+            var boundary = truncateToAggregationPeriod(now.minus(aggregationBoundary));
+
+            // if this series will migrate values past the overlap boundary we fix the boundary
+            var blockEndTime = blockStartTime.plus(aggregationBlockSize);
+            var overlapBoundary = boundary.minus(aggregationOverlap);
+            if (blockEndTime.isAfter(overlapBoundary)) {
+                log.info("Fixing boundary time to {}, overlap boundary is {}", boundary, overlapBoundary);
+                this.boundary = boundary;
+            }
+
+            return boundary;
         }
     }
 }
