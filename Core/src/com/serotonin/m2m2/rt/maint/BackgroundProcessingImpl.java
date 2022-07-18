@@ -18,8 +18,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.util.WorkItemInfo;
 import com.serotonin.ShouldNeverHappenException;
@@ -30,6 +32,7 @@ import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.ProviderNotFoundException;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -553,17 +556,21 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     public class WorkItemRunnable implements Runnable {
 
         private final WorkItem item;
-        private final SecurityContext delegateSecurityContext;
+        private final PermissionHolder permissionHolder;
 
         public WorkItemRunnable(WorkItem item) {
             this.item = item;
-            this.delegateSecurityContext = SecurityContextHolder.getContext();
+            this.permissionHolder = getPermissionHolder();
         }
 
         @Override
         public void run() {
             SecurityContext original = SecurityContextHolder.getContext();
-            SecurityContextHolder.setContext(this.delegateSecurityContext);
+
+            SecurityContext taskContext = SecurityContextHolder.createEmptyContext();
+            taskContext.setAuthentication(new PreAuthenticatedAuthenticationToken(permissionHolder, null));
+            SecurityContextHolder.setContext(taskContext);
+
             try {
                 item.execute();
             } catch (Exception t) {
@@ -602,5 +609,12 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             return item.getDescription();
         }
 
+        private PermissionHolder getPermissionHolder() {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof PermissionHolder) {
+                return (PermissionHolder) auth.getPrincipal();
+            }
+            return null;
+        }
     }
 }
