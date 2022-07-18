@@ -7,19 +7,22 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 
 /**
  * @author Terry Packer
- *
  */
 public abstract class Task {
 
-	public static final int UNLIMITED_QUEUE_SIZE = -1;
+    public static final int UNLIMITED_QUEUE_SIZE = -1;
 
-	/**
+    /**
      * This object is used to control access to the TimerTask internals.
      */
     Object lock = new Object();
@@ -76,26 +79,24 @@ public abstract class Task {
 
     private final ReadWriteLock cancelLock = new ReentrantReadWriteLock();
 
-    private final SecurityContext delegateSecurityContext;
+    private final PermissionHolder permissionHolder;
 
     /**
      * Create a non-ordered Task
      */
-    public Task(String name){
-    	this(name, null, 0);
+    public Task(String name) {
+        this(name, null, 0);
     }
 
     /**
      * Ordred Task that is queuable
      */
-    public Task(String name, String id, int queueSize){
-    	this.name = name;
-    	this.id = id;
-    	this.queueSize = queueSize;
-    	this.delegateSecurityContext = SecurityContextHolder.getContext();
+    public Task(String name, String id, int queueSize) {
+        this.name = name;
+        this.id = id;
+        this.queueSize = queueSize;
+        this.permissionHolder = getPermissionHolder();
     }
-
-
 
     public boolean isCompleteBeforeCancel() {
         return completeBeforeCancel;
@@ -117,9 +118,9 @@ public abstract class Task {
      * This method may be called repeatedly; the second and subsequent calls have no effect.
      *
      * @return true if this task is scheduled for one-time execution and has not yet run, or this task is scheduled for
-     *         repeated execution. Returns false if the task was scheduled for one-time execution and has already run,
-     *         or if the task was never scheduled, or if the task was already cancelled. (Loosely speaking, this method
-     *         returns true if it prevents one or more scheduled executions from taking place.)
+     * repeated execution. Returns false if the task was scheduled for one-time execution and has already run,
+     * or if the task was never scheduled, or if the task was already cancelled. (Loosely speaking, this method
+     * returns true if it prevents one or more scheduled executions from taking place.)
      */
     public boolean cancel() {
         synchronized (lock) {
@@ -129,12 +130,10 @@ public abstract class Task {
                 cancelLock.writeLock().lock();
                 try {
                     state = CANCELLED;
-                }
-                finally {
+                } finally {
                     cancelLock.writeLock().unlock();
                 }
-            }
-            else
+            } else
                 state = CANCELLED;
 
             return result;
@@ -148,7 +147,7 @@ public abstract class Task {
 
 
     final public void runTask(long runtime) {
-    	//System.out.println("Task: " + this.hashCode() + " scheduled: " + runtime + " now: " + System.currentTimeMillis() + " Running");
+        //System.out.println("Task: " + this.hashCode() + " scheduled: " + runtime + " now: " + System.currentTimeMillis() + " Running");
 
         // This uses roughly the same code as in NamedRunnable to rename
         // the thread for the duration of the task execution.
@@ -159,19 +158,20 @@ public abstract class Task {
         }
 
         SecurityContext original = SecurityContextHolder.getContext();
-        SecurityContextHolder.setContext(this.delegateSecurityContext);
+
+        SecurityContext taskContext = SecurityContextHolder.createEmptyContext();
+        taskContext.setAuthentication(new PreAuthenticatedAuthenticationToken(permissionHolder, null));
+        SecurityContextHolder.setContext(taskContext);
         try {
             if (completeBeforeCancel) {
                 cancelLock.readLock().lock();
                 try {
                     if (state != CANCELLED)
                         run(runtime);
-                }
-                finally {
+                } finally {
                     cancelLock.readLock().unlock();
                 }
-            }
-            else
+            } else
                 // Ok, go ahead and run the thingy.
                 run(runtime);
         } finally {
@@ -181,7 +181,6 @@ public abstract class Task {
             } else {
                 SecurityContextHolder.setContext(original);
             }
-
             // Return the name to its original.
             Thread.currentThread().setName(originalName);
         }
@@ -193,7 +192,11 @@ public abstract class Task {
 
     public void rejectedAsDelegate(RejectedTaskReason reason) {
         SecurityContext original = SecurityContextHolder.getContext();
-        SecurityContextHolder.setContext(this.delegateSecurityContext);
+
+        SecurityContext taskContext = SecurityContextHolder.createEmptyContext();
+        taskContext.setAuthentication(new PreAuthenticatedAuthenticationToken(permissionHolder, null));
+        SecurityContextHolder.setContext(taskContext);
+
         try {
             rejected(reason);
         } finally {
@@ -214,23 +217,30 @@ public abstract class Task {
     /**
      * Get a short description of what the task does
      */
-    public String getName(){
-    	return this.name;
+    public String getName() {
+        return this.name;
     }
 
     /**
      * Get the unique ID for the task, used for tracking etc.
      * If this is null, the task cannot be queued
      */
-    public String getId(){
-    	return this.id;
+    public String getId() {
+        return this.id;
     }
 
     /**
      * Get the Queue Size
      */
-    public int getQueueSize(){
-    	return this.queueSize;
+    public int getQueueSize() {
+        return this.queueSize;
     }
 
+    private PermissionHolder getPermissionHolder() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof PermissionHolder) {
+            return (PermissionHolder) auth.getPrincipal();
+        }
+        return null;
+    }
 }
