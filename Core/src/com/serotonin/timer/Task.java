@@ -7,11 +7,11 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 
@@ -95,7 +95,7 @@ public abstract class Task {
         this.name = name;
         this.id = id;
         this.queueSize = queueSize;
-        this.permissionHolder = getPermissionHolder();
+        this.permissionHolder = Common.getPermissionHolder();
     }
 
     public boolean isCompleteBeforeCancel() {
@@ -236,11 +236,4 @@ public abstract class Task {
         return this.queueSize;
     }
 
-    private PermissionHolder getPermissionHolder() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof PermissionHolder) {
-            return (PermissionHolder) auth.getPrincipal();
-        }
-        return null;
-    }
 }

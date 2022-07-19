@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -560,7 +559,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
         public WorkItemRunnable(WorkItem item) {
             this.item = item;
-            this.permissionHolder = getPermissionHolder();
+            this.permissionHolder = Common.getPermissionHolder();
         }
 
         @Override
@@ -609,12 +608,5 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             return item.getDescription();
         }
 
-        private PermissionHolder getPermissionHolder() {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.getPrincipal() instanceof PermissionHolder) {
-                return (PermissionHolder) auth.getPrincipal();
-            }
-            return null;
-        }
     }
 }
