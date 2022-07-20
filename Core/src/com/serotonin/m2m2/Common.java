@@ -432,6 +432,15 @@ public class Common {
         throw new PermissionException(new TranslatableMessage("permission.exception.noAuthenticationSet"), null);
     }
 
+    public static PermissionHolder getPermissionHolder() {
+        PermissionHolder permissionHolder = null;
+        try {
+            permissionHolder = getUser();
+        } catch (PermissionException ignored) {
+        }
+        return permissionHolder;
+    }
+
     public static Path getFiledataPath() {
         return FILEDATA_PATH;
     }
