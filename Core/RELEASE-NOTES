@@ -1,3 +1,6 @@
+*Version 4.3.6*
+* Fix spring security issue for scheduled tasks where authorization might be missing or incorrect
+
 *Version 4.3.5*
 * Use Epoll to read serial ports more efficiently
 
