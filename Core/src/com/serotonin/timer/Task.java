@@ -95,7 +95,7 @@ public abstract class Task {
         this.name = name;
         this.id = id;
         this.queueSize = queueSize;
-        this.permissionHolder = Common.getPermissionHolder();
+        this.permissionHolder = Common.getUser();
     }
 
     public boolean isCompleteBeforeCancel() {

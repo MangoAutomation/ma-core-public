@@ -559,7 +559,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
         public WorkItemRunnable(WorkItem item) {
             this.item = item;
-            this.permissionHolder = Common.getPermissionHolder();
+            this.permissionHolder = Common.getUser();
         }
 
         @Override

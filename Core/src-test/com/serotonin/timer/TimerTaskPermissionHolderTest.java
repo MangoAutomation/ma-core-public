@@ -29,13 +29,13 @@ public class TimerTaskPermissionHolderTest extends MangoTestBase {
 
     @Test
     public void testSwitchUser() {
-        Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getPermissionHolder());
+        Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getUser());
 
         // Create task with admin
         TimeoutTask task = new TimeoutTask(0, new TimeoutClient() {
             @Override
             public void scheduleTimeout(long fireTime) {
-                Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getPermissionHolder());
+                Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getUser());
             }
 
             @Override
@@ -44,8 +44,9 @@ public class TimerTaskPermissionHolderTest extends MangoTestBase {
             }
         });
 
-        switchTo(PermissionHolder.ANONYMOUS);
-        Assert.assertEquals(PermissionHolder.ANONYMOUS, Common.getPermissionHolder());
+        var newUser = createUsers(1, PermissionHolder.USER_ROLE).get(0);
+        switchTo(newUser);
+        Assert.assertEquals(newUser, Common.getUser());
 
         // Run task with anonymous
         task.runTask(0);
@@ -53,13 +54,13 @@ public class TimerTaskPermissionHolderTest extends MangoTestBase {
 
     @Test
     public void testLogout() {
-        Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getPermissionHolder());
+        Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getUser());
 
         // Create task with admin
         TimeoutTask task = new TimeoutTask(0, new TimeoutClient() {
             @Override
             public void scheduleTimeout(long fireTime) {
-                Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getPermissionHolder());
+                Assert.assertEquals(PermissionHolder.SYSTEM_SUPERADMIN, Common.getUser());
             }
 
             @Override
@@ -68,8 +69,8 @@ public class TimerTaskPermissionHolderTest extends MangoTestBase {
             }
         });
 
-        switchTo(null);
-        Assert.assertNull(Common.getPermissionHolder());
+        switchTo(PermissionHolder.ANONYMOUS);
+        Assert.assertEquals(PermissionHolder.ANONYMOUS, Common.getUser());
 
         // Run task
         task.runTask(0);
