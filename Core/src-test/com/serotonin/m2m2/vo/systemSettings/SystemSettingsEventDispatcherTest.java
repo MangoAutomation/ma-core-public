@@ -3,9 +3,7 @@
  */
 package com.serotonin.m2m2.vo.systemSettings;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -16,7 +14,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.serotonin.m2m2.MangoTestBase;
 
@@ -25,6 +25,12 @@ import com.serotonin.m2m2.MangoTestBase;
  *
  */
 public class SystemSettingsEventDispatcherTest extends MangoTestBase {
+
+    @BeforeClass
+    public static void useAdmin() {
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+        MangoTestBase.setSuperadminAuthentication();
+    }
 
     @Test
     public void testMultiThreadingAddListener() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {

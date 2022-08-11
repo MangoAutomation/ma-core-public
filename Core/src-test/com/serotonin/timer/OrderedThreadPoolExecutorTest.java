@@ -32,7 +32,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
 import com.serotonin.provider.Providers;
@@ -55,6 +57,12 @@ public class OrderedThreadPoolExecutorTest {
     public static void staticSetup() {
         //Setup Mango properties Provider as we indirectly access Common
         Providers.add(MangoProperties.class, new MockMangoProperties());
+    }
+
+    @BeforeClass
+    public static void useAdmin() {
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+        MangoTestBase.setSuperadminAuthentication();
     }
 
     /**
