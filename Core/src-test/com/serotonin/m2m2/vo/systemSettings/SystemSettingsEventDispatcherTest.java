@@ -14,9 +14,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.serotonin.m2m2.MangoTestBase;
 
@@ -25,12 +23,6 @@ import com.serotonin.m2m2.MangoTestBase;
  *
  */
 public class SystemSettingsEventDispatcherTest extends MangoTestBase {
-
-    @BeforeClass
-    public static void useAdmin() {
-        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-        MangoTestBase.setSuperadminAuthentication();
-    }
 
     @Test
     public void testMultiThreadingAddListener() throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
@@ -44,6 +36,9 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             Thread t = new Thread() {
                 @Override
                 public void run() {
+                    //As admin
+                    MangoTestBase.setSuperadminAuthentication();
+
                     //add listener
                     SystemSettingsEventDispatcher.INSTANCE.addListener(l);                    
                     //Do work
@@ -92,6 +87,9 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             Thread t = new Thread() {
                 @Override
                 public void run() {
+                    //As admin
+                    MangoTestBase.setSuperadminAuthentication();
+
                     SystemSettingsListenerTester l = new SystemSettingsListenerTester();
                     //add listener
                     SystemSettingsEventDispatcher.INSTANCE.addListener(l);                    
@@ -140,7 +138,9 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             Thread t = new Thread() {
                 @Override
                 public void run() {
-                    
+                    //As admin
+                    MangoTestBase.setSuperadminAuthentication();
+
                     //Do work
                     SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingSaved("testKey", "old", "new");
                     try{ Thread.sleep(10); }catch(InterruptedException e) {}

@@ -32,7 +32,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoProperties;
@@ -59,17 +58,13 @@ public class OrderedThreadPoolExecutorTest {
         Providers.add(MangoProperties.class, new MockMangoProperties());
     }
 
-    @BeforeClass
-    public static void useAdmin() {
-        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-        MangoTestBase.setSuperadminAuthentication();
-    }
-
     /**
      * Test inserting tasks faster than they can be run and ensure they run in insertion order
      */
     @Test(timeout = 60 * 1000 * 3)
     public void testFailedExecutions() throws InterruptedException {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         boolean flushOnReject = false;
         final String taskId = "TSK_FAIL";
@@ -164,6 +159,8 @@ public class OrderedThreadPoolExecutorTest {
 
     @Test
     public void testQueueFullRejectedExecutions() throws InterruptedException {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         boolean flushOnReject = false;
         final String taskId = "TSK_FAIL";
@@ -278,6 +275,8 @@ public class OrderedThreadPoolExecutorTest {
      */
     @Test
     public void testPoolFullRejectedExecutions() throws InterruptedException {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         boolean flushOnReject = false;
         final String taskId = "TSK_FAIL";
