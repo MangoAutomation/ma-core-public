@@ -5,6 +5,7 @@ package com.serotonin.m2m2.rt.script;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +23,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.JavaVersion;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,6 +58,11 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 public class ScriptingTest extends MangoTestBase {
+
+    public ScriptingTest() {
+        var nashornSupported = SystemUtils.isJavaVersionAtMost(JavaVersion.JAVA_14);
+        assumeTrue(nashornSupported);
+    }
 
     @Test
     public void testAnalogStatistics() {
