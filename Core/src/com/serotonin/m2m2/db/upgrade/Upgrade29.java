@@ -179,7 +179,12 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
         runScript(scripts, out);
 
         //Add default user and superadmin roles
-        runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, defaultRolesSQL), out);
+        scripts = new HashMap<>();
+        scripts.put(DatabaseType.MYSQL.name(), defaultRolesMySQL);
+        scripts.put(DatabaseType.H2.name(), defaultRolesH2);
+        scripts.put(DatabaseType.MSSQL.name(), defaultRolesMySQL);
+        scripts.put(DatabaseType.POSTGRES.name(), defaultRolesMySQL);
+        runScript(scripts, out);
 
         // update the role names so they are localized
         String updateRoleName = "UPDATE roles SET name = ? WHERE id = ?;";
@@ -611,23 +616,23 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;",
 
-            "CREATE TABLE minterms (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+            "CREATE TABLE minterms (id int NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
 
-            "CREATE TABLE mintermsRoles (mintermId int(11) NOT NULL, roleId int(11) NOT NULL);",
+            "CREATE TABLE mintermsRoles (mintermId int NOT NULL, roleId int NOT NULL);",
             "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);",
-            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx KEY (mintermId);",
-            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx KEY (roleId);",
             "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
             "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "CREATE INDEX mintermsRolesFk1Idx ON mintermsRoles (mintermId ASC);",
+            "CREATE INDEX mintermsRolesFk2Idx ON mintermsRoles (roleId ASC);",
 
-            "CREATE TABLE permissions (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+            "CREATE TABLE permissions (id int NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
 
-            "CREATE TABLE permissionsMinterms (permissionId int(11) NOT NULL, mintermId int(11) NOT NULL);",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE KEY (permissionId, mintermId);",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx KEY (permissionId);",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx KEY(mintermId);",
+            "CREATE TABLE permissionsMinterms (permissionId int NOT NULL, mintermId int NOT NULL);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE (permissionId, mintermId);",
             "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;"
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "CREATE INDEX permissionsMintermsFk1Idx ON permissionsMinterms (permissionId ASC);",
+            "CREATE INDEX permissionsMintermsFk2Idx ON permissionsMinterms (mintermId ASC);"
     };
     private final String[] createRolesMySQL = new String[] {
             "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id)) engine=InnoDB;",
@@ -643,30 +648,30 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;",
 
-            "CREATE TABLE minterms (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB;",
+            "CREATE TABLE minterms (id int NOT NULL AUTO_INCREMENT, PRIMARY KEY (id)) ENGINE=InnoDB;",
 
             "CREATE TABLE mintermsRoles (",
-            "mintermId int(11) NOT NULL,",
-            "roleId int(11) NOT NULL,",
+            "mintermId int NOT NULL,",
+            "roleId int NOT NULL,",
             "UNIQUE KEY mintermsRolesIdx1 (mintermId, roleId),",
-            "KEY mintermsRolesFk1Idx (mintermId),",
-            "KEY mintermsRolesFk2Idx (roleId),",
+            "INDEX mintermsRolesFk1Idx (mintermId),",
+            "INDEX mintermsRolesFk2Idx (roleId),",
             "CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION,",
             "CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION",
             ") ENGINE=InnoDB;",
 
             "CREATE TABLE permissions (",
-            "id int(11) NOT NULL AUTO_INCREMENT,",
+            "id int NOT NULL AUTO_INCREMENT,",
             "PRIMARY KEY (id)",
             ") ENGINE=InnoDB;",
 
 
             "CREATE TABLE permissionsMinterms (",
-            "permissionId int(11) NOT NULL,",
-            "mintermId int(11) NOT NULL,",
+            "permissionId int NOT NULL,",
+            "mintermId int NOT NULL,",
             "UNIQUE KEY permissionsMintermsIdx1 (permissionId, mintermId),",
-            "KEY permissionsMintermsFk1Idx (permissionId),",
-            "KEY permissionsMintermsFk2Idx (mintermId),",
+            "INDEX permissionsMintermsFk1Idx (permissionId),",
+            "INDEX permissionsMintermsFk2Idx (mintermId),",
             "CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION,",
             "CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION",
             ") ENGINE=InnoDB;"
@@ -686,31 +691,38 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;",
 
-            "CREATE TABLE minterms (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+            "CREATE TABLE minterms (id int NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
 
-            "CREATE TABLE mintermsRoles (mintermId int(11) NOT NULL, roleId int(11) NOT NULL);",
+            "CREATE TABLE mintermsRoles (mintermId int NOT NULL, roleId int NOT NULL);",
             "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);",
-            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx KEY (mintermId);",
-            "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx KEY (roleId);",
             "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
             "ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "CREATE INDEX mintermsRolesFk1Idx ON mintermsRoles (mintermId ASC);",
+            "CREATE INDEX mintermsRolesFk2Idx ON mintermsRoles (roleId ASC);",
 
-            "CREATE TABLE permissions (id int(11) NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
+            "CREATE TABLE permissions (id int NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));",
 
-            "CREATE TABLE permissionsMinterms (permissionId int(11) NOT NULL, mintermId int(11) NOT NULL);",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE KEY (permissionId, mintermId);",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx KEY (permissionId);",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx KEY(mintermId);",
+            "CREATE TABLE permissionsMinterms (permissionId int NOT NULL, mintermId int NOT NULL);",
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE (permissionId, mintermId);",
             "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
-            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;"
+            "ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;",
+            "CREATE INDEX permissionsMintermsFk1Idx ON permissionsMinterms (permissionId ASC);",
+            "CREATE INDEX permissionsMintermsFk2Idx ON permissionsMinterms (mintermId ASC);"
 
     };
 
     //Default role data
-    private final String[] defaultRolesSQL = new String[] {
+    private final String[] defaultRolesMySQL = new String[] {
             "INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmins');",
             "INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'Users');",
             "INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous');"
+    };
+
+    private final String[] defaultRolesH2 = new String[] {
+            "INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmins');",
+            "INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'Users');",
+            "INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous');",
+            "ALTER TABLE roles ALTER COLUMN id RESTART WITH 4;"
     };
 
     //Point Hierarchy

@@ -52,6 +52,11 @@
                                     <artifactId>h2</artifactId>
                                     <version>1.4.196</version>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.h2database</groupId>
+                                    <artifactId>h2</artifactId>
+                                    <version>1.4.200</version>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>

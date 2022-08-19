@@ -14,6 +14,7 @@
 * Added DataSource lifecycle hooks for initializing and terminated
 * Remove peek method from SerialPortInputStream API
 * Add index to events table to improve query performance
+* Update h2 database version to 2.1.214
 
 *Version 4.3.3*
 * Upgrade library version to jssc 2.9.4

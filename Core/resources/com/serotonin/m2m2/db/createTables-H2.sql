@@ -46,14 +46,14 @@ ALTER TABLE roleInheritance
 -- Permissions
 CREATE TABLE minterms
 (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL AUTO_INCREMENT,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE mintermsRoles
 (
-    mintermId INT(11) NOT NULL,
-    roleId    INT(11) NOT NULL
+    mintermId INT NOT NULL,
+    roleId    INT NOT NULL
 );
 ALTER TABLE mintermsRoles
     ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId, roleId);
@@ -66,14 +66,14 @@ CREATE INDEX mintermsRolesFk2Idx ON mintermsRoles (roleId ASC);
 
 CREATE TABLE permissions
 (
-    id INT(11) NOT NULL AUTO_INCREMENT,
+    id INT NOT NULL AUTO_INCREMENT,
     PRIMARY KEY (id)
 );
 
 CREATE TABLE permissionsMinterms
 (
-    permissionId INT(11) NOT NULL,
-    mintermId    INT(11) NOT NULL
+    permissionId INT NOT NULL,
+    mintermId    INT NOT NULL
 );
 ALTER TABLE permissionsMinterms
     ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE (permissionId, mintermId);
