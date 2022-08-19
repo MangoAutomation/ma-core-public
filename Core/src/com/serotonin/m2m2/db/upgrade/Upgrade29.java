@@ -189,6 +189,8 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
     }
 
     private void convertUsers(OutputStream out) {
+        Map<Integer, Set<Integer>> roleMapping = new HashMap<>();
+
         //Move current permissions to roles
         ejt.query("SELECT id, permissions FROM users", rs -> {
             int userId = rs.getInt(1);
@@ -201,10 +203,19 @@ public class Upgrade29 extends DBUpgrade implements PermissionMigration {
 
             for (Role role : savedRoles) {
                 //Add a mapping
-                ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)",
-                        role.getId(),
-                        userId);
+                roleMapping.computeIfAbsent(role.getId(), c -> new HashSet<>()).add(userId);
             }
+        });
+
+        roleMapping.keySet().forEach(roleId -> {
+            var usersIds = roleMapping.get(roleId);
+            usersIds.forEach(userId -> {
+                //Add a mapping
+                ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)",
+                        roleId,
+                        userId
+                );
+            });
         });
 
         //Drop the permissions column
