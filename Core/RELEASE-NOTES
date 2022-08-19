@@ -5,7 +5,7 @@
 * Point values for IMAGE data points will be deleted by the nightly purge, however the images themselves should be manually deleted from your "filedata" directory
 * Update rql-parser to v1.0.x, stricter parsing of RQL
 * Add support for PostgreSQL
-* Update postgresql driver to v42.3.2
+* Update postgresql driver to v42.4.2
 * Upgrade Spring library version to 5.3.18 (mitigates CVE-2022-22965)
 * Add new streaming APIs to PointValueDao
 * Add new AggregateDao interface for calculating and querying statistics rollups (aggregates)

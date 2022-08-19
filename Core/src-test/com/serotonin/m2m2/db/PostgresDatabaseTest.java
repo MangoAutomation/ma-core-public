@@ -7,8 +7,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assume.assumeTrue;
 
-import java.sql.SQLException;
-
 import org.jooq.DSLContext;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -29,7 +27,7 @@ public class PostgresDatabaseTest extends MangoTestBase {
     }
 
     @Test
-    public void test1AutoIncrement() throws SQLException {
+    public void test1AutoIncrement() {
         DSLContext context = Common.getBean(DatabaseProxy.class).getContext();
         Roles r = Roles.ROLES;
         context.insertInto(r, r.id, r.xid, r.name).values(10, "xid", "name").execute();
