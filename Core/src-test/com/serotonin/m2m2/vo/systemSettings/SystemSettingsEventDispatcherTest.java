@@ -3,9 +3,7 @@
  */
 package com.serotonin.m2m2.vo.systemSettings;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -38,6 +36,9 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             Thread t = new Thread() {
                 @Override
                 public void run() {
+                    //As admin
+                    MangoTestBase.setSuperadminAuthentication();
+
                     //add listener
                     SystemSettingsEventDispatcher.INSTANCE.addListener(l);                    
                     //Do work
@@ -86,6 +87,9 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             Thread t = new Thread() {
                 @Override
                 public void run() {
+                    //As admin
+                    MangoTestBase.setSuperadminAuthentication();
+
                     SystemSettingsListenerTester l = new SystemSettingsListenerTester();
                     //add listener
                     SystemSettingsEventDispatcher.INSTANCE.addListener(l);                    
@@ -134,7 +138,9 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             Thread t = new Thread() {
                 @Override
                 public void run() {
-                    
+                    //As admin
+                    MangoTestBase.setSuperadminAuthentication();
+
                     //Do work
                     SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingSaved("testKey", "old", "new");
                     try{ Thread.sleep(10); }catch(InterruptedException e) {}

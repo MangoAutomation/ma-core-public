@@ -6,7 +6,6 @@ package com.serotonin.timer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +26,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
@@ -48,7 +48,7 @@ public class OrderedRealTimeTimerTest {
     }
 
     @BeforeClass
-    public static void staticSetup() throws IOException{
+    public static void staticSetup() {
         //Setup Mango properties Provider as we indirectly access Common
         Providers.add(MangoProperties.class, new MockMangoProperties());
     }
@@ -59,6 +59,8 @@ public class OrderedRealTimeTimerTest {
      */
     @Test(timeout = 60 * 1000 * 3)
     public void testScheduledTask() {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         int taskPeriod = 5;
         int totalExecutions = 200;
@@ -160,6 +162,8 @@ public class OrderedRealTimeTimerTest {
 
     @Test(timeout = 60 * 1000 * 3)
     public void testSubmittingTasksNoQueueing() {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         int totalExecutions = 20;
         int taskQueueSize = 5;
@@ -217,6 +221,8 @@ public class OrderedRealTimeTimerTest {
 
     @Test(timeout = 60 * 1000 * 3)
     public void testSubmittingTasksWithQueueing() {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         int totalExecutions = 10;
         int taskQueueSize = 5;
@@ -302,6 +308,8 @@ public class OrderedRealTimeTimerTest {
      */
     @Test(timeout = 60 * 1000 * 3)
     public void testMultipleSubmitThreads() {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         int executionsPerThread = 100;
         int threads = 5;
@@ -360,6 +368,9 @@ public class OrderedRealTimeTimerTest {
             new Thread() {
                 @Override
                 public void run() {
+                    //As admin
+                    MangoTestBase.setSuperadminAuthentication();
+
                     for(int j=0; j<executionsPerThread; j++) {
                         AtomicInteger result = new AtomicInteger(j);
                         CompletableFuture<Integer> work = new CompletableFuture<>();
@@ -420,7 +431,10 @@ public class OrderedRealTimeTimerTest {
      *   within the rejected callback
      */
     @Test(timeout = 60 * 1000 * 3)
-    public void testTimerThreadRejectionExceptions() throws InterruptedException {
+    public void testTimerThreadRejectionExceptions() {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
+
         IgnoreExpectedException handler = new IgnoreExpectedException();
         OrderedRealTimeTimer timer = new OrderedRealTimeTimer();
         OrderedThreadPoolExecutor executor = new OrderedThreadPoolExecutor(
