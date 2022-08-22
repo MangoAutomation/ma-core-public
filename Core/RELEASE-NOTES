@@ -1,5 +1,6 @@
 *Version 4.3.6*
 * Fix spring security issue for scheduled tasks where authorization might be missing or incorrect
+* Fix a bug in the upgrading process coming from a legacy version (3.x) related to the duplicated user permissions
 
 *Version 4.3.5*
 * Use Epoll to read serial ports more efficiently
