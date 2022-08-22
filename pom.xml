@@ -270,7 +270,7 @@
                 <plugin>
                     <groupId>com.infiniteautomation</groupId>
                     <artifactId>mango-jooq-maven-plugin</artifactId>
-                    <version>1.1.1</version>
+                    <version>1.2.0</version>
                     <executions>
                         <execution>
                             <id>jooq-codegen</id>
