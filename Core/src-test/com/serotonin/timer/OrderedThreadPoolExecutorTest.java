@@ -28,12 +28,17 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.DefaultConfiguration;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
+import com.serotonin.provider.Providers;
 import com.serotonin.timer.OrderedThreadPoolExecutor.OrderedTaskQueue;
+import com.serotonin.util.properties.MangoProperties;
 
 /**
  *
@@ -46,12 +51,20 @@ public class OrderedThreadPoolExecutorTest {
         Configurator.initialize(new DefaultConfiguration());
         Configurator.setRootLevel(Level.DEBUG);
     }
-    
+
+    @BeforeClass
+    public static void staticSetup() {
+        //Setup Mango properties Provider as we indirectly access Common
+        Providers.add(MangoProperties.class, new MockMangoProperties());
+    }
+
     /**
      * Test inserting tasks faster than they can be run and ensure they run in insertion order
      */
     @Test(timeout = 60 * 1000 * 3)
     public void testFailedExecutions() throws InterruptedException {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         boolean flushOnReject = false;
         final String taskId = "TSK_FAIL";
@@ -146,6 +159,8 @@ public class OrderedThreadPoolExecutorTest {
 
     @Test
     public void testQueueFullRejectedExecutions() throws InterruptedException {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         boolean flushOnReject = false;
         final String taskId = "TSK_FAIL";
@@ -260,6 +275,8 @@ public class OrderedThreadPoolExecutorTest {
      */
     @Test
     public void testPoolFullRejectedExecutions() throws InterruptedException {
+        //As admin
+        MangoTestBase.setSuperadminAuthentication();
 
         boolean flushOnReject = false;
         final String taskId = "TSK_FAIL";
