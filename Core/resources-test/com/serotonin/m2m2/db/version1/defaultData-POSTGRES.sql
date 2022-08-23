@@ -1,7 +1,7 @@
 --
 -- System settings
 --
-INSERT INTO systemSettings (settingName, settingValue) VALUES ('databaseSchemaVersion', 46);
+INSERT INTO systemSettings (settingName, settingValue) VALUES ('databaseSchemaVersion', 47);
 
 --
 -- Roles

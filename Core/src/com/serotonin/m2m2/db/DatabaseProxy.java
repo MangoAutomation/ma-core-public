@@ -218,6 +218,11 @@ public interface DatabaseProxy extends TransactionCapable {
                 .values(PermissionHolder.ANONYMOUS_ROLE.getId(), PermissionHolder.ANONYMOUS_ROLE.getXid(), translations.translate("roles.anonymous"))
                 .execute();
 
+        // Fix next sequence value for h2
+        if (getType().getDialect() == SQLDialect.H2) {
+            context.execute("ALTER TABLE roles ALTER COLUMN id RESTART WITH 4");
+        }
+
         // Fix next sequence value for postgres
         if (getType().getDialect() == SQLDialect.POSTGRES) {
             String sequence = r.getName() + "_" + r.id.getName() + "_seq";

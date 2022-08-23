@@ -36,10 +36,17 @@ public class Upgrade34 extends DBUpgrade {
             }), out);
 
             //Insert/Update ids
-            runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, new String[] {
+            HashMap<String, String[]> moveTimeSeries = new HashMap<>();
+            moveTimeSeries.put(DatabaseType.H2.name(), new String[] {
                     "INSERT INTO timeSeries (id) SELECT id FROM dataPoints;",
-                    "UPDATE dataPoints SET seriesId = id;"
-            }), out);
+                    "UPDATE dataPoints SET seriesId = id;",
+                    "ALTER TABLE timeSeries ALTER COLUMN id RESTART WITH (SELECT max(id) + 1 FROM timeSeries);",
+            });
+            moveTimeSeries.put(DEFAULT_DATABASE_TYPE,  new String[] {
+                    "INSERT INTO timeSeries (id) SELECT id FROM dataPoints;",
+                    "UPDATE dataPoints SET seriesId = id;",
+            });
+            runScript(moveTimeSeries, out);
 
             //Add in constraint
             runScript(Collections.singletonMap(DEFAULT_DATABASE_TYPE, new String[] {

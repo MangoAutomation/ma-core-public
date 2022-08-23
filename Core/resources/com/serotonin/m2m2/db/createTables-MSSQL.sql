@@ -15,12 +15,13 @@ create table systemSettings (
 -- Roles
 --
 CREATE TABLE roles (
-	id int not null auto_increment,
+	id int not null identity,
 	xid varchar(100) not null,
 	name varchar(255) not null,
   	primary key (id)
 );
 ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
+SET IDENTITY_INSERT roles ON
 
 --
 -- Role Inheritance Mappings
@@ -30,41 +31,40 @@ CREATE TABLE roleInheritance (
 	inheritedRoleId INT NOT NULL
 );
 ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id); -- TODO MSSQL DOES NOT SUPPORT MULTIPLE DELETE CASCADE
 ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
 
 --
 -- Permissions
 CREATE TABLE minterms (
-	id int(11) NOT NULL AUTO_INCREMENT,
+	id int NOT NULL identity,
 	PRIMARY KEY (id)
 );
 
 CREATE TABLE mintermsRoles (
-	mintermId int(11) NOT NULL,
-	roleId int(11) NOT NULL
+	mintermId int NOT NULL,
+	roleId int NOT NULL
 );
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesIdx1 UNIQUE (mintermId,roleId);
-ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1Idx KEY (mintermId);
-ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2_idx KEY (roleId);
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk1 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE mintermsRoles ADD CONSTRAINT mintermsRolesFk2 FOREIGN KEY (roleId) REFERENCES roles (id) ON DELETE CASCADE ON UPDATE NO ACTION;
-
+CREATE INDEX mintermsRolesFk1Idx ON mintermsRoles (mintermId ASC);
+CREATE INDEX mintermsRolesFk2Idx ON mintermsRoles (roleId ASC);
 
 CREATE TABLE permissions (
-	id int(11) NOT NULL AUTO_INCREMENT,
+	id int NOT NULL identity,
 	PRIMARY KEY (id)
 );
 
 CREATE TABLE permissionsMinterms (
-	permissionId int(11) NOT NULL,
-	mintermId int(11) NOT NULL
+	permissionId int NOT NULL,
+	mintermId int NOT NULL
 );
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE KEY (permissionId, mintermId);
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1Idx KEY (permissionId);
-ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2Idx KEY(mintermId);
+ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsIdx1 UNIQUE (permissionId, mintermId);
 ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk1 FOREIGN KEY (permissionId) REFERENCES permissions (id) ON DELETE CASCADE ON UPDATE NO ACTION;
 ALTER TABLE permissionsMinterms ADD CONSTRAINT permissionsMintermsFk2 FOREIGN KEY (mintermId) REFERENCES minterms (id) ON DELETE CASCADE ON UPDATE NO ACTION;
+CREATE INDEX permissionsMintermsFk1Idx ON permissionsMinterms (permissionId ASC);
+CREATE INDEX permissionsMintermsFk2Idx ON permissionsMinterms (mintermId ASC);
 
 --
 -- System wide permissions
@@ -73,7 +73,7 @@ CREATE TABLE systemPermissions (
 	permissionType NVARCHAR(255),
 	permissionId INT NOT NULL
 );
-ALTER TABLE systemPermissions ADD CONSTRAINT systemPermissionsFk1 FOREIGN KEY (permissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE systemPermissions ADD CONSTRAINT systemPermissionsFk1 FOREIGN KEY (permissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 ALTER TABLE systemPermissions ADD CONSTRAINT permissionTypeUn1 UNIQUE(permissionType);
 
 --
@@ -110,13 +110,13 @@ create table users (
 );
 alter table users add constraint username_unique unique (username);
 alter table users add constraint email_unique unique (email);
-ALTER TABLE users ADD CONSTRAINT usersFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
-ALTER TABLE users ADD CONSTRAINT usersFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions (id) ON DELETE RESTRICT;
+ALTER TABLE users ADD CONSTRAINT usersFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions (id) ON DELETE NO ACTION;
+ALTER TABLE users ADD CONSTRAINT usersFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions (id) ON DELETE NO ACTION;
 
 -- Links OAuth2 users to a Mango user
 CREATE TABLE oAuth2Users
 (
-    id      INT          NOT NULL AUTO_INCREMENT,
+    id      INT          NOT NULL identity,
     issuer  VARCHAR(255) NOT NULL,
     subject VARCHAR(255) NOT NULL,
     userId  INT          NOT NULL,
@@ -163,8 +163,8 @@ create table mailingLists (
   primary key (id)
 );
 alter table mailingLists add constraint mailingListsUn1 unique (xid);
-ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE mailingLists ADD CONSTRAINT mailingListsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 
 create table mailingListInactive (
   mailingListId int not null,
@@ -200,8 +200,8 @@ create table dataSources (
   primary key (id)
 );
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
-ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 CREATE INDEX nameIndex on dataSources (name ASC);
 CREATE INDEX dataSourcesIdNameTypeXidIndex ON dataSources (id ASC, name ASC, dataSourceType ASC, xid ASC);
 
@@ -246,9 +246,9 @@ create table dataPoints (
 );
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
 alter table dataPoints add constraint dataPointsFk1 foreign key (dataSourceId) references dataSources(id);
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk4 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk4 FOREIGN KEY (setPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk5 FOREIGN KEY (seriesId) REFERENCES timeSeries(id);
 
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
@@ -309,8 +309,8 @@ CREATE TABLE eventDetectors (
 );
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
 ALTER TABLE eventDetectors ADD CONSTRAINT dataPointIdFk FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);
-ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 
 --
 --
@@ -335,7 +335,7 @@ create table events (
   primary key (id)
 );
 alter table events add constraint eventsFk1 foreign key (ackUserId) references users(id);
-ALTER TABLE events ADD CONSTRAINT eventsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE events ADD CONSTRAINT eventsFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 CREATE INDEX events_performance1 ON events (activeTs ASC);
 CREATE INDEX events_performance2 ON events (rtnApplicable ASC, rtnTs ASC);
 CREATE INDEX events_performance3 ON events (typeName ASC, subTypeName ASC, typeRef1 ASC);
@@ -357,8 +357,8 @@ create table eventHandlers (
   primary key (id)
 );
 alter table eventHandlers add constraint eventHandlersUn1 unique (xid);
-ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk2 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersFk3 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 
 --
 --
@@ -402,8 +402,8 @@ CREATE TABLE publishedPoints (
    enabled CHAR(1),
    publisherId INT NOT NULL,
    dataPointId INT NOT NULL,
-   data LONGTEXT,
-   jsonData LONGTEXT,
+   data ntext,
+   jsonData ntext,
    PRIMARY KEY (id)
  );
  ALTER TABLE publishedPoints ADD CONSTRAINT publishedPointsUn1 UNIQUE (xid);
@@ -428,8 +428,8 @@ CREATE TABLE jsonData (
     primary key (id)
 );
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
-ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE jsonData ADD CONSTRAINT jsonDataFk2 FOREIGN KEY (editPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 
 --
 --
@@ -448,7 +448,7 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 -- FileStores
 --
 CREATE TABLE fileStores (
-	id int not null auto_increment,
+	id int not null identity,
     xid nvarchar(100) not null,
     name nvarchar(255) not null,
 	readPermissionId INT NOT NULL,
@@ -456,8 +456,8 @@ CREATE TABLE fileStores (
 	PRIMARY KEY (id)
 );
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (xid);
-ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
-ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE RESTRICT;
+ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk1 FOREIGN KEY (readPermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
+ALTER TABLE fileStores ADD CONSTRAINT fileStoresFk2 FOREIGN KEY (writePermissionId) REFERENCES permissions(id) ON DELETE NO ACTION;
 
 --
 --

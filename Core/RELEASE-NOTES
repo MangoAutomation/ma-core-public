@@ -5,7 +5,7 @@
 * Point values for IMAGE data points will be deleted by the nightly purge, however the images themselves should be manually deleted from your "filedata" directory
 * Update rql-parser to v1.0.x, stricter parsing of RQL
 * Add support for PostgreSQL
-* Update postgresql driver to v42.3.2
+* Update postgresql driver to v42.4.2
 * Upgrade Spring library version to 5.3.18 (mitigates CVE-2022-22965)
 * Add new streaming APIs to PointValueDao
 * Add new AggregateDao interface for calculating and querying statistics rollups (aggregates)
@@ -14,6 +14,9 @@
 * Added DataSource lifecycle hooks for initializing and terminated
 * Remove peek method from SerialPortInputStream API
 * Add index to events table to improve query performance
+* Update H2 database version to 2.1.214
+* Fix possible database corruptions for H2 database
+* Update jOOQ version to 3.16.9
 
 *Version 4.3.6*
 * Fix spring security issue for scheduled tasks where authorization might be missing or incorrect
