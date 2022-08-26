@@ -30,7 +30,6 @@ public interface SystemSettingsAccessor {
                 .fetchOptional(systemSettings.settingValue);
     }
 
-    // TODO: Add release note
     default void setSystemSetting(String key, String value) {
         SystemSettings table = systemSettingsTable();
             switch (getContext().dialect()) {

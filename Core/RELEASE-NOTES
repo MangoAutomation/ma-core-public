@@ -17,6 +17,7 @@
 * Update H2 database version to 2.1.214
 * Fix possible database corruptions for H2 database
 * Update jOOQ version to 3.16.9
+* Fixed a bug where system setting for db version would not get created/updated if it didn't exist before.
 
 *Version 4.3.6*
 * Fix spring security issue for scheduled tasks where authorization might be missing or incorrect
