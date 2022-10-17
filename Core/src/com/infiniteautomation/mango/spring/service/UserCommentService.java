@@ -50,6 +50,27 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     }
 
     @Override
+    public UserCommentVO insert(UserCommentVO vo) {
+        UserCommentVO inserted = super.insert(vo);
+        reloadEventCache(inserted);
+        return inserted;
+    }
+
+    @Override
+    public UserCommentVO update(String existingXid, UserCommentVO vo) {
+        UserCommentVO updated = super.update(existingXid, vo);
+        reloadEventCache(updated);
+        return updated;
+    }
+
+    @Override
+    public UserCommentVO delete(String xid) {
+        UserCommentVO deleted = super.delete(xid);
+        reloadEventCache(deleted);
+        return deleted;
+    }
+
+    @Override
     public boolean hasCreatePermission(PermissionHolder user, UserCommentVO vo) {
         switch(vo.getCommentType()) {
             case UserCommentVO.TYPE_EVENT:
@@ -155,6 +176,13 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
             }
         }
         return result;
+    }
+
+    private void reloadEventCache(UserCommentVO vo) {
+        if (vo.getCommentType() == UserCommentVO.TYPE_EVENT) {
+            int eventId = vo.getReferenceId();
+            Common.eventManager.reloadEvent(eventId);
+        }
     }
 
 }
