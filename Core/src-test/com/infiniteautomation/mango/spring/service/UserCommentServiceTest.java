@@ -91,29 +91,30 @@ public class UserCommentServiceTest extends AbstractVOServiceTest<UserCommentVO,
         Assert.assertEquals(0, comments.size());
 
         // insert
-        UserCommentVO eventComment = newVO(readUser);
-        eventComment.setCommentType(UserCommentVO.TYPE_EVENT);
-        eventComment.setReferenceId(activeEvent.getId());
+        UserCommentVO newComment = newVO(readUser);
+        newComment.setCommentType(UserCommentVO.TYPE_EVENT);
+        newComment.setReferenceId(activeEvent.getId());
 
-        service.insert(eventComment);
+        service.insert(newComment);
         activeEvent = Common.eventManager.getById(1);
         comments = activeEvent.getEventComments();
 
         Assert.assertEquals(1, comments.size());
         UserCommentVO activeEventComment = comments.get(0);
-        assertVoEqual(eventComment, activeEventComment);
+        assertVoEqual(newComment, activeEventComment);
 
         // update
-        service.update(eventComment.getId(), updateVO(eventComment));
+        UserCommentVO updatedComment = updateVO(newComment);
+        service.update(newComment.getId(), updatedComment);
         activeEvent = Common.eventManager.getById(1);
         comments = activeEvent.getEventComments();
 
         Assert.assertEquals(1, comments.size());
         activeEventComment = comments.get(0);
-        assertVoEqual(eventComment, activeEventComment);
+        assertVoEqual(updatedComment, activeEventComment);
 
         // delete
-        service.delete(eventComment.getId());
+        service.delete(updatedComment.getId());
         activeEvent = Common.eventManager.getById(1);
         comments = activeEvent.getEventComments();
 
