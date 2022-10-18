@@ -858,7 +858,8 @@ public class EventManagerImpl implements EventManager {
     /**
      * Gets an event from the activeEvents list/cache by its id
      */
-    private EventInstance getById(int id) {
+    @Override
+    public EventInstance getById(int id) {
         EventInstance e;
 
         activeEventsLock.readLock().lock();
@@ -872,28 +873,6 @@ public class EventManagerImpl implements EventManager {
             activeEventsLock.readLock().unlock();
         }
 
-        return null;
-    }
-
-    /**
-     * Reloads cached event from database by its id
-     */
-    @Override
-    public EventInstance reloadEvent(int eventId) {
-        activeEventsLock.writeLock().lock();
-        try {
-            for(int i = 0; i < activeEvents.size(); i++) {
-                EventInstance activeEvent = activeEvents.get(i);
-
-                if (activeEvent.getId() == eventId) {
-                    EventInstance dbEvent = eventDao.get(eventId);
-                    activeEvents.set(i, dbEvent);
-                    return dbEvent;
-                }
-            }
-        } finally {
-            activeEventsLock.writeLock().unlock();
-        }
         return null;
     }
 
