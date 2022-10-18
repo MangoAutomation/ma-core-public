@@ -96,7 +96,6 @@ public class UserCommentServiceTest extends AbstractVOServiceTest<UserCommentVO,
         newComment.setReferenceId(activeEvent.getId());
 
         service.insert(newComment);
-        activeEvent = Common.eventManager.getById(1);
         comments = activeEvent.getEventComments();
 
         Assert.assertEquals(1, comments.size());
@@ -106,7 +105,6 @@ public class UserCommentServiceTest extends AbstractVOServiceTest<UserCommentVO,
         // update
         UserCommentVO updatedComment = updateVO(newComment);
         service.update(newComment.getId(), updatedComment);
-        activeEvent = Common.eventManager.getById(1);
         comments = activeEvent.getEventComments();
 
         Assert.assertEquals(1, comments.size());
@@ -115,7 +113,6 @@ public class UserCommentServiceTest extends AbstractVOServiceTest<UserCommentVO,
 
         // delete
         service.delete(updatedComment.getId());
-        activeEvent = Common.eventManager.getById(1);
         comments = activeEvent.getEventComments();
 
         Assert.assertEquals(0, comments.size());
