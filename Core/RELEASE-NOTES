@@ -3,6 +3,7 @@
 
 *Version 4.4.1*
 * Fix bug where adding comments not updating active events
+* Fix bug where updating event handlers has no effect on active events
 
 *Version 4.4.0*
 * Drop support for IMAGE data points
