@@ -129,7 +129,7 @@ public interface EventManager extends ILifecycle {
     List<EventInstance> getAllActive();
 
     /**
-     * Reload active event from database
+     * To access active event by id
      */
-    EventInstance reloadEvent(int eventId);
+    EventInstance getById(int id);
 }

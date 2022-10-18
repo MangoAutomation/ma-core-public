@@ -4,10 +4,16 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
@@ -16,6 +22,7 @@ import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
@@ -34,6 +41,7 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     private final DataPointDao dataPointDao;
     private final JsonDataDao jsonDataDao;
     private final EventInstanceDao eventInstanceDao;
+    private final ReadWriteLock commentsLock = new ReentrantReadWriteLock();
 
     @Autowired
     public UserCommentService(UserCommentDao dao,
@@ -52,21 +60,21 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     @Override
     public UserCommentVO insert(UserCommentVO vo) {
         UserCommentVO inserted = super.insert(vo);
-        reloadEventCache(inserted);
+        manageEventComments(inserted, DaoEventType.CREATE);
         return inserted;
     }
 
     @Override
-    public UserCommentVO update(String existingXid, UserCommentVO vo) {
-        UserCommentVO updated = super.update(existingXid, vo);
-        reloadEventCache(updated);
+    public UserCommentVO update(int id, UserCommentVO vo) {
+        UserCommentVO updated = super.update(id, vo);
+        manageEventComments(updated, DaoEventType.UPDATE);
         return updated;
     }
 
     @Override
-    public UserCommentVO delete(String xid) {
-        UserCommentVO deleted = super.delete(xid);
-        reloadEventCache(deleted);
+    public UserCommentVO delete(int id) {
+        UserCommentVO deleted = super.delete(id);
+        manageEventComments(deleted, DaoEventType.DELETE);
         return deleted;
     }
 
@@ -178,10 +186,30 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
         return result;
     }
 
-    private void reloadEventCache(UserCommentVO vo) {
-        if (vo.getCommentType() == UserCommentVO.TYPE_EVENT) {
-            int eventId = vo.getReferenceId();
-            Common.eventManager.reloadEvent(eventId);
+    private void manageEventComments(UserCommentVO vo, DaoEventType action) {
+        if (vo.getCommentType() != UserCommentVO.TYPE_EVENT) return;
+
+        commentsLock.writeLock().lock();
+        try {
+            EventInstance evt = Common.eventManager.getById(vo.getReferenceId());
+            if (evt != null) {
+                List<UserCommentVO> comments = new ArrayList<>(evt.getEventComments());
+                switch(action) {
+                    case CREATE:
+                        comments.add(vo);
+                        break;
+                    case UPDATE:
+                        comments.removeIf(c -> c.getId() == vo.getId());
+                        comments.add(vo);
+                        break;
+                    case DELETE:
+                        comments.removeIf(c -> c.getId() == vo.getId());
+                        break;
+                }
+                evt.setEventComments(comments);
+            }
+        } finally {
+            commentsLock.writeLock().unlock();
         }
     }
 
