@@ -361,6 +361,8 @@ public class EventManagerImpl implements EventManager {
             if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
                 eventDao.saveEvent(evt);
 
+            loadHandlers(evt);
+
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
 
@@ -404,6 +406,8 @@ public class EventManagerImpl implements EventManager {
             if(multicaster != null)
                 Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, true, false));
 
+            loadHandlers(evt);
+
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
         }
@@ -436,6 +440,8 @@ public class EventManagerImpl implements EventManager {
         }
         evt.setAcknowledgedTimestamp(time);
         evt.setAlternateAckSource(alternateAckSource);
+
+        loadHandlers(evt);
 
         // invoke event handlers
         for (EventHandlerRT<?> handler : evt.getHandlers()) {
@@ -958,6 +964,8 @@ public class EventManagerImpl implements EventManager {
                     .collect(Collectors.toList());
 
             event.setHandlers(Collections.unmodifiableList(rts));
+        } else {
+            event.setHandlers(Collections.emptyList());
         }
     }
 
