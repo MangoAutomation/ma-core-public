@@ -11,9 +11,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
@@ -22,6 +23,7 @@ import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
@@ -55,27 +57,6 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
         this.dataPointDao = dataPointDao;
         this.jsonDataDao = jsonDataDao;
         this.eventInstanceDao = eventInstanceDao;
-    }
-
-    @Override
-    public UserCommentVO insert(UserCommentVO vo) {
-        UserCommentVO inserted = super.insert(vo);
-        manageEventComments(inserted, DaoEventType.CREATE);
-        return inserted;
-    }
-
-    @Override
-    public UserCommentVO update(int id, UserCommentVO vo) {
-        UserCommentVO updated = super.update(id, vo);
-        manageEventComments(updated, DaoEventType.UPDATE);
-        return updated;
-    }
-
-    @Override
-    public UserCommentVO delete(int id) {
-        UserCommentVO deleted = super.delete(id);
-        manageEventComments(deleted, DaoEventType.DELETE);
-        return deleted;
     }
 
     @Override
@@ -186,15 +167,17 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
         return result;
     }
 
-    private void manageEventComments(UserCommentVO vo, DaoEventType action) {
+    @EventListener
+    protected void handleUserCommentEvent(DaoEvent<? extends UserCommentVO> event) {
+        UserCommentVO vo = event.getVo();
         if (vo.getCommentType() != UserCommentVO.TYPE_EVENT) return;
 
         commentsLock.writeLock().lock();
         try {
-            EventInstance evt = Common.eventManager.getById(vo.getReferenceId());
+            EventInstance evt = ((EventManagerImpl) Common.eventManager).getById(vo.getReferenceId());
             if (evt != null) {
                 List<UserCommentVO> comments = new ArrayList<>(evt.getEventComments());
-                switch(action) {
+                switch(event.getType()) {
                     case CREATE:
                         comments.add(vo);
                         break;
