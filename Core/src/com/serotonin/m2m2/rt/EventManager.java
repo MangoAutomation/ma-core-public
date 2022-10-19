@@ -128,8 +128,4 @@ public interface EventManager extends ILifecycle {
      */
     List<EventInstance> getAllActive();
 
-    /**
-     * To access active event by id
-     */
-    EventInstance getById(int id);
 }

@@ -864,7 +864,6 @@ public class EventManagerImpl implements EventManager {
     /**
      * Gets an event from the activeEvents list/cache by its id
      */
-    @Override
     public EventInstance getById(int id) {
         EventInstance e;
 
