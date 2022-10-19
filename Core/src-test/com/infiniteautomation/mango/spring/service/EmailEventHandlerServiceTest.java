@@ -31,6 +31,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
+import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
@@ -152,7 +153,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = Common.eventManager.getById(1);
+        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getById(1);
         List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 
@@ -182,7 +183,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = Common.eventManager.getById(1);
+        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getById(1);
         List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 

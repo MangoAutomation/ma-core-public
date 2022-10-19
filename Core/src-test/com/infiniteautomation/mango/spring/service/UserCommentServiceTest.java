@@ -16,6 +16,7 @@ import com.serotonin.m2m2.MockEventManager;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -86,36 +87,41 @@ public class UserCommentServiceTest extends AbstractVOServiceTest<UserCommentVO,
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = Common.eventManager.getById(1);
+        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getById(1);
         List<UserCommentVO> comments = activeEvent.getEventComments();
         Assert.assertEquals(0, comments.size());
 
-        // insert
-        UserCommentVO newComment = newVO(readUser);
-        newComment.setCommentType(UserCommentVO.TYPE_EVENT);
-        newComment.setReferenceId(activeEvent.getId());
+        // insert comments
+        UserCommentVO comment1 = newVO(readUser);
+        comment1.setCommentType(UserCommentVO.TYPE_EVENT);
+        comment1.setReferenceId(activeEvent.getId());
+        service.insert(comment1);
 
-        service.insert(newComment);
+        UserCommentVO comment2 = newVO(readUser);
+        comment2.setCommentType(UserCommentVO.TYPE_EVENT);
+        comment2.setReferenceId(activeEvent.getId());
+        service.insert(comment2);
+
         comments = activeEvent.getEventComments();
-
-        Assert.assertEquals(1, comments.size());
-        UserCommentVO activeEventComment = comments.get(0);
-        assertVoEqual(newComment, activeEventComment);
+        Assert.assertEquals(2, comments.size());
+        assertVoEqual(comment1, comments.get(0));
+        assertVoEqual(comment2, comments.get(1));
 
         // update
-        UserCommentVO updatedComment = updateVO(newComment);
-        service.update(newComment.getId(), updatedComment);
-        comments = activeEvent.getEventComments();
+        UserCommentVO updatedComment2 = updateVO(comment2);
+        service.update(comment2.getId(), updatedComment2);
 
-        Assert.assertEquals(1, comments.size());
-        activeEventComment = comments.get(0);
-        assertVoEqual(updatedComment, activeEventComment);
+        comments = activeEvent.getEventComments();
+        Assert.assertEquals(2, comments.size());
+        assertVoEqual(comment1, comments.get(0));
+        assertVoEqual(updatedComment2, comments.get(1));
 
         // delete
-        service.delete(updatedComment.getId());
-        comments = activeEvent.getEventComments();
+        service.delete(updatedComment2.getId());
 
-        Assert.assertEquals(0, comments.size());
+        comments = activeEvent.getEventComments();
+        Assert.assertEquals(1, comments.size());
+        assertVoEqual(comment1, comments.get(0));
     }
 
     @Override
