@@ -3,7 +3,7 @@
 
 *Version 4.4.1*
 * Fix bug where adding comments not updating active events
-* Fix bug where updating event handlers has no effect on active events
+* Fix bug where events are using snapshot of event handlers when it is raised (Ex: Removing inactive email event handler now prevents sending email when already active events are inactive)
 
 *Version 4.4.0*
 * Drop support for IMAGE data points
