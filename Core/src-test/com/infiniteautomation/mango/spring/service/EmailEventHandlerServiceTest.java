@@ -3,12 +3,15 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
@@ -22,19 +25,23 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
+import com.serotonin.m2m2.rt.EventManagerImpl;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Terry Packer
@@ -46,6 +53,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
         lifecycle.setRuntimeManager(new MockRuntimeManager(true));
+        lifecycle.setEventManager(new EventManagerImpl());
         return lifecycle;
     }
 
@@ -128,6 +136,68 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             fromDb.setScriptRoles(newPermissions);
             service.update(fromDb.getId(), fromDb);
         });
+    }
+
+    @Test
+    public void testDeleteHandlerForActiveEvent() {
+        SystemEventType type = new SystemEventType(SystemEventType.TYPE_SYSTEM_STARTUP);
+        List<EventTypeMatcher> eventTypes = Collections.singletonList(new EventTypeMatcher(type));
+
+        addRoleToCreatePermission(editRole);
+        EmailEventHandlerVO vo = newVO(editUser);
+        vo.setEventTypes(eventTypes);
+        service.insert(vo);
+
+        long timestamp = Common.timer.currentTimeMillis();
+        Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
+                new TranslatableMessage("common.default", "testing"), null);
+
+        EventInstance activeEvent = Common.eventManager.getAllActive().get(0);
+        List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        service.delete(vo.getId());
+
+        // Cached handlers still remains in active event
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        // Handlers will be updated during ack or inactive operation
+        Common.eventManager.acknowledgeEventById(activeEvent.getId(), timer.currentTimeMillis(), editUser, null);
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(0, handlers.size());
+    }
+
+    @Test
+    public void testInsertHandlerForActiveEvent() {
+        SystemEventType type = new SystemEventType(SystemEventType.TYPE_SYSTEM_STARTUP);
+        List<EventTypeMatcher> eventTypes = Collections.singletonList(new EventTypeMatcher(type));
+
+        addRoleToCreatePermission(editRole);
+        EmailEventHandlerVO vo = newVO(editUser);
+        vo.setEventTypes(eventTypes);
+        service.insert(vo);
+
+        long timestamp = Common.timer.currentTimeMillis();
+        Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
+                new TranslatableMessage("common.default", "testing"), null);
+
+        EventInstance activeEvent = Common.eventManager.getAllActive().get(0);
+        List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        EmailEventHandlerVO secondVo = newVO(editUser);
+        secondVo.setEventTypes(eventTypes);
+        service.insert(secondVo);
+
+        // Cached handlers still remains in active event
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        // Handlers will be updated during ack or inactive operation
+        Common.eventManager.acknowledgeEventById(activeEvent.getId(), timer.currentTimeMillis(), editUser, null);
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(2, handlers.size());
     }
 
     @Override

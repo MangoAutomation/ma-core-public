@@ -71,6 +71,7 @@ import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.rt.EventManager;
+import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.RuntimeManagerImpl;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -391,6 +392,10 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     @Bean
     public EventManager eventManager() {
+        if (Common.eventManager == null) {
+            Common.eventManager = new EventManagerImpl();
+        }
         return Common.eventManager;
     }
+
 }

@@ -141,6 +141,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
         freemarkerInitialize();
 
+        //To ensure the EventManager bean is created with the right reference
+        Common.eventManager = getEventManager();
+
         //Setup the Spring Context
         this.runtimeContext = springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
 
@@ -162,8 +165,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         for (SystemSettingsListenerDefinition def : ModuleRegistry.getSystemSettingListenerDefinitions())
             def.registerListener();
 
-        //Event Manager
-        Common.eventManager = getEventManager();
+        //Event Manager init
         Common.eventManager.initialize(false);
         for (EventManagerListenerDefinition def : ModuleRegistry.getDefinitions(EventManagerListenerDefinition.class))
             Common.eventManager.addListener(def);
