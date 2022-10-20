@@ -876,6 +876,28 @@ public class EventManagerImpl implements EventManager {
     }
 
     /**
+     * Reloads cached event from database by its id
+     */
+    @Override
+    public EventInstance reloadEvent(int eventId) {
+        activeEventsLock.writeLock().lock();
+        try {
+            for(int i = 0; i < activeEvents.size(); i++) {
+                EventInstance activeEvent = activeEvents.get(i);
+
+                if (activeEvent.getId() == eventId) {
+                    EventInstance dbEvent = eventDao.get(eventId);
+                    activeEvents.set(i, dbEvent);
+                    return dbEvent;
+                }
+            }
+        } finally {
+            activeEventsLock.writeLock().unlock();
+        }
+        return null;
+    }
+
+    /**
      * Returns the first event instance with the given type, or null is there is
      * none.
      */
