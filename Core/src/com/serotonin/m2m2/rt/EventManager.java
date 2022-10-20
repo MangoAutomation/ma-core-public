@@ -128,4 +128,8 @@ public interface EventManager extends ILifecycle {
      */
     List<EventInstance> getAllActive();
 
+    /**
+     * Reload active event from database
+     */
+    EventInstance reloadEvent(int eventId);
 }
