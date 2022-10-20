@@ -67,9 +67,6 @@ public class EventManagerImpl implements EventManager {
     private final ReadWriteLock recentEventsLock = new ReentrantReadWriteLock();
     private final List<EventInstance> recentEvents = new ArrayList<>();
 
-    //Protect changes to the comments on the active events
-    private final ReadWriteLock commentsLock = new ReentrantReadWriteLock();
-
     private EventDao eventDao;
     private UsersService usersService;
     private int highestActiveAlarmLevel = 0;
@@ -1020,7 +1017,7 @@ public class EventManagerImpl implements EventManager {
         UserCommentVO vo = event.getVo();
         if (vo.getCommentType() != UserCommentVO.TYPE_EVENT) return;
 
-        commentsLock.writeLock().lock();
+        activeEventsLock.writeLock().lock();
         try {
             EventInstance evt = this.getById(vo.getReferenceId());
             if (evt != null) {
@@ -1040,7 +1037,7 @@ public class EventManagerImpl implements EventManager {
                 evt.setEventComments(comments);
             }
         } finally {
-            commentsLock.writeLock().unlock();
+            activeEventsLock.writeLock().unlock();
         }
     }
 
