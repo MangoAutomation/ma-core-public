@@ -1,3 +1,8 @@
+*Version 4.4.1*
+* Fix bug where adding comments not updating active events
+* Fix bug where events are using snapshot of event handlers when it is raised (Ex: Removing inactive email event handler now prevents sending email when already active events are inactive)
+* EventManager is now a spring bean
+
 *Version 4.4.0*
 * Drop support for IMAGE data points
 * Delete all data points with IMAGE dataType
@@ -21,6 +26,9 @@
 *Version 4.3.6*
 * Fix spring security issue for scheduled tasks where authorization might be missing or incorrect
 * Fix a bug in the upgrading process coming from a legacy version (3.x) related to the duplicated user permissions
+* Fix bug where adding comments not updating active events
+* Fix bug where events are using snapshot of event handlers when it is raised (Ex: Removing inactive email event handler now prevents sending email when already active events are inactive)
+* EventManager is now a spring bean
 
 *Version 4.3.5*
 * Use Epoll to read serial ports more efficiently

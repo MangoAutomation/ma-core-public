@@ -20,7 +20,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -44,6 +46,7 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -63,6 +66,7 @@ public class EventManagerImpl implements EventManager {
     private final List<EventInstance> activeEvents = new ArrayList<>();
     private final ReadWriteLock recentEventsLock = new ReentrantReadWriteLock();
     private final List<EventInstance> recentEvents = new ArrayList<>();
+
     private EventDao eventDao;
     private UsersService usersService;
     private int highestActiveAlarmLevel = 0;
@@ -361,6 +365,8 @@ public class EventManagerImpl implements EventManager {
             if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
                 eventDao.saveEvent(evt);
 
+            loadHandlers(evt);
+
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
 
@@ -404,6 +410,8 @@ public class EventManagerImpl implements EventManager {
             if(multicaster != null)
                 Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, true, false));
 
+            loadHandlers(evt);
+
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
         }
@@ -436,6 +444,8 @@ public class EventManagerImpl implements EventManager {
         }
         evt.setAcknowledgedTimestamp(time);
         evt.setAlternateAckSource(alternateAckSource);
+
+        loadHandlers(evt);
 
         // invoke event handlers
         for (EventHandlerRT<?> handler : evt.getHandlers()) {
@@ -957,6 +967,8 @@ public class EventManagerImpl implements EventManager {
                     .collect(Collectors.toList());
 
             event.setHandlers(Collections.unmodifiableList(rts));
+        } else {
+            event.setHandlers(Collections.emptyList());
         }
     }
 
@@ -993,6 +1005,39 @@ public class EventManagerImpl implements EventManager {
     private void handleInactiveEvent(EventInstance evt) {
         for (EventHandlerRT<?> h : evt.getHandlers()) {
             h.eventInactive(evt);
+        }
+    }
+
+    /**
+     * Manage the active event's list comments
+     * @param event
+     */
+    @EventListener
+    protected void handleUserCommentEvent(DaoEvent<? extends UserCommentVO> event) {
+        UserCommentVO vo = event.getVo();
+        if (vo.getCommentType() != UserCommentVO.TYPE_EVENT) return;
+
+        activeEventsLock.writeLock().lock();
+        try {
+            EventInstance evt = this.getById(vo.getReferenceId());
+            if (evt != null) {
+                List<UserCommentVO> comments = new ArrayList<>(evt.getEventComments());
+                switch(event.getType()) {
+                    case CREATE:
+                        comments.add(vo);
+                        break;
+                    case UPDATE:
+                        comments.removeIf(c -> c.getId() == vo.getId());
+                        comments.add(vo);
+                        break;
+                    case DELETE:
+                        comments.removeIf(c -> c.getId() == vo.getId());
+                        break;
+                }
+                evt.setEventComments(comments);
+            }
+        } finally {
+            activeEventsLock.writeLock().unlock();
         }
     }
 

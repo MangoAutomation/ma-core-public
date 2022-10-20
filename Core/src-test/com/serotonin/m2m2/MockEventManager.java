@@ -187,7 +187,7 @@ public class MockEventManager extends EventManagerImpl {
     @Override
     public List<EventInstance> getAllActive() {
         if(useDatabase) {
-            super.getAllActive();
+            return super.getAllActive();
         }
         return null;
     }
