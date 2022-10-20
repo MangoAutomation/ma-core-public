@@ -153,7 +153,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getById(1);
+        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getAllActive().get(0);
         List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 
@@ -183,7 +183,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getById(1);
+        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getAllActive().get(0);
         List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 

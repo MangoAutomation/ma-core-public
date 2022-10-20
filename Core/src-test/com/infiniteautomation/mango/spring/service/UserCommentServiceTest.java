@@ -12,7 +12,6 @@ import org.junit.Test;
 import com.infiniteautomation.mango.db.tables.UserComments;
 import com.infiniteautomation.mango.db.tables.records.UserCommentsRecord;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MockEventManager;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -87,7 +86,7 @@ public class UserCommentServiceTest extends AbstractVOServiceTest<UserCommentVO,
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getById(1);
+        EventInstance activeEvent = Common.eventManager.getAllActive().get(0);
         List<UserCommentVO> comments = activeEvent.getEventComments();
         Assert.assertEquals(0, comments.size());
 
@@ -127,7 +126,7 @@ public class UserCommentServiceTest extends AbstractVOServiceTest<UserCommentVO,
     @Override
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
-        lifecycle.setEventManager(new MockEventManager(true));
+        lifecycle.setEventManager(new EventManagerImpl());
         return lifecycle;
     }
 }
