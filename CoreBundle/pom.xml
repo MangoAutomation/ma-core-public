@@ -390,7 +390,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>advanced-scheduler</artifactId>
-            <version>4.4.1-SNAPSHOT</version>
+            <version>4.4.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
