@@ -22,7 +22,6 @@ import com.infiniteautomation.mango.rules.ExpectValidationException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MockEventManager;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
@@ -54,7 +53,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
         lifecycle.setRuntimeManager(new MockRuntimeManager(true));
-        lifecycle.setEventManager(new MockEventManager(true));
+        lifecycle.setEventManager(new EventManagerImpl());
         return lifecycle;
     }
 
@@ -153,7 +152,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getAllActive().get(0);
+        EventInstance activeEvent = Common.eventManager.getAllActive().get(0);
         List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 
@@ -183,7 +182,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
                 new TranslatableMessage("common.default", "testing"), null);
 
-        EventInstance activeEvent = ((EventManagerImpl) Common.eventManager).getAllActive().get(0);
+        EventInstance activeEvent = Common.eventManager.getAllActive().get(0);
         List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 
