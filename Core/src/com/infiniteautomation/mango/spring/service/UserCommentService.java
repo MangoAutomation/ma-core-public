@@ -4,17 +4,10 @@
 
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
@@ -23,8 +16,6 @@ import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.EventManagerImpl;
-import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
@@ -43,7 +34,6 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
     private final DataPointDao dataPointDao;
     private final JsonDataDao jsonDataDao;
     private final EventInstanceDao eventInstanceDao;
-    private final ReadWriteLock commentsLock = new ReentrantReadWriteLock();
 
     @Autowired
     public UserCommentService(UserCommentDao dao,
@@ -165,35 +155,6 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
             }
         }
         return result;
-    }
-
-    @EventListener
-    protected void handleUserCommentEvent(DaoEvent<? extends UserCommentVO> event) {
-        UserCommentVO vo = event.getVo();
-        if (vo.getCommentType() != UserCommentVO.TYPE_EVENT) return;
-
-        commentsLock.writeLock().lock();
-        try {
-            EventInstance evt = ((EventManagerImpl) Common.eventManager).getById(vo.getReferenceId());
-            if (evt != null) {
-                List<UserCommentVO> comments = new ArrayList<>(evt.getEventComments());
-                switch(event.getType()) {
-                    case CREATE:
-                        comments.add(vo);
-                        break;
-                    case UPDATE:
-                        comments.removeIf(c -> c.getId() == vo.getId());
-                        comments.add(vo);
-                        break;
-                    case DELETE:
-                        comments.removeIf(c -> c.getId() == vo.getId());
-                        break;
-                }
-                evt.setEventComments(comments);
-            }
-        } finally {
-            commentsLock.writeLock().unlock();
-        }
     }
 
 }
