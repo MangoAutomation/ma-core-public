@@ -393,10 +393,9 @@ public class MangoRuntimeContextConfiguration implements ApplicationContextAware
 
     @Bean
     public EventManager eventManager() {
-        if(Common.eventManager == null) {
+        if (Common.eventManager == null) {
             Common.eventManager = new EventManagerImpl();
         }
-        //TODO Mert: There was a bug here where this was ALWAYS null... see changes in lifecycle.  Remove when done reading this
         return Common.eventManager;
     }
 
