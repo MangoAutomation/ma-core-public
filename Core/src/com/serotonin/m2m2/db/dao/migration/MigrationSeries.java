@@ -12,6 +12,7 @@ import java.time.temporal.TemporalAmount;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
@@ -63,7 +64,7 @@ class MigrationSeries {
     synchronized void run() {
         try {
             this.stats = new ReadWriteStats();
-            parent.getRetry().executeRunnable(this::migrateBlock);
+            parent.getRetry().executeCallable(Executors.callable(this::migrateBlock));
         } catch (Exception e) {
             this.status = MigrationStatus.ERROR;
             if (log.isErrorEnabled()) {
