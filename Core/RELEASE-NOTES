@@ -1,6 +1,9 @@
 *Version 4.5.0*
 * Upgraded for Mango 4.5.0
 
+*Version 4.4.2*
+* Fix bug where failed TSL migration tasks not retried for checked exceptions
+
 *Version 4.4.1*
 * Fix bug where adding comments not updating active events
 * Fix bug where events are using snapshot of event handlers when it is raised (Ex: Removing inactive email event handler now prevents sending email when already active events are inactive)
