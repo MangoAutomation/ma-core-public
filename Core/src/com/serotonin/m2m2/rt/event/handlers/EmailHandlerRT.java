@@ -77,6 +77,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailAttachment.FileAttachment;
@@ -206,10 +207,35 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     @Override
+    synchronized public void terminate() {
+        // Cancel the escalation job in case it's there
+        if (escalationTask != null)
+            escalationTask.cancel();
+    }
+
+    @Override
     synchronized public void eventInactive(EventInstance evt) {
         // Cancel the escalation job in case it's there
         if (escalationTask != null)
             escalationTask.cancel();
+
+        if (inactiveRecipients == null) {
+            List<MailingListRecipient> recipients = null;
+            if (vo.isInactiveOverride() && vo.getInactiveRecipients() != null && !vo.getInactiveRecipients().isEmpty()) {
+                recipients = vo.getInactiveRecipients();
+            } else if (!vo.isInactiveOverride() && vo.getActiveRecipients() != null && !vo.getActiveRecipients().isEmpty()) {
+                recipients = vo.getActiveRecipients();
+            }
+
+            if (recipients != null) {
+                inactiveRecipients = mailingListService.getActiveRecipients(
+                        vo.getActiveRecipients(),
+                        evt.getActiveTimestamp(),
+                        RecipientListEntryType.MAILING_LIST,
+                        RecipientListEntryType.ADDRESS,
+                        RecipientListEntryType.USER);
+            }
+        }
 
         // Send an email to the inactive recipients.
         if(vo.isSendInactive())

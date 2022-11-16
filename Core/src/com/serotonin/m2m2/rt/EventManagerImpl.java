@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -952,24 +953,41 @@ public class EventManagerImpl implements EventManager {
     }
 
     private void loadHandlers(EventInstance event) {
+        List<EventHandlerRT<?>> existingRts = event.getHandlers();
         List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(event.getEventType());
-        if (!vos.isEmpty()) {
-            List<EventHandlerRT<?>> rts = vos.stream()
-                    .map(vo -> {
-                        try {
-                            return vo.getDefinition().createRuntime(vo);
-                        } catch (Exception e) {
-                            log.error("Error creating event handler runtime", e);
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
 
-            event.setHandlers(Collections.unmodifiableList(rts));
-        } else {
-            event.setHandlers(Collections.emptyList());
-        }
+        List<EventHandlerRT<?>> updatedRts = existingRts.stream().map(rt -> {
+            Optional<AbstractEventHandlerVO> latestVo = vos.stream()
+                    .filter(vo -> vo.getId() == rt.getVo().getId())
+                    .findFirst();
+            if (latestVo.isPresent()) { // Update
+                rt.setVo(latestVo.get());
+                return rt;
+            } else { // Delete
+                rt.terminate();
+                return null;
+            }
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+        List<EventHandlerRT<?>> newRts = vos.stream().map(vo -> {
+            boolean rtMissing = existingRts.stream()
+                    .filter(rt -> rt.getVo().getId() == vo.getId())
+                    .collect(Collectors.toList())
+                    .isEmpty();
+
+            if (rtMissing) { // Create
+                return vo.getDefinition().createRuntime(vo);
+            } else {
+                return null;
+            }
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+        updatedRts.addAll(newRts);
+        event.setHandlers(Collections.unmodifiableList(updatedRts));
     }
 
     /**
