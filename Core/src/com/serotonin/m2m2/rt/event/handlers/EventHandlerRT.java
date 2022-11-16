@@ -14,4 +14,15 @@ abstract public class EventHandlerRT<T extends AbstractEventHandlerVO> implement
         this.vo = vo;
     }
 
+    public T getVo() {
+        return vo;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void setVo(AbstractEventHandlerVO vo) {
+        this.vo = (T) vo;
+    }
+
+    public void terminate() {}
+
 }
