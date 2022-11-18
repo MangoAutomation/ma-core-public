@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.rt.event.handlers;
 
+import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
 
@@ -23,6 +24,5 @@ abstract public class EventHandlerRT<T extends AbstractEventHandlerVO> implement
         this.vo = (T) vo;
     }
 
-    public void terminate() {}
-
+    public void terminate(EventInstance event) { }
 }
