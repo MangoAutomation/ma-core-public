@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +34,7 @@ import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermi
 import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventTypeMatcher;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
@@ -40,6 +42,8 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
+import com.serotonin.m2m2.vo.mailingList.AddressEntry;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -162,10 +166,86 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 
-        // Handlers will be updated during ack or inactive operation
+        // Deleted Handlers will be removed during ack or inactive operation
         Common.eventManager.acknowledgeEventById(activeEvent.getId(), timer.currentTimeMillis(), editUser, null);
         handlers = activeEvent.getHandlers();
         Assert.assertEquals(0, handlers.size());
+    }
+
+    @Test
+    public void testDisableHandlerForActiveEvent() {
+        SystemEventType type = new SystemEventType(SystemEventType.TYPE_SYSTEM_STARTUP);
+        List<EventTypeMatcher> eventTypes = Collections.singletonList(new EventTypeMatcher(type));
+
+        addRoleToCreatePermission(editRole);
+        EmailEventHandlerVO vo = newVO(editUser);
+        vo.setEventTypes(eventTypes);
+        service.insert(vo);
+
+        long timestamp = Common.timer.currentTimeMillis();
+        Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
+                new TranslatableMessage("common.default", "testing"), null);
+
+        EventInstance activeEvent = Common.eventManager.getAllActive().get(0);
+        List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        vo.setDisabled(true);
+        service.update(vo.getId(), vo);
+
+        // Cached handlers still remains in active event
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        // Disabled Handlers will be removed during ack or inactive operation
+        Common.eventManager.acknowledgeEventById(activeEvent.getId(), timer.currentTimeMillis(), editUser, null);
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(0, handlers.size());
+    }
+
+    @Test
+    public void testUpdateHandlerForActiveEvent() {
+        SystemEventType type = new SystemEventType(SystemEventType.TYPE_SYSTEM_STARTUP);
+        List<EventTypeMatcher> eventTypes = Collections.singletonList(new EventTypeMatcher(type));
+        List<MailingListRecipient> activeRecipients = createRecipients();
+
+        addRoleToCreatePermission(editRole);
+        EmailEventHandlerVO vo = newVO(editUser);
+        vo.setEventTypes(eventTypes);
+        vo.setActiveRecipients(activeRecipients);
+        service.insert(vo);
+
+        long timestamp = Common.timer.currentTimeMillis();
+        Common.eventManager.raiseEvent(type, timestamp, true, AlarmLevels.CRITICAL,
+                new TranslatableMessage("common.default", "testing"), null);
+
+        EventInstance activeEvent = Common.eventManager.getAllActive().get(0);
+        List<EventHandlerRT<?>> handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        vo.setActiveRecipients(null);
+        service.update(vo.getId(), vo);
+
+        // Cached handlers still remains in active event
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        // Updated Handlers will not affect active events
+        Common.eventManager.acknowledgeEventById(activeEvent.getId(), timer.currentTimeMillis(), editUser, null);
+        handlers = activeEvent.getHandlers();
+        Assert.assertEquals(1, handlers.size());
+
+        EmailHandlerRT handler = (EmailHandlerRT) handlers.get(0);
+        EmailEventHandlerVO handlerVo = handler.getVo();
+        // Updated recipients is null
+        Assert.assertNull(vo.getActiveRecipients());
+
+        // Initial recipients equals to handlers recipients
+        List<MailingListRecipient> handlerRecipients = handlerVo.getActiveRecipients();
+        Assert.assertEquals(activeRecipients.size() ,handlerRecipients.size());
+        for (int i = 0; i < activeRecipients.size(); i++) {
+            assertEquals(activeRecipients.get(i).getReferenceAddress(), handlerRecipients.get(i).getReferenceAddress());
+        }
     }
 
     @Test
@@ -194,10 +274,10 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         handlers = activeEvent.getHandlers();
         Assert.assertEquals(1, handlers.size());
 
-        // Handlers will be updated during ack or inactive operation
+        // New Handlers will not affect active events
         Common.eventManager.acknowledgeEventById(activeEvent.getId(), timer.currentTimeMillis(), editUser, null);
         handlers = activeEvent.getHandlers();
-        Assert.assertEquals(2, handlers.size());
+        Assert.assertEquals(1, handlers.size());
     }
 
     @Override
@@ -263,5 +343,13 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             newRoles.add(new HashSet<>(roles));
         }
         Common.getBean(SystemPermissionService.class).update(new MangoPermission(newRoles), def);
+    }
+
+    protected List<MailingListRecipient> createRecipients() {
+        List<MailingListRecipient> recipients = new ArrayList<>();
+        AddressEntry address = new AddressEntry();
+        address.setAddress("test@test.com");
+        recipients.add(address);
+        return recipients;
     }
 }
