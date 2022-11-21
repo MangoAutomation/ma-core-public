@@ -206,6 +206,13 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     @Override
+    synchronized public void terminate(EventInstance evt) {
+        // Cancel the escalation job in case it's there
+        if (escalationTask != null)
+            escalationTask.cancel();
+    }
+
+    @Override
     synchronized public void eventInactive(EventInstance evt) {
         // Cancel the escalation job in case it's there
         if (escalationTask != null)

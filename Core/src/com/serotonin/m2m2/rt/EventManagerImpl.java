@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -172,7 +173,7 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        loadHandlers(evt);
+        initHandlers(evt);
 
         // Get id from database by inserting event immediately.
         //Check to see if we are Not Logging these
@@ -365,7 +366,7 @@ public class EventManagerImpl implements EventManager {
             if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
                 eventDao.saveEvent(evt);
 
-            loadHandlers(evt);
+            reLoadHandlers(evt);
 
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
@@ -410,7 +411,7 @@ public class EventManagerImpl implements EventManager {
             if(multicaster != null)
                 Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, true, false));
 
-            loadHandlers(evt);
+            reLoadHandlers(evt);
 
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
@@ -445,7 +446,7 @@ public class EventManagerImpl implements EventManager {
         evt.setAcknowledgedTimestamp(time);
         evt.setAlternateAckSource(alternateAckSource);
 
-        loadHandlers(evt);
+        reLoadHandlers(evt);
 
         // invoke event handlers
         for (EventHandlerRT<?> handler : evt.getHandlers()) {
@@ -496,7 +497,7 @@ public class EventManagerImpl implements EventManager {
 
             // only ack the event if it exists and is not already acknowledged
             if (dbEvent != null && !dbEvent.isAcknowledged()) {
-                loadHandlers(dbEvent);
+                initHandlers(dbEvent);
 
                 boolean acked = acknowledgeEvent(dbEvent, time, user, alternateAckSource);
 
@@ -951,7 +952,7 @@ public class EventManagerImpl implements EventManager {
         return null;
     }
 
-    private void loadHandlers(EventInstance event) {
+    private void initHandlers(EventInstance event) {
         List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(event.getEventType());
         if (!vos.isEmpty()) {
             List<EventHandlerRT<?>> rts = vos.stream()
@@ -970,6 +971,30 @@ public class EventManagerImpl implements EventManager {
         } else {
             event.setHandlers(Collections.emptyList());
         }
+    }
+
+    private void reLoadHandlers(EventInstance event) {
+        List<EventHandlerRT<?>> existingRts = event.getHandlers();
+        List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(event.getEventType());
+
+        List<EventHandlerRT<?>> updatedRts = existingRts.stream().map(rt -> {
+            Optional<AbstractEventHandlerVO> latestVo = vos.stream()
+                    .filter(vo -> vo.getId() == rt.getVo().getId())
+                    .findFirst();
+            if (latestVo.isPresent()) {
+                // TODO Update EventHandlerVO if it is possible to update for each type
+                // rt.setVo(latestVo.get());
+                return rt;
+            } else {
+                // Terminate and remove handler from active event
+                rt.terminate(event);
+                return null;
+            }
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+
+        event.setHandlers(Collections.unmodifiableList(updatedRts));
     }
 
     /**
