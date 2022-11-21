@@ -1,5 +1,6 @@
 *Version 4.4.2*
 * Fix bug where failed TSL migration tasks not retried for checked exceptions
+* Revert bugfix from 4.4.1 for not using snapshot of event handlers, Only disabled and deleted event handlers affects already active events
 
 *Version 4.4.1*
 * Fix bug where adding comments not updating active events
