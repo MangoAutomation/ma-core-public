@@ -457,7 +457,7 @@ public class EventManagerImpl implements EventManager {
         UserEventListener multicaster = userEventMulticaster;
 
         //getting all the users including non admins
-        for (User user : usersService.getEnabledUsersWithoutAdminRole()) {
+        for (User user : usersService.getEnabledUsers()) {
             // Do not create an event for this user if the event type says the
             // user should be skipped.
             if (evt.getEventType().excludeUser(user))

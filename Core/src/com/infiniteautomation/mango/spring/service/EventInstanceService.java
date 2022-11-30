@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
-import net.jazdw.rql.parser.ASTNode;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +27,7 @@ import org.springframework.util.Assert;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.tables.Events;
+import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.serotonin.m2m2.Common;
@@ -47,6 +47,8 @@ import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
+import net.jazdw.rql.parser.ASTNode;
+
 /**
  * @author Terry Packer
  *
@@ -63,16 +65,20 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     private final Lock ackManyLock = new ReentrantLock();
     private final Events events = Events.EVENTS;
 
+    private final RunAs runAs;
+
     @Autowired
     public EventInstanceService(EventInstanceDao dao,
                                 ServiceDependencies dependencies,
                                 DataPointDao dataPointDao,
                                 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsViewPermissionDefinition eventsViewPermission,
-                                @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission) {
+                                @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") EventsSuperadminViewPermissionDefinition eventsSuperadminViewPermission,
+                                RunAs runAs) {
         super(dao, dependencies);
         this.dataPointDao = dataPointDao;
         this.eventsViewPermission = eventsViewPermission;
         this.eventsSuperadminViewPermission = eventsSuperadminViewPermission;
+        this.runAs = runAs;
     }
 
     @Override
@@ -171,7 +177,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     public EventInstanceVO acknowledgeEventById(Integer id, User user, TranslatableMessage message) throws NotFoundException, PermissionException {
         EventInstanceVO vo = get(id);
         ensureEditPermission(user, vo);
-        Common.eventManager.acknowledgeEventById(id, System.currentTimeMillis(), user, message);
+        this.runAs.runAs(runAs.systemSuperadmin(), () -> {
+            Common.eventManager.acknowledgeEventById(id, System.currentTimeMillis(), user, message);
+        });
         return vo;
     }
 
@@ -193,10 +201,13 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         try {
             customizedQuery(conditions, (EventInstanceVO vo) -> {
                 if (hasEditPermission(user, vo)) {
-                    EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), ackTimestamp, user, message);
-                    if (event != null && event.isAcknowledged()) {
-                        total.incrementAndGet();
-                    }
+                    this.runAs.runAs(runAs.systemSuperadmin(), () -> {
+                        EventInstance event = Common.eventManager.acknowledgeEventById(vo.getId(), ackTimestamp, user, message);
+                        if (event != null && event.isAcknowledged()) {
+                            total.incrementAndGet();
+                        }
+                    });
+
                 }
             });
         } finally {
