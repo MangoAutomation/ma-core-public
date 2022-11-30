@@ -2,7 +2,7 @@
 * Upgraded for Mango 4.5.0
 
 *Version 4.4.3*
-* Fix bug where An event acknowledment by a nor admin user returns an ACCESS_DENIED error response even when the event was acknowledged successfully.
+* Fix bug where An event acknowledgement by a nor admin user returns an ACCESS_DENIED error response even when the event was acknowledged successfully.
 
 *Version 4.4.2*
 * Fix bug where failed TSL migration tasks not retried for checked exceptions
