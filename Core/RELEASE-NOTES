@@ -1,3 +1,6 @@
+*Version 4.4.3*
+* Fix bug where An event acknowledgement by a nor admin user returns an ACCESS_DENIED error response even when the event was acknowledged successfully.
+
 *Version 4.4.2*
 * Fix bug where failed TSL migration tasks not retried for checked exceptions
 * Revert bugfix from 4.4.1 for not using snapshot of event handlers, Only disabled and deleted event handlers affects already active events
