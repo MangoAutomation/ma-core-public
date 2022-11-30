@@ -708,4 +708,28 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
             return dao.getEnabledUsers();
         }
     }
+
+    /**
+     * Get all enabled users without ensuring admin role.
+     * Use this method with caution
+     */
+    public List<User> getEnabledUsersWithoutAdminRole() {
+
+        if(userByUsername != null) {
+            List<User> result = new ArrayList<>();
+
+            //TODO This is only weakly consistent in that the underlying
+            // map's changes may not be reflected while iterating
+            // This method should be removed when we modify the EventManager
+            //  to be able to cache users for notification
+            userByUsername.asMap().forEach((username, u) -> {
+                if (u.isEnabled()) {
+                    result.add(u);
+                }
+            });
+            return result;
+        }else {
+            return dao.getEnabledUsers();
+        }
+    }
 }
