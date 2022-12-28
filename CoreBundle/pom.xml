@@ -106,7 +106,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ascii-ds</artifactId>
-            <version>4.4.1-SNAPSHOT</version>
+            <version>4.4.4-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
