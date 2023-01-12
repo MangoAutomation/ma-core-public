@@ -398,6 +398,13 @@ public class BasicSQLPointValueDao extends BaseDao implements PointValueDao {
         }
     }
 
+    @Override
+    public Optional<Long> deletePointValuesBefore(long endTime) {
+        DeleteConditionStep<PointValuesRecord> delete = baseDelete()
+                .where(pv.ts.lessThan(endTime));
+        return Optional.of(deletePointValues(delete));
+    }
+
     public DataValue createDataValue(PointValuesRecord pvRecord, PointValueAnnotationsRecord pvaRecord) {
         DataType dataType = DataType.fromId(pvRecord.get(pv.dataType));
         if (dataType == null) return null;
