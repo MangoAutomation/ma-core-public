@@ -2,6 +2,10 @@
 * Upgraded for Mango 4.5.0
 
 *Version 4.4.3*
+* Fix point values purge when data source and data point purge setting overrides disabled
+* Avoid loading all points into memory while purging
+
+*Version 4.4.3*
 * Fix bug where An event acknowledgement by a nor admin user returns an ACCESS_DENIED error response even when the event was acknowledged successfully.
 
 *Version 4.4.2*
