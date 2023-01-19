@@ -1,4 +1,4 @@
-*Version 4.4.3*
+*Version 4.4.4*
 * Fix point values purge when data source and data point purge setting overrides disabled
 * Avoid loading all points into memory while purging
 
