@@ -84,5 +84,17 @@ public interface NumericAggregate extends AggregateValue {
      */
     double getMaximumInPeriod();
 
+    /**
+     * @return the range of values in the period, if {@link #getCount() count} is 0 will return {@link Double#NaN NaN}.
+     */
+    default double getRangeInPeriod() {
+        double range = Double.NaN;
+        double maxValue = getMaximumInPeriod();
+        if (!Double.isNaN(maxValue)) {
+            range = maxValue - getMinimumInPeriod();
+        }
+        return range;
+    }
+
     DoubleSummaryStatistics getStatistics();
 }
