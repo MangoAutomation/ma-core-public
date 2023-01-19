@@ -105,9 +105,7 @@ public class DataPurge {
                 purgeFilters.add(pfd.getPurgeFilter());
 
             // Get the data point information.
-            List<DataPointVO> dataPoints = dataPointDao.getAll();
-            for (DataPointVO dataPoint : dataPoints)
-                purgePoint(dataPoint, purgeFilters, purgePeriodType, purgePeriods);
+            dataPointDao.getAll(dataPoint -> purgePoint(dataPoint, purgeFilters, purgePeriodType, purgePeriods));
 
             pointValueDao.deleteOrphanedPointValues().ifPresent(this::addDeletedSamples);
 
