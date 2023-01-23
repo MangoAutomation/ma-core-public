@@ -1,0 +1,24 @@
+/*
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
+ */
+
+syntax = "proto3";
+package com.radixiot.mango.core;
+
+option java_multiple_files = true;
+
+enum DataType {
+  DATA_TYPE_UNSPECIFIED = 0;
+  DATA_TYPE_BINARY = 1;
+  DATA_TYPE_MULTISTATE = 2;
+  DATA_TYPE_NUMERIC = 3;
+  DATA_TYPE_ALPHANUMERIC = 4;
+}
+
+message DataPoint {
+  string xid = 1;
+  string name = 2;
+  string device_name = 3;
+  DataType data_type = 4;
+  map<string, string> tags = 5;
+}
