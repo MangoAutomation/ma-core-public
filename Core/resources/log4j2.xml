@@ -96,6 +96,7 @@
 		</AsyncLogger>
 		<AsyncLogger name="com.serotonin.m2m2" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
 		<AsyncLogger name="com.infiniteautomation" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
+		<AsyncLogger name="com.radixiot" includeLocation="${mango:logger.mango.includeLocation}" level="${mango:logger.mango.level}"/>
 		<AsyncRoot includeLocation="${mango:logger.root.includeLocation}" level="${mango:logger.root.level}">
 			<AppenderRef ref="logfile" level="${mango:appender.logfile.level}" />
 			<AppenderRef ref="stdout" level="${mango:appender.stdout.level}" />

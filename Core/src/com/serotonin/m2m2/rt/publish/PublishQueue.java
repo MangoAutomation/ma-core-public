@@ -67,10 +67,10 @@ public class PublishQueue<PUB extends PublisherVO, T extends PublishedPointVO, V
 
     public List<PublishQueueEntry<T,V>> get(int max) {
         if (queue.isEmpty())
-            return null;
+            return List.of();
 
         Iterator<PublishQueueEntry<T,V>> iter = queue.iterator();
-        List<PublishQueueEntry<T,V>> result = new ArrayList<PublishQueueEntry<T,V>>(max);
+        List<PublishQueueEntry<T,V>> result = new ArrayList<>(max);
         while (iter.hasNext() && result.size() < max)
             result.add(iter.next());
 
