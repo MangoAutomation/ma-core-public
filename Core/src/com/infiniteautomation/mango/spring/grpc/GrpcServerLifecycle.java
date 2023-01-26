@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
+import io.grpc.util.TransmitStatusRuntimeExceptionInterceptor;
 
 /**
  * @author Jared Wiltshire
@@ -25,18 +27,24 @@ import io.grpc.ServerBuilder;
 public class GrpcServerLifecycle {
 
     private final List<BindableService> services;
+    private final List<ServerInterceptor> interceptors;
     private final int port;
     private Server server;
 
     @Autowired
-    public GrpcServerLifecycle(List<BindableService> services, @Value("${grpc.server.port:9090}") int port) {
+    public GrpcServerLifecycle(List<BindableService> services,
+                               List<ServerInterceptor> interceptors,
+                               @Value("${grpc.server.port:9090}") int port) {
         this.services = services;
+        this.interceptors = interceptors;
         this.port = port;
     }
 
     @PostConstruct
     synchronized void postConstruct() throws IOException {
         var builder = ServerBuilder.forPort(port);
+        builder.intercept(TransmitStatusRuntimeExceptionInterceptor.instance());
+        interceptors.forEach(builder::intercept);
         services.forEach(builder::addService);
         this.server = builder.build().start();
     }
