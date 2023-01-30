@@ -7,6 +7,7 @@ package com.serotonin.m2m2;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -54,6 +55,13 @@ public class MockAggregateDao implements BoundaryAggregateDao {
     public ZonedDateTime boundary() {
         return ZonedDateTime.now(clock)
                 .minus(boundary);
+    }
+
+    @Override
+    public long fromBoundary(TemporalUnit unit) {
+        var now = ZonedDateTime.now(clock);
+        var queryBoundary = now.minus(boundary);
+        return unit.between(queryBoundary, now);
     }
 
     @Override
