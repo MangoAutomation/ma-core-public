@@ -65,7 +65,7 @@ public interface PublishQueue<T extends PublishedPointVO, V> {
     /**
      * Clears the queue, removing all entries.
      */
-    void removeAll();
+    void clear();
 
     /**
      * @return number of items stored in the queue

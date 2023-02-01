@@ -95,7 +95,7 @@ public class PublishQueueImpl<T extends PublishedPointVO, V> implements PublishQ
     }
     
     @Override
-    public void removeAll() {
+    public void clear() {
     	queue.clear();
     }
 
