@@ -29,6 +29,7 @@ import io.grpc.ServerCredentials;
 import io.grpc.ServerInterceptor;
 import io.grpc.TlsServerCredentials;
 import io.grpc.TlsServerCredentials.ClientAuth;
+import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.util.TransmitStatusRuntimeExceptionInterceptor;
 
 /**
@@ -46,6 +47,7 @@ public class GrpcServerLifecycle {
     private final @Nullable Path privateKey;
     private final @Nullable Path rootCerts;
     private final ClientAuth clientAuth;
+    private final @Nullable String inProcessServer;
     private Server server;
 
     @Autowired
@@ -55,7 +57,8 @@ public class GrpcServerLifecycle {
                                @Value("${grpc.server.certChain:#{null}}") @Nullable Path certChain,
                                @Value("${grpc.server.privateKey:#{null}}") @Nullable Path privateKey,
                                @Value("${grpc.server.rootCerts:#{null}}") @Nullable Path rootCerts,
-                               @Value("${grpc.server.clientAuth}") ClientAuth clientAuth) {
+                               @Value("${grpc.server.clientAuth}") ClientAuth clientAuth,
+                               @Value("${grpc.server.inProcessServer:#{null}}") @Nullable String inProcessServer) {
         this.services = services;
         this.interceptors = interceptors;
         this.port = port;
@@ -63,6 +66,7 @@ public class GrpcServerLifecycle {
         this.privateKey = privateKey == null ? null : Common.MA_DATA_PATH.resolve(privateKey).normalize();
         this.rootCerts = rootCerts == null ? null : Common.MA_DATA_PATH.resolve(rootCerts).normalize();
         this.clientAuth = clientAuth;
+        this.inProcessServer = inProcessServer;
     }
 
     @PostConstruct
@@ -81,7 +85,10 @@ public class GrpcServerLifecycle {
                     "You must supply a certificate chain and private key file to enable TLS.");
             serverCredentials = InsecureServerCredentials.create();
         }
-        var builder = Grpc.newServerBuilderForPort(port, serverCredentials);
+
+        var builder = inProcessServer != null ?
+                InProcessServerBuilder.forName(inProcessServer) :
+                Grpc.newServerBuilderForPort(port, serverCredentials);
         builder.intercept(TransmitStatusRuntimeExceptionInterceptor.instance());
         interceptors.forEach(builder::intercept);
         services.forEach(builder::addService);
