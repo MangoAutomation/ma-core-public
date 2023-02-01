@@ -85,7 +85,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
     protected final Collection<PublishedPointRT<POINT>> publishedPoints = Collections.unmodifiableCollection(publishedPointsMap.values());
 
     protected final PublishQueue<POINT, PointValueTime> queue;
-    protected final AttributePublishQueue<POINT> attributesChangedQueue;
+    protected final AttributePublishQueue<POINT> attributeChangeQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
     protected SEND sendThread;
@@ -96,8 +96,8 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     public PublisherRT(T vo) {
         this.vo = vo;
-        this.queue = createPublishQueue(vo);
-        this.attributesChangedQueue = createAttirbutesChangedQueue();
+        this.queue = createPublishQueue();
+        this.attributeChangeQueue = createAttributeChangeQueue();
         this.pointDisabledEventType = new PublisherEventType(vo, POINT_DISABLED_EVENT);
         this.queueSizeWarningEventType = new PublisherEventType(vo, QUEUE_SIZE_WARNING_EVENT);
         this.dataPointDao = Common.getBean(DataPointDao.class);
@@ -108,12 +108,12 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         return vo.getId();
     }
 
-    protected PublishQueue<POINT, PointValueTime> createPublishQueue(PublisherVO vo) {
+    protected PublishQueue<POINT, PointValueTime> createPublishQueue() {
         return new PublishQueueImpl<>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
-    protected AttributePublishQueue<POINT> createAttirbutesChangedQueue() {
-        return new AttributePublishQueue<>();
+    protected AttributePublishQueue<POINT> createAttributeChangeQueue() {
+        return new AttributePublishQueueImpl<>();
     }
 
     public final PublisherVO getVo() {
@@ -202,7 +202,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      */
     protected void attributeChanged(POINT vo, Map<String, Object> attributes) {
         if(this.vo.isPublishAttributeChanges()) {
-            attributesChangedQueue.add(vo, attributes);
+            attributeChangeQueue.add(vo, attributes);
             synchronized (sendThread) {
                 sendThread.notify();
             }

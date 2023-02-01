@@ -39,7 +39,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
-import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
@@ -141,9 +140,9 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
         }
 
         @Override
-        protected PublishQueue<MockPublishedPointVO, PointValueTime> createPublishQueue(PublisherVO vo) {
-            TestPublisherVO tPvo = (TestPublisherVO)vo;
-            return new TestPublishQueue(this, tPvo.getCacheWarningSize(), tPvo.getCacheDiscardSize(), tPvo.getAddedFuture());
+        protected PublishQueue<MockPublishedPointVO, PointValueTime> createPublishQueue() {
+            TestPublisherVO tPvo = (TestPublisherVO) vo;
+            return new TestPublishQueue<>(this, tPvo.getCacheWarningSize(), tPvo.getCacheDiscardSize(), tPvo.getAddedFuture());
         }
     }
 
