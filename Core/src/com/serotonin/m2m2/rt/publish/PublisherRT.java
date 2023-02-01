@@ -84,7 +84,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      */
     protected final Collection<PublishedPointRT<POINT>> publishedPoints = Collections.unmodifiableCollection(publishedPointsMap.values());
 
-    protected final PublishQueue<T, POINT, PointValueTime> queue;
+    protected final PublishQueue<POINT, PointValueTime> queue;
     protected final AttributePublishQueue<POINT> attributesChangedQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
@@ -108,8 +108,8 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         return vo.getId();
     }
 
-    protected PublishQueue<T, POINT, PointValueTime> createPublishQueue(PublisherVO vo) {
-        return new PublishQueue<>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
+    protected PublishQueue<POINT, PointValueTime> createPublishQueue(PublisherVO vo) {
+        return new PublishQueueImpl<>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
     protected AttributePublishQueue<POINT> createAttirbutesChangedQueue() {
@@ -478,6 +478,11 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
     @Override
     public String getTaskId() {
         return "PUB-" + vo.getXid();
+    }
+
+    @Override
+    public int getQueueSize() {
+        return queue.getSize();
     }
 
     @Override
