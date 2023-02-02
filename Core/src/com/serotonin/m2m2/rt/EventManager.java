@@ -13,6 +13,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
+import com.serotonin.m2m2.rt.event.handlers.EventHandlerInterface;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -117,6 +118,10 @@ public interface EventManager extends ILifecycle {
     void addUserEventListener(UserEventListener l);
 
     void removeUserEventListener(UserEventListener l);
+
+    void addHandler(EventHandlerInterface handler);
+
+    void removeHandler(EventHandlerInterface handler);
 
     /**
      * Get all active user events that a user has permission for

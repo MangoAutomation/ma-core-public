@@ -294,6 +294,15 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      */
     protected void terminateImpl() { }
 
+    /**
+     * Call terminate on the queue.
+     */
+    protected void terminateQueue() {
+        if (queue != null) {
+            queue.terminate();
+        }
+    }
+
     @Override
     public final synchronized void initialize(boolean safe) {
         ensureState(ILifecycleState.PRE_INITIALIZE);
@@ -389,7 +398,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
         try {
             // Terminate the queue
-            queue.terminate();
+            terminateQueue();
         } catch (Exception e) {
             log.error("Failed to terminate queue for " + readableIdentifier(), e);
         }
