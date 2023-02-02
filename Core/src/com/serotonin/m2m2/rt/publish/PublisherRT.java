@@ -167,7 +167,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         }
     }
 
-    void publish(POINT vo, PointValueTime newValue) {
+    protected void publish(POINT vo, PointValueTime newValue) {
         queue.add(vo, newValue);
 
         synchronized (sendThread) {
@@ -175,7 +175,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         }
     }
 
-    public void publish(POINT vo, List<PointValueTime> newValues) {
+    protected void publish(POINT vo, List<PointValueTime> newValues) {
         queue.add(vo, newValues);
 
         synchronized (sendThread) {

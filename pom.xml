@@ -36,6 +36,7 @@
         <surefire.fork.count>1</surefire.fork.count>
         <grpc.version>1.52.1</grpc.version>
         <protobuf.version>3.21.12</protobuf.version>
+        <chronicle.version>2.24ea18</chronicle.version>
     </properties>
     <organization>
         <name>Radix IoT, LLC</name>
@@ -461,4 +462,15 @@
             <url>https://maven.mangoautomation.net/repository/ias-release/</url>
         </pluginRepository>
     </pluginRepositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.openhft</groupId>
+                <artifactId>chronicle-bom</artifactId>
+                <version>${chronicle.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>
