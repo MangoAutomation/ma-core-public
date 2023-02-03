@@ -7,6 +7,8 @@ import java.io.FilenameFilter;
 import java.io.StringWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
@@ -112,7 +114,7 @@ public class BackupWorkItem implements WorkItem {
             LOG.info("Starting backup WorkItem.");
             // Create the filename
             String filename = "Mango-Configuration";
-            String runtimeString = new SimpleDateFormat(BACKUP_DATE_FORMAT).format(new Date());
+            String runtimeString = DateTimeFormatter.ofPattern(BACKUP_DATE_FORMAT).format(LocalDateTime.now());
             int maxFiles = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
             // If > 1 then we will use a date in the filename
             if (maxFiles > 1) {
