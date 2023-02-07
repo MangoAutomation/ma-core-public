@@ -6,11 +6,9 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.StringWriter;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -228,11 +226,12 @@ public class BackupWorkItem implements WorkItem {
 
                 //Have we ever run?
                 if(lastRunDateString != null){
-                    Date lastRunDate;
+                    LocalDateTime lastRunDate;
                     try {
-                        lastRunDate = new SimpleDateFormat(BACKUP_DATE_FORMAT).parse(lastRunDateString);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BACKUP_DATE_FORMAT);
+                        lastRunDate = LocalDateTime.parse(lastRunDateString, formatter);
                     }catch(Exception e) {
-                        lastRunDate = new Date();
+                        lastRunDate = LocalDateTime.now();
                         LOG.warn("Failed to parse last backup date, using Jan 1 1970.", e);
                     }
                     DateTime lastRun = new DateTime(lastRunDate);
