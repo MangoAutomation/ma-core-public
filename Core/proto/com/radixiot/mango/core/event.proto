@@ -1,0 +1,52 @@
+/*
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
+ */
+
+syntax = "proto3";
+package com.radixiot.mango.core;
+
+import "com/radixiot/mango/core/data_point.proto";
+
+option java_multiple_files = true;
+
+enum AlarmLevel {
+  ALARM_LEVEL_UNSPECIFIED = 0;
+  ALARM_LEVEL_NONE = 1;
+  ALARM_LEVEL_INFORMATION = 2;
+  ALARM_LEVEL_IMPORTANT = 3;
+  ALARM_LEVEL_WARNING = 4;
+  ALARM_LEVEL_URGENT = 5;
+  ALARM_LEVEL_CRITICAL = 6;
+  ALARM_LEVEL_LIFE_SAFETY = 7;
+  ALARM_LEVEL_DO_NOT_LOG = 8;
+  ALARM_LEVEL_IGNORE = 9;
+}
+
+enum ReturnCause {
+  RETURN_CAUSE_UNSPECIFIED = 0;
+  RETURN_CAUSE_RETURN_TO_NORMAL = 1;
+  RETURN_CAUSE_SOURCE_DISABLED = 2;
+}
+
+message TranslatableArgument {
+  oneof argument {
+    string string_argument = 1;
+    Translatable translatable_argument = 2;
+  }
+}
+
+message Translatable {
+  string key = 1;
+  repeated TranslatableArgument parameters = 2;
+}
+
+message Event {
+  AlarmLevel alarm_level = 1;
+  int64 timestamp = 2;
+  string event_message = 3;
+  Translatable translatable_event_message = 4;
+  bool returns_to_normal = 5;
+  optional int64 inactive_timestamp = 6;
+  optional ReturnCause return_cause = 7;
+  optional DataPoint data_point = 8;
+}
