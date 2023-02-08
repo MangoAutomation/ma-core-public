@@ -37,7 +37,7 @@ message TranslatableArgument {
 
 message Translatable {
   string key = 1;
-  repeated TranslatableArgument parameters = 2;
+  repeated TranslatableArgument arguments = 2;
 }
 
 message Event {
