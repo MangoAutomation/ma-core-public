@@ -6,9 +6,9 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.StringWriter;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -36,6 +36,7 @@ public class BackupWorkItem implements WorkItem {
     private static final String TASK_ID = "CONFIG_BACKUP";
 
     public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; //Used to for filename and property value for last run
+    public static final String TURKISH_LANGUAGE = "Tr";
 
     //Lock to ensure we don't clobber files by running a backup
     // during another one.
@@ -112,7 +113,7 @@ public class BackupWorkItem implements WorkItem {
             LOG.info("Starting backup WorkItem.");
             // Create the filename
             String filename = "Mango-Configuration";
-            String runtimeString = DateTimeFormatter.ofPattern(BACKUP_DATE_FORMAT).format(LocalDateTime.now());
+            String runtimeString = new SimpleDateFormat(BACKUP_DATE_FORMAT, Locale.US).format(new Date());
             int maxFiles = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
             // If > 1 then we will use a date in the filename
             if (maxFiles > 1) {
@@ -226,14 +227,7 @@ public class BackupWorkItem implements WorkItem {
 
                 //Have we ever run?
                 if(lastRunDateString != null){
-                    LocalDateTime lastRunDate;
-                    try {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BACKUP_DATE_FORMAT);
-                        lastRunDate = LocalDateTime.parse(lastRunDateString, formatter);
-                    }catch(Exception e) {
-                        lastRunDate = LocalDateTime.now();
-                        LOG.warn("Failed to parse last backup date, using Jan 1 1970.", e);
-                    }
+                    Date lastRunDate = getLastRunDate(lastRunDateString);
                     DateTime lastRun = new DateTime(lastRunDate);
                     //Compute the next run time off of the last run time
                     DateTime nextRun = DateUtils.plus(lastRun, SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE),
@@ -254,6 +248,21 @@ public class BackupWorkItem implements WorkItem {
 
             }
         }//end run
+
+        private Date getLastRunDate(String lastRunDateString) {
+            try {
+                return new SimpleDateFormat(BACKUP_DATE_FORMAT, Locale.US).parse(lastRunDateString);
+            } catch (ParseException parseException) {
+                try {
+                    return new SimpleDateFormat(BACKUP_DATE_FORMAT,
+                        Locale.of(TURKISH_LANGUAGE)).parse(lastRunDateString);
+                } catch (ParseException e) {
+                    LOG.warn("Failed to parse last backup date, using Jan 1 1970.", e);
+                    return new Date();
+                }
+            }
+        }
+
     }// end backup settings task
 
     @Override
