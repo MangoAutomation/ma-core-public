@@ -126,13 +126,13 @@ public class DatabaseBackupWorkItem implements WorkItem {
             // Create the filename
             String filename = "core-database-" + Common.getBean(DatabaseProxy.class).getType();
             SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
-            String runtimeString = dateFormatter.format(new Date());
+            String runtimeString = String.valueOf(new Date().getTime());
             int maxFiles = SystemSettingsDao.getInstance().getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT);
             // If > 1 then we will use a date in the filename
             if (maxFiles > 1) {
                 // Create Mango-Configuration-date.json
                 filename += "-";
-                filename += runtimeString;
+                filename += dateFormatter.format(new Date(Long.parseLong(runtimeString)));
             }
 
             Path backupFilePath = Paths.get(this.backupLocation).resolve(filename + ".zip").toAbsolutePath().normalize();
@@ -250,14 +250,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
                 // Have we ever run?
                 if (lastRunDateString != null) {
-                    SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
-                    Date lastRunDate;
-                    try{
-                        lastRunDate = dateFormatter.parse(lastRunDateString);
-                    }catch(Exception e) {
-                        lastRunDate = new Date();
-                        LOG.warn("Failed to parse last backup date, using Jan 1 1970.", e);
-                    }
+                    Date lastRunDate = DateUtils.getLastRunDate(lastRunDateString);
                     DateTime lastRun = new DateTime(lastRunDate);
                     // Compute the next run time off of the last run time
                     DateTime nextRun = DateUtils.plus(lastRun,
