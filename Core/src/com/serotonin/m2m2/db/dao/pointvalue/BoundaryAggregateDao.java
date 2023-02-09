@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao.pointvalue;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.stream.Stream;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -25,6 +26,12 @@ public interface BoundaryAggregateDao extends AggregateDao {
      * @return boundary at which to switch between querying pre-aggregated and raw values
      */
     ZonedDateTime boundary();
+
+    /**
+     * @param unit TemporalUnit
+     * @return value of requested unit from boundary
+     */
+    long fromBoundary(TemporalUnit unit);
 
     /**
      * @return the period of the stored pre-aggregated values
