@@ -1,6 +1,7 @@
 *Version 4.4.4*
 * Fix point values purge when data source and data point purge setting overrides disabled
 * Avoid loading all points into memory while purging
+* Added preformance update on cache for new points
 
 *Version 4.4.3*
 * Fix bug where An event acknowledgement by a nor admin user returns an ACCESS_DENIED error response even when the event was acknowledged successfully.
