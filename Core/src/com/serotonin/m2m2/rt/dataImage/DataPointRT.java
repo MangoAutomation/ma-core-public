@@ -747,8 +747,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     public void setAttribute(String key, Object value) {
         Object previous = attributes.put(key, value);
         if(previous == null || !previous.equals(value)) {
-            Map<String, Object> attributesCopy = new HashMap<>(attributes);
-            fireEvents(null, null, attributesCopy, false, false, false, false, true);
+            fireEvents(null, null, Map.copyOf(attributes), false, false, false, false, true);
         }
     }
 
