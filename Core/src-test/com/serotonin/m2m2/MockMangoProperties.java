@@ -45,6 +45,9 @@ public class MockMangoProperties implements MangoProperties {
         setProperty("serial.port.linux.path", "/dev/");
         setProperty("serial.port.osx.regex", "null");
         setProperty("serial.port.osx.path", "/dev/");
+
+        // use an in-process gRPC server (disables TCP port)
+        setProperty("grpc.server.inProcessServer", "mango");
     }
 
     public void setProperty(String key, String value) {

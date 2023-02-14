@@ -12,6 +12,8 @@
     <packaging>pom</packaging>
     <properties>
         <docker.repository>ghcr.io/mangoautomation/mango</docker.repository>
+        <docker.tag>${project.version}</docker.tag>
+        <docker.skipNightly>false</docker.skipNightly>
     </properties>
     <build>
         <plugins>
@@ -50,6 +52,7 @@
                             <goal>push</goal>
                         </goals>
                         <configuration>
+                            <skip>${docker.skipNightly}</skip>
                             <tag>nightly</tag>
                             <skipDockerInfo>true</skipDockerInfo>
                         </configuration>
@@ -58,7 +61,7 @@
                 <configuration>
                     <repository>${docker.repository}</repository>
                     <useMavenSettingsForAuth>true</useMavenSettingsForAuth>
-                    <tag>${project.version}</tag>
+                    <tag>${docker.tag}</tag>
                     <buildArgs>
                         <BUNDLE_ZIP>maven-target/dependency/mango-bundle-${project.version}.zip</BUNDLE_ZIP>
                     </buildArgs>

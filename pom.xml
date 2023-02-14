@@ -34,6 +34,9 @@
         <resilience4j.version>1.7.1</resilience4j.version>
         <MA_HOME>${env.MA_HOME}</MA_HOME>
         <surefire.fork.count>1</surefire.fork.count>
+        <grpc.version>1.52.1</grpc.version>
+        <protobuf.version>3.21.12</protobuf.version>
+        <chronicle.version>2.24ea18</chronicle.version>
     </properties>
     <organization>
         <name>Radix IoT, LLC</name>
@@ -160,6 +163,13 @@
                 <directory>resources-test</directory>
             </testResource>
         </testResources>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.1</version>
+            </extension>
+        </extensions>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -308,6 +318,26 @@
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>3.1.2</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.xolstice.maven.plugins</groupId>
+                    <artifactId>protobuf-maven-plugin</artifactId>
+                    <version>0.6.1</version>
+                    <configuration>
+                        <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
+                        <pluginId>grpc-java</pluginId>
+                        <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
+                        <protoSourceRoot>proto</protoSourceRoot>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>compile</id>
+                            <goals>
+                                <goal>compile</goal>
+                                <goal>compile-custom</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -432,4 +462,15 @@
             <url>https://maven.mangoautomation.net/repository/ias-release/</url>
         </pluginRepository>
     </pluginRepositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.openhft</groupId>
+                <artifactId>chronicle-bom</artifactId>
+                <version>${chronicle.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 </project>

@@ -1,139 +1,79 @@
 /*
- * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
  */
+
 package com.serotonin.m2m2.rt.publish;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 
-import com.infiniteautomation.mango.monitor.ValueMonitor;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
-import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
- * 
- * @author Matthew Lohbihler
+ * @author Jared Wiltshire
  */
-public class PublishQueue<PUB extends PublisherVO, T extends PublishedPointVO, V> {
-    private static final Logger LOG = LoggerFactory.getLogger(PublishQueue.class);
-    private static final long SIZE_CHECK_DELAY = 5000;
+public interface PublishQueue<T extends PublishedPointVO, V> {
+    /**
+     * Add an entry to the tail of the queue.
+     *
+     * @param vo the published point to which this entry belongs
+     * @param item the point value/attribute for the published point
+     */
+    void add(T vo, V item);
 
-    //Metrics
-    public static final String QUEUE_SIZE_MONITOR_ID = "com.serotonin.m2m2.rt.publish.QUEUE_SIZE_MONITOR_";
+    /**
+     * Add entries to the tail of the queue.
+     *
+     * @param vo the published point to which these entries belong
+     * @param items the point values/attributes for the published point
+     */
+    void add(T vo, Collection<V> items);
 
-    //Monitors
-    final ValueMonitor<Integer> queueSizeMonitor;
+    /**
+     * Retrieve a single entry from the head of the queue without removing it (peek).
+     *
+     * @return entry from head of queue, or null if the queue is empty.
+     */
+    @Nullable
+    PublishQueueEntry<T, V> next();
 
-    protected final ConcurrentLinkedQueue<PublishQueueEntry<T, V>> queue = new ConcurrentLinkedQueue<PublishQueueEntry<T, V>>();
-    private final PublisherRT<PUB, T, ? extends SendThread> owner;
-    private final int warningSize;
-    private final int dewarningSize;
-    private final int discardSize;
-    private boolean warningActive = false;
-    private long lastSizeCheck;
+    /**
+     * Retrieves multiple entries from the head of the queue without removing them (peek).
+     *
+     * @param max maximum number of entries to retrieve
+     * @throws IllegalArgumentException if max is less than 0
+     * @return list of entries from head of queue
+     */
+    List<PublishQueueEntry<T, V>> get(int max);
 
-    public PublishQueue(PublisherRT<PUB, T, ? extends SendThread> owner, int warningSize, int discardSize) {
-        this.owner = owner;
-        this.warningSize = warningSize;
-        this.dewarningSize = (int) (warningSize * 0.9); // Deactivate the size warning at 90% of the warning size.
-        this.discardSize = discardSize;
-        this.queueSizeMonitor = Common.MONITORED_VALUES.<Integer>create(QUEUE_SIZE_MONITOR_ID + this.owner.getVo().getXid())
-                .name(new TranslatableMessage("publisher.monitor.QUEUE_SIZE_MONITOR_ID", this.owner.getVo().getName())).build();
+    /**
+     * Removes a single entry from the queue (by identity).
+     *
+     * @param entry entry to remove
+     */
+    void remove(PublishQueueEntry<T, V> entry);
 
-    }
+    /**
+     * Removes all the specified entries from the queue (by identity).
+     *
+     * @param entries entries to be removed
+     */
+    void removeAll(Collection<PublishQueueEntry<T, V>> entries);
 
-    public void add(T vo, V pvt) {
-        queue.add(new PublishQueueEntry<T, V>(vo, pvt));
-        sizeCheck();
-    }
+    /**
+     * Clears the queue, removing all entries.
+     */
+    void clear();
 
-    public void add(T vo, List<V> pvts) {
-        for (V pvt : pvts)
-            queue.add(new PublishQueueEntry<T, V>(vo, pvt));
-        sizeCheck();
-    }
+    /**
+     * @return number of items stored in the queue
+     */
+    int getSize();
 
-    public PublishQueueEntry<T,V> next() {
-        return queue.peek();
-    }
-
-    public List<PublishQueueEntry<T,V>> get(int max) {
-        if (queue.isEmpty())
-            return null;
-
-        Iterator<PublishQueueEntry<T,V>> iter = queue.iterator();
-        List<PublishQueueEntry<T,V>> result = new ArrayList<PublishQueueEntry<T,V>>(max);
-        while (iter.hasNext() && result.size() < max)
-            result.add(iter.next());
-
-        return result;
-    }
-
-    public void remove(PublishQueueEntry<T,V> e) {
-        queue.remove(e);
-        sizeCheck();
-    }
-
-    public void removeAll(List<PublishQueueEntry<T,V>> list) {
-        queue.removeAll(list);
-        sizeCheck();
-    }
-    
-    public void removeAll() {
-    	queue.clear();
-    }
-
-    public int getSize() {
-        return queue.size();
-    }
-
-    private void sizeCheck() {
-        long now = Common.timer.currentTimeMillis();
-        if (lastSizeCheck + SIZE_CHECK_DELAY < now) {
-            lastSizeCheck = now;
-            int size = queue.size();
-            queueSizeMonitor.setValue(size);
-            synchronized (owner) {
-                if (size > discardSize) {
-                	try {
-                		for (int i = discardSize; i < size; i++)
-                			queue.remove();
-                	} catch(NoSuchElementException e) {
-                		//Queue is emptied, nothing to do
-                	}
-                	
-                    LOG.warn("Publisher queue " + owner.getVo().getName() + " discarded " + (size - discardSize)
-                            + " entries");
-                }
-
-                if (warningActive) {
-                    if (size <= dewarningSize) {
-                        owner.deactivateQueueSizeWarningEvent();
-                        warningActive = false;
-                    }
-                }
-                else {
-                    if (size > warningSize) {
-                        owner.fireQueueSizeWarningEvent();
-                        warningActive = true;
-                    }
-                }
-            }
-        }
-    }
-
-    public void terminate() {
-        Common.MONITORED_VALUES.remove(this.queueSizeMonitor.getId());
-        if(!queue.isEmpty()){
-            LOG.debug("Publisher " + owner.readableIdentifier() + " terminated with a non-empty queue.");
-        }
-    }
+    /**
+     * Called when the publisher which owns this queue is terminated.
+     */
+    void terminate();
 }

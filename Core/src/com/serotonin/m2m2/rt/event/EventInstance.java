@@ -237,8 +237,9 @@ public class EventInstance implements EventInstanceI {
         return handlers;
     }
 
-    public void setHandlers(@NonNull List<EventHandlerRT<?>> handlers) {
-        this.handlers = Objects.requireNonNull(handlers);
+    public void setHandlers(@NonNull List<? extends EventHandlerRT<?>> handlers) {
+        // ensure the list is unmodifiable by calling copyOf()
+        this.handlers = List.copyOf(Objects.requireNonNull(handlers));
     }
 
     @Override

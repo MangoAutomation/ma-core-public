@@ -4,16 +4,15 @@
 package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -23,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 
+import com.google.common.base.Functions;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
@@ -39,16 +39,16 @@ import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.UserEventMulticaster;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
+import com.serotonin.m2m2.rt.event.handlers.EventHandlerInterface;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.ExceptionListWrapper;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.RejectedTaskReason;
@@ -63,6 +63,7 @@ public class EventManagerImpl implements EventManager {
     // minutes.
 
     private final List<EventManagerListenerDefinition> listeners = new CopyOnWriteArrayList<>();
+    private final Set<EventHandlerInterface> universalHandlers = new CopyOnWriteArraySet<>();
     private final ReadWriteLock activeEventsLock = new ReentrantReadWriteLock();
     private final List<EventInstance> activeEvents = new ArrayList<>();
     private final ReadWriteLock recentEventsLock = new ReentrantReadWriteLock();
@@ -449,7 +450,10 @@ public class EventManagerImpl implements EventManager {
         reLoadHandlers(evt);
 
         // invoke event handlers
-        for (EventHandlerRT<?> handler : evt.getHandlers()) {
+        for (var handler : universalHandlers) {
+            handler.eventAcknowledged(evt);
+        }
+        for (EventHandlerInterface handler : evt.getHandlers()) {
             handler.eventAcknowledged(evt);
         }
 
@@ -794,6 +798,10 @@ public class EventManagerImpl implements EventManager {
         auditEventDao = Common.getBean(AuditEventDao.class);
         eventHandlerService = Common.getBean(EventHandlerService.class);
 
+        Common.getRuntimeContext().getBeansOfType(EventHandlerInterface.class)
+                .values()
+                .forEach(this::addHandler);
+
         // Get all active events from the database.
         activeEventsLock.writeLock().lock();
         try{
@@ -840,6 +848,16 @@ public class EventManagerImpl implements EventManager {
     @Override
     public synchronized void removeUserEventListener(UserEventListener l) {
         userEventMulticaster = UserEventMulticaster.remove(userEventMulticaster, l);
+    }
+
+    @Override
+    public void addHandler(EventHandlerInterface handler) {
+        universalHandlers.add(handler);
+    }
+
+    @Override
+    public void removeHandler(EventHandlerInterface handler) {
+        universalHandlers.remove(handler);
     }
 
     //
@@ -953,48 +971,35 @@ public class EventManagerImpl implements EventManager {
     }
 
     private void initHandlers(EventInstance event) {
-        List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(event.getEventType());
-        if (!vos.isEmpty()) {
-            List<EventHandlerRT<?>> rts = vos.stream()
-                    .map(vo -> {
-                        try {
-                            return vo.getDefinition().createRuntime(vo);
-                        } catch (Exception e) {
-                            log.error("Error creating event handler runtime", e);
-                            return null;
-                        }
-                    })
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-
-            event.setHandlers(Collections.unmodifiableList(rts));
-        } else {
-            event.setHandlers(Collections.emptyList());
-        }
+        event.setHandlers(eventHandlerService.enabledHandlersForType(event.getEventType())
+                .stream()
+                .map(vo -> {
+                    try {
+                        return vo.getDefinition().createRuntime(vo);
+                    } catch (Exception e) {
+                        log.error("Error creating event handler runtime", e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toUnmodifiableList()));
     }
 
     private void reLoadHandlers(EventInstance event) {
-        List<EventHandlerRT<?>> existingRts = event.getHandlers();
-        List<AbstractEventHandlerVO> vos = eventHandlerService.enabledHandlersForType(event.getEventType());
+        var reloadedHandlers = eventHandlerService.enabledHandlersForType(event.getEventType())
+                .stream()
+                .collect(Collectors.toMap(AbstractBasicVO::getId, Functions.identity()));
 
-        List<EventHandlerRT<?>> updatedRts = existingRts.stream().map(rt -> {
-            Optional<AbstractEventHandlerVO> latestVo = vos.stream()
-                    .filter(vo -> vo.getId() == rt.getVo().getId())
-                    .findFirst();
-            if (latestVo.isPresent()) {
-                // TODO Update EventHandlerVO if it is possible to update for each type
-                // rt.setVo(latestVo.get());
-                return rt;
-            } else {
-                // Terminate and remove handler from active event
-                rt.terminate(event);
-                return null;
-            }
-        })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-
-        event.setHandlers(Collections.unmodifiableList(updatedRts));
+        event.setHandlers(event.getHandlers().stream().map(handler -> {
+                    // TODO Update EventHandlerVO if it is possible to update for each type
+                    if (!reloadedHandlers.containsKey(handler.getVo().getId())) {
+                        handler.terminate(event);
+                        return null;
+                    }
+                    return handler;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toUnmodifiableList()));
     }
 
     /**
@@ -1005,15 +1010,18 @@ public class EventManagerImpl implements EventManager {
      * which is configured on each user or on a mailing list
      */
     private void handleRaiseEvent(EventInstance evt, Set<String> defaultAddresses) {
-        for (EventHandlerRT<?> h : evt.getHandlers()) {
-            h.eventRaised(evt);
+        for (var handler : universalHandlers) {
+            handler.eventRaised(evt);
+        }
+        for (EventHandlerInterface handler : evt.getHandlers()) {
+            handler.eventRaised(evt);
 
             // If this is an email handler, remove any addresses to which it
             // was sent from the default addresses
             // so that the default users do not receive multiple
             // notifications.
-            if (h instanceof EmailHandlerRT) {
-                EmailHandlerRT eh = (EmailHandlerRT)h;
+            if (handler instanceof EmailHandlerRT) {
+                EmailHandlerRT eh = (EmailHandlerRT)handler;
                 if(eh.getActiveRecipients() != null) {
                     for (String addr : eh.getActiveRecipients())
                         defaultAddresses.remove(addr);
@@ -1028,8 +1036,11 @@ public class EventManagerImpl implements EventManager {
     }
 
     private void handleInactiveEvent(EventInstance evt) {
-        for (EventHandlerRT<?> h : evt.getHandlers()) {
-            h.eventInactive(evt);
+        for (var handler : universalHandlers) {
+            handler.eventInactive(evt);
+        }
+        for (EventHandlerInterface handler : evt.getHandlers()) {
+            handler.eventInactive(evt);
         }
     }
 

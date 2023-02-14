@@ -35,7 +35,7 @@ public class DataPointEventType extends EventType {
 
     public DataPointEventType(DataPointVO dataPoint, AbstractPointEventDetectorVO eventDetector) {
         this.dataPointId = dataPoint.getId();
-        this.pointEventDetectorId = eventDetector.getId();
+        this.pointEventDetectorId = eventDetector == null ? 0 : eventDetector.getId();
         supplyReference1(() -> {
             return dataPoint;
         });

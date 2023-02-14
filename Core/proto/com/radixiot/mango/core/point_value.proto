@@ -1,0 +1,18 @@
+/*
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
+ */
+
+syntax = "proto3";
+package com.radixiot.mango.core;
+option java_multiple_files = true;
+
+message PointValue {
+  string data_point_xid = 1;
+  int64 timestamp = 2;
+  oneof value {
+    bool binary_value = 4;
+    int32 multistate_value = 5;
+    double numeric_value = 6;
+    string alphanumeric_value = 7;
+  }
+}

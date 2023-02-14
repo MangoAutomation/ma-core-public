@@ -4,6 +4,9 @@
 
 package com.serotonin.m2m2.rt.publish;
 
+import static com.serotonin.m2m2.rt.publish.PublishQueueImpl.QUEUE_SIZE_MONITOR_ID;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,13 +39,9 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
-import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherVO;
-
-import static com.serotonin.m2m2.rt.publish.PublishQueue.QUEUE_SIZE_MONITOR_ID;
-import static org.junit.Assert.fail;
 
 @RunWith(SuperadminSecurityContextRunner.class)
 public class PublisherRTQueueMonitorTest extends MangoTestBase {
@@ -141,9 +140,9 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
         }
 
         @Override
-        protected PublishQueue<MockPublisherVO, MockPublishedPointVO, PointValueTime> createPublishQueue(PublisherVO vo) {
-            TestPublisherVO tPvo = (TestPublisherVO)vo;
-            return new TestPublishQueue(this, tPvo.getCacheWarningSize(), tPvo.getCacheDiscardSize(), tPvo.getAddedFuture());
+        protected PublishQueue<MockPublishedPointVO, PointValueTime> createPublishQueue() {
+            TestPublisherVO tPvo = (TestPublisherVO) vo;
+            return new TestPublishQueue<>(this, tPvo.getCacheWarningSize(), tPvo.getCacheDiscardSize(), tPvo.getAddedFuture());
         }
     }
 
@@ -156,17 +155,17 @@ public class PublisherRTQueueMonitorTest extends MangoTestBase {
         }
     }
 
-    static class TestPublishQueue extends PublishQueue {
+    static class TestPublishQueue<T extends PublishedPointVO, V> extends PublishQueueImpl<T, V> {
         private final CompletableFuture<Void> added;
 
-        public TestPublishQueue(PublisherRT owner, int warningSize, int discardSize, CompletableFuture<Void> added) {
+        public TestPublishQueue(PublisherRT<?, T, ?> owner, int warningSize, int discardSize, CompletableFuture<Void> added) {
             super(owner, warningSize, discardSize);
             this.added = added;
         }
 
         @Override
-        public void add(PublishedPointVO vo, Object pvt) {
-            super.add(vo, pvt);
+        public void add(T vo, V item) {
+            super.add(vo, item);
             added.complete(null);
         }
     }

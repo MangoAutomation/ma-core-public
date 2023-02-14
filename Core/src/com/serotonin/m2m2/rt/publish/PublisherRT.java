@@ -84,8 +84,8 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      */
     protected final Collection<PublishedPointRT<POINT>> publishedPoints = Collections.unmodifiableCollection(publishedPointsMap.values());
 
-    protected final PublishQueue<T, POINT, PointValueTime> queue;
-    protected final AttributePublishQueue<POINT> attributesChangedQueue;
+    protected final PublishQueue<POINT, PointValueTime> queue;
+    protected final AttributePublishQueue<POINT> attributeChangeQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
     protected SEND sendThread;
@@ -96,8 +96,8 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     public PublisherRT(T vo) {
         this.vo = vo;
-        this.queue = createPublishQueue(vo);
-        this.attributesChangedQueue = createAttirbutesChangedQueue();
+        this.queue = createPublishQueue();
+        this.attributeChangeQueue = createAttributeChangeQueue();
         this.pointDisabledEventType = new PublisherEventType(vo, POINT_DISABLED_EVENT);
         this.queueSizeWarningEventType = new PublisherEventType(vo, QUEUE_SIZE_WARNING_EVENT);
         this.dataPointDao = Common.getBean(DataPointDao.class);
@@ -108,12 +108,12 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         return vo.getId();
     }
 
-    protected PublishQueue<T, POINT, PointValueTime> createPublishQueue(PublisherVO vo) {
-        return new PublishQueue<>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
+    protected PublishQueue<POINT, PointValueTime> createPublishQueue() {
+        return new PublishQueueImpl<>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
-    protected AttributePublishQueue<POINT> createAttirbutesChangedQueue() {
-        return new AttributePublishQueue<>();
+    protected AttributePublishQueue<POINT> createAttributeChangeQueue() {
+        return new AttributePublishQueueImpl<>();
     }
 
     public final PublisherVO getVo() {
@@ -167,7 +167,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         }
     }
 
-    void publish(POINT vo, PointValueTime newValue) {
+    protected void publish(POINT vo, PointValueTime newValue) {
         queue.add(vo, newValue);
 
         synchronized (sendThread) {
@@ -175,7 +175,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         }
     }
 
-    public void publish(POINT vo, List<PointValueTime> newValues) {
+    protected void publish(POINT vo, List<PointValueTime> newValues) {
         queue.add(vo, newValues);
 
         synchronized (sendThread) {
@@ -202,7 +202,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      */
     protected void attributeChanged(POINT vo, Map<String, Object> attributes) {
         if(this.vo.isPublishAttributeChanges()) {
-            attributesChangedQueue.add(vo, attributes);
+            attributeChangeQueue.add(vo, attributes);
             synchronized (sendThread) {
                 sendThread.notify();
             }
@@ -293,6 +293,15 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
      *  queue and finally the points
      */
     protected void terminateImpl() { }
+
+    /**
+     * Call terminate on the queue.
+     */
+    protected void terminateQueue() {
+        if (queue != null) {
+            queue.terminate();
+        }
+    }
 
     @Override
     public final synchronized void initialize(boolean safe) {
@@ -389,7 +398,7 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
         try {
             // Terminate the queue
-            queue.terminate();
+            terminateQueue();
         } catch (Exception e) {
             log.error("Failed to terminate queue for " + readableIdentifier(), e);
         }
@@ -478,6 +487,11 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
     @Override
     public String getTaskId() {
         return "PUB-" + vo.getXid();
+    }
+
+    @Override
+    public int getQueueSize() {
+        return queue.getSize();
     }
 
     @Override
