@@ -125,9 +125,7 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
         pointEnabled = false;
         parent.dataPointTerminated(this, dp);
         //Publish that its unreliable
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put(DataSourceRT.ATTR_UNRELIABLE_KEY, true);
-        parent.attributeChanged(vo, attributes);
+        parent.attributeChanged(vo, Map.of(DataSourceRT.ATTR_UNRELIABLE_KEY, true));
     }
 
     @Override
@@ -167,8 +165,13 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
         if(rt != null && parent.getVo().isPublishAttributeChanges()) {
             //Ensure that the reliability attribute exists, if DNE then assume reliable.
             if(rt.getAttribute(DataSourceRT.ATTR_UNRELIABLE_KEY) == null) {
-                Map<String, Object> attributes = new HashMap<>(rt.getAttributes());
-                attributes.put(DataSourceRT.ATTR_UNRELIABLE_KEY, unreliable);
+                Map<String, Object> attributes;
+                if (rt.getAttributes().isEmpty()) {
+                    attributes = Map.of(DataSourceRT.ATTR_UNRELIABLE_KEY, unreliable);
+                } else {
+                    attributes = new HashMap<>(rt.getAttributes());
+                    attributes.put(DataSourceRT.ATTR_UNRELIABLE_KEY, unreliable);
+                }
                 parent.attributeChanged(vo, attributes);
             }else {
                 parent.attributeChanged(vo, rt.getAttributes());
