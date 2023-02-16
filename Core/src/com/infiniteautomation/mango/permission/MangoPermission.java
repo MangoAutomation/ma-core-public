@@ -141,8 +141,8 @@ public final class MangoPermission {
         return requireAllRoles(roles.collect(Collectors.toSet()));
     }
 
-    public static MangoPermission merge(MangoPermission a, MangoPermission b) {
-        var minterms = Stream.concat(a.getRoles().stream(), b.getRoles().stream()).collect(Collectors.toSet());
+    public static MangoPermission merge(Stream<MangoPermission> permissions) {
+        var minterms = permissions.flatMap(m -> m.getRoles().stream()).collect(Collectors.toSet());
         return new MangoPermission(minterms);
     }
 
@@ -194,8 +194,8 @@ public final class MangoPermission {
         return this;
     }
 
-    public MangoPermission merge(MangoPermission other) {
-        return MangoPermission.merge(this, other);
+    public MangoPermission merge(MangoPermission... others) {
+        return MangoPermission.merge(Stream.concat(Stream.of(this), Arrays.stream(others)));
     }
 
     public Integer getId() {
