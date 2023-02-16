@@ -6,27 +6,9 @@ syntax = "proto3";
 package com.radixiot.mango.core;
 
 import "com/radixiot/mango/core/permission.proto";
+import "com/radixiot/mango/core/text_renderer.proto";
 
 option java_multiple_files = true;
-
-message RenderedValue {
-  string rendered_text = 1;
-  string color = 2;
-}
-
-message RenderedRange {
-  double from = 1;
-  double to = 2;
-  RenderedValue rendered_value = 3;
-}
-
-message TextRenderer {
-  string suffix = 1;
-  string format = 2;
-  bool useUnit = 3;
-  map<int32, RenderedValue> rendered_values = 4;
-  repeated RenderedRange rendered_ranges = 5;
-}
 
 enum DataType {
   DATA_TYPE_UNSPECIFIED = 0;
