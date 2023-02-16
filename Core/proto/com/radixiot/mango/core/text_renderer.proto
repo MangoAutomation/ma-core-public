@@ -1,0 +1,39 @@
+/*
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
+ */
+
+syntax = "proto3";
+package com.radixiot.mango.core;
+
+option java_multiple_files = true;
+
+message RenderedValue {
+  string rendered_text = 1;
+  string color = 2;
+}
+
+message RenderedRange {
+  double from = 1;
+  double to = 2;
+  RenderedValue rendered_value = 3;
+}
+
+enum TextRendererType {
+  TEXT_RENDERER_TYPE_UNSPECIFIED = 0;
+  TEXT_RENDERER_TYPE_PLAIN = 1;
+  TEXT_RENDERER_TYPE_ANALOG = 2;
+  TEXT_RENDERER_TYPE_RANGE = 3;
+  TEXT_RENDERER_TYPE_BINARY = 4;
+  TEXT_RENDERER_TYPE_MULTISTATE = 5;
+  TEXT_RENDERER_TYPE_TIME = 6;
+}
+
+message TextRenderer {
+  TextRendererType type = 1;
+  string suffix = 2;
+  bool useUnit = 3;
+  string format = 4;
+  map<int32, RenderedValue> rendered_values = 5;
+  repeated RenderedRange rendered_ranges = 6;
+  int32 conversion_exponent = 7;
+}
