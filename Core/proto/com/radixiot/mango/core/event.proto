@@ -5,8 +5,6 @@
 syntax = "proto3";
 package com.radixiot.mango.core;
 
-import "com/radixiot/mango/core/data_point.proto";
-
 option java_multiple_files = true;
 
 enum AlarmLevel {
@@ -48,5 +46,5 @@ message Event {
   bool returns_to_normal = 5;
   optional int64 inactive_timestamp = 6;
   optional ReturnCause return_cause = 7;
-  optional DataPoint data_point = 8;
+  optional string data_point_xid = 8;
 }
