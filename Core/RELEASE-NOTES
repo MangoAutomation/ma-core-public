@@ -1,5 +1,5 @@
 *Version 4.5.0*
-* Upgraded for Mango 4.5.0
+* Add new rollup type Range (in period)
 
 *Version 4.4.4*
 * Fix point values purge when data source and data point purge setting overrides disabled
