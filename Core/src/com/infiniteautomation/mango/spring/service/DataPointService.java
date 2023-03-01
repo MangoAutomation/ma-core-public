@@ -204,7 +204,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
 
         if (vo.isEnabled()) {
             // the data point cannot have detectors if it was just inserted, don't query for detectors
-            getRuntimeManager().startDataPoint(new DataPointWithEventDetectors(vo, detectors));
+            getRuntimeManager().startDataPoint(new DataPointWithEventDetectors(vo, detectors), Collections.emptyList());
+        } else {
+            this.pointValueCache.updateCache(vo, Collections.emptyList());
         }
         return vo;
     }

@@ -1,3 +1,6 @@
+*Version 4.5.1*
+* Improve performance for new points by setting the point value cache to an empty collection
+
 *Version 4.5.0*
 * Add new rollup type Range (in period)
 
