@@ -169,18 +169,12 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     protected void publish(POINT vo, PointValueTime newValue) {
         queue.add(vo, newValue);
-
-        synchronized (sendThread) {
-            sendThread.notify();
-        }
+        notifySendThread();
     }
 
     protected void publish(POINT vo, List<PointValueTime> newValues) {
         queue.add(vo, newValues);
-
-        synchronized (sendThread) {
-            sendThread.notify();
-        }
+        notifySendThread();
     }
 
     /**
@@ -203,12 +197,20 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
     protected void attributeChanged(POINT vo, Map<String, Object> attributes) {
         if(this.vo.isPublishAttributeChanges()) {
             attributeChangeQueue.add(vo, attributes);
-            synchronized (sendThread) {
-                sendThread.notify();
-            }
+            notifySendThread();
         }
     }
 
+    protected void notifySendThread() {
+        Thread thread = sendThread;
+        // send thread may not have been initialized yet
+        if (thread != null) {
+            //noinspection SynchronizationOnLocalVariableOrMethodParameter
+            synchronized (thread) {
+                thread.notify();
+            }
+        }
+    }
 
     synchronized private void checkForDisabledPoints() {
         int badPointId = -1;
