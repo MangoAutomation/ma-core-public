@@ -309,8 +309,8 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         this.state = ILifecycleState.INITIALIZING;
         try {
             initialize();
-            initializeSendThread();
             initializePoints();
+            initializeSendThread();
             checkForDisabledPoints();
             initializeSnapshot();
             //Signal to the publisher that all points are added.
@@ -367,9 +367,12 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         }
 
         try {
-            terminateImpl();
+            // Unschedule any job that is running.
+            if (snapshotTask != null) {
+                snapshotTask.cancel();
+            }
         } catch (Exception e) {
-            log.error("Failed to terminate " + readableIdentifier(), e);
+            log.error("Failed to cancel snapshot task for " + readableIdentifier(), e);
         }
 
         try {
@@ -382,18 +385,15 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         }
 
         try {
-            // Unschedule any job that is running.
-            if (snapshotTask != null) {
-                snapshotTask.cancel();
-            }
-        } catch (Exception e) {
-            log.error("Failed to cancel snapshot task for " + readableIdentifier(), e);
-        }
-
-        try {
             terminatePoints();
         } catch (Exception e) {
             log.error("Failed to terminate points for " + readableIdentifier(), e);
+        }
+
+        try {
+            terminateImpl();
+        } catch (Exception e) {
+            log.error("Failed to terminate " + readableIdentifier(), e);
         }
 
         try {
