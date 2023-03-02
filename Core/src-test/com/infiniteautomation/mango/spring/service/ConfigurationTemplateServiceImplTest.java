@@ -33,17 +33,23 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
     public void testConfigurationTemplateService() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
 
-        List<ConfigurationTemplateServiceImpl.TemplateLevel> levels = new ArrayList<>();
+
+        List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
         levels.add(ConfigurationTemplateServiceImpl
-                .TemplateLevel.newBuilder()
-                        .setGroupBy("site")
-                        .setInto("dataHalls")
-                        .createTemplateLevel());
+                .CSVLevel.newBuilder()
+                .setGroupBy("site")
+                .setInto("dataHalls")
+                .createTemplateLevel());
         levels.add(ConfigurationTemplateServiceImpl
-                .TemplateLevel.newBuilder()
+                .CSVLevel.newBuilder()
                 .setGroupBy("dataHall")
                 .setInto("devices")
                 .createTemplateLevel());
+
+        ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy = ConfigurationTemplateServiceImpl.CSVHiearchy.newBuilder()
+                .setRoot("sites")
+                .setLevels(levels)
+                .createCSVHiearchy();
 
 
         //Move template files into file store
@@ -53,11 +59,32 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
 
         Path dst = rootPath.resolve("configTemplateTestData.csv");
         Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
-        List<Map<String, Object>>
-                result = service.generateConfig("default", "configTemplateTestData.csv", levels);
+        Map<String, Object>
+                model = service.generateTemplateModel("default", "configTemplateTestData.csv", hierarchy);
 
-        assertNotNull(result);
-        assertTrue(result.size() > 0);
+        assertNotNull(model);
+
+        //The first level of the model should be a list of 2 sites
+        assertNotNull(model.get(hierarchy.getRoot()));
+        assertTrue(model.get(hierarchy.getRoot()) instanceof ArrayList);
+        List<Map<String, Object>> sites = (List<Map<String, Object>>) model.get(hierarchy.getRoot());
+        assertTrue(sites.size() == 2);
+        assertTrue(sites.get(0).get("site").equals("SiteA"));
+        assertTrue(sites.get(1).get("site").equals("SiteB"));
+
+        //Site A has 2 data halls (1,2)
+        List<Map<String, Object>> siteADataHalls = (List<Map<String, Object>>) sites.get(0).get("dataHalls");
+        assertTrue(siteADataHalls.size() == 2);
+        assertTrue(siteADataHalls.get(0).get("dataHall").equals("1"));
+        assertTrue(siteADataHalls.get(1).get("dataHall").equals("2"));
+        //TODO assert devices
+
+        //Site B has 1 data hall (3)
+        List<Map<String, Object>> siteBDataHalls = (List<Map<String, Object>>) sites.get(1).get("dataHalls");
+        assertTrue(siteBDataHalls.size() == 1);
+        assertTrue(siteBDataHalls.get(0).get("dataHall").equals("3"));
+        //TODO assert devices
+
     }
     @Test
     public void testConfigurationTemplateServiceTemplate() throws IOException {
@@ -70,23 +97,28 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         Path dst = rootPath.resolve("configTemplateTestData.csv");
         Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
 
-        List<ConfigurationTemplateServiceImpl.TemplateLevel> levels = new ArrayList<>();
+        List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
         levels.add(ConfigurationTemplateServiceImpl
-                .TemplateLevel.newBuilder()
+                .CSVLevel.newBuilder()
                 .setGroupBy("site")
                 .setInto("dataHalls")
                 .createTemplateLevel());
         levels.add(ConfigurationTemplateServiceImpl
-                .TemplateLevel.newBuilder()
+                .CSVLevel.newBuilder()
                 .setGroupBy("dataHall")
                 .setInto("devices")
                 .createTemplateLevel());
+
+        ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy = ConfigurationTemplateServiceImpl.CSVHiearchy.newBuilder()
+                .setRoot("sites")
+                .setLevels(levels)
+                .createCSVHiearchy();
 
         String result = service.generateMangoConfigurationJson(
                 "default",
                 "configTemplateTestData.csv",
                 templatePath,
-                levels
+                hierarchy
         );
 
         ObjectMapper mapper = new ObjectMapper();

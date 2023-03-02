@@ -12,7 +12,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +44,7 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     }
 
     @Override
-    public List<Map<String, Object>> generateConfig(String fileStore, String filePath, List<TemplateLevel> structure) throws IOException,
+    public Map<String, Object> generateTemplateModel(String fileStore, String filePath, CSVHiearchy csvHiearchy) throws IOException,
             PermissionException {
         permissionService.ensureAdminRole(Common.getUser());
 
@@ -53,21 +53,26 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
             CSVReader csvReader = new CSVReader(in);
             List<Map<String, Object>> readFileStructure = readCSV(csvReader);
 
-            List<Map<String, Object>> result = groupByLevels(readFileStructure, structure);
-            return result;
+            List<Map<String, Object>> levels = groupByLevels(readFileStructure, csvHiearchy.getLevels());
+
+            //Do final level mapping for root object
+            Map<String, Object> templateModel = new LinkedHashMap<>();
+            templateModel.put(csvHiearchy.getRoot(), levels);
+
+            return templateModel;
         }
     }
 
     @Override
-    public String generateMangoConfigurationJson(String fileStore, String filePath, String template, List<TemplateLevel> structure) throws IOException,
+    public String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHiearchy csvHiearchy) throws IOException,
             PermissionException {
         MustacheFactory mf = new DefaultMustacheFactory();
-        List<Map<String, Object>> sites = generateConfig(fileStore, filePath, structure);
+        Map<String, Object> model = generateTemplateModel(fileStore, filePath, csvHiearchy);
 
         ClassPathResource cp = new ClassPathResource(template);
         Mustache m = mf.compile(cp.getPath());
         StringWriter writer = new StringWriter();
-        m.execute(writer, sites).flush();
+        m.execute(writer, model).flush();
         StringBuilder result = new StringBuilder(writer.toString());
 
         //TODO: Fix this trailing comma situation
@@ -83,12 +88,13 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
      * @param level - map of keys used for structuring data for the configuration file.
      * @return grouped data based on the provided keys in a hierarchical structure.
      */
-    private List<Map<String, Object>> groupByLevel(List<Map<String, Object>> array, TemplateLevel level) {
-        Map<Object, Map<String, Object>> map = new HashMap<>();
+    private List<Map<String, Object>> groupByLevel(List<Map<String, Object>> array, CSVLevel level) {
+        Map<Object, Map<String, Object>> map = new LinkedHashMap<>();
+
         for (Map<String, Object> item : array) {
             Object keyValue = item.get(level.getGroupBy());
             if (!map.containsKey(keyValue)) {
-                Map<String, Object> group = new HashMap<>();
+                Map<String, Object> group = new LinkedHashMap<>();
                 group.put(level.getGroupBy(), keyValue);
                 group.put(level.getInto(), new ArrayList<Map<String, Object>>());
                 map.put(keyValue, group);
@@ -112,12 +118,12 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
      * @param structure Structure of values in which the data is going to be mapped.
      * @return List<Map<String, Object>> List of hierarchical structure map based on provided keys for the template processor.
      */
-    private List<Map<String, Object>> groupByLevels(List<Map<String, Object>> data, List<TemplateLevel> structure) {
+    private List<Map<String, Object>> groupByLevels(List<Map<String, Object>> data, List<CSVLevel> structure) {
         if (structure.isEmpty()) {
             return data;
         }
-       TemplateLevel levelZero = structure.get(0);
-        List<TemplateLevel> levels = structure.subList(1, structure.size());
+        CSVLevel levelZero = structure.get(0);
+        List<CSVLevel> levels = structure.subList(1, structure.size());
         List<Map<String, Object>> groups = groupByLevel(data, levelZero);
         for (Map<String, Object> group : groups) {
             group.put(levelZero.getInto(), groupByLevels((List<Map<String, Object>>) group.get(levelZero.getInto()), levels));
@@ -133,11 +139,11 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
      */
     private Map<String, Object> findCommonProperties(List<Map<String, Object>> data) {
         if (data.isEmpty()) {
-            return new HashMap<>();
+            return new LinkedHashMap<>();
         }
-        Map<String, Object> common = new HashMap<>(data.get(0));
+        Map<String, Object> common = new LinkedHashMap<>(data.get(0));
         for (Map<String, Object> item : data) {
-            for (Map.Entry<String, Object> entry : new HashMap<>(common).entrySet()) {
+            for (Map.Entry<String, Object> entry : new LinkedHashMap<>(common).entrySet()) {
                 String k = entry.getKey();
                 Object v = entry.getValue();
                 if (!item.get(k).equals(v)) {
@@ -154,7 +160,7 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
         String[] row;
 
         while((row = reader.readNext()) != null) {
-            Map<String, Object> temp = new HashMap<>();
+            Map<String, Object> temp = new LinkedHashMap<>();
             for(int i =0; i < header.length; i ++) {
                 temp.put(header[i], row[i]);
             }
@@ -164,15 +170,62 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     }
 
     /**
+     * Container for definition of CSV hierarhcy
+     */
+    public static final class CSVHiearchy {
+        private final String root;
+        private final List<CSVLevel> levels;
+
+        public CSVHiearchy(String root, List<CSVLevel> levels) {
+            this.root = root;
+            this.levels = levels;
+        }
+
+        public String getRoot() {
+            return root;
+        }
+
+        public List<CSVLevel> getLevels() {
+            return levels;
+        }
+
+        public static CSVHiearchyBuilder newBuilder() {
+            return new CSVHiearchyBuilder();
+        }
+
+
+        public static final class CSVHiearchyBuilder {
+            private String root;
+            private List<ConfigurationTemplateServiceImpl.CSVLevel> levels;
+
+            public CSVHiearchyBuilder setRoot(String root) {
+                this.root = root;
+                return this;
+            }
+
+            public CSVHiearchyBuilder setLevels(List<ConfigurationTemplateServiceImpl.CSVLevel> levels) {
+                this.levels = levels;
+                return this;
+            }
+
+            public ConfigurationTemplateServiceImpl.CSVHiearchy createCSVHiearchy() {
+                return new ConfigurationTemplateServiceImpl.CSVHiearchy(root, levels);
+            }
+        }
+    }
+
+
+
+    /**
      * Defines one level of the model for the template.
      *
      * Group by 'sites' into 'data halls'
      */
-    public static final class TemplateLevel {
+    public static final class CSVLevel {
         private final String groupBy;
         private final String into;
 
-        public TemplateLevel(String groupBy, String into) {
+        public CSVLevel(String groupBy, String into) {
             this.groupBy = groupBy;
             this.into = into;
         }
@@ -185,26 +238,26 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
             return into;
         }
 
-        public static TemplateLevelBuilder newBuilder() {
-            return new TemplateLevelBuilder();
+        public static CSVLevelBuilder newBuilder() {
+            return new CSVLevelBuilder();
         }
 
-        public static final class TemplateLevelBuilder {
+        public static final class CSVLevelBuilder {
             private String groupBy;
             private String into;
 
-            public TemplateLevelBuilder setGroupBy(String groupBy) {
+            public CSVLevelBuilder setGroupBy(String groupBy) {
                 this.groupBy = groupBy;
                 return this;
             }
 
-            public TemplateLevelBuilder setInto(String into) {
+            public CSVLevelBuilder setInto(String into) {
                 this.into = into;
                 return this;
             }
 
-            public ConfigurationTemplateServiceImpl.TemplateLevel createTemplateLevel() {
-                return new ConfigurationTemplateServiceImpl.TemplateLevel(groupBy, into);
+            public ConfigurationTemplateServiceImpl.CSVLevel createTemplateLevel() {
+                return new ConfigurationTemplateServiceImpl.CSVLevel(groupBy, into);
             }
         }
     }
