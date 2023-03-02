@@ -29,7 +29,7 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 
 import au.com.bytecode.opencsv.CSVReader;
 
-@Service
+@Service("configurationTemplateService")
 public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateService {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConfigurationTemplateServiceImpl.class);
@@ -44,7 +44,7 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     }
 
     @Override
-    public List<Map<String, Object>> generateConfig(String fileStore, String filePath, List<Map<String, String>> keys) throws IOException,
+    public List<Map<String, Object>> generateConfig(String fileStore, String filePath, List<TemplateLevel> structure) throws IOException,
             PermissionException {
         permissionService.ensureAdminRole(Common.getUser());
 
@@ -53,16 +53,16 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
             CSVReader csvReader = new CSVReader(in);
             List<Map<String, Object>> readFileStructure = readCSV(csvReader);
 
-            List<Map<String, Object>> result = groupByKeys(readFileStructure, keys);
+            List<Map<String, Object>> result = groupByLevels(readFileStructure, structure);
             return result;
         }
     }
 
     @Override
-    public String generateMangoConfigurationJson(String fileStore, String filePath, String template, List<Map<String, String>> keys) throws IOException,
+    public String generateMangoConfigurationJson(String fileStore, String filePath, String template, List<TemplateLevel> structure) throws IOException,
             PermissionException {
         MustacheFactory mf = new DefaultMustacheFactory();
-        List<Map<String, Object>> sites = generateConfig(fileStore, filePath, keys);
+        List<Map<String, Object>> sites = generateConfig(fileStore, filePath, structure);
 
         ClassPathResource cp = new ClassPathResource(template);
         Mustache m = mf.compile(cp.getPath());
@@ -80,26 +80,26 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
      * returns a group from the list of map<String, Object> based on the provided keys.
      *
      * @param array - List of data from the data source file.
-     * @param key - map of keys used for structuring data for the configuration file.
+     * @param level - map of keys used for structuring data for the configuration file.
      * @return grouped data based on the provided keys in a hierarchical structure.
      */
-    private List<Map<String, Object>> groupByKey(List<Map<String, Object>> array, Map<String, String> key) {
+    private List<Map<String, Object>> groupByLevel(List<Map<String, Object>> array, TemplateLevel level) {
         Map<Object, Map<String, Object>> map = new HashMap<>();
         for (Map<String, Object> item : array) {
-            Object keyValue = item.get(key.get("groupKey"));
+            Object keyValue = item.get(level.getGroupBy());
             if (!map.containsKey(keyValue)) {
                 Map<String, Object> group = new HashMap<>();
-                group.put(key.get("groupKey"), keyValue);
-                group.put(key.get("childrenKey"), new ArrayList<Map<String, Object>>());
+                group.put(level.getGroupBy(), keyValue);
+                group.put(level.getInto(), new ArrayList<Map<String, Object>>());
                 map.put(keyValue, group);
             }
-            ((List)map.get(keyValue).get(key.get("childrenKey"))).add(item);
+            ((List)map.get(keyValue).get(level.getInto())).add(item);
         }
         List<Map<String, Object>> groups = new ArrayList<>(map.values());
 
         // find common properties from the children and copy them to the group
         for (Map<String, Object> group : groups) {
-            Map<String, Object> common = findCommonProperties((List<Map<String, Object>>) group.get(key.get("childrenKey")));
+            Map<String, Object> common = findCommonProperties((List<Map<String, Object>>) group.get(level.getInto()));
             group.putAll(common);
         }
 
@@ -109,18 +109,18 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     /**
      * Based on the provided data from the source file, generates a hierarchical data structure for the template to process.
      * @param data data to be mapped for the template configuration Json.
-     * @param keys key-value structure of values in which the data is going to be mapped.
+     * @param structure Structure of values in which the data is going to be mapped.
      * @return List<Map<String, Object>> List of hierarchical structure map based on provided keys for the template processor.
      */
-    private List<Map<String, Object>> groupByKeys(List<Map<String, Object>> data, List<Map<String, String>> keys) {
-        if (keys.isEmpty()) {
+    private List<Map<String, Object>> groupByLevels(List<Map<String, Object>> data, List<TemplateLevel> structure) {
+        if (structure.isEmpty()) {
             return data;
         }
-        Map<String, String> firstKey = keys.get(0);
-        List<Map<String, String>> nextKeys = keys.subList(1, keys.size());
-        List<Map<String, Object>> groups = groupByKey(data, firstKey);
+       TemplateLevel levelZero = structure.get(0);
+        List<TemplateLevel> levels = structure.subList(1, structure.size());
+        List<Map<String, Object>> groups = groupByLevel(data, levelZero);
         for (Map<String, Object> group : groups) {
-            group.put(firstKey.get("childrenKey"), groupByKeys((List<Map<String, Object>>) group.get(firstKey.get("childrenKey")), nextKeys));
+            group.put(levelZero.getInto(), groupByLevels((List<Map<String, Object>>) group.get(levelZero.getInto()), levels));
         }
         return groups;
     }
@@ -161,5 +161,51 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
             result.add(temp);
         }
         return result;
+    }
+
+    /**
+     * Defines one level of the model for the template.
+     *
+     * Group by 'sites' into 'data halls'
+     */
+    public static final class TemplateLevel {
+        private final String groupBy;
+        private final String into;
+
+        public TemplateLevel(String groupBy, String into) {
+            this.groupBy = groupBy;
+            this.into = into;
+        }
+
+        public String getGroupBy() {
+            return groupBy;
+        }
+
+        public String getInto() {
+            return into;
+        }
+
+        public static TemplateLevelBuilder newBuilder() {
+            return new TemplateLevelBuilder();
+        }
+
+        public static final class TemplateLevelBuilder {
+            private String groupBy;
+            private String into;
+
+            public TemplateLevelBuilder setGroupBy(String groupBy) {
+                this.groupBy = groupBy;
+                return this;
+            }
+
+            public TemplateLevelBuilder setInto(String into) {
+                this.into = into;
+                return this;
+            }
+
+            public ConfigurationTemplateServiceImpl.TemplateLevel createTemplateLevel() {
+                return new ConfigurationTemplateServiceImpl.TemplateLevel(groupBy, into);
+            }
+        }
     }
 }

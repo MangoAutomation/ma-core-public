@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,14 +33,18 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
     public void testConfigurationTemplateService() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
 
-        List<Map<String, String>> keys = new ArrayList<>(){{
-            add(new HashMap<>(){{
-                put("groupKey", "site");
-                put("childrenKey", "dataHalls");}});
-            add(new HashMap<>(){{
-                put("groupKey", "dataHall");
-                put("childrenKey", "devices");}});
-        }};
+        List<ConfigurationTemplateServiceImpl.TemplateLevel> levels = new ArrayList<>();
+        levels.add(ConfigurationTemplateServiceImpl
+                .TemplateLevel.newBuilder()
+                        .setGroupBy("site")
+                        .setInto("dataHalls")
+                        .createTemplateLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .TemplateLevel.newBuilder()
+                .setGroupBy("dataHall")
+                .setInto("devices")
+                .createTemplateLevel());
+
 
         //Move template files into file store
         Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
@@ -51,7 +54,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         Path dst = rootPath.resolve("configTemplateTestData.csv");
         Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
         List<Map<String, Object>>
-                result = service.generateConfig("default", "configTemplateTestData.csv", keys);
+                result = service.generateConfig("default", "configTemplateTestData.csv", levels);
 
         assertNotNull(result);
         assertTrue(result.size() > 0);
@@ -67,20 +70,23 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         Path dst = rootPath.resolve("configTemplateTestData.csv");
         Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
 
-        List<Map<String, String>> keys = new ArrayList<>(){{
-            add(new HashMap<>(){{
-                put("groupKey", "site");
-                put("childrenKey", "dataHalls");}});
-            add(new HashMap<>(){{
-                put("groupKey", "dataHall");
-                put("childrenKey", "devices");}});
-        }};
+        List<ConfigurationTemplateServiceImpl.TemplateLevel> levels = new ArrayList<>();
+        levels.add(ConfigurationTemplateServiceImpl
+                .TemplateLevel.newBuilder()
+                .setGroupBy("site")
+                .setInto("dataHalls")
+                .createTemplateLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .TemplateLevel.newBuilder()
+                .setGroupBy("dataHall")
+                .setInto("devices")
+                .createTemplateLevel());
 
         String result = service.generateMangoConfigurationJson(
                 "default",
                 "configTemplateTestData.csv",
                 templatePath,
-                keys
+                levels
         );
 
         ObjectMapper mapper = new ObjectMapper();

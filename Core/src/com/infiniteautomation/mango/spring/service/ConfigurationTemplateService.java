@@ -18,12 +18,12 @@ public interface ConfigurationTemplateService {
      *
      * @param fileStore - path to the fileStore.
      * @param filePath - path to the input data file.
-     * @param keys - group of keys required for mapping the source data.
+     * @param structure - Defines the groupings for the source data.
      * @return List<Map<String, Object>> - List of converted and mapped data from the source data file.
      * @throws IOException
      * @throws PermissionException
      */
-    List<Map<String, Object>> generateConfig(String fileStore, String filePath, List<Map<String, String>> keys) throws
+    List<Map<String, Object>> generateConfig(String fileStore, String filePath, List<ConfigurationTemplateServiceImpl.TemplateLevel> structure) throws
             IOException, PermissionException;
 
     /**
@@ -32,11 +32,11 @@ public interface ConfigurationTemplateService {
      * @param fileStore - path to the fileStore.
      * @param filePath - path to the input data file.
      * @param template - name of the template to be used for the mapped data.
-     * @param keys - group of keys required for mapping the source data.
+     * @param structure - Defines the groupings for the source data.
      * @return String - Json config structure generated from the source data file.
      * @throws IOException
      * @throws PermissionException
      */
-    String generateMangoConfigurationJson(String fileStore, String filePath, String template, List<Map<String, String>> keys) throws IOException,
+    String generateMangoConfigurationJson(String fileStore, String filePath, String template, List<ConfigurationTemplateServiceImpl.TemplateLevel> structure) throws IOException,
             PermissionException;
 }
