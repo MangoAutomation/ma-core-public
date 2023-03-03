@@ -27,6 +27,9 @@ import com.serotonin.m2m2.MangoTestBase;
 
 public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
 
+    public ConfigurationTemplateServiceImplTest() {
+        this.retryRule = null;
+    }
     private final String dataSourceFilePath = "/com/infiniteautomation/mango/spring/service/configTemplateTestData.csv";
     private final String templatePath = "/com/infiniteautomation/mango/spring/service/roles.mustache";
     @Test
@@ -135,5 +138,127 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(jsonNode1.asText().contains("Admin"));
         assertTrue(jsonNode2.asText().contains("ROLE_ADMIN"));
         assertTrue(jsonNode3.isArray());
+    }
+
+
+    @Test
+    public void testMexicoDataModel() throws IOException {
+        ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
+
+        String filename = "mexico.csv";
+        String csvFile = "/com/infiniteautomation/mango/spring/service/configurationTemplate/" + filename;
+
+        List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("country")
+                .setInto("states")
+                .createTemplateLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("state")
+                .setInto("cities")
+                .createTemplateLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("city")
+                .setInto("streets")
+                .createTemplateLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("street")
+                .setInto("numbers")
+                .createTemplateLevel());
+
+        ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy = ConfigurationTemplateServiceImpl.CSVHiearchy.newBuilder()
+                .setRoot("countries")
+                .setLevels(levels)
+                .createCSVHiearchy();
+
+
+        //Move template files into file store
+        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
+        Files.createDirectories(rootPath);
+        InputStream is = getClass().getResourceAsStream(csvFile);
+
+        Path dst = rootPath.resolve(filename);
+        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
+        Map<String, Object>
+                model = service.generateTemplateModel("default", filename, hierarchy);
+
+        assertNotNull(model);
+
+        //The first level of the model should be a list of 2 sites
+        assertNotNull(model.get(hierarchy.getRoot()));
+        assertTrue(model.get(hierarchy.getRoot()) instanceof ArrayList);
+        //Assert Country is size one and no common properties
+        List<Map<String, Object>> countries = (List<Map<String, Object>>) model.get(hierarchy.getRoot());
+        assertTrue(countries.size() == 2);
+
+        //Get Mexico
+        Map<String, Object> mexico = countries.get(0);
+        assertTrue(mexico.containsKey("country"));
+        assertTrue(mexico.get("country").equals("MX"));
+        assertTrue(mexico.containsKey("states"));
+        List<Map<String, Object>> mexicanStates = (List<Map<String, Object>>) mexico.get("states");
+        //assert states
+        Map<String, Object> nuevoLeon = mexicanStates.get(0);
+        assertTrue(nuevoLeon.containsKey("country"));
+        assertTrue(nuevoLeon.get("country").equals("MX"));
+        assertTrue(nuevoLeon.containsKey("state"));
+        assertTrue(nuevoLeon.get("state").equals("Nuevo Leon"));
+        assertTrue(nuevoLeon.containsKey("cities"));
+        //TODO should not have city or street or number keys???
+
+        //TODO assert cities
+        List<Map<String, Object>> nuevoLeonCities = (List<Map<String, Object>>) nuevoLeon.get("cities");
+        assertTrue(nuevoLeonCities.size() == 1);
+        Map<String, Object> monterrey = nuevoLeonCities.get(0);
+        assertTrue(monterrey.containsKey("country"));
+        assertTrue(monterrey.get("country").equals("MX"));
+        assertTrue(monterrey.containsKey("state"));
+        assertTrue(monterrey.get("state").equals("Nuevo Leon"));
+        assertTrue(monterrey.containsKey("city"));
+        assertTrue(monterrey.get("city").equals("Monterrey"));
+        assertTrue(monterrey.containsKey("streets"));
+        //TODO should not have street or number keys???
+
+        //TODO assert streets for each city
+        List<Map<String, Object>> monterreyStreets = (List<Map<String, Object>>) monterrey.get("streets");
+        assertTrue(monterreyStreets.size() == 1);
+        Map<String, Object> calleRojo = monterreyStreets.get(0);
+        assertTrue(calleRojo.containsKey("country"));
+        assertTrue(calleRojo.get("country").equals("MX"));
+        assertTrue(calleRojo.containsKey("state"));
+        assertTrue(calleRojo.get("state").equals("Nuevo Leon"));
+        assertTrue(calleRojo.containsKey("city"));
+        assertTrue(calleRojo.get("city").equals("Monterrey"));
+        assertTrue(calleRojo.containsKey("numbers"));
+        //TODO should not have number keys???
+
+        //Assert Calle Rojo numbers
+        List<Map<String, Object>> calleRojoNumbers = (List<Map<String, Object>>) calleRojo.get("numbers");
+        assertTrue(calleRojoNumbers.size() == 3);
+        Map<String, Object> one = calleRojoNumbers.get(0);
+        assertTrue(one.containsKey("country"));
+        assertTrue(one.get("country").equals("MX"));
+        assertTrue(one.containsKey("state"));
+        assertTrue(one.get("state").equals("Nuevo Leon"));
+        assertTrue(one.containsKey("city"));
+        assertTrue(one.get("city").equals("Monterrey"));
+        assertTrue(one.containsKey("number"));
+        assertTrue(one.get("number").equals("1"));
+
+        //TODO assert other Calle Rojo numbers
+
+        //Get US
+        Map<String, Object> unitedStates = countries.get(1);
+        assertTrue(unitedStates.containsKey("country"));
+        assertTrue(unitedStates.get("country").equals("US"));
+        assertTrue(unitedStates.containsKey("states"));
+        //TODO assert states
+
+
+
     }
 }

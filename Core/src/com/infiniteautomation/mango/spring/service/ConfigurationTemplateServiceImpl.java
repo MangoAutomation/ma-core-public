@@ -160,6 +160,8 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
         String[] row;
 
         while((row = reader.readNext()) != null) {
+            //TODO what if there are empty lines at the end of the file
+            // probably should TRIM or something?  maybe a setting in the CSVReader?
             Map<String, Object> temp = new LinkedHashMap<>();
             for(int i =0; i < header.length; i ++) {
                 temp.put(header[i], row[i]);
