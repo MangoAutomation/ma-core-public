@@ -6,7 +6,11 @@ package com.infiniteautomation.mango.spring.grpc;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -27,9 +31,11 @@ import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
 import io.grpc.ServerCredentials;
 import io.grpc.ServerInterceptor;
+import io.grpc.ServerInterceptors;
 import io.grpc.TlsServerCredentials;
 import io.grpc.TlsServerCredentials.ClientAuth;
 import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.protobuf.services.ProtoReflectionService;
 import io.grpc.util.TransmitStatusRuntimeExceptionInterceptor;
 
 /**
@@ -48,6 +54,7 @@ public class GrpcServerLifecycle {
     private final @Nullable Path rootCerts;
     private final ClientAuth clientAuth;
     private final @Nullable String inProcessServer;
+    private final boolean enableReflection;
     private Server server;
 
     @Autowired
@@ -58,7 +65,8 @@ public class GrpcServerLifecycle {
                                @Value("${grpc.server.privateKey:#{null}}") @Nullable Path privateKey,
                                @Value("${grpc.server.rootCerts:#{null}}") @Nullable Path rootCerts,
                                @Value("${grpc.server.clientAuth}") ClientAuth clientAuth,
-                               @Value("${grpc.server.inProcessServer:#{null}}") @Nullable String inProcessServer) {
+                               @Value("${grpc.server.inProcessServer:#{null}}") @Nullable String inProcessServer,
+                               @Value("${grpc.server.enableReflection}") boolean enableReflection) {
         this.services = services;
         this.interceptors = interceptors;
         this.port = port;
@@ -67,6 +75,7 @@ public class GrpcServerLifecycle {
         this.rootCerts = rootCerts == null ? null : Common.MA_DATA_PATH.resolve(rootCerts).normalize();
         this.clientAuth = clientAuth;
         this.inProcessServer = inProcessServer;
+        this.enableReflection = enableReflection;
     }
 
     @PostConstruct
@@ -90,8 +99,37 @@ public class GrpcServerLifecycle {
                 InProcessServerBuilder.forName(inProcessServer) :
                 Grpc.newServerBuilderForPort(port, serverCredentials);
         builder.intercept(TransmitStatusRuntimeExceptionInterceptor.instance());
-        interceptors.forEach(builder::intercept);
-        services.forEach(builder::addService);
+
+        // interceptors run in the reverse order of which they were added, reverse the list so the highest priority
+        // (via Order annotation, or Ordered interface) interceptor runs first.
+        var reverseInterceptors = new ArrayList<>(interceptors);
+        Collections.reverse(reverseInterceptors);
+
+        reverseInterceptors.stream()
+                .filter(interceptor -> !interceptor.getClass().isAnnotationPresent(InterceptorFor.class))
+                .forEach(builder::intercept);
+
+        if (enableReflection) {
+            builder.addService(ProtoReflectionService.newInstance());
+        }
+
+        services.stream()
+                .map(service -> {
+                    var matching = reverseInterceptors.stream()
+                            .filter(interceptor -> {
+                                var annotation = interceptor.getClass().getAnnotation(InterceptorFor.class);
+                                if (annotation == null) {
+                                    return false;
+                                }
+                                var classes = annotation.value();
+                                return Arrays.stream(classes)
+                                        .anyMatch(v -> v.isAssignableFrom(service.getClass()));
+                            })
+                            .collect(Collectors.toList());
+                    return ServerInterceptors.intercept(service, matching);
+                })
+                .forEach(builder::addService);
+
         this.server = builder.build().start();
     }
 
