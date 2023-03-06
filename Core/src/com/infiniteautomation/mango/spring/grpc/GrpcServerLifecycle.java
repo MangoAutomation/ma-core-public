@@ -36,7 +36,6 @@ import io.grpc.TlsServerCredentials;
 import io.grpc.TlsServerCredentials.ClientAuth;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.protobuf.services.ProtoReflectionService;
-import io.grpc.util.TransmitStatusRuntimeExceptionInterceptor;
 
 /**
  * @author Jared Wiltshire
@@ -98,7 +97,6 @@ public class GrpcServerLifecycle {
         var builder = inProcessServer != null ?
                 InProcessServerBuilder.forName(inProcessServer) :
                 Grpc.newServerBuilderForPort(port, serverCredentials);
-        builder.intercept(TransmitStatusRuntimeExceptionInterceptor.instance());
 
         // interceptors run in the reverse order of which they were added, reverse the list so the highest priority
         // (via Order annotation, or Ordered interface) interceptor runs first.
