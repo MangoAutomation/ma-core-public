@@ -210,7 +210,7 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
                 return this;
             }
 
-            public CSVHierarchy createCSVHiearchy() {
+            public CSVHierarchy createCSVHierarchy() {
                 return new CSVHierarchy(root, levels);
             }
         }

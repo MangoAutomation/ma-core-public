@@ -55,7 +55,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("sites")
                 .setLevels(levels)
-                .createCSVHiearchy();
+                .createCSVHierarchy();
 
 
         //Move template files into file store
@@ -118,7 +118,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("sites")
                 .setLevels(levels)
-                .createCSVHiearchy();
+                .createCSVHierarchy();
 
         String result = service.generateMangoConfigurationJson(
                 "default",
@@ -183,7 +183,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("guitars")
                 .setLevels(levels)
-                .createCSVHiearchy();
+                .createCSVHierarchy();
 
         String result = service.generateMangoConfigurationJson(
                 "default",
@@ -241,7 +241,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("countries")
                 .setLevels(levels)
-                .createCSVHiearchy();
+                .createCSVHierarchy();
 
         //Move template files into file store
         Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
@@ -420,7 +420,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("guitars")
                 .setLevels(levels)
-                .createCSVHiearchy();
+                .createCSVHierarchy();
 
 
         //Move template files into file store
