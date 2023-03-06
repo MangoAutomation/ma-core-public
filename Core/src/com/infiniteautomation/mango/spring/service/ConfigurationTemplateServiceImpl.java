@@ -44,7 +44,7 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     }
 
     @Override
-    public Map<String, Object> generateTemplateModel(String fileStore, String filePath, CSVHiearchy csvHiearchy) throws IOException,
+    public Map<String, Object> generateTemplateModel(String fileStore, String filePath, CSVHierarchy csvHierarchy) throws IOException,
             PermissionException {
         permissionService.ensureAdminRole(Common.getUser());
 
@@ -53,21 +53,21 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
             CSVReader csvReader = new CSVReader(in);
             List<Map<String, Object>> readFileStructure = readCSV(csvReader);
 
-            List<Map<String, Object>> levels = groupByLevels(readFileStructure, csvHiearchy.getLevels());
+            List<Map<String, Object>> levels = groupByLevels(readFileStructure, csvHierarchy.getLevels());
 
             //Do final level mapping for root object
             Map<String, Object> templateModel = new LinkedHashMap<>();
-            templateModel.put(csvHiearchy.getRoot(), levels);
+            templateModel.put(csvHierarchy.getRoot(), levels);
 
             return templateModel;
         }
     }
 
     @Override
-    public String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHiearchy csvHiearchy) throws IOException,
+    public String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHierarchy csvHierarchy) throws IOException,
             PermissionException {
         MustacheFactory mf = new DefaultMustacheFactory();
-        Map<String, Object> model = generateTemplateModel(fileStore, filePath, csvHiearchy);
+        Map<String, Object> model = generateTemplateModel(fileStore, filePath, csvHierarchy);
 
         ClassPathResource cp = new ClassPathResource(template);
         Mustache m = mf.compile(cp.getPath());
@@ -174,11 +174,11 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     /**
      * Container for definition of CSV hierarhcy
      */
-    public static final class CSVHiearchy {
+    public static final class CSVHierarchy {
         private final String root;
         private final List<CSVLevel> levels;
 
-        public CSVHiearchy(String root, List<CSVLevel> levels) {
+        public CSVHierarchy(String root, List<CSVLevel> levels) {
             this.root = root;
             this.levels = levels;
         }
@@ -210,8 +210,8 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
                 return this;
             }
 
-            public ConfigurationTemplateServiceImpl.CSVHiearchy createCSVHiearchy() {
-                return new ConfigurationTemplateServiceImpl.CSVHiearchy(root, levels);
+            public CSVHierarchy createCSVHiearchy() {
+                return new CSVHierarchy(root, levels);
             }
         }
     }
@@ -258,7 +258,7 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
                 return this;
             }
 
-            public ConfigurationTemplateServiceImpl.CSVLevel createTemplateLevel() {
+            public ConfigurationTemplateServiceImpl.CSVLevel createCSVLevel() {
                 return new ConfigurationTemplateServiceImpl.CSVLevel(groupBy, into);
             }
         }

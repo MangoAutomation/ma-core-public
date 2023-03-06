@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.service.ConfigurationTemplateServiceImpl.CSVHierarchy;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 
@@ -44,14 +45,14 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 .CSVLevel.newBuilder()
                 .setGroupBy("site")
                 .setInto("dataHalls")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("dataHall")
                 .setInto("devices")
-                .createTemplateLevel());
+                .createCSVLevel());
 
-        ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy = ConfigurationTemplateServiceImpl.CSVHiearchy.newBuilder()
+        CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("sites")
                 .setLevels(levels)
                 .createCSVHiearchy();
@@ -107,14 +108,14 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 .CSVLevel.newBuilder()
                 .setGroupBy("site")
                 .setInto("dataHalls")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("dataHall")
                 .setInto("devices")
-                .createTemplateLevel());
+                .createCSVLevel());
 
-        ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy = ConfigurationTemplateServiceImpl.CSVHiearchy.newBuilder()
+        CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("sites")
                 .setLevels(levels)
                 .createCSVHiearchy();
@@ -142,6 +143,71 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(jsonNode3.isArray());
     }
 
+    @Test
+    public void testConfigurationTemplateServiceTemplateGuitars() throws IOException {
+        ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
+
+        String filename = "guitars.csv";
+        String csvFile = "/com/infiniteautomation/mango/spring/service/configurationTemplate/" + filename;
+        String template = "/com/infiniteautomation/mango/spring/service/configurationTemplate/guitars.mustache";
+
+        //Move template files into file store
+        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
+        Files.createDirectories(rootPath);
+        InputStream is = getClass().getResourceAsStream(csvFile);
+        Path dst = rootPath.resolve(filename);
+        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
+
+        List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("type")
+                .setInto("brands")
+                .createCSVLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("brand")
+                .setInto("models")
+                .createCSVLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("model")
+                .setInto("pickups")
+                .createCSVLevel());
+        levels.add(ConfigurationTemplateServiceImpl
+                .CSVLevel.newBuilder()
+                .setGroupBy("pickup")
+                .setInto("colors")
+                .createCSVLevel());
+
+        CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
+                .setRoot("guitars")
+                .setLevels(levels)
+                .createCSVHiearchy();
+
+        String result = service.generateMangoConfigurationJson(
+                "default",
+                filename,
+                template,
+                hierarchy
+        );
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonFactory factory = mapper.getFactory();
+        JsonParser parser = factory.createParser(result);
+        JsonNode actualObj = mapper.readTree(parser);
+        JsonNode jsonNode1 = actualObj.get(0).get("type");
+        JsonNode jsonNode2 = actualObj.get(1).get("brand");
+        JsonNode jsonNode3 = actualObj.get(2).get("color");
+        JsonNode jsonNode4 = actualObj.get(4).get("brand");
+
+        assertNotNull(result);
+        assertTrue(result.length() > 0);
+        assertTrue(jsonNode1.asText().contains("Electric_guitar"));
+        assertTrue(jsonNode2.asText().contains("Fender"));
+        assertTrue(jsonNode3.asText().contains("red"));
+        assertTrue(jsonNode4.asText().contains("Ibanez"));
+    }
 
     @Test
     public void testMexicoDataModel() throws IOException {
@@ -155,24 +221,24 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 .CSVLevel.newBuilder()
                 .setGroupBy("country")
                 .setInto("states")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("state")
                 .setInto("cities")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("city")
                 .setInto("streets")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("street")
                 .setInto("numbers")
-                .createTemplateLevel());
+                .createCSVLevel());
 
-        ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy = ConfigurationTemplateServiceImpl.CSVHiearchy.newBuilder()
+        CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("countries")
                 .setLevels(levels)
                 .createCSVHiearchy();
@@ -334,24 +400,24 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 .CSVLevel.newBuilder()
                 .setGroupBy("type")
                 .setInto("brands")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("brand")
                 .setInto("models")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("model")
                 .setInto("pickups")
-                .createTemplateLevel());
+                .createCSVLevel());
         levels.add(ConfigurationTemplateServiceImpl
                 .CSVLevel.newBuilder()
                 .setGroupBy("pickup")
                 .setInto("colors")
-                .createTemplateLevel());
+                .createCSVLevel());
 
-        ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy = ConfigurationTemplateServiceImpl.CSVHiearchy.newBuilder()
+        CSVHierarchy hierarchy = CSVHierarchy.newBuilder()
                 .setRoot("guitars")
                 .setLevels(levels)
                 .createCSVHiearchy();

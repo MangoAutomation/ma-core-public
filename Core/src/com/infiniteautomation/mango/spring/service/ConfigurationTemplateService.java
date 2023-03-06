@@ -7,6 +7,7 @@ package com.infiniteautomation.mango.spring.service;
 import java.io.IOException;
 import java.util.Map;
 
+import com.infiniteautomation.mango.spring.service.ConfigurationTemplateServiceImpl.CSVHierarchy;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 
 public interface ConfigurationTemplateService {
@@ -22,7 +23,7 @@ public interface ConfigurationTemplateService {
      * @throws IOException
      * @throws PermissionException
      */
-    Map<String, Object> generateTemplateModel(String fileStore, String filePath, ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy) throws
+    Map<String, Object> generateTemplateModel(String fileStore, String filePath, CSVHierarchy hierarchy) throws
             IOException, PermissionException;
 
     /**
@@ -36,6 +37,6 @@ public interface ConfigurationTemplateService {
      * @throws IOException
      * @throws PermissionException
      */
-    String generateMangoConfigurationJson(String fileStore, String filePath, String template, ConfigurationTemplateServiceImpl.CSVHiearchy hierarchy) throws IOException,
+    String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHierarchy hierarchy) throws IOException,
             PermissionException;
 }
