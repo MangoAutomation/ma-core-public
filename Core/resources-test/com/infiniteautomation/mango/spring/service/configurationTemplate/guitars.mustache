@@ -1,0 +1,15 @@
+[
+  {{#guitars}}
+    {
+      "xid": "{{type}}_guitar",
+      "name": "guitar type {{type}}"
+    },
+    {{#brands}}
+      {
+      "brand": "{{brand}}",
+      "model": {{model}},
+      "name": "Awesome {{site}}, color {{color}}"
+      },
+    {{/brands}}
+  {{/guitars}}
+  ]
