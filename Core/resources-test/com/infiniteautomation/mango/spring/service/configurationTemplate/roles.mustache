@@ -1,0 +1,26 @@
+[
+  {
+  "xid": "ROLE_ADMIN",
+  "inherited": [],
+  "name": "Admin"
+  },
+  {
+  "xid": "ROLE_MANAGER",
+  "inherited": [],
+  "name": "Manager"
+  },
+  {{#sites}}
+    {
+      "xid": "ROLE_SITE_{{site}}",
+      "inherited": [],
+      "name": "Role for {{site}}"
+    },
+    {{#dataHalls}}
+      {
+      "xid": "ROLE_DATAH_{{site}}_{{dataHall}}",
+      "inherited": [],
+      "name": "Role for site {{site}}, hall {{dataHall}}"
+      },
+    {{/dataHalls}}
+  {{/sites}}
+  ]

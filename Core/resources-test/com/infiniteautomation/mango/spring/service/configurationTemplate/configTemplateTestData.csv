@@ -1,0 +1,6 @@
+site,building,phase,dataHall,equipmentType,device,equipmentNumber,template,host,slaveId
+SiteA,I,1,1,AC,Device_1,1,EQ400,X.X.X.1,1
+SiteA,I,1,1,AC,Device_2,2,EQ400,X.X.X.2,1
+SiteA,I,1,2,AC,Device_1,1,EQ400,X.X.X.1,1
+SiteA,I,1,2,AC,Device_2,2,EQ400,X.X.X.2,1
+SiteB,I,1,3,AC,Device_3,2,EQ400,X.X.X.2,1

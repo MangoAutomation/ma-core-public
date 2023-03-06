@@ -1,0 +1,24 @@
+[
+  {{#guitars}}
+    {
+      "type": "{{type}}_guitar"
+    },
+    {{#brands}}
+      {
+      "brand": "{{brand}}",
+      "model": "{{model}}",
+      "name": "Awesome {{type}}",
+      "pickup type": "{{pickup}}"
+      },
+      {{#models}}
+        {{#pickups}}
+            {{#colors}}
+                {
+                    "color": "{{color}}"
+                },
+            {{/colors}}
+        {{/pickups}}
+      {{/models}}
+    {{/brands}}
+  {{/guitars}}
+  ]
