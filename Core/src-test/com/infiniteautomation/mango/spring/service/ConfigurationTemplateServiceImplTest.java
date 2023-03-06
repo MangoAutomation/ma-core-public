@@ -30,8 +30,10 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
     public ConfigurationTemplateServiceImplTest() {
         this.retryRule = null;
     }
-    private final String dataSourceFilePath = "/com/infiniteautomation/mango/spring/service/configTemplateTestData.csv";
-    private final String templatePath = "/com/infiniteautomation/mango/spring/service/roles.mustache";
+    private final String dataSourceFilePath =
+            "/com/infiniteautomation/mango/spring/service/configurationTemplate/configTemplateTestData.csv";
+    private final String templatePath =
+            "/com/infiniteautomation/mango/spring/service/configurationTemplate/roles.mustache";
     @Test
     public void testConfigurationTemplateService() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
@@ -175,7 +177,6 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 .setLevels(levels)
                 .createCSVHiearchy();
 
-
         //Move template files into file store
         Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
         Files.createDirectories(rootPath);
@@ -209,9 +210,8 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(nuevoLeon.containsKey("state"));
         assertTrue(nuevoLeon.get("state").equals("Nuevo Leon"));
         assertTrue(nuevoLeon.containsKey("cities"));
-        //TODO should not have city or street or number keys???
+        //TODO: assert all common fields
 
-        //TODO assert cities
         List<Map<String, Object>> nuevoLeonCities = (List<Map<String, Object>>) nuevoLeon.get("cities");
         assertTrue(nuevoLeonCities.size() == 1);
         Map<String, Object> monterrey = nuevoLeonCities.get(0);
@@ -222,9 +222,8 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(monterrey.containsKey("city"));
         assertTrue(monterrey.get("city").equals("Monterrey"));
         assertTrue(monterrey.containsKey("streets"));
-        //TODO should not have street or number keys???
+        //TODO: assert all common fields
 
-        //TODO assert streets for each city
         List<Map<String, Object>> monterreyStreets = (List<Map<String, Object>>) monterrey.get("streets");
         assertTrue(monterreyStreets.size() == 1);
         Map<String, Object> calleRojo = monterreyStreets.get(0);
@@ -235,7 +234,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(calleRojo.containsKey("city"));
         assertTrue(calleRojo.get("city").equals("Monterrey"));
         assertTrue(calleRojo.containsKey("numbers"));
-        //TODO should not have number keys???
+        //TODO: assert all common fields
 
         //Assert Calle Rojo numbers
         List<Map<String, Object>> calleRojoNumbers = (List<Map<String, Object>>) calleRojo.get("numbers");
@@ -269,7 +268,6 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(three.get("city").equals("Monterrey"));
         assertTrue(three.containsKey("number"));
         assertTrue(three.get("number").equals("3"));
-        //TODO assert other Calle Rojo numbers
 
         //Get US
         Map<String, Object> unitedStates = countries.get(1);
@@ -277,7 +275,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(unitedStates.get("country").equals("US"));
         assertTrue(unitedStates.containsKey("states"));
         List<Map<String, Object>> usStates = (List<Map<String, Object>>) unitedStates.get("states");
-        //TODO assert states
+
         //assert states
         Map<String, Object> hawaii = usStates.get(0);
         assertTrue(hawaii.containsKey("country"));
@@ -285,7 +283,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(hawaii.containsKey("state"));
         assertTrue(hawaii.get("state").equals("Hawaii"));
         assertTrue(hawaii.containsKey("cities"));
-        //TODO should not have city or street or number keys???
+        //TODO: assert all common fields
 
         List<Map<String, Object>> hawaiiCities = (List<Map<String, Object>>) hawaii.get("cities");
         assertTrue(hawaiiCities.size() == 1);
@@ -297,7 +295,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(Lihue.containsKey("city"));
         assertTrue(Lihue.get("city").equals("Lihue"));
         assertTrue(Lihue.containsKey("streets"));
-        //TODO should not have street or number keys???
+        //TODO: assert all common fields
 
         List<Map<String, Object>> LihueStreets = (List<Map<String, Object>>) Lihue.get("streets");
         assertTrue(LihueStreets.size() == 1);
@@ -370,6 +368,13 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 model = service.generateTemplateModel("default", filename, hierarchy);
 
         assertNotNull(model);
+
+        String result = service.generateMangoConfigurationJson(
+                "default",
+                "guitars.csv",
+                "/com/infiniteautomation/mango/spring/service/configurationTemplate/guitars.mustache",
+                hierarchy
+        );
 
         //The first level of the model should be a list of 2 brands
         assertNotNull(model.get(hierarchy.getRoot()));
