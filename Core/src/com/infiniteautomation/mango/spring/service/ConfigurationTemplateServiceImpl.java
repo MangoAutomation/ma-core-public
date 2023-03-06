@@ -191,21 +191,21 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
             return levels;
         }
 
-        public static CSVHiearchyBuilder newBuilder() {
-            return new CSVHiearchyBuilder();
+        public static CSVHierarchyBuilder newBuilder() {
+            return new CSVHierarchyBuilder();
         }
 
 
-        public static final class CSVHiearchyBuilder {
+        public static final class CSVHierarchyBuilder {
             private String root;
             private List<ConfigurationTemplateServiceImpl.CSVLevel> levels;
 
-            public CSVHiearchyBuilder setRoot(String root) {
+            public CSVHierarchyBuilder setRoot(String root) {
                 this.root = root;
                 return this;
             }
 
-            public CSVHiearchyBuilder setLevels(List<ConfigurationTemplateServiceImpl.CSVLevel> levels) {
+            public CSVHierarchyBuilder setLevels(List<ConfigurationTemplateServiceImpl.CSVLevel> levels) {
                 this.levels = levels;
                 return this;
             }
