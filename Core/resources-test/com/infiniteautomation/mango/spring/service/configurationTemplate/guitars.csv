@@ -1,0 +1,6 @@
+type,brand,model,pickup,color
+Electric,Fender,Strat,single coil,red
+Electric,Fender,Strat,single coil,white
+Electric,Ibanez,prestige,humbucker,liquid metal
+Acoustic,Yamaha,APX600BL,acoustic pickup,black
+Acoustic,Yamaha,APX600BL,acoustic pickup,natural
