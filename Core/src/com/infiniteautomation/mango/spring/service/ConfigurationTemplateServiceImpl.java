@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -18,12 +18,12 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+import com.github.mustachejava.MustacheResolver;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 
@@ -49,7 +49,7 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
         permissionService.ensureAdminRole(Common.getUser());
 
         Path path = fileStoreService.getPathForRead(fileStore, filePath);
-        try (Reader in = new InputStreamReader(Files.newInputStream(path), Charset.defaultCharset())) {
+        try (Reader in = new InputStreamReader(Files.newInputStream(path), StandardCharsets.UTF_8)) {
             CSVReader csvReader = new CSVReader(in);
             List<Map<String, Object>> readFileStructure = readCSV(csvReader);
 
@@ -66,11 +66,13 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     @Override
     public String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHierarchy csvHierarchy) throws IOException,
             PermissionException {
-        MustacheFactory mf = new DefaultMustacheFactory();
+
+        permissionService.ensureAdminRole(Common.getUser());
+
         Map<String, Object> model = generateTemplateModel(fileStore, filePath, csvHierarchy);
 
-        ClassPathResource cp = new ClassPathResource(template);
-        Mustache m = mf.compile(cp.getPath());
+        MustacheFactory mf = new DefaultMustacheFactory(new FileStoreMustacheResolver(this.fileStoreService, fileStore));
+        Mustache m = mf.compile(template);
         StringWriter writer = new StringWriter();
         m.execute(writer, model).flush();
         StringBuilder result = new StringBuilder(writer.toString());
@@ -260,6 +262,27 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
 
             public ConfigurationTemplateServiceImpl.CSVLevel createCSVLevel() {
                 return new ConfigurationTemplateServiceImpl.CSVLevel(groupBy, into);
+            }
+        }
+    }
+
+    private static class FileStoreMustacheResolver implements MustacheResolver {
+
+        private final FileStoreService service;
+        private final String fileStore;
+
+        public FileStoreMustacheResolver(FileStoreService service, String fileStore) {
+            this.service = service;
+            this.fileStore = fileStore;
+        }
+
+        @Override
+        public Reader getReader(String resourceName) {
+            Path template = service.getPathForRead(fileStore, resourceName);
+            try {
+                return Files.newBufferedReader(template);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
     }
