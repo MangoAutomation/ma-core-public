@@ -4,6 +4,7 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -31,10 +32,7 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
     public ConfigurationTemplateServiceImplTest() {
         this.retryRule = null;
     }
-    private final String dataSourceFilePath =
-            "/com/infiniteautomation/mango/spring/service/configurationTemplate/configTemplateTestData.csv";
-    private final String templatePath =
-            "/com/infiniteautomation/mango/spring/service/configurationTemplate/roles.mustache";
+
     @Test
     public void testConfigurationTemplateService() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
@@ -58,13 +56,9 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 .createCSVHierarchy();
 
 
-        //Move template files into file store
-        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
-        Files.createDirectories(rootPath);
-        InputStream is = getClass().getResourceAsStream(dataSourceFilePath);
+        //Move files into file store
+        setupResource("configTemplateTestData.csv");
 
-        Path dst = rootPath.resolve("configTemplateTestData.csv");
-        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
         Map<String, Object>
                 model = service.generateTemplateModel("default", "configTemplateTestData.csv", hierarchy);
 
@@ -72,23 +66,23 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
 
         //The first level of the model should be a list of 2 sites
         assertNotNull(model.get(hierarchy.getRoot()));
-        assertTrue(model.get(hierarchy.getRoot()) instanceof ArrayList);
         List<Map<String, Object>> sites = (List<Map<String, Object>>) model.get(hierarchy.getRoot());
-        assertTrue(sites.size() == 2);
-        assertTrue(sites.get(0).get("site").equals("SiteA"));
-        assertTrue(sites.get(1).get("site").equals("SiteB"));
+        assertTrue(model.get(hierarchy.getRoot()) instanceof ArrayList);
+        assertEquals(2, sites.size());
+        assertEquals("SiteA", sites.get(0).get("site"));
+        assertEquals("SiteB", sites.get(1).get("site"));
 
         //Site A has 2 data halls (1,2)
         List<Map<String, Object>> siteADataHalls = (List<Map<String, Object>>) sites.get(0).get("dataHalls");
-        assertTrue(siteADataHalls.size() == 2);
-        assertTrue(siteADataHalls.get(0).get("dataHall").equals("1"));
-        assertTrue(siteADataHalls.get(1).get("dataHall").equals("2"));
+        assertEquals(2, siteADataHalls.size());
+        assertEquals("1", siteADataHalls.get(0).get("dataHall"));
+        assertEquals("2", siteADataHalls.get(1).get("dataHall"));
         //TODO assert devices
 
         //Site B has 1 data hall (3)
         List<Map<String, Object>> siteBDataHalls = (List<Map<String, Object>>) sites.get(1).get("dataHalls");
-        assertTrue(siteBDataHalls.size() == 1);
-        assertTrue(siteBDataHalls.get(0).get("dataHall").equals("3"));
+        assertEquals(1, siteBDataHalls.size());
+        assertEquals("3", siteBDataHalls.get(0).get("dataHall"));
         //TODO assert devices
 
     }
@@ -96,12 +90,11 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
     public void testConfigurationTemplateServiceTemplate() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
 
-        //Move template files into file store
-        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
-        Files.createDirectories(rootPath);
-        InputStream is = getClass().getResourceAsStream(dataSourceFilePath);
-        Path dst = rootPath.resolve("configTemplateTestData.csv");
-        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
+        //Move files into file store
+        String dataFile = "configTemplateTestData.csv";
+        setupResource(dataFile);
+        String templateFile = "roles.mustache";
+        setupResource(templateFile);
 
         List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
         levels.add(ConfigurationTemplateServiceImpl
@@ -122,8 +115,8 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
 
         String result = service.generateMangoConfigurationJson(
                 "default",
-                "configTemplateTestData.csv",
-                templatePath,
+                dataFile,
+                templateFile,
                 hierarchy
         );
 
@@ -147,16 +140,11 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
     public void testConfigurationTemplateServiceTemplateGuitars() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
 
-        String filename = "guitars.csv";
-        String csvFile = "/com/infiniteautomation/mango/spring/service/configurationTemplate/" + filename;
-        String template = "/com/infiniteautomation/mango/spring/service/configurationTemplate/guitars.mustache";
-
-        //Move template files into file store
-        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
-        Files.createDirectories(rootPath);
-        InputStream is = getClass().getResourceAsStream(csvFile);
-        Path dst = rootPath.resolve(filename);
-        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
+        //Move files into file store
+        String dataFile = "guitars.csv";
+        setupResource(dataFile);
+        String templateFile = "guitars.mustache";
+        setupResource(templateFile);
 
         List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
         levels.add(ConfigurationTemplateServiceImpl
@@ -187,8 +175,8 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
 
         String result = service.generateMangoConfigurationJson(
                 "default",
-                filename,
-                template,
+                dataFile,
+                templateFile,
                 hierarchy
         );
 
@@ -212,9 +200,6 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
     @Test
     public void testMexicoDataModel() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
-
-        String filename = "mexico.csv";
-        String csvFile = "/com/infiniteautomation/mango/spring/service/configurationTemplate/" + filename;
 
         List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
         levels.add(ConfigurationTemplateServiceImpl
@@ -243,15 +228,12 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
                 .setLevels(levels)
                 .createCSVHierarchy();
 
-        //Move template files into file store
-        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
-        Files.createDirectories(rootPath);
-        InputStream is = getClass().getResourceAsStream(csvFile);
+        //Move files into file store
+        String dataFile = "mexico.csv";
+        setupResource(dataFile);
 
-        Path dst = rootPath.resolve(filename);
-        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
         Map<String, Object>
-                model = service.generateTemplateModel("default", filename, hierarchy);
+                model = service.generateTemplateModel("default", dataFile, hierarchy);
 
         assertNotNull(model);
 
@@ -260,140 +242,137 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(model.get(hierarchy.getRoot()) instanceof ArrayList);
         //Assert Country is size one and no common properties
         List<Map<String, Object>> countries = (List<Map<String, Object>>) model.get(hierarchy.getRoot());
-        assertTrue(countries.size() == 2);
+        assertEquals(2, countries.size());
 
         //Get Mexico
         Map<String, Object> mexico = countries.get(0);
         assertTrue(mexico.containsKey("country"));
-        assertTrue(mexico.get("country").equals("MX"));
+        assertEquals("MX", mexico.get("country"));
         assertTrue(mexico.containsKey("states"));
         List<Map<String, Object>> mexicanStates = (List<Map<String, Object>>) mexico.get("states");
 
         //assert states
         Map<String, Object> nuevoLeon = mexicanStates.get(0);
         assertTrue(nuevoLeon.containsKey("country"));
-        assertTrue(nuevoLeon.get("country").equals("MX"));
+        assertEquals("MX", nuevoLeon.get("country"));
         assertTrue(nuevoLeon.containsKey("state"));
-        assertTrue(nuevoLeon.get("state").equals("Nuevo Leon"));
+        assertEquals("Nuevo Leon", nuevoLeon.get("state"));
         assertTrue(nuevoLeon.containsKey("cities"));
         //TODO: assert all common fields
 
         List<Map<String, Object>> nuevoLeonCities = (List<Map<String, Object>>) nuevoLeon.get("cities");
-        assertTrue(nuevoLeonCities.size() == 1);
+        assertEquals(1, nuevoLeonCities.size());
         Map<String, Object> monterrey = nuevoLeonCities.get(0);
         assertTrue(monterrey.containsKey("country"));
-        assertTrue(monterrey.get("country").equals("MX"));
+        assertEquals("MX", monterrey.get("country"));
         assertTrue(monterrey.containsKey("state"));
-        assertTrue(monterrey.get("state").equals("Nuevo Leon"));
+        assertEquals("Nuevo Leon", monterrey.get("state"));
         assertTrue(monterrey.containsKey("city"));
-        assertTrue(monterrey.get("city").equals("Monterrey"));
+        assertEquals("Monterrey", monterrey.get("city"));
         assertTrue(monterrey.containsKey("streets"));
         //TODO: assert all common fields
 
         List<Map<String, Object>> monterreyStreets = (List<Map<String, Object>>) monterrey.get("streets");
-        assertTrue(monterreyStreets.size() == 1);
+        assertEquals(1, monterreyStreets.size());
         Map<String, Object> calleRojo = monterreyStreets.get(0);
         assertTrue(calleRojo.containsKey("country"));
-        assertTrue(calleRojo.get("country").equals("MX"));
+        assertEquals("MX", calleRojo.get("country"));
         assertTrue(calleRojo.containsKey("state"));
-        assertTrue(calleRojo.get("state").equals("Nuevo Leon"));
+        assertEquals("Nuevo Leon", calleRojo.get("state"));
         assertTrue(calleRojo.containsKey("city"));
-        assertTrue(calleRojo.get("city").equals("Monterrey"));
+        assertEquals("Monterrey", calleRojo.get("city"));
         assertTrue(calleRojo.containsKey("numbers"));
         //TODO: assert all common fields
 
         //Assert Calle Rojo numbers
         List<Map<String, Object>> calleRojoNumbers = (List<Map<String, Object>>) calleRojo.get("numbers");
-        assertTrue(calleRojoNumbers.size() == 3);
+        assertEquals(3, calleRojoNumbers.size());
         Map<String, Object> one = calleRojoNumbers.get(0);
         assertTrue(one.containsKey("country"));
-        assertTrue(one.get("country").equals("MX"));
+        assertEquals("MX", one.get("country"));
         assertTrue(one.containsKey("state"));
-        assertTrue(one.get("state").equals("Nuevo Leon"));
+        assertEquals("Nuevo Leon", one.get("state"));
         assertTrue(one.containsKey("city"));
-        assertTrue(one.get("city").equals("Monterrey"));
+        assertEquals("Monterrey", one.get("city"));
         assertTrue(one.containsKey("number"));
-        assertTrue(one.get("number").equals("1"));
+        assertEquals("1", one.get("number"));
 
         Map<String, Object> two = calleRojoNumbers.get(1);
         assertTrue(two.containsKey("country"));
-        assertTrue(two.get("country").equals("MX"));
+        assertEquals("MX", two.get("country"));
         assertTrue(two.containsKey("state"));
-        assertTrue(two.get("state").equals("Nuevo Leon"));
+        assertEquals("Nuevo Leon", two.get("state"));
         assertTrue(two.containsKey("city"));
-        assertTrue(two.get("city").equals("Monterrey"));
+        assertEquals("Monterrey", two.get("city"));
         assertTrue(two.containsKey("number"));
-        assertTrue(two.get("number").equals("2"));
+        assertEquals("2", two.get("number"));
 
         Map<String, Object> three = calleRojoNumbers.get(2);
         assertTrue(three.containsKey("country"));
-        assertTrue(three.get("country").equals("MX"));
+        assertEquals("MX", three.get("country"));
         assertTrue(three.containsKey("state"));
-        assertTrue(three.get("state").equals("Nuevo Leon"));
+        assertEquals("Nuevo Leon", three.get("state"));
         assertTrue(three.containsKey("city"));
-        assertTrue(three.get("city").equals("Monterrey"));
+        assertEquals("Monterrey", three.get("city"));
         assertTrue(three.containsKey("number"));
-        assertTrue(three.get("number").equals("3"));
+        assertEquals("3", three.get("number"));
 
         //Get US
         Map<String, Object> unitedStates = countries.get(1);
         assertTrue(unitedStates.containsKey("country"));
-        assertTrue(unitedStates.get("country").equals("US"));
+        assertEquals("US", unitedStates.get("country"));
         assertTrue(unitedStates.containsKey("states"));
         List<Map<String, Object>> usStates = (List<Map<String, Object>>) unitedStates.get("states");
 
         //assert states
         Map<String, Object> hawaii = usStates.get(0);
         assertTrue(hawaii.containsKey("country"));
-        assertTrue(hawaii.get("country").equals("US"));
+        assertEquals("US", hawaii.get("country"));
         assertTrue(hawaii.containsKey("state"));
-        assertTrue(hawaii.get("state").equals("Hawaii"));
+        assertEquals("Hawaii", hawaii.get("state"));
         assertTrue(hawaii.containsKey("cities"));
         //TODO: assert all common fields
 
         List<Map<String, Object>> hawaiiCities = (List<Map<String, Object>>) hawaii.get("cities");
-        assertTrue(hawaiiCities.size() == 1);
+        assertEquals(1, hawaiiCities.size());
         Map<String, Object> Lihue = hawaiiCities.get(0);
         assertTrue(Lihue.containsKey("country"));
-        assertTrue(Lihue.get("country").equals("US"));
+        assertEquals("US", Lihue.get("country"));
         assertTrue(Lihue.containsKey("state"));
-        assertTrue(Lihue.get("state").equals("Hawaii"));
+        assertEquals("Hawaii", Lihue.get("state"));
         assertTrue(Lihue.containsKey("city"));
-        assertTrue(Lihue.get("city").equals("Lihue"));
+        assertEquals("Lihue", Lihue.get("city"));
         assertTrue(Lihue.containsKey("streets"));
         //TODO: assert all common fields
 
         List<Map<String, Object>> LihueStreets = (List<Map<String, Object>>) Lihue.get("streets");
-        assertTrue(LihueStreets.size() == 1);
+        assertEquals(1, LihueStreets.size());
         Map<String, Object> riceSt = LihueStreets.get(0);
         assertTrue(riceSt.containsKey("country"));
-        assertTrue(riceSt.get("country").equals("US"));
+        assertEquals("US", riceSt.get("country"));
         assertTrue(riceSt.containsKey("state"));
-        assertTrue(riceSt.get("state").equals("Hawaii"));
+        assertEquals("Hawaii", riceSt.get("state"));
         assertTrue(riceSt.containsKey("city"));
-        assertTrue(riceSt.get("city").equals("Lihue"));
+        assertEquals("Lihue", riceSt.get("city"));
         assertTrue(riceSt.containsKey("numbers"));
 
         //Assert Rise Street numbers
         List<Map<String, Object>> riceStNumbers = (List<Map<String, Object>>) riceSt.get("numbers");
-        assertTrue(riceStNumbers.size() == 1);
+        assertEquals(1, riceStNumbers.size());
         one = riceStNumbers.get(0);
         assertTrue(one.containsKey("country"));
-        assertTrue(one.get("country").equals("US"));
+        assertEquals("US", one.get("country"));
         assertTrue(one.containsKey("state"));
-        assertTrue(one.get("state").equals("Hawaii"));
+        assertEquals("Hawaii", one.get("state"));
         assertTrue(one.containsKey("city"));
-        assertTrue(one.get("city").equals("Lihue"));
+        assertEquals("Lihue", one.get("city"));
         assertTrue(one.containsKey("number"));
-        assertTrue(one.get("number").equals("1"));
+        assertEquals("1", one.get("number"));
     }
 
     @Test
     public void testGuitarDataModel() throws IOException {
         ConfigurationTemplateServiceImpl service = Common.getBean(ConfigurationTemplateServiceImpl.class);
-
-        String filename = "guitars.csv";
-        String csvFile = "/com/infiniteautomation/mango/spring/service/configurationTemplate/" + filename;
 
         List<ConfigurationTemplateServiceImpl.CSVLevel> levels = new ArrayList<>();
         levels.add(ConfigurationTemplateServiceImpl
@@ -424,21 +403,21 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
 
 
         //Move template files into file store
-        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
-        Files.createDirectories(rootPath);
-        InputStream is = getClass().getResourceAsStream(csvFile);
+        //Move files into file store
+        String dataFile = "guitars.csv";
+        setupResource(dataFile);
+        String templateFile = "guitars.mustache";
+        setupResource(templateFile);
 
-        Path dst = rootPath.resolve(filename);
-        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
         Map<String, Object>
-                model = service.generateTemplateModel("default", filename, hierarchy);
+                model = service.generateTemplateModel("default", dataFile, hierarchy);
 
         assertNotNull(model);
 
         String result = service.generateMangoConfigurationJson(
                 "default",
-                "guitars.csv",
-                "/com/infiniteautomation/mango/spring/service/configurationTemplate/guitars.mustache",
+                dataFile,
+                templateFile,
                 hierarchy
         );
 
@@ -447,120 +426,135 @@ public class ConfigurationTemplateServiceImplTest extends MangoTestBase {
         assertTrue(model.get(hierarchy.getRoot()) instanceof ArrayList);
         //Assert Type is size one and no common properties
         List<Map<String, Object>> guitars = (List<Map<String, Object>>) model.get(hierarchy.getRoot());
-        assertTrue(guitars.size() == 2);
+        assertEquals(2, guitars.size());
 
         Map<String, Object> electric = guitars.get(0);
         assertTrue(electric.containsKey("type"));
-        assertTrue(electric.get("type").equals("Electric"));
+        assertEquals("Electric", electric.get("type"));
         assertTrue(electric.containsKey("brands"));
         List<Map<String, Object>> brands = (List<Map<String, Object>>) electric.get("brands");
 
         Map<String, Object> fender = brands.get(0);
         assertTrue(fender.containsKey("type"));
-        assertTrue(fender.get("type").equals("Electric"));
+        assertEquals("Electric", fender.get("type"));
         assertTrue(fender.containsKey("brand"));
-        assertTrue(fender.get("brand").equals("Fender"));
+        assertEquals("Fender", fender.get("brand"));
         assertTrue(fender.containsKey("models"));
 
         List<Map<String, Object>> fenderModels = (List<Map<String, Object>>) fender.get("models");
-        assertTrue(fenderModels.size() == 1);
+        assertEquals(1, fenderModels.size());
         Map<String, Object> strat = fenderModels.get(0);
         assertTrue(strat.containsKey("type"));
-        assertTrue(strat.get("type").equals("Electric"));
+        assertEquals("Electric", strat.get("type"));
         assertTrue(strat.containsKey("brand"));
-        assertTrue(strat.get("brand").equals("Fender"));
+        assertEquals("Fender", strat.get("brand"));
         assertTrue(strat.containsKey("model"));
-        assertTrue(strat.get("model").equals("Strat"));
+        assertEquals("Strat", strat.get("model"));
         assertTrue(strat.containsKey("pickups"));
 
         List<Map<String, Object>> stratPickups = (List<Map<String, Object>>) strat.get("pickups");
-        assertTrue(stratPickups.size() == 1);
+        assertEquals(1, stratPickups.size());
         Map<String, Object> singleCoil = stratPickups.get(0);
         assertTrue(singleCoil.containsKey("type"));
-        assertTrue(singleCoil.get("type").equals("Electric"));
+        assertEquals("Electric", singleCoil.get("type"));
         assertTrue(singleCoil.containsKey("brand"));
-        assertTrue(singleCoil.get("brand").equals("Fender"));
+        assertEquals("Fender", singleCoil.get("brand"));
         assertTrue(singleCoil.containsKey("model"));
-        assertTrue(singleCoil.get("model").equals("Strat"));
+        assertEquals("Strat", singleCoil.get("model"));
         assertTrue(singleCoil.containsKey("colors"));
 
         List<Map<String, Object>> singleCoilColors = (List<Map<String, Object>>) singleCoil.get("colors");
-        assertTrue(singleCoilColors.size() == 2);
+        assertEquals(2, singleCoilColors.size());
         Map<String, Object> one = singleCoilColors.get(0);
         assertTrue(one.containsKey("type"));
-        assertTrue(one.get("type").equals("Electric"));
+        assertEquals("Electric", one.get("type"));
         assertTrue(one.containsKey("brand"));
-        assertTrue(one.get("brand").equals("Fender"));
+        assertEquals("Fender", one.get("brand"));
         assertTrue(one.containsKey("model"));
-        assertTrue(one.get("model").equals("Strat"));
+        assertEquals("Strat", one.get("model"));
         assertTrue(one.containsKey("color"));
-        assertTrue(one.get("color").equals("red"));
+        assertEquals("red", one.get("color"));
 
         Map<String, Object> two = singleCoilColors.get(1);
         assertTrue(two.containsKey("type"));
-        assertTrue(two.get("type").equals("Electric"));
+        assertEquals("Electric", two.get("type"));
         assertTrue(two.containsKey("brand"));
-        assertTrue(two.get("brand").equals("Fender"));
+        assertEquals("Fender", two.get("brand"));
         assertTrue(two.containsKey("model"));
-        assertTrue(two.get("model").equals("Strat"));
+        assertEquals("Strat", two.get("model"));
         assertTrue(two.containsKey("color"));
-        assertTrue(two.get("color").equals("white"));
+        assertEquals("white", two.get("color"));
 
         Map<String, Object> acoustics = guitars.get(1);
         assertTrue(acoustics.containsKey("type"));
-        assertTrue(acoustics.get("type").equals("Acoustic"));
+        assertEquals("Acoustic", acoustics.get("type"));
         assertTrue(acoustics.containsKey("brands"));
         brands = (List<Map<String, Object>>) acoustics.get("brands");
 
         Map<String, Object> yamaha = brands.get(0);
         assertTrue(yamaha.containsKey("type"));
-        assertTrue(yamaha.get("type").equals("Acoustic"));
+        assertEquals("Acoustic", yamaha.get("type"));
         assertTrue(yamaha.containsKey("brand"));
-        assertTrue(yamaha.get("brand").equals("Yamaha"));
+        assertEquals("Yamaha", yamaha.get("brand"));
         assertTrue(yamaha.containsKey("models"));
 
         List<Map<String, Object>> yamahaModels = (List<Map<String, Object>>) yamaha.get("models");
-        assertTrue(yamahaModels.size() == 1);
+        assertEquals(1, yamahaModels.size());
         Map<String, Object> apx = yamahaModels.get(0);
         assertTrue(apx.containsKey("type"));
-        assertTrue(apx.get("type").equals("Acoustic"));
+        assertEquals("Acoustic", apx.get("type"));
         assertTrue(apx.containsKey("brand"));
-        assertTrue(apx.get("brand").equals("Yamaha"));
+        assertEquals("Yamaha", apx.get("brand"));
         assertTrue(apx.containsKey("model"));
-        assertTrue(apx.get("model").equals("APX600BL"));
+        assertEquals("APX600BL", apx.get("model"));
         assertTrue(apx.containsKey("pickups"));
 
         List<Map<String, Object>> acousticPickups = (List<Map<String, Object>>) apx.get("pickups");
-        assertTrue(acousticPickups.size() == 1);
+        assertEquals(1, acousticPickups.size());
         Map<String, Object> acousticCoil = acousticPickups.get(0);
         assertTrue(acousticCoil.containsKey("type"));
-        assertTrue(acousticCoil.get("type").equals("Acoustic"));
+        assertEquals("Acoustic", acousticCoil.get("type"));
         assertTrue(acousticCoil.containsKey("brand"));
-        assertTrue(acousticCoil.get("brand").equals("Yamaha"));
+        assertEquals("Yamaha", acousticCoil.get("brand"));
         assertTrue(acousticCoil.containsKey("model"));
-        assertTrue(acousticCoil.get("model").equals("APX600BL"));
+        assertEquals("APX600BL", acousticCoil.get("model"));
         assertTrue(acousticCoil.containsKey("colors"));
 
         List<Map<String, Object>> acousticColors = (List<Map<String, Object>>) acousticCoil.get("colors");
-        assertTrue(acousticColors.size() == 2);
+        assertEquals(2, acousticColors.size());
         one = acousticColors.get(0);
         assertTrue(one.containsKey("type"));
-        assertTrue(one.get("type").equals("Acoustic"));
+        assertEquals("Acoustic", one.get("type"));
         assertTrue(one.containsKey("brand"));
-        assertTrue(one.get("brand").equals("Yamaha"));
+        assertEquals("Yamaha", one.get("brand"));
         assertTrue(one.containsKey("model"));
-        assertTrue(one.get("model").equals("APX600BL"));
+        assertEquals("APX600BL", one.get("model"));
         assertTrue(one.containsKey("color"));
-        assertTrue(one.get("color").equals("black"));
+        assertEquals("black", one.get("color"));
 
         two = acousticColors.get(1);
         assertTrue(two.containsKey("type"));
-        assertTrue(two.get("type").equals("Acoustic"));
+        assertEquals("Acoustic", two.get("type"));
         assertTrue(two.containsKey("brand"));
-        assertTrue(two.get("brand").equals("Yamaha"));
+        assertEquals("Yamaha", two.get("brand"));
         assertTrue(two.containsKey("model"));
-        assertTrue(two.get("model").equals("APX600BL"));
+        assertEquals("APX600BL", two.get("model"));
         assertTrue(two.containsKey("color"));
-        assertTrue(two.get("color").equals("natural"));
+        assertEquals("natural", two.get("color"));
+    }
+
+    /**
+     * Copy resource to default filestore
+     */
+    private void setupResource(String csvName) throws IOException {
+        String packageName = "/com/infiniteautomation/mango/spring/service/configurationTemplate/";
+
+
+        //Move file into file store
+        Path rootPath = Common.getBean(FileStoreService.class).getPathForWrite("default", "");
+        Files.createDirectories(rootPath);
+        InputStream is = getClass().getResourceAsStream(packageName + csvName);
+        Path dst = rootPath.resolve(csvName);
+        Files.copy(is, dst, StandardCopyOption.REPLACE_EXISTING);
     }
 }
