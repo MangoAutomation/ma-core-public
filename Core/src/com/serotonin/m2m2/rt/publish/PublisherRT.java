@@ -54,8 +54,8 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
 
     private final Object persistentDataLock = new Object();
 
-    private final EventType pointDisabledEventType;
-    private final EventType queueSizeWarningEventType;
+    protected final EventType pointDisabledEventType;
+    protected final EventType queueSizeWarningEventType;
 
     protected final T vo;
 
@@ -249,13 +249,13 @@ abstract public class PublisherRT<T extends PublisherVO, POINT extends Published
         }
     }
 
-    void fireQueueSizeWarningEvent() {
+    protected void fireQueueSizeWarningEvent() {
         Common.eventManager.raiseEvent(queueSizeWarningEventType, Common.timer.currentTimeMillis(), true,
                 vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT),
                 new TranslatableMessage("event.publish.queueSize", vo.getCacheWarningSize()), createEventContext());
     }
 
-    void deactivateQueueSizeWarningEvent() {
+    protected void deactivateQueueSizeWarningEvent() {
         Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.timer.currentTimeMillis());
     }
 
