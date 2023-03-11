@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,10 +78,122 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
         m.execute(writer, model).flush();
         StringBuilder result = new StringBuilder(writer.toString());
 
-        //TODO: Fix this trailing comma situation
-        int trailingComma = result.lastIndexOf(",");
-        result.delete(trailingComma, trailingComma+1);
-        return result.toString();
+    return result.toString();
+    }
+
+    @Override
+    public ModelLevel processTemplateModel(CSVHierarchy hierarchy, Map<String, Object> model) {
+
+        //We know there is a single root entry which is a list
+        ArrayList<Map<String, Object>> groups = (ArrayList<Map<String, Object>>) model.get(hierarchy.root);
+        ModelLevel root = new ModelLevel(hierarchy.root);
+        for(Map<String,Object> group : groups) {
+            LevelEntry levelEntry = new LevelEntry();
+            group.entrySet().stream().forEach(groupEntry -> {
+                if(groupEntry.getValue() instanceof List) {
+                    recusivelyFillLevels(groupEntry, root, hierarchy);
+                }else {
+                    //Add to entry for this level
+                    levelEntry.addProperty(groupEntry.getKey(), (String)groupEntry.getValue());
+                }
+            });
+            if(levelEntry.hasProperties()) {
+                root.addEntry(levelEntry);
+            }
+        }
+        return root;
+    }
+
+    private void recusivelyFillLevels(Map.Entry<String, Object> entry, ModelLevel level, CSVHierarchy hierarchy) {
+        if(entry.getValue() instanceof ArrayList) {
+            //Its a level
+            ArrayList<Map<String, Object>> groups = (ArrayList<Map<String, Object>>) entry.getValue();
+            ModelLevel nextLevel = level.nextChild(entry.getKey());
+            for(Map<String,Object> group : groups) {
+                //Each group should become a value entry on nextLevel level
+                LevelEntry levelEntry = new LevelEntry();
+                group.entrySet().stream().forEach(groupEntry -> {
+                    if(groupEntry.getValue() instanceof List) {
+                        recusivelyFillLevels(groupEntry, nextLevel, hierarchy);
+                    }else {
+                        //Add to entry for this level
+                        levelEntry.addProperty(groupEntry.getKey(), (String)groupEntry.getValue());
+                    }
+                });
+                if(levelEntry.hasProperties()) {
+                    nextLevel.addEntry(levelEntry);
+                }
+            }
+        }
+    }
+
+    class ModelLevel {
+        final String key;
+        final List<LevelEntry> entries;
+        final List<ModelLevel> children;
+
+        public ModelLevel(String key) {
+            this.key = key;
+            this.entries = new ArrayList<>();
+            this.children = new ArrayList<>();
+        }
+
+        public void addEntry(LevelEntry entry) {
+            this.entries.add(entry);
+        }
+
+        public ModelLevel nextChild(String key) {
+            ModelLevel next = new ModelLevel(key);
+            children.add(next);
+            return next;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder b = new StringBuilder();
+            toString(b);
+            return b.toString();
+        }
+
+        private void toString(StringBuilder b) {
+            b.append(key + ": \n");
+            b.append("entries: " + entries.toString());
+            b.append("\n");
+            b.append("children: \n");
+            recursivelyPrintChildren(b, children);
+            b.append("\n");
+        }
+
+        private void recursivelyPrintChildren(StringBuilder b, List<ModelLevel> children) {
+            if(children.size() > 0) {
+                for (ModelLevel level : children) {
+                    level.toString(b);
+                    b.append("\n");
+                }
+            }else {
+                b.append("\n");
+            }
+        }
+    }
+
+    static class LevelEntry {
+        private Map<String, String> properties;
+        public LevelEntry() {
+            properties = new HashMap<>();
+        }
+
+        public void addProperty(String key, String value) {
+            this.properties.put(key, value);
+        }
+
+        public boolean hasProperties() {
+            return this.properties.size() > 0;
+        }
+
+        @Override
+        public String toString() {
+            return this.properties.toString();
+        }
     }
 
     /**

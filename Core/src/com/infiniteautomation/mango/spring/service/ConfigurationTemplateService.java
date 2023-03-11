@@ -39,4 +39,12 @@ public interface ConfigurationTemplateService {
      */
     String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHierarchy hierarchy) throws IOException,
             PermissionException;
+
+    /**
+     * Take a processed CSV Model and turn into something structurally useful
+     * @param hierarchy
+     * @param model
+     * @return
+     */
+    default ConfigurationTemplateServiceImpl.ModelLevel processTemplateModel(CSVHierarchy hierarchy, Map<String, Object> model) { return null; };
 }
