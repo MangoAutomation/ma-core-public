@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.*;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
@@ -11,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.junit.Test;
 
@@ -30,8 +33,6 @@ import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Terry Packer
@@ -277,22 +278,43 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     @Test
     public void testInactiveIntervalComputation() {
         //Set our time to the start of this week, the test a full week's intervals
-        ZonedDateTime now = ZonedDateTime.now();
-        ZonedDateTime startOfWeek = now.with(ChronoField.DAY_OF_WEEK, 1).toLocalDate().atStartOfDay(ZoneId.systemDefault());
-        ZonedDateTime endOfThisWeek = startOfWeek.plus(1, ChronoUnit.WEEKS);
+        ZonedDateTime date = ZonedDateTime.now();
+        ZonedDateTime startOfWeek = date.with(ChronoField.DAY_OF_WEEK, 1).toLocalDate().atStartOfDay(ZoneId.systemDefault());
+        ZonedDateTime endOfWeek = startOfWeek.plus(1, ChronoUnit.WEEKS);
+        inactiveIntervalComputation(startOfWeek, endOfWeek);
 
+        // Set timezone to test daylight saving for static dates
+        TimeZone.setDefault(TimeZone.getTimeZone("MST7MDT"));
+
+        //Set our time to the start of Daylight saving switchover week, the test a full week's intervals
+        date = ZonedDateTime.of(2023, 3, 12, 0, 0, 0, 0, ZoneId.systemDefault());
+        startOfWeek = date.with(ChronoField.DAY_OF_WEEK, 1).toLocalDate().atStartOfDay(ZoneId.systemDefault());
+        endOfWeek = startOfWeek.plus(1, ChronoUnit.WEEKS);
+        inactiveIntervalComputation(startOfWeek, endOfWeek);
+
+        //Set our time to the start of Daylight saving switchover week, the test a full week's intervals
+        date = ZonedDateTime.of(2023, 11, 5, 0, 0, 0, 0, ZoneId.systemDefault());
+        startOfWeek = date.with(ChronoField.DAY_OF_WEEK, 1).toLocalDate().atStartOfDay(ZoneId.systemDefault());
+        endOfWeek = startOfWeek.plus(1, ChronoUnit.WEEKS);
+        inactiveIntervalComputation(startOfWeek, endOfWeek);
+    }
+
+    private void inactiveIntervalComputation(ZonedDateTime startOfWeek, ZonedDateTime endOfWeek) {
         //Count of 15 minute intervals in week starting at [00:00 to 00:15) on Monday. Thus, there are 4 * 24 * 7
-        //     * = 672 individual periods.
+        //     * ~= 672 individual periods. (+-4) when daylight saving switchover
         int interval = 0;
-        while(startOfWeek.isBefore(endOfThisWeek)) {
+        while(startOfWeek.isBefore(endOfWeek)) {
 
             //Test interval
             assertEquals(interval, MailingListService.MailingListUtility.getIntervalIdAt(startOfWeek.toInstant().toEpochMilli()));
 
             //Advance 15 minute
+            var previousDaylightSaving = ZoneId.systemDefault().getRules().getDaylightSavings(startOfWeek.toInstant());
             startOfWeek = startOfWeek.plus(15, ChronoUnit.MINUTES);
-            interval++;
+            var currentDaylightSaving = ZoneId.systemDefault().getRules().getDaylightSavings(startOfWeek.toInstant());
+            var diffMinutes = currentDaylightSaving.toMinutes() - previousDaylightSaving.toMinutes();
+            var shiftedInterval = diffMinutes / 15;
+            interval += 1 + shiftedInterval;
         }
     }
-
 }
