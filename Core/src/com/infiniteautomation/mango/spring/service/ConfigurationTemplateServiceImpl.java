@@ -19,11 +19,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.IEngineConfiguration;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.AbstractConfigurableTemplateResolver;
+import org.thymeleaf.templateresource.FileTemplateResource;
+import org.thymeleaf.templateresource.ITemplateResource;
 
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.Mustache;
-import com.github.mustachejava.MustacheFactory;
-import com.github.mustachejava.MustacheResolver;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 
@@ -71,15 +74,15 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
 
         Map<String, Object> model = generateTemplateModel(fileStore, filePath, csvHierarchy);
 
-        MustacheFactory mf = new DefaultMustacheFactory(new FileStoreMustacheResolver(this.fileStoreService, fileStore));
-        Mustache m = mf.compile(template);
+        FileStoreTemplateResolver resolver = new FileStoreTemplateResolver(fileStoreService, fileStore);
+        resolver.setTemplateMode(TemplateMode.TEXT);
+        TemplateEngine templateEngine = new TemplateEngine();
+        templateEngine.setTemplateResolver(resolver);
+
         StringWriter writer = new StringWriter();
-        m.execute(writer, model).flush();
+        templateEngine.process(template, new Context(Common.getLocale(), model), writer);
         StringBuilder result = new StringBuilder(writer.toString());
 
-        //TODO: Fix this trailing comma situation
-        int trailingComma = result.lastIndexOf(",");
-        result.delete(trailingComma, trailingComma+1);
         return result.toString();
     }
 
@@ -266,24 +269,21 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
         }
     }
 
-    private static class FileStoreMustacheResolver implements MustacheResolver {
+    private static class FileStoreTemplateResolver extends AbstractConfigurableTemplateResolver {
 
         private final FileStoreService service;
         private final String fileStore;
 
-        public FileStoreMustacheResolver(FileStoreService service, String fileStore) {
+        public FileStoreTemplateResolver(FileStoreService service, String fileStore) {
             this.service = service;
             this.fileStore = fileStore;
         }
 
         @Override
-        public Reader getReader(String resourceName) {
-            Path template = service.getPathForRead(fileStore, resourceName);
-            try {
-                return Files.newBufferedReader(template);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        protected ITemplateResource computeTemplateResource(final IEngineConfiguration configuration, final String ownerTemplate, final String template, final String resourceName, final String characterEncoding, final Map<String, Object> templateResolutionAttributes) {
+            Path path = service.getPathForRead(fileStore, resourceName);
+            return new FileTemplateResource(path.toFile(), characterEncoding);
         }
+
     }
 }
