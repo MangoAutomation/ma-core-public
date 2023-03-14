@@ -10,6 +10,8 @@ import java.util.Map;
 import com.infiniteautomation.mango.spring.service.ConfigurationTemplateServiceImpl.CSVHierarchy;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 
+import freemarker.template.TemplateException;
+
 public interface ConfigurationTemplateService {
 
     /**
@@ -38,5 +40,5 @@ public interface ConfigurationTemplateService {
      * @throws PermissionException
      */
     String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHierarchy hierarchy) throws IOException,
-            PermissionException;
+            PermissionException, TemplateException;
 }

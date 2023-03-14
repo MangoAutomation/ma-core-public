@@ -20,14 +20,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.Mustache;
-import com.github.mustachejava.MustacheFactory;
 import com.github.mustachejava.MustacheResolver;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 
 import au.com.bytecode.opencsv.CSVReader;
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 
 @Service("configurationTemplateService")
 public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateService {
@@ -64,23 +68,29 @@ public class ConfigurationTemplateServiceImpl implements ConfigurationTemplateSe
     }
 
     @Override
-    public String generateMangoConfigurationJson(String fileStore, String filePath, String template, CSVHierarchy csvHierarchy) throws IOException,
+    public String generateMangoConfigurationJson(String fileStore, String filePath, String templateName, CSVHierarchy csvHierarchy) throws IOException,
             PermissionException {
 
         permissionService.ensureAdminRole(Common.getUser());
 
         Map<String, Object> model = generateTemplateModel(fileStore, filePath, csvHierarchy);
 
-        MustacheFactory mf = new DefaultMustacheFactory(new FileStoreMustacheResolver(this.fileStoreService, fileStore));
-        Mustache m = mf.compile(template);
-        StringWriter writer = new StringWriter();
-        m.execute(writer, model).flush();
-        StringBuilder result = new StringBuilder(writer.toString());
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
+        List<TemplateLoader> loaders = new ArrayList<>();
+        loaders.add(new FileTemplateLoader(this.fileStoreService.getPathForRead(fileStore, "").toFile()));
+        cfg.setTemplateLoader(new MultiTemplateLoader(loaders.toArray(new TemplateLoader[0])));
+        cfg.setObjectWrapper(new DefaultObjectWrapper(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS));
 
-        //TODO: Fix this trailing comma situation
-        int trailingComma = result.lastIndexOf(",");
-        result.delete(trailingComma, trailingComma+1);
-        return result.toString();
+        Template template = cfg.getTemplate(templateName);
+        StringWriter writer = new StringWriter();
+
+        try {
+            template.process(model, writer);
+            StringBuilder result = new StringBuilder(writer.toString());
+            return result.toString();
+        } catch (TemplateException e) {
+            throw new IOException(e);
+        }
     }
 
     /**
