@@ -31,10 +31,36 @@ public interface SystemSettingsAccessor {
     }
 
     default void setSystemSetting(String key, String value) {
-        SystemSettings systemSettings = systemSettingsTable();
-        getContext().update(systemSettings)
-                .set(systemSettings.settingValue, value)
-                .where(systemSettings.settingName.eq(key))
-                .execute();
+        SystemSettings table = systemSettingsTable();
+        switch (getContext().dialect()) {
+            case MYSQL:
+            case MARIADB:
+                // the @Supports annotation on mergeInto claims that it supports MySQL, however it does not
+                // translate/emulate the merge using "on duplicate key update" so it fails
+                getContext().insertInto(table)
+                        .columns(table.settingValue, table.settingName)
+                        .values(value, key)
+                        .onDuplicateKeyUpdate()
+                        .set(table.settingValue, value)
+                        .execute();
+            case POSTGRES:
+                getContext().insertInto(table)
+                        .columns(table.settingValue, table.settingName)
+                        .values(value, key)
+                        .onConflict(table.settingName)
+                        .doUpdate()
+                        .set(table.settingValue, value)
+                        .execute();
+            default:
+                getContext().mergeInto(table)
+                        .using(getContext().selectOne())
+                        .on(table.settingName.eq(key))
+                        .whenMatchedThenUpdate()
+                        .set(table.settingValue, value)
+                        .whenNotMatchedThenInsert(table.settingValue, table.settingName)
+                        .values(value, key)
+                        .execute();
+        }
+
     }
 }
