@@ -35,20 +35,33 @@ resolve_path() {
 
 mango_keystore_properties() {
   if [ -z "$MA_KEYSTORE" ]; then
-    keystore="$(get_prop "ssl.keystore.location" "keystore.p12")"
+    keystoreMessage="keystore variable populated with"
+    keystoreDefault="keystore.p12"
+    keystoreProperty="ssl.keystore.location"
+    keystore="$(get_prop $keystoreProperty $keystoreDefault)"
+    print_value_source_message "$keystore" "$keystoreDefault" "$keystoreMessage" "$keystoreProperty"
     MA_KEYSTORE="$(resolve_path "$mango_paths_data" "$keystore")"
+    print_ma_keystore_value_source_message "$MA_KEYSTORE" "$keystore" "MA_KEYSTORE environment variable populated with"
   fi
 
   if [ -z "$MA_KEYSTORE_PASSWORD" ]; then
-    MA_KEYSTORE_PASSWORD="$(get_prop 'ssl.keystore.password' 'freetextpassword')"
+    maKeystoreMessage="MA_KEYSTORE_PASSWORD environment variable populated with"
+    maKeystorePasswordDefault="freetextpassword"
+    maKeystorePasswordProperty="ssl.keystore.password"
+    MA_KEYSTORE_PASSWORD="$(get_prop $maKeystorePasswordProperty maKeystorePasswordDefault)"
+    print_value_source_message "$MA_KEYSTORE_PASSWORD" "$maKeystorePasswordDefault" "$maKeystoreMessage" "$maKeystorePasswordProperty"
   fi
 
   if [ -z "$MA_KEY_PASSWORD" ]; then
-    MA_KEY_PASSWORD="$(get_prop 'ssl.key.password' "$MA_KEYSTORE_PASSWORD")"
+    maKeyMessage="MA_KEY_PASSWORD environment variable populated with"
+    maKeyPasswordProperty="ssl.key.password"
+    MA_KEY_PASSWORD="$(get_prop "$maKeyPasswordProperty" "$MA_KEYSTORE_PASSWORD")"
+    print_value_source_message "$MA_KEY_PASSWORD" "$MA_KEYSTORE_PASSWORD" "$maKeyMessage" "$maKeyPasswordProperty"
   fi
 
   if [ -z "$MA_KEY_ALIAS" ]; then
     MA_KEY_ALIAS=mango
+    echo "+++++ MA_KEY_ALIAS environment variable populated with default value mango"
   fi
 }
 
@@ -155,6 +168,22 @@ mango_stop() {
   rm -f "$mango_paths_pid_file"
 }
 
+print_value_source_message() {
+  if [ "$1" = "$2" ]; then
+    echo "++ $3 mango.properties file property $4"
+  else
+    echo "++++++ $3 default value $2"
+  fi
+}
+
+print_ma_keystore_value_source_message() {
+  if [ "$1" = "$2" ]; then
+    echo "++ MA_KEYSTORE used $1"
+  else
+    echo "++++++ $3 default value $2 as file $1 was not found."
+  fi
+}
+
 if [ -z "$mango_script_dir" ]; then
   err "This script is not intended to be executed directly"
 fi
@@ -221,3 +250,13 @@ mango_paths_data="$(resolve_path "$mango_paths_home" "$mango_paths_data")"
 mango_paths_pid_file="$(resolve_path "$mango_paths_data" "$mango_paths_pid_file")"
 [ -z "$mango_paths_start_options" ] && mango_paths_start_options="$(get_prop "paths.start.options" "$mango_paths_data/start-options.sh")"
 mango_paths_start_options="$(resolve_path "$mango_paths_data" "$mango_paths_start_options")"
+
+echo "++ HOME environment variable is $HOME"
+echo "++ mango_paths_home is $mango_paths_home"
+if [ "$HOME" != "$mango_paths_home" ]; then
+  echo "+++++ HOME and mango_paths_home are not the same so script may not work properly!! ++++"
+fi
+echo "+++++ Mango configuration found on $mango_config"
+echo "++ mango_paths_data environment variable is $mango_paths_data"
+echo "++ mango_script_dir is $mango_script_dir"
+echo "++ mango_paths_data is $mango_paths_data"
