@@ -89,6 +89,7 @@ public class PublisherImporter extends Importer {
                                 DataPointVO dataPointVO = dataPointService.get(dataPointXid);
                                 PublishedPointVO point = vo.getDefinition().createPublishedPointVO(vo, dataPointVO);
                                 point.setName(dataPointVO.getName());
+                                point.setEnabled(true);
                                 ctx.getReader().readInto(point, jv.toJsonObject());
                                 point.setXid(publishedPointService.generateUniqueXid());
                                 publishedPointService.insert(point);
