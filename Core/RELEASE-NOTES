@@ -1,5 +1,6 @@
 *Version 4.5.1*
 * Improve performance for new points by setting the point value cache to an empty collection
+* Fixed a bug where system setting for db version would not get created/updated if it didn't exist before.
 * Fix published points as disabled when importing a legacy publisher, defaults legacy points to enabled now.
 
 *Version 4.5.0*
