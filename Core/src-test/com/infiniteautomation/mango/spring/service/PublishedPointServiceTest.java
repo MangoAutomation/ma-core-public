@@ -260,10 +260,20 @@ public class PublishedPointServiceTest extends AbstractVOServiceTest <PublishedP
         loadConfiguration(json);
         assertEquals(5, service.count());
 
+        //Check that legacy points got imported as enabled
+        for (PublishedPointVO pubLegacyPoint : service.list()) {
+            assertTrue(pubLegacyPoint.isEnabled());
+        }
+
         //Import publishedPoints for update (duplicate points).  This process
         // always inserts new points and can't update them since there is no XID field
         // on the import data's points array as it was not supported
         loadConfiguration(json);
         assertEquals(10, service.count());
+
+        //Check that legacy points got imported as enabled
+        for (PublishedPointVO pubLegacyPoint : service.list()) {
+            assertTrue(pubLegacyPoint.isEnabled());
+        }
     }
 }
