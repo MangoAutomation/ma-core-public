@@ -255,7 +255,7 @@ public interface DatabaseProxy extends TransactionCapable {
                     .set(u.phone, "")
                     .set(u.disabled, BaseDao.boolToChar(false))
                     .set(u.lastLogin, 0L)
-                    .set(u.homeUrl, "/ui/administration/home")
+                    .set(u.homeUrl, "/ui/admin/home")
                     .set(u.receiveAlarmEmails, AlarmLevels.IGNORE.value())
                     .set(u.receiveOwnAuditEvents, BaseDao.boolToChar(false))
                     .set(u.muted, BaseDao.boolToChar(true))
