@@ -257,6 +257,5 @@ if [ "$HOME" != "$mango_paths_home" ]; then
   echo "+++++ HOME and mango_paths_home are not the same so script may not work properly!! ++++"
 fi
 echo "+++++ Mango configuration found on $mango_config"
-echo "++ mango_paths_data environment variable is $mango_paths_data"
 echo "++ mango_script_dir is $mango_script_dir"
 echo "++ mango_paths_data is $mango_paths_data"
