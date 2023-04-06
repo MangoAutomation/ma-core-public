@@ -180,7 +180,12 @@ print_ma_keystore_value_source_message() {
   if [ "$1" = "$2" ]; then
     echo "++ MA_KEYSTORE used $1"
   else
-    echo "++++++ $3 default value $2 as file $1 was not found."
+    if [ -e $1 ]
+    then
+        echo "++++++ $3 default value $2"
+    else
+        echo "++++++ $3 default value $2 as file $1 was not found."
+    fi
   fi
 }
 
