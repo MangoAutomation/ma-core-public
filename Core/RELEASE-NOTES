@@ -2,6 +2,7 @@
 * Improve performance for new points by setting the point value cache to an empty collection
 * Fixed a bug where system setting for db version would not get created/updated if it didn't exist before.
 * Fix published points as disabled when importing a legacy publisher, defaults legacy points to enabled now.
+* Upgrade commons-fileupload library version to 1.5 (mitigates CVE-2023-24998)
 
 *Version 4.5.0*
 * Add new rollup type Range (in period)
