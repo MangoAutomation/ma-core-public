@@ -45,11 +45,14 @@ public class MangoRootWebContextConfiguration {
     }
 
     @Bean
-    public CommonsMultipartResolver multipartResolver(@Value("${web.fileUpload.maxSize:50000000}") long fileUploadMaxSize) {
+    public CommonsMultipartResolver multipartResolver(
+            @Value("${web.fileUpload.maxSize:50000000}") long fileUploadMaxSize,
+            @Value("${web.fileUpload.maxCount:100}") long fileUploadMaxCount) {
         CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
         commonsMultipartResolver.setResolveLazily(true); //So we can optionally stream the results
         commonsMultipartResolver.setDefaultEncoding(StandardCharsets.UTF_8.name());
         commonsMultipartResolver.setMaxUploadSize(fileUploadMaxSize);
+        commonsMultipartResolver.getFileUpload().setFileCountMax(fileUploadMaxCount);
         return commonsMultipartResolver;
     }
 
