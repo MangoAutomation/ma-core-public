@@ -4,11 +4,10 @@
 
 package com.serotonin.m2m2.db.upgrade;
 
-import java.util.Optional;
-
+import com.infiniteautomation.mango.db.tables.SystemSettings;
 import org.jooq.DSLContext;
 
-import com.infiniteautomation.mango.db.tables.SystemSettings;
+import java.util.Optional;
 
 /**
  * Used to get/set system settings before DAOs are initialized
@@ -32,34 +31,38 @@ public interface SystemSettingsAccessor {
 
     default void setSystemSetting(String key, String value) {
         SystemSettings table = systemSettingsTable();
-            switch (getContext().dialect()) {
-                case MYSQL:
-                case MARIADB:
-                    // the @Supports annotation on mergeInto claims that it supports MySQL, however it does not
-                    // translate/emulate the merge using "on duplicate key update" so it fails
-                     getContext().insertInto(table)
-                            .columns(table.settingValue, table.settingName)
-                            .values(value, key)
-                            .onDuplicateKeyUpdate()
-                            .set(table.settingValue, value)
-                             .execute();
-                case POSTGRES:
-                    getContext().insertInto(table)
-                            .columns(table.settingValue, table.settingName)
-                            .values(value, key)
-                            .onConflict(table.settingName)
-                            .doUpdate()
-                            .set(table.settingValue, value)
-                            .execute();
-                default:
-                    getContext().mergeInto(table)
-                            .using(getContext().selectOne())
-                            .on(table.settingName.eq(key))
-                            .whenMatchedThenUpdate()
-                            .set(table.settingValue, value)
-                            .whenNotMatchedThenInsert(table.settingValue, table.settingName)
-                            .values(value, key)
-                            .execute();
-            }
+        switch (getContext().dialect()) {
+            case MYSQL:
+            case MARIADB:
+                // the @Supports annotation on mergeInto claims that it supports MySQL, however it does not
+                // translate/emulate the merge using "on duplicate key update" so it fails
+                getContext().insertInto(table)
+                        .columns(table.settingValue, table.settingName)
+                        .values(value, key)
+                        .onDuplicateKeyUpdate()
+                        .set(table.settingValue, value)
+                        .execute();
+                break;
+            case POSTGRES:
+                getContext().insertInto(table)
+                        .columns(table.settingValue, table.settingName)
+                        .values(value, key)
+                        .onConflict(table.settingName)
+                        .doUpdate()
+                        .set(table.settingValue, value)
+                        .execute();
+                break;
+            default:
+                getContext().mergeInto(table)
+                        .using(getContext().selectOne())
+                        .on(table.settingName.eq(key))
+                        .whenMatchedThenUpdate()
+                        .set(table.settingValue, value)
+                        .whenNotMatchedThenInsert(table.settingValue, table.settingName)
+                        .values(value, key)
+                        .execute();
+                break;
+        }
+
     }
 }
