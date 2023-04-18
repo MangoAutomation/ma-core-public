@@ -4,11 +4,10 @@
 
 package com.serotonin.m2m2.db.upgrade;
 
-import java.util.Optional;
-
+import com.infiniteautomation.mango.db.tables.SystemSettings;
 import org.jooq.DSLContext;
 
-import com.infiniteautomation.mango.db.tables.SystemSettings;
+import java.util.Optional;
 
 /**
  * Used to get/set system settings before DAOs are initialized
@@ -43,6 +42,7 @@ public interface SystemSettingsAccessor {
                         .onDuplicateKeyUpdate()
                         .set(table.settingValue, value)
                         .execute();
+                break;
             case POSTGRES:
                 getContext().insertInto(table)
                         .columns(table.settingValue, table.settingName)
@@ -51,6 +51,7 @@ public interface SystemSettingsAccessor {
                         .doUpdate()
                         .set(table.settingValue, value)
                         .execute();
+                break;
             default:
                 getContext().mergeInto(table)
                         .using(getContext().selectOne())
@@ -60,6 +61,7 @@ public interface SystemSettingsAccessor {
                         .whenNotMatchedThenInsert(table.settingValue, table.settingName)
                         .values(value, key)
                         .execute();
+                break;
         }
 
     }
