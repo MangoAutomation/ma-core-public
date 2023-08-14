@@ -3,6 +3,7 @@
 * Fixed a bug where system setting for db version would not get created/updated if it didn't exist before.
 * Fix published points as disabled when importing a legacy publisher, defaults legacy points to enabled now.
 * Upgrade commons-fileupload library version to 1.5 (mitigates CVE-2023-24998)
+* Fix to allow users to see comments for active alarms in real-time
 
 *Version 4.5.0*
 * Add new rollup type Range (in period)
