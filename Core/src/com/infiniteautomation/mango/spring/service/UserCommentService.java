@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
  */
 
 package com.infiniteautomation.mango.spring.service;
@@ -51,39 +51,33 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, UserCommentVO vo) {
+        if (permissionService.hasAdminRole(user)) return true;
+
+        // When user has read permission for the reference object
         switch(vo.getCommentType()) {
             case UserCommentVO.TYPE_EVENT:
                 EventInstanceVO event = eventInstanceDao.get(vo.getReferenceId());
-                if(event != null) {
-                    return permissionService.hasPermission(user, event.getReadPermission());
-                }else {
-                    return permissionService.hasAdminRole(user);
-                }
+                return event != null && permissionService.hasPermission(user, event.getReadPermission());
             case UserCommentVO.TYPE_POINT:
                 return permissionService.hasDataPointReadPermission(user, vo.getReferenceId());
             case UserCommentVO.TYPE_JSON_DATA:
                 JsonDataVO json = jsonDataDao.get(vo.getReferenceId());
-                if(json != null) {
-                    return permissionService.hasPermission(user, json.getReadPermission());
-                }else {
-                    return permissionService.hasAdminRole(user);
-                }
+                return json != null && permissionService.hasPermission(user, json.getReadPermission());
             default:
-                return permissionService.hasAdminRole(user);
+                return false;
         }
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, UserCommentVO vo) {
-        if (permissionService.hasAdminRole(user))
-            return true;
-        else
-            return user.getUser() != null && vo.getUserId() == user.getUser().getId();
+        if (permissionService.hasAdminRole(user)) return true;
+        return user.getUser() != null && vo.getUserId() == user.getUser().getId();
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, UserCommentVO vo) {
-        return true;
+        // Same as create permission
+        return hasCreatePermission(user, vo);
     }
 
     @Override
