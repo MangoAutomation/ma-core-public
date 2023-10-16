@@ -279,14 +279,13 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * Get a cached role, for performance
+     * Get a cached role, for performance. Using this method will fill an entry in the cache and compute the
+     * inheritance, assuming it will be used at some point later.
      *
-     * Using this method will fill an entry in the cache and compute the
-     *  inheritance, assuming it will be used at some point later
      * @param roleXid
      * @return null if role does not exist
      */
-    public Role getRole(String roleXid) {
+    public @Nullable Role getRole(String roleXid) {
         RoleInheritance inheritance = roleHierarchyCache.get(roleXid);
         if(inheritance == null) {
             return null;
@@ -308,20 +307,19 @@ public class PermissionService implements CachingService {
     }
 
     /**
-     * Loads the roles by their XIDs and returns a new permission without any missing roles (they are silently dropped).
-     * Used when deserializing a permission from a data column. The returned permission is unsaved and will have
-     * an id of -1.
+     * Load roles by their XIDs and returns a new permission without any minterms that contained a missing role.
+     * Used when deserializing a permission from a data column, or when receiving a role from a foreign source.
+     * The returned permission is unsaved and will have an id of -1.
      *
-     * @param permission a permission with roles that potentially dont exist
+     * @param permission a permission with roles that potentially don't exist
      * @return an unsaved permission with roles loaded
      */
     public MangoPermission loadRoles(MangoPermission permission) {
         Set<Set<Role>> minterms = permission.getRoles().stream()
                 .map(mt -> mt.stream()
                         .map(r -> getRole(r.getXid()))
-                        .filter(Objects::nonNull)
                         .collect(Collectors.toSet()))
-                .filter(mt -> !mt.isEmpty())
+                .filter(mt -> !mt.contains(null) && !mt.isEmpty())
                 .collect(Collectors.toSet());
         return new MangoPermission(minterms);
     }
@@ -544,6 +542,37 @@ public class PermissionService implements CachingService {
     /**
      * Validate roles.  Used for things like a User or ScriptPermission. This will validate that:
      * <ol>
+     *     <li>The user cannot remove a role they do not have</li>
+     * </ol>
+     *  @param result - the result of the validation
+     * @param contextKey - the key to apply the messages to
+     * @param currentUser - the current user
+     * @param existingRoles - the previous roles
+     * @param newRoles - the new roles to validate
+     */
+    public void validatePermissionHolderRoles(ProcessResult result, String contextKey, PermissionHolder currentUser,
+            Set<Role> existingRoles, Set<Role> newRoles) {
+
+        validatePermissionHolderRoles(result, contextKey, currentUser, newRoles);
+        validateRemovedRoles(result, contextKey, currentUser, existingRoles, newRoles);
+    }
+
+    private void validateRemovedRoles(ProcessResult result, String contextKey, PermissionHolder currentUser,
+            Set<Role> existingRoles, Set<Role> newRoles) {
+
+        // if any roles were removed, validate if the removal is an authorized one
+        Set<Role> removedRoles = existingRoles.stream().filter(e -> !newRoles.contains(e)).collect(Collectors.toSet());
+        Set<Role> inherited = getAllInheritedRoles(currentUser);
+
+        // the removed roles should be part of the holder's inherited set (or holder should be super admin)
+        if (!inherited.contains(PermissionHolder.SUPERADMIN_ROLE) && !inherited.containsAll(removedRoles)) {
+            result.addContextualMessage(contextKey, "validate.role.invalidRemoval", implodeRoles(inherited));
+        }
+    }
+
+    /**
+     * Validate roles.  Used for things like a User or ScriptPermission. This will validate that:
+     * <ol>
      *     <li>The new roles are non null</li>
      *     <li>All new roles are not empty</li>
      *     <li>The new roles exist</li>
@@ -551,15 +580,15 @@ public class PermissionService implements CachingService {
      * </ol>
      *  @param result - the result of the validation
      * @param contextKey - the key to apply the messages to
-     * @param holder - the saving permission holder
-     * @param newRoles - the new permissions to validate
+     * @param currentUser - the current user
+     * @param newRoles - the new roles to validate
      */
     public void validatePermissionHolderRoles(ProcessResult result, String contextKey,
-                                              PermissionHolder holder, Set<Role> newRoles) {
+                                              PermissionHolder currentUser, Set<Role> newRoles) {
 
         Assert.notNull(result, "result must not be null");
         Assert.notNull(contextKey, "contextKey must not be null");
-        Assert.notNull(holder, "holder must not be null");
+        Assert.notNull(currentUser, "holder must not be null");
 
         if (newRoles == null) {
             result.addContextualMessage(contextKey, "validate.permission.null");
@@ -571,7 +600,7 @@ public class PermissionService implements CachingService {
             return;
         }
 
-        Set<Role> inherited = getAllInheritedRoles(holder);
+        Set<Role> inherited = getAllInheritedRoles(currentUser);
         if (!inherited.contains(PermissionHolder.SUPERADMIN_ROLE) && !inherited.containsAll(newRoles)) {
             result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(inherited));
         }
