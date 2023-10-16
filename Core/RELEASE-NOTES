@@ -1,9 +1,7 @@
-*Version 4.5.3*
-* Fix to allow users to remove roles from other users only when their permissions allows them to do so.
-
 *Version 4.5.2*
 * Add system settings for events export configuration
 * Allow audit events when saving object without changes
+* Fix to allow users to remove roles from other users only when their permissions allows them to do so.
 
 *Version 4.5.1*
 * Improve performance for new points by setting the point value cache to an empty collection
