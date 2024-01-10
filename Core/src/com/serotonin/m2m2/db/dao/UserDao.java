@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+ * Copyright (C) 2024 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2.db.dao;
 
@@ -320,6 +320,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
                     vo.setPasswordChangeTimestamp(old1.getPasswordChangeTimestamp());
                     vo.setPasswordVersion(old1.getPasswordVersion());
                 }
+                vo.setTokenVersion(old1.getTokenVersion());
                 UserDao.super.update(old1, vo);
                 //Set the last login time so it is available on the saved user
                 vo.setLastLogin(old1.getLastLogin());
@@ -374,7 +375,7 @@ public class UserDao extends AbstractVoDao<User, UsersRecord, Users> {
     /**
      * Revoke all tokens for user
      *
-     * @param user the user who's tokens will be revoked
+     * @param user the user whose tokens will be revoked
      */
     public void revokeTokens(User user) {
         int userId = user.getId();
