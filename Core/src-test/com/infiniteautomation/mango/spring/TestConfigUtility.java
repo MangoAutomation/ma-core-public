@@ -355,7 +355,7 @@ public final class TestConfigUtility {
     }
 
     public AbstractEventDetectorVO createMockEventDetector(DataPointVO dataPointVO, String type) {
-        EventDetectorDefinition<?, ?> eventDetectorDefinition = ModuleRegistry.getEventDetectorDefinition(type);
+        EventDetectorDefinition<?> eventDetectorDefinition = ModuleRegistry.getEventDetectorDefinition(type);
         try {
             return eventDetectorsService.insert(eventDetectorDefinition.baseCreateEventDetectorVO(dataPointVO.getId()));
         } catch (ValidationException e) {
