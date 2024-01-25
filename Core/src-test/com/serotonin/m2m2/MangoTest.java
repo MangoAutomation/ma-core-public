@@ -109,23 +109,23 @@ public abstract class MangoTest implements SupplierPoller {
 
         String testDbType = properties.getProperty("db.test.type");
         switch (testDbType != null? testDbType : "h2") {
-            case "mysql" -> {
+            case "mysql": {
                 properties.setProperty("db.test.url", "jdbc:mysql://0.0.0.0/mango");
                 properties.setProperty("db.url", "jdbc:mysql://0.0.0.0/" + dbName);
             }
-            case "postgres" -> {
+            case "postgres": {
                 properties.setProperty("db.test.url", "jdbc:postgresql://0.0.0.0/mango");
                 properties.setProperty("db.url", "jdbc:postgresql://0.0.0.0/" + dbName);
             }
-            case "h2:tcp" -> {
+            case "h2:tcp": {
                 testDbType = "h2";
                 properties.setProperty("db.url", "jdbc:h2:tcp://0.0.0.0/mem:" + dbName + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
             }
-            case "h2:file" -> {
+            case "h2:file": {
                 testDbType = "h2";
                 properties.setProperty("db.url", "jdbc:h2:databases/" + dbName);
             }
-            default -> {
+            default: {
                 testDbType = "h2";
                 properties.setProperty("db.url", "jdbc:h2:mem:" + dbName + ";DB_CLOSE_DELAY=-1;LOCK_MODE=0");
             }
@@ -143,18 +143,21 @@ public abstract class MangoTest implements SupplierPoller {
             String dbUser = properties.getProperty("db.username");
             String dbPassword = properties.getProperty("db.password");
 
-            final String createQuery = switch (dbType) {
-                case "mysql" -> {
+            String message;
+            final String createQuery;
+            switch (dbType) {
+                case "mysql": {
                     Class.forName("com.mysql.cj.jdbc.Driver");
-                    yield "CREATE DATABASE `%s`";
+                    message = "CREATE DATABASE `%s`";
                 }
-                case "postgres" -> {
+                case "postgres": {
                     Class.forName("org.postgresql.Driver");
-                    yield "CREATE DATABASE %s";
+                    message = "CREATE DATABASE %s";
                 }
                 // H2 doesn't require a CREATE DATABASE statement
-                default -> null;
+                default: { message = null; };
             };
+            createQuery = message;
 
             if (createQuery != null) {
                 String testUrl = properties.getProperty("db.test.url");
@@ -226,7 +229,8 @@ public abstract class MangoTest implements SupplierPoller {
         eventManager.purgeAllEvents();
 
         AbstractTimer timer = getBean(AbstractTimer.class);
-        if (timer instanceof SimulationTimer simulationTimer) {
+        if (timer instanceof SimulationTimer) {
+            SimulationTimer simulationTimer = (SimulationTimer) timer;
             simulationTimer.reset();
         }
 
@@ -245,7 +249,8 @@ public abstract class MangoTest implements SupplierPoller {
 
         DatabaseProxy databaseProxy = getBean(DatabaseProxy.class);
         // Try to release active connections if possible
-        if (databaseProxy instanceof BasePooledProxy pooledProxy) {
+        if (databaseProxy instanceof BasePooledProxy) {
+            BasePooledProxy pooledProxy = (BasePooledProxy) databaseProxy;
             pooledProxy.softEvictConnections();
         }
         // Clean database
