@@ -1,3 +1,6 @@
+*Version 4.5.3*
+* Fix for not rolling back token changes, when updating a user after revoking its tokens.
+
 *Version 4.5.2*
 * Add system settings for events export configuration
 * Allow audit events when saving object without changes
