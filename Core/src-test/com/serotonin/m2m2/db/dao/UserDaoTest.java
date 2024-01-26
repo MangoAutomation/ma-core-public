@@ -5,46 +5,48 @@
 package com.serotonin.m2m2.db.dao;
 
 
-import static com.infiniteautomation.mango.db.tables.Users.USERS;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.jooq.DSLContext;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import com.serotonin.m2m2.MangoTest;
+import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.vo.User;
+import org.jooq.DSLContext;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+
+import static com.infiniteautomation.mango.db.tables.Users.USERS;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Jared Wiltshire
  */
-class UserDaoTest extends MangoTest {
+public class UserDaoTest extends MangoTestBase {
 
     private UserDao userDao;
     private DSLContext context;
 
-    @BeforeEach
-    void setUp() {
-        this.userDao = getBean(UserDao.class);
-        this.context = getBean(DSLContext.class);
+    @Override
+    public void before() {
+        super.before();
+
+        ApplicationContext context = MangoTestBase.lifecycle.getRuntimeContext();
+        this.userDao = context.getBean(UserDao.class);
+        this.context = context.getBean(DSLContext.class);
     }
 
     @Test
-    void tokenVersionIsPreserved() {
+    public void tokenVersionIsPreserved() {
         User user = new User();
         user.setUsername("testuser");
         user.setPassword("testuser");
 
         userDao.insert(user);
-        assertThat(getTokenVersion(user)).isEqualTo(1);
+        assertEquals((Object) getTokenVersion(user), 1);
 
         userDao.revokeTokens(user);
-        assertThat(getTokenVersion(user)).isEqualTo(2);
+        assertEquals((Object) getTokenVersion(user), 2);
 
         // any token version manually set on a user should be ignored
         user.setTokenVersion(1);
         userDao.update(user.getId(), user);
-        assertThat(getTokenVersion(user)).isEqualTo(2);
+        assertEquals((Object) getTokenVersion(user), 2);
     }
 
     private Integer getTokenVersion(User user) {
@@ -53,5 +55,4 @@ class UserDaoTest extends MangoTest {
                 .where(USERS.id.eq(user.getId()))
                 .fetchSingle(USERS.tokenVersion);
     }
-
 }

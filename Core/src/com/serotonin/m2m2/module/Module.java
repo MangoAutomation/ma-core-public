@@ -81,7 +81,7 @@ public class Module {
     private final int loadOrder;
     private boolean markedForDeletion;
 
-    protected final List<ModuleElementDefinition> definitions = new ArrayList<>();
+    private final List<ModuleElementDefinition> definitions = new ArrayList<>();
 
     private final Set<String> locales = new HashSet<>();
     private final boolean signed;
