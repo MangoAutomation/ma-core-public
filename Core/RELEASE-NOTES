@@ -1,5 +1,14 @@
-*Version 4.5.2*
+
+*Version 4.5.3*
 * Allowing grateful fallback when Ldap server is down.
+* Fix for not rolling back token changes, when updating a user after revoking its tokens.
+
+*Version 4.5.2*
+* Add system settings for events export configuration
+* Allow audit events when saving object without changes
+* Fix to allow users to remove roles from other users only when their permissions allows them to do so.
+* Fixes an infinite loop bug that creates megabytes of logs per second on a Modbus communication error
+
 
 *Version 4.5.1*
 * Improve performance for new points by setting the point value cache to an empty collection

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.epoll;
 
@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,12 +104,8 @@ public class InputStreamEPoll implements Runnable {
                     }
                     catch (IOException e) {
                         activity = true;
-                        if (StringUtils.equals(e.getMessage(), "Stream closed.")) {
-                            wrappers.remove(wrapper);
-                            wrapper.callback.closed();
-                        }
-                        else
-                            wrapper.callback.ioException(e);
+                        wrappers.remove(wrapper);
+                        wrapper.callback.closed();
                     }
                 }
                 catch (Exception e) {

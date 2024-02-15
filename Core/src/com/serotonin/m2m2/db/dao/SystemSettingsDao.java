@@ -211,6 +211,9 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_LENGTH_MIN = "password.rule.lengthMin";
     public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
 
+    // Events export
+    public static final String EVENTS_EXPORT_TAGS = "eventsExport.tags";
+
 
     private static final AtomicReference<SystemSettingsDao> INSTANCE = new AtomicReference<>();
     public static SystemSettingsDao getInstance() {

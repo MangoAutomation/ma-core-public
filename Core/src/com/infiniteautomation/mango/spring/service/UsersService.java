@@ -370,6 +370,7 @@ public class UsersService extends AbstractVOService<User, UserDao> implements Ca
 
         // validate roles
         permissionService.validatePermissionHolderRoles(result, "roles", holder,
+                existing.getRoles(),
                 vo.getRoles());
 
         // validate permissions

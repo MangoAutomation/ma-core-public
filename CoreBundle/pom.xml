@@ -3,13 +3,13 @@
     <parent>
         <groupId>com.infiniteautomation.mango</groupId>
         <artifactId>mango-parent</artifactId>
-        <version>4.5.1-SNAPSHOT</version>
+        <version>4.5.2-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>mango-bundle</artifactId>
     <name>Mango Core bundle</name>
-    <version>4.5.1-SNAPSHOT</version>
+    <version>4.5.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <build>
         <plugins>
@@ -77,12 +77,12 @@
         <dependency>
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
             <classifier>resources</classifier>
             <type>zip</type>
         </dependency>
@@ -95,12 +95,12 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ma-priv</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ma-bootstrap</artifactId>
-            <version>4.5.1-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
         </dependency>
         <!-- ma-modules-public -->
         <dependency>
@@ -178,7 +178,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-api</artifactId>
-            <version>4.5.2-SNAPSHOT</version>
+            <version>4.5.4-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
@@ -257,7 +257,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>modbus-ds</artifactId>
-            <version>4.5.2-SNAPSHOT</version>
+            <version>4.5.3-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
@@ -354,7 +354,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>mango-nosql-database</artifactId>
-            <version>4.5.3-SNAPSHOT</version>
+            <version>4.5.4-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
@@ -378,7 +378,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>ui</artifactId>
-            <version>4.5.3-SNAPSHOT</version>
+            <version>4.5.4-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>

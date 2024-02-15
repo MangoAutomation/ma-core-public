@@ -99,8 +99,8 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
         JsonSerializableUtility scanner = new JsonSerializableUtility();
         try {
             context = scanner.findChanges(event.getFrom(), event.getVo());
-            if (context.size() == 0)
-                // If the object wasn't in fact changed, don't raise an event.
+            if (context.isEmpty() && event.getRaisingHolder() == PermissionHolder.SYSTEM_SUPERADMIN)
+                // If the object wasn't in fact changed, don't raise an event for system super admin.
                 return;
         } catch (IllegalAccessException | IllegalArgumentException
                 | InvocationTargetException | JsonException | IOException e) {
