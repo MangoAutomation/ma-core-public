@@ -5,6 +5,7 @@ package com.serotonin.m2m2;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.text.StringSubstitutor;
@@ -54,6 +55,10 @@ public class MockMangoProperties implements MangoProperties {
     @Override
     public String getProperty(String key) {
         return properties.getProperty(key);
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties.putAll(properties);
     }
 
     @Override
