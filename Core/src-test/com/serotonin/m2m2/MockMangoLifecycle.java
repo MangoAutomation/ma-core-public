@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Radix IoT LLC. All rights reserved.
+ * Copyright (C) 2023 Radix IoT LLC. All rights reserved.
  */
 package com.serotonin.m2m2;
 
@@ -14,30 +14,49 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.Security;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import javax.servlet.ServletContainerInitializer;
+import javax.servlet.annotation.HandlesTypes;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.eclipse.jetty.annotations.AnnotationConfiguration;
+import org.eclipse.jetty.annotations.ServletContainerInitializersStarter;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.plus.annotation.ContainerInitializer;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.jooq.exception.DataAccessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
+import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
@@ -61,6 +80,7 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipientResolver;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.AbstractTimer;
@@ -92,6 +112,12 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
     protected ApplicationContext runtimeContext;
+    private final CompletableFuture<Void> runningFuture = new CompletableFuture<>();
+
+    private boolean initializeWebServer = false;
+    private final ContextHandlerCollection handlerCollection = new ContextHandlerCollection();
+    private Server webServer;
+    private OverridingWebAppContext webAppContext;
 
     public MockMangoLifecycle(List<Module> modules) {
         this.modules = modules;
@@ -145,7 +171,8 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.eventManager = getEventManager();
 
         //Setup the Spring Context
-        this.runtimeContext = springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
+        var classLoader = MockMangoLifecycle.class.getClassLoader();
+        this.runtimeContext = springRuntimeContextInitialize(classLoader).get();
 
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
@@ -174,8 +201,13 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             module.postEventManager();
         }
 
-        Common.runtimeManager = getRuntimeManager();
+        Common.runtimeManager = runtimeContext.getBean(RuntimeManager.class);
         Common.runtimeManager.initialize(false);
+
+        if (initializeWebServer) {
+            initializeWebServer();
+            initializeWebAppContext(classLoader);
+        }
 
         if(Common.serialPortManager == null) {
             Common.serialPortManager = getSerialPortManager();
@@ -197,6 +229,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
                 fail(e.getMessage());
             }
         }
+
+        // Run in current thread so that security context is set
+        runningFuture.complete(null);
     }
 
     private final Set<Class<?>> runtimeContextConfigurations = new LinkedHashSet<>();
@@ -205,12 +240,20 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
     private final Map<String, BeanDefinition> beanDefinitions = new HashMap<>();
 
-    public void addRuntimeContextConfiguration(Class<?> clazz) {
+    public MockMangoLifecycle addRuntimeContextConfiguration(Class<?> clazz) {
         runtimeContextConfigurations.add(clazz);
+        return this;
     }
 
-    public void addBeanDefinition(String name, BeanDefinition beanDefinition) {
+    public MockMangoLifecycle addBeanDefinition(Class<?> clazz) {
+        GenericBeanDefinition def = new GenericBeanDefinition();
+        def.setBeanClass(clazz);
+        return addBeanDefinition(def.getBeanClassName(), def);
+    }
+
+    public MockMangoLifecycle addBeanDefinition(String name, BeanDefinition beanDefinition) {
         beanDefinitions.put(name, beanDefinition);
+        return this;
     }
 
     protected CompletableFuture<ApplicationContext> springRuntimeContextInitialize(ClassLoader classLoader) {
@@ -285,8 +328,28 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             }
         }
 
-        Common.runtimeManager.terminate();
-        Common.runtimeManager.joinTermination();
+        if (webAppContext != null) {
+            try {
+                webAppContext.stop();
+            } catch (Exception e) {
+                LOG.error("Failed to stop web app context", e);
+            }
+        }
+        if (webServer != null) {
+            try {
+                webServer.stop();
+            } catch (Exception e) {
+                LOG.error("Failed to stop web server", e);
+            }
+        }
+
+        try {
+            Common.runtimeManager.terminate();
+            Common.runtimeManager.joinTermination();
+        } catch (DataAccessException e) {
+            // database has been cleared by the time the lifecycle terminates
+            // see https://radixiot.atlassian.net/browse/MANGO-317
+        }
 
         for (Module module : ModuleRegistry.getModules()) {
             try {
@@ -357,8 +420,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     @Override
-    public Thread scheduleShutdown(Long timeout, boolean b, PermissionHolder user) {
-
+    public Thread scheduleShutdown(Long timeout, boolean restart, PermissionHolder user) {
         return null;
     }
 
@@ -434,13 +496,11 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     @Override
     public void addListener(Consumer<LifecycleState> listener) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
     public void removeListener(Consumer<LifecycleState> listener) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -451,5 +511,90 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     public ApplicationContext getRuntimeContext() {
         return runtimeContext;
+    }
+
+    public MockMangoLifecycle setInitializeWebServer(boolean initializeWebServer) {
+        this.initializeWebServer = initializeWebServer;
+        return this;
+    }
+
+    private void initializeWebAppContext(ClassLoader classLoader) {
+        this.webAppContext = new OverridingWebAppContext();
+        this.webAppContext.setClassLoader(classLoader);
+
+        var servletContainerInitializers = MangoCommonConfiguration.beansOfTypeIncludingAncestors(this.runtimeContext,
+            ServletContainerInitializer.class);
+        var containerInitializers = servletContainerInitializers.stream().map(initializer -> {
+            HandlesTypes types = initializer.getClass().getAnnotation(HandlesTypes.class);
+            return new ContainerInitializer(initializer, types != null ? types.value() : null);
+        }).collect(Collectors.toList());
+
+        webAppContext.setAttribute(AnnotationConfiguration.CONTAINER_INITIALIZERS, containerInitializers);
+        webAppContext.addBean(new ServletContainerInitializersStarter(webAppContext), true);
+        webAppContext.setThrowUnavailableOnStartupException(true);
+
+        try {
+            handlerCollection.addHandler(webAppContext);
+            webAppContext.start();
+        } catch (Exception e) {
+            throw new IllegalStateException("Couldn't initialize web application context", e);
+        }
+    }
+
+    private void initializeWebServer() {
+        this.webServer = new Server();
+
+        //General Http Configuration
+        HttpConfiguration httpConfig = new HttpConfiguration();
+        httpConfig.setSendServerVersion(false);
+        httpConfig.setSendXPoweredBy(false);
+        httpConfig.setOutputAggregationSize(httpConfig.getOutputBufferSize());
+
+        //Add Http 1.1 and 2
+        ServerConnector conn = new ServerConnector(webServer, new HttpConnectionFactory(httpConfig), new HTTP2CServerConnectionFactory(httpConfig));
+        conn.setPort(0);
+        conn.setHost("localhost");
+        conn.setIdleTimeout(Duration.ofSeconds(70).toMillis());
+
+        //Add the HTTP Connector
+        webServer.addConnector(conn);
+        webServer.setHandler(handlerCollection);
+        try {
+            webServer.start();
+        } catch (Exception e) {
+            throw new IllegalStateException("Couldn't initialize web server", e);
+        }
+    }
+
+    public ServerConnector getWebServerConnector() {
+        return (ServerConnector) Objects.requireNonNull(webServer).getConnectors()[0];
+    }
+
+    public Server getWebServer() {
+        return webServer;
+    }
+
+    /**
+     * @return The Jetty web application context
+     */
+    public OverridingWebAppContext getWebAppContext() {
+        return webAppContext;
+    }
+
+    /**
+     * @return The Spring root web application context
+     */
+    public WebApplicationContext getRootWebAppContext() {
+        return MangoRuntimeContextConfiguration.getRootWebContext();
+    }
+
+    @Override
+    public ServerStatus getServerStatus() {
+        return IMangoLifecycle.super.getServerStatus();
+    }
+
+    @Override
+    public boolean isSafeMode() {
+        return IMangoLifecycle.super.isSafeMode();
     }
 }
