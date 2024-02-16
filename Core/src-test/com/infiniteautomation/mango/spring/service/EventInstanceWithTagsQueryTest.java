@@ -27,7 +27,6 @@ import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.TerminationReason;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
