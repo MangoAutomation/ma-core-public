@@ -16,6 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +27,7 @@ import com.infiniteautomation.mango.spring.components.RunAs;
 import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.TerminationReason;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -69,6 +71,8 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
     private User point2User;
     private User allUser;
 
+    private MockDataSourceVO ds;
+
     private final Random random = new Random();
 
     @Before
@@ -82,12 +86,13 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
 
         setupRoles();
 
+
         AtomicInteger count = new AtomicInteger();
         List<String> tagKeys = Stream.generate(() -> "key" + count.getAndIncrement())
                 .limit(2).collect(Collectors.toList());
         allTags = tagKeys.stream().collect(Collectors.toMap(Function.identity(), k -> k + "_value" + random.nextInt(10)));
 
-        MockDataSourceVO ds = createMockDataSource(true);
+        ds = createMockDataSource(true);
 
         //Insert 2 data points
         point1 = createMockDataPoint(ds, (dp) -> {
@@ -123,6 +128,12 @@ public class EventInstanceWithTagsQueryTest extends MangoTestBase {
             eventDetectorsService.insert(detector);
             detector2 = detector;
         });
+    }
+
+    @After
+    public void afterTest(){
+        DataSourceService service = Common.getBean(DataSourceService.class);
+        service.delete(ds);
     }
 
     @Test
