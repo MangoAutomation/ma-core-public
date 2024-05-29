@@ -426,7 +426,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>line-protocol-ds</artifactId>
-            <version>4.5.0-SNAPSHOT</version>
+            <version>4.5.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
