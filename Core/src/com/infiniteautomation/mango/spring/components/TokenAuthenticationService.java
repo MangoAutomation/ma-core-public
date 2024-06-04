@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.spring.components;
 
 import java.security.KeyPair;
+import java.time.Clock;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,12 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     public TokenAuthenticationService(
             PermissionService permissionService,
             UsersService usersService,
-            ApplicationContext context, RunAs runAs, UserDao userDao) {
+            ApplicationContext context,
+            RunAs runAs,
+            UserDao userDao,
+            Clock clock) {
+
+        super(clock);
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.context = context;

@@ -3,19 +3,17 @@
  */
 package com.infiniteautomation.mango.spring.components;
 
-import freemarker.template.TemplateException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
 import javax.mail.internet.AddressException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +34,11 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+
+import freemarker.template.TemplateException;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtBuilder;
 
 /**
  * @author Jared Wiltshire
@@ -65,7 +68,13 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public PasswordResetService(
             PermissionService permissionService,
             UsersService usersService,
-            PublicUrlService publicUrlService, RunAs runAs, PageResolver pageResolver, SystemSettingsDao systemSettingsDao) {
+            PublicUrlService publicUrlService,
+            RunAs runAs,
+            PageResolver pageResolver,
+            SystemSettingsDao systemSettingsDao,
+            Clock clock) {
+
+        super(clock);
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;

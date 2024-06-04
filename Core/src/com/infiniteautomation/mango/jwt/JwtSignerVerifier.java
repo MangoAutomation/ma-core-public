@@ -14,6 +14,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Clock;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Date;
@@ -47,36 +48,39 @@ public abstract class JwtSignerVerifier<T> {
     public static final String INCORRECT_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was: %s.";
     public static final String MISSING_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was not present.";
 
+    private final Clock clock;
     private KeyPair keyPair;
     private JwtParser parser;
 
     protected final Logger log;
 
-    protected JwtSignerVerifier() {
+    protected JwtSignerVerifier(Clock clock) {
+        this.clock = clock;
         this.log = LoggerFactory.getLogger(this.getClass());
     }
 
     @PostConstruct
     private synchronized void postConstruct() {
-        KeyPair keyPair = this.loadKeyPair();
-        if (keyPair == null) {
+        KeyPair localKeyPair = this.loadKeyPair();
+        if (localKeyPair == null) {
             this.generateNewKeyPair();
         } else {
             this.parser = Jwts.parserBuilder()
                     .require(TOKEN_TYPE_CLAIM, this.tokenType())
-                    .setSigningKey(keyPair.getPublic())
+                    .setSigningKey(localKeyPair.getPublic())
                     .build();
-            this.keyPair = keyPair;
+            this.keyPair = localKeyPair;
         }
     }
 
-    protected synchronized final void generateNewKeyPair() {
-        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.ES512);
+    protected final synchronized void generateNewKeyPair() {
+        KeyPair localKeyPair = Keys.keyPairFor(SignatureAlgorithm.ES512);
         this.parser = Jwts.parserBuilder()
+                .setClock(() -> new Date(clock.millis()))
                 .require(TOKEN_TYPE_CLAIM, this.tokenType())
-                .setSigningKey(keyPair.getPublic())
+                .setSigningKey(localKeyPair.getPublic())
                 .build();
-        this.keyPair = keyPair;
+        this.keyPair = localKeyPair;
         this.saveKeyPair(this.keyPair);
     }
 
@@ -97,7 +101,7 @@ public abstract class JwtSignerVerifier<T> {
                 .compact();
 
         if (log.isDebugEnabled()) {
-            log.debug("Created JWT token: " + printToken(token));
+            log.debug(String.format("Created JWT token: %s", printToken(token)));
         }
 
         return token;
