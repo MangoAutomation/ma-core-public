@@ -75,10 +75,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             UsersService usersService,
             PublicUrlService publicUrlService,
             SystemSettingsDao systemSettings,
-            PermissionService permissionService,
-            RunAs runAs,
-            PageResolver pageResolver) {
-
+            PermissionService permissionService, RunAs runAs, PageResolver pageResolver) {
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.systemSettings = systemSettings;

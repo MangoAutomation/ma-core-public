@@ -182,13 +182,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
   }
 
   private PreAuthenticatedAuthenticationToken convertJwt(Jwt jwt, ProviderConfiguration providerConfiguration, Object details) {
-    String issuer = jwt.getClaim(JwtClaimNames.ISS);
-    String permissionHolderName;
-    if (jwt.containsClaim(JwtClaimNames.SUB)) {
-      permissionHolderName = String.format("%s/%s", issuer, jwt.getClaim(JwtClaimNames.SUB));
-    } else {
-      permissionHolderName = String.format("%s/%s", issuer, jwt.getClaim(JwtClaimNames.AUD));
-    }
+    String permissionHolderName =  String.format("JWT %s", jwt.getClaims());
 
     var roles = getRoles(providerConfiguration, jwt);
     var scopeAuthorities = jwtGrantedAuthoritiesConverter.convert(jwt);

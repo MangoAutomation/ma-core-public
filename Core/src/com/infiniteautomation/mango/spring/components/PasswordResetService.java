@@ -65,9 +65,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public PasswordResetService(
             PermissionService permissionService,
             UsersService usersService,
-            PublicUrlService publicUrlService, RunAs runAs,
-            PageResolver pageResolver, SystemSettingsDao systemSettingsDao) {
-
+            PublicUrlService publicUrlService, RunAs runAs, PageResolver pageResolver, SystemSettingsDao systemSettingsDao) {
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;

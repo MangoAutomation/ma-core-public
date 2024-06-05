@@ -52,7 +52,6 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
             PermissionService permissionService,
             UsersService usersService,
             ApplicationContext context, RunAs runAs, UserDao userDao) {
-
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.context = context;

@@ -76,7 +76,7 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
         userDetailsChecker.check(user);
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Successfully authenticated user using JWT token, header: %s, body: %s", jws.getHeader(), jws.getBody()));
+            log.debug("Successfully authenticated user using JWT token, header: " + jws.getHeader() + ", body: " + jws.getBody());
         }
 
         return new JwtAuthentication(user, bearerToken.getToken(), jws, user.getAuthorities());
