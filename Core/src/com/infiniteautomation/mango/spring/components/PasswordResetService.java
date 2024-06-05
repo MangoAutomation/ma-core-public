@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.time.Clock;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -71,10 +70,8 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
             PublicUrlService publicUrlService,
             RunAs runAs,
             PageResolver pageResolver,
-            SystemSettingsDao systemSettingsDao,
-            Clock clock) {
+            SystemSettingsDao systemSettingsDao) {
 
-        super(clock);
         this.permissionService = permissionService;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;

@@ -14,7 +14,6 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.time.Clock;
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Date;
@@ -48,14 +47,12 @@ public abstract class JwtSignerVerifier<T> {
     public static final String INCORRECT_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was: %s.";
     public static final String MISSING_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was not present.";
 
-    private final Clock clock;
     private KeyPair keyPair;
     private JwtParser parser;
 
     protected final Logger log;
 
-    protected JwtSignerVerifier(Clock clock) {
-        this.clock = clock;
+    protected JwtSignerVerifier() {
         this.log = LoggerFactory.getLogger(this.getClass());
     }
 
@@ -76,7 +73,6 @@ public abstract class JwtSignerVerifier<T> {
     protected final synchronized void generateNewKeyPair() {
         KeyPair localKeyPair = Keys.keyPairFor(SignatureAlgorithm.ES512);
         this.parser = Jwts.parserBuilder()
-                .setClock(() -> new Date(clock.millis()))
                 .require(TOKEN_TYPE_CLAIM, this.tokenType())
                 .setSigningKey(localKeyPair.getPublic())
                 .build();

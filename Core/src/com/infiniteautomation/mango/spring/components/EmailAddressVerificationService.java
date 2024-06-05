@@ -8,7 +8,6 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.time.Clock;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -78,10 +77,8 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             SystemSettingsDao systemSettings,
             PermissionService permissionService,
             RunAs runAs,
-            PageResolver pageResolver,
-            Clock clock) {
+            PageResolver pageResolver) {
 
-        super(clock);
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.systemSettings = systemSettings;

@@ -1,7 +1,5 @@
 package com.serotonin.timer;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,23 +68,6 @@ public class SimulationTimer extends AbstractTimer {
 
     public void next() {
         fastForwardTo(timeSource.currentTimeMillis() + 1);
-    }
-
-    /**
-     * @param duration duration to increase the clock by (relative to clock's current instant)
-     * @return the current instant (same as {@link #instant() would return}
-     */
-    public Instant fastForward(Duration duration) {
-        return fastForwardTo(instant().plus(duration));
-    }
-
-    /**
-     * @param time the new instant to set the clock to
-     * @return the current instant (same as {@link #instant() would return}
-     */
-    public Instant fastForwardTo(Instant time) {
-        fastForwardTo(time.toEpochMilli());
-        return time;
     }
 
     public void fastForwardTo(long time) {
