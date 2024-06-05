@@ -58,25 +58,25 @@ public abstract class JwtSignerVerifier<T> {
 
     @PostConstruct
     private synchronized void postConstruct() {
-        KeyPair localKeyPair = this.loadKeyPair();
-        if (localKeyPair == null) {
+        KeyPair keyPair = this.loadKeyPair();
+        if (keyPair == null) {
             this.generateNewKeyPair();
         } else {
             this.parser = Jwts.parserBuilder()
                     .require(TOKEN_TYPE_CLAIM, this.tokenType())
-                    .setSigningKey(localKeyPair.getPublic())
+                    .setSigningKey(keyPair.getPublic())
                     .build();
-            this.keyPair = localKeyPair;
+            this.keyPair = keyPair;
         }
     }
 
-    protected final synchronized void generateNewKeyPair() {
-        KeyPair localKeyPair = Keys.keyPairFor(SignatureAlgorithm.ES512);
+    protected synchronized final void generateNewKeyPair() {
+        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.ES512);
         this.parser = Jwts.parserBuilder()
                 .require(TOKEN_TYPE_CLAIM, this.tokenType())
-                .setSigningKey(localKeyPair.getPublic())
+                .setSigningKey(keyPair.getPublic())
                 .build();
-        this.keyPair = localKeyPair;
+        this.keyPair = keyPair;
         this.saveKeyPair(this.keyPair);
     }
 
@@ -97,7 +97,7 @@ public abstract class JwtSignerVerifier<T> {
                 .compact();
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Created JWT token: %s", printToken(token)));
+            log.debug("Created JWT token: " + printToken(token));
         }
 
         return token;
