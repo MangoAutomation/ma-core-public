@@ -1,4 +1,7 @@
 
+*Version 4.5.4*
+* Enable use of OIDC/OAuth JWT bearer tokens.
+
 *Version 4.5.3*
 * Allowing grateful fallback when Ldap server is down.
 * Fix for not rolling back token changes, when updating a user after revoking its tokens.
