@@ -14,6 +14,7 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
+import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
@@ -34,12 +35,13 @@ import io.jsonwebtoken.UnsupportedJwtException;
  * @author Jared Wiltshire
  */
 @Component
-@Order(2)
-@ConditionalOnProperty(value = {"${authentication.token.enabled:true}"})
+@Order(3)
+@ConditionalOnProperty(value = {"${authentication.token.enabled}", "${authentication.mango-jwt.enabled}"})
 public class MangoTokenAuthenticationProvider implements AuthenticationProvider {
+
+    private final Logger log = LoggerFactory.getLogger(MangoTokenAuthenticationProvider.class);
     private final TokenAuthenticationService tokenAuthenticationService;
     private final UserDetailsChecker userDetailsChecker;
-    private Logger log = LoggerFactory.getLogger(MangoTokenAuthenticationProvider.class);
 
     @Autowired
     public MangoTokenAuthenticationProvider(TokenAuthenticationService jwtService, UserDetailsChecker userDetailsChecker) {
@@ -49,17 +51,14 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        if (!(authentication instanceof BearerAuthenticationToken)) {
-            return null;
-        }
-
-        String bearerToken = (String) authentication.getCredentials();
+        if (!(authentication instanceof BearerTokenAuthenticationToken)) return null;
+        BearerTokenAuthenticationToken bearerToken = (BearerTokenAuthenticationToken) authentication;
 
         User user;
         Jws<Claims> jws;
 
         try {
-            jws = tokenAuthenticationService.parse(bearerToken);
+            jws = tokenAuthenticationService.parse(bearerToken.getToken());
             user = tokenAuthenticationService.verify(jws);
         } catch (ExpiredJwtException e) {
             throw new CredentialsExpiredException("JWT token expired", e);
@@ -80,11 +79,11 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
             log.debug("Successfully authenticated user using JWT token, header: " + jws.getHeader() + ", body: " + jws.getBody());
         }
 
-        return new JwtAuthentication(user, bearerToken, jws, user.getAuthorities());
+        return new JwtAuthentication(user, bearerToken.getToken(), jws, user.getAuthorities());
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return BearerAuthenticationToken.class.isAssignableFrom(authentication);
+        return BearerTokenAuthenticationToken.class.isAssignableFrom(authentication);
     }
 }

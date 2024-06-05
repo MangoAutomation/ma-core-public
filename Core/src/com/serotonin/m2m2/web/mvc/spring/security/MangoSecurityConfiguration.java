@@ -23,6 +23,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
@@ -46,7 +47,6 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
-import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
@@ -372,8 +372,9 @@ public class MangoSecurityConfiguration {
             }
 
             if (tokenAuthEnabled) {
-                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint,
-                        authenticationDetailsSource), BasicAuthenticationFilter.class);
+                AuthenticationManager authenticationManager = authenticationManagerBean();
+                // this adds the BearerTokenAuthenticationFilter, required to use MangoTokenAuthenticationProvider
+                http.oauth2ResourceServer(oauth -> oauth.jwt().authenticationManager(authenticationManager));
             }
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
