@@ -5,6 +5,7 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 
 import static com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration.ANONYMOUS_PERMISSION_HOLDER;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,7 @@ import org.springframework.security.config.annotation.web.configurers.PortMapper
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
-import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.ExceptionTranslationFilter;
@@ -383,7 +384,13 @@ public class MangoSecurityConfiguration {
                     @Override
                     public <O extends BearerTokenAuthenticationFilter> O postProcess(O object) {
                         // ensure we use MangoAuthenticationDetailsSource with recordLogin = false
-                        object.setAuthenticationDetailsSource(authenticationDetailsSource);
+                        try {
+                            Field authenticationDetailsSourceField = BearerTokenAuthenticationFilter.class.getDeclaredField("authenticationDetailsSource");
+                            authenticationDetailsSourceField.setAccessible(true);
+                            authenticationDetailsSourceField.set(object, authenticationDetailsSource);
+                        } catch (NoSuchFieldException | IllegalAccessException e) {
+                            throw new IllegalStateException("Can't set authenticationDetailsSource field", e);
+                        }
                         return object;
                     }
                 }));
