@@ -28,6 +28,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationTrustResolver;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -39,6 +40,7 @@ import org.springframework.security.config.annotation.web.configurers.PortMapper
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.ExceptionTranslationFilter;
@@ -374,7 +376,17 @@ public class MangoSecurityConfiguration {
             if (tokenAuthEnabled) {
                 AuthenticationManager authenticationManager = authenticationManagerBean();
                 // this adds the BearerTokenAuthenticationFilter, required to use MangoTokenAuthenticationProvider
-                http.oauth2ResourceServer(oauth -> oauth.jwt().authenticationManager(authenticationManager));
+                http.oauth2ResourceServer(oauth -> oauth.jwt()
+                        .authenticationManager(authenticationManager).and()
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .withObjectPostProcessor(new ObjectPostProcessor<BearerTokenAuthenticationFilter>() {
+                    @Override
+                    public <O extends BearerTokenAuthenticationFilter> O postProcess(O object) {
+                        // ensure we use MangoAuthenticationDetailsSource with recordLogin = false
+                        object.setAuthenticationDetailsSource(authenticationDetailsSource);
+                        return object;
+                    }
+                }));
             }
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
