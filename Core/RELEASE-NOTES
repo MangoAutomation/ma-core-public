@@ -1,8 +1,11 @@
+*Version 4.5.6*
+* Regression fix for OIDC/OAuth JWT bearer tokens that causing event for each request
+
 *Version 4.5.5*
 * Upgrade Jetty web server to version 9.4.53.v20231009
 
 *Version 4.5.4*
-* Enable use of OIDC/OAuth JWT bearer tokens.
+* Enable use of OIDC/OAuth JWT bearer tokens
 
 *Version 4.5.3*
 * Allowing grateful fallback when Ldap server is down.
@@ -13,7 +16,6 @@
 * Allow audit events when saving object without changes
 * Fix to allow users to remove roles from other users only when their permissions allows them to do so.
 * Fixes an infinite loop bug that creates megabytes of logs per second on a Modbus communication error
-
 
 *Version 4.5.1*
 * Improve performance for new points by setting the point value cache to an empty collection
